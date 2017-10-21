@@ -1,0 +1,170 @@
+{template 'public/header'}
+{template 'public/comhead'}
+<link rel="stylesheet" type="text/css" href="{MODULE_URL}public/web/css/main.css"/>
+
+{if $operation == 'display'}
+<script>
+require(['bootstrap'],function($){
+	$('.btn,.tips').hover(function(){
+		$(this).tooltip('show');
+	},function(){
+		$(this).tooltip('hide');
+	});
+});
+</script>
+
+<div class="main">
+    <style>
+        .form-control-excel {
+            height: 34px;
+            padding: 6px 12px;
+            font-size: 14px;
+            line-height: 1.42857143;
+            color: #555;
+            background-color: #fff;
+            background-image: none;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+            box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+            -webkit-transition: border-color ease-in-out .15s,-webkit-box-shadow ease-in-out .15s;
+            -o-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+            transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+        }
+    </style>
+	<script src="{MODULE_URL}public/web/js/webuploader.js"></script>
+	<script src="{MODULE_URL}public/web/js/wlzyList.js"></script>
+    <div class="panel panel-info">
+        <div class="panel-heading">报名管理</div>
+        <div class="panel-body">
+            <form action="./index.php" method="get" class="form-horizontal" role="form">
+                <input type="hidden" name="c" value="site" />
+                <input type="hidden" name="a" value="entry" />
+                <input type="hidden" name="m" value="fm_jiaoyu" />
+                <input type="hidden" name="do" value="signup" />
+				<input type="hidden" name="schoolid" value="{$schoolid}" />
+				 <div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">按年级</label>
+                    <div class="col-sm-2 col-lg-2">
+                        <select style="margin-right:15px;" name="nj_id" class="form-control">
+                            <option value="">请选择年级搜索</option>
+                            {loop $njlist $row}
+                            <option value="{$row['sid']}" {if $row['sid'] == $_GPC['nj_id']} selected="selected"{/if}>{$row['sname']}</option>
+                            {/loop}
+                        </select>
+                    </div>				 
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">按班级</label>
+                    <div class="col-sm-2 col-lg-2">
+                        <select style="margin-right:15px;" name="bj_id" class="form-control">
+                            <option value="">请选择班级搜索</option>
+                            {loop $bjlist $row}
+                            <option value="{$row['sid']}" {if $row['sid'] == $_GPC['bj_id']} selected="selected"{/if}>{$row['sname']}</option>
+                            {/loop}
+                        </select>
+                    </div>
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">按审核</label>
+                    <div class="col-sm-2 col-lg-2">
+                        <select style="margin-right:15px;" name="status" class="form-control">
+                            <option value="">请审核装搜索</option>
+                            <option value="1">审核中</option>
+                            <option value="2">已通过</option>
+							<option value="3">已拒绝</option>
+                        </select>
+                    </div>					
+                    <div class="col-sm-2 col-lg-2">
+                        <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+                    </div>					
+				</div>	
+            </form>
+        </div>
+    </div>	
+	<div class="panel panel-default" >
+		<div class="table-responsive panel-body">
+			<div id="queue-setting-index-body">
+				<div class="viewList" >
+				{loop $list $row}
+					<div class="viewBox" style="width:280px;background-color:#F5EFEF;border-top-left-radius: 3%;border-top-right-radius: 3%;border-bottom-left-radius: 3%;border-bottom-right-radius: 3%;">
+					<a class="btn btn-default btn-sm" style="background-color:#F5EFEF;position: relative;top:-15px;right:-255px;width:23px;height:23px;border-radius:50%;" href="{php echo $this->createWebUrl('signup', array('id' => $row['id'], 'op' => 'delete', 'schoolid' => $schoolid))}" onclick="return confirm('此操作不可恢复，确认删除？');return false;" title="删除"><i class="fa fa-times" style="color: #524d4d;top: -4px;right: 4px;position: relative;"></i></a>
+						<div class="content" style="margin-top: -20px;border-bottom:1px solid #c6c6c6;height:auto;">					
+								<a class="lightgray" >
+									<span><img style="width:30px;height:30px;border-radius:50%;" src="{php echo tomedia($row['avatar'])}"></span>&nbsp;
+									<span style="width:36px;text-overflow:hidden;white-space:nowrap;" class="label label-warning">{$row['nickname']}</span>
+									<span {if $row['status'] ==1}class="label label-warning"{else if $row['status'] ==2}class="label label-success"{else if $row['status'] ==3}class="label label-danger"{/if}>{if $row['status'] ==1}审核中{else if $row['status'] ==2}已通过{else if $row['status'] ==3}已拒绝{/if}</span>
+									<span {if $row['order'] ==1}class="label label-warning"{else if $row['order'] ==2}class="label label-success"{else if $row['order'] ==3}class="label label-danger"{/if}>{if $row['order'] ==1}未付费{else if $row['order'] ==2}已付费{else if $row['order'] ==3}已退费{/if}</span>
+									{if $row['status'] == 1}
+								    <a onclick="return confirm('确认通过申请，确认吗？'); return false;" href="{php echo $this->createWebUrl('signup', array('op' => 'pass', 'schoolid' => $schoolid, 'id' => $row['id']))}">通过</a>
+									<a onclick="return confirm('确认拒绝申请，确认吗？'); return false;" href="{php echo $this->createWebUrl('signup', array('op' => 'defid', 'schoolid' => $schoolid, 'id' => $row['id']))}">拒绝</a>
+									{/if}
+								</a>								
+						</div>
+						<div class="nameAndTime" width="100%" height="100%" border="1" style="border-bottom:1px solid #c6c6c6;">
+							<span class="label label-warning" style="float:left;padding:0 0;">学&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;生</span>
+							<span class="name" style="width:200px;">&nbsp;&nbsp;&nbsp;{$row['name']}</span>
+						</div>
+						</br>
+						<div class="nameAndTime" width="100%" height="100%" border="1" style="border-bottom:1px solid #c6c6c6;">
+							<span class="label label-success" style="float:left;padding:0 0;">性&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;别</span>
+							<span class="name" style="width:200px;">&nbsp;&nbsp;&nbsp;{if $row['sex'] == 1}男{else}女{/if}</span>
+						</div>
+						</br>
+						<div class="nameAndTime" width="100%" height="100%" border="1" style="border-bottom:1px solid #c6c6c6;">
+							<span class="label label-info" style="float:left;padding:0 0;">手&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;机</span>
+							<span class="name" style="width:200px;">&nbsp;&nbsp;&nbsp;{$row['mobile']}</span>
+						</div>
+						{if !empty($row['birthday'])}
+						</br>
+						<div class="nameAndTime" width="100%" height="100%" border="1" style="border-bottom:1px solid #c6c6c6;">
+							<span class="label label-info" style="float:left;padding:0 0;">生&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;日</span>
+							<span class="name" style="width:200px;">&nbsp;&nbsp;&nbsp;{php echo date('Y年m月d日', $row['birthday'])}</span>
+						</div>
+						{/if}
+						{if !empty($row['nj_id'])}
+						</br>
+						<div class="nameAndTime" width="100%" height="100%" border="1" style="border-bottom:1px solid #c6c6c6;">
+							<span class="label label-info" style="float:left;padding:0 0;">年&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;级</span>
+							<span class="name" style="width:200px;">&nbsp;&nbsp;&nbsp;{$row['njname']}</span>
+						</div>
+						{/if}
+						{if !empty($row['bj_id'])}
+						</br>
+						<div class="nameAndTime" width="100%" height="100%" border="1" style="border-bottom:1px solid #c6c6c6;">
+							<span class="label label-info" style="float:left;padding:0 0;">班&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;级</span>
+							<span class="name" style="width:200px;">&nbsp;&nbsp;&nbsp;{$row['bjname']}</span>
+						</div>
+						{/if}
+						</br>
+						<div class="nameAndTime" width="100%" height="100%" border="1" style="border-bottom:1px solid #c6c6c6;">
+							<span class="label label-info" style="float:left;padding:0 0;">申请时间</span>
+							<span class="name" style="width:200px;">&nbsp;&nbsp;&nbsp;{php echo date('Y-m-d H:m', $row['createtime'])}</span>
+						</div>
+						{if !empty($row['passtime'])}
+						</br>
+						<div class="nameAndTime" width="100%" height="100%" border="1" style="border-bottom:1px solid #c6c6c6;">
+							<span class="label label-info" style="float:left;padding:0 0;">处理时间</span>
+							<span class="name" style="width:200px;">&nbsp;&nbsp;&nbsp;{php echo date('Y-m-d H:m', $row['passtime'])}</span>
+						</div>
+						{/if}
+						{if !empty($row['cost'])}
+						</br>
+						<div class="nameAndTime" width="100%" height="100%" border="1" style="border-bottom:1px solid #c6c6c6;">
+							<span class="label label-info" style="float:left;padding:0 0;">报名费用</span>
+							<span class="name" style="width:200px;">&nbsp;&nbsp;&nbsp;￥{$row['cost']}</span>
+						</div>
+						{/if}
+						{if !empty($row['pard'])}
+						</br>
+						<div class="nameAndTime" width="100%" height="100%" border="1" style="border-bottom:1px solid #c6c6c6;">
+							<span class="label label-info" style="float:left;padding:0 0;">关&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;系</span>
+							<span class="name" style="width:200px;">&nbsp;&nbsp;&nbsp;{if $row['pard'] == 2}母亲{else if $row['pard'] == 3}父亲{else if $row['pard'] == 4}本人{/if}</span>
+						</div>
+						{/if}						
+					</div>
+				{/loop}
+				</div>
+			</div>	
+		</div>
+	</div>
+	{$pager}
+</div>		
+{/if}
+{template 'public/footer'}

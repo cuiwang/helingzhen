@@ -1,0 +1,118 @@
+{template 'common/header'}
+{php echo $this -> set_tabbar($action);}
+{if $operation == 'display'}
+<div class="main">
+    <div class="panel panel-default">
+        <div class="table-responsive panel-body">
+            <a class="btn btn-success" href="{php echo $this->createWebUrl('area', array('op' => 'post'))}"><i class="fa fa-plus"></i>添加区域</a>
+        </div>
+    </div>
+    <div class="panel panel-default">
+        <div class="table-responsive panel-body">
+            <form action="" method="post" class="form-horizontal form">
+                <table class="table table-hover">
+                    <thead class="navbar-inner">
+                    <tr>
+                        <th style="width:10%;">显示顺序</th>
+                        <th style="width:75%;">区域名称</th>
+                        <th style="width:15%;text-align: right;">操作</th>
+                    </tr>
+                    </thead>
+                    <tbody id="level-list">
+                    {loop $area $row}
+                    <tr>
+                        <td>
+                            <input type="text" class="form-control" name="displayorder[{$row['id']}]" value="{$row['displayorder']}"></td>
+                        <td>
+                            <div class="type-parent">{$row['name']}</div>
+                        </td>
+                        <td style="text-align: right;">
+                            <a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('area', array('op' => 'post', 'id' => $row['id'], 'storeid' => $storeid))}" title="编辑"><i class="fa fa-pencil"></i></a>
+                            <a class="btn btn-default btn-sm" onclick="return confirm('确认删除吗？');return false;" href="{php echo $this->createWebUrl('area', array('op' => 'delete', 'id' => $row['id'], 'storeid' => $storeid))}" title="删除"><i class="fa fa-times"></i></a>
+                        </td>
+                    </tr>
+                    {/loop}
+                    <tr>
+                        <td colspan="5">
+                            <input name="submit" type="submit" class="btn btn-primary" value="批量更新排序">
+                            <input type="hidden" name="token" value="{$_W['token']}"/>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </form>
+        </div>
+    </div>
+    {$pager}
+</div>
+</div>
+{elseif $operation == 'post'}
+<div class="main">
+	<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data">
+	<input type="hidden" name="parentid" value="{$parent['id']}" />
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            区域编辑
+        </div>
+        <div class="panel-body">
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">区域名称</label>
+                <div class="col-sm-9">
+                    <input type="text" name="catename" class="form-control" value="{$item['name']}" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">排序</label>
+                <div class="col-sm-9">
+                    <input type="text" name="displayorder" class="form-control" value="{$item['displayorder']}" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-sm-12">
+            <input name="submit" type="submit" value="提交" class="btn btn-primary ">
+            <input type="hidden" name="token" value="{$_W['token']}"/>
+        </div>
+    </div>
+	</form>
+</div>
+<script type="text/javascript" src="./resource/script/kindeditor/kindeditor-min.js"></script>
+<script type="text/javascript" src="./resource/script/kindeditor/lang/zh_CN.js"></script>
+<link type="text/css" rel="stylesheet" href="./resource/script/kindeditor/themes/default/default.css" />
+<script type="text/javascript">
+    kindeditor($('.richtext-clone'));
+</script>
+<script type="text/javascript">
+    var editor = KindEditor.editor({
+        allowFileManager : true,
+        uploadJson : "site.php?act=module&do=uploadphoto&name=weisrc_businesscenter&imagetype={if empty($parentid)}area{else}childarea{/if}",
+        fileManagerJson : "./index.php?act=attachment&do=manager",
+        afterUpload : function(url, data) {
+        }
+    });
+    $("#upload-image-logo").click(function() {
+        editor.loadPlugin("image", function() {
+            editor.plugin.imageDialog({
+                tabIndex : 1,
+                imageUrl : $("#upload-image-url-logo").val(),
+                clickFn : function(url) {
+                    editor.hideDialog();
+                    var val = url;
+                    if(url.toLowerCase().indexOf("http://") == -1 && url.toLowerCase().indexOf("https://") == -1) {
+                        var filename = /images(.*)/.exec(url);
+                        if(filename && filename[0]) {
+                            val = filename[0];
+                        }
+                    }
+
+                    $("#upload-image-url-logo-old").val($("#upload-image-url-logo").val());
+                    $("#upload-image-url-logo").val(val);
+                    $("#upload-image-preview-logo").html('<img src="'+url+'" width="80px;" />');
+                }
+            });
+        });
+    });
+</script>
+{/if}
+{template 'common/footer'}

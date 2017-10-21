@@ -1,0 +1,139 @@
+{template 'common/header'}
+<script type="text/javascript" src="resource/js/lib/jquery-1.11.1.min.js"></script>
+
+<div class="main">
+	<div class="panel panel-info">
+
+		<div class="panel-heading">生成设置</div>
+		<div class="panel-body">
+			<form action="" method="post" class="form-horizontal form" id="setting-form"  onsubmit="return  checkcodenum();">
+				<div class="form-group">
+					<label class="col-xs-5 col-sm-2 col-md-2 col-lg-1 control-label">兑换码数量</label>
+					<div class="col-sm-8">
+						<input type="text" name="count" class="form-control" id = "codenum"  value="" placeholder="兑换码数量：注：一批最多生产200个"/>
+					</div>
+				</div>
+				<div class="form-group">
+                    <label class="col-xs-5 col-sm-2 col-md-2 col-lg-1 control-label">积分</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="jifen" class="form-control" id = "jifen"  value="" placeholder="输入积分数"/>
+                    </div>
+				</div>
+				<div class="form-group">
+					<div class="col-xs-12 col-sm-9 col-md-10 col-lg-2 col-sm-offset-3 col-md-offset-2 col-lg-offset-2">
+						<input name="submit" type="submit"   value="提交" class="btn btn-primary" />
+						<input type="hidden" name="token" value="{$_W['token']}" />
+						<input type="hidden" name="hbid" value="{$hbid}" />
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+	<div class="category">
+		<form action="" method="post" onsubmit="return formcheck(this)">
+			<div class="panel panel-default">
+				<div class="panel-body table-responsive">
+					<table class="table table-hover">
+						<thead>
+							<tr>
+								<th style="width:70px;">批次编号</th>
+								<th style="width:100px;">生成时间</th>
+								<th style="width:70px;">生成数量</th>
+								<th style="width:70px;">已使用</th>
+								<th style="width:70px;">积分</th>
+								<th style="width:100px;">操作</th>
+							</tr>
+						</thead>
+						<tbody>
+						{loop $list $row}
+						<tr>
+						{if count($list) > 0}
+							<td><div class="type-parent">{$row['id']}</div></td>
+							<td><div class="type-parent">{php echo date('Y-m-d H:i:s',$row['time'])}</div></td>
+							<td>
+								<span class='label label-success'>{$row['count']}</span>
+							</td>
+							<td>
+								<span class='label label-success'>{$row['usedcount']}</span>
+							</td>
+								<td>
+								<div >
+                                    {$row['jifen']}
+								</div>
+							</td>
+							
+
+							<td>
+								<a href="{php echo $this->createWebUrl('showcode', array( 'piciid' => $row['id']))}" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" target="_black" title="查看"><i class="fa fa-search"></i></a>&nbsp;&nbsp;
+								<a href="{php echo $this->createWebUrl('export', array( 'piciid' => $row['id']))}" class="btn btn-default btn-sm " data-toggle="tooltip" data-placement="bottom" title="导出验证码"><i class="fa fa-align-justify"></i>导出验证码</a>&nbsp;&nbsp;
+								<a href="{php echo $this->createWebUrl('import', array( 'piciid' => $row['id']))}" class="btn btn-default btn-sm " data-toggle="tooltip" data-placement="bottom" title="导入验证码"><i class="fa fa-align-justify"></i>导入验证码</a>&nbsp;&nbsp;
+							</td>
+						{else}
+						还未有任何数据	
+						{/if}	
+						</tr>
+						{/loop}
+						</tbody>
+					</table>
+					{$pager}
+				</div>
+				<script type="text/javascript">
+				function ChangeType(batchid,sta){
+					var str = '你确定要改变第'+batchid+'批次所有二维码开启状态吗？';
+					if(window.confirm(str)){
+		             	//alert("确定");
+		             	var url = "{php echo $this->createWebUrl('ChangeCodeType');}";
+		             	var home = "{php echo $this->createWebUrl('ManageUnused');}";
+		             	$.ajax({
+							type: "post",
+							async: false,
+							url: url,
+							data: { "type": "code", "batchid": batchid,"sta":sta},
+							success: function(data) {
+								if (data == "OK") {
+									alert("开启状态更改成功");
+									//window.location.href=home;
+									window.location.reload();
+								}else if(data == "error"){
+									alert("开启状态更改失败");
+									window.location.reload();
+									//window.location.href="{php echo $this->createMobileUrl('apply')}";
+								}
+							},
+							error: function(request) {
+								alert("服务器连接失败！");
+							}
+						});
+		          	}else{
+		             	//alert("取消");
+		             	return false;
+		         	}
+					
+				}
+				
+				function checkcodenum(){
+					var num = $.trim($("#codenum").val());
+                    var jifen = $.trim($("#jifen").val());
+					if(isNaN(num) || num == ''){
+						alert("请正确填写生成数量！");
+						return false;
+					}else if(num > 200){
+						alert("一批生成数量不能超过200！");
+						return false;
+					}
+
+
+                    if(isNaN(jifen) || jifen == ''){
+                        alert("请正确填写积分！");
+                        return false;
+                    }
+					return true;
+					//$("#setting-form").submit();
+					
+				}
+				</script>
+			</div>
+		</form>
+	</div>
+</div>
+{template 'common/footer'}

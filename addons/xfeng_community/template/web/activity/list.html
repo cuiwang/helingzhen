@@ -1,0 +1,111 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+        <li class="active"><a href="{php echo $this->createWebUrl('activity', array('op' => 'list'));}">活动管理</a>
+        </li>
+        <li><a href="{php echo $this->createWebUrl('activity', array('op' => 'add'));}">创建活动</a>
+        </li>
+    </ul>
+    <div class="panel panel-info">
+        <div class="panel-heading">筛选</div>
+        <div class="panel-body">
+            <form action="" method="post" class="form-horizontal" role="form">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 control-label">活动标题</label>
+                    <div class="col-sm-8 col-md-8 col-lg-8 col-xs-12">
+                        <input class="form-control" name="keyword" id="" type="text" value="{$_GPC['keyword']}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="pull-right col-xs-12 col-sm-2 col-md-2 col-lg-2">
+                        <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div style="padding:15px;">
+    	<form action="" class="form-horizontal form" method="post" enctype="multipart/form-data">
+        <table class="table table-hover">
+            <thead class="navbar-inner">
+                <tr>
+                	<!-- <th style="width:30px;">删？</th> -->
+                    <th>活动标题</th>
+                    <th>活动时间</th>
+                    <th>发布时间</th>
+                    <th class="col-lg-1">预付定金</th>
+                    <th>是否置顶</th>
+                    <th class="col-lg-2">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {loop $list $item}
+                <tr>
+                	<!-- <td style="width:30px;"><input type="checkbox" id="id" name="id[]" value="{$item['id']}"></td> -->
+                    <td>{$item['title']}</td>
+                    <td>{php echo date('Y-m-d', $item[starttime]);}至{php echo date('Y-m-d', $item[endtime]);}</td>
+                    <td>{php echo date('Y-m-d H:i:s', $item[createtime]);}</td>
+                    <td>{if $item['price']}{$item['price']}{else}0{/if}元</td>
+                    <td>
+                    	<input type="checkbox" value="1"{if intval($item[status])==1} checked="checked"{/if} data="{$item[id]}"/>
+
+                    </td>
+                    <td>
+                        <span>
+                            <a href="{php echo $this->createWebUrl('activity',array('op' => 'add','id' => $item['id']))}" title="编辑" class="btn btn-default btn-sm" ><i class="fa fa-edit" data-toggle="tooltip" data-placement="top"></i>编辑</a> 
+                        
+                            <a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('activity',array('op' => 'delete','id' => $item['id']))}" title="" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm" data-original-title="删除"><i class="fa fa-times"></i>删除</a>
+
+                            <a  href="{php echo $this->createWebUrl('activity',array('op' => 'order','id' => $item['id']))}" title="" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm" data-original-title="订单管理"><i class="glyphicon glyphicon-list"></i>订单管理</a>
+						</span>
+                    </td>
+                </tr>
+                {/loop}
+            </tbody>
+        </table>
+        {$pager}
+        <!-- {if $list}
+        <table class="table table-hover">
+            <tr>
+                <td width="30">
+                    <input type="checkbox" onclick="var ck = this.checked;$(':checkbox').each(function(){this.checked = ck});" />
+                </td>
+                <td class="text-left">
+                    <input name="token" type="hidden" value="{$_W['token']}" />
+                    <input type="submit" class="btn btn-primary span2" name="delete" value="删除" /> &nbsp;
+                </td>
+            </tr>
+        </table>
+        {/if} -->
+        </form>
+    </div>
+<script type="text/javascript">
+	require(['bootstrap.switch', 'util'], function($, u){
+        $(function(){
+            $(':checkbox').bootstrapSwitch();
+            $(':checkbox').on('switchChange.bootstrapSwitch', function(e, state){
+                $this = $(this);
+                var id = $this.attr('data');
+                var status = this.checked ? 1 : 0;
+                // alert(hid);return false;
+                $.post(location.href, {status: status, id: id}, function(resp){
+                    if(resp != 'success') {
+                        u.message('操作失败, 请稍后重试.')
+                    }
+                    {if !empty($module)}
+                    else {
+                        u.message('操作成功！');
+                        window.setTimeout(function(){location.href = location.href;}, 800);
+                    }
+                    {/if}
+                });
+            });
+            $('.btn').hover(function(){
+                $(this).tooltip('show');
+            },function(){
+                $(this).tooltip('hide');
+            });
+        });
+    });
+</script>
+
+{template 'common/footer'}

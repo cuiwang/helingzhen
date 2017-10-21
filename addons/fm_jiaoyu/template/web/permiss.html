@@ -1,0 +1,147 @@
+{template 'public/header'}
+{template 'public/comhead'}
+<input type="hidden" name="schoolid" value="{$schoolid}" />
+<div class="panel panel-info">
+	<div class="panel-body">
+	   {php echo $this -> set_tabbar($action1, $schoolid, $_W['role'], $_W['isfounder']);}
+	</div>
+</div>
+ <style>
+.cLine {overflow: hidden;padding: 5px 0;color:#000000;}
+.alert {padding: 8px 35px 0 10px;text-shadow: none;-webkit-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);-moz-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);background-color: #f9edbe;border: 1px solid #f0c36d;-webkit-border-radius: 2px;-moz-border-radius: 2px;border-radius: 2px;color: #333333;margin-top: 5px;}
+.alert p {margin: 0 0 10px;display: block;}
+.alert .bold{font-weight:bold;}
+ </style>
+<div class="cLine">
+    <div class="alert">
+		<p><span class="bold">使用方法：</span>    
+		<strong><font color='red'>特别提醒: 当你删除该时段项的时候,该时段项下相关的所有数据都会被删除,请谨慎操作!以免丢失数据!</font></strong>
+		</br>学校后台登录帐号在此处添加，请关联教师，如该教师为设置分组请先前往教师中心为该教师设置分组
+		</p>
+    </div>
+</div>
+{if $_GPC['reference'] != 'solution'}
+<ul class="nav nav-tabs">
+    <li {if $_GPC['do'] == 'permiss'}class="active"{/if}><a href="{php echo $this->createWebUrl('permiss', array('schoolid' => $schoolid))}">本校可用帐号列表</a></li>
+    <li {if $_GPC['do'] == 'creates'}class="active"{/if}><a href="{php echo $this->createWebUrl('creates', array('op' => 'display', 'schoolid' => $schoolid))}">添加帐号</a></li>
+</ul>
+{/if}
+<div class="clearfix">
+	<h5 class="page-header">设置校园登录账户</h5>
+	<div class="alert alert-info">
+		<i class="fa fa-exclamation-circle"></i> 此页面仅限学校管理员查看和使用
+	</div>
+	<div class="panel panel-default">
+	<div class="panel-body table-responsive">
+		<table class="table table-hover">
+			<thead>
+				<tr>
+					<th style="width:80px;">用户ID</th>
+					<th style="width:150px;">用户名</th>
+					<th style="width:150px;">教师</th>
+					<th style="width:150px;">教师分组</th>
+					<th style="width:200px;">角色</th>
+					<th style="text-align:right;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+			{loop $member $row}
+				<tr>
+					<td>{$row['uid']}</td>
+					<td>{$row['username']}</td>
+					<td>{$row['tname']}</td>
+					<td><span class="label label-info">{$row['fzname']}</span></td>
+					<td>
+						{if in_array($member[$row['uid']]['uid'], $founders)}
+						<span class="label label-warning">创始人</span>
+						{elseif $permission[$row['uid']]['role'] == 'owner'}
+						<span class="label label-warning">主管理员</span>
+						{else}
+						<label for="radio_{$row['uid']}_1" class="radio-inline" style="padding-top:0; float:left; width:70px;"><input type="radio" name="role[{$row['uid']}]" targetid="{$row['uid']}" id="radio_{$row['uid']}_1" value="operator" {if empty($permission[$row['uid']]['role']) || $permission[$row['uid']]['role'] == 'operator'} checked{/if} /> 操作员</label>
+						<label for="radio_{$row['uid']}_2" class="radio-inline" style="padding-top:0; float:left; width:70px;"><input type="radio" name="role[{$row['uid']}]" targetid="{$row['uid']}" id="radio_{$row['uid']}_2" value="manager" {if $permission[$row['uid']]['role'] == 'manager'} checked{/if} /> 学校管理</label>
+						{/if}
+					</td>
+					<td style="text-align:right;">
+						{if in_array($member[$row['uid']]['uid'], $founders)}
+						创始人拥有系统最高权限
+						{elseif $row['role'] == 'owner'}
+						主管理员拥有公众号的所有权限，并且公众号的权限（模块、模板）根据主管理员来获取
+						{else}
+						{if $_W['isfounder'] || $_W['role'] == 'owner' || $_W['role'] == 'manager'}<a href="{php echo $this->createWebUrl('creates', array('uid' => $row['uid'], 'schoolid' => $schoolid, 'uniacid' =>$weid))}">编辑用户</a>&nbsp;&nbsp;
+						<a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('permiss', array('uid' => $row['uid'], 'op' => 'revo', 'schoolid' => $schoolid, 'uniacid' =>$weid))}" onclick="return confirm('此操作不可恢复，确认删除？');return false;" title="删除"><i class="fa fa-times"></i></a>{/if}
+						{/if}
+					</td>					
+				</tr>
+			{/loop}
+			</tbody>
+		</table>
+	</div>
+	</div>
+</div>
+<script type="text/javascript">
+var seletedUserIds = {php echo json_encode($uids);};
+require(['biz', 'bootstrap'], function(biz){
+	$(function(){
+		$('#add-user').click(function(){
+			$('#user-modal').modal('show');
+
+			$('#form1').submit(function(){
+				var username = $.trim($('#form1 :text[name="username"]').val());
+				if(!username) {
+					util.message('没有输入用户名.', '', 'error');
+					return false;
+				}
+				$.post("{php echo url('account/permission/user', array('uniacid' => $uniacid))}", {'username':username}, function(data){
+					if(data != 'success') {
+						util.message(data, '', 'error');
+					} else {
+						util.message('添加账号操作员成功', "{php echo url('account/permission/', array('uniacid' => $uniacid))}", 'success');
+					}
+				});
+				return false;
+			});
+		});
+
+		$('#btn-add').click(function(){
+			biz.user.browser(seletedUserIds, function(us){
+				$.post('{php echo url('account/permission', array('uniacid' => $uniacid, 'reference' => $_GPC['reference']));}', {'do': 'auth', uid: us}, function(dat){
+					if(dat == 'success') {
+						location.reload();
+					} else {
+						alert('操作失败, 请稍后重试, 服务器返回信息为: ' + dat);
+					}
+				});
+			},{mode:'invisible'});
+		});
+
+		$('#btn-revo').click(function(){
+			$chks = $(':checkbox.member:checked');
+			if($chks.length >0){
+				if(!confirm('确认删除当前选择的用户?')){
+					return;
+				}
+				var ids = [];
+				$chks.each(function(){
+					ids.push(this.value);
+				});
+				$.post('{php echo url('account/permission', array('uniacid' => $uniacid));}',{'do':'revos', 'ids': ids},function(dat){
+					if(dat == 'success') {
+						location.reload();
+					} else {
+						alert('操作失败, 请稍后重试, 服务器返回信息为: ' + dat);
+					}
+				});
+			}
+		});
+
+		$("input[name^='role[']").click(function(){
+			$.post('{php echo url('account/permission/role', array('uniacid' => $uniacid));}', {'uid' : $(this).attr('targetid'), 'role' : $(this).val()}, function(dat){
+				if(dat != 'success') {
+					u.message('设置管理员角色失败', "{php echo url('account/permission', array('uniacid' => $uniacid))}", 'error');
+				}
+			});
+		});
+	});
+});
+</script>
+{template 'public/footer'}

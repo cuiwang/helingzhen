@@ -1,0 +1,682 @@
+{template 'public/header'}
+{template 'public/comhead'}
+{if $operation == 'display'}
+<div class="main">
+    <style>
+        .form-control-excel {
+            height: 34px;
+            padding: 6px 12px;
+            font-size: 14px;
+            line-height: 1.42857143;
+            color: #555;
+            background-color: #fff;
+            background-image: none;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+            box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+            -webkit-transition: border-color ease-in-out .15s,-webkit-box-shadow ease-in-out .15s;
+            -o-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+            transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+        }
+    </style>
+    <div class="panel panel-info">
+        <div class="panel-heading">教师管理</div>
+        <div class="panel-body">
+            <form action="./index.php" method="get" class="form-horizontal" role="form">
+                <input type="hidden" name="c" value="site" />
+                <input type="hidden" name="a" value="entry" />
+                <input type="hidden" name="m" value="fm_jiaoyu" />
+                <input type="hidden" name="do" value="assess" />
+                <input type="hidden" name="schoolid" value="{$schoolid}" />
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label" style="width: 100px;">关键字</label>
+                    <div class="col-sm-2 col-lg-2">
+                        <input class="form-control" name="keyword" id="" type="text" value="{$_GPC['keyword']}">
+                    </div>
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">按班级</label>
+                    <div class="col-sm-2 col-lg-2">
+                        <select style="margin-right:15px;" name="bj_id" class="form-control">
+                            <option value="0">请选择班级搜索</option>
+                            {loop $bj $row}
+                            <option value="{$row['sid']}" {if $row['sid'] == $_GPC['bj_id']} selected="selected"{/if}>{$row['sname']}</option>
+                            {/loop}
+                        </select>
+                    </div>
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">按科目</label>   
+                    <div class="col-sm-2 col-lg-2">
+                        <select style="margin-right:15px;" name="km_id" class="form-control">
+                            <option value="0">请选择科目搜索</option>
+                            {loop $km $row}
+                            <option value="{$row['sid']}" {if $row['sid'] == $_GPC['km_id']} selected="selected"{/if}>{$row['sname']}</option>
+                            {/loop}
+                        </select>
+                    </div>
+					<div class="col-sm-2 col-lg-2">
+						<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+					</div>	
+					<div class="col-sm-2 col-lg-2">
+						<button class="btn btn-success" name="out_putcode" value="out_putcode"><i class="fa fa-download"></i>导出教师绑定码</button>
+					</div>             
+                </div>
+            <div class="form-group">
+                  <a style="margin-left:40px;" class="btn btn-primary" href="{php echo $this->createWebUrl('assess', array('op' => 'post', 'schoolid' => $schoolid))}"><i class="fa fa-plus"></i> 添加教师信息</a>
+                  <a class="btn btn-success" href="javascript:;" onclick="$('.file-container').slideToggle()">批量导入老师</a>
+                  <a class="btn btn-danger" href="{php echo $this->createWebUrl('assess', array('op' => 'clear', 'schoolid' => $schoolid))}"><i class="fa fa-trash-o"></i> 清除垃圾信息</a>
+                  <a class="btn btn-primary" href="javascript:location.reload()"><i class="fa fa-refresh"></i> 刷新</a>   
+            </div>   
+            </form>
+
+        </div>
+    </div>
+    <div class="panel panel-default file-container" style="display:none;">
+        <div class="panel-body">
+            <form action="" method="post" class="form-horizontal form" enctype="multipart/form-data">
+                <input type="hidden" name="leadExcel" value="true">
+                <input type="hidden" name="c" value="site" />
+                <input type="hidden" name="a" value="entry" />
+                <input type="hidden" name="m" value="fm_jiaoyu" />
+                <input type="hidden" name="do" value="UploadExcel" />
+                <input type="hidden" name="ac" value="assess" />
+                <input type="hidden" name="schoolid" value="{$schoolid}" />
+            <input name="viewfile" id="viewfile" type="text" value="" style="margin-left: 40px;" class="form-control-excel" readonly>
+                <a class="btn btn-primary"><label for="unload" style="margin: 0px;padding: 0px;">上传...</label></a>
+                <input type="file" class="pull-left btn-primary span3" name="inputExcel" id="unload" style="display: none;" onchange="document.getElementById('viewfile').value=this.value;this.style.display='none';">
+                <!--<input type="file" class=" pull-left btn-primary span3" name="inputExcel">-->
+                <input type="submit" class="btn btn-primary" name="btnExcel" value="导入数据">
+                <a class="btn btn-primary" href="../addons/fm_jiaoyu/public/example/example_assess.xls">下载导入模板</a>
+            </form>
+        </div>
+    </div>
+    <div class="panel panel-default">
+        <div class="table-responsive panel-body">
+        <form action="" method="post" class="form-horizontal form" enctype="multipart/form-data">
+      <input type="hidden" name="schoolid" value="{$schoolid}" />
+        <table class="table table-hover">
+         <thead class="navbar-inner">
+            <tr>
+               <th class='with-checkbox' style="text-align:left;width: 10px;"><input type="checkbox" class="check_all" /></th>
+               <th style="width:55px">姓名</th>
+               <th style="width:4%;">性别</th>
+               <th style="width:10%;">授课年级 </th>
+               <th style="width:13%;">授课班级</th>
+               <th style="width:6%;">授课科目</th>
+               <th style="width:5%;">课程数目</th>
+               <th style="width:5%;">课时</th>
+				<th style="width:8%;">手机</th>
+				<th style="width:8%;">添加课程</th>   
+				<th style="width:8%;">微信绑定</th>   
+				<th style="width:6%;"></th>                  
+               <th style="text-align:right; width:8%;">操作</th>
+            </tr>
+         </thead>
+         <tbody>
+            {loop $list $item}
+            <tr>
+                <td class="with-checkbox"><input type="checkbox" name="check" value="{$item['id']}"></td>
+                <td>
+                <img style="width:50px;height:50px;border-radius:50%;" src="{if !empty($item['thumb'])}{php echo tomedia($item['thumb'])}{else}{php echo tomedia($school['tpic'])}{/if}" width="50"  style="border-radius: 3px;" /></br></br>{$item['tname']}
+                </td>
+                <td>{if $item['sex'] == 1}<span class="label label-info">男</span>{else}<span class="label label-success">女</span>{/if}</br></br>
+                <span class="label label-success">{php echo (date('Y',TIMESTAMP) - date('Y',$item['birthdate']))}岁</span>
+                </td>
+                <td>{if $item['xq_id1']}{$item['xq1']}{/if}{if $item['xq_id2']}</br>{$item['xq2']}{/if}{if $item['xq_id3']}</br>{$item['xq3']}{/if}</td>
+                <td>{if $item['bj_id1']}{$item['bj1']}{/if}{if $item['bj_id2']}</br>{$item['bj2']}{/if}{if $item['bj_id3']}</br>{$item['bj3']}{/if}</td>
+                <td>{if $item['km_id1']}{$item['km1']}{/if}{if $item['km_id2']}</br>{$item['km2']}{/if}{if $item['km_id3']}</br>{$item['km3']}{/if}</td>
+                <td><span class="label label-warning">共{$item['kcnum']}条</span></td>   
+                <td>
+                <span class="label label-info">共{$item['zks']}节</span></br></br>
+                <span class="label label-warning">未完{$item['wwks']}节</span></br></br>
+                <span class="label label-danger">已完{$item['ywks']}节</span>
+                </td>               
+                <td>{$item['mobile']}</td>
+                    <td><a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('assess', array('id' => $item['id'], 'op' => 'add', 'schoolid' => $schoolid))}" title="添加课程"><i class="fa fa-qrcode">&nbsp;&nbsp;添加课程</i></a></td>               
+               <td>
+               {if !empty($item['openid'])}
+               <img style="width:50px;height:50px;border-radius:50%;" src="{php echo tomedia($item['avatar'])}" width="50"  onerror="this.src='./resource/images/nopic.jpg';" style="border-radius: 3px;" /></br>{$item['nickname']} </br>
+               <a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('assess', array('id' => $item['id'], 'op' => 'jiebang', 'schoolid' => $schoolid))}" onclick="return confirm('此操作不可恢复，确认解绑？');return false;" title="解绑"><i class="fa fa-times"></i>&nbsp;解绑</a>			   
+               {else}
+               <span title="{$item['code']}">绑定码:{$item['code']}</span>
+               {/if}
+               </td>
+               <td>
+                    {if $item['status'] == 2}<span class="label label-danger">校长</span>{else if $item['status'] == 1}<span class="label label-success">教员</span>{else if $item['status'] == 3}<span class="label label-info">年级管理</span>{/if}</br></br>
+                    {if $item['is_show'] == 1}<span class="label label-danger">隐藏</span>{else if $item['is_show'] == 0}<span class="label label-success">显示</span>{/if}
+               </td>       
+               <td style="text-align:right;">
+                  <a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('assess', array('id' => $item['id'], 'op' => 'post', 'schoolid' => $schoolid))}" title="编辑"><i class="fa fa-pencil"></i></a>&nbsp;&nbsp;<a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('assess', array('id' => $item['id'], 'op' => 'delete', 'schoolid' => $schoolid))}" onclick="return confirm('此操作不可恢复，确认删除？');return false;" title="删除"><i class="fa fa-times"></i></a>
+               </td>
+            </tr>
+            {/loop}
+         </tbody>
+         <tr>
+            <td colspan="10">
+               <input name="token" type="hidden" value="{$_W['token']}" />
+                    <input type="button" class="btn btn-primary" name="btndeleteall" value="批量删除" />
+            </td>
+         </tr>
+      </table>
+        {$pager}
+    </form>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+<!--
+   var category = {php echo json_encode($children)};
+//-->
+$(function(){
+    $(".check_all").click(function(){
+        var checked = $(this).get(0).checked;
+        $("input[type=checkbox]").attr("checked",checked);
+    });
+
+    $("input[name=btndeleteall]").click(function(){
+        var check = $("input[type=checkbox][class!=check_all]:checked");
+        if(check.length < 1){
+            alert('请选择要删除的教师!');
+            return false;
+        }
+        if(confirm("确认要删除选择的教师?")){
+            var id = new Array();
+            check.each(function(i){
+                id[i] = $(this).val();
+            });
+            var url = "{php echo $this->createWebUrl('assess', array('op' => 'deleteall','schoolid' => $schoolid))}";
+            $.post(
+                url,
+                {idArr:id},
+                function(data){
+                    if(data.result){
+					    alert(data.msg);
+                        location.reload();
+                    }else{
+                        alert(data.msg);
+                    }
+                },'json'
+            );
+        }
+    });
+
+});
+</script>
+{elseif $operation == 'post'}
+<div class="panel panel-info">
+    <div class="panel-heading"><a class="btn btn-primary" onclick="javascript :history.back(-1);"><i class="fa fa-tasks"></i> 返回教师列表</a></div>
+</div>
+<div class="main">
+    <form action="" method="post" class="form-horizontal form" enctype="multipart/form-data">
+        <input type="hidden" name="id" value="{$item['id']}" />
+      <input type="hidden" name="schoolid" value="{$schoolid}" />
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                编辑教师详情
+            </div>
+            <div class="panel-body">
+				<div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">教师姓名</label>
+                    <div class="col-sm-9">
+                        <div class="input-group">
+                            <input type="text" name="tname" class="form-control" value="{$item['tname']}" />
+                        </div>
+                    </div>
+                </div>
+				<div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">头像</label>
+                    <div class="col-sm-9">                
+                        {php echo tpl_form_field_image('thumb', $item['thumb'])}      
+                        <span class="help-block"></span>
+                    </div>
+                </div>
+				<div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">前端是否显示</label>
+                    <div class="col-sm-9">
+                        <label for="isshow1" class="radio-inline"><input type="radio" name="is_show" value="1" id="isshow1" {if empty($item) || $item['is_show'] == 1}checked="true"{/if} /> 否</label>
+                        &nbsp;&nbsp;&nbsp;
+                        <label for="isshow2" class="radio-inline"><input type="radio" name="is_show" value="0" id="isshow2"  {if !empty($item) && $item['is_show'] == 0}checked="true"{/if} /> 是</label>
+                        <span class="help-block"></span>
+                    </div>
+                </div>            
+				<div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">选择性别</label>
+                    <div class="col-sm-9">
+                        <label for="isshow1" class="radio-inline"><input type="radio" name="sex" value="1" id="isshow1" {if empty($item) || $item['sex'] == 1}checked="true"{/if} /> 男</label>
+                        &nbsp;&nbsp;&nbsp;
+                        <label for="isshow2" class="radio-inline"><input type="radio" name="sex" value="0" id="isshow2"  {if !empty($item) && $item['sex'] == 0}checked="true"{/if} /> 女</label>
+                        <span class="help-block"></span>
+                    </div>
+                </div>
+				<div class="form-group">
+                   <label class="col-xs-12 col-sm-3 col-md-2 control-label">出生日期</label>
+                   <div class="col-sm-9">
+					   <div class="input-group">
+						{if !empty($item['birthdate'])}{php echo tpl_form_field_date('birthdate', date('Y-m-d', $item['birthdate']))}{else}{php echo tpl_form_field_date('birthdate', date('Y-m-d', 516599001))}{/if}            
+					   </div>
+					</div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">固定电话</label>
+                    <div class="col-sm-9">
+                  <div class="input-group">
+                        <input type="text" name="tel" class="form-control" value="{$item['tel']}" />
+                      </div>
+                </div>
+                </div>            
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">手机号码</label>
+                    <div class="col-sm-9">
+                  <div class="input-group">
+                         <input type="text" name="mobile" class="form-control" value="{$item['mobile']}" />
+                       </div>
+                </div>
+                </div>
+				<div class="form-group">
+                   <label class="col-xs-12 col-sm-3 col-md-2 control-label">入职时间</label>
+                     <div class="col-sm-9"> 
+                    <div class="input-group">
+                 {if !empty($item['jiontime'])}{php echo tpl_form_field_date('jiontime', date('Y-m-d', $item['jiontime']))}{else}{php echo tpl_form_field_date('jiontime', date('Y-m-d', TIMESTAMP))}{/if}
+                        </div>
+                 </div>
+                </div>            
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">电子邮箱</label>
+                    <div class="col-sm-9">
+                        <div class="input-group">
+                            <input type="text" name="email" class="form-control" value="{$item['email']}" />
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">所属分组</label>
+                    <div class="col-sm-9">
+                        <div class="input-group">
+                        <select style="margin-right:15px;" name="fz_id" class="form-control">
+                            <option value="0">请选择分组</option>
+                            {loop $fz $it}
+                            <option value="{$it['sid']}" {if $it['sid'] == $item['fz_id']} selected="selected"{/if}>{$it['sname']}</option>
+                            {/loop}
+                        </select>
+                        </div>
+                    </div>
+                </div>				
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">绑定码</label>
+                    <div class="col-sm-9">
+                        <div class="input-group">
+                            <input type="text" name="code" class="form-control" value="{$item['code']}" />
+                        </div>
+                    </div>
+                </div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">是否校长</label>
+					<div class="col-sm-9">
+						<label class="radio-inline"><input type="radio" name="status" value="2" id="isshow1" {if !empty($item) && $item['status'] == 2}checked="true"{/if} /> 是</label>
+						&nbsp;&nbsp;&nbsp;
+						<label class="radio-inline"><input type="radio" name="status" value="1" id="isshow2"  {if empty($item) || $item['status'] == 1}checked="true"{/if} /> 否</label>
+						<span style ="color:red;" class="help-block">您可以设置多个教师为校长身份</span>
+					</div>
+				</div>            
+          </div>
+         <div class="panel panel-info">
+            <div class="panel-heading">
+				<a class="btn btn-primary" href="{php echo $this->createWebUrl('assess', array('op' => 'display', 'schoolid' => $schoolid))}"><i class="fa fa-tasks"></i> 返回教师列表</a>
+			</div>
+         </div>
+            <div class="panel-heading">录入教学信息</div>                
+            <div class="panel-body">      
+             <div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">选择授课年级</label>
+				<label class="col-xs-12 col-sm-2 col-md-2 control-label" style="width: 100px;">授课年级1</label>
+				<div class="col-sm-2 col-lg-2">
+					<div class="input-group">
+                        <select style="margin-right:15px;" name="xq_id1" id="xq_id1" class="form-control">
+                            <option value="0">请选择年级</option>
+                            {loop $xueqi $it}
+                            <option value="{$it['sid']}" {if $it['sid'] == $item['xq_id1']} selected="selected"{/if}>{$it['sname']}</option>
+                            {/loop}
+                        </select>
+					</div>	
+				</div>
+				<label class="col-xs-12 col-sm-2 col-md-2 control-label" style="width: 100px;">授课年级2</label>
+				<div class="col-sm-2 col-lg-2">
+					<div class="input-group">
+                        <select style="margin-right:15px;" name="xq_id2" id="xq_id2" class="form-control">
+                            <option value="0">请选择年级</option>
+                            {loop $xueqi $it}
+                            <option value="{$it['sid']}" {if $it['sid'] == $item['xq_id2']} selected="selected"{/if}>{$it['sname']}</option>
+                            {/loop}
+                        </select>
+					</div>	
+				</div>   
+				<label class="col-xs-12 col-sm-2 col-md-2 control-label" style="width: 100px;">授课年级3</label>
+				<div class="col-sm-2 col-lg-2">
+					<div class="input-group">
+                        <select style="margin-right:15px;" name="xq_id3" id="xq_id3" class="form-control">
+                            <option value="0">请选择年级</option>
+                            {loop $xueqi $it}
+                            <option value="{$it['sid']}" {if $it['sid'] == $item['xq_id3']} selected="selected"{/if}>{$it['sname']}</option>
+                            {/loop}
+                        </select>
+					</div>	
+                </div> 				
+            </div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">选择授课班级</label>
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">授课班级1</label>
+				<div class="col-sm-2 col-lg-2">
+					<div class="input-group">
+						<select style="margin-right:15px;" name="bj_id1"  id="bj_id1" class="form-control">
+							<option value="0">请选择班级</option>
+							{loop $bj $it}
+							<option value="{$it['sid']}" {if $it['sid'] == $item['bj_id1']} selected="selected"{/if}>{$it['sname']}</option>
+							{/loop}
+						</select>
+					</div>	
+					</div>
+			    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">授课班级2</label>
+			    <div class="col-sm-2 col-lg-2">
+					<div class="input-group">
+						<select style="margin-right:15px;" name="bj_id2" id="bj_id2" class="form-control">
+							<option value="0">请选择年级</option>
+							{loop $bj $it}
+							<option value="{$it['sid']}" {if $it['sid'] == $item['bj_id2']} selected="selected"{/if}>{$it['sname']}</option>
+							{/loop}
+						</select>
+					</div>	
+				</div>   
+			    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">授课班级3</label>
+			    <div class="col-sm-2 col-lg-2">
+					<div class="input-group">
+						<select style="margin-right:15px;" name="bj_id3" id="bj_id3" class="form-control">
+							<option value="0">请选择班级</option>
+							{loop $bj $it}
+							<option value="{$it['sid']}" {if $it['sid'] == $item['bj_id3']} selected="selected"{/if}>{$it['sname']}</option>
+							{/loop}
+						</select>
+					</div>	
+				</div>                  
+            </div>               
+            <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">选择授课科目</label>
+               <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">授课科目1</label>
+               <div class="col-sm-2 col-lg-2">
+					<div class="input-group">
+                        <select style="margin-right:15px;" name="km_id1" class="form-control">
+                            <option value="0">请选择科目</option>
+                            {loop $km $it}
+                            <option value="{$it['sid']}" {if $it['sid'] == $item['km_id1']} selected="selected"{/if}>{$it['sname']}</option>
+                            {/loop}
+                        </select>
+					</div>
+                </div>
+               <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">授课科目2</label>
+               <div class="col-sm-2 col-lg-2">
+					<div class="input-group">
+                        <select style="margin-right:15px;" name="km_id2" class="form-control">
+                            <option value="0">请选择科目</option>
+                            {loop $km $it}
+                            <option value="{$it['sid']}" {if $it['sid'] == $item['km_id2']} selected="selected"{/if}>{$it['sname']}</option>
+                            {/loop}
+                        </select>
+					</div>	
+                </div>
+               <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">授课科目3</label>
+               <div class="col-sm-2 col-lg-2">
+					<div class="input-group">
+                        <select style="margin-right:15px;" name="km_id3" class="form-control">
+                            <option value="0">请选择科目</option>
+                            {loop $km $it}
+                            <option value="{$it['sid']}" {if $it['sid'] == $item['km_id3']} selected="selected"{/if}>{$it['sname']}</option>
+                            {/loop}
+                        </select>
+					</div>	
+                </div>               
+            </div>
+            <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">教学特点</label>
+                    <div class="col-sm-9">
+						{php echo tpl_ueditor('headinfo', $item['headinfo']);}
+                        <span class="help-block"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                     <label class="col-xs-12 col-sm-3 col-md-2 control-label">教学成果</label>
+                        <div class="col-sm-9">
+						   {php echo tpl_ueditor('info', $item['info']);}
+                        <div class="help-block">教学成果</div>
+                        </div>
+                </div>
+             <div class="form-group">
+                     <label class="col-xs-12 col-sm-3 col-md-2 control-label">教学经验</label>
+                        <div class="col-sm-9">
+						   {php echo tpl_ueditor('jinyan', $item['jinyan']);}
+                        <div class="help-block">教学经验</div>
+                        </div>
+                </div>
+            </div>
+        </div>
+        <div class="form-group col-sm-12">
+            <input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+            <input type="hidden" name="token" value="{$_W['token']}" />
+        </div>
+   </form>
+</div>
+
+{elseif $operation == 'add'}
+<div class="panel panel-info">
+    <div class="panel-heading"><a class="btn btn-primary" href="{php echo $this->createWebUrl('assess', array('op' => 'display', 'schoolid' => $schoolid))}"><i class="fa fa-tasks"></i> 返回教师列表</a></div>
+</div>
+<div class="main">
+<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data">
+        <input type="hidden" name="sid" value="{$it['id']}" />
+      <input type="hidden" name="schoolid" value="{$schoolid}" />
+        <div class="panel panel-default">
+            <div class="panel-heading">添加课程</div>
+            <div class="panel-body">
+             <div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">课程名称：</label>
+				<div class="col-sm-9">                       
+						<input type="text" class="form-control" name="name" value="" />
+				 <div class="help-block">如：春季班小学一年级数学尖子班，活动类小学一年级数学寒春新生公开课，小学六年级上学期奥数比赛冲刺培训班</div>
+				</div>
+            </div>
+            <div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">教师姓名:</label>
+				<div class="col-sm-9" style="color:red;">
+				   {$item['tname']}
+				</div>
+            </div>
+            {if $school['issale'] == 1 || $school['issale'] == 2}
+            <div class="form-group">   
+                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">报名费用：</label>
+                <div class="col-sm-2 col-lg-2">
+					 <div class="input-group">               
+						<input type="text" class="form-control" name="cose" value="" />
+						<div class="help-block">输入课程所需费用</div>
+					 </div>
+                </div>
+				{if $_W['isfounder']}
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">付费至：</label>
+				<div class="col-sm-2 col-lg-2">
+					 <div class="input-group">
+						<select class="form-control" name="payweid" id="payweid">
+							<option value="0">请选择收款账户</option>
+							{loop $payweid $row}
+							<option value="{$row['uniacid']}" {if $item['payweid']==$row['uniacid']}selected{/if}>{$row['name']}</option>
+							{/loop}
+						</select>
+						<div class="help-block">付费至指定公众号设置的支付方式内，不设置这付费至当前公众号</div>
+					 </div>
+				</div>
+				{/if}				
+                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">人数限制：</label>
+                <div class="col-sm-2 col-lg-2">
+					 <div class="input-group">               
+						<input type="text" class="form-control" name="minge" value="" />
+						<div class="help-block">输入课程限报人数</div>
+					 </div>
+                </div>         
+            </div>
+           {else if $school['issale'] == 3 || $school['issale'] == 4}
+            <div class="form-group">   
+               <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">人数限制：</label>
+                    <div class="col-sm-2 col-lg-2">
+                         <div class="input-group">               
+                            <input type="text" class="form-control" name="minge" value="" />
+                     <div class="help-block">输入课程限报人数</div>
+                         </div>
+                </div>         
+            </div>      
+            {/if}            
+            <div class="form-group">   
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">授课地址：</label>
+                    <div class="col-sm-2 col-lg-2">
+                         <div class="input-group">               
+                            <input type="text" class="form-control" name="adrr" value="" />
+                     <div class="help-block">如：多媒体教室，阶梯教室，初一二班教室等</div>
+                         </div>
+                </div>
+               <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">精品课程</label>
+                    <div class="col-sm-2 col-lg-2">
+                        <label class="radio-inline">
+                            <input type="radio" name="is_hot" value="1" {if $reply['is_hot']==1 || empty($reply)}checked{/if}>是
+                        </label>
+                        <label class="radio-inline">
+                            <input type="radio" name="is_hot" value="0" {if isset($reply['is_hot']) && empty($reply['is_hot'])}checked{/if}>否
+                        </label>
+                        <div class="help-block">是否精品课程</div>
+                    </div>            
+            </div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">选择年级:</label>
+				<div class="col-sm-2 col-lg-2">
+					<select style="margin-right:15px;" name="xq" id="xq" class="form-control">
+						<option value="0">请选择年级</option>
+						{loop $xueqi $it}
+						<option value="{$it['sid']}" {if $row['sid'] == $item['bj_id1']} selected="selected"{/if}>{$it['sname']}</option>
+						{/loop}
+					</select>
+				</div>
+                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">选择班级:</label>
+				<div class="col-sm-2 col-lg-2">
+					<select style="margin-right:15px;" name="bj" id="bj" class="form-control">
+						<option value="0">请选择班级</option>
+						{loop $bj $it}
+						<option value="{$it['sid']}" {if $row['sid'] == $item['bj_id1']} selected="selected"{/if}>{$it['sname']}</option>
+						{/loop}
+					</select>
+				</div>
+                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">选择科目:</label>
+				<div class="col-sm-2 col-lg-2">
+					<select style="margin-right:15px;" name="km" class="form-control">
+						<option value="0">请选择科目</option>
+						{loop $km $it}
+						<option value="{$it['sid']}" {if $row['sid'] == $item['km_id1']} selected="selected"{/if}>{$it['sname']}</option>
+						{/loop}
+					</select>
+				</div>
+            </div>   
+            <div class="form-group">
+                   <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">开始时间:</label>
+                     <div class="col-sm-2 col-lg-2">
+                    <div class="input-group">
+                 {php echo tpl_form_field_date('start', date('Y-m-d', TIMESTAMP))}   
+                        </div>
+                 </div>
+                   <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">结束时间:</label>
+                     <div class="col-sm-2 col-lg-2">
+                    <div class="input-group">
+                 {php echo tpl_form_field_date('end', date('Y-m-d', TIMESTAMP))}   
+                        </div>
+                 </div>                
+                </div>   
+             <div class="form-group">
+                     <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">课程大纲</label>
+                        <div class="col-sm-9">
+							{php echo tpl_ueditor('dagang', $item['dagang']);}
+                        <div class="help-block">课程大纲</div>
+                        </div>
+                </div>            
+             </div>                                    
+      </div>   
+        <div class="form-group col-sm-12">
+            <input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+            <input type="hidden" name="token" value="{$_W['token']}" />
+        </div>
+    </form>
+</div>   
+{/if}
+<script type="text/javascript">
+$(document).ready(function() {
+	$("#xq_id1").change(function() {
+		var type = 1;
+		var cityId = $("#xq_id1 option:selected").attr('value');
+		changeGrade(cityId,type, function() {
+		});
+	});	
+	$("#xq_id2").change(function() {
+		var type = 2;
+		var cityId = $("#xq_id2 option:selected").attr('value');
+		changeGrade(cityId,type, function() {
+		});
+	});
+	$("#xq_id3").change(function() {
+		var type = 3;
+		var cityId = $("#xq_id3 option:selected").attr('value');
+		changeGrade(cityId,type, function() {
+		});
+	});	
+	$("#xq").change(function() {
+		var type = 4;
+		var cityId = $("#xq option:selected").attr('value');
+		changeGrade(cityId,type, function() {
+		});
+	});	
+});	
+function changeGrade(gradeId, type, __result) {
+	
+	//$('#njidid').val(gradeId);
+	
+	var schoolid = "{$schoolid}";
+	var classlevel = [];
+	//获取班次
+	$.post("{php echo $this->createWebUrl('indexajax',array('op'=>'getbjlist'))}", {'gradeId': gradeId, 'schoolid': schoolid}, function(data) {
+	
+		data = JSON.parse(data);
+		classlevel = data.bjlist;
+		
+		var html = '';
+		if (type == 1){
+		html += '<select id="bj_id1"><option value="">请选择班级</option>';
+		}
+		if (type == 2){
+		html += '<select id="bj_id2"><option value="">请选择班级</option>';
+		}	
+		if (type == 3){
+		html += '<select id="bj_id2"><option value="">请选择班级</option>';
+		}
+		if (type == 4){
+		html += '<select id="bj"><option value="">请选择班级</option>';
+		}		
+		if (classlevel != '') {
+			for (var i in classlevel) {
+				html += '<option value="' + classlevel[i].sid + '">' + classlevel[i].sname + '</option>';
+			}
+		}
+		if (type == 1){
+			$('#bj_id1').html(html);
+		}
+		if (type == 2){
+			$('#bj_id2').html(html);
+		}	
+		if (type == 3){
+			$('#bj_id3').html(html);
+		}	
+		if (type == 4){
+			$('#bj').html(html);
+		}		
+	});
+
+}
+</script>
+{template 'public/footer'}

@@ -1,0 +1,79 @@
+{template 'header'}
+<div class="top-header"> <a herf="/" style="background: url('{php echo tomedia($act[slogo])}') no-repeat; background-size: contain;" class="logo"> {$act[title]}</a>
+  <form action="{php echo $this->createMobileUrl('search')}" method="post" class="search-form">
+    <div class="mui-input-row">
+      <input type="search" id="search-input" class="suggest-input" data-tpl="suggest-tpl" name="search" autocomplete="off" placeholder="输入关键词查询" data-suggestleft="0" data-suggestbottom="0" data-suggestright="0" data-suggestmargintop="5" data-focuscolor="#000" data-blurcolor="#999" value="{$search}">
+      <input type="hidden" name="token" value="{$_W[token]}"/>
+      <button class="mui-icon mui-icon-search search-btn"></button>
+    </div>
+  </form>
+  <div class="top-extend"> <a href="{$act[bonus]}" class="jx-png"> </a> </div>
+</div>
+<div class="">
+  <div class="company-header"> <a href="{php echo $this->createMobileUrl('search',array('op'=>'firm','search'=>$search))}" {if $op=='firm'}class="active"{/if}> 热门商家 </a> <a href="{php echo $this->createMobileUrl('search',array('op'=>'flist','search'=>$search))}" {if $op=='flist'}class="active"{/if}>微友圈</a>
+  </div>
+  <ul class="mui-table-view">
+    <li class="mui-table-view-cell"> <a href="#" data-name="user" data-loading="1" class="mui-navigate-right large-line"> {$jointel} </a> </li>
+  </ul>
+  <ul class="company-list" id="list" data-api="" data-page="">
+    <ul class="mui-table-view mui-table-view-chevron">
+      {loop $firm $item} <a href="{php echo $this->createMobileUrl('firm',array('fid'=>$item['id']))}" _click="openIt" data-name="detail" target="_blank">
+      <li> <img src="{if !empty($item[icon])}{php echo tomedia($item[icon])}{else}{php echo tomedia($act[icon])}{/if}" class="company-icon">
+        <div class="company-info">
+          <h4 class="mui-ellipsis"> {$item['title']}{if !empty($item[breaks])}<font class="news-tag">惠</font>{/if}</h4>
+          <span class="mui-ellipsis">{if !empty($item[intro])}{php echo htmlspecialchars_decode($item[intro])}{else}暂无简介，敬请期待{/if}</span> </div>
+        <div class="circle-dgreen circle-phone"><i class="ic-phone"></i></div>
+      </li>
+      </a> {/loop}
+      {loop $flist $item}
+      <li data-wx="{$item['cweixin']}" data-bossqr="{php echo tomedia($item['cewm'])}" data-id="{$item['uid']}" data-desc="{$item['descript']}" _click="wechatDialog"> <img src="{php echo tomedia($item['cavatar'])}" class="company-icon">
+        <div class="company-info">
+          <h4>{$item['cnickname']}</h4>
+          <span class="mui-ellipsis">{$item['descript']}</span> </div>
+        <div class="mui-btn" style="border:0;border-radius: 0;box-shadow: 3px 3px 2px gray;color:#FFF;background: #ff2230">加TA</div>
+      </li>
+      {/loop}
+    </ul>
+  </ul>
+</div>
+<script id="wechat-dialog" type="tpl">
+<style>.qrdialog{font-size:.78rem}.qrquote{font-size:1.5rem}.numlist{display:list-item;list-style-type:disc;margin-left:20px}</style>
+<Div class="qrdialog">
+<%if(bossqr){%><img src="<%=bossqr%>" style="box-shadow: 0px 0px 3px #fff;margin:10px auto;display:block">
+<%if(desc){%>
+<div style="padding:5px 10px;margin:5px 0;color:#999;text-align:center"><span class="qrquote">“</span><%=desc%><span class="qrquote">”</span></div>
+<%}%>
+<%}else{%><div style="color:gray;text-align:center;border:1px solid #DDD;padding:10px;margin:10px;background:#EEE">暂时没有二维码！</div>
+<%}%>
+<%if(wx){%><div class="list">1、长按识别二维码，或添加微信：<b><%=wx%></b></div><div class="list">2、添加时请注明来自：<b>{$act[title]}</b></div><div class="list"> 3、编号：<span style="color:red"><%=id%></span></div>
+<%}%></div>
+</script>
+<script>
+initEvents.push(function () {
+  var wechatDialogTpl = mzTpl($('#wechat-dialog').html());
+  window.wechatDialog = function (e) {
+    var that = $(e.target ? e.target : e);
+    for (var i = 0; i < 2; i++) {
+      if (!that.data('wx')) {
+        that = $(that.parent());
+      }
+    }
+    var data = {
+      wx: $(that).data('wx'),
+      bossqr: $(that).data('bossqr'),
+      id: $(that).data('id'),
+      desc: $(that).data('desc')
+    };
+    showMessage(wechatDialogTpl(data));
+    if (data.id) {
+      // collect click log
+      window.API.post('wechat_click', data, function (data) {});
+    }
+  }
+});
+</script>
+<script>initEvents.push(function () {});</script>
+<script src="../addons/enjoy_city/public/js/_v1_global.js"></script>
+<div class="suggest-list"></div>
+<div style="height:40px;"></div>
+</body></html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html style="font-size: 32px;">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1.0">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <meta name="format-detection" content="telphone=no, email=no">
+    <script>!function (n) {
+        var e = n.document, t = e.documentElement, i = 720, o = i / 32, a = "orientationchange"in n ? "orientationchange" : "resize", d = function () {
+            var n = t.clientWidth || 320, n = n > 720 ? 720 : 320 > n ? 320 : n;
+            t.style.fontSize = n / o + "px"
+        };
+        e.addEventListener && n.addEventListener(a, d, !1), d()
+    }(window);</script>
+    <link href="" rel="shortcut icon">
+    <link rel="apple-touch-icon" href="">
+    <link rel="apple-touch-icon" sizes="72x72" href="">
+    <link rel="apple-touch-icon" sizes="114x114" href="">
+    <link rel="apple-touch-icon" sizes="144x144" href="">
+    <link rel="stylesheet" type="text/css" href="{MD_ROOTN}/messi/css/chat.css">
+    <title>{$cservice['name']}为你服务</title>
+</head>
+<body>
+<div class="chat">
+    <div class="box-bd scroll-wrapper" style="bottom:60px;">
+        <div class="scroll-content" style="-webkit-overflow-scrolling:touch;">
+            <div class="chatContent" id="chatContent">
+                <div class="clearfix slideInUp">
+                    <div class="message_sys"><p class="text">{$cservice['name']}为你服务，请直接叙述您的问题</p></div>
+                </div>
+				{if $chatcon}
+				{loop $chatcon $row}
+                <div class="clearfix slideInUp">
+                    {if $row['openid'] != $openid}<div class="message">{else}<div class="message me">{/if}
+                        <div class="avatar" data-author-id="me">
+							{if $row['openid'] != $openid}
+								{if $row['avatar'] == ''}
+								<img src="{MD_ROOT}/images/kehu.jpg" />
+								{else}
+								<img src="{$row['avatar']}" />
+								{/if}
+							{else}
+								<img src="{php echo tomedia($row['avatar'])}" />
+							{/if}
+						</div>
+                        <div class="content">
+							<p class="author_name"> 
+								{if $row['openid'] != $openid}
+									{if $row['nickname'] == ''}
+										客户
+									{else}
+										{$row['nickname']}
+									{/if}
+								{else}
+									{$row['nickname']}	
+								{/if}
+								<time style="font-size:0.7rem;margin-left:0.5rem;">{php echo date('Y-m-d H:i:s',$row['time'])}</time>
+							</p>
+							{if $row['openid'] != $openid}<div class="bubble bubble_default left">{else}<div class="bubble bubble_primary right">{/if}
+                                <div class="bubble_cont">
+                                    <div class="plain"><p>{$row['content']}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+				{/loop}
+				{/if}
+            </div>
+        </div>
+    </div>
+    <div class="box_ft">
+        <div class="input-wrapper">
+            <ul class="entry-wrapper">
+                <li>
+                    <div type="text" class="entry-text" id="entry-text" contenteditable="false"><input type="text" style="border:none;width:100%;display:block;height:1.8rem;line-height:1.8rem;border-radius: 5px;font-size:1.1rem;" id="chatcontent" /></div>
+                </li>
+                <li>
+                    <button id="btnSend" type="submit" class="btn-submit">发送</button>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+<input type="hidden" id="toopenid" value="{$useropenid}" />
+<input type="hidden" id="timestamp" value="{$timestamp}" />
+<script type="text/javascript" src="{MD_ROOTN}/messi/js/jquery-3.1.1.min.js"></script>
+<script type="text/javascript">
+var datamsg = '';
+$(function(){
+	shuaxin()
+	$('.scroll-content').scrollTop($('.chatContent').height());
+	$("#btnSend").click(function(){
+		if($('#chatcontent').val() != ''){
+			$.ajax({   
+				 url:"{php echo $this->createMobileUrl('addchat2')}",   
+				 type:'post', 
+				 data:{
+					toopenid:$('#toopenid').val(),
+					goodsid:{$goodsid},
+					content:$('#chatcontent').val(),
+				 },
+				 dataType:'json',
+				 success:function(data){   
+					if(data.error == 0){
+						shuaxin();
+						$('#chatcontent').val("");
+					}
+				 }
+			});
+		}
+	})
+})
+
+function shuaxin(){
+	$.ajax({   
+		 url:"{php echo $this->createMobileUrl('shuaxinchat')}",   
+		 type:'post', 
+		 data:{
+			toopenid:$('#toopenid').val(),
+			goodsid:{$goodsid},
+			timestamp:$('#timestamp').val(),
+			type:2,
+		 },
+		 dataType:'json',
+		 success:function(data){  
+			if(data.msg != ''){
+				if(datamsg != data.msg || datamsg == ''){
+					$('#chatContent').append(data.msg);
+					datamsg = data.msg;
+				}
+				$('.scroll-content').scrollTop($('.chatContent').height());
+			}
+			$('#timestamp').val(data.timestamp);
+			setTimeout("shuaxin()",3000);
+		 }
+	});
+}
+</script>
+</body>
+</html>

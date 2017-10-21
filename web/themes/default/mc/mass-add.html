@@ -1,0 +1,207 @@
+{template 'common/header'}
+<style>
+	.panel-group{clear: both;margin-bottom: 20px; position: relative;}
+	.panel-group .del,.panel-group .no{position: absolute; top:-10px; width:20px; height:20px; color:#fff; background:rgba(0,0,0,0.3); text-align:center; line-height:20px; cursor:pointer; border-radius:100%;}
+	.panel-group .del{right:-10px;}
+	.panel-group .no{left:-10px;background: #3071a9}
+	.panel-group .del:hover{background:rgba(0,0,0,0.7);}
+	.reply .panel-group .panel:last-child{margin-bottom: 0;}
+
+	.panel-group img{position:absolute; left:0; top:0; display:inline-block; width:100%; height:100%;}
+	.panel-group{position:relative; cursor:pointer;}
+	.panel-group .mask{position:absolute; width:100%; height:100%; left:0; top:0; z-index:10; background-color:rgba(0,0,0,0.6 ) !important; text-align:center; display:none; border-radius:4px;}
+	.panel-group:hover .mask,.panel-group.selected .mask{display:block;}
+	.panel-group>i{display:none; width:46px; height:46px; color:#fff; text-align:center; line-height:46px; z-index:20; position:absolute; top:50%; left:50%; margin-top:-23px; margin-left:-23px; font-size:46px; font-weight:200;}
+	.panel-group.selected>i{display:inline-block}
+</style>
+
+<ul class="nav nav-tabs">
+	<li {if $type == 'image'}class="active"{/if}><a href="{php echo url('material/display/list', array('type' => 'image'));}">图片</a></li>
+	<li {if $type == 'voice'}class="active"{/if}><a href="{php echo url('material/display/list', array('type' => 'voice'));}">语音</a></li>
+	<li {if $type == 'video'}class="active"{/if}><a href="{php echo url('material/display/list', array('type' => 'video'));}">视频</a></li>
+	<li {if $type == 'news'}class="active"{/if}><a href="{php echo url('material/display/list', array('type' => 'news'));}">图文</a></li>
+</ul>
+<form action="" class="form form-horizontal" ng-controller="mass">
+	<div class="panel panel-default">
+		<div class="panel-heading">设置未来7天的群发</div>
+		<div class="panel-body">
+			<div class="row clearfix reply">
+				<div class="col-xs-6 col-sm-3 col-md-3">
+					<div class="panel-group" ng-repeat="item in mass.groups">
+						<div class="panel panel-default">
+							<div class="panel-body">
+								<div class="img">
+									<i class="default">封面图片</i>
+									<img src="" ng-src="{{item.thumb}}">
+									<span class="text-left">{{item.title}}</span>
+								</div>
+							</div>
+						</div>
+						<div class="no">{{$index + 1}}</div>
+						<div class="del" ng-click="mass.removeGroup(items);"><i class="fa fa-times"></i></div>
+					</div>
+				</div>
+				<div class="col-xs-6 col-sm-9 col-md-9 aside" id="edit-container">
+					<div style="margin-bottom: 20px"></div>
+					<div class="card">
+						<div class="arrow-left"></div>
+						<div class="inner">
+							<div class="panel panel-default">
+								<div class="panel-body">
+									<div class="form-group">
+										<label class="col-xs-12 col-sm-3 col-md-2 control-label">接收粉丝</label>
+										<div class="col-sm-9 col-xs-12">
+											<label class="radio-inline"><input type="radio" name="group" value="-1" ng-model="mass.activeGroup.group" ng-checked="true"/> 全部粉丝</label>
+											{loop $groups $group}
+											<label class="radio-inline"><input type="radio" name="group" value="{$group['id']}" ng-model="mass.activeGroup.group"/> {$group['name']}【{$group['count']}】</label>
+											{/loop}
+										</div>
+									</div>
+									<div class="form-group">
+										<label class="col-xs-12 col-sm-3 col-md-2 control-label">消息内容</label>
+										<div class="col-sm-9 col-xs-12">
+											<div class="col-xs-3 img" ng-if="!mass.activeGroup.media_id">
+												<span ng-click="mass.changeMedia(mass.activeGroup, mass.activeType, 1)"><i class="fa fa-plus-circle green"></i>&nbsp;选择素材</span>
+											</div>
+											<div class="col-xs-3 img" ng-if="mass.activeGroup.media_id">
+												<h3 ng-click="context.changeItem(mass.activeGroup, mass.activeType, 1)">重新选择</h3>
+												<img ng-src="{{ context.activeItem.thumb }}">
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="" id="media-select" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content modal-lg">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+					<h3>
+						<ul role="tablist" class="nav nav-pills" style="font-size:14px; margin-top:-20px;">
+							<li role="presentation" class="active">
+								<a data-toggle="tab" role="tab" aria-controls="news" href="#news" ng-click="mass.changeMedia(mass.activeGroup, 'news', 1)">图文</a>
+							</li>
+							<li role="presentation">
+								<a data-toggle="tab" role="tab" aria-controls="image" href="#image" ng-click="mass.changeMedia(mass.activeGroup, 'image', 1)">图片</a>
+							</li>
+							<li role="presentation">
+								<a data-toggle="tab" role="tab" aria-controls="voice" href="#voice">语音</a>
+							</li>
+							<li role="presentation">
+								<a data-toggle="tab" role="tab" aria-controls="image" onclick="$('#select').show();" href="#image">图片</a>
+							</li>
+							<li role="presentation">
+								<a data-toggle="tab" role="tab" aria-controls="video" href="#video">视频</a>
+							</li>
+						</ul>
+					</h3>
+				</div>
+				<div class="modal-body">
+					<div class="tab-content">
+						<div id="news" class="tab-pane active" role="tabpanel">
+							<div class="reply clearfix" style="position:relative">
+								<div class="col-md-5 col-md-5 col-md-5 water" style="display:none" ng-repeat="news in mass.news">
+									<div class="panel-group" data-id="{{news.id}}">
+										<div class="panel panel-default" ng-repeat="item in news.items">
+											<div class="panel-body" ng-if="$index == 0">
+												<div class="clearfix">
+													<h4>{{news.name}}<span class="date pull-right"></span></h4>
+												</div>
+												<div class="img">
+													<i class="default">封面图片</i>
+													<img src="" ng-src="{{item.thumb}}">
+													<span class="text-left">{{item.title}}</span>
+												</div>
+											</div>
+											<div class="panel-body" ng-if="$index != 0">
+												<div class="text">
+													<h4>{{item.title}}</h4>
+												</div>
+												<div class="img">
+													<img src="" ng-src="{{item.thumb}}">
+													<i class="default">缩略图</i>
+												</div>
+											</div>
+										</div>
+										<div class="mask"></div>
+										<i class="fa fa-check"></i>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div id="image" class="tab-pane active" role="tabpanel">
+
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<div class="pull-left" id="pager"></div>
+					<div class="pull-right">
+						<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+						<span class="btn btn-primary" data-dismiss="modal">确定</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</form>
+
+
+<script>
+	require(['angular.sanitize', 'bootstrap', 'underscore', 'jquery.wookmark'], function(angular, $, _){
+		angular.module('app', ['ngSanitize']).controller('mass', function($scope, $http){
+			$scope.mass = {};
+			$scope.mass.news = [];
+			$scope.mass.groups = [{title:'223232', thumb:'http://www.baidu.com/img/bdlogo.gif', media_id:''}];
+			$scope.mass.activeType = 'news';
+			$scope.mass.activeIndex = 0;
+			$scope.mass.activeGroup = $scope.mass.groups[$scope.mass.activeIndex];
+
+
+
+			$scope.mass.changeMedia = function(group, type, page){
+				$http.get('./index.php?c=mc&a=mass&do=material' + '&type=' + type + '&page=' + page).success(function(result, status){
+					if(result.message.list) {
+						if(type == 'news') {
+							$scope.mass.news = result.message.list;
+							setTimeout(function(){
+								$('.water').wookmark({
+									align: 'center',
+									autoResize: false,
+									container: $('#news .reply'),
+									autoResize :true
+								});
+							}, 100);
+						} else if(type == 'image') {
+							$scope.mass.images = result.message.list;
+						}
+
+						$('#media-select #pager').html(result.message.pager);
+						$('#media-select #pager .pagination li[class!=\'active\'] a').click(function(){
+							$scope.mass.changeMedia(group, type, $(this).attr('page'));
+							return false;
+						});
+					}
+					return true;
+				})
+				$('#media-select').modal('show');
+			}
+
+			$('#news').on('click', '.panel-group', function(){
+				$('#news .panel-group').removeClass('selected');;
+				$(this).addClass('selected');
+			});
+
+
+		});
+		angular.bootstrap(document, ['app']);
+	});
+</script>
+{template 'common/footer'}

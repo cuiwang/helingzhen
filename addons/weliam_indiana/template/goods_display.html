@@ -1,0 +1,213 @@
+{template 'common/header'}
+<div class="panel panel-danger">
+	    <div class="panel-heading">注意事项</div>
+	    <div class="panel-body">
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-12 control-label" style="text-align: left;padding-right: 30px;">
+               		 提示: 已经购买过的商品不能在修改，点击查看往期可以查看该商品的所有期数商品！ 
+                </label>
+                 <label class="col-xs-12 col-sm-2 col-md-2 col-lg-12 control-label" style="text-align: left;padding-right: 30px;">
+             	   	 提示: 因为商品添加后夺宝码已经生成成功,所以不能在本期内修改价格了.
+                </label>
+	   		</div>
+	    </div>
+</div>
+
+<ul class="nav nav-tabs">
+	<li {if $_GPC['op']=='display' || $_GPC['op']==''}class="active"{/if}><a href="{php echo $this->createWebUrl('goods', array('op'=>'display'));}">商品列表</a></li>
+	<li><a href="{php echo $this->createWebUrl('goods', array('op'=>'edit'));}">添加商品</a></li>
+	<li {if $_GPC['op']=='recover'}class="active"{/if}><a href="{php echo $this->createWebUrl('goods', array('op'=>'recover'));}">商品回收站</a></li>
+	<!--<li><a href="{php echo $this->createWebUrl('shujuhuifu', array('op'=>'return','period_number'=>'20160501940377421637'));}">退款处理</a></li>-->
+</ul>
+ <div class="panel panel-info">
+	    <div class="panel-heading">筛选</div>
+	    <div class="panel-body">
+            <form action="./index.php" method="get" class="form-horizontal" role="form" id="form1">
+                <input type="hidden" name="c" value="site" />
+                <input type="hidden" name="a" value="entry" />
+                <input type="hidden" name="m" value="weliam_indiana" />
+                <input type="hidden" name="do" value="goods" />
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">商品名称</label>
+                    <div class="col-sm-8 col-lg-9 col-xs-12">
+                        <input class="form-control" name="title" id="" type="text" value="{$_GPC['title']}" placeholder="可查询商品名称">
+                    </div>
+                </div>
+                <div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">商品分类</label>
+					<div class="col-xs-12 col-sm-8">
+					 {php echo tpl_form_field_category_2level('category', $category, $childs, $goods['category_parentid'], $goods['category_childid'])}
+					</div>
+				</div>
+                <div class="form-group">
+                        <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">上架时间</label>
+                        <div class="col-sm-5 col-lg-7 col-xs-12">
+                           {php echo tpl_form_field_daterange('time', array('starttime'=>date('Y-m-d H:i:s', $starttime),'endtime'=>date('Y-m-d H:i:s', $endtime)),true);}
+                        </div>
+                        <div class="col-sm-3 col-lg-2" style="text-align:right;"><button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+                        </div>
+                    </div>
+                <div class="form-group">
+                </div>
+            </form>
+	    </div>
+	</div>
+	<!--
+    	作者：800083075@qq.com
+    	时间：2016-01-11
+    	描述：商品列表
+    -->
+	{if $_GPC['op']=='display' || $_GPC['op']==''}
+	<div class="panel panel-default">
+		<div class="panel-heading">商品列表</div>
+		<div class="panel-body">
+			<div class="table-responsive panel-body">
+				<table class="table table-hover table-bordered" style="min-width: 300px;" >
+					<thead class="navbar-inner" style="">
+						<tr >
+							<th style="width:30px;text-align: center;">ID</th>
+							<th style="width:40px;text-align: center;">排序</th>
+							<th style="width:100px;text-align: center;">商品名称</th>
+							{if WELIAM_INDIANA_VERSION=='special'}<th style="width:60px;text-align: center;">所属商家</th>{/if}
+							<th style="width:50px;text-align: center;">商品图片</th>
+							<th style="width:40px;text-align: center;">单价/元</th>
+							<th style="width:50px;text-align: center;">当前/总期数</th>
+							<!--<th style="width:50px;text-align: center;">已参与人数</th>-->
+							<th style="width:100px;text-align: center;">商品属性</th>
+							<th style="width:200px;text-align: center;">操作</th>
+						</tr>
+					</thead>
+					<tbody style="text-align: center;">
+						{loop $goodses $goodgoodsid $goods}
+						<tr>
+							<td>{$goods['id']}</td>
+							<td>{$goods['sort']}</td>
+							<td>{$goods['title']}</td>
+							{if WELIAM_INDIANA_VERSION=='special'}<td>{$goods['merchant']}</td>{/if}
+							<td><image src="{php echo tomedia($goods['picarr']);}" style="max-width: 48px; max-height: 48px; border: 1px dotted gray"></td>
+							<td>{$goods['price']}</td>
+							<td>{$goods['periods']}/{$goods['maxperiods']}</td>
+							<!--<td>{$goods['canyurenshu']}</td>-->
+							<td>
+								{if $goods['status']==3}
+									<!-- 商品终止 -->
+									<label data='{$goods['isnew']}' class='label label-default'>新品</label>
+									<label data='{$goods['ishot']}' class='label label-default'>热卖</label>
+									<label data='{$goods['status']}'class='label label-default'>上架</label>
+								{else}
+								<label data='{$goods['isnew']}' class='label label-default {if $goods['isnew']==1}label-info{else}{/if}' onclick="setProperty(this,{$goods['id']},'new')">新品</label>
+								<label data='{$goods['ishot']}' class='label label-default {if $goods['ishot']==1}label-info{/if}' onclick="setProperty(this,{$goods['id']},'hot')">热卖</label>
+								<label data='{$goods['status']}' class='label label-default {if $goods['status']==2}label-info{/if}' onclick="setProperty(this,{$goods['id']},'status')">上架</label>
+								{/if}
+								</td>
+							<td>
+								{if $goods['status']==3}
+								<a class="btn btn-success">商品已终止不能操作</a>
+								<a href="{php echo $this->createWebUrl('goods',array('op'=>'shiftdelete','id'=>$goods['id']));}" onclick="return confirm('终止商品删除之后，将会删除所有该商品的数据，并且是不可恢复的？');return false;" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="删除"><i class="fa fa-times"></i>
+							</a>
+								{else}
+								<a href="{php echo $this->createWebUrl('goods', array('op'=>'edit', 'id'=>$goods['id']));}" class="btn btn-default" data-toggle="tooltip" data-placement="top" title="" data-original-title="编辑"><i class="fa fa-pencil"></i></a>
+								<a href="{php echo $this->createWebUrl('goods',array('op'=>'delete','id'=>$goods['id']));}" onclick="return confirm('确认删除？');return false;" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="删除"><i class="fa fa-times"></i>
+							</a>
+								<a href="{php echo $this->createWebUrl('showperiod', array('gid'=>$goods['id']));}" class="btn btn-success btn-sm" data-original-title="" title="">查看往期</a>
+								<!--<a href="{php echo $this->createWebUrl('transfer', array('goodsid'=>$goods['id'],'periods' => $goods['periods']));}" onclick="return confirm('终止商品后将退回用户余额，谨慎终止！！！');return false;"  class="btn btn-success btn-sm" data-original-title="" title="">终止商品
+								</a>-->
+								<a href="{php echo $this->createWebUrl('machine', array('goodsid'=>$goods['id'],'periods' => $goods['periods'],'title'=>$goods['title']));}"  class="btn btn-success btn-sm" data-original-title="" title="">机器人
+								</a>
+								{/if}
+							</td>
+							</td>
+							</td>
+						</tr>
+						{/loop}
+						{if empty($goodses)}
+						<tr>
+							<td colspan="8">
+								尚未添加商品
+							</td>
+						</tr>
+						{/if}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+	{$pager}
+	{/if}
+	<!--
+    	作者：800083075@qq.com
+    	时间：2016-01-11
+    	描述：商品回收站列表
+    -->
+		{if  $_GPC['op']=='recover'}
+	<div class="panel panel-default">
+		<div class="panel-heading">商品回收站列表</div>
+		<div class="panel-body">
+			<div class="table-responsive panel-body">
+				<table class="table table-hover table-bordered" style="min-width: 300px;" >
+					<thead class="navbar-inner" style="">
+						<tr >
+							<th style="width:30px;text-align: center;">ID</th>
+							<th style="width:100px;text-align: center;">商品名称</th>
+							{if WELIAM_INDIANA_VERSION=='special'}<th style="width:60px;text-align: center;">所属商家</th>{/if}
+							<th style="width:50px;text-align: center;">商品图片</th>
+							<th style="width:40px;text-align: center;">单价/元</th>
+							<th style="width:60px;text-align: center;">当前/总期数</th>
+							<th style="width:60px;text-align: center;">已参与人数</th>
+							<th style="width:160px;text-align: center;">操作</th>
+						</tr>
+					</thead>
+					<tbody style="text-align: center;">
+						{loop $goodses $goodgoodsid $goods}
+						<tr>
+							<td>{$goods['id']}</td>
+							<td>{$goods['title']}</td>
+							{if WELIAM_INDIANA_VERSION=='special'}<td>{$goods['merchant']}</td>{/if}
+							<td><image src="{php echo tomedia($goods['picarr']);}" style="max-width: 48px; max-height: 48px; border: 1px dotted gray"></td>
+							<td>{$goods['price']}</td>
+							<td>{$goods['periods']}/{$goods['maxperiods']}</td>
+							<td>{$goods['canyurenshu']}</td>
+							<td >
+								<a href="{php echo $this->createWebUrl('goods',array('op'=>'regain','id'=>$goods['id']));}" class="btn btn-success btn-sm" data-toggle="tooltip" data-placement="top" title="" data-original-title="恢复" onclick="return confirm('确定恢复该商品');return false;">还原商品</a>
+								<a href="{php echo $this->createWebUrl('goods',array('op'=>'shiftdelete','id'=>$goods['id']));}" onclick="return confirm('谨慎使用，适用于删除测试数据.删除会造成物品信息、中奖信息、晒单信息、购买信息等一系列信息彻底删除。此操作不可恢复，确认删除？');return false;" class="btn btn-danger btn-sm" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="删除">彻底删除
+							</a>
+							</td>
+						</tr>
+						{/loop}
+						{if empty($goodses)}
+						<tr>
+							<td colspan="8">
+								尚未添加商品
+							</td>
+						</tr>
+						{/if}
+					</tbody>
+				</table>
+				{$pager}
+			</div>
+		</div>
+	</div>
+	{/if}
+<script>
+	function setProperty(obj,id,type){
+		$(obj).html($(obj).html() + "...");
+		$.post("{php echo $this->createWebUrl('setgoodsproperty')}"
+			,{id:id,type:type, data: obj.getAttribute("data")}
+			,function(d){
+				$(obj).html($(obj).html().replace("...",""));
+				if(type=='type'){
+				 $(obj).html( d.data=='1'?'实体物品':'虚拟物品');
+				}
+				if(type=='status'){
+				 $(obj).html( d.data=='2'?'上架':'下架');
+				}
+				$(obj).attr("data",d.data);
+				if(d.result==1){
+					$(obj).toggleClass("label-info");
+				}
+			}
+			,"json"
+		);
+	}
+</script>
+{template 'common/footer'}

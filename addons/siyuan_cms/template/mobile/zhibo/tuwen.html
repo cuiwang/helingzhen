@@ -1,0 +1,190 @@
+﻿{template 'header'}
+<div class="siyuan_top weui-row">
+<div class="weui-col-15"><a href="javascript:history.go(-1)"><i class="fa fa-angle-left f-32"></i></a></div>
+<div class="weui-col-70">{$set['name']}</div>
+<div class="weui-col-15"><a class="cd-bouncy-nav-trigger" href="#0"><img src="{$_W['siteroot']}addons/siyuan_cms/ui/img/daohang.png"></a></div>
+</div>
+<div class="cd-bouncy-nav-modal">
+<nav>
+<ul class="cd-bouncy-nav">
+{loop $menu $caidan}
+<li><a href="{$caidan['url']}"><img src="{$_W['attachurl']}{$caidan['thumb']}"><p>{$caidan['title']}</p></a></li>
+{/loop}
+</ul>
+</nav>
+<a href="#0" class="cd-close fa fa-power-off">返回</a>
+</div>
+<div style="height:40px;"></div>
+<div class="zhibo_top"><img src="{php echo tomedia($news['thumb'])}"></div>
+<div class="m-detail-top"> 
+<h1>{$news['title']}</h1> 
+<p class="m-post-author"><i class="fa fa-clock-o"></i> 开始 : {php echo date('m-d H:i', $news['starttime'])}&nbsp;&nbsp;&nbsp;&nbsp;结束 : {php echo date('m-d H:i', $news['endtime'])}</p> 
+<p class="m-post-com-num"><a href="#comment">{$news['yuedu']} 人正在观看</a></p> 
+</div>
+<div class="content-c">
+<div class="contanr" id="gallery">
+<ul class="commentlist">
+{loop $reply $key $rep}
+<li class="bottom_line">
+<div class="listCon">
+<div class="Ldate">
+<div class="LImg"><img src="{$rep['avatar']}"></div>
+<h4>{$rep['username']} {if $admin == '1'}<em onClick="doAdmin({$rep['id']})" id="show-admin">[管理]</em>{/if}</h4>
+</div>
+<div class="detaiLcon clear">
+<p>{$rep['body']}</p>
+{if $rep['type'] == 'pic'}
+<div class="detaiimg clear">
+<ul class="thumbnails">
+{loop $rep['pic_list'] $p}
+<a class="fancybox-effects-a" href="{$p['pic']}"><span><img src="{$p['pic']}"></span></a>
+{/loop}
+</ul>
+</div>
+{/if}
+<div class="address">
+<div class="site"><i class="fa fa-clock-o"></i><em>{php echo date('m-d H:i', $rep['time'])}</em>
+</div>
+<div id="replybShare">
+{if $user !=='0'}<div class="share detapl" onClick="doHuifu({$rep['id']})" id="show-custom"></div>{/if}
+</div>
+</div>
+{if !empty($rep['mreply'])}
+<div class="plcon"><div>
+<i class="pointTop"></i>
+{loop $rep['mreply'] $mre}
+<div class="pl_line clear">
+<div class="replyb">
+<div class="answer">
+<span class="nm">{$mre['username']}</span> : <span class="mg">{$mre['body']} {if $admin == '1'}<em onClick="doAdmin_pinglun({$mre['id']})" id="show-admin_pinglun">[管理]</em>{/if}</span>
+</div></div></div>
+{/loop}
+</div>
+</div>
+{/if}
+</div>
+</div>
+</li>
+{/loop}
+<div class='demos-content-padded'><a id="aMore" href="#" class="cont-more">点击查看更多</a></div>
+</ul>
+</div>
+</div>
+<script language="javascript" type="text/javascript">
+var totalpage = {$total_page}, currentpage = 1;
+if (totalpage < 2) $('#aMore').remove();
+else
+$('#aMore').click(function () {
+$.ajax({ url: '{php echo $this->createMobileUrl("zhibo", array("act" => "tuwen_list","id" => $news["id"]))}', type: 'POST', data: { currentpage: currentpage + 1}, complete: function (xhr) {
+if (xhr.status == '200') {
+currentpage++;
+if (currentpage > totalpage) $('#aMore').remove($.toast("没有了...", "text"));
+$(xhr.responseText).insertBefore('#aMore');
+}
+else $.toast("没有了...", "text");
+}
+});
+return false;
+});
+</script>
+<script>
+function doAdmin(t) {
+$(document).on("click", "#show-admin", function() {
+        $.modal({
+          title: "管理",
+          text: "请选择操作",
+          buttons: [
+            { text: "删除", onClick: function(){window.location.href="{php echo $this->createMobileUrl('zhibo', array('act' => 'body_admin_del'))}&id="+t;} },
+            { text: "拉黑", onClick: function(){window.location.href="{php echo $this->createMobileUrl('zhibo', array('act' => 'body_black'))}&id="+t;} },
+            { text: "取消", className: "default"},
+          ]
+        });
+      });}
+function doAdmin_pinglun(t) {
+$(document).on("click", "#show-admin_pinglun", function() {
+        $.modal({
+          title: "管理",
+          text: "请选择操作",
+          buttons: [
+            { text: "删除", onClick: function(){window.location.href="{php echo $this->createMobileUrl('zhibo', array('act' => 'pinglun_admin_del'))}&id="+t;} },
+            { text: "拉黑", onClick: function(){window.location.href="{php echo $this->createMobileUrl('zhibo', array('act' => 'pinglun_black'))}&id="+t;} },
+            { text: "取消", className: "default"},
+          ]
+        });
+      });}
+</script>
+<script>
+function doHuifu(t) {
+$(document).on("click", "#show-custom", function() {
+$.prompt({
+title: "请输入回复内容",
+onOK: function(text) {
+$.ajax({
+type:'post',
+dataType:'json',
+url:"{php echo $this->createMobileUrl('zhibo', array('act' => 'huifu','zid' => $news['id']))}",
+data:{body:text,pid:t},
+success:function(msg){
+if(msg.status==1){
+$.toast("评论成功", "text");
+window.location.href="{php echo $this->createMobileUrl('zhibo', array('act' => 'news','id' => $news['id']))}";
+}else{
+$.toast("未评论成功", "text");
+window.location.href=window.location.href;
+}
+}
+})
+},
+onCancel: function() {
+console.log("取消了");
+},
+});
+});
+}
+</script>
+{if $admin == '1'}
+<a href="{php echo $this->createMobileUrl('zhibo', array('act' => 'tuwen_form','id' => $news['id']))}" class="open-popup" data-target="#half"><div class="fabu_xinxi_left"><span>发布<br>信息</span></div></a>
+{/if}
+<link rel="stylesheet" type="text/css" href="http://cdn.staticfile.org/fancybox/2.1.5/jquery.fancybox.min.css" />
+<script type="text/javascript" src="http://cdn.staticfile.org/fancybox/2.1.5/jquery.fancybox.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+$('.fancybox').fancybox();
+$(".fancybox-effects-a").fancybox({
+helpers: {
+title : {
+type : 'outside'
+},
+overlay : {
+speedOut : 0
+}
+}
+});
+});
+</script>
+<script language="JavaScript"> 
+function myrefresh(){ 
+window.location.reload(); 
+} 
+setTimeout('myrefresh()',{$news['shua']}000);
+</script>
+{php echo register_jssdk(false);}
+<script type="text/javascript">
+wx.ready(function () {
+sharedata = {
+title: "{$news['title']}",
+desc: "{$news['title']}",
+link: window.location.href,
+imgUrl: "{php echo tomedia($news['fenxiang'])}",
+success: function (res) {},
+cancel: function(){
+}
+};
+wx.onMenuShareAppMessage(sharedata);
+wx.onMenuShareTimeline(sharedata);
+wx.onMenuShareQQ(sharedata);
+wx.onMenuShareWeibo(sharedata);
+wx.onMenuShareQZone(sharedata);
+});
+</script>
+{template 'footer'}

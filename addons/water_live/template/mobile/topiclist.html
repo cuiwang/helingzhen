@@ -1,0 +1,335 @@
+<html>
+  
+  <head lang="en">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="format-detection" content="telephone=no">
+    <meta http-equiv="x-dns-prefetch-control" content="on">
+    <title>{$system['sysname']}</title>
+    <link rel="stylesheet" type="text/css" href="../addons/water_live/template/css/tlist.css">
+    <script type="text/javascript" src="../addons/water_live/template/js/jquery.min.js"></script>
+    <script>
+    $(function(){ 
+    var $mask = $("#mask");	
+    $("#jCloseLayer").on("click",
+    	        function() {
+    	            $("#signLayer").css("display", "none");
+    	            $mask.css("display", "none");
+    	        });
+    $(".reward").on("click",
+	        function() {
+    	 		var url = '{php echo $this->createMobileUrl('reward');}';
+     			window.location.href=url;
+	        });
+    	        
+    $("#signBtn").on("click",
+            function() {
+                var $this = $(this);
+                var $sign = $("#signLayer");
+                var addjf = $("#addjf").val();
+                var $publishBtn = $sign.find("#jPublishBtn");
+                if ($(this).attr("data-state") == 0) {
+                    var $score = $this.parents(".info_bar").find(".score_num");
+                    $.ajax({
+                        type: 'GET',
+                        url: '{php echo $this->createMobileUrl("dosign");}',
+                        success: function(data) {
+                        	var data = eval("("+data+")");
+                            if (data.errcode == 0) {
+                                if ($this.attr("data-state") == 0) {
+                                    $sign.css("display", "block");
+                                    $mask.css("display", "block");
+                                    $this.attr("data-state", 1).html("已签到");
+                                    $score.html(parseInt($score.html()) + parseInt(addjf));
+                                } else {
+                                	 alert('error1');
+                                }
+                            } else {
+                                alert('error2');
+                            }
+                        },
+                        error: function() {
+                        	alert('网络错误');
+                        }
+                    });
+                } else {
+                    $sign.find(".layer_title").html("今天已签到，获得"+addjf+"积分！<br>");
+                    $sign.css("display", "block");
+                    $mask.css("display", "block");
+                }
+            });
+    
+    }); 
+    function gzus(){
+    	$('#dialog').show();
+		//$("#payewm").attr('src','');
+    }
+    
+    </script>
+  </head>
+  <body>
+    <!-- S header -->
+    <header id="headWrap">
+      <div class="md_hd_wrap" id="headContent">
+        <div class="col_left hide">
+          <a href="javascript:void(0);">
+            <i id="backChildBtn" class="hd_back" attr-tag="backBtn">
+            </i>
+          </a>
+        </div>
+        <div class="col_middle">
+          <h1 id="title">{$system['sysname']}</h1>
+        </div>
+        <div class="col_right" style="width: 22%;">
+        {if $mfans['follow'] == 0}
+          <a onclick="gzus();" href="javascript:void(0);" style="padding:6px 4px 6px 4px;border: 1px solid #0093d5;color: #0093d5;text-align: center;border-radius: 3px;">
+            <i class="hd_search">+点击关注
+            </i>
+          </a>
+          <script type="text/javascript">
+          $('#dialog').show();
+          </script>
+        {/if}
+        </div>
+      </div>
+    </header>
+    <ul class="smart_box" id="smartbox">
+    </ul>
+    <!-- E header -->
+    <section class="top clearfix">
+      <a class="basic_bar" href="{php echo $this->createMobileUrl('home',array('fansid'=>$fans['id']));}" title="" target="">
+        <div class="head">
+          <img class="head_img" src="{$fans['headimgurl']}" alt="">
+        </div>
+        <span class="head_name" style="font-size: 11px;width: 50px;">{$fans['nickname']}</span>
+      </a>
+	  <div class="info_bar" style="font-size: 12px;">
+            {if $system['isreward'] == 1 }
+            <span class="info_title reward">赏金</span>
+            <span class="post_num reward">查看</span>
+            {else}
+             <span class="info_title">帖子数</span>
+            <span class="post_num">{php echo  $this->getSectionSumByFansid($fans['id']);}</span>
+            {/if}
+            {if $system['issign'] == 1}
+            	{if $jfien != "-1"}
+            <span class="info_title">积分</span>
+            <span class="score_num">{$jifen}</span>
+            <div class="sign_btn" id="signBtn" data-state="{$sign}">{if $sign == 0}<i class="icon_sign icon_source"></i>{else}已{/if}签到</div>
+            	{/if}
+            {/if}
+            <input type="hidden" id="addjf" value="{$system['syssign']}">
+        </div>
+    </section>
+    {if $system['isad'] == 1}
+    <section class="pro_bar clearfix">
+      <a class="pro_item" href="{if empty($system['adlefturl'])}javascript:void(0);{else}{$system['adlefturl']}{/if}">
+        <img class="pro_img" src="{$_W['attachurl']}{$system['adleftimg']}">
+        <div class="pro_mask"></div>
+        <p class="pro_title">{$system['adlefttitle']}</p>
+      </a>
+      <a class="pro_item" href="{if empty($system['adrighturl'])}javascript:void(0);{else}{$system['adrighturl']}{/if}">
+        <img class="pro_img" src="{$_W['attachurl']}{$system['adrightimg']}">
+        <div class="pro_mask"></div>
+        <p class="pro_title">{$system['adrighttitle']}</p>
+      </a>
+    </section>
+    {/if}
+    <p class="main_title">推荐频道</p>
+    <ul class="topic_bar">
+     {loop $list $item}
+      <li class="topic_item clearfix" data-id="{$item['id']}">
+        <a class="href_bar" href="{php echo $this->createMobileUrl('topic',array('topicid'=>$item['id']));}" title="" target="">
+          <div class="topic_head icon_source">
+            <img class="topic_img" src="{$_W['attachurl']}{$item['simg']}">
+          </div>
+          <div class="topic_content">
+            <p class="topic_title">
+              <span class="topic_title_text">{$item['stitle']}</span>
+              <i class="{if $item['hot']==2}icon_hot{/if}  / icon_source"></i><i class="{if $item['new']==2}icon_new{/if}  / icon_source"></i>
+            </p>
+            <p class="topic_text">发帖数：{php echo  $this->getSectionSumBySid($item['id']);}</p>
+          </div>
+        </a>
+      </li>
+     {/loop}
+    </ul>
+     <div style="height: 3rem"></div>
+    <div id="emptyTips" style="-webkit-transform-origin: 0px 0px 0px; opacity: 1; -webkit-transform: scale(1, 1); display: none;">
+    </div>
+    <div class="layer" id="signLayer">
+    <i class="icon_source icon_sign_suc"></i>
+    <p class="layer_title">签到成功，恭喜获得{$system['syssign']}积分</p>
+    <i class="icon_source icon_sign_recommend"></i>
+    <p class="layer_text" data-topicid="35"><span style="color: #333">{$list[0]['stitle']}</span>{$list[0]['sdesc']}</p>    
+    <div class="btn_bar">
+        <!-- <a class="btn" href="http://event.midea.com/act/lottery_app?mtag=20058.1.4">去抽奖赢大礼</a> -->
+        <a class="btn" id="jPublishBtn" href="{php echo $this->createMobileUrl('add',array('topicid'=>$list[0]['id']))}" >去发帖</a>
+        <a class="btn" href="javascript:;" id="jCloseLayer" >我知道了</a>
+    </div>
+</div>
+    <div class="mask" id="mask">
+    </div>
+    <style type="text/css">
+body, html {
+    height: 100%;
+    -webkit-tap-highlight-color: transparent;
+}
+  .d-box {
+    border-radius: 10px;
+    margin: 100px auto 0;
+    position: relative;
+    width: 80%;
+    background: #fff;
+}
+  .dialog {
+    background: rgba(0, 0, 0, 0.6) none repeat scroll 0 0;
+    height: 100%;
+    left: 0;
+    display: none;
+    position: fixed;
+    text-align: center;
+    top: 0;
+    width: 100%;
+    z-index: 999;
+}
+.d-e {
+    border-radius: 5px 5px 0 0;
+    font-size: 0;
+    overflow: hidden;
+    padding: 10px 5px;
+}
+.d-e img {
+    width: 100%;
+
+}
+.e-t {
+    background: #fff none repeat scroll 0 0;
+    border-radius: 0 0 10px 10px;
+    color: #08b3ab;
+    padding-top:0;
+    padding-bottom: 10px;
+    padding-left: 0;
+    padding-right: 0;
+}
+.d-close {
+    background: #999 none repeat scroll 0 0;
+    border-radius: 15px;
+    color: #fff;
+    cursor: pointer;
+    font-weight: bold;
+    height: 30px;
+    line-height: 30px;
+    position: absolute;
+    right: -10px;
+    top: -10px;
+    width: 30px;
+}
+
+</style>
+<!--修改号码-->
+ <div class="dialog" id='dialog'>
+      <div class="d-box">
+      	<div onclick="$('#dialog').hide();" class="d-close">X</div>
+      	<div class="d-e">
+      		<img id="payewm" src="{$_W['attachurl']}{$system['gzimg']}">
+      	</div>
+      <p class="e-t">{$system['gztips']}</p>
+      </div>
+</div>
+    <!-- E footer -->
+    {if !empty($footerhtml)}
+   
+    {$footerhtml}{/if}
+    
+  </body>
+
+	{php $shareurl = $_W['siteroot'].'app/'.$this->createMobileUrl('topiclist');}
+	{php $imgurl = $fans['headimgurl'];}
+    <script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js" type="text/javascript"></script>
+    <script>
+        var appid = '{$_W['account']['jssdkconfig']['appId']}';
+        var timestamp = '{$_W['account']['jssdkconfig']['timestamp']}';
+        var nonceStr = '{$_W['account']['jssdkconfig']['nonceStr']}';
+        var signature = '{$_W['account']['jssdkconfig']['signature']}';
+
+        wx.config({
+            debug: false,
+            appId: appid,
+            timestamp: timestamp,
+            nonceStr: nonceStr,
+            signature: signature,
+            jsApiList: [
+                'checkJsApi',
+                'onMenuShareTimeline',
+                'onMenuShareAppMessage',
+            ]
+        });
+        
+        
+
+        var shareData = {
+            title: '{$system['sysname']}',
+            desc: '{$system['sysdesc']}',
+            link: '{php echo $shareurl}',
+            imgUrl: '{php echo $imgurl}'
+        };
+
+        wx.ready(function () {
+        	
+            wx.onMenuShareAppMessage({
+                title: shareData.title,
+                desc: shareData.desc,
+                link: shareData.link,
+                imgUrl: shareData.imgUrl,
+                trigger: function (res) {
+                },
+                success: function (res) {
+                	doshare();
+                },
+                cancel: function (res) {
+                },
+                fail: function (res) {
+                }
+            });
+
+            wx.onMenuShareTimeline({
+                title: shareData.title,
+                link: shareData.link,
+                imgUrl: shareData.imgUrl,
+                success: function () {
+                	doshare();
+                },
+                cancel: function () {
+                }
+            });
+        	
+        });
+
+        wx.error(function (res) {
+        });
+
+
+        function doshare(){
+        	$.ajax({
+                type: 'GET',
+                url: '{php echo $this->createMobileUrl("DoShare");}',
+                success: function(data) {
+                	var data = eval("("+data+")");
+                    if (data.errcode == 0) {
+                    	tips(data.errmsg);
+                    }else{
+                    	//alert(1);
+                    }
+                },
+                error: function() {
+                	alert('网络错误');
+                }
+            });
+        }
+    </script>
+	
+
+</html>

@@ -1,0 +1,142 @@
+{template 'common/header'}
+<style type="text/css">
+	.require{color:red;}
+	.info{padding:6px;width:400px;margin:-20px auto 3px auto;text-align:center;}
+</style>
+<ul class="nav nav-tabs">
+	<li {if $op == 'list'}class="active"{/if}><a href="{php echo $this->createWebUrl('account', array('op' => 'list'));}"> 账号列表</a></li>
+	<li {if $op == 'post'}class="active"{/if}><a href="{php echo $this->createWebUrl('account', array('op' => 'post'));}">添加账号</a></li>
+</ul>
+{if $op == 'post'}
+<div class="clearfix">
+	<form class="form-horizontal form" id="form1" action="" method="post" enctype="multipart/form-data">
+		<input type="hidden" name="id" value="{$id}">
+		<div class="panel panel-default">
+			<div class="panel-heading">账号信息</div>
+			<div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="require">*</span>登陆账号</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" name="username" value="{$account['username']}" class="form-control">
+						<div class="help-block">请输入登陆账号，登陆账号为 3 到 15 个字符组成，包括汉字，大小写字母（不区分大小写）</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="require">*</span>密码</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="password" name="password" value="" class="form-control">
+						<div class="help-block">请填写密码，最小长度为 8 个字符.{if $account['uid'] > 0}如果不更改密码此处请留空{/if}</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="require">*</span>确认密码</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="password" name="repassword" value="" class="form-control">
+						<div class="help-block">重复输入密码，确认正确输入.{if $account['uid'] > 0}如果不更改密码此处请留空{/if}</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="require">*</span>所属门店</label>
+					<div class="col-sm-9 col-xs-12">
+						<select name="sid" class="form-control">
+							<option value="">选择所属门店</option>
+							{loop $stores $store}
+							<option value="{$store['id']}" {if $store['id'] == $account['sid']}selected{/if}>{$store['title']}</option>
+							{/loop}
+						</select>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="require"> </span>状态</label>
+					<div class="col-sm-9 col-xs-12">
+						<label class="radio-inline">
+							<input type="radio" name="status" value="2" {if $account['status'] == 2 || !$account['status']}checked{/if}>启用
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="status" value="1" {if $account['status'] == 1}checked{/if}>禁用
+						</label>
+					</div>
+				</div>
+
+			</div>
+		</div>
+		<div class="form-group col-sm-12">
+			<input name="submit" id="submit" type="submit" value="提交" class="btn btn-primary col-lg-1">
+			<input type="hidden" name="token" value="{$_W['token']}" />
+		</div>
+	</form>
+</div>
+<script>
+	var id = '{$id}';
+	$('#form1').submit(function(){
+		var username = $.trim($(':text[name="username"]').val());
+		if (!username) {
+			util.message('请填写登陆账号');
+			return false;
+		}
+		{if !$account['uid']}
+			var password = $.trim($('input[name="password"]').val());
+			if (!password || password.length < 8) {
+				util.message('密码不能小于8位数');
+				return false;
+			}
+			var repassword = $.trim($('input[name="repassword"]').val());
+			if (password != repassword) {
+				util.message('两次密码输入不一致');
+				return false;
+			}
+		{/if}
+
+		var store_id = $.trim($('select[name="sid"]').val());
+		if (!store_id) {
+			util.message('请选择店员所在的门店.<br>');
+			return false;
+		}
+		return true;
+	});
+
+</script>
+{elseif $op == 'list'}
+<div class="main table-responsive">
+	<form method="post" class="form-horizontal" id="form1">
+		<div class="panel panel-default">
+			<div class="panel-body table-responsive">
+				<table class="table table-hover">
+					<thead>
+					<tr>
+						<th>门店logo</th>
+						<th>门店名称</th>
+						<th>登陆账号</th>
+						<th>状态</th>
+						<th>操作</th>
+					</tr>
+					</thead>
+					<tbody>
+					{loop $data $item}
+					<tr>
+						<td><img src="{php echo tomedia($stores[$item['sid']]['logo']);}" width="50"></td>
+						<td>{$stores[$item['sid']]['title']}</td>
+						<td>{$users[$item['uid']]['username']}</td>
+						<td>
+							{if $users[$item['uid']]['status'] == 1}
+								<span class="label label-danger">已禁用</span>
+							{else}
+								<span class="label label-success">启用</span>
+							{/if}
+						</td>
+						<td>
+							<a href="{php echo $this->createWebUrl('account',array('op' => 'post', 'id' => $item['id']));}" title="编辑" class="btn btn-default">编辑</a>
+							<a href="{php echo $this->createWebUrl('account',array('op' => 'del', 'id' => $item['id']));}" title="删除" class="btn btn-default" onclick="return confirm('此操作不可恢复，确认删除？');return false;">删除</a>
+						</td>
+					</tr>
+					{/loop}
+					</tbody>
+				</table>
+			</div>
+		</div>
+		{$pager}
+	</form>
+</div>
+{/if}
+{template 'common'}
+{template 'common/footer'}

@@ -1,0 +1,206 @@
+{template 'header'}
+<link rel="stylesheet" type="text/css" href="{HT}css/base.css">
+<link rel="stylesheet" type="text/css" href="{HT}css/couponliststyle.css">
+<body>
+<div class="content">
+	<div class="nav">
+		<ul class="clearfix">
+        {loop $modilist  $item}
+            <a href="{$item['url']}">
+        	   <li><img src="{php echo tomedia($item['img'])}"><span>{$item[name]}</span></li>
+            </a>
+		{/loop}
+		</ul>
+	</div>
+</div> 
+<div class="content">
+	<ul class="list clearfix">
+		<li><a href="JavaScript: button('renqi');">人气</a></li>
+		<li><a href="JavaScript: button('zuixin');">最新</a></li>
+		<li><a href="JavaScript: button('zhekou');">最大折扣</a></li>
+	</ul>
+	<div id="order_contenter">
+		<div id="list">
+			
+		</div>
+    </div>
+</div>
+<script type="text/javascript" src="{HT}js/yxMobileSlider.js" ></script>
+<script src="{HT}js/lyz.delayLoading.min.js" type="text/javascript"></script><!-- 延迟加载的js-->
+<script type="text/javascript" src="https://res.wx.qq.com/open/js/jweixin-1.0.0.js" ></script>
+<script charset="utf-8" src="http://map.qq.com/api/js?v=2.exp&key={$config['qqmapak']}"></script>
+<script>
+var latitude;
+var longitude;
+var district;
+wx.config({
+    debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+    appId: "{$wxapi['appId']}", // 必填，公众号的唯一标识
+    timestamp: '{$wxapi["timestamp"]}', // 必填，生成签名的时间戳
+    nonceStr: '{$wxapi["nonceStr"]}', // 必填，生成签名的随机串
+    signature: '{$wxapi["signature"]}',// 必填，签名，见附录1
+    jsApiList: ['checkJsApi', 'openLocation', 'getLocation', 'onMenuShareAppMessage', 'onMenuShareTimeline'] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
+});
+wx.ready(function(){
+	wx.getLocation({
+	    type : 'gcj02', //默认为wgs84的gps坐标，如果要返回直接给openLocation用的火星坐标，可传入'gcj02'
+		success: function (res) {
+            latitude = res.latitude; // 纬度，浮点数，范围为90 ~ -90
+			longitude = res.longitude; // 经度，浮点数，范围为180 ~ -180。
+			var speed = res.speed; // 速度，以米/每秒计
+			var accuracy = res.accuracy; // 位置精度
+			//地址和经纬度之间进行转换服务
+			// geocoder = new qq.maps.Geocoder();
+			// var latLng = new qq.maps.LatLng(latitude, longitude);
+			// geocoder.getAddress(latLng);
+			// geocoder.setComplete(function(result){
+				// var location = result.detail.addressComponents;
+                // var country = location.country; // 国家
+                // district = location.district;
+                 // // var data = {
+                    // // district:district,
+                    // // latitude:latitude,
+                    // // longitude:longitude,
+                    // // stype:'renqi',
+                // // }
+				// $('#list').html();
+				// loadMore();
+				// // $.get("{php echo $this->createmobileurl('halfoffgrabcou', array('op'=>'coupun_list'))}",data,function(res){
+					// // $('#list').html(res);
+                // // });
+			// });
+			$('#list').html();
+			loadMore();
+		}
+	});
+})
+
+wx.ready(function(){
+	wx.checkJsApi({
+		jsApiList: ['getLocation',],
+		success: function (res) {
+			//alert(JSON.stringify(res));
+			// alert(JSON.stringify(res.checkResult.getLocation));
+			if (res.checkResult.getLocation == false) {
+				alert('你的微信版本太低，不支持微信JS接口，请升级到最新的微信版本！');
+				return;
+			}
+		}
+	});
+      
+	//分享朋友
+	wx.onMenuShareAppMessage({
+		title: "{$config['share_title']}", // 分享标题
+		desc: "{$config['share_desc']}", // 分享描述
+		link: "{$_W['siteurl']}", // 分享链接
+		imgUrl: "{php echo tomedia($config['share_img']);}", // 分享图标
+		success: function () { 
+			
+		},
+		cancel: function () { 
+			alert("分享失败，可能是网络问题，一会儿再试试？");
+		}
+	});
+	  
+	//分享朋友圈
+	wx.onMenuShareTimeline({
+		title: "{$config['share_title']}", // 分享标题
+		desc: "{$config['share_desc']}", // 分享描述
+		link: "{$_W['siteurl']}", // 分享链接
+		imgUrl: "{php echo tomedia($config['share_img']);}", // 分享图标
+		success: function () {
+			
+		},
+		cancel: function () { 
+			alert("分享失败，可能是网络问题，一会儿再试试？");
+		}
+	});
+      
+});
+//var url = "{php echo $this->createMobileUrl('halfbus', array('agentid'=>$agentid, 'bus_id'=>$bus_id))}";
+//	setTimeout("location.href='" + url + "&op=managercopon'", 500);
+function button(stype){
+	$('#list').html();
+	// var data = {
+		// district:district,
+		// latitude:latitude,
+		// longitude:longitude,
+		// stype:stype,
+	// }
+	// $.get("{php echo $this->createmobileurl('halfoffgrabcou', array('op'=>'coupun_list'))}",data,function(res){
+		// $('#list').html(res);
+	// });
+	loadMore(stype);
+}
+
+function loadMore(stype){
+	var page = 0;
+	var lock = 0;
+	$('#list').empty();
+	$('.dropload-down').remove();
+	$('#order_contenter').dropload({
+		scrollArea : window,
+		loadDownFn : function(me){
+			//alert(page);
+			$.ajax({
+				type: 'POST',
+				url: "{php echo $this->createmobileurl('halfoffgrabcou', array('op'=>'coupun_list', 'agentid'=>$agentid))}",				
+				data:{page:page, latitude:latitude, longitude:longitude, stype:stype},
+				dataType: 'json',
+				success: function(res){
+					//alert(res);
+					var str ='';
+					$.each(res, function(index, value) {
+						str += '<a  href="{$_W['siteroot']}app/index.php?i={$_W['uniacid']}&c=entry&op=managercopon&agentid='+value.agentid+'&do=halfbus&m=hetu_halfoff&bus_id='+value.bus_id+'">';
+						str += '<div class="list_detailed">';
+						str += '<div class="arrange_name">';
+						str += '<div class="arrange_img">';
+						str += '<img originalSrc="{$_W['attachurl']}'+value.img+'" class="img_arrange">';
+						str += '</div>';
+						str += '<div class="arrange_fots">';
+						str += '<div class="blacks">'+value.name+'</div>';
+						str += '<div class="greys">'+value.timezone+'</div>';
+						str += '<div class="greys">'+value.category_name+' | '+value.county_name+'</div>';
+						str += '</div>';
+						str += '</div>';
+						str += '<div class="discount big_fonts">';
+						str += '<span class="number">'+value.discount+'</span>折';
+						str += '</div>';
+						str += '</div>';
+						str += '</a>';
+					});
+					obj = me;
+					page++;
+					if(res.length < 100){
+						me.lock();
+						// 无数据
+						me.noData();
+					}
+					$('#list').append(str);
+					me.resetload();
+					$("img").delayLoading({
+						defaultImg: "/wx/Public/Home/img/loading.jpg",           // 预加载前显示的图片
+						errorImg: "",                        // 读取图片错误时替换图片(默认：与defaultImg一样)
+						imgSrcAttr: "originalSrc",           // 记录图片路径的属性(默认：originalSrc，页面img的src属性也要替换为originalSrc)
+						beforehand: 0,                       // 预先提前多少像素加载图片(默认：0)
+						event: "scroll",                     // 触发加载图片事件(默认：scroll)
+						duration: "normal",                  // 三种预定淡出(入)速度之一的字符串("slow", "normal", or "fast")或表示动画时长的毫秒数值(如：1000),默认:"normal"
+						container: window,                   // 对象加载的位置容器(默认：window)
+						success: function (imgObj) { },      // 加载图片成功后的回调函数(默认：不执行任何操作)
+						error: function (imgObj) { }         // 加载图片失败后的回调函数(默认：不执行任何操作)
+					});
+					// 每次数据加载完，必须重置
+				},
+				error: function(xhr, type){
+					//alert('Ajax error!');
+					// 即使加载出错，也得重置
+					me.resetload();
+				}
+			});
+		}
+	});
+}
+
+</script>
+
+{template 'footer'}

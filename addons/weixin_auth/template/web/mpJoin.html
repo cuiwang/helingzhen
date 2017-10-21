@@ -1,0 +1,84 @@
+{template 'common/header'}
+<link rel="stylesheet" href="{php echo MODULE_PATH}/public/css/sweetalert.css">
+<style>
+	.bg-self-1{background-color: rgba(228, 232, 234, 0.29); border: 2px solid rgba(33, 63, 80, 0.12);}
+	.mp-info .row{height: 50px; line-height: 50px;}
+	.mp-info em{font-weight: bold}
+	.mpAddMain{width: 100%; clear: both; padding-top: 40px;}
+	.mpAddMain a{margin-right: 15px}
+</style>
+
+<div class="main">
+	<div class="">
+		<div class="panel panel-default">
+			<div class="panel-heading">接入公众号</div>
+			<div class="panel-body">
+				<div class="tab-content">
+					<div class="tab-pane active mp-info">
+						<h4 class="alert alert-danger">
+							<br />
+							您绑定的微信公众号：<em class="text-danger">{$info['name']}</em>，请将以下信息填入微信公众平台中。
+							<br />
+							<br />
+						</h4>
+						<div class="row">
+							<div class="bg-self-1 col-md-8">
+								<div class="row">
+									<div class="col-md-2 text-right"><em>URL：</em></div>
+									<div class="col-md-10">{$info['url']}</div>
+								</div>
+								<div class="row">
+									<div class="col-md-2 text-right"><em>Token：</em></div>
+									<div class="col-md-10">{$info['token']}</div>
+								</div>
+								<div class="row">
+									<div class="col-md-2 text-right"><em>EncodingAESKey：</em></div>
+									<div class="col-md-10">{$info['encodingaeskey']}</div>
+								</div>
+								<div class="row">
+									<div class="col-md-2 text-right"><em>接入状态：</em></div>
+									<div class="col-md-10">
+                                        <span class="label label-{php if($info['is_yz'] == 1) echo 'success'; else echo 'danger';}">
+                                            {php if($info['is_yz'] == 1) echo '接入成功'; else echo '未接入';}
+                                        </span>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="mpAddMain">
+							{php if($info['is_yz'] == 0) { }
+							<a href="{php echo $this->createWebUrl('MpCheck',array('id'=>$info['id']))}" class="btn btn-success mpJoin" style="color:#FFF"> 检测是否接入成功</a>
+							{php } }
+							<a href="{php echo $this->createWebUrl('MpList')}" class="btn btn-info" style="color:#FFF">返回公众号列表</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script src="{php echo MODULE_PATH}/public/js/sweetalert.min.js"></script>
+<script src="{php echo MODULE_PATH}/public/js/public.js"></script>
+<script>
+	$('.mpJoin').click(function(){
+		var url = $(this).attr('href');
+		$(this).addClass('disabled').html('检测中');
+		$.ajax({
+			url: url,
+			dataType:'json',
+			success:function(res){
+				swal({title:CheckCode(res.Code),text: res.Message,type: CheckCode(res.Code,2)},function(){
+					if( CheckCode(res.Code,2) == 'success')
+						window.location.href = '{php echo $this->createWebUrl('MpList', array('op' => 'index'))}';
+				});
+			},
+			error:function(){ swal("Error", "请检查您的网络", "error"); },
+			complete:function(){
+				$('.mpJoin').removeClass('disabled').html('检测是否接入成功');
+			}
+		});
+		return false;
+	});
+</script>
+{template 'common/footer'}

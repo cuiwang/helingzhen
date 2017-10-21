@@ -1,0 +1,449 @@
+<!DOCTYPE html><html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=0" />
+<title>{$title}</title>
+<link href="{MODULE_URL}template/mobile/audio/t/css/bootstrap.min.css" media="screen" rel="stylesheet" type="text/css" />
+<link href="{MODULE_URL}template/mobile/audio/t/css/bootstrap-theme.min.css" media="screen" rel="stylesheet" type="text/css" />
+<link href="{MODULE_URL}template/mobile/audio/t/css/font-awesome.min.css" media="screen" rel="stylesheet" type="text/css" />
+<link href="{MODULE_URL}template/mobile/audio/t/css/style.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="{MODULE_URL}template/mobile/audio/t/js/jquery-1.11.0.min.js">
+</script>
+</script>
+<script type="text/javascript" src="{MODULE_URL}template/mobile/audio/t/js/jquery-scrollto.js">
+</script>
+<script type="text/javascript" src="{MODULE_URL}template/mobile/audio/t/js/bootstrap.min.js">
+</script>
+</head>
+<body>
+<style>
+.page-container {
+  min-height: 521px;
+  background-position: 50% 90%;
+}
+.page-container {
+  max-width: 521px;
+  background-image: url({if empty($reply['voicebg'])}{MODULE_URL}template/mobile/audio/t/images/voicebg.jpg{else}{php echo toimage($reply['voicebg'])}{/if});
+  background-repeat: no-repeat;
+  background-position: 50% 100%;
+}
+</style>
+<div class="container-fluid page-container">
+<div class="row">
+<div class="col-xs-12 highcol hdmain">
+<h1>好声音录制间</h1>
+<div class="cibox">
+<div class="ico-rec-start"><img src="{MODULE_URL}template/mobile/audio/t/images/voice.png" alt="" />{if $avatar}<img src="{php echo toimage($avatar)}" alt="{$nickname}" style="width:40px;  border-radius: 100px;  position: relative;  top: -75px;  left: 15px;" />{/if}</div>
+<div class="ico-rec-recording hide">
+	<img class="rc-1 hide" src="{MODULE_URL}template/mobile/audio/t/images/ly02.png" alt="" /><!-- 2 -->
+	<img class="rc-2 hide" src="{MODULE_URL}template/mobile/audio/t/images/ly01.png" alt="" /><!-- 1 -->
+	<img class="rc-3 hide" src="{MODULE_URL}template/mobile/audio/t/images/ly04.png" alt="" /><!-- 4 -->
+	<img class="rc-4 hide" src="{MODULE_URL}template/mobile/audio/t/images/ly03.png" alt="" /><!-- 3 -->
+	<img class="rc-5 hide" src="{MODULE_URL}template/mobile/audio/t/images/ly05.png" alt="" /></div>
+<div class="ico-rec-play hide" onclick="playVoiceByUser();return false;">
+	<img src="{MODULE_URL}template/mobile/audio/t/images/start.png" alt="" />
+</div>
+<div class="ico-rec-playing hide">
+	<img class="pi-1 hide" src="{MODULE_URL}template/mobile/audio/t/images/bf01.png" alt="" />
+	<img class="pi-2 hide" src="{MODULE_URL}template/mobile/audio/t/images/bf02.png" alt="" /> 
+	<img class="pi-3 hide" src="{MODULE_URL}template/mobile/audio/t/images/bf03.png" alt="" />
+</div>
+<div class="voice-time-bar"><span class="voice-time">0</span>s</div>
+</div>
+<div class="btnbox">
+<p id="tip">正在初始化，稍等一下</p>
+<div class="btn-rec-start hide"><a class="hdbtn hdbtn-1" href="javascript:;">开始录音</a></div>
+<div class="btn-rec-stop hide"><a class="hdbtn hdbtn-2" href="javascript:;" onclick="stopRecord();return false;">停止录音</a></div>
+<div class="btn-rec-restart hide"><a class="hdbtn hdbtn-1" href="javascript:;" onclick="restartRecord();return false;">重新录音</a></div>
+<div class="btn-rec-preshare hide"><a class="hdbtn hdbtn-1" href="javascript:;" onclick="return false;">正在保存语音...</a></div>
+<div class="btn-rec-share hide"><a class="hdbtn hdbtn-1" href="{php echo $this->createMobileUrl('tuser', array('tfrom_user'=>$from_user, 'rid' => $rid))}" >我的中心</a></div>
+</div>
+<div class="overlaybg" onclick="hdOverlayBgClicked()"><img src="{MODULE_URL}template/mobile/audio/t/images/cleardot.gif" alt="" /></div>
+</div>
+</div>
+</div>
+
+<script type="text/javascript">
+ var voice_record_time=0;
+ var voice_record_start = 0;
+ function switchIconTo(s){
+   var ss=[ "start" , "recording", "play" , "playing"];
+   var i=0;
+   for(;i<ss.length;i++){
+     $('.ico-rec-'+ss[i]).addClass('hide');
+     $('.ico-rec-'+s).removeClass('hide');
+   }
+ }
+
+ function switchBtnTo(bs){
+   var ss=[ "start" , "stop" ,  "restart","preshare","share"];
+   var i=0,j=0;
+   for(;i<ss.length;i++){
+     $('.btn-rec-'+ss[i]).addClass('hide');
+     var show=false;
+     for(j=0;j<bs.length;j++){
+       if(bs[j] == ss[i]){
+         show=true;
+         break;
+       }
+     }
+     if(show){
+       $('.btn-rec-'+ss[i]).removeClass('hide');
+     }
+   }
+ }
+
+ function onUploadDone(serverId){
+   // 激活下一步按钮
+	//var rid = "{$rid}";
+	//var from_user = "{$from_user}";
+   // 保存serverId到服务器
+   $.ajax({
+     url:"{php echo $_W['siteroot'].'app/'.$this->createMobileUrl('saverecord',array('rid'=>$rid, 'from_user' => $from_user),1);}",
+     //dateType:"jsonp",
+     type:"POST",
+     data:{serverId:serverId,timeLength:voice_record_time}
+   }).done(function(data){
+     if(data && data.ret === 0){
+       var serverId = data.serverId;
+ //alert(serverId);
+ 
+       $('.btn-next').show();
+
+      // wxShareDataArray[isAndroid ? 3 : 2][3] = "{php echo $_W['siteroot'].'app/'.$this->createMobileUrl('index',array(),1);}" +'&serverId=' + serverId;
+      // changeWeixinShareData(isAndroid ? 3 : 2);
+
+
+       //知道上传成功
+       $('.btn-rec-share .hdbtn').addClass('hdbtn-2');
+       $('.btn-rec-share .hdbtn').removeClass('hdbtn-1');
+
+
+       switchBtnTo(["restart","share"]);
+       
+     }else{
+       //失败
+       alert("语音保存失败，请重新录制!");
+     }
+   }).complete(function(){
+
+     //alert("complete");
+
+   });
+   
+ }
+
+ var play_time_ti;
+ var is_playing=false;
+ function playVoice(id){
+   is_playing=true;
+   switchIconTo('playing');
+
+   /*
+   播放结束事件无法捕捉
+   wx.onVoicePlayEnd({
+     success: function (res) {
+       alert("play end.");
+       var localId = res.localId; // 返回音频的本地ID
+
+       switchIconTo('play');
+     }
+   });
+   */
+
+   play_time_ti = setInterval(function(){
+     var tt = $('.voice-time-bar .voice-time');
+     var ss = tt.text() *1;
+     tt.text(ss>1 ? ss-1:0);
+   },1000);
+   
+   setTimeout(function(){
+     is_playing=false;
+     switchIconTo('play');
+
+     $('.voice-time-bar .voice-time').text(voice_record_time*1);
+     
+     if(play_time_ti){
+       clearInterval(play_time_ti);
+     }
+     
+   },voice_record_time*1000);
+   
+   wx.playVoice({
+     localId: id// 需要播放的音频的本地ID，由stopRecord接口获得
+   });
+   
+ }
+
+ function playVoiceByUser(){
+   if(is_playing) return;
+
+   playVoice(last_voice_localId);
+ }
+ function uploadVoice(localId){
+   wx.uploadVoice({
+     localId: localId, // 需要上传的音频的本地ID，由stopRecord接口获得
+     isShowProgressTips: 1, // 默认为1，显示进度提示
+     success: function (res) {
+       var serverId = res.serverId; // 返回音频的服务器端ID
+       //alert("upload done: " + serverId);
+       onUploadDone(serverId);
+     }
+   });
+ }
+
+ var last_voice_localId;
+ function onRecordDone(localId){
+
+   voice_record_time = Math.ceil(((new Date()).getTime() - voice_record_start) / 1000);
+
+   //wxShareDataArray[isAndroid ? 3 : 2][1] = voice_record_time*1 + "\"";
+   
+   switchIconTo('play');
+   switchBtnTo(["restart","preshare"]);
+
+   //还不知道上传是否成功
+   $('.btn-rec-share .hdbtn').removeClass('hdbtn-2');
+   $('.btn-rec-share .hdbtn').addClass('hdbtn-1');
+
+
+   $('.voice-time-bar .voice-time').text(voice_record_time*1);
+   $('.voice-time-bar').show();
+   
+   last_voice_localId = localId;
+   
+   setTimeout(function(){
+     uploadVoice(localId);
+   },2000);
+
+   playVoice(localId);
+   
+ }
+
+ var isRecording = false;
+ function startRecord(){
+
+   if(isRecording) return;
+   isRecording=true;
+
+   
+   
+   wx.onVoiceRecordEnd({
+     // 录音时间超过一分钟没有停止的时候会执行 complete 回调
+     complete: function (res) {
+       var localId = res.localId;
+       //alert("done: "+localId);
+
+       isRecording=false;
+       onRecordDone(localId);
+     }
+   });
+
+   $('.voice-time-bar').hide();
+   switchIconTo('recording');
+   switchBtnTo(["stop"]);
+
+   voice_record_time=0;
+   voice_record_start = (new Date()).getTime();
+
+   wx.startRecord({
+     success:function(){
+       isRecording=false;
+       voice_record_start = (new Date()).getTime();
+     },
+     cancel:function(){
+       isRecording=false;
+       
+       switchBtnTo(["start"]);
+       switchIconTo('start');
+     }
+   });
+   
+ }
+
+
+ function stopRecord(){
+   isRecording=false;
+   
+   wx.stopRecord({
+     success: function (res) {
+       var localId = res.localId;
+       //alert("stop: "+localId);
+       onRecordDone(localId);
+     }
+   });
+ }
+
+ function playRecord(){
+   playVoice(last_voice_localId);
+ }
+
+ function restartRecord(){
+   startRecord();
+ }
+
+ $(function(){
+   $('.btn-rec-start .hdbtn').on('touchstart',function(){
+     startRecord();
+   });
+   $('.btn-rec-start .hdbtn').on('click',function(){
+     startRecord();
+   });
+ });
+
+
+  function hdOverlayBgClicked(){
+   $('.shareGuide').hide();
+   $('.afterShareGuide').hide();
+   $('.overlaybg').hide();
+ }
+
+ function showShareGuide(){
+
+   if(!$('.btn-rec-share .hdbtn').hasClass('hdbtn-2')){
+     return;
+   }
+   
+   $('.afterShareGuide').hide();
+   $('.shareGuide').show();
+   $('.overlaybg').show();
+
+   $('.shareGuide').ScrollTo();
+ }
+
+ var piArr=[];
+ var piPos=0;
+ $(function(){
+   if(piArr.length <1){
+     piArr[0] = $('.pi-1');
+     piArr[1] = $('.pi-2');
+     piArr[2] = $('.pi-3');
+   }
+
+   setInterval(function(){
+     var i=0;
+     for(;i<3;i++){
+       if(i == piPos){
+         piArr[i].removeClass('hide');
+       }else{
+         piArr[i].addClass('hide');
+       }
+     }
+
+     piPos++;
+     if(piPos>=3){
+       piPos = (piPos % 3);
+     }
+   },500);
+   
+ });
+
+
+ var riArr=[];
+ var riPos=0;
+ $(function(){
+   if(riArr.length <1){
+     riArr[0] = $('.rc-1');
+     riArr[1] = $('.rc-2');
+     riArr[2] = $('.rc-3');
+     riArr[3] = $('.rc-4');
+     riArr[4] = $('.rc-5');
+   }
+
+   setInterval(function(){
+     var i=0;
+     for(;i<5;i++){
+       if(i == riPos){
+         riArr[i].removeClass('hide');
+       }else{
+         riArr[i].addClass('hide');
+       }
+     }
+
+     riPos++;
+     if(riPos>=5){
+       riPos = (riPos % 5);
+     }
+   },300);
+   
+ });
+ 
+ /* fix style */
+ function _fixLayoutStyle(){
+   var w = $(window).width();
+   var h = $(window).height();
+   if(w>500) w=500;
+   var ptdPadding = Math.floor(w * 5 / 320);
+   var ptbH = Math.floor(w * 290 /320);
+
+   $(document.body).append('<sty'+'le>'
+                           + '.page-container {min-height:'+h+'px;background-position:50% 90%;background-repeat: repeat-y; }'
+                           + '.overlaybg {min-height:'+h+'px;}'
+                           + '.afterShareGuide {min-height:'+h+'px;}'
+                           +'<\/sty'+'le>');
+ }
+ $(_fixLayoutStyle);
+ $(window).on("load",_fixLayoutStyle);
+
+</script>
+<!--
+<script type="text/javascript">
+ var isAndroid = {$isAndroid};
+</script>
+-->
+<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js" type="text/javascript"></script>
+<script type="text/javascript">  
+  $(function(){
+	 wx.config({
+	   debug: false,
+	   appId: "{$_W['account']['jssdkconfig']['appId']}",
+	   timestamp: {$_W['account']['jssdkconfig']['timestamp']},
+	   nonceStr: "{$_W['account']['jssdkconfig']['nonceStr']}", 
+	   signature: "{$_W['account']['jssdkconfig']['signature']}",
+	   jsApiList: ["onMenuShareTimeline","onMenuShareAppMessage","startRecord","stopRecord","onVoiceRecordEnd","playVoice","pauseVoice","stopVoice","onVoicePlayEnd","uploadVoice","downloadVoice"] 
+	 });
+	 wx.ready(function(res){
+	   switchBtnTo(['start']);
+	   //changeWeixinShareData(isAndroid ? 1 : 0);	  
+	   $('#tip').hide();
+	   wx.hideOptionMenu();
+	 });
+	 wx.error(function(res){
+	  // console.log(res);
+	  // alert(res);
+	 });
+ });
+
+ 	/**
+ function changeWeixinShareData(index){
+
+     wx.onMenuShareTimeline({
+     title: wxShareDataArray[index][1],
+     link: wxShareDataArray[index][3],
+     imgUrl: wxShareDataArray[index][2],
+     success: function () {
+       // 用户确认分享后执行的回调函数
+     },
+     cancel: function () {
+       // 用户取消分享后执行的回调函数
+     }
+     });
+
+     wx.onMenuShareAppMessage({
+     title: wxShareDataArray[index][0],
+     desc: wxShareDataArray[index][1],
+     link: wxShareDataArray[index][3],
+     imgUrl: wxShareDataArray[index][2],
+     //type: '', // 分享类型,music、video或link，不填默认为link
+     //dataUrl: '', // 如果type是music或video，则要提供数据链接，默认为空
+     success: function () {
+       // 用户确认分享后执行的回调函数
+     },
+     cancel: function () {
+       // 用户取消分享后执行的回调函数
+     }
+     });
+ }**/
+</script>
+</body>
+</html>

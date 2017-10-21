@@ -1,0 +1,297 @@
+{if $_GPC['type']=='coupon'||$item['extend']['coupon']['id']}
+<div class="form-group">
+	<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label"><span style='color:red'>*</span>选择微信卡券</label>
+	<div class="col-sm-8 col-xs-12">
+		{if $item['id']}
+		<input type="hidden" name="couponid" value="{$item['extend']['coupon']['id']}">
+		{/if}
+		<select name="couponid" class="form-control" {if $item['id']}disabled{/if}>
+		<option value="0">请选择</option>
+		{loop $coupon_list $coupon}
+		<option value="{$coupon['id']}" data-quantity="{$coupon['quantity']}" {if $item['extend']['coupon']['id']==$coupon['id']}selected{/if} {if in_array($coupon['status'], array(1,2,4))}disabled{/if}>
+			{$coupon['title']}
+		{if $coupon['status'] == '1'}
+			<span class="label label-info">(审核中)</span>
+			{elseif $coupon['status'] == '2'}
+			<span class="label label-danger">(未通过)</span>
+			{elseif $coupon['status'] == '3'}
+			<!--<span class="label label-success">(已通过)</span>-->
+			{elseif $coupon['status'] == '4'}
+			<span class="label label-default">(卡券被商户删除)</span>
+			{elseif $coupon['status'] == '5'}
+			<!--<span class="label label-warning">(已在公众平台投放)</span>-->
+			{/if}
+		</option>
+		{/loop}
+		</select>
+		<span class="help-block">请选择需要兑换的微信卡券，没有卡券数据时，请先 <a href="javascript:;" id="add-card" target="_blank">添加微信券</a></span>
+		<span class="help-block">注意：卡券无法选择时，说明卡券状态不正确</span>
+	</div>
+</div>
+<script>
+	require(['jquery'], function($){
+		$('select[name=couponid]').change(function(){
+			$('input[name=total]').val($(this).find('option:selected').attr('data-quantity'));
+		});
+	});
+</script>
+<style>
+	.marbot0{margin-bottom:0px}
+</style>
+<div id="card-content" class="hide clearfix">
+	<div class="form-horizontal">
+		<div class="form-group marbot0">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+			<div class="col-sm-9 col-xs-12">
+				选择你要创建的卡券类型
+			</div>
+		</div>
+		<div class="form-group marbot0">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+			<div class="col-sm-9 col-xs-12">
+				<label class="radio-inline">
+					<input type="radio" name="type" value="discount"/> 折扣券
+				</label>
+				<div class="help-block">可为用户提供消费折扣</div>
+			</div>
+		</div>
+		<div class="form-group marbot0">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+			<div class="col-sm-9 col-xs-12">
+				<label class="radio-inline">
+					<input type="radio" name="type" value="cash"/> 代金券
+				</label>
+				<div class="help-block">可为用户提供抵扣现金服务。可设置成为“满*元，减*元”</div>
+			</div>
+		</div>
+		<div class="form-group marbot0">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+			<div class="col-sm-9 col-xs-12">
+				<label class="radio-inline">
+					<input type="radio" name="type" value="gift"/> 礼品券
+				</label>
+				<div class="help-block">可为用户提供消费送赠品服务</div>
+			</div>
+		</div>
+		<div class="form-group marbot0">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+			<div class="col-sm-9 col-xs-12">
+				<label class="radio-inline">
+					<input type="radio" name="type" value="groupon"/> 团购券
+				</label>
+				<div class="help-block">可为用户提供团购套餐服务</div>
+			</div>
+		</div>
+		<div class="form-group marbot0">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+			<div class="col-sm-9 col-xs-12">
+				<label class="radio-inline">
+					<input type="radio" name="type" value="general_coupon"/> 优惠券
+				</label>
+				<div class="help-block">即“通用券”，建议当以上四种无法满足需求时采用</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div id="card-footer" class="hide">
+	<span id="card-cancel" class="pull-right btn btn-default">取消</span>
+	<span id="card-submit" class="pull-right btn btn-primary" style="margin-right:10px">确定</span>
+</div>
+<script>
+	require(['jquery','util'], function(u){
+		$('#add-card').click(function(){
+			var obj = u.dialog('选择卡券类型', $('#card-content').html(), $('#card-footer').html());
+			obj.modal('show');
+			obj.find('#card-submit').click(function(){
+				var type = $(':radio[name="type"]:checked').val();
+				if(type) {
+					location.href = "{php echo url('wechat/card/')}" + 'f=post&do=' + type;
+				} else {
+					alert('请选择卡券类型');
+				}
+				return false;
+			});
+			obj.find('#card-cancel').click(function(){
+				obj.modal('hide');
+				return false;
+			});
+			return false;
+		});
+	});
+</script>
+{/if}
+<div class="form-group">
+	<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label"><span style='color:red'>*</span>商品名称</label>
+	<div class="col-sm-8 col-xs-12">
+		<input type="text" class="form-control" placeholder="" name="title" value="{$item['title']}">
+		<span class="help-block">商品名称</span>
+	</div>
+</div>
+<style>
+	.product_type, .product_type option {
+		color: #5bc0de;
+	}
+	.product_type option:disabled {
+		color: #ccc;
+	}
+</style>
+<div class="form-group">
+	<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label"><span style='color:red'>*</span>商品类型</label>
+	<div class="col-sm-8 col-xs-12">
+		<select name="type" class="form-control product_type" {if $item['id']}disabled{/if}>
+			{loop $product_types $pt}
+			{if $pt['id'] == 8}
+				{if $_GPC['type'] != 'coupon' && !$item['extend']['coupon']['id']}
+				{php continue;}
+				{/if}
+			{else}
+				{if $_GPC['type'] == 'coupon' || $item['extend']['coupon']['id']}
+				{php continue;}
+				{/if}
+			{/if}
+			<option value="{$pt['id']}" {if !$pt['enable']}disabled{/if} {if $item['type']==$pt['id']}selected{/if}>{$pt['name']}</option>
+			{/loop}
+		</select>
+		<span class="help-block">
+			不可选择类型暂不支持，请关注后续版本更新
+			{if !$item['id']}<span style="color: red; margin-left: 10px;">注意：商品类型选择后不能修改</span>{/if}
+		</span>
+	</div>
+</div>
+<div id="time_wrap" class="form-group" style="{if $item['type'] == 2}display: none{/if}">
+	<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label"><span style='color:red'>*</span>出售时间</label>
+	<div class="col-sm-8 col-xs-12">
+		<label style="font-weight: normal">
+			<input name="activity_time_limit" data-id="activity_time_wrap" type="checkbox" {if !isset($item['id'])||($item['start_time']==0)}checked{/if}> 不限制
+		</label>
+		<div id="activity_time_wrap" {if !isset($item['id'])||($item['start_time']==0)}style="display:none"{/if}>
+			{php echo tpl_form_field_daterange('activity_time', $item['activity_time'], true);}
+		</div>
+		<span class="help-block">勾选不限制后，将商品购买将不检查商品出售的期限，否则商品将只在出售时间内可购买</span>
+	</div>
+</div>
+<div id="auction_time_wrap" class="form-group" style="{if $item['type'] != 2}display: none{/if}">
+	<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label"><span style='color:red'>*</span>竞拍时间</label>
+	<div class="col-sm-8 col-xs-12">
+		{php echo tpl_form_field_daterange('activity_time2', $item['activity_time'], true);}
+	</div>
+	<span class="help-block"></span>
+</div>
+<div class="form-group">
+	<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label"><span style='color:red'>*</span>积分类型</label>
+	<div class="col-sm-8 col-xs-12">
+		<select name="credit_type" class="form-control">
+			{loop $credit_type $key $ct}
+			{if $ct['enabled'] == 1}
+			<option value="{$key}" {if $item['credit_type']==$key}selected{/if}>{$ct['title']}</option>
+			{/if}
+			{/loop}
+		</select>
+		<span class="help-block">兑换该商品花费积分的类型</span>
+	</div>
+</div>
+<div id="credit_wrap" class="form-group" style="{if $item['type'] == 2}display: none{/if}">
+	<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label"><span style='color:red'>*</span><span class="credit_title"></span></label>
+	<div class="col-sm-8 col-xs-12">
+		<div class="input-group col-sm-8">
+			<input type="text" class="form-control" placeholder="" name="credit" value="{$item['credit']}">
+			<span class="input-group-addon credit_title"></span>
+		</div>
+		<span class="help-block">兑换该商品花费的积分数</span>
+	</div>
+</div>
+<div id="auction_credit1_wrap" class="form-group" style="{if $item['type'] != 2}display: none{/if}">
+	<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">起拍价</label>
+	<div class="col-sm-8 col-xs-12">
+		<div class="input-group col-sm-8">
+			<!--注意：起拍价共用credit字段，为了列表页积分排序-->
+			<input type="text" class="form-control" placeholder="" name="credit2" value="{$item['credit']}">
+			<span class="input-group-addon credit_title"></span>
+		</div>
+		<span class="help-block">起拍价为0时，将不限制起拍价格</span>
+	</div>
+</div>
+<div id="auction_credit2_wrap" class="form-group" style="{if $item['type'] != 2}display: none{/if}">
+	<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">竞拍加价</label>
+	<div class="col-sm-8 col-xs-12">
+		<div class="input-group col-sm-8">
+			<input type="text" class="form-control" placeholder="" name="extend[auction_credit]" value="{if isset($item['extend']['auction_credit'])}{$item['extend']['auction_credit']}{else}10{/if}">
+			<span class="input-group-addon credit_title"></span>
+		</div>
+		<span class="help-block">每次竞拍加价积分限制，如填写10，则每次参与竞拍最少需要10<span class="credit_title"></span>，不填写或0则不限制</span>
+	</div>
+</div>
+<div id="redpack_wrap" class="form-group" style="{if !superman_is_redpack($item['type'])}display: none{/if}">
+	<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label"><span style='color:red'>*</span>红包金额</label>
+	<div class="col-sm-8 col-xs-12">
+		<div class="input-group col-sm-8">
+			<input type="text" min="1" max="200" class="form-control" placeholder="" name="extend[redpack_amount]" value="{if isset($item['extend']['redpack_amount'])}{$item['extend']['redpack_amount']}{else}1{/if}">
+			<span class="input-group-addon">元</span>
+		</div>
+		<span class="help-block">每个红包包含的金额（人民币），设置红包兑换后，请确保微信支付商户账户中有足够的余额，否则会导致兑换红包失败</span>
+		<span class="help-block">红包金额最小为1元，最大为200元</span>
+	</div>
+</div>
+{if isset($item['type']) && $item['type'] != 2 || !isset($item['type'])}
+<div id="price_wrap" class="form-group">
+	<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">价格</label>
+	<div class="col-sm-8 col-xs-12">
+		<div class="input-group col-sm-8">
+			<input type="text" class="form-control" placeholder="" name="price" value="{$item['price']}">
+			<span class="input-group-addon">元</span>
+		</div>
+		<span class="help-block">兑换该商品花费的余额积分（现金），如果是积分全额兑换，此处不填即可，如大于0时，商品售价显示格式为：100<span class="credit_title"></span>+10元</span>
+		<span class="help-block">设置价格参数，需开启微信支付，方可兑换商品</span>
+	</div>
+</div>
+{/if}
+<div class="form-group">
+	<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">市场价</label>
+	<div class="col-sm-8 col-xs-12">
+		<div class="input-group col-sm-8">
+			<input type="text" class="form-control" name="market_price" value="{$item['market_price']}" />
+			<span class="input-group-addon">元</span>
+		</div>
+		<span class="help-block">市场价，仅作展示用参考，非实际价格</span>
+	</div>
+</div>
+<div class="form-group">
+	<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label"><span style='color:red'>*</span>库存</label>
+	<div class="col-sm-8 col-xs-12">
+		<input type="text" class="form-control" placeholder="" name="total" {if isset($item['virtual_total'])}value="{$item['virtual_total']}" disabled {else}value="{$item['total']}"{/if} {if $_GPC['type']=='coupon'||$item['extend']['coupon']['id']}readonly{/if}>
+		{if $_GPC['type']=='coupon'||$item['extend']['coupon']['id']}
+		<span class="help-block">修改卡券库存，请到微信卡券管理页面 <a target="_blank" href="{php echo wurl('wechat/card/list')}">点击修改库存</a></span>
+		{else}
+		<span class="help-block">虚拟商品根据虚拟商品列表中商品数量为准，不可自定义，为0时显示已兑完</span>
+		{/if}
+	</div>
+</div>
+
+<div class="form-group">
+	<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">封面</label>
+	<div class="col-sm-8 col-xs-12">
+		{php echo tpl_form_field_image('cover', $item['cover'])}
+	</div>
+</div>
+<div class="form-group">
+	<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+	<div class="col-sm-9 col-xs-12">
+		<span class="help-block">微信红包商品类型，默认为空时，自动调用系统红包图片，建议图片上传尺寸：190像素 * 220像素</span>
+		<span class="help-block">其他商品类型，建议图片上传尺寸：360像素 * 200像素</span>
+	</div>
+</div>
+<div class="form-group">
+	<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">相册</label>
+	<div class="col-sm-8 col-xs-12">
+		<!--<style>-->
+		<!--.multi-img-details .multi-item {height: auto; max-height: 150px;}-->
+		<!--</style>-->
+		{php echo tpl_form_field_multi_image('album', $item['album'])}
+	</div>
+</div>
+<div class="form-group">
+	<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+	<div class="col-sm-9 col-xs-12">
+		<span class="help-block">建议图片上传尺寸：360像素 * 200像素，红包类型商品无需上传相册图片</span>
+	</div>
+</div>

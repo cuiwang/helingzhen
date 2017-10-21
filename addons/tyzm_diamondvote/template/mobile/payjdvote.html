@@ -1,0 +1,82 @@
+{template 'header'}
+<link rel="stylesheet" href="{MODULE_URL}/template/static/css/donate.css?a=11">
+
+
+<div class="donate_donate">
+	<div class="donate_avatar_p"><img class="donate_avatar" src="{media  $voteuser['avatar']}" /></div>
+	<div class="donate_name">为{$voteuser['noid']}号 {$voteuser['nickname']} 扔鸡蛋</div>
+	<div class="donate_money_p_p">
+		<div class="donate_money_choose_p">
+			<div class="donate_money_choose donate_money_choose1">
+				<div class="donate_money"><span class="donate_money_num">1</span><span class="donate_money_unit">鸡蛋</span></div>
+				<div class="donate_money"><span class="donate_money_num">5</span><span class="donate_money_unit">鸡蛋</span></div>
+				<div class="donate_money"><span class="donate_money_num">10</span><span class="donate_money_unit">鸡蛋</span></div>
+			</div>
+			<div class="donate_money_choose donate_money_choose2">
+				<div class="donate_money"><span class="donate_money_num">50</span><span class="donate_money_unit">鸡蛋</span></div>
+				<div class="donate_money"><span class="donate_money_num">100</span><span class="donate_money_unit">鸡蛋</span></div>
+				<div class="donate_money"><span class="donate_money_num">500</span><span class="donate_money_unit">鸡蛋</span></div>
+			</div>
+		</div>
+		<div class="donate_money_edit">
+			<div class="donate_money_edit_text">每颗鸡蛋{$reply['eggvalue']}元 每颗鸡蛋减{$reply['jdexchange']}票</div>
+			<input name="ptiefen" type="number" class="donate_money_input" id="money" placeholder="选择或输入鸡蛋数量" />
+		</div>
+	</div> 
+
+	<div class="donate_bank_p">
+		<a href="javascript:;" id="weixin" class="weui_btn weui_btn_primary">微信支付</a>
+	</div>
+<!--<div class="donate_submit">确定</div>-->
+</div>
+
+
+<div id="qshuli" class="donate_alert_mask" onclick="document.getElementById('qshuli').style.display='none';"><div class="donate_alert"><div class="donate_alert_msg">1颗鸡蛋起送</div><div class="donate_alert_btns"><div class="donate_alert_btn ok">确定</div></div></div></div>
+<script>
+$(document).ready(function(){
+	$(".donate_money_choose .donate_money").click(function(){
+		var val = $(this).text(); 
+		var val2 = val.substring(0,val.indexOf("鸡蛋")); 
+		$("#money").val(val2); 
+		$(".donate_money_choose .donate_money").removeClass("active");
+		$(this).addClass("active");
+    });
+	$("#weixin").click(function(){
+		var ptiefen=parseInt($("input[name='ptiefen']").val());
+		if(isNaN(ptiefen)){dialog2("选择或输入鸡蛋数量");return false;}
+		if(ptiefen < 1){dialog2("1颗鸡蛋起送");return false;}
+		$.ajax({
+			type : "post",
+			url : "{php echo $this->createMobileUrl('payvote', array('rid' => $reply['rid'],'id' => $voteuser['id'],'ty' => $_GPC['ty']))}",
+			data : { 
+				type : 1,
+				ptiefen : ptiefen,
+			},
+			dataType : "json",
+			beforeSend : function(XMLHttpRequest) {
+				loadingToast("跳转支付...");
+			},
+			success : function(res) {
+				if (res.status == 200) {
+					window.location.href = res.pay_url;
+				}else if(res.status == 201) {
+					dialog2(res.msg);
+					window.location.href = "{php echo $this->createMobileUrl('view', array('rid' => $reply['rid'],'id' => $voteuser['id']))";
+				}else{
+				    hidemod("loadingToast");
+					dialog2(res.msg);
+				}
+			},
+			error : function(res, type) {
+				hidemod("loadingToast");
+				dialog2(res.msg);
+			}
+		});
+		
+		
+	});
+
+});
+
+</script>
+{template 'footer'}

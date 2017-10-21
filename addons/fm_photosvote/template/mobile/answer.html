@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>{$title}</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<link rel="stylesheet" href="{FM_STATIC_MOBILE}public/mui/css/mui.min.css">
+		{php echo register_jssdk()}
+		<style>
+			html,
+			body {
+				background-color: #efeff4;
+			}
+			.mui-bar .mui-pull-left .mui-icon {
+				padding-right: 5px;
+				font-size: 28px;
+			}
+
+			.mui-bar .mui-btn {
+				font-weight: normal;
+				font-size: 17px;
+			}
+
+			.mui-bar .mui-btn-link {
+				top: 1px;
+			}
+
+			.mui-content img{
+				width: 100%;
+			}
+			.hm-description{
+				margin: .5em 0 2em;
+			}
+
+			.hm-description>li {
+				font-size: 14px;
+				color: #8f8f94;
+			}
+
+			html, body {
+				background-color: transparent;
+			    /**background: #efeff4 url({$tbg});
+			    background-size: 100%;**/
+
+			}
+			.mui-content {
+			    background-color: transparent;
+			   }
+			.mui-input-group .mui-input-row {
+			    height: auto;
+			    min-height: 40px;
+			}
+			.bg {
+	            background: url({$tbg});
+	            height:700px;
+	            background-attachment: fixed;
+	        }
+	        .bg-blur {
+	            float: left;
+	            width: 100%;
+	            background-repeat: no-repeat;
+	            background-position: center;
+	            background-size: cover;
+	            -webkit-filter: blur(15px);
+	            -moz-filter: blur(15px);
+	            -o-filter: blur(15px);
+	            -ms-filter: blur(15px);
+	            filter: blur(15px);
+	        }
+	        .content-front {
+	          position:absolute;
+	        }
+	        .mui-content img {
+			    width: 100%;
+			    max-height: 200px;
+			}
+
+		</style>
+	</head>
+
+	<body>
+		<div>
+			<div class="bg bg-blur"></div>
+        		<div class="content content-front">
+
+				<header id="header" class="mui-bar mui-bar-nav">
+					<h1 class="mui-title">答题获取投票次数</h1>
+				</header>
+
+				<div class="mui-content" style="margin-bottom: 30px;">
+					{if !empty($answer['thumb'])}
+						<img id="img1" src="{php echo tomedia($answer['thumb'])}"/>
+					{/if}
+					<div class="mui-content-padded" ><h4>{$answer['title']}</h4></div>
+					<div class="mui-card">
+						<form class="mui-input-group">
+							{loop $answers $key $item}
+								<div class="mui-input-row mui-radio mui-left">
+									<label>{php echo $item['keyid'.$key]}. {php echo $item['content'.$key]}</label>
+									<input name="key" type="radio" value="{php echo $item['keyid'.$key]}" {if $item['keyid'.$key] == $voteer['is_user_chance']}checked{/if} {if $voteer['is_user_chance'] < 1 }disabled="disabled"{/if}>
+								</div>
+							{/loop}
+							<div class="mui-button-row">
+								{if $voteer['is_user_chance'] > 0 || $voteer['is_user_chance'] === ''}<button type="button" class="mui-btn mui-btn-primary" onclick="submit_avatar();return false;">确认</button>{/if}
+							</div>
+						</form>
+					</div>
+				</div>
+				<script src="{FM_STATIC_MOBILE}public/mui/js/mui.min.js"></script>
+				<script type="text/javascript">
+					mui.init({
+						swipeBack: true //启用右滑关闭功能
+					});
+					var mask = mui.createMask();//callback为用户点击蒙版时自动执行的回调；
+					function submit_avatar() {
+						mask.show();//显示遮罩
+						mui.toast("确认中...");
+						var answer_times = "{$voteer['is_user_chance']}";
+						if (1 > answer_times) {
+					    		mui.toast("您已经没有答题的机会了！");
+					    		setTimeout(function() {
+								mask.close();
+								location.href = '{php echo $this->createMobileUrl('photosvote', array('rid'=>$rid))}';
+							}, 2000);
+					    		return
+					    }
+						var chose_answer_all = document.getElementsByName("key");
+						for(var i=0;i<chose_answer_all.length;i++)
+						{
+						    if(chose_answer_all[i].checked==true)
+						    {
+						       var chose_answer = chose_answer_all[i].value;
+						    }
+						}
+						//console.log(chose_answer);
+						if (chose_answer == null || chose_answer == undefined) {
+					    		mui.toast("请选择答案");
+					    		setTimeout(function() {
+								mask.close();
+							}, 2000);
+					    		return
+					    }
+					    var posturl = "{php echo $this->createMobileUrl('answer', array('rid' => $rid, 'tijiao' => '1', 'answer_id' => $answer['id']))}";
+					    var submitData = {
+					        chose_answer :  chose_answer,
+					        right_answer :  "{$answer['key']}",
+					    }
+					    mui.post(posturl, submitData, function(data) {
+					        //console.log(data);
+					        if (data.success == true) {
+						       	mui.toast(data.msg);
+						       	setTimeout(function() {
+
+						       		location.href = '{php echo $this->createMobileUrl('photosvote', array('rid'=>$rid))}';
+						       	}, 2000);
+						       	return
+					        }else{
+					        		mui.toast(data.msg);
+					        		setTimeout(function() {
+						        		if (data.flag == 1) {
+							       		location.href = '{php echo $this->createMobileUrl('photosvote', array('rid'=>$rid))}';
+						        		}else{
+										mask.close();
+						        		}
+					        		}, 2000);
+					        		return
+					        }
+					        return
+					    },"json")
+
+					}
+					wx.ready(function () {
+						wx.hideOptionMenu();
+					});
+				</script>
+			</div>
+		</div>
+	</body>
+
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="Head1">
+<meta charset="utf-8">
+<meta name="keywords" content="VIP中心">
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="format-detection" content="telephone=no">
+<meta http-equiv="cleartype" content="on">
+<title>余额提现</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+{template 'style2/css'}
+<script type="text/javascript" src="/addons/wdl_jifenbao/template/mobile/js/jQuery-2.1.4.min.js"></script>
+<link type="text/css" rel="stylesheet" href="{$_W['siteroot']}addons/wdl_jifenbao/template/js/sweetalert.css"/>
+<script src="{$_W['siteroot']}addons/wdl_jifenbao/template/js/sweetalert.min.js"></script>
+</head>
+<body>
+
+<div class="container " style="min-height: 1px;">
+   <div class="content">
+         {template 'style2/head'}
+         <div class="block block-list block-list-actions" style="margin: 20px 0 -1px 0;">
+                <a href="###" id="A6" class="block-item clearfix arrow">
+                    <p class=" c-gray-dark font-size-14">
+                        &nbsp;&nbsp;待结算收益<span id="lbNoReg">{$fans['credit2']}</span></p>                        
+                </a><a href="###" id="A5" class="block-item clearfix arrow">
+                    <p class=" c-gray-dark font-size-14">
+                        &nbsp;&nbsp;已结算现金<span id="lbCash">{$txsum}</span></p>
+                    
+                </a>
+            </div>
+            <div class="block head-info">
+                    <p class="rmb_logo">
+                    </p>
+                    <p class="useful-money font-size-14">
+                        可提现余额（最低1元起）</p>
+                    <p class="profit-sum font-size-28">
+                        ￥<span><span id="lbFee">{$fans['credit2']}</span></span></p>
+                </div>
+                <div class="action-container">
+                 <input type="number" name="dhPay" id="dhPay" value="" placeholder="请输入提现金额" class="js-spread btn btn-block" >
+                 <input type="submit" name="submit" value="我要提现" id="submit" class="js-spread btn btn-block btn-green" >
+                </div>
+                <div class="block block-list block-list-actions" style="margin: 20px 0 -1px 0;">
+                    <a href="###" id="A8" class="block-item clearfix arrow">
+                        <p class=" c-gray-dark font-size-14">
+                            &nbsp;&nbsp;提现记录<span id="lbRecord">{$txsum}</span></p>
+                    </a>
+                </div>
+                <div class="block" style="padding: 20px">
+                    <p class="c-red font-size-14">
+                        <span id="lbPayTitle">提现金额必须大于1元，小于200元。</span></p>
+                    <br>
+                    <p class="c-black font-size-14" style="line-height: 150%">
+                    {$cfg['txinfo']}
+                    </p>
+                </div>
+
+
+<br>
+    <p class="c-gray-dark font-size-12" style="line-height: 150%; text-align: center;">技术支持：{$_W['account']['name']}<br></b>
+{template 'style2/share'}
+    <br>
+    </div>
+</div>
+<script type="text/javascript">   
+$(document).ready(function(){ 
+      $("#submit").click(function(){
+      var dqrmb=parseFloat("{$fans['credit2']}");
+      var exc_num=$('#dhPay').val();
+      if(exc_num > dqrmb){
+         swal({title: "尊敬的粉丝",   
+              text: "提现金额，不能大于当前余额",  
+              type: "warning",    
+              confirmButtonColor: "#DD6B55",  
+              confirmButtonText: "确定",   closeOnConfirm: false }
+            );
+            return ;
+      }
+
+	if(isNaN(exc_num)){
+        swal({title: "尊敬的粉丝",   
+        			  text: "请输入要提现的金额数哦",  
+        		      type: "warning",    
+        		      confirmButtonColor: "#DD6B55",  
+        			  confirmButtonText: "确定",   closeOnConfirm: false }
+        			 );
+		return ;
+	}else if(exc_num<0){
+        swal({title: "尊敬的粉丝",   
+        			  text: "请输入正确的金额数哦",  
+        		      type: "warning",    
+        		      confirmButtonColor: "#DD6B55",  
+        			  confirmButtonText: "确定",   closeOnConfirm: false }
+        			 );
+		return ;
+	}else if(exc_num<1){
+        swal({title: "尊敬的粉丝",   
+        			  text: "请输入正确的金额数哦",  
+        		      type: "warning",    
+        		      confirmButtonColor: "#DD6B55",  
+        			  confirmButtonText: "确定",   closeOnConfirm: false }
+        			  );
+		return ;
+	}else if(exc_num>200){
+        swal({title: "尊敬的粉丝",   
+        			  text: "单次提现金额不能大于200元",  
+        		      type: "warning",    
+        		      confirmButtonColor: "#DD6B55",  
+        			  confirmButtonText: "确定",   closeOnConfirm: false }
+        			  );
+		return ;
+	}
+    $("#submit").attr("value","提交中请稍候……");
+        $.ajax({
+          url:"{php echo $this->createMobileUrl('tixianpost')}",
+          type:'post',
+          data:{
+             uid:"{$fans['uid']}",
+             weid:"{$fans['uniacid']}",
+             memberid:"{$member['id']}",
+             dhPay:$('#dhPay').val(),
+          },
+          dataType:"json", 
+          success:function(data){            
+            //swal(data.info);
+            if(data.success===1){
+                $('#weui_content').css('display','none');
+                   swal({
+                        title: "兑换成功",
+                        text: data.msg,
+                        type: "success",
+                        showCancelButton: false,
+                        closeOnConfirm: false,
+                        confirmButtonText: "确定",
+                        confirmButtonColor: "#ec6c62"
+                    }, function() {                      
+                        location.reload();                 
+                    });
+
+            }else{
+                  $('#weui_content').css('display','none');
+                    swal({title: "尊敬的粉丝",   
+        			  text: "很抱歉兑换失败--" + data.msg +　" ",  
+        		      type: "warning",    
+        		      confirmButtonColor: "#DD6B55",  
+        			  confirmButtonText: "确定",   closeOnConfirm: false }, 
+        			  function(){   
+        			  location.reload(); 
+        		    });
+            }
+            
+          }
+
+        });
+
+        
+      });
+});
+
+
+</script>
+</body>
+</html>

@@ -1,0 +1,226 @@
+﻿{template 'header'}
+<div class="siyuan_top weui-row">
+<div class="weui-col-15"><a href="javascript:history.go(-1)"><i class="fa fa-angle-left f-32"></i></a></div>
+<div class="weui-col-70">{$set['name']}</div>
+<div class="weui-col-15"><a class="cd-bouncy-nav-trigger" href="#0"><img src="{$_W['siteroot']}addons/siyuan_cms/ui/img/daohang.png"></a></div>
+</div>
+<div class="cd-bouncy-nav-modal">
+<nav>
+<ul class="cd-bouncy-nav">
+{loop $menu $caidan}
+<li><a href="{$caidan['url']}"><img src="{$_W['attachurl']}{$caidan['thumb']}"><p>{$caidan['title']}</p></a></li>
+{/loop}
+</ul>
+</nav>
+<a href="#0" class="cd-close fa fa-power-off">返回</a>
+</div>
+<div style="height:40px;"></div>
+<div class="swiper-container">
+<div class="swiper-wrapper">
+{loop $flash $flash}
+<img onclick="window.location.href='{$flash['url']}'" src="{php echo tomedia($flash['attachment'])}" style="width:100%;" class="swiper-slide">
+{/loop}
+</div>
+</div>
+<div class="m-detail-top"> 
+<h1>{$news['title']}</h1> 
+<p class="m-post-author"> {php echo date('m-d H:i', $news['time'])}{if $news['laiyuan']}&nbsp;&nbsp;来源:{$news['laiyuan']}{/if}&nbsp;&nbsp;阅读:{$news['yuedu']}</p> 
+<p class="m-post-com-num"><a href="#comment">{$news['pinglun']}条评论</a></p> 
+</div>
+<div id="news-article">{$news['content']}</div>
+
+<div class="m-gamelist-y mb-0 xuxian1">
+<div class="container">
+<div class="item">
+<div class="m-game-start-div">
+<strong class="num f-fl text-one" style="display:none">1</strong>
+<a href="{php echo $this->createMobileUrl('weixin', array('act' => 'gongzhonghao', 'id' => $gongzhonghao['id']))}">
+<div class="game f-fl">
+<img src="{$_W['attachurl']}{$gongzhonghao['pic']}" width="100%">
+<div class="text f-fl">
+<p class="text-title">{$gongzhonghao['name']}</p>
+<p class="text-gray">{$gongzhonghao['body']}</p>
+</div>
+</div>
+<span class="btn-open m-game-start">所有文章</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+
+<div class="public-module-title" style="margin-top:5px;"> 
+<p><span class="base-bgcolor public-title-icon"></span>相关信息</p>
+</div>
+<div class="threadlist box_bg">
+<ul id="alist">
+{loop $list $item}
+<li>
+<a class="act_link" href="{php echo $this->createMobileUrl('weixin', array('act' => 'news', 'id' => $item['id']))}">
+<div class="desc">
+<h3>{$item['title']}</h3>
+<div class="item_info">
+<span class="src space">{php echo date('m-d H:i', $item['time'])}</span>
+<span class="cmt space">阅读&nbsp;{$item['yuedu']}</span>
+<span class="cmt space">评论&nbsp;{$item['pinglun']}</span>
+</div>
+</div>
+<div class="list_img_holder">
+<img src="{$_W['attachurl']}{$item['thumb']}">
+</div>
+</a>
+</li>
+{/loop}
+</ul>
+</div>
+<div class="pinglun_list" id="comment">
+<div class="comment-title">
+<h4 class="enroll-hr">精彩评论</h4>
+</div>
+{if $user !=='0'}
+<div class="msg-post">
+<input type="text" id="content" name="content" class="comment-input" placeholder="文明上网，理性发言！" />
+<button id="save_btn" onclick="doSave(this)" class="msg-post-button">评论</button>
+</div>
+{/if}
+</div>
+<div class="comment-sub" id="dvContent">
+<ul>
+{if $reply}
+{loop $reply $key $rep}
+<li class="bottom_line">
+<div class="comment_top">
+<div class="comment-pic">
+<img src="{$rep['avatar']}">
+</div>
+<div class="commenter">
+<div class="comment-name">{$rep['name']} {if $admin == '1'}<em class="cheng" onClick="doAdmin({$rep['id']})" id="show-admin">[管理]</em>{/if}</div>
+<div class="comment-time">{php echo date('m-d H:i', $rep['time'])}</div>
+<span class="reply">{if $user !=='0'}<a onClick="doHuifu({$rep['id']})" id="show-custom">回复</a>{/if}</span></div>
+</div>
+<div class="comment-content">
+<p>{$rep['content']}</p>
+{if !empty($rep['mreply'])}
+<div class="replys">
+<i class="pointTop"></i>
+{loop $rep['mreply'] $mre}
+<div class="replyler">
+<div class="reply_cont">
+<p class="comter"><span class="reply_name">{$mre['name']}</span><span class="remark">：{$mre['content']} {if $admin == '1'}<em class="cheng" onClick="doAdmin({$mre['id']})" id="show-admin">[管理]</em>{/if}</span></p>
+</div>
+</div>
+{/loop}
+</div>
+{/if}
+</div>
+</li>
+{/loop}
+{else}
+<div class="no_pinglun"><img src="{$_W['siteroot']}addons/siyuan_cms/ui/img/null.png"></div>
+{/if}
+<div class='demos-content-padded'><a id="aMore" href="#" class="cont-more">点击加载更多</a></div>
+</ul>
+</div>
+<script language="javascript" type="text/javascript">
+var totalpage = {$total_page}, currentpage = 1;
+if (totalpage < 2) $('#aMore').remove();
+else
+$('#aMore').click(function () {
+$.ajax({ url: '{php echo $this->createMobileUrl("weixin", array("act" => "pinglun_list","newsid" => $news["id"]))}', type: 'POST', data: { currentpage: currentpage + 1}, complete: function (xhr) {  
+if (xhr.status == '200') {
+currentpage++;
+if (currentpage > totalpage) $('#aMore').remove($.toast("没有评论了...", "text"));
+$(xhr.responseText).insertBefore('#aMore');
+}
+else $.toast("没有评论了...", "text");
+}
+});
+return false;
+});
+</script>
+<script>
+function doHuifu(t) {
+$(document).on("click", "#show-custom", function() {
+        $.prompt({
+          title: "请输入回复内容",
+          onOK: function(text) {
+			$.ajax({
+			type:'post',
+			dataType:'json',
+			url:"{php echo $this->createMobileUrl('weixin', array('act' => 'form_pinglun','id' => $id,'num' => $news['pinglun']))}",
+			data:{content:text,pid:t},
+			success:function(msg){
+				if(msg.status==1){
+				$.toast("评论成功", "text");
+				window.location.href="{php echo $this->createMobileUrl('weixin', array('act' => 'news','id' => $news['id']))}";
+				}else{
+				$.toast("未评论成功", "text");
+				window.location.href=window.location.href;
+				}
+				}
+			})
+          },
+          onCancel: function() {
+            console.log("取消了");
+          },
+        });
+      });
+	  }
+	function doSave() {
+		if(!$("#content").val()) {
+			$.toast("请填写评论内容！", "text");
+			return;
+		}
+			$.ajax({
+			type:'post',
+			dataType:'json',
+			url:"{php echo $this->createMobileUrl('weixin', array('act' => 'form_pinglun','id' => $id,'num' => $news['pinglun']))}",
+			data:{content:$("#content").val()},
+			success:function(msg){
+				if(msg.status==1){
+				$.toast("评论成功", "text");
+				window.location.href="{php echo $this->createMobileUrl('weixin', array('act' => 'news','id' => $news['id']))}";
+				}else{
+				$.toast("未评论成功", "text");
+				window.location.href=window.location.href;
+				}
+				}
+			})
+		}
+</script>
+{if $admin == '1'}
+<script>
+function doAdmin(t) {
+$(document).on("click", "#show-admin", function() {
+        $.modal({
+          title: "管理",
+          text: "请选择操作",
+          buttons: [
+            { text: "删除", onClick: function(){window.location.href="{php echo $this->createMobileUrl('weixin', array('act' => 'pinglun_del'))}&id="+t;} },
+            { text: "拉黑", onClick: function(){window.location.href="{php echo $this->createMobileUrl('weixin', array('act' => 'black'))}&id="+t;} },
+            { text: "取消", className: "default"},
+          ]
+        });
+      });}
+</script>
+{/if}
+{php echo register_jssdk(false);}
+<script type="text/javascript">
+wx.ready(function () {
+sharedata = {
+title: "{$news['title']}",
+desc: "{$news['title']}",
+link: window.location.href,
+imgUrl: "{$_W['attachurl']}{$news['thumb']}",
+success: function (res) {},
+cancel: function(){
+}
+};
+wx.onMenuShareAppMessage(sharedata);
+wx.onMenuShareTimeline(sharedata);
+wx.onMenuShareQQ(sharedata);
+wx.onMenuShareWeibo(sharedata);
+wx.onMenuShareQZone(sharedata);
+});
+</script>
+{template 'footer'}

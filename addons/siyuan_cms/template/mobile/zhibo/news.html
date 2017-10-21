@@ -1,0 +1,128 @@
+﻿{template 'header'}
+<div class="video">
+{if $news['zb_lx'] == '0'}
+<script type="text/javascript" charset="utf-8" src="http://yuntv.letv.com/player/live/blive.js"></script>
+<script>
+var player = new CloudLivePlayer();
+player.init({activityId:"{$news['zhiboid']}"});
+</script>
+{else}
+<div id="a1"></div>
+<script type="text/javascript" src="{$_W['siteroot']}addons/siyuan_cms/ui/js/ckplayer.js" charset="utf-8"></script>
+<script type="text/javascript">
+	var flashvars={
+		p:0,
+		e:1,
+		i:"{php echo tomedia($news['thumb'])}"
+		};
+	var video=["{$news['zhibo_url']}"];
+	var support=['all'];
+	CKobject.embedHTML5('a1','ckplayer_a1','100%','180',video,flashvars,support);
+</script>
+{/if}
+</div>
+<div class="zhibo_tab">
+<ul>
+<li class="cur"><a>直播聊天</a></li>
+<li><a>直播介绍</a></li>
+<li><a>本期主播</a></li>
+</ul>
+<div class="guanzhu action">
+<p>人气</p><p class="gznum" id="guanzhu_num">{$news['yuedu']}</p>
+</div>
+</div>
+<div style="height:225px"></div>
+<div class="zhibo_body">
+<div class="m-box body_1 cur" id="shuaxin">
+<iframe src="{php echo $this->createMobileUrl('zhibo', array('act' => 'pinglun','id' => $id))}" frameborder="0" width="100%" height="300px" name="pinglun_body" id="pinglun_body"></iframe>
+</div>
+<div class="m-box body_2">
+<div class="top">
+<dt><img src="{$_W['attachurl']}{$news['fenxiang']}"><em></em></dt>
+<div class="zhibo_title">{$news['title']}</div>
+</div>
+<div class="channel_desc">
+{$news['body']}
+<div>
+</div>
+</div></div>
+<div class="m-box body_3">
+{loop $user_list $row}
+<div class="second_box">
+<div class="second">
+<div class="second_tall normal">
+<div class="second_img normal_img">
+<img src="{$row['avatar']}">
+</div><dl class="bottom_line"><dt>{$row['username']}</dt><dd><i class="fa fa-gift"></i>0</dd>
+</dl>
+</div>
+</div>
+</div>
+{/loop}
+</div></div>
+{if $openid == ''}
+{template 'footer'}
+{else}
+<div class="bottom_panel top_line">
+<div class="bottom_panel_c">
+<div class="vod_comment_table write">
+<div class="vod_table_input" id="btn_comment">
+<input type="text" id="body" placeholder="我来说两句~">
+</div>
+</div>
+<div id="save_btn" onclick="doSave(this)" class="vod_comment_btn btn" id="comment_sub"><span>提交</span></div>
+</div></div>
+{/if}
+<script>
+$(document).ready(function () {
+$(".zhibo_tab li").on("click", function (e) {
+e.preventDefault();
+var i=$(this).index();
+$(".zhibo_tab li").removeClass("cur").eq(i).addClass("cur"),
+$(".zhibo_body .m-box").removeClass("cur").eq(i).addClass("cur")
+});
+});
+</script>
+<script>
+function doSave() {
+if(!$("#body").val()) {
+$.toast("请填写评论内容！", "text");
+return;
+}
+$.ajax({
+type:'post',
+dataType:'json',
+url:"{php echo $this->createMobileUrl('zhibo', array('act' => 'form_pinglun','id' => $id,'num' => $news['pinglun']))}",
+data:{body:$("#body").val()},
+success:function(msg){
+if(msg.status==1){
+$.toast("评论成功", "text");
+document.getElementById('pinglun_body').contentWindow.location.reload(true);
+$("#btn_comment").load(location.href+" #btn_comment>*","");
+}else{
+$.toast("未评论成功", "text");
+window.location.href=window.location.href;
+}
+}
+})
+}
+</script>
+{php echo register_jssdk(false);}
+<script type="text/javascript">
+wx.ready(function () {
+sharedata = {
+title: "{$news['title']}",
+desc: "{$news['title']}",
+link: window.location.href,
+imgUrl: "{php echo tomedia($news['fenxiang'])}",
+success: function (res) {},
+cancel: function(){
+}
+};
+wx.onMenuShareAppMessage(sharedata);
+wx.onMenuShareTimeline(sharedata);
+wx.onMenuShareQQ(sharedata);
+wx.onMenuShareWeibo(sharedata);
+wx.onMenuShareQZone(sharedata);
+});
+</script>

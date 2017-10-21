@@ -1,0 +1,250 @@
+
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="stylesheet" type="text/css" href="{MODULE_URL}template/mobile/style/style1/static/css/region.css" />
+    <!--css-->
+    <link rel="stylesheet" type="text/css" href="{MODULE_URL}template/mobile/style/style1/static/css/fled.css" />
+    <link rel="stylesheet" href="{MODULE_URL}template/mobile/style/style1/static/css/weui.css" />
+    <!--组件依赖js begin-->
+    <script type="text/javascript" src="{MODULE_URL}template/mobile/style/style1/static/js/zepto.js"></script>
+    <script type="text/javascript" src="{MODULE_URL}template/mobile/style/style1/static/js/zepto.extend.js"></script>
+    <script type="text/javascript" src="{MODULE_URL}template/mobile/style/style1/static/js/zepto.ui.js"></script>
+    <script type="text/javascript" src="{MODULE_URL}template/mobile/style/style1/static/js/zepto.fix.js"></script>
+    <!--刷新-->
+    <script type="text/javascript" src="{MODULE_URL}template/mobile/style/style1/static/js/refresh.js"></script>
+    <style type="text/css">
+    /*加载*/
+    
+    .ui-refresh-down {
+        height: 42px;
+        border-top: 1px solid #e4e4e4;
+        border-bottom: 1px solid #e4e4e4;
+        line-height: 42px;
+        background: #f0f0f0;
+        text-align: center;
+    }
+    
+    .ui-refresh-icon {
+        display: inline-block;
+        content: '';
+        background:url({MODULE_URL}template/mobile/style/style1/static/image/arrow-down.png) no-repeat;
+        width: 12px;
+        background-size: 12px;
+        height: 7px;
+        margin-right: 5px;
+    }
+    
+    .ui-refresh-icon {
+        display: inline-block;
+        content: '';
+        background:url({MODULE_URL}template/mobile/style/style1/static/image/arrow-down.png) no-repeat;
+        width: 12px;
+        background-size: 12px;
+        height: 7px;
+        margin-right: 5px;
+    }
+    
+    .ui-loading {
+        display: inline-block;
+        content: '';
+        background:url({MODULE_URL}template/mobile/style/style1/static/image/loading.gif) no-repeat;
+        width: 16px;
+        background-size: 16px;
+        height: 16px;
+        margin-right: 5px;
+    }
+    .rank{
+        text-align:center;
+        color:white;
+        background-color:#48b54e;
+        width:60px;
+        font-size:12px;
+        height:20px;
+        line-height:20px;
+        border-radius: 2px;
+        
+    }
+    .del{
+        text-align:center;
+        color:white;
+        background-color:#777777;
+        width:40px;
+        font-size:12px;
+        height:20px;
+        line-height:20px;
+        border-radius: 2px;
+        
+    }
+    </style>
+    <title>{$region['title']}——我的家政服务</title>
+</head>
+
+<body>
+    <div id="page">
+        <header id="header">
+            <div class="header_div">
+                <div id="left_div" onClick="javascript:history.back();"></div>
+                <div id="middle_div" >
+                    <h1 id="title">我的家政服务</h1>
+                </div>
+                <div id="right_div">
+                    <div class="right_bottom"></div>
+                    <div class="right_img"></div>
+                </div>
+            </div>
+        </header>
+        <!--cont-->
+        <div class="cont">
+            <!-- <aside class="tab_title">
+                <a href="{php echo $this->createMobileUrl('fled',array('op' => 'my'))}" {if empty($_GPC['category'])}class="active"{/if}>全部</a> 
+                {loop $categories $category}
+                <a href="{php echo $this->createMobileUrl('fled',array('op' => 'my','category' => $category['id']))}" {if $_GPC['category'] == $category['id']}class="active"{/if}>{$category['name']}</a> {/loop}
+            </aside> -->
+            <section>
+                <div class="ui-refresh" id="secondhand">
+                    <ul class="data-list">
+                    </ul>
+                    <div class="ui-refresh-down"></div>
+                </div>
+            </section>
+        </div>
+        <!-- #EndLibraryItem -->
+    </div>
+    {template 'style/style1/footer'}
+    <script>
+    /*ajax请求函数,判断共几页，呈现不同效果*/
+    (function() {
+        xqAjax();
+
+        function xqAjax() {
+            var url = "{php echo $this->createMobileUrl('homemaking',array('op' => 'my'))}";
+            var category = "{$_GPC['category']}";
+            $.ajax({
+                url: url,
+                async: false,
+                type: 'post',
+                dataType: 'json',
+                data: {
+                    category: category
+                },
+                beforeSend: function() {
+                    $("#data-list").html("<li class='seach_loading'><img src='{MODULE_URL}template/mobile/style/style1/static/image/loading.gif'/>为您搜索中……</li>")
+                },
+                success: function(data) {
+                    var $list = $('.data-list'),
+                        html = (function(data) { //数据渲染
+                            var liArr = [];
+                            $.each(data.allhtml, function() {
+                                liArr.push(this.html);
+                            });
+                            return liArr.join('');
+                        })(data);
+
+                    $('.data-list').html(html)
+                    if (data.page_count < 2) {
+                        $(".ui-refresh-down").html("<span class='ui-refresh-label'>没有更多内容了</span>");
+                    } else {
+                        refreshFun();
+                    }
+                }
+                // ,
+                // error: function() {
+                //     alert('请求不到数据，请重新搜索！');
+                // }
+
+            })
+        }
+
+        /*组件初始化refreshFun函数*/
+
+        function refreshFun() {
+            var index = 1;
+            $('.ui-refresh').refresh({
+                ready: function(dir, type) {
+                    var me = this;
+                    var category = "{$_GPC['category']}";
+                    index++;
+                    $.getJSON("{php echo $this->createMobileUrl('homemaking',array('op' => 'my'))}", {
+                        page: index,
+                        category: category
+                    }, function(data) {
+                        var $list = $('.data-list'),
+                            html = (function(data) { //数据渲染
+                                var liArr = [];
+                                $.each(data.allhtml, function() {
+                                    liArr.push(this.html);
+                                });
+                                return liArr.join('');
+                            })(data);
+
+                        $list[dir == 'up' ? 'prepend' : 'append'](html);
+                        if (index < data.page_count) {
+                            me.afterDataLoading();
+                        } else {
+                            me.disable(dir, false);
+                        }
+                    });
+                }
+            });
+
+        }
+        /*组件初始化js end*/
+    })();
+    </script>
+    <script>
+    function confirmFun(id) { //确认成交
+        if (window.confirm('你确定要确认服务完成吗？')) {
+            $.ajax({
+                async: true,
+                url: "{php echo $this->createMobileUrl('homemaking',array('op' => 'finish'))}",
+                dataType: "json",
+                type: "POST",
+                data: {
+                    id: id
+                },
+                success: function() {
+                    window.location.reload();
+                },
+                error: function() {
+                    alert("请求错误！")
+                }
+            })
+        } else {
+            //alert("取消");
+            return false;
+        }
+
+    }
+
+    function delectFun(id) { //删除对象
+        if (window.confirm('你确定要删除对象吗？')) {
+            $.ajax({
+                async: true,
+                url: "{php echo $this->createMobileUrl('homemaking',array('op' => 'delete'))}",
+                dataType: "json",
+                type: "POST",
+                data: {
+                    id: id
+                },
+                success: function() {
+                    window.location.reload();
+                },
+                error: function() {
+                    alert("请求错误！")
+                }
+            })
+
+        } else {
+            //alert("取消");
+            return false;
+        }
+    }
+    </script>
+</body>
+
+</html>

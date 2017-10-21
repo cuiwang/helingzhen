@@ -1,0 +1,184 @@
+{template 'common/header'}
+<link href="{MODULE_URL}weui/style.css" rel="stylesheet"/>
+<script>
+$(function(){
+ $(".ui-table").each(function () {
+        var _this = $(this);
+        _this.find("tr:even").css("background-color", "#f5f5f5");
+        _this.find("tr:odd").css("background-color", "#fff");
+        _this.find("tr:not(:first)").hover(function () {
+            $(this).attr("bColor", $(this).css("background-color")).css("background-color", "#fcf8e3").css("cursor", "pointer");
+        }, function () {
+            $(this).css("background-color", $(this).attr("bColor"));
+        });
+ 
+    });
+    });
+    </script>
+<ul class="nav nav-tabs">
+  <li {if $op == 'post'}class="active"{/if}><a href="{php echo $this->createWebUrl('ads', array('op' => 'post'));}">添加广告</a></li>
+  <li {if $op == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('ads',array('op'=>'display'));}">管理广告</a></li>
+ 
+</ul>
+{if $op =='display'}
+<div class="main">
+			<form method="post" class="form-horizontal form"  id="form1">
+<div class="panel panel-default">
+			<div class="panel-heading">
+				广告管理 |  <span class="bg-red">请保持5个以内广告</span>
+			</div>
+			<div class="panel-body">
+<table class="ui-table ui-border">
+			<thead class="navbar-inner">
+				<tr>
+					<th style="width:50px">全选</th>	
+				<th style="width:100px">ID</th>
+					<th >标题</th>			
+					<th style="width:150px">图片</th>
+					<th style="width:150px">排序</th>
+					<th  style="width:150px">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $v}
+				<td><input type="checkbox" value="{$v['id']}" name="delete[]"></td>
+				<td>{$v['id']}</td>
+					<td><a href="{$v['url']}" target="_blank">{$v['title']}</a></td>
+					<td>{if !empty($v['img'])}<img src="{php echo tomedia($v['img'])}"  width="250" height="150"/>{/if}</td>
+					<td>{$v['orderby']}</td>
+				
+					<td>
+					{if $v['isok']==1} <a href="javascript:void(0);" class="btn bg-red btn-xs" onclick="istop({$v['id']},0)">未显示</a>{else} <a href="javascript:void(0);" onclick="istop({$v['id']},1)" class="btn bg-green btn-xs">已显示</a>{/if}
+					<a href="{php echo $this->createWebUrl('ads', array('id' => $v['id'],'op'=>'post'))}" class="btn bg-green btn-xs">编辑</a>
+					<a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('ads', array('id' => $v['id'],'op'=>'del'))}" class="btn bg-red btn-xs">删除</a>
+					
+					</td>				
+				</tr>
+				
+				{/loop}
+			<tr >
+				<td><input type="checkbox"  onclick="var ck = this.checked;$(':checkbox').each(function(){this.checked = ck});" name=''>    </td><td><input class="btn bg-red btn-xs" type="submit" value="删除" name="submit" ></td><td></td><td></td><td></td><td></td>
+				</tr>
+			</tbody>
+		</table>
+		<input type="hidden" value="ads" name="do">
+		<input type="hidden" value="del" name="op">
+		<input type="hidden" name="token" value="{$_W['token']}" />
+			</div>
+			</div>
+		</form>
+			</div>
+		{$pager}
+
+	<script>
+function istop(id,flag){
+$.ajax({
+type: "POST",
+url:  "{php echo $this->createWebUrl('ads', array('op' => 'shenhe'))}",
+data: "id="+id+"&isok="+flag,
+dataType:"json",
+success: function(msg){
+if(msg.status == true)
+   {
+  location.reload();
+   }
+   else
+   {
+ alert('error');
+
+   }
+}
+}); 
+}
+
+		
+					$('#form1').submit(function(){
+if($(":checkbox[name='delete[]']:checked").size() > 0){
+return confirm('删除后不可恢复，您确定删除吗？');
+}
+return false;
+}); 
+
+
+		</script>	
+	</div>
+{elseif $op == 'post'}
+<div class="main">
+	<form action="" method="post" class="form-horizontal form" id="form2">
+	<div class="panel panel-default">
+		<div class="panel-heading">
+		添加/修改广告
+		</div>
+		
+		<div class="panel-body">
+
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-3 col-lg-2 control-label v">广告标题</label>
+				<div class="col-sm-7">
+					<input type="text" name="title" class=" form-control " value="{$item['title']}" datatype="s2-20" errormsg="填写2-20个字符"/> 
+					<span class="help-block">控制在20字之内</span>
+				</div>
+			</div>
+				<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-3 col-lg-2 control-label v">URL</label>
+				<div class="col-sm-7">
+					<input type="text" name="url" class=" form-control " value="{$item['url']}" datatype="*" errormsg="不能为空连接"/> 
+					<span class="help-block">连接需要以http或https开头</span>
+				</div>
+			</div>		
+					<div class="form-group">
+		<label class="col-xs-12 col-sm-3 col-md-2 control-label">广告图片</label>
+		<div class="col-sm-7">
+			{php echo tpl_form_field_image('img', $item['img'] =='' ? $setting['thumb'] : $item['img']);}
+			<span class="help-block">最佳尺寸640X320</span>
+		</div>
+	</div>	
+						<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-3 col-lg-2 control-label">排序</label>
+				<div class="col-sm-7">
+					<input type="text" name="orderby" class="form-control" value="{$item['orderby']}" ignore="ignore"  datatype="n" errormsg="只能填写大于等于0的整数"/> 
+					<span class="help-block">默认为0,数字越大越靠前</span>
+				</div>
+			</div>
+
+		
+			<div class="form-group">
+				<label class="col-sm-2 control-label"></label>
+				<div class="col-sm-4">
+				<input type="hidden" name="id" value="{$item['id']}">
+				<input type="hidden" name="token" value="{$_W['token']}" />
+					<input name="submit" type="submit" value="保存" class="btn bg-green btn-block" />
+					
+				</div>
+			</div>
+			
+			</div>
+			</div>
+	</form>
+</div>
+<script>
+	require.config({
+	paths: {
+		validform:"{MODULE_URL}weui/validform"
+	}
+});
+
+require(['validform'], function(citys) {
+	$("#form2").Validform({
+		tiptype:function(msg,o,cssctl){
+			if(!o.obj.is("form")){
+				var objtip=o.obj.siblings(".help-block");
+				cssctl(objtip,o.type);
+				objtip.text(msg);
+			}
+		}
+	});
+});
+
+
+		</script>	
+
+{/if}	
+
+
+{template 'common/footer'}

@@ -1,0 +1,1 @@
+!function(n){function t(o){if(e[o])return e[o].exports;var r=e[o]={exports:{},id:o,loaded:!1};return n[o].call(r.exports,r,r.exports,t),r.loaded=!0,r.exports}var e={};return t.m=n,t.c=e,t.p="",t(0)}({0:function(n,t,e){n.exports=e(87)},87:function(n,t){"use strict";!function(){function n(){$(".red-close").on("click",function(){$(".ten-redpackage").addClass("none")})}n()}()}});

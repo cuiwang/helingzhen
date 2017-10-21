@@ -1,0 +1,130 @@
+{template 'header'}
+<link href="{MODULE_URL}template/css/css.css" rel="stylesheet" />
+<link href="{MODULE_URL}template/css/stylesheet.css" rel="stylesheet" />
+
+<link href="{MODULE_URL}template/css/theme2.css" type="text/css" rel="stylesheet" />
+<link href="{MODULE_URL}template/css/buttons.css" type="text/css" rel="stylesheet" />
+<link href="{MODULE_URL}template/css/style1.css" type="text/css" rel="stylesheet" media="all">
+<div class="top_menu">
+    查物业费
+</div>
+<div class="top_menu_shadow"></div>
+<div id="wrap">
+<div id="main">
+	<div class="user_card"><p>姓名：<em>{$member['realname']}</em></p><p>业主卡：<em>NO.{$member['id']}</em></p></div>
+	<div class="important_true bg-gray jifen_record cost_gray" style="height: 418px;">	
+	<h1>费用查询</h1>	
+	<div class="select_month clearfix">
+		<div class="select_box">
+			<i class="glyphicon glyphicon-chevron-down"></i>
+			<input id="myselect" type="text" value="请选择查询时间" readonly="readonly">
+			<ul class="select_ul">
+				<!--年 -->
+				{loop $list $item}
+					<li data-id="{$item['protime']}">{$item['protime']}				
+					</li>				
+				{/loop}
+				
+			</ul>
+			<input type="hidden" id="monthId" value="0">
+		</div>
+		<div class="select_btn">
+			<a href="javascript:;" class="btn btn-danger" onclick="getMonthCost()">查询</a>
+		</div>
+	</div>
+	<span class="loadingTip" style="display:none"><img src="{MODULE_URL}template/image/loading.gif" style='margin-left:70px;'> 正在读取，请稍候...</span>
+	<div class="costInfo">
+	
+	</div>
+	<div class="pageWrapper">
+	</div>
+	</div>
+</div>
+</div>
+<script>
+$(function(){
+	//alert($(document.body).height());
+	var h = $(document).height()-150;
+	$(".bg-gray").css("height",h);
+	$(".select_box input").click(function(){
+		var thisinput=$(this);
+		var thisul=$(this).parent().find("ul");
+		if(thisul.css("display")=="none"){
+			if(thisul.height()>200){thisul.css({height:"200"+"px","overflow-y":"scroll" })};
+			thisul.fadeIn(30);
+			thisul.hover(function(){},function(){thisul.fadeOut(30);})
+			thisul.find("li").click(function(){thisinput.val($(this).text());$("#monthId").val($(this).attr('data-id'));thisul.fadeOut("100");}).hover(function(){$(this).addClass("hover");},function(){$(this).removeClass("hover");});
+			}
+		else{
+			thisul.fadeOut(30);
+			}
+	})
+
+});
+
+function getMonthCost()
+{
+	var month = $("#monthId").val();
+	if(month=="0" || month=="")
+	{
+		alert("请选择要查询的时间");
+	}
+	else
+	{
+		$(".loadingTip").show();
+		$(".costInfo").html("");
+		var formdata = {'ym':month} ;  
+			$.ajax({
+				type: "POST",
+				dataType: "json",
+				url: "{php echo $this->createMobileUrl('propertyfree',array('op' => 'ajax'))}",
+				data: formdata,		
+				success: function(msg) {
+					if(msg.status == 1)
+					{
+						var count = msg.data.length;
+						var data= msg.data;
+						if (data == '') {$(".costInfo").append("暂无记录");};
+						for(i=0;i<count;i++)
+						{
+							data= msg.data[i];
+							url = "{php echo $this->createMobileUrl('propertyfree',array('op' => 'pay'),true)}&pid="+data.id;
+
+								$(".costInfo").append('<p><i class="icon-calendar"></i><span>查询月份：</span>'+month+'</p>');
+								if(data.username !=""){$(".costInfo").append('<p><i class="icon-user"></i><span>姓名：</span>'+data.username+'</p>');}
+								if(data.homenumber !=""){$(".costInfo").append('<p><i class="icon-building"></i><span>房号：</span>'+data.homenumber+'</p>');}
+								if(data.profree !=""){$(".costInfo").append('<p><i></i><span>物业费：</span>'+data.profree+'元</p>');	}
+								if(data.tcf !=""){$(".costInfo").append('<p><i></i><span>停车费：</span>'+data.tcf+'元</p>');	}
+								if(data.gtsf !=""){$(".costInfo").append('<p><i></i><span>公摊水费：</span>'+data.gtsf+'元</p>');	}
+								if(data.gtdf !=""){$(".costInfo").append('<p><i></i><span>公摊电费：</span>'+data.gtdf+'元</p>');	}
+								if(data.status ==1){
+										$(".costInfo").append('<p><i></i><span>是否缴费：</span>已缴费</p>');	
+								}else{
+									$(".costInfo").append(
+										"<p><i></i><span>是否缴费：</span><a href="+url+">请缴费</a></p>");
+ 
+								}
+							
+							 
+								$(".costInfo").append("<p style=\"border-bottom: 1px solid #ddd;padding: 0 2px 5px;\"></p>");
+							 
+						}
+					}
+					else
+					{
+						alert("获取失败");
+					}
+					$(".loadingTip").hide();
+				}
+			});		
+		
+		
+		
+		
+		
+		
+	}
+}
+
+</script>
+{template 'footer'}

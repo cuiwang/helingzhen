@@ -1,0 +1,957 @@
+{template 'public/header'}
+{template 'public/comhead'}
+<style>
+.cLine {overflow: hidden;padding: 5px 0;color:#000000;}
+.alert {padding: 8px 35px 0 10px;text-shadow: none;-webkit-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);-moz-box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+background-color: #f9edbe;
+border: 1px solid #f0c36d;
+-webkit-border-radius: 2px;
+-moz-border-radius: 2px;
+border-radius: 2px;
+color: #333333;
+margin-top: 5px;
+}
+.alert p {
+margin: 0 0 10px;
+display: block;
+}
+.alert .bold{
+font-weight:bold;
+}
+</style>
+<div class="cLine">
+    <div class="alert">
+        <p><span class="bold">使用方法：</span>
+            填写名称，上传图片，建议图片尺寸为宽400高300（所有图片必须统一尺寸）<br/>
+            <strong><font color='red'>特别提醒: 如果不想在前端显示某个星期，如：不想显示星期六，那么不设置星期六的任何课表信息即可!</font></strong>
+        </p>
+    </div>
+</div>
+{if $operation == 'display'}
+<script>
+    require(['bootstrap'],function($){
+        $('.btn,.tips').hover(function(){
+            $(this).tooltip('show');
+        },function(){
+            $(this).tooltip('hide');
+        });
+    });
+    
+</script>
+<div class="main">
+    <style>
+        .form-control-excel {
+            height: 34px;
+            padding: 6px 12px;
+            font-size: 14px;
+            line-height: 1.42857143;
+            color: #555;
+            background-color: #fff;
+            background-image: none;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+            -webkit-transition: border-color ease-in-out .15s, -webkit-box-shadow ease-in-out .15s;
+            -o-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+            transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+        }
+    </style>
+    <div class="panel panel-info">
+        <div class="panel-heading">课表管理</div>
+        <div class="panel-body">
+            <form action="./index.php" method="get" class="form-horizontal" role="form">
+                <input type="hidden" name="c" value="site"/>
+                <input type="hidden" name="a" value="entry"/>
+                <input type="hidden" name="m" value="fm_jiaoyu"/>
+                <input type="hidden" name="do" value="timetable"/>
+                <input type="hidden" name="schoolid" value="{$schoolid}"/>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label" style="width: 100px;">按名称</label>
+                    <div class="col-sm-2 col-lg-2">
+                        <input class="form-control" name="name" id="" type="text" value="{$_GPC['name']}">
+                    </div>
+                    <div class="col-sm-2 col-lg-2">
+
+                        <a href="{php echo $this->createWebUrl('timetable', array('op' => 'post', 'schoolid' => $schoolid, 'act' => add))}" class="btn btn-primary"><i class="fa fa-plus"></i>添加课表</a>
+                        <a href="javascript:location.reload()" class="btn btn-primary"><i class="fa fa-refresh"></i>刷新</a>
+
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <div class="panel panel-default">
+        <div class="table-responsive panel-body">
+            <form action="" method="post" class="form-horizontal form" enctype="multipart/form-data">
+                <input type="hidden" name="schoolid" value="{$schoolid}"/>
+                <table class="table table-hover">
+                    <thead class="navbar-inner">
+                    <tr>
+                        <th class='with-checkbox' style="width: 20px;"><input type="checkbox"class="check_all"/> </th>
+
+                        <th style="width:6%">ID</th>
+                        <th style="width:6%">课表名称</th>
+                        <th style="width:6%">所属班级</th>
+                        <th style="width:8%;">状态</th>
+                        <th style="text-align:right; width:8%;">操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+
+
+                    {loop $courseTableInfos $item}
+                    <tr id="ttt">
+
+                        <td class="with-checkbox">
+                            <input type="checkbox" name="check" value="{$item['id']}">
+                        </td>
+
+                        <td>
+                            {$item['id']}
+                        </td>
+
+                        <td style="overflow:visible; word-break:break-all; text-overflow:auto;white-space:normal">
+                            {$item['title']}
+                        </td>
+
+                        {if $item['parentid'] == null}
+                            <td style="overflow:visible; word-break:break-all; text-overflow:auto;white-space:normal">
+                                <span class="label" style="background:#f00;">无</span>
+                            </td>
+                        {else}
+                            <td style="overflow:visible; word-break:break-all; text-overflow:auto;white-space:normal">
+                                {$item['parentid']}
+                            </td>
+                        {/if}
+
+                        <td style="width:60px;">
+                            {if $item['ishow']==1}
+                                <span class="label" style="background:#56af45;">显示</span>
+                            {else}
+                                <span class="label" style="background:#f00;">隐藏</span>
+                            {/if}
+                        </td>
+
+                        <td style="text-align:right;">
+                            <a href="{php echo $this->createWebUrl('timetable', array('id' => $item['id'], 'op' => 'post', 'schoolid' => $schoolid, 'act' => edit))}"
+                               class="btn btn-default btn-sm" title="编辑">
+                                <i class="fa fa-pencil"></i>
+                            </a>&nbsp;&nbsp;
+                            <a href="{php echo $this->createWebUrl('timetable', array('id' => $item['id'], 'op' => 'delete', 'schoolid' => $schoolid))}"
+                               onclick="return confirm('此操作不可恢复，确认删除？');return false;" class="btn btn-default btn-sm"
+                               title="删除">
+                                <i class="fa fa-times"> </i>
+                            </a>
+                        </td>
+                    </tr>
+                    {/loop}
+                    </tbody>
+
+                    <tr>
+                        <td colspan="4">
+                            <input name="token" type="hidden" value="{$_W['token']}"/>
+                            <input type="button" class="btn btn-primary" name="btndeleteall" value="批量删除"/>
+                        </td>
+                    </tr>
+                </table>
+                {$pager}
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+    var ttt = document.getElementById('ttt').childNodes.length;
+    ttt = (ttt - 1) / 2;
+</script>
+<script type="text/javascript">
+    <!--
+    var category = {php echo json_encode($children)};
+    //-->
+    $(function(){
+        $(".check_all").click(function(){
+            var checked = $(this).get(0).checked;
+            $("input[type=checkbox]").attr("checked",checked);
+        });
+
+        $("input[name=btndeleteall]").click(function(){
+            var check = $("input[type=checkbox][class!=check_all]:checked");
+            if(check.length < 1){
+                alert('请选择要删除的课表!');
+                return false;
+            }
+            if(confirm("确认要删除选择的课表?")){
+                var id = new Array();
+                check.each(function(i){
+                    id[i] = $(this).val();
+                });
+                var url = "{php echo $this->createWebUrl('timetable', array('op' => 'deleteall', 'schoolid' => $schoolid))}";
+                $.post(
+                        url,
+                        {idArr:id},
+                        function(data){
+                            alert(data.error);
+                            location.reload();
+                        },'json'
+                );
+            }
+        });
+
+    });
+</script>
+{elseif $operation == 'post'}
+<style>
+    .template .item{position:relative;display:block;float:left;border:1px #ddd solid;border-radius:5px;background-color:#fff;padding:5px;width:190px;margin:0 20px 20px 0; overflow:hidden;}
+    .template .title{margin:5px auto;line-height:2em;}
+    .template .title a{text-decoration:none;}
+    .template .item img{width:160px;height:125px; cursor:pointer;}
+    .template .active.item-style img, .template .item-style:hover img{width:160px;height:125px;border:3px #009cd6 solid;padding:1px; }
+    .template .title .fa{display:none}
+    .template .active .fa.fa-check{display:inline-block;position:absolute;bottom:33px;right:6px;color:#FFF;background:#009CD6;padding:5px;font-size:14px;border-radius:0 0 6px 0;}
+    .template .fa.fa-times{cursor:pointer;display:inline-block;position:absolute;top:10px;right:6px;color:#D9534F;background:#ffffff;padding:5px;font-size:14px;text-decoration:none;}
+    .template .fa.fa-times:hover{color:red;}
+    .template .item-bg{width:100%; height:342px; background:#000; position:absolute; z-index:1; opacity:0.5; margin:-5px 0 0 -5px;}
+    .template .item-build-div1{position:absolute; z-index:2; margin:-5px 10px 0 5px; width:168px;}
+    .template .item-build-div2{text-align:center; line-height:30px; padding-top:150px;}
+</style>
+<div class="panel panel-info">
+    <div class="panel-heading"><a class="btn btn-primary" onclick="javascript :history.back(-1);"><i class="fa fa-tasks"></i> 返回课表</a></div>
+</div>
+
+<div class="main">
+    <form action="" method="post" class="form-horizontal form" enctype="multipart/form-data">
+        <input type="hidden" name="id" value="{$item['id']}" />
+        <input type="hidden" name="schoolid" value="{$schoolid}" />
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                基础设置
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">课表名称：</label>
+                    <div class="col-sm-2 col-lg-2">
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="title" value="{$items['title']}" />
+                        </div>
+                    </div>
+
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">班级名称：</label>
+                    <div class="col-sm-2 col-lg-2">
+                        <select style="margin-right:15px;" name="parentid" class="form-control">
+                            {loop $banji $row_banji}
+                                <option value="{$row_banji['sname']}" {if $it['sid'] == $theclass['parentid']} selected="selected"{/if}>{$row_banji['sname']}</option>
+                            {/loop}
+                        </select>
+                    </div>
+
+                    <div class="col-sm-2 col-lg-2">
+                        <label class="radio-inline">
+                            <input type="radio" name="ishow" value="1" {if $item['ishow']==1 || empty($item)}checked{/if}>是
+                        </label>
+                        <label class="radio-inline">
+                            <input type="radio" name="ishow" value="0" {if isset($item['ishow']) && empty($item['ishow'])}checked{/if}>否
+                        </label>
+                        <div class="help-block">是否显示课表</div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+
+        <div class="clearfix template">
+            <div class="panel panel-default">
+                <div class="panel-body">
+
+                    <!-- 上午 -->
+                    <div><span style="font-size: 30px;color: #3b3063;margin-top: auto">上午</span></div>
+                    <hr>
+                    <div class="item item-style" style="width: 142px;">
+                        <div class="title">
+                            <img style="text-align:center;width: 130px; height: 93px;" class="img-rounded" src="../addons/fm_jiaoyu/public/web/recipe/1.jpg" onerror="">
+                            <!--添加操作-->
+                            <div style=" height:28px;text-align:center;color:red;font-size:20px;">第1节</div>
+                            <select name="time[week_1_1_time]" class="form-control">
+                                <option value="0">请选择时段</option>
+                                <option value="09:00-09:45">09:00-09:45</option>
+                                <option value="10:00-10:45">10:00-10:45</option>
+                                <option value="上午第一节">上午第一节</option>
+                                <option value="上午第二节">上午第二节</option>
+                                <option value="下午第一节">下午第一节</option>
+                            </select>
+
+                            <select name="time[week_1_1_subject]" class="form-control">
+                                <option value="0">请选择科目</option>
+                                <option value="语文 ">语文</option>
+                                <option value="数学">数学</option>
+                                <option value="英语">英语</option>
+                                <option value="c">c</option>
+                                <option value="C++">C++</option>
+                                <option value="IOS">IOS</option>
+                            </select>
+                            <hr>
+                            <div style=" height:28px;text-align:center;color:red;font-size:20px;">第2节</div>
+                            <select name="time[week_1_2_time]" class="form-control">
+                                <option value="0">请选择时段</option>
+                                <option value="09:00-09:45">09:00-09:45</option>
+                                <option value="10:00-10:45">10:00-10:45</option>
+                                <option value="上午第一节">上午第一节</option>
+                                <option value="上午第二节">上午第二节</option>
+                                <option value="下午第一节">下午第一节</option>
+                            </select>
+
+                            <select name="time[week_1_2_subject]" class="form-control">
+                                <option value="0">请选择科目</option>
+                                <option value="语文 ">语文</option>
+                                <option value="数学">数学</option>
+                                <option value="英语">英语</option>
+                                <option value="c">c</option>
+                                <option value="C++">C++</option>
+                                <option value="IOS">IOS</option>
+                            </select>
+                            <hr>
+                            <div style=" height:28px;text-align:center;color:red;font-size:20px;">第3节</div>
+                            <select name="time[week_1_3_time]" class="form-control">
+                                <option value="0">请选择时段</option>
+                                <option value="09:00-09:45">09:00-09:45</option>
+                                <option value="10:00-10:45">10:00-10:45</option>
+                                <option value="上午第一节">上午第一节</option>
+                                <option value="上午第二节">上午第二节</option>
+                                <option value="下午第一节">下午第一节</option>
+                            </select>
+
+                            <select name="time[week_1_3_subject]" class="form-control">
+                                <option value="0">请选择科目</option>
+                                <option value="语文 ">语文</option>
+                                <option value="数学">数学</option>
+                                <option value="英语">英语</option>
+                                <option value="c">c</option>
+                                <option value="C++">C++</option>
+                                <option value="IOS">IOS</option>
+                            </select>
+                            <hr>
+                            <div style=" height:28px;text-align:center;color:red;font-size:20px;">第4节</div>
+                            <select name="time[week_1_4_time]" class="form-control">
+                                <option value="0">请选择时段</option>
+                                <option value="09:00-09:45">09:00-09:45</option>
+                                <option value="10:00-10:45">10:00-10:45</option>
+                                <option value="上午第一节">上午第一节</option>
+                                <option value="上午第二节">上午第二节</option>
+                                <option value="下午第一节">下午第一节</option>
+                            </select>
+                            <select name="time[week_1_4_subject]" class="form-control">
+                                <option value="0">请选择科目</option>
+                                <option value="语文 ">语文</option>
+                                <option value="数学">数学</option>
+                                <option value="英语">英语</option>
+                                <option value="c">c</option>
+                                <option value="C++">C++</option>
+                                <option value="IOS">IOS</option>
+                            </select>
+                            <hr>
+                        </div>
+                    </div>
+                    <div class="item item-style" style="width: 142px;">
+                        <div class="title">
+                            <img style="text-align:center;width: 130px; height: 93px;" class="img-rounded" src="../addons/fm_jiaoyu/public/web/recipe/2.jpg" onerror="">
+                            <!--添加操作-->
+                            <div style=" height:28px;text-align:center;color:red;font-size:20px;">第1节</div>
+                            <select name="time[week_2_1_time]" class="form-control">
+                                <option value="0">请选择时段</option>
+                                <option value="09:00-09:45">09:00-09:45</option>
+                                <option value="10:00-10:45">10:00-10:45</option>
+                                <option value="上午第一节">上午第一节</option>
+                                <option value="上午第二节">上午第二节</option>
+                                <option value="下午第一节">下午第一节</option>
+                            </select>
+
+                            <select name="time[week_2_1_subject]" class="form-control">
+                                <option value="0">请选择科目</option>
+                                <option value="语文 ">语文</option>
+                                <option value="数学">数学</option>
+                                <option value="英语">英语</option>
+                                <option value="c">c</option>
+                                <option value="C++">C++</option>
+                                <option value="IOS">IOS</option>
+                            </select>
+                            <hr>
+                            <div style=" height:28px;text-align:center;color:red;font-size:20px;">第2节</div>
+                            <select name="time[week_2_2_time]" class="form-control">
+                                <option value="0">请选择时段</option>
+                                <option value="09:00-09:45">09:00-09:45</option>
+                                <option value="10:00-10:45">10:00-10:45</option>
+                                <option value="上午第一节">上午第一节</option>
+                                <option value="上午第二节">上午第二节</option>
+                                <option value="下午第一节">下午第一节</option>
+                            </select>
+
+                            <select name="time[week_2_2_subject]" class="form-control">
+                                <option value="0">请选择科目</option>
+                                <option value="语文 ">语文</option>
+                                <option value="数学">数学</option>
+                                <option value="英语">英语</option>
+                                <option value="c">c</option>
+                                <option value="C++">C++</option>
+                                <option value="IOS">IOS</option>
+                            </select>
+                            <hr>
+                            <div style=" height:28px;text-align:center;color:red;font-size:20px;">第3节</div>
+                            <select name="time[week_2_3_time]" class="form-control">
+                                <option value="0">请选择时段</option>
+                                <option value="09:00-09:45">09:00-09:45</option>
+                                <option value="10:00-10:45">10:00-10:45</option>
+                                <option value="上午第一节">上午第一节</option>
+                                <option value="上午第二节">上午第二节</option>
+                                <option value="下午第一节">下午第一节</option>
+                            </select>
+
+                            <select name="time[week_2_3_subject]" class="form-control">
+                                <option value="0">请选择科目</option>
+                                <option value="语文 ">语文</option>
+                                <option value="数学">数学</option>
+                                <option value="英语">英语</option>
+                                <option value="c">c</option>
+                                <option value="C++">C++</option>
+                                <option value="IOS">IOS</option>
+                            </select>
+                            <hr>
+                            <div style=" height:28px;text-align:center;color:red;font-size:20px;">第4节</div>
+                            <select name="time[week_2_4_time]" class="form-control">
+                                <option value="0">请选择时段</option>
+                                <option value="09:00-09:45">09:00-09:45</option>
+                                <option value="10:00-10:45">10:00-10:45</option>
+                                <option value="上午第一节">上午第一节</option>
+                                <option value="上午第二节">上午第二节</option>
+                                <option value="下午第一节">下午第一节</option>
+                            </select>
+
+                            <select name="time[week_2_4_subject]" class="form-control">
+                                <option value="0">请选择科目</option>
+                                <option value="语文 ">语文</option>
+                                <option value="数学">数学</option>
+                                <option value="英语">英语</option>
+                                <option value="c">c</option>
+                                <option value="C++">C++</option>
+                                <option value="IOS">IOS</option>
+                            </select>
+                            <hr>
+
+                        </div>
+                    </div>
+
+
+                    <div class="item item-style" style="width: 142px;">
+                        <div class="title">
+                            <img style="text-align:center;width: 130px; height: 93px;" class="img-rounded" src="../addons/fm_jiaoyu/public/web/recipe/3.jpg" onerror="">
+                            <!--添加操作-->
+                            <div style=" height:28px;text-align:center;color:red;font-size:20px;">第1节</div>
+                            <select name="time[week_3_1_time]" class="form-control">
+                                <option value="0">请选择时段</option>
+                                <option value="09:00-09:45">09:00-09:45</option>
+                                <option value="10:00-10:45">10:00-10:45</option>
+                                <option value="上午第一节">上午第一节</option>
+                                <option value="上午第二节">上午第二节</option>
+                                <option value="下午第一节">下午第一节</option>
+                            </select>
+
+                            <select name="time[week_3_1_subject]" class="form-control">
+                                <option value="0">请选择科目</option>
+                                <option value="语文 ">语文</option>
+                                <option value="数学">数学</option>
+                                <option value="英语">英语</option>
+                                <option value="c">c</option>
+                                <option value="C++">C++</option>
+                                <option value="IOS">IOS</option>
+                            </select>
+                            <hr>
+                            <div style=" height:28px;text-align:center;color:red;font-size:20px;">第2节</div>
+                            <select name="time[week_3_2_time]" class="form-control">
+                                <option value="0">请选择时段</option>
+                                <option value="09:00-09:45">09:00-09:45</option>
+                                <option value="10:00-10:45">10:00-10:45</option>
+                                <option value="上午第一节">上午第一节</option>
+                                <option value="上午第二节">上午第二节</option>
+                                <option value="下午第一节">下午第一节</option>
+                            </select>
+
+                            <select name="time[week_3_2_subject]" class="form-control">
+                                <option value="0">请选择科目</option>
+                                <option value="语文 ">语文</option>
+                                <option value="数学">数学</option>
+                                <option value="英语">英语</option>
+                                <option value="c">c</option>
+                                <option value="C++">C++</option>
+                                <option value="IOS">IOS</option>
+                            </select>
+                            <hr>
+                            <div style=" height:28px;text-align:center;color:red;font-size:20px;">第3节</div>
+                            <select name="time[week_3_3_time]" class="form-control">
+                                <option value="0">请选择时段</option>
+                                <option value="09:00-09:45">09:00-09:45</option>
+                                <option value="10:00-10:45">10:00-10:45</option>
+                                <option value="上午第一节">上午第一节</option>
+                                <option value="上午第二节">上午第二节</option>
+                                <option value="下午第一节">下午第一节</option>
+                            </select>
+
+                            <select name="time[week_3_3_subject]" class="form-control">
+                                <option value="0">请选择科目</option>
+                                <option value="语文 ">语文</option>
+                                <option value="数学">数学</option>
+                                <option value="英语">英语</option>
+                                <option value="c">c</option>
+                                <option value="C++">C++</option>
+                                <option value="IOS">IOS</option>
+                            </select>
+                            <hr>
+                            <div style=" height:28px;text-align:center;color:red;font-size:20px;">第4节</div>
+                            <select name="time[week_3_4_time]" class="form-control">
+                                <option value="0">请选择时段</option>
+                                <option value="09:00-09:45">09:00-09:45</option>
+                                <option value="10:00-10:45">10:00-10:45</option>
+                                <option value="上午第一节">上午第一节</option>
+                                <option value="上午第二节">上午第二节</option>
+                                <option value="下午第一节">下午第一节</option>
+                            </select>
+
+                            <select name="time[week_3_4_subject]" class="form-control">
+                                <option value="0">请选择科目</option>
+                                <option value="语文 ">语文</option>
+                                <option value="数学">数学</option>
+                                <option value="英语">英语</option>
+                                <option value="c">c</option>
+                                <option value="C++">C++</option>
+                                <option value="IOS">IOS</option>
+                            </select>
+                            <hr>
+
+                        </div>
+                    </div>
+
+
+                    <div class="item item-style" style="width: 142px;">
+                        <div class="title">
+                            <img style="text-align:center;width: 130px; height: 93px;" class="img-rounded" src="../addons/fm_jiaoyu/public/web/recipe/4.jpg" onerror="">
+                            <!--添加操作-->
+                            <div style=" height:28px;text-align:center;color:red;font-size:20px;">第1节</div>
+                            <select name="time[week_4_1_time]" class="form-control">
+                                <option value="0">请选择时段</option>
+                                <option value="09:00-09:45">09:00-09:45</option>
+                                <option value="10:00-10:45">10:00-10:45</option>
+                                <option value="上午第一节">上午第一节</option>
+                                <option value="上午第二节">上午第二节</option>
+                                <option value="下午第一节">下午第一节</option>
+                            </select>
+
+                            <select name="time[week_4_1_subject]" class="form-control">
+                                <option value="0">请选择科目</option>
+                                <option value="语文 ">语文</option>
+                                <option value="数学">数学</option>
+                                <option value="英语">英语</option>
+                                <option value="c">c</option>
+                                <option value="C++">C++</option>
+                                <option value="IOS">IOS</option>
+                            </select>
+                            <hr>
+                            <div style=" height:28px;text-align:center;color:red;font-size:20px;">第2节</div>
+                            <select name="time[week_4_2_time]" class="form-control">
+                                <option value="0">请选择时段</option>
+                                <option value="09:00-09:45">09:00-09:45</option>
+                                <option value="10:00-10:45">10:00-10:45</option>
+                                <option value="上午第一节">上午第一节</option>
+                                <option value="上午第二节">上午第二节</option>
+                                <option value="下午第一节">下午第一节</option>
+                            </select>
+
+                            <select name="time[week_4_2_subject]" class="form-control">
+                                <option value="0">请选择科目</option>
+                                <option value="语文 ">语文</option>
+                                <option value="数学">数学</option>
+                                <option value="英语">英语</option>
+                                <option value="c">c</option>
+                                <option value="C++">C++</option>
+                                <option value="IOS">IOS</option>
+                            </select>
+                            <hr>
+                            <div style=" height:28px;text-align:center;color:red;font-size:20px;">第3节</div>
+                            <select name="time[week_4_3_time]" class="form-control">
+                                <option value="0">请选择时段</option>
+                                <option value="09:00-09:45">09:00-09:45</option>
+                                <option value="10:00-10:45">10:00-10:45</option>
+                                <option value="上午第一节">上午第一节</option>
+                                <option value="上午第二节">上午第二节</option>
+                                <option value="下午第一节">下午第一节</option>
+                            </select>
+
+                            <select name="time[week_4_3_subject]" class="form-control">
+                                <option value="0">请选择科目</option>
+                                <option value="语文 ">语文</option>
+                                <option value="数学">数学</option>
+                                <option value="英语">英语</option>
+                                <option value="c">c</option>
+                                <option value="C++">C++</option>
+                                <option value="IOS">IOS</option>
+                            </select>
+                            <hr>
+                            <div style=" height:28px;text-align:center;color:red;font-size:20px;">第4节</div>
+                            <select name="time[week_4_4_time]" class="form-control">
+                                <option value="0">请选择时段</option>
+                                <option value="09:00-09:45">09:00-09:45</option>
+                                <option value="10:00-10:45">10:00-10:45</option>
+                                <option value="上午第一节">上午第一节</option>
+                                <option value="上午第二节">上午第二节</option>
+                                <option value="下午第一节">下午第一节</option>
+                            </select>
+
+                            <select name="time[week_4_4_subject]" class="form-control">
+                                <option value="0">请选择科目</option>
+                                <option value="语文 ">语文</option>
+                                <option value="数学">数学</option>
+                                <option value="英语">英语</option>
+                                <option value="c">c</option>
+                                <option value="C++">C++</option>
+                                <option value="IOS">IOS</option>
+                            </select>
+                            <hr>
+
+                        </div>
+                    </div>
+
+
+                    <div class="item item-style" style="width: 142px;">
+                        <div class="title">
+                            <img style="text-align:center;width: 130px; height: 93px;" class="img-rounded" src="../addons/fm_jiaoyu/public/web/recipe/5.jpg" onerror="">
+                            <!--添加操作-->
+                            <div style=" height:28px;text-align:center;color:red;font-size:20px;">第1节</div>
+                            <select name="time[week_5_1_time]" class="form-control">
+                                <option value="0">请选择时段</option>
+                                <option value="09:00-09:45">09:00-09:45</option>
+                                <option value="10:00-10:45">10:00-10:45</option>
+                                <option value="上午第一节">上午第一节</option>
+                                <option value="上午第二节">上午第二节</option>
+                                <option value="下午第一节">下午第一节</option>
+                            </select>
+
+                            <select name="time[week_5_1_subject]" class="form-control">
+                                <option value="0">请选择科目</option>
+                                <option value="语文 ">语文</option>
+                                <option value="数学">数学</option>
+                                <option value="英语">英语</option>
+                                <option value="c">c</option>
+                                <option value="C++">C++</option>
+                                <option value="IOS">IOS</option>
+                            </select>
+                            <hr>
+                            <div style=" height:28px;text-align:center;color:red;font-size:20px;">第2节</div>
+                            <select name="time[week_5_2_time]" class="form-control">
+                                <option value="0">请选择时段</option>
+                                <option value="09:00-09:45">09:00-09:45</option>
+                                <option value="10:00-10:45">10:00-10:45</option>
+                                <option value="上午第一节">上午第一节</option>
+                                <option value="上午第二节">上午第二节</option>
+                                <option value="下午第一节">下午第一节</option>
+                            </select>
+
+                            <select name="time[week_5_2_subject]" class="form-control">
+                                <option value="0">请选择科目</option>
+                                <option value="语文 ">语文</option>
+                                <option value="数学">数学</option>
+                                <option value="英语">英语</option>
+                                <option value="c">c</option>
+                                <option value="C++">C++</option>
+                                <option value="IOS">IOS</option>
+                            </select>
+                            <hr>
+                            <div style=" height:28px;text-align:center;color:red;font-size:20px;">第3节</div>
+                            <select name="time[week_5_3_time]" class="form-control">
+                                <option value="0">请选择时段</option>
+                                <option value="09:00-09:45">09:00-09:45</option>
+                                <option value="10:00-10:45">10:00-10:45</option>
+                                <option value="上午第一节">上午第一节</option>
+                                <option value="上午第二节">上午第二节</option>
+                                <option value="下午第一节">下午第一节</option>
+                            </select>
+
+                            <select name="time[week_5_3_subject]" class="form-control">
+                                <option value="0">请选择科目</option>
+                                <option value="语文 ">语文</option>
+                                <option value="数学">数学</option>
+                                <option value="英语">英语</option>
+                                <option value="c">c</option>
+                                <option value="C++">C++</option>
+                                <option value="IOS">IOS</option>
+                            </select>
+                            <hr>
+                            <div style=" height:28px;text-align:center;color:red;font-size:20px;">第4节</div>
+                            <select name="time[week_5_4_time]" class="form-control">
+                                <option value="0">请选择时段</option>
+                                <option value="09:00-09:45">09:00-09:45</option>
+                                <option value="10:00-10:45">10:00-10:45</option>
+                                <option value="上午第一节">上午第一节</option>
+                                <option value="上午第二节">上午第二节</option>
+                                <option value="下午第一节">下午第一节</option>
+                            </select>
+
+                            <select name="time[week_5_4_subject]" class="form-control">
+                                <option value="0">请选择科目</option>
+                                <option value="语文 ">语文</option>
+                                <option value="数学">数学</option>
+                                <option value="英语">英语</option>
+                                <option value="c">c</option>
+                                <option value="C++">C++</option>
+                                <option value="IOS">IOS</option>
+                            </select>
+                            <hr>
+
+                        </div>
+                    </div>
+
+
+                    <div class="item item-style" style="width: 142px;">
+                        <div class="title">
+                            <img style="text-align:center;width: 130px; height: 93px;" class="img-rounded" src="../addons/fm_jiaoyu/public/web/recipe/6.jpg" onerror="">
+                            <!--添加操作-->
+                            <div style=" height:28px;text-align:center;color:red;font-size:20px;">第1节</div>
+                            <select name="time[week_6_1_time]" class="form-control">
+                                <option value="0">请选择时段</option>
+                                <option value="09:00-09:45">09:00-09:45</option>
+                                <option value="10:00-10:45">10:00-10:45</option>
+                                <option value="上午第一节">上午第一节</option>
+                                <option value="上午第二节">上午第二节</option>
+                                <option value="下午第一节">下午第一节</option>
+                            </select>
+
+                            <select name="time[week_6_1_subject]" class="form-control">
+                                <option value="0">请选择科目</option>
+                                <option value="语文 ">语文</option>
+                                <option value="数学">数学</option>
+                                <option value="英语">英语</option>
+                                <option value="c">c</option>
+                                <option value="C++">C++</option>
+                                <option value="IOS">IOS</option>
+                            </select>
+                            <hr>
+                            <div style=" height:28px;text-align:center;color:red;font-size:20px;">第2节</div>
+                            <select name="time[week_6_2_time]" class="form-control">
+                                <option value="0">请选择时段</option>
+                                <option value="09:00-09:45">09:00-09:45</option>
+                                <option value="10:00-10:45">10:00-10:45</option>
+                                <option value="上午第一节">上午第一节</option>
+                                <option value="上午第二节">上午第二节</option>
+                                <option value="下午第一节">下午第一节</option>
+                            </select>
+
+                            <select name="time[week_6_2_subject]" class="form-control">
+                                <option value="0">请选择科目</option>
+                                <option value="语文 ">语文</option>
+                                <option value="数学">数学</option>
+                                <option value="英语">英语</option>
+                                <option value="c">c</option>
+                                <option value="C++">C++</option>
+                                <option value="IOS">IOS</option>
+                            </select>
+                            <hr>
+                            <div style=" height:28px;text-align:center;color:red;font-size:20px;">第3节</div>
+                            <select name="time[week_6_3_time]" class="form-control">
+                                <option value="0">请选择时段</option>
+                                <option value="09:00-09:45">09:00-09:45</option>
+                                <option value="10:00-10:45">10:00-10:45</option>
+                                <option value="上午第一节">上午第一节</option>
+                                <option value="上午第二节">上午第二节</option>
+                                <option value="下午第一节">下午第一节</option>
+                            </select>
+
+                            <select name="time[week_6_3_subject]" class="form-control">
+                                <option value="0">请选择科目</option>
+                                <option value="语文 ">语文</option>
+                                <option value="数学">数学</option>
+                                <option value="英语">英语</option>
+                                <option value="c">c</option>
+                                <option value="C++">C++</option>
+                                <option value="IOS">IOS</option>
+                            </select>
+                            <hr>
+                            <div style=" height:28px;text-align:center;color:red;font-size:20px;">第4节</div>
+                            <select name="time[week_6_4_time]" class="form-control">
+                                <option value="0">请选择时段</option>
+                                <option value="09:00-09:45">09:00-09:45</option>
+                                <option value="10:00-10:45">10:00-10:45</option>
+                                <option value="上午第一节">上午第一节</option>
+                                <option value="上午第二节">上午第二节</option>
+                                <option value="下午第一节">下午第一节</option>
+                            </select>
+
+                            <select name="time[week_6_4_subject]" class="form-control">
+                                <option value="0">请选择科目</option>
+                                <option value="语文 ">语文</option>
+                                <option value="数学">数学</option>
+                                <option value="英语">英语</option>
+                                <option value="c">c</option>
+                                <option value="C++">C++</option>
+                                <option value="IOS">IOS</option>
+                            </select>
+                            <hr>
+
+                        </div>
+                    </div>
+
+
+                    <div class="item item-style" style="width: 142px;">
+                        <div class="title">
+                            <img style="text-align:center;width: 130px; height: 93px;" class="img-rounded" src="../addons/fm_jiaoyu/public/web/recipe/7.jpg" onerror="">
+                            <!--添加操作-->
+                            <div style=" height:28px;text-align:center;color:red;font-size:20px;">第1节</div>
+                            <select name="time[week_7_1_time]" class="form-control">
+                                <option value="0">请选择时段</option>
+                                <option value="09:00-09:45">09:00-09:45</option>
+                                <option value="10:00-10:45">10:00-10:45</option>
+                                <option value="上午第一节">上午第一节</option>
+                                <option value="上午第二节">上午第二节</option>
+                                <option value="下午第一节">下午第一节</option>
+                            </select>
+
+                            <select name="time[week_7_1_subject]" class="form-control">
+                                <option value="0">请选择科目</option>
+                                <option value="语文 ">语文</option>
+                                <option value="数学">数学</option>
+                                <option value="英语">英语</option>
+                                <option value="c">c</option>
+                                <option value="C++">C++</option>
+                                <option value="IOS">IOS</option>
+                            </select>
+                            <hr>
+                            <div style=" height:28px;text-align:center;color:red;font-size:20px;">第2节</div>
+                            <select name="time[week_7_2_time]" class="form-control">
+                                <option value="0">请选择时段</option>
+                                <option value="09:00-09:45">09:00-09:45</option>
+                                <option value="10:00-10:45">10:00-10:45</option>
+                                <option value="上午第一节">上午第一节</option>
+                                <option value="上午第二节">上午第二节</option>
+                                <option value="下午第一节">下午第一节</option>
+                            </select>
+
+                            <select name="time[week_7_2_subject]" class="form-control">
+                                <option value="0">请选择科目</option>
+                                <option value="语文 ">语文</option>
+                                <option value="数学">数学</option>
+                                <option value="英语">英语</option>
+                                <option value="c">c</option>
+                                <option value="C++">C++</option>
+                                <option value="IOS">IOS</option>
+                            </select>
+                            <hr>
+                            <div style=" height:28px;text-align:center;color:red;font-size:20px;">第3节</div>
+                            <select name="time[week_7_3_time]" class="form-control">
+                                <option value="0">请选择时段</option>
+                                <option value="09:00-09:45">09:00-09:45</option>
+                                <option value="10:00-10:45">10:00-10:45</option>
+                                <option value="上午第一节">上午第一节</option>
+                                <option value="上午第二节">上午第二节</option>
+                                <option value="下午第一节">下午第一节</option>
+                            </select>
+
+                            <select name="time[week_7_3_subject]" class="form-control">
+                                <option value="0">请选择科目</option>
+                                <option value="语文 ">语文</option>
+                                <option value="数学">数学</option>
+                                <option value="英语">英语</option>
+                                <option value="c">c</option>
+                                <option value="C++">C++</option>
+                                <option value="IOS">IOS</option>
+                            </select>
+                            <hr>
+                            <div style=" height:28px;text-align:center;color:red;font-size:20px;">第4节</div>
+                            <select name="time[week_7_4_time]" class="form-control">
+                                <option value="0">请选择时段</option>
+                                <option value="09:00-09:45">09:00-09:45</option>
+                                <option value="10:00-10:45">10:00-10:45</option>
+                                <option value="上午第一节">上午第一节</option>
+                                <option value="上午第二节">上午第二节</option>
+                                <option value="下午第一节">下午第一节</option>
+                            </select>
+
+                            <select name="time[week_7_4_subject]" class="form-control">
+                                <option value="0">请选择科目</option>
+                                <option value="语文 ">语文</option>
+                                <option value="数学">数学</option>
+                                <option value="英语">英语</option>
+                                <option value="c">c</option>
+                                <option value="C++">C++</option>
+                                <option value="IOS">IOS</option>
+                            </select>
+                            <hr>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+        <div class="form-group col-sm-12">
+            <input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+            <input type="hidden" name="token" value="{$_W['token']}" />
+        </div>
+
+    </form>
+</div>
+
+
+
+<script type="text/javascript">
+    require(['bootstrap'],function($){
+        $('.item .item-build-btn').popover();
+    });
+    //预览风格时,预览的是默认微站的导航链接和快捷操作
+    function preview(stylename, rid) {
+        require(['jquery', 'util'], function($, u){
+            var content = '<iframe width="320" scrolling="yes" height="480" frameborder="0" src="about:blank"></iframe>';
+            var footer =
+                    '     <a href="{php echo $this->createWebUrl('templates', array('op' => 'default'))}templatesname=' + stylename + 'rid' + rid + '" class="btn btn-primary">设为默认模板</a>' +
+            '     <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>';
+            var dialog = u.dialog('预览模板', content, footer);
+            dialog.find('iframe').on('load', function(){
+                $('a', this.contentWindow.document.body).each(function(){
+                    var href = $(this).attr('href');
+                    if(href && href[0] != '#') {
+                        var arr = href.split(/#/g);
+                        var url = arr[0];
+                        if(url.slice(-1) != '&') {
+                            url += '&';
+                        }
+                        if(url.indexOf('?') != -1) {
+                            url += ('s=' + styleid);
+                        }
+                        if(arr[1]) {
+                            url += ('#' + arr[1]);
+                        }
+                        if (url.substr(0, 10) == 'javascript' || url.indexOf('?') == -1) {
+                            url = url.substr(0, url.lastIndexOf('&'));
+                        }
+                        $(this).attr('href', url);
+                    }
+                });
+            });
+            var url = '../app/{php echo murl('home')}&s=' + styleid;
+            dialog.find('iframe').attr('src', url);
+            dialog.find('.modal-dialog').css({'width': '322px'});
+            dialog.find('.modal-body').css({'padding': '0', 'height': '480px'});
+            dialog.modal('show');
+        });
+    }
+</script>
+<script type="text/javascript">
+    <!--
+    var category = {php echo json_encode($children)};
+    //-->
+</script>
+{/if}
+{template 'public/footer'}

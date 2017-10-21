@@ -1,0 +1,256 @@
+<!DOCTYPE html><html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=0" />
+<title>朋友圈发语音</title>
+<link href="{MODULE_URL}template/mobile/audio/t/css/bootstrap.min.css" media="screen" rel="stylesheet" type="text/css" />
+<link href="{MODULE_URL}template/mobile/audio/t/css/bootstrap-theme.min.css" media="screen" rel="stylesheet" type="text/css" />
+<link href="{MODULE_URL}template/mobile/audio/t/css/font-awesome.min.css" media="screen" rel="stylesheet" type="text/css" />
+<link href="{MODULE_URL}template/mobile/audio/t/css/style.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="{MODULE_URL}template/mobile/audio/t/js/jquery-1.11.0.min.js">
+</script>
+</script>
+<script type="text/javascript" src="{MODULE_URL}template/mobile/audio/t/js/jquery-scrollto.js">
+</script>
+<script type="text/javascript" src="{MODULE_URL}template/mobile/audio/t/js/bootstrap.min.js">
+</script>
+</head>
+<body>
+<div class="container-fluid page-container">
+<div class="row">
+<div class="col-xs-12 highcol hdmain">
+<h1>朋友圈发语音</h1>
+<div class="cibox">
+<div class="ico-rec-loading">
+<div style="color:#aaaaaa;text-align:center;top:60px;left:0;position:absolute;width:100%;font-size:16px;">正在读取语音...</div>
+</div>
+<div class="ico-rec-play hide" onclick="playVoiceByUser();return false;"><img src="{MODULE_URL}template/mobile/audio/t/images/2781215_5_7fe06370f6_o.png" alt="" /></div>
+<div class="ico-rec-playing hide"><img class="pi-1 hide" src="{MODULE_URL}template/mobile/audio/t/images/2781219_5_2905ad457a_o.png" alt="" /> <img class="pi-2 hide" src="{MODULE_URL}template/mobile/audio/t/images/2781220_5_001114eff2_o.png" alt="" /> <img class="pi-3 hide" src="{MODULE_URL}template/mobile/audio/t/images/2781221_5_cacc5ecf9d_o.png" alt="" /></div>
+<div class="voice-time-bar"><span class="voice-time">5</span>s</div>
+</div>
+<div class="btnbox">
+<div class="btn-rec-gomy"><a class="hdbtn hdbtn-2" href="{php echo $_W['siteroot'].'app/'.$this->createMobileUrl('index',array(),1);}">我也要发语音</a></div>
+</div>
+<div style="margin-top:50px;width:100%;text-align:center;">
+<a style="color: #fff;display:inline-block;padding:5px 15px;font-size:18px;margin-left:auto;margin-right:auto;with:auto;border:1px solid #aaa;border-radius:5px;"  href="{$settings['subscribe_url']}">关注  {$_W['account']['name']}</a>
+</div>
+
+<div class="overlaybg" onclick="hdOverlayBgClicked()"><img src="{MODULE_URL}template/mobile/audio/t/images/cleardot.gif" alt="" /></div>
+<div class="shareGuide" onclick="hdOverlayBgClicked()"><img src="{MODULE_URL}template/mobile/audio/t/images/2781217_5_7ed9054687_o.png" alt="" /></div>
+</div>
+</div>
+</div>
+<script type="text/javascript">
+
+ var voice_record_time=5;
+ function switchIconTo(s){
+   var ss=[ "loading" , "play" , "playing"];
+   var i=0;
+   for(;i<ss.length;i++){
+     $('.ico-rec-'+ss[i]).addClass('hide');
+     $('.ico-rec-'+s).removeClass('hide');
+   }
+ }
+
+ function switchBtnTo(bs){
+   var ss=[ "start" , "stop" ,  "restart","share"];
+   var i=0,j=0;
+   for(;i<ss.length;i++){
+     $('.btn-rec-'+ss[i]).addClass('hide');
+     var show=false;
+     for(j=0;j<bs.length;j++){
+       if(bs[j] == ss[i]){
+         show=true;
+         break;
+       }
+     }
+     if(show){
+       $('.btn-rec-'+ss[i]).removeClass('hide');
+     }
+   }
+ }
+
+ var play_time_ti;
+ var is_playing=false;
+ function playVoice(id){
+   is_playing=true;
+   switchIconTo('playing');
+
+   /*
+   播放结束事件无法捕捉
+   wx.onVoicePlayEnd({
+     complete/success: function (res) {
+       alert("play end.");
+       var localId = res.localId; // 返回音频的本地ID
+
+       switchIconTo('play');
+     }
+   });
+   */
+
+   play_time_ti = setInterval(function(){
+     var tt = $('.voice-time-bar .voice-time');
+     var ss = tt.text() *1;
+     tt.text(ss>1 ? ss-1:0);
+   },1000);
+   
+   setTimeout(function(){
+     is_playing=false;
+     switchIconTo('play');
+
+     $('.voice-time-bar .voice-time').text(voice_record_time*1);
+     
+     if(play_time_ti){
+       clearInterval(play_time_ti);
+     }
+     
+   },voice_record_time*1000);
+   
+   wx.playVoice({
+     localId: id// 需要播放的音频的本地ID，由stopRecord接口获得
+   });
+   
+ }
+
+ var last_voice_localId="";
+ function playVoiceByUser(){
+   if(is_playing) return;
+
+   playVoice(last_voice_localId);
+ }
+
+ function downloadVoice(serverId){
+   wx.downloadVoice({
+     serverId: serverId, // 需要下载的音频的服务器端ID，由uploadVoice接口获得
+     isShowProgressTips: 0, // 默认为1，显示进度提示
+     success: function (res) {
+       var localId = res.localId; // 返回音频的本地ID
+       last_voice_localId = localId;
+       $('.voice-time-bar').show();
+       setTimeout('playVoiceByUser()',500);
+       //playVoice(localId);
+     }
+   });
+ }
+
+ function hdOverlayBgClicked(){
+   $('.shareGuide').hide();
+   $('.overlaybg').hide();
+ }
+
+ function showShareGuide(){
+
+   /* if(!$('.btn-rec-share .hdbtn').hasClass('hdbtn-2')){
+   return;
+   } */
+   
+   $('.shareGuide').show();
+   $('.overlaybg').show();
+
+   $('.shareGuide').ScrollTo();
+ }
+ 
+
+
+
+ var piArr=[];
+ var piPos=0;
+ $(function(){
+   if(piArr.length <1){
+     piArr[0] = $('.pi-1');
+     piArr[1] = $('.pi-2');
+     piArr[2] = $('.pi-3');
+   }
+
+   setInterval(function(){
+     var i=0;
+     for(;i<3;i++){
+       if(i == piPos){
+         piArr[i].removeClass('hide');
+       }else{
+         piArr[i].addClass('hide');
+       }
+     }
+
+     piPos++;
+     if(piPos>=3){
+       piPos = (piPos % 3);
+     }
+   },500);
+   
+ });
+ 
+ /* fix style */
+ function _fixLayoutStyle(){
+   var w = $(window).width();
+   var h = $(window).height();
+   if(w>500) w=500;
+   var ptdPadding = Math.floor(w * 5 / 320);
+   var ptbH = Math.floor(w * 290 /320);
+
+   $(document.body).append('<sty'+'le>'
+                           + '.page-container {min-height:'+h+'px;background-position:50% 90%; }'
+                           + '.overlaybg {min-height:'+h+'px;}'
+                           +'<\/sty'+'le>');
+ }
+ $(_fixLayoutStyle);
+ $(window).on("load",_fixLayoutStyle);
+
+</script>
+<script type="text/javascript">
+ var isAndroid = {$isAndroid};
+</script><script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js" type="text/javascript">
+</script><script type="text/javascript">
+ var wxShareDataArray = [["\u670b\u53cb\u5708\u4e5f\u80fd\u53d1\u8bed\u97f3\u4e86\uff01","5\"","{MODULE_URL}template/mobile/audio/t/images/share_icon.jpg","{php echo $_W['siteroot'].'app/'.$this->createMobileUrl('index',array(),1).'&serverId='.$_GPC['serverId'];}"],["\u670b\u53cb\u5708\u4e5f\u80fd\u53d1\u8bed\u97f3\u4e86\uff01","5\"","{MODULE_URL}template/mobile/audio/t/images/share_icon.png","{php echo $_W['siteroot'].'app/'.$this->createMobileUrl('index',array(),1).'&serverId='.$_GPC['serverId'];}"]];
+ 
+  $(function(){
+   wx.config({
+    debug: true,
+   appId: "{$_W['account']['jssdkconfig']['appId']}",
+   timestamp: {$_W['account']['jssdkconfig']['timestamp']},
+   nonceStr: "{$_W['account']['jssdkconfig']['nonceStr']}", 
+   signature: "{$_W['account']['jssdkconfig']['signature']}",
+   jsApiList: ["onMenuShareTimeline","onMenuShareAppMessage","startRecord","stopRecord","onVoiceRecordEnd","playVoice","pauseVoice","stopVoice","onVoicePlayEnd","uploadVoice","downloadVoice"] 
+   });
+   wx.ready(function(res){
+       changeWeixinShareData(isAndroid ? 1 : 0);
+
+       downloadVoice("{$_GPC['serverId']}");
+   });
+   wx.error(function(res){
+     //console.log(res);
+   });
+ });
+ 
+ function changeWeixinShareData(index){
+
+     wx.onMenuShareTimeline({
+     title: wxShareDataArray[index][1],
+     link: wxShareDataArray[index][3],
+     imgUrl: wxShareDataArray[index][2],
+     success: function () {
+       // 用户确认分享后执行的回调函数
+     },
+     cancel: function () {
+       // 用户取消分享后执行的回调函数
+     }
+     });
+
+     wx.onMenuShareAppMessage({
+     title: wxShareDataArray[index][0],
+     desc: wxShareDataArray[index][1],
+     link: wxShareDataArray[index][3],
+     imgUrl: wxShareDataArray[index][2],
+     //type: '', // 分享类型,music、video或link，不填默认为link
+     //dataUrl: '', // 如果type是music或video，则要提供数据链接，默认为空
+     success: function () {
+       // 用户确认分享后执行的回调函数
+     },
+     cancel: function () {
+       // 用户取消分享后执行的回调函数
+     }
+     });
+ }
+</script>
+</body>
+</html>

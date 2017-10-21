@@ -1,0 +1,125 @@
+{template 'common/header'}
+<link rel="stylesheet" href="{php echo MODULE_PATH}/public/css/sweetalert.css">
+<style>
+	.mpstatus span {cursor: pointer	}
+</style>
+
+<ul class="nav nav-tabs">
+	<li class="pull-right"><a href="{php echo $this->createWebUrl('MpAdd')}">添加公众号</a></li>
+	<li class="active"><a href="javascript:void(0);">公众号列表</a></li>
+</ul>
+<div class="main">
+	<div class="category">
+		<form action="" method="post" onsubmit="return formcheck(this)">
+			<div class="panel panel-default">
+				<div class="panel-body table-responsive">
+					<table class="table table-hover">
+						<thead>
+						<tr>
+							<th>名称</th>
+							<th>平台数量</th>
+							<th>状态（点击修改）</th>
+							<th>创建时间</th>
+							<th>操作</th>
+						</tr>
+						</thead>
+						<tbody>
+						{loop $mpList $v}
+						<tr>
+							<td>
+								<div class="type-parent">
+									<span class="tooltips" data-toggle="tooltip" data-placement="bottom" title="{php echo $v['desc']}">{$v['name']}</span>
+								</div>
+							</td>
+							<td><span class="badge">{$v['appNum']}</span>
+							</td>
+							<td class="mpstatus">
+								<span class="label label-{php if($v['is_yz'] == 1) echo 'success'; else echo 'danger';}" onclick="window.location.href = '{php echo $this->createWebUrl('MpJoin',array('id'=>$v['id']))}'">
+                                    {php if($v['is_yz'] == 1) echo '接入成功'; else echo '未接入';}
+                                </span>
+								&nbsp;&nbsp;
+								<span class="label tooltips disabled_nav label-{php if($v['status'] == 1) echo 'success'; else echo 'danger';}" title="{php if($v['status'] == 1) echo '禁用'; else echo '启用';}" data-toggle="tooltip" data-placement="bottom" data-href="{php echo $this->createWebUrl('MpDisable', array('op' => 'disabled', 'id' => $v['id']))}">
+                                    {php if($v['status'] == 1) echo '使用中'; else echo '已禁用';}
+                                </span>
+							</td>
+							<td>
+								{php echo date('Y-m-d H:i',$v['create_time'])}
+							</td>
+							<td>
+								<a href="{php echo $this->createWebUrl('AppList', array('op' => 'list', 'id' => $v['id']))}" class="btn btn-default btn-sm tooltips" data-toggle="tooltip" data-placement="bottom" title="管理平台"><i class="fa fa-anchor"></i></a>&nbsp;&nbsp;
+								<a href="{php echo $this->createWebUrl('MpEdit', array('id' => $v['id']))}" class="btn btn-default btn-sm tooltips" data-toggle="tooltip" data-placement="bottom" title="编辑"><i class="fa fa-edit"></i></a>&nbsp;&nbsp;
+								<a href="{php echo $this->createWebUrl('MpDel', array('id' => $v['id']))}" class="btn btn-default btn-sm del_nav tooltips" data-toggle="tooltip" data-placement="bottom" title="删除"><i class="fa fa-times"></i></a>
+							</td>
+						</tr>
+						{/loop}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+<script src="{php echo MODULE_PATH}/public/js/sweetalert.min.js"></script>
+<script src="{php echo MODULE_PATH}/public/js/public.js"></script>
+<script>
+	require(['bootstrap'],function($){
+		$('.tooltips').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+	});
+	$('.del_nav').click(function(){
+		var url = $(this).attr('href');
+		swal({
+			title: "确定要删除吗？",
+			text: "删除之后该公众号下的所有平台接入将会失效",
+			type: "warning",
+			showCancelButton: true,
+			closeOnConfirm: false,
+			showLoaderOnConfirm: true,
+		}, function () {
+			$.ajax({
+				url: url,
+				dataType:'json',
+				success:function(res){
+					swal({title:CheckCode(res.Code),text: res.Message,type: CheckCode(res.Code,2)},function(){
+						if( CheckCode(res.Code,2) == 'success')
+							window.location.href = '{php echo $this->createWebUrl('MpList', array('op' => 'index'))}';
+					});
+				},
+				error:function(){ swal("Error", "请检查您的网络", "error"); }
+			});
+		});
+		return false;
+	});
+	$('.disabled_nav').click(function(){
+		var url = $(this).attr('data-href');
+		var status = $(this).attr('data-original-title');
+		swal({
+			title: "确定要"+status+"吗？",
+			text: "",
+			type: "warning",
+			showCancelButton: true,
+			closeOnConfirm: false,
+			showLoaderOnConfirm: true,
+		}, function () {
+			$.ajax({
+				url: url,
+				dataType:'json',
+				success:function(res){
+					swal({title:CheckCode(res.Code),text: res.Message,type: CheckCode(res.Code,2)},function(){
+						if( CheckCode(res.Code,2) == 'success')
+							window.location.href = '{php echo $this->createWebUrl('MpList', array('op' => 'index'))}';
+					});
+				},
+				error:function(){ swal("Error", "请检查您的网络", "error"); }
+			});
+		});
+		return false;
+	});
+
+</script>
+
+
+{template 'common/footer'}

@@ -1,0 +1,286 @@
+<html ng-app="diandanbao" class="ng-scope">
+<head>
+    <style type="text/css">@charset "UTF-8";
+    [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak, .ng-hide:not(.ng-hide-animate) {
+        display: none !important;
+    }
+    ng\:form {
+        display: block;
+    }</style>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta content="telephone=no" name="format-detection">
+    <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
+    <title>订单管理</title>
+    <link data-turbolinks-track="true" href="{RES}/mobile/{php echo $this->cur_tpl}/assets/diandanbao/weixin.css?v=1" media="all"
+          rel="stylesheet">
+    <style type="text/css">@media screen {
+        .smnoscreen {
+            display: none
+        }
+    }
+
+    @media print {
+        .smnoprint {
+            display: none
+        }
+    }</style>
+</head>
+<body>
+<div style="height: 100%;" class="ng-scope">
+    <div class="ddb-nav-header ng-scope" common-header="" style="background-color: #ef4437;color:#fff;">
+        <a class="nav-left-item" href="{php echo $this->createMobileUrl('adminorder', array(), true)}"><i
+                class="fa fa-angle-left" style="color: #fff;"></i></a>
+        <div class="header-title ng-binding">订单管理</div>
+    </div>
+    <div class="ddb-nav-footer ng-scope" style="text-align:center;">
+        <span class="button border-green" onclick="confirmorder()">确认</span>
+        <span class="button border-red" onclick="cancelorder()">取消</span>
+        <span class="button border-green" onclick="payorder()">支付</span>
+        <span class="button border-blue" onclick="finishorder()">完成</span>
+    </div>
+    <div class="main-view order-show ng-scope" id="delivery-order-show">
+        <div class="section">
+            <a class="list-item arrow-right ng-binding" href="{php echo $this->createMobileUrl('detail', array('id' => $store['id']), true)}">
+                <i class="fa fa-bookmark-o"></i> {$store['title']}
+            </a>
+            <a class="list-item arrow-right ng-binding" href="tel:{$store['tel']}">
+                <i class="fa fa-phone"></i> 商家客服：{$store['tel']}
+            </a>
+        </div>
+        <div class="space-8"></div>
+        {if $order['status']!=-1}
+        <div class="order-state-section ng-scope">
+            <div class="order-state ng-isolate-scope active">
+                <div class="order-state-header">
+                    <div class="square">
+                        <div class="line-through ng-hide" ng-hide="hide_left"></div>
+                    </div>
+                    <i class="fa fa-check-circle"></i>
+
+                    <div class="square">
+                        <div class="line-through" ng-hide="hide_right"></div>
+                    </div>
+                </div>
+                <div class="order-state-body ng-binding">等待处理</div>
+            </div>
+            <div class="order-state ng-isolate-scope {if $order['status']>=1}active{/if}">
+                <div class="order-state-header">
+                    <div class="square">
+                        <div class="line-through" ng-hide="hide_left"></div>
+                    </div>
+                    <i class="fa fa-check-circle"></i>
+
+                    <div class="square">
+                        <div class="line-through" ng-hide="hide_right"></div>
+                    </div>
+                </div>
+                <div class="order-state-body ng-binding">已确认</div>
+            </div>
+            <!--<div class="order-state ng-isolate-scope" >-->
+                <!--<div class="order-state-header">-->
+                    <!--<div class="square">-->
+                        <!--<div class="line-through" ng-hide="hide_left"></div>-->
+                    <!--</div>-->
+                    <!--<i class="fa fa-check-circle"></i>-->
+
+                    <!--<div class="square">-->
+                        <!--<div class="line-through" ng-hide="hide_right"></div>-->
+                    <!--</div>-->
+                <!--</div>-->
+                <!--<div class="order-state-body ng-binding">配送中</div>-->
+            <!--</div>-->
+            <div class="order-state ng-isolate-scope {if $order['status']==3}active{/if}">
+                <div class="order-state-header">
+                    <div class="square">
+                        <div class="line-through" ng-hide="hide_left"></div>
+                    </div>
+                    <i class="fa fa-check-circle"></i>
+
+                    <div class="square">
+                        <div class="line-through ng-hide" ng-hide="hide_right"></div>
+                    </div>
+                </div>
+                <div class="order-state-body ng-binding">已完成</div>
+            </div>
+        </div>
+        {else}
+        <div class="order-state-section ng-scope">
+            <div class="order-state ng-isolate-scope">
+                <div class="order-state-header">
+                    <div class="square">
+                        <div class="line-through" ng-hide="hide_left"></div>
+                    </div>
+                    <i class="fa fa-check-circle"></i>
+
+                    <div class="square">
+                        <div class="line-through" ng-hide="hide_right"></div>
+                    </div>
+                </div>
+                <div class="order-state-body ng-binding">已取消</div>
+            </div>
+        </div>
+        {/if}
+        <div class="space-8"></div>
+        <div class="section no-bottom-border">
+            <div class="list-item time">
+                <span class="ng-binding">类型：{if $order['dining_mode']==1}堂点{elseif $order['dining_mode']==2}外卖{elseif $order['dining_mode']==3}预订{elseif $order['dining_mode']==4}快餐{/if}</span>&nbsp;&nbsp;<span class="ng-binding">订单号：{$order['ordersn']}</span><br>
+                <span class="ng-binding">下单时间：{php echo date('Y-m-d H:i:s',$order['dateline'])}</span>
+
+            </div>
+
+            {loop $order['goods'] $item}
+            <div class="list-item ng-scope">
+                <div class="name ng-binding">
+                    {$item['title']}
+                </div>
+                <div class="quantity-info">
+                    <span class="quantity ng-binding">{$item['total']}份</span>
+                    ×
+                    <span class="price ng-binding">￥{$item['price']}</span>
+                </div>
+                <div class="total-info">
+                    <span class="total ng-binding">￥{php echo $item['total']*$item['price']}</span>
+                </div>
+            </div>
+            {/loop}
+            <div class="list-item">合计：<span class="red ng-binding">{$order['totalnum']}份</span>，<strong
+                    class="red ng-binding">￥{$order['totalprice']}</strong><br/>
+                {if !empty($coupon_info)}
+                <span class="ng-scope">（{$coupon_info}）</span>
+                {/if}
+                {if $order['dining_mode']==2}
+                {if $order['dispatchprice'] != '0.00'}
+                <span class="ng-scope">（含{$order['dispatchprice']}元配送费）</span>
+                {else}
+                <span class="ng-scope">（免配送费）</span>
+                {/if}
+                {if $order['packvalue'] > 0}
+                <span class="ng-scope">（含{$order['packvalue']}元打包费）</span>
+                {/if}
+                {/if}
+                {if !empty($order['credit'])}赠送积分:<span class="red ng-binding">{$order['credit']}</span>{/if}
+            </div>
+            <div class="list-item">
+                {if $order['dining_mode']==1}
+                <div class="order-item ng-binding ng-scope">
+                    桌台: {$table_title}
+                </div>
+                {/if}
+                <div class="order-item ng-binding ng-scope">
+                    支付类型: {if $order['paytype']==0}未选择{elseif $order['paytype']==1}余额支付{elseif  $order['paytype']==2}微信支付{elseif  $order['paytype']==3}现金支付{elseif $order['paytype']==4}支付宝支付{/if}({if $order['ispay']==1}<font color="green">已支付</font>{else}<font color="#f00">未支付
+                </font>{/if})
+                </div>
+                {if $order['dining_mode']==2}
+                {if $order['dispatchprice'] != '0.00'}
+                <div class="order-item ng-binding ng-scope">
+                    配送费用: {$order['dispatchprice']}元/份
+                </div>
+                {/if}
+                <div class="order-item ng-binding ng-scope">
+                    配送时间: {$order['meal_time']}
+                </div>
+                {if $order['packvalue']>0}
+                <div class="order-item ng-binding ng-scope">
+                    打包费用: {$order['packvalue']}
+                </div>
+                {/if}
+                {/if}
+                {if $order['dining_mode']==3}
+                <div class="order-item ng-binding ng-scope">
+                    桌台类型: {$tablezones['title']}
+                </div>
+                <div class="order-item ng-binding ng-scope">
+                    预约时间: {$order['meal_time']}
+                </div>
+                {/if}
+                {if $order['dining_mode']!=1}
+                <div class="order-item ng-binding ng-scope">
+                    姓名: {$order['username']}
+                </div>
+                <div class="order-item ng-binding ng-scope">
+                    电话: {$order['tel']}
+                </div>
+                {/if}
+                {if $order['dining_mode']==2}
+                <div class="order-item ng-binding ng-scope">
+                    地址: {$order['address']}
+                </div>
+                {/if}
+                {if $order['dining_mode']==1}
+                <div class="order-item ng-binding ng-scope">
+                    人数: {$order['counts']}
+                </div>
+                {/if}
+                {if !empty($order['remark'])}
+                <div class="order-item ng-binding ng-scope">
+                    备注: {$order['remark']}
+                </div>
+                {/if}
+        </div>
+        <!--<div class="juchi"></div>-->
+        </div>
+        <div class="space-8"></div>
+        <div class="section">
+            <div class="list-item ddb-form-control">
+                <div class="ddb-form-label">总价格</div>
+                <div class="input-field">
+                    <input type="text" class="ddb-form-input ng-pristine ng-untouched ng-valid" placeholder="输入订单总价" value="{$order['totalprice']}" name="totalprice" id="totalprice">
+                </div>
+            </div>
+        </div>
+        <div class="section ng-scope">
+            <div class="list-item ddb-form-control">
+                <textarea placeholder="请输入备注（可不填）" class="ng-pristine ng-untouched ng-valid" name="remark"
+                          id="remark">{$order['remark']}</textarea>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="{RES}/mobile/{php echo $this->cur_tpl}/assets/diandanbao/jquery-1.11.3.min.js"></script>
+<script>
+    function confirmorder() {
+        remark = $("#remark").val();
+        totalprice = parseFloat($("#totalprice").val());
+        if (totalprice <= 0) { alert("总价格为0"); return false; }
+        if (confirm("确认提交吗?")) {
+            var url = "{php echo $this->createMobileUrl('setadminorder', array('orderid' => $order['id'], 'status' => 'confirm'), true)}" + '&totalprice=' + totalprice + '&remark=' + remark;
+            window.location.href = url;
+        }
+    }
+
+    function cancelorder() {
+        remark = $("#remark").val();
+        totalprice = parseFloat($("#totalprice").val());
+        if (totalprice <= 0) { alert("总价格为0"); return false; }
+
+        if (confirm("确认取消吗?")) {
+            var url = "{php echo $this->createMobileUrl('setadminorder', array('orderid' => $order['id'], 'status' => 'cancel'), true)}" + '&totalprice=' + totalprice + '&remark=' + remark;
+            window.location.href = url;
+        }
+    }
+
+    function payorder() {
+        remark = $("#remark").val();
+        totalprice = parseFloat($("#totalprice").val());
+        if (totalprice <= 0) { alert("总价格为0"); return false; }
+
+        if (confirm("确认支付吗?")) {
+            var url = "{php echo $this->createMobileUrl('setadminorder', array('orderid' => $order['id'], 'status' => 'pay'), true)}" + '&totalprice=' + totalprice + '&remark=' + remark;
+            window.location.href = url;
+        }
+    }
+
+    function finishorder() {
+        remark = $("#remark").val();
+        totalprice = parseFloat($("#totalprice").val());
+        if (totalprice <= 0) { alert("总价格为0"); return false; }
+
+        if (confirm("确认提交吗?")) {
+            var url = "{php echo $this->createMobileUrl('setadminorder', array('orderid' => $order['id'], 'status' => 'finish'), true)}" + '&totalprice=' + totalprice + '&remark=' + remark;
+            window.location.href = url;
+        }
+    }
+</script>
+</body>
+</html>

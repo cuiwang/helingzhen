@@ -1,0 +1,173 @@
+{template 'common/header'} 
+<style>
+.photo_list{padding:15px 0;}
+.photo_list .alert{width:auto; margin-top:10px; overflow:hidden;}
+.photo_list .photo_preview{width:130px;}
+.photo_list .photo_preview img{width:130px; margin-bottom:5px;}
+.photo_list .photo_preview label{padding:0;}
+.photo_list .photo_preview input[type="radio"]{margin-left:0; margin-right:10px;}
+.photo_list table{margin-left:40px;}
+.photo_list table th,.photo_list table td{padding-bottom:5px;}
+.photo_list table th{width:60px; font-size:14px;}
+.photo_list table input,.photo_list table select{margin-bottom:0;}
+</style>
+<div class="main">
+<ul class="nav nav-tabs">
+  <li{if $_GPC['do'] == 'buildlists'} class="active"{/if}><a href="{php echo $this->createWeburl('buildlists');}">楼盘管理</a>
+  </li>
+  <li{if $_GPC['do'] == 'albumlist'} class="active"{/if}><a href="{php echo $this->createWeburl('albumlist',array('hid'=>$hid));}">相册管理</a>
+  </li>
+  <li{if $_GPC['do'] == 'albumadd'} class="active"{/if}><a href="{php echo $this->createWeburl('albumadd', array('hid'=>$hid,'id'=>$id));}">添加相册</a>
+  </li>
+</ul>
+<form action="" class="form-horizontal form" method="post" enctype="multipart/form-data" name="hxform" id="hxform">
+<input type="hidden" name="id" value="{$item['id']}">
+<input type="hidden" name="hid" value="{$hid}">
+<div class="panel panel-default">
+<div class="panel-heading"> 楼盘相册信息 </div>
+<div class="panel-body">
+<div class="form-group">
+  <label class="col-xs-12 col-sm-3 col-md-2 control-label">相册主名称</label>
+  <div class="col-xs-12 col-sm-9">
+    <input type="text" class="form-control" placeholder="" name="title" value="{$item['title']}" />
+  </div>
+</div>
+<div class="form-group">
+  <label class="col-xs-12 col-sm-3 col-md-2 control-label">相册子名称</label>
+  <div class="col-xs-12 col-sm-9">
+    <input type="text" class="form-control" placeholder="" name="subtitle" value="{$item['subtitle']}" />
+  </div>
+</div>
+<div class="form-group">
+  <label class="col-xs-12 col-sm-3 col-md-2 control-label">显示顺序</label>
+  <div class="col-xs-12 col-sm-9">
+    <input type="text" class="form-control" placeholder="" name="sort" value="{$item['sort']}" />
+  </div>
+</div>
+<div class="form-group">
+  <label class="col-xs-12 col-sm-3 col-md-2 control-label">相册介绍</label>
+  <div class="col-sm-9">
+    <textarea style="height:100px;" class="span7 richtext-clone" name="jianjie" cols="70" id="jianjie">{$item['jianjie']}</textarea>
+  </div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-3 col-md-2 control-label">相册图片</label>
+<div class="col-xs-12 col-sm-9">
+<script type="text/javascript">
+	function uploadMultiImage(elm) {
+		require(["util"], function(util){
+			util.image( "", function(url){
+				$(elm).parent().parent().next().append('<div class="multi-item" style="height: 150px; position:relative; float: left; margin-right: 18px;"><img style="max-width: 150px; max-height: 150px;" onerror="this.src=\'./resource/images/nopic.jpg\'; this.title=\'图片未找到.\'" src="'+url.url+'" class="img-responsive img-thumbnail"><input type="hidden" name="pic[]" value="'+url.filename+'"><em class="close" style="position:absolute; top: 0px; right: -14px;" title="删除这张图片" onclick="deleteMultiImage(this)">×</em></div>');
+			}, "", []);
+		});
+	}
+	function deleteMultiImage(elm){
+		require(["jquery"], function($){
+			$(elm).parent().remove();
+		});
+	}
+</script>
+<div class="input-group">
+	<input type="text" class="form-control" readonly="readonly" value="" placeholder="批量上传图片" autocomplete="off">
+	<span class="input-group-btn">
+		<button class="btn btn-default" type="button" onclick="uploadMultiImage(this);">选择图片</button>
+	</span>
+</div>
+  <div class="photo_list">
+    <input name="token" type="hidden" value="{$_W['token']}" />
+    <span id="selectimage" class="btn btn-primary"><i class="icon-plus"></i> 上传照片</span><span style="color:red;">
+    <input id="hxpiclist"  name="hxpiclist" type="hidden"  value="{$jsonpic}" />
+    *图片大小650*650，图片大小不超过300K</span>
+    <div id="file_upload-queue" class="uploadify-queue"></div>
+    <ul class="ipost-list ui-sortable" id="fileList">
+    </ul>
+  </div>
+</div>
+<div class="form-group col-sm-12">
+  <input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+  <input type="hidden" name="token" value="{$_W['token']}" />
+</div>
+<script type="text/template" id="picdemo">
+<li class="imgbox" style="list-type:none">
+<a class="item_close" href="javascript:void(0)" onclick="$(this).parent().remove();" title="删除">
+</a>
+<span class="item_box">
+    <img src="" style="max-height:100%;">
+</span>
+<span class="item_input">
+    <textarea class="bewrite" cols="3" rows="4" style="resize: none" placeholder="图片描述..." onfocus="$(this).parent().addClass('on');" onblur="$(this).parent().removeClass('on');">
+    </textarea>
+    <i class="shadow hc">
+    </i>
+</span>
+</li>
+</script> 
+<script>	
+
+		
+		//上传图片
+		function addoneing(m,n){
+			pm='{php echo $_W['attachurl']}'+m;
+			n = n.split(',');
+			n = n[0];
+			$('#fileList').append($('#picdemo').html());
+			var li = $('#fileList').children('li:last');
+			li.find('img').attr('src',pm);
+			li.find('textarea').val(n);
+		}
+		$(function(){		
+			$('#hxform').submit(function(){
+				var pics = [];
+				$('#fileList').find('li').each(function(){
+					var msg = {};
+					var img = $(this).find('img');
+					msg.src = img.attr('src');
+					msg.txt = $.trim($(this).find('textarea').val());
+					var w = img.width();
+					var h = img.height();
+					w = parseInt(450*w/h);
+					msg.w = w;
+					msg.h = 450;
+					pics[pics.length] = msg;
+				});
+				$('#hxpiclist').val($.toJSON(pics));
+				//alert($('#hxpiclist').val());
+			});
+			var val = $('#hxpiclist').val();
+			if($.trim(val)==''){
+				val = '[]';
+			}
+			var data = $.evalJSON(val);
+			for(var i=0;i<data.length;i++){
+				var msg = data[i];
+				addoneing(msg.src,msg.txt);
+			}
+		});
+	</script> 
+<script type="text/javascript">
+
+
+<script type="text/javascript">
+ 
+  function deletepic(obj){  
+  
+     if (confirm("点击删除后将直接删除服务器图片！操作后请立即提交保存！")) {
+	          var $thisob=$(obj);
+			  var $liobj=$thisob.parent();
+			  var picurl=$liobj.children('input').val();
+
+	      	$.post('{php echo $this->createMobileUrl('ajaxdelalbumpic')}',{ pic:picurl},function(m){
+						if(m=='1')
+						{
+							$liobj.remove();
+							}
+						else
+						{
+							alert("删除失败");
+							}
+	        	},"html");	
+				
+	        }
+  }
+</script> 
+{template 'common/footer'}

@@ -1,0 +1,309 @@
+{template 'common/header'}
+
+<div class="main">
+	<ul class="nav nav-tabs">
+		<li{if $_GPC['do'] == 'bpreportes' } class="active"{/if}><a href="{php echo $this->createWebUrl('bpreportes',array('rid'=>$rid));}">订单数据报表</a></li>
+		<li{if $pay_type==2 } class="active"{/if}><a href="{php echo $this->createWebUrl('bp_order',array('rid'=>$rid,'pay_type'=>2,'delete'=>$delete));}">霸屏支付订单管理</a></li>
+		<li{if $pay_type==3} class="active"{/if}><a href="{php echo $this->createWebUrl('bp_order',array('rid'=>$rid,'pay_type'=>3,'delete'=>$delete));}">打赏支付订单管理</a></li>
+		<li{if $pay_type==4} class="active"{/if}><a href="{php echo $this->createWebUrl('bp_order',array('rid'=>$rid,'pay_type'=>4,'delete'=>$delete));}">红包支付订单管理</a></li>
+	</ul>
+
+	<div class="panel panel-info">
+		<div class="panel-heading">收入报表</div>
+		<div class="panel-body">
+			<div class="row">
+			  <div class="col-md-2" style="text-align: center;padding-top: 15px;">
+				<p style="font-size: 24px;color: #d9534f;">{$yesterday}</p>
+				<p>昨日收入(元)</p>
+			  </div>
+			  <div class="col-md-2" style="text-align: center;padding-top: 15px;">
+				<p style="font-size: 24px;color: #ffac04;">{$totalSum}</p>
+				<p>总收入(元)</p>
+			  </div>
+			  <div class="col-md-2" style="text-align: center;padding-top: 15px;">
+				<p style="font-size: 24px;color: #178ff7;">{$totalTX}</p>
+				<p>已提现(元)</p>
+			  </div>
+			  <div class="col-md-6" style="border-left:1px #eee solid;padding-left: 7%;">
+				<p>未提现：<span style="color: #EB0027">{$totalTXNone}</span>元</p>
+				<p style="color: #666">特别说明：本提现金额不含管理员支付部分和粉丝发红包部分</p>
+				<p>
+					<button class="btn btn-sm btn-success" data-toggle="modal" data-target="#myModal2" type="button">一键提现</button>
+				</p>
+				
+			  </div>
+			</div>
+		</div>
+	</div>
+
+<style type="text/css">
+	.newNav .nav-tabs>li.active>a, .newNav .nav-tabs>li.active>a:hover, .newNav .nav-tabs>li.active>a:focus {
+	    color: #333;
+	    background-color: #f9f9f9;
+	    border-color: #ddd;
+	    border-bottom-color: #f9f9f9;
+	}
+	.newNav .nav.nav-tabs {
+	    margin-bottom: 20px;
+	    border-color: #ddd;
+	}
+</style>
+
+<div class="newNav">
+	<ul class="nav nav-tabs" role="tablist">
+	    <li role="presentation" {if empty($_GPC['page'])}class="active"{/if}><a href="#home" aria-controls="home" role="tab" data-toggle="tab">最近霸屏订单</a></li>
+	    <li role="presentation"><a href="#profile1" aria-controls="profile" role="tab" data-toggle="tab">最近打赏订单</a></li>
+	    <li role="presentation"><a href="#profile2" aria-controls="profile" role="tab" data-toggle="tab">最近红包订单</a></li>
+	    <li role="presentation" {if !empty($_GPC['page'])}class="active"{/if}><a href="#profile3" aria-controls="profile" role="tab" data-toggle="tab">所有提现记录</a></li>
+  	</ul>
+
+  	<div class="tab-content">
+  		<!-- 最近霸屏订单开始部分 -->
+	    <div role="tabpanel" class="tab-pane {if empty($_GPC['page'])}active{/if}" id="home">
+			<table class="table table-hover" >
+				<thead class="navbar-inner">
+					<tr>
+						<th style="width:200px;">订单号</th>
+						<th style="width:150px;">创建时间</th>
+						<th style="width:80px;">微信昵称</th>
+						<th style="width:120px;">姓名</th>
+						<th style="width:100px;">金额</th>
+						<th style="width:100px;">霸屏时间(秒)</th>
+						<th style="width:80px;">状态</th>
+						<th style="width:80px;">支付方式</th>
+						<th style="width:80px;">是否是管理员免支付</th>
+						<th style="width:80px;">订单状态</th>
+						<th style="width:80px;">是否提现</th>
+					</tr>
+				</thead>
+				<tbody>
+	                    {loop $BPlists $row}
+					<tr>
+						<td>{$row['transid']}</td>
+						<td>{php echo date('Y/m/d H:i',$row['createtime'])}</td>
+						<td>{$row['nickname']}</td>
+						{if $pay_type!=4}
+						<td style="white-space: normal;">{$row['from_realname']}</td>
+						{else}
+						<td style="white-space: normal;">{$row['nickname']}</td>
+						{/if}
+						<td>{php echo $row['pay_total']}</td>
+						<td>{php echo $row['bptime']}</td>
+						<td>{if $row['status']==1}<span style="color: #FF0000">未支付</span>	{else if $row['status']==2}已支付{else}订单关闭{/if}</td>
+						<td>{if $row['orderid']==1}余额{else if $row['orderid']==2}微信支付{else if $row['orderid']==3}支付宝{else if $row['orderid']==0}未付款{else}其他{/if}</td>
+						<td>{if $row['isadmin']==1}<span style="color: #FF0000">是</span>{else}否{/if}</td>
+						<td>{if $row['pay_status']==1}<span style="color: #FF0000">异常</span>{else}正常{/if}</td>
+						<td>{if $row['txlogid']==0}<span style="color: #FF0000">未提现</span>{else}已提现{/if}</td>
+					</tr>
+	                {/loop}
+						
+				</tbody>
+			</table>
+
+			<button class="btn btn-success" onclick="location.href='{php echo $this->createWebUrl('bp_order',array('rid'=>$rid,'pay_type'=>2,'delete'=>$delete));}'" type="button">查看所有霸屏订单</button>
+	    </div>
+		<!-- 最近霸屏订单结束部分 -->
+
+		<!-- 最近打赏订单开始部分 -->
+	    <div role="tabpanel" class="tab-pane" id="profile1">
+			<table class="table table-hover" >
+				<thead class="navbar-inner">
+					<tr>
+						<th style="width:200px;">订单号</th>
+						<th style="width:150px;">创建时间</th>
+						<th style="width:80px;">微信昵称</th>
+						<th style="width:120px;">姓名</th>
+						<th style="width:100px;">金额</th>
+						<th style="width:100px;">霸屏时间(秒)</th>
+						<th style="width:80px;">状态</th>
+						<th style="width:80px;">支付方式</th>
+						<th style="width:80px;">是否是管理员免支付</th>
+						<th style="width:80px;">订单状态</th>
+						<th style="width:80px;">是否提现</th>
+					</tr>
+				</thead>
+				<tbody>
+	                    {loop $DSlists $row}
+					<tr>
+						<td>{$row['transid']}</td>
+						<td>{php echo date('Y/m/d H:i',$row['createtime'])}</td>
+						<td>{$row['nickname']}</td>
+						{if $pay_type!=4}
+						<td style="white-space: normal;">{$row['from_realname']}</td>
+						{else}
+						<td style="white-space: normal;">{$row['nickname']}</td>
+						{/if}
+						<td>{php echo $row['pay_total']}</td>
+						<td>{php echo $row['bptime']}</td>
+						<td>{if $row['status']==1}<span style="color: #FF0000">未支付</span>	{else if $row['status']==2}已支付{else}订单关闭{/if}</td>
+						<td>{if $row['orderid']==1}余额{else if $row['orderid']==2}微信支付{else if $row['orderid']==3}支付宝{else if $row['orderid']==0}未付款{else}其他{/if}</td>
+						<td>{if $row['isadmin']==1}<span style="color: #FF0000">是</span>{else}否{/if}</td>
+						<td>{if $row['pay_status']==1}<span style="color: #FF0000">异常</span>{else}正常{/if}</td>
+						<td>{if $row['txlogid']==0}<span style="color: #FF0000">未提现</span>{else}已提现{/if}</td>
+					</tr>
+	                {/loop}
+						
+				</tbody>
+			</table>	
+
+			<button class="btn btn-success" onclick="location.href='{php echo $this->createWebUrl('bp_order',array('rid'=>$rid,'pay_type'=>3,'delete'=>$delete));}'" type="button">查看所有打赏订单</button>
+	    </div>
+	    <!-- 最近打赏订单结束部分 -->
+
+	    <!-- 最近红包订单开始部分 -->
+	    <div role="tabpanel" class="tab-pane" id="profile2">
+			<table class="table table-hover" >
+				<thead class="navbar-inner">
+					<tr>
+						<th style="width:200px;">订单号</th>
+						<th style="width:150px;">创建时间</th>
+						<th style="width:80px;">微信昵称</th>
+						<th style="width:120px;">姓名</th>
+						<th style="width:100px;">金额</th>
+						<th style="width:100px;">实际支付金额</th>
+						<th style="width:100px;">手续费(%)</th>
+						<th style="width:80px;">状态</th>
+						<th style="width:80px;">支付方式</th>
+						<th style="width:80px;">是否是管理员免支付</th>
+						<th style="width:80px;">订单状态</th>
+						<!--<th style="width:80px;">是否提现</th>-->
+					</tr>
+				</thead>
+				<tbody>
+	                    {loop $HBlists $row}
+					<tr>
+						<td>{$row['transid']}</td>
+						<td>{php echo date('Y/m/d H:i',$row['createtime'])}</td>
+						<td>{$row['nickname']}</td>
+						<td style="white-space: normal;"></td>
+						<td>{php echo $row['pay_total']}</td>
+						<td>{php echo $row['pay_addr']}</td>
+						<td>{php echo $row['from_realname']}%</td>
+						<td>{if $row['status']==1}<span style="color: #FF0000">未支付</span>	{else if $row['status']==2}已支付{else}订单关闭{/if}</td>
+						<td>{if $row['orderid']==1}余额{else if $row['orderid']==2}微信支付{else if $row['orderid']==3}支付宝{else if $row['orderid']==0}未付款{else}其他{/if}</td>
+						<td>{if $row['isadmin']==1}<span style="color: #FF0000">是</span>{else}否{/if}</td>
+						<td>{if $row['pay_status']==1}<span style="color: #FF0000">异常</span>{else}正常{/if}</td>
+						<!--<td>{if $row['txlogid']==0}<span style="color: #FF0000">未提现</span>{else}已提现{/if}</td>-->
+						
+					</tr>
+	                {/loop}
+						
+				</tbody>
+			</table>
+
+			
+			<button class="btn btn-success" onclick="location.href='{php echo $this->createWebUrl('bp_order',array('rid'=>$rid,'pay_type'=>4,'delete'=>$delete));}'" type="button">查看所有红包订单</button>
+	    </div>
+	    <!-- 最近红包订单结束部分 -->
+
+		<!-- 所有提现记录开始部分 -->
+	    <div role="tabpanel" class="tab-pane {if !empty($_GPC['page'])}active{/if}" id="profile3">
+			<table class="table table-hover" >
+				<thead class="navbar-inner">
+					<tr>
+						<th style="width:200px;">提现时间</th>
+						<th style="width:200px;">金额</th>
+						<th style="width:200px;">提现IP</th>
+						<th style="width:250px;">备注</th>
+					</tr>
+				</thead>
+				<tbody>
+	                {loop $list $row}
+					<tr>
+						<td>{php echo date('Y/m/d H:i',$row['createtime'])}</td>
+						<td>{php echo $row['tx_total']}</td>
+						<td>{php echo $row['visitorsip']}</td>
+						<td>{php echo $row['content']}</td>
+					</tr>
+	                {/loop}
+						
+				</tbody>
+			</table>
+			<div style="text-align:center;">{$pager}</div>
+	    </div>
+	    <!-- 所有提现记录结束部分 -->
+  	</div>
+</div>
+<div style="margin-top: 15px;">特别说明：上面列出的是最近50条的订单明细</div>
+
+	
+
+
+
+
+	
+	
+    
+</div>
+
+
+<div class="modal fade" id="myModal2" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel2">
+  <div class="modal-dialog" style="margin-top: 13%;">
+    <div class="modal-content" >
+            
+        <div class="panel panel-default" style="border: none">
+        <div class="panel-heading" style="text-align: center;border: none">提现操作</div>
+          <div class="panel-body" style="border: none">
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-5 col-md-3 control-label"><span style='color:red'>*</span> 提现金额</label>
+                    <div class="col-sm-7 col-xs-12">
+                        {$totalTXNone}元
+                        <div class="help-block">特别说明：本提现金额不含管理员支付部分和粉丝发红包部分</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-5 col-md-3 control-label"><span style='color:red'>*</span> 备注说明</label>
+                    <div class="col-sm-7 col-xs-12">
+                        <textarea style="height:120px;" id='txcontent' name="txcontent" class="form-control" cols="60"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-group col-sm-12" style="text-align: center" >
+                    <button id="setqr" class="btn btn-primary" type="button" style="width: 150px;margin-top: 30px;">确定提现</button>
+                </div>
+                </div>
+          </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+	require(['bootstrap'],function($){
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+	});
+</script>
+<script>
+
+
+
+$(function(){
+
+	$('#setqr').click(function(){
+		var submitData = {
+		        tx_total:'{$totalTXNone}',
+		        content:$("#txcontent").val()
+		    };
+		$.post("{php echo $this->createWebUrl('paytxsetlog',array('rid'=>$rid))}",submitData, function(data) {
+			console.log(444)
+			if(data.success == 100) {
+				alert(data.msg);
+			} else {
+				alert(data.msg);
+				location.reload();
+			}
+		},"json");
+	})
+
+	
+
+});
+</script>
+
+{template 'common/footer'}

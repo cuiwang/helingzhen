@@ -1,0 +1,834 @@
+{template 'common/header'}
+<link rel="stylesheet" href="../addons/cgc_ad/js/sweetalert/sweetalert.css" type="text/css" />
+<ul class="nav nav-tabs">
+	<li {if $op== 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('adv',array('quan_id'=>$_GPC['quan_id']))}">广告管理</a></li>
+	<li {if $op== 'post' && empty($id)}class="active"{/if}><a href="{php echo $this->createWebUrl('adv',array('op'=>'post','quan_id'=>$_GPC['quan_id']))}">新建广告</a></li> {if $op=='post' && !empty($id)}
+	<li class="active"><a href="{php echo $this->createWebUrl('adv',array('op'=>'post','id'=>$id))}">管理广告</a></li>{/if}
+</ul>
+{if $op=='display'}
+<div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+
+	<div class="panel-body">
+
+		<form action="./index.php" method="get" class="form-horizontal" role="form">
+
+			<input type="hidden" name="c" value="site" /> <input type="hidden" name="a" value="entry" /> <input type="hidden" name="m" value="cgc_ad" /> <input type="hidden" name="do" value="adv" />
+
+
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">关键字</label>
+				<div class="col-xs-6 col-sm-4 col-lg-4">
+					<input class="form-control" name="keyword" id="" type="text" value="{$_GPC['keyword']}" placeholder="广告名称">
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">广告平台筛选</label>
+				<div class="col-xs-6 col-sm-4 col-lg-4">
+					<select name="quan_id" class="form-control">
+						<option value="0">请选择所属广告平台</option> {loop $quan $q} {if $_GPC['quan_id']==$q['id']} {php $quan_name=$q['aname'];}
+						<option value="{$q['id']}" selected>{$q['aname']}</option> {else}
+						<option value="{$q['id']}">{$q['aname']}</option> {/if} {/loop}
+					</select>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">广告进行状态筛选</label>
+				<div class="col-xs-6 col-sm-4 col-lg-4">
+					<select name="type" class="form-control">
+						<option value="0" {if $_GPC['type']==0}selected{/if}>全部</option>
+						<option value="1" {if $_GPC['type']==1}selected{/if}>未开始</option>
+						<option value="2" {if $_GPC['type']==2}selected{/if}>进行中</option>
+						<option value="3" {if $_GPC['type']==3}selected{/if}>已结束</option>
+					</select>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">广告状态筛选</label>
+				<div class="col-xs-6 col-sm-4 col-lg-4">
+					<select name="status" class="form-control">
+						<option value="0" {if $_GPC['status']==0}selected{/if}>全部</option>
+						<option value="1" {if $_GPC['status']==1}selected{/if}>显示</option>
+						<option value="2" {if $_GPC['status']==2}selected{/if}>下架</option>
+						<option value="3" {if $_GPC['status']==3}selected{/if}>待审核</option>
+						<option value="4" {if $_GPC['status']==4}selected{/if}>审核不通过</option>
+						<option value="5" {if $_GPC['status']==5}selected{/if}>审核不通过并退款</option>
+					</select>
+				</div>
+			</div>
+			
+			
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">昵称</label>				
+					<div class="col-sm-7 col-xs-12">
+						<input type="text"  name="nickname" class="form-control"
+							   value="{$_GPC['nickname']}" />
+					
+					</div>
+			</div>
+
+
+			<div class="form-group">
+				<div class=" col-xs-12 col-sm-2 col-lg-2">
+
+					<button class="btn btn-default">
+						<i class="fa fa-search"></i> 搜索
+					</button>
+
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+
+
+
+<div class="panel panel-default">
+
+
+<button  type="button" class="btn btn-default" onclick="delete_all()">删除所有记录</button>
+
+	<div class="panel-heading">
+		{if !empty($quan_name)}<span style="color: orange; font-weight: bold">[{$quan_name}] </span>
+		{/if}{if $_GPC['type']==1}<span style="color: red; font-weight: bold">[未开始] </span>{/if}{if $_GPC['type']==2}<span style="color: red; font-weight: bold">[进行中] </span>{/if}{if $_GPC['type']==3}<span style="color: red; font-weight: bold">[已结束] </span>{/if}广告详细数据 | 总数:{$total}
+	</div>
+
+	<div class="panel-body table-responsive">
+
+		<form action="" method="post" onsubmit="">
+
+			<table class="table table-hover">
+
+				<thead class="navbar-inner">
+
+					<tr>
+
+						<th style="width: 3%;" class="row-first">选择
+						</td>
+
+						<th style="width: 3%;">ID</th>
+						<th style="width: 10%;">发布用户</th>
+						<th style="width: 15%;">广告内容</th>
+
+						<th style="width: 7%;">广告金额</th>
+
+						<th style="width: 7%;">广告份数</th>
+                   
+						<th style="width: 6%;">模式</th>
+						<th style="width: 7%;">发布者类型</th>
+						<th style="width: 8%;">已领金额</th>
+
+						<th style="width: 8%;">已领份数</th>
+
+						<th style="width: 8%;">浏览量</th>
+
+						<!-- <th style="width: 12%;">开始时间</th> -->
+
+						<th style="width: 8%;">状态</th>
+
+						<th style="width: 20%;">操作</th>
+
+					</tr>
+
+				</thead>
+
+				<tbody id="main">
+
+					{loop $list $row}
+
+					<tr>
+
+						<td><input type="checkbox" name="select[]" value="{$row['id']}" /></td>
+						<td style="white-space: normal; word-break: break-all">{$row['id']}</td>
+						<td title="{$row['openid']}">{$row['nickname']}</td>
+						<td style="white-space: normal; word-break: break-all; display: block; overflow: hidden">
+						  {if $row['type']==1}{php echo htmlspecialchars_decode(mb_substr($row['content'],0,30,'utf-8'));}{else}{$row['title']}{/if}
+						</td>
+
+						<td style="white-space: normal; word-break: break-all">{$row['total_amount']}元</td>
+
+						<td title="{$row['rob_plan']}" style="white-space: normal; word-break: break-all">{$row['total_num']}份</td>
+
+                  
+
+						<td style="white-space: normal; word-break: break-all">{if $row['model']==2}团伙{else if $row['model']==3}免费{else if $row['model']==4}任务{else}普通{/if}</td>
+
+						<td style="white-space: normal; word-break: break-all">{if $row['type']==1}微信 {else if $row['type']==3}官方{else if $row['type']==4}商家{/if}</td>
+
+						<td style="white-space: normal; word-break: break-all">{$row['rob_amount']}元</td>
+
+						<td style="white-space: normal; word-break: break-all">{$row['rob_users']}份</td>
+
+						<td style="white-space: normal; word-break: break-all">{$row['views']}次</td>
+
+						<!-- <td style="white-space: normal; word-break: break-all">{php echo date('Y-m-d H:i', $row['rob_start_time']);}</td> -->
+
+						<td style="white-space: normal; word-break: break-all">{if empty($row['status'])}<span class="btn btn-default">未付款</span>{/if}{if $row['status']==1}<span class="btn btn-default">已付款</span>{/if}{if $row['status']==2}<span class="btn btn-danger">关闭</span>{/if}{if $row['status']==3}<span class="btn btn-default">待审核</span>{/if}{if $row['status']==4}<span class="btn btn-info">审核不通过</span>{/if}{if $row['status']==5}<span class="btn btn-default">退款</span>{/if}
+						</td>
+
+						<td style="white-space: normal; word-break: break-all">
+						<div style="padding: 6px 2px;">		
+						  <a href="{php echo $this->CreateWebUrl('adv',array('op'=>'post','id'=>$row['id']))}"><div class="btn btn-success">管理</div></a> 
+						  <a onclick="del_adv(this,{$row['id']})"><div class="btn btn-danger">删除</div></a> 
+						</div>
+						<div style="padding: 6px 2px;">
+						  <a href="{php echo $this->CreateWebUrl('red',array('op'=>'display','advid'=>$row['id']))}">
+						  <div class="btn btn-info">抢钱明细</div></a>
+						  {if $row['model']==2}
+						    <a href="{php echo $this->CreateWebUrl('group',array('op'=>'display','advid'=>$row['id']))}"><div class="btn btn-primary">组队情况</div></a>
+						    {else if $row['model']==4} 
+						    <a href="{php echo $this->CreateWebUrl('task',array('op'=>'display','advid'=>$row['id'],'quan_id'=>$row['quan_id']))}"><div class="btn btn-warning">任务情况</div></a>
+					     {/if}
+					     </div>
+					     <div style="padding: 6px 2px;">
+					     	<a href="{php echo $this->CreateWebUrl('adv',array('op'=>'sendmsg','id'=>$row['id']))}"><div class="btn btn-default">批量通知</div></a> 
+					     </div>
+					   </td>
+
+					</tr>
+
+					{/loop}
+
+				</tbody>
+
+			</table>
+
+
+		</form>
+
+	</div>
+	{$pager}
+</div>
+<script src="../addons/cgc_ad/js/sweetalert/sweetalert.min.js"></script>
+<script type="text/javascript">
+
+		function del_adv(obj,id)
+		{
+			var self=obj;
+			swal({   title: "你确定要删除该广告吗?",   text: "删除后您将看不到该条广告！",   type: "warning",   showCancelButton: true,   confirmButtonColor: "#DD6B55",   cancelButtonText: "取消删除",confirmButtonText: "确定删除",   closeOnConfirm: false },
+				function(){
+					$.post("{php echo $_W['siteroot'].'web/'.substr($this->createWebUrl('adv',array('op'=>'del')),2)}"+"&id="+id,function(data){
+		              if (data == 1) {
+		              	  $(self).parent().parent().remove();
+		                  swal("删除成功", "该广告已被删除", "success");
+		              }
+		              else{
+		                  swal("删除失败!","错误日志为："+data,"error");
+		              }
+		          });
+				});
+		}
+
+	require(['bootstrap'],function($){
+
+		$('.btn').hover(function(){
+
+			$(this).tooltip('show');
+
+		},function(){
+
+			$(this).tooltip('hide');
+
+		});
+
+	});
+
+
+</script>
+{/if} 
+
+{if $op=='post'}
+<link rel="stylesheet" href="../addons/cgc_ad/js/sweetalert/sweetalert.css" type="text/css" />
+<div class="main">
+	<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data">
+		<div class="panel panel-default">
+			<div class="panel-heading">{if empty($id)}添加{else}管理{/if}广告</div>
+
+			{if $adv['type']==1}
+			<div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">所属平台</label>
+					<div class="col-sm-5">
+						<label>{$adv['aname']}</label>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">发布者信息</label>
+					<div class="col-sm-5">
+						<div class="col-sm-5">
+							<img style="width: 80px" src="{php echo tomedia($adv['headimgurl'])}" /> {$adv['nickname']}
+						</div>
+						<input id="mid" name="mid" type="hidden" value="{$adv['mid']}"></input>
+					</div>
+				</div>
+			
+		
+			
+		<!-- 	<div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">广告内容</label>
+					<div class="col-sm-5">
+						{php echo tpl_ueditor('content', $adv['content']);}
+          
+						<textarea name="content" rows="10" cols="40" class="form-control">{$adv['content']}</textarea>
+						<label>{$adv['content']}</label>
+					</div>
+				</div>
+			</div> -->
+			
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">广告内容</label>
+					<div class="col-sm-5">{php echo tpl_ueditor('content',$adv['content'])}</div>
+				</div>
+			
+			{if !empty($adv['images'])} {php $thumb=iunserializer($adv['images']);}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">广告图片</label>
+					<div class="col-sm-5">
+						{loop $thumb $t}
+						<div class="col-sm-5">
+							<img style="width: 150px" src="{php echo tomedia($t)}" />
+						</div>
+						{/loop}
+					</div>
+				</div>
+			{/if}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">广告详情页面链接</label>
+					<div class="col-sm-5">
+						{if !empty($adv['link'])} <label><a href="{$adv['link']}" style="color: blue; font-weight: bold;" target="_blank">{$adv['link']}</a></label> {else} <label>无</label> {/if}
+					</div>
+				</div>
+			
+			
+			
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">联系电话</label>
+					<div class="col-sm-5">
+						{if !empty($adv['telphone'])} <label>{$adv['telphone']}</label> {else} <label>无</label> {/if}
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">广告金额</label>
+					<div class="col-sm-5">
+
+						<input id="total_amount" name="total_amount" type="text" value="{$adv['total_amount']}"></input>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">广告份数</label>
+					<div class="col-sm-5">
+
+						<input id="total_num" name="total_num" type="text" value="{$adv['total_num']}"></input>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">广告服务费</label>
+					<div class="col-sm-5">
+						<label>{$adv['fee']} 元</label>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">展示开始时间</label>
+					<div class="col-sm-5">
+						<label>{php echo date('Y-m-d H:i',$adv['publish_time'])}</label>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">预热时间</label>
+					<div class="col-sm-5">
+						<label>{$adv['hot_time']}秒</label>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">可以领取时间</label>
+					<div class="col-sm-5">
+						<label>{php echo date('Y-m-d H:i',$adv['rob_start_time'])}</label>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">查看次数(人气)</label>
+					<div class="col-sm-5">
+						<!-- <label></label> -->
+						<input type="text" value="{$adv['views']}" name="view" class="form-control">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">已被抢走的金额</label>
+					<div class="col-sm-5">
+
+						<input type="text" value="{$adv['rob_amount']}" name="rob_amount" class="form-control">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">已抢的用户数</label>
+					<div class="col-sm-5">
+
+						<input type="text" value="{$adv['rob_users']}" name="rob_users" class="form-control">
+					</div>
+
+
+				</div>
+			{if !empty($adv['rob_end_time'])}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">抢结束时间</label>
+					<div class="col-sm-5">
+						<label>{php echo date('Y-m-d H:i',$adv['rob_end_time'])}</label>
+					</div>
+				</div>
+			{/if}
+			 {else}
+			 {if empty($id)}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">选择发布商家</label>
+					<div class="col-sm-5">
+						<select name="mid" id="mid" class="form-control">
+							<option value="0">请选择发布商家</option> {loop $sj $s}
+							<option value="{$s['id']}" {if $adv['mid']==$s['id']}selected{/if}>{$s['nicheng']} <span style="color: red">({$s['aname']})</span></option> {/loop}
+						</select>
+					</div>
+				</div>
+			{else}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">所属平台</label>
+					<div class="col-sm-5">
+						<label>{$adv['aname']}</label>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">发布者信息</label>
+					<div class="col-sm-5">
+						<div class="col-sm-5">
+							<img style="width: 80px" src="{php echo tomedia($adv['thumb'])}" /> {$adv['nicheng']}
+						</div>
+						<input id="mid" name="mid" type="hidden" value="{$adv['mid']}"></input>
+					</div>
+				</div>
+			{/if}
+			
+			
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">广告标题</label>
+					<div class="col-sm-5">
+						<input type="text" name="title" class="form-control" value="{$adv['title']}" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">广告内容</label>
+					<div class="col-sm-5">{php echo tpl_ueditor('content',$adv['content'])}</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">广告图片</label>
+					<div class="col-sm-5">{php $thumb=iunserializer($adv['images']);} {php echo tpl_form_field_multi_image('thumb', $thumb);}</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">广告详情页面链接</label>
+					<div class="col-sm-5">
+						<input type="text" name="link" class="form-control" value="{$adv['link']}" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">发布者二维码</label>
+					<div class="col-sm-5">
+						{php echo tpl_form_field_image('qr_code', $adv['qr_code']);}
+						任务模式起作用
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">联系电话</label>
+					<div class="col-sm-5">
+						<input type="text" name="telphone" class="form-control" value="{$adv['telphone']}" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">广告金额</label>
+					<div class="col-sm-5">
+						<input type="text" name="total_amount" id="total_amount" class="form-control" value="{$adv['total_amount']}" placeholder="广告金额" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">广告份数</label>
+					<div class="col-sm-5">
+						<input type="text" name="total_num" id="total_num" class="form-control" value="{$adv['total_num']}" placeholder="分成几份 (至少1份)" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">查看次数</label>
+					<div class="col-sm-5">
+						<input type="text" name="views" class="form-control" value="{$adv['views']}" />
+					</div>
+				</div>
+			{if !empty($adv['fee'])}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">广告服务费</label>
+					<div class="col-sm-5">
+						<label>{$adv['fee']} 元</label>
+					</div>
+				</div>
+			{/if} {if !empty($adv['publish_time'])}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">展示开始时间</label>
+					<div class="col-sm-5">
+						<label>{php echo date('Y-m-d H:i',$adv['publish_time'])}</label>
+					</div>
+				</div>
+			{/if} {if !empty($adv['hot_time'])}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">预热时间</label>
+					<div class="col-sm-5">
+						<label>{$adv['hot_time']}秒</label>
+					</div>
+				</div>
+			{/if} {if !empty($adv['rob_start_time'])}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">可以领取时间</label>
+					<div class="col-sm-5">
+						<label>{php echo date('Y-m-d H:i',$adv['rob_start_time'])}</label>
+					</div>
+				</div>
+			{/if} {if !empty($adv['rob_amount']) && $adv['rob_amount']>0}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">已被抢走的金额</label>
+					<div class="col-sm-5">
+						<label>{$adv['rob_amount']}</label>
+					</div>
+				</div>
+			{/if} {if !empty($adv['rob_users'])}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">已抢的用户数</label>
+					<div class="col-sm-5">
+						<label>{$adv['rob_users']}</label>
+					</div>
+				</div>
+			{/if} {if !empty($adv['rob_end_time'])}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">抢结束时间</label>
+					<div class="col-sm-5">
+						<label>{php echo date('Y-m-d H:i',$adv['rob_end_time'])}</label>
+					</div>
+				</div>
+			{/if} {/if} {if !empty($jiqi)}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">机器人抢钱次数</label>
+					<div class="col-sm-5">
+						<label>{$jiqi} 次</label>
+					</div>
+				</div>
+			{/if} {if !empty($id) && $adv['status']==1}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">机器人抢钱</label>
+					<div class="col-sm-3">
+						<div class="input-group">
+							<div class="input-group-addon">次数设定</div>
+							<input type="text" name="jiqi_num" id="jiqi_num" class="form-control" />
+							<div class="input-group-addon">次</div>
+							<div class="input-group-addon" onclick="jiqi()">开抢</div>
+						</div>
+					</div>
+				</div>
+			{/if} {if $adv['type']==1 && $adv['status']==5 } {else}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">是否显示</label>
+					<div class="col-sm-5">
+						<label for="enabled3" class="radio-inline"><input type="radio" name="status" value="1" id="enabled3" {if empty($adv['status']) || $adv['status'] == 1}checked="true" {/if} /> 显示</label> &nbsp;&nbsp;&nbsp; <label for="enabled4" class="radio-inline"><input type="radio" name="status" value="2" id="enabled4" {if $adv['status'] == 2}checked="true" {/if} /> 下架</label> {if $adv['type']==1} <label for="enabled5" class="radio-inline"><input type="radio" name="status" value="3" id="enabled5" {if $adv['status'] == 3}checked="true" {/if} /> 待审核</label> &nbsp;&nbsp;&nbsp; <label for="enabled6" class="radio-inline"><input type="radio" name="status" value="4" id="enabled6" {if $adv['status'] == 4}checked="true" {/if} />
+							审核不通过</label> &nbsp;&nbsp;&nbsp; {/if}
+					</div>
+				</div>
+			{/if}
+
+
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">置顶情况</label>
+				<div class="col-sm-5">
+					<label class='radio-inline'> <input type="radio" name="top_level" value="0" {if $adv['top_level']==0}checked {/if}>普通
+					</label> <label class='radio-inline'> <input type="radio" name="top_level" value="1" {if $adv['top_level']==1}checked {/if}>置顶
+					</label> <label class='radio-inline'> <input type="radio" name="top_level" value="2" {if $adv['top_level']==2}checked {/if}>下架
+					</label>
+
+				</div>
+			</div>
+
+
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">广告状态</label>
+				<div class="col-sm-5">
+					<label class='radio-inline'> <input type="radio" name="rob_status" value="0" {if $adv['rob_status']==0}checked {/if}>未结束
+					</label> <label class='radio-inline'> <input type="radio" name="rob_status" value="1" {if $adv['rob_status']==1}checked {/if}>已结束
+					</label>
+
+
+				</div>
+			</div>
+
+
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">模式</label>
+					<div class="col-sm-5">
+						<label class='radio-inline'> <input type="radio" name="model" value="1" {if $adv['model']==1|| empty($adv['model'])} checked {/if}>普通
+						</label> <label class='radio-inline'> <input type="radio" name="model" value="2" {if $adv['model']==2}checked {/if}>团伙
+						</label> <label class='radio-inline'> <input type="radio" name="model" value="3" {if $adv['model']==3}checked {/if}>免费
+						</label> <label class='radio-inline'> <input type="radio" name="model" value="4" {if $adv['model']==4}checked {/if}>任务
+						</label>
+
+					</div>
+				</div>
+				
+				<div id="div_Job_submission_time" class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">任务提交时限</label>
+					<div class="col-sm-5">
+						<input type="text" name="job_submission_time" class="form-control" value="{$adv['job_submission_time']}" placeholder="分钟为单位" />
+					      <span class="help-block">提交任务稿的场景下，如果超过一定时间粉丝还没提交任务，那就直接删除这个粉丝参加任务的资格。</span>
+					</div>
+				</div>
+				
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">奖金分配方式</label>
+					<div class="col-sm-5">
+						<label class='radio-inline'> <input type="radio" name="allocation_way" value="0" {if $adv['allocation_way']==0}checked {/if}>随机分配
+						</label> <label class='radio-inline'> <input type="radio" name="allocation_way" value="1" {if $adv['allocation_way']==1}checked {/if}>平均分配
+						</label>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">组队人数</label>
+					<div class="col-sm-5">
+						<input type="text" name="group_size" class="form-control" value="{$adv['group_size']}" />
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">是否需要口令</label>
+					<div class="col-sm-5">
+						<label class='radio-inline'> <input type="radio" name="is_kouling" value="0" {if $adv['is_kouling']==0}checked {/if}>否
+						</label> <label class='radio-inline'> <input type="radio" name="is_kouling" value="1" {if $adv['is_kouling']==1}checked {/if}>是
+						</label>
+
+					</div>
+				</div>
+		
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">口令</label>
+				<div class="col-sm-5">
+					<input type="text" name="kouling" class="form-control" value="{$adv['kouling']}" />
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">开启时段限制</label>
+				<div class="col-sm-5">
+					<label class='radio-inline'> <input type="radio" name="time_limit" value="0" {if $adv['time_limit']==0}checked{/if}>否
+					</label> <label class='radio-inline'> <input type="radio" name="time_limit" value="1" {if $adv['time_limit']==1}checked{/if}>是
+					</label>
+
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">限制时段</label>
+				<div class="col-sm-5">
+					<div class="input-group">
+						<input type="text" name="time_limit_start" class="form-control" value="{$adv['time_limit_start']}"  placeholder="开始时段（24小时制）"  /> 
+						<span class="input-group-addon">至</span>
+						<input type="text" name="time_limit_end" class="form-control" value="{$adv['time_limit_end']}" placeholder="结束时段（24小时制）"  />
+					</div>
+				</div>
+			</div>
+			
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">是否核销</label>
+				<div class="col-sm-5">
+					<label class='radio-inline'> <input type="radio" name="hx_status" value="0" {if $adv['hx_status']==0}checked {/if}>否
+					</label> <label class='radio-inline'> <input type="radio" name="hx_status" value="1" {if $adv['hx_status']==1}checked {/if}>是
+					</label>
+                  	      <span class="help-block">抢到红包的人可以到店打折什么的。</span>
+				</div>
+			</div>
+			
+				<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">核销密码</label>
+				<div class="col-sm-5">
+					<input type="text" name="hx_pass" class="form-control" value="{$adv['hx_pass']}" />
+				</div>
+			</div>
+			
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">微信卡券id</label>
+				<div class="col-sm-5">
+					<input type="text" name="wx_cardid" class="form-control" value="{$adv['wx_cardid']}" />
+					 <span class="help-block">如果这里填了卡券id，则到店模式变成微信的卡券，不懂的话，可以设置空。</span>
+				</div>	
+			</div>
+			
+					
+			<div class="form-group col-sm-12">
+				<input type="hidden" name="token" value="{$_W['token']}" /> <input type="hidden" name="id" value="{$id}" /> <span class="btn btn-primary col-lg-1" onclick="tishi()">提交</span> <input style="display: none" type="submit" id="submit" name="submit" />
+			</div>
+
+		</div>
+	</form>
+</div>
+
+<script type="text/javascript">
+
+		$(function(){
+			var total_num = $('#total_num');
+			var total_amount = $('#total_amount');
+			var jiqi_num = $('#jiqi_num');
+
+			// 输入监听
+			total_num.bind('input propertychange', function() {
+				var num = parseInt(total_num.val());
+				if(!isNaN(num) && num>0){
+					total_num.val(num);
+				}else{
+					total_num.val('');
+				}
+
+			});
+
+			jiqi_num.bind('input propertychange', function() {
+				var num = parseInt(jiqi_num.val());
+				if(!isNaN(num) && num>0){
+					jiqi_num.val(num);
+				}else{
+					jiqi_num.val('');
+				}
+
+			});
+			
+			
+			//任务模式
+			$("input[name='model']:radio").click(function(){
+				if($(this).val()=='4'){
+					$('#div_Job_submission_time').show();
+					//$('#div_allocation_way').show();
+				}
+				else{
+					$('#div_Job_submission_time').hide();
+				//	$('#div_allocation_way').hide();
+				}
+			});
+			
+			{if $adv['model']!=4}
+			$('#div_Job_submission_time').hide();
+			///$('#div_allocation_way').hide();
+			{/if}
+			
+		});
+
+		$.ajaxSetup({
+		    async : false
+		});
+		function jiqi()
+		{
+			var jiqi_num = parseInt($('#jiqi_num').val());
+			if(!isNaN(jiqi_num) && jiqi_num>0){
+				{if empty($jiqi_z)}
+					alert("抢钱失败!请您先去添加机器人");
+		            window.location.href="{php echo $this->createWebUrl('xuni',array('quan_id'=>$adv['quan_id']))}";
+				{else}
+					if(jiqi_num>{php echo $jiqi_z-$jiqi})
+					{
+						alert("抢钱失败!您最多只能抢{php echo $jiqi_z-$jiqi}次");
+						return false;
+					}
+					else
+					{
+						var r=confirm("你确定要抢该广告费吗?您将用"+jiqi_num+"个机器人来抢钱")
+						  if (r==true)
+						    {
+						    	$.post("{php echo $_W['siteroot'].'web/'.substr($this->createWebUrl('adv',array('op'=>'jiqi','id'=>$id)),2)}"+"&num="+jiqi_num,function(data){
+								if (data.status == 1) {
+									  alert("抢钱成功!"+data.log);
+						              window.location.reload();
+					              }
+					              else{
+					                  alert("抢钱失败!错误日志为："+data.log);
+					              }
+					          	},'json');
+						    }
+					}
+
+				{/if}
+			}else{
+				alert("抢钱失败!请填写正确要抢的次数");
+				return false;
+			}
+		}
+		function tishi()
+		{
+			{if empty($id)}
+				var mid=$('#mid').val();
+				var pay=$('#total_amount').val();
+				var num=$('#total_num').val();
+				if(!mid || mid==0)
+				{
+					alert("发布失败!请选择发布者");
+					return false;
+				}
+				if(!pay || pay==0)
+				{
+					alert("发布失败!请填写发布广告的金额");
+					return false;
+				}
+				if(!num || num==0)
+				{
+					alert("发布失败!请填写发布广告的份数");
+					return false;
+				}
+
+				$.post("{php echo $_W['siteroot'].'web/'.substr($this->createWebUrl('adv',array('op'=>'fabu')),2)}"+"&mid="+mid+"&pay="+pay+"&num="+num,function(data){
+				  if (data.status == 1) {
+				  		var r=confirm("你确定要发布该广告吗?"+data.log)
+						  if (r==true)
+						    {
+						    	$("#submit").click();
+						    }
+	              }
+	              else{
+	                  alert("发布失败!错误日志为："+data.log);
+	              }
+	          	},'json');
+			{else}
+				{if !empty($adv['rob_users']) || $adv['type']==1}
+					$("#submit").click();
+				{else}
+					var mid=$('#mid').val();
+					var pay=$('#total_amount').val();
+					var num=$('#total_num').val();
+					$.post("{php echo $_W['siteroot'].'web/'.substr($this->createWebUrl('adv',array('op'=>'fabu2','id'=>$id)),2)}"+"&mid="+mid+"&pay="+pay+"&num="+num,function(data){
+						if (data.status == 1) {
+							var r=confirm("你确定要发布该广告吗?"+data.log)
+						  if (r==true)
+						    {
+						    	$("#submit").click();
+						    }
+		              }
+		              else if(data.status == 3)
+		              {
+		              	alert("发布失败!错误日志为："+data.log);
+		              	window.location.reload();
+		              }
+		              else{
+		                  alert("发布失败!错误日志为："+data.log);
+		              }
+		          	},'json');
+		        {/if}
+			{/if}
+		}
+	</script>
+
+{/if}
+
+<script>
+function delete_all(){
+	if (confirm('确认删除所有信息吗,删除完不可恢复?')){
+	window.location.href="{php echo $this->createWebUrl("adv",array('op'=>'delete_all','quan_id'=>$_GPC['quan_id']))}";
+	}
+	
+}
+</script>

@@ -1,0 +1,378 @@
+{template 'header'}
+
+<link rel="stylesheet" href="http://cdn.bootcss.com/font-awesome/3.2.0/css/font-awesome.min.css">
+
+<style>
+ .mod-project-card_header__time{
+        position: absolute;
+        top: 10px;
+        right: 0;
+        font-family: 微软雅黑;
+ }
+ .nofont{
+   text-align: center;
+   display: block;
+   margin-top: 10px;
+   font-weight: 500;
+   color: #999;
+   font-size: 12px;
+}
+ }
+ .nodata{
+  width: 100%;
+ }
+ .loadnow{
+    display: block;
+    text-align: center;
+    color: #999;
+    margin-top: 12px;
+    font-size: 12px;
+ }
+ #banner{
+   background: #fff;
+ }
+</style>
+<div class="all-containe mains">
+
+    <!-- banner -->
+
+    <div class="hm"></div>
+    <div class="content-fixed top mod-home bottom">
+      <div class="tab-content">
+
+          <div id="banner">
+
+            <div class="swiper-container  home-banner  swiper-container-horizontal" style="margin:0;">
+                <div class="swiper-wrapper">
+                    {loop $config['banner']  $row}
+                    <div class="swiper-slide swiper-slide-active">
+                      <a href="{if empty($row['thumb_url'])}javascript:void(0){else}{$row['thumb_url']}{/if}" >
+                          <img src="{php echo $row['thumb']}"  width="100%">
+                      </a>
+                    </div>
+                    {/loop}
+                </div>
+                <div class="swiper-pagination swiper-pagination-clickable"></div>
+            </div>
+
+          </div>
+
+          <div id="lists"></div>
+      </div>
+    </div>
+</div>
+
+<script id="home-memnu" type="text/html">
+  <div class="">
+      <div class="swiper-container qsc-tab tab-fixed home-navbar swiper-container-horizontal swiper-container-free-mode " >
+          <ul class="swiper-wrapper tab-item">
+            {{each list as row i}}
+            <li class="swiper-slide {{{php echo 'if i==0'}}} active {{{php echo '/if'}}}  swiper-slide-active">
+                <a data-id="{{row.id}}" class="otab">{{row.project_name}}</a>
+            </li>
+            {{/each}}
+          </ul>
+      </div>
+  </div>
+</script>
+
+<script type="text/html" id="hbanner">
+  <div class="swiper-container  home-banner  swiper-container-horizontal" style="margin:0;">
+      <div class="swiper-wrapper">
+
+          {{each list as row}}
+          <div class="swiper-slide swiper-slide-active">
+            <a href="javascript:void(0)" >
+                <img src="{{row.thumb}}"  width="100%">
+            </a>
+          </div>
+          {{/each}}
+      </div>
+      <div class="swiper-pagination swiper-pagination-clickable"></div>
+  </div>
+</script>
+
+<script type='text/html' id="hlist">
+
+  <div id="events-list">
+
+    {{each list as row}}
+    <div class="mod-project-card card-type-1" data-id="{$row['id']}">
+
+        <a href="{php echo $this->createMobileUrl('detail')}&id={{row.id}}" class=' '>
+
+            <div class="mod-project-card_header clearfix">
+                <div class="mod-project-card_header__avatar">
+                    <img class="lazy-load"  data-original="{{row.avatar}}"  width="24" height="24" alt="">
+                </div>
+                <div class="mod-project-card_header__user">
+                    <span>{{row.nickname}}</span>
+                </div>
+                  <span class="mod-project-card_header__time">{{row._time}}</span>
+            </div>
+
+            <div class="mod-project-card_content">
+                <header class="mod-project-card_content__header">
+                    <h2 class='home-h2'>{{row.name}}</h2>
+                </header>
+                <div class="mod-project-card_content__detail">
+                    <p class="description">
+                       {{row.project_texdesc}}
+                    </p>
+
+                      <div class="mod-project-card_content__img clearfix">
+                        {{each row.cover_thumb as t1}}
+
+                        <img class="lazy-load" data-original="{{t1}}" width="25%" alt="" style="display: block;">
+
+                         {{/each}}
+                      </div>
+
+                </div>
+                <div class="mod-project-card_content__supporter clearfix">
+
+
+                      <strong>
+
+                           {{each _thumb as t2}}
+                        <span>
+                          <img class="lazy-load"  data-original="{{t1}}" width="24" style="display: inline;">
+                        </span>
+                         {{/each}}
+                      </strong>
+
+                    <span>已有 <strong>{{row.is_sup}}</strong> 人支持</span>
+                </div>
+                <div class="mod-project-card_content__status clearfix">
+                    <span><i class="icon icon-aims"></i>目标<strong>{{row.tar_monet}}</strong>元</span>
+                    <span><i class="icon icon-already"></i>已筹<strong>{{row.has_monet}}</strong>元</span>
+                    <span><i class="icon icon-supporter"></i>剩余<strong>{{row.rand_day}}</strong>天</span>
+
+                </div>
+            </div>
+        </a>
+    </div>
+
+    {{/each}}
+    <div class="pull-action" id="pull-up" style="">
+      <span class="am-icon-arrow-down pull-label" id="pull-up-label"> 向上滑动加载更多</span>
+      <span class="icon-spinner icon-spin"></span>
+    </div>
+  </div>
+
+
+
+    <div class="block"></div>
+</script>
+
+{template 'footer'}
+<script src="{GARCIA_JS}app.js"></script>
+<script>
+  require(['template','swiper','lazyload'],function(template){
+      inint(template);
+      $(document).on("click",".otab",function(){
+          var id = $(this).attr('data-id');
+          $(this).parent().siblings().removeClass('active');
+          $(this).parent().addClass('active');
+          defalutList(id);
+      });
+  })
+function inint(template){
+  template.config('cache', true);
+   window.template = template ;
+   loadMenu();
+   loadBanner();
+   defalutList(0);
+   console.log('Storage:'+JSON.stringify(localStorage).length+"B");
+}
+
+
+
+function loadBanner(){
+    var ret = _gdata('bannerList');
+    if(ret.status_code==1){
+        var h = template('hbanner',ret);
+        $("#banner").html(h);
+        swiperBanner();
+        setTimeout(function(){
+            upBanner();
+        },1000);
+
+    }else{
+       _SetBanner();
+    }
+
+}
+
+function _SetBanner(){
+  $.ajax({
+      url:base_url,
+      type:"post",
+      dataType:'json',
+      data:{
+         func:'banner',
+         action:'getlist',
+         apikey:"{php echo md5('yidajia_app_'.$this->weid)}"
+      },success:function(ret){
+        _sdata('bannerList',ret);
+        var h = template('hbanner',ret);
+        $("#banner").html(h);
+        swiperBanner();
+      },error:function(data){
+         console.log(data);
+      }
+  })
+}
+
+function upBanner(){
+      $.ajax({
+          url:base_url,
+          type:"post",
+          dataType:'json',
+          data:{
+             func:'banner',
+             action:'getlist',
+             apikey:"{php echo md5('yidajia_app_'.$this->weid)}"
+          },success:function(ret){
+            _sdata('bannerList',ret);
+          },error:function(data){
+             console.log(data);
+          }
+      })
+}
+
+function swiperBanner(){
+    var swiper = new Swiper('.swiper-container.home-banner', {
+      pagination: '.swiper-pagination',
+               paginationClickable: true,
+               centeredSlides: true,
+               loop: true,
+               slidesPerView: 'auto',
+               autoplay: 2000
+    });
+}
+
+
+function loadMenu(){
+
+
+  if(is_strage){
+       var ret = _gdata('home-memnu');
+       if(ret.status_code==1){
+         var h = template('home-memnu',ret);
+         $(".hm").html(h);
+        swiperMenu();
+        _upMenu();
+      }else{
+        _setMenu();
+      }
+
+  }else{
+    _setMenu();
+  }
+
+
+}
+
+function _setMenu(){
+      $.ajax({
+          url:base_url,
+          type:"post",
+          dataType:'json',
+          data:{
+             func:'menu',
+             apikey:"{php echo md5('yidajia_app_'.$this->weid)}"
+          },success:function(ret){
+               var h = template('home-memnu',ret);
+               $(".hm").html(h);
+                _sdata('home-memnu',ret);
+                 swiperMenu();
+          },error:function(data){
+             console.log(data);
+          }
+      })
+}
+
+function _upMenu(){
+  $.ajax({
+      url:base_url,
+      type:"post",
+      dataType:'json',
+      data:{
+         func:'menu',
+         apikey:"{php echo md5('yidajia_app_'.$this->weid)}"
+      },success:function(ret){
+           _sdata('home-memnu',ret);
+           console.log(ret);
+      },error:function(data){
+         console.log(data);
+      }
+  })
+}
+
+function swiperMenu(){
+  var swiper = new Swiper('.swiper-container.qsc-tab', {
+      slidesPerView: 3,
+      paginationClickable: true,
+      freeMode: true
+  });
+}
+function defalutList(id){
+
+  if(id==0){
+      $("#lists").html('<span class="loadnow">正在加载.....</span>');
+      $.ajax({
+          url:base_url,
+          type:"post",
+          dataType:'json',
+          data:{
+             func:'home',
+             apikey:"{php echo md5('yidajia_app_'.$this->weid)}"
+          },success:function(ret){
+              var h = template('hlist',ret);
+              $("#lists").html(h);
+              $("img.lazy-load").lazyload();
+              console.log(ret);
+          },error:function(data){
+             console.log(data);
+          }
+      })
+  }else{
+    $("#events-list").html('<span class="loadnow">正在加载.....</span>');
+    $.ajax({
+        url:base_url,
+        type:"post",
+        dataType:'json',
+        data:{
+           func:'home',
+           pid:id,
+           apikey:"{php echo md5('yidajia_app_'.$this->weid)}"
+        },success:function(ret){
+          $("#pull-up").show();
+          if(ret.total==0){
+                $("#pull-up").hide();
+                $("#events-list").html('<img src="{GARCIA_IMG}nodata.png" class="nodata"><span class="nofont">暂无数据</span>');
+          }else if(ret.total<2){
+            var h = template('hlist',ret);
+            $("#lists").html(h);
+            $("#pull-up").hide();
+          }else{
+            var h = template('hlist',ret);
+            $("#lists").html(h);
+          }
+            $("img.lazy-load").lazyload();
+            console.log(ret);
+        },error:function(data){
+           console.log(data);
+        }
+    })
+  }
+
+}
+</script>
+
+
+
+
+</body>
+</html>

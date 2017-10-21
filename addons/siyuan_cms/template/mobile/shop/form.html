@@ -1,0 +1,195 @@
+{template 'header'}
+<div class="siyuan_top weui-row">
+<div class="weui-col-15"><a href="javascript:history.go(-1)"><i class="fa fa-angle-left f-32"></i></a></div>
+<div class="weui-col-70">{$set['name']}</div>
+<div class="weui-col-15"><a class="cd-bouncy-nav-trigger" href="#0"><img src="{$_W['siteroot']}addons/siyuan_cms/ui/img/daohang.png"></a></div>
+</div>
+<div class="cd-bouncy-nav-modal">
+<nav>
+<ul class="cd-bouncy-nav">
+{loop $menu $caidan}
+<li><a href="{$caidan['url']}"><img src="{$_W['attachurl']}{$caidan['thumb']}"><p>{$caidan['title']}</p></a></li>
+{/loop}
+</ul>
+</nav>
+<a href="#0" class="cd-close fa fa-power-off">返回</a>
+</div>
+<div style="height:40px;"></div>
+{php register_jssdk()}
+{if $set['shop_pay'] > 0}
+<div class="weui_msg" style="margin-top:-30px;">
+<div class="weui_icon_area"><i class="weui_icon_safe weui_icon_safe_success"></i></div>
+<div class="weui_text_area">
+<p class="weui_msg_desc" style="margin-top:-20px;">您需要支付费用才能入驻本平台:</p>
+<h2 class="weui_msg_title" style="margin-bottom:-15px;color:#ec6c53;font-size:28px;">{$set['shop_pay']} <span style="font-size:16px;color:#888888;">元</span></h2>
+</div></div>
+{/if}
+<div class="weui_text_area">
+<div class="weui_cells weui_cells_form margin1">
+<div class="weui_cell">
+<div class="weui_cell_bd weui_cell_primary">
+<div class="weui_uploader">
+<div class="weui_uploader_bd">
+<ul class="weui_uploader_files" id="uploader_files">
+</ul>
+<div class="weui_uploader_input_wrp" id="uploader_files_btn">
+<button class="weui_uploader_input" onclick="doSelect()"></button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="weui_cells_tips" style="text-align: center;padding-bottom:5px;">(请上传商家手机横拍形象图片，最多上传9张)</div></div>
+<div class="weui_cells weui_cells_form margin1">
+<div class="weui_cell">
+<div class="weui_cell_hd">名称</div>
+<div class="weui_cell_bd weui_cell_primary">
+<input class="weui_input padding-left10" type="text" name="name" id="name" placeholder="请输入商家名称"">
+</div>
+</div>
+<div class="weui_cell">
+<div class="weui_cell_hd">电话</div>
+<div class="weui_cell_bd weui_cell_primary">
+<input class="weui_input padding-left10" type="text" name="tel" id="tel" onkeyup="if(/\D/.test(this.value)){$.toast('只能输入数字', 'text');this.value='';}" placeholder="请输入联系电话">
+</div>
+</div>
+<div class="weui_cell">
+<div class="weui_cell_hd">地址</div>
+<div class="weui_cell_bd weui_cell_primary">
+<input class="weui_input padding-left10" type="text" name="address" id="address" placeholder="请输入地址">
+</div>
+</div>
+<div class="weui_cell">
+<div class="weui_cell_hd">店主微信</div>
+<div class="weui_cell_bd weui_cell_primary">
+<input class="weui_input padding-left10" type="text" name="weixin" id="weixin" placeholder="请输入联系微信号，以便我们联系您！">
+</div>
+</div>
+<div class="weui_cell">
+<div class="weui_cell_hd">营业时间</div>
+<div class="weui_cell_bd weui_cell_primary">
+<input class="weui_input padding-left10" type="text" name="yingye" id="yingye" placeholder="例：8:00-18:00">
+</div>
+</div>
+<div class="weui_cell">
+<div class="weui_cell_bd weui_cell_primary">
+<textarea name="body" id="body" class="weui_textarea" placeholder="请输入商家介绍" rows="3" onkeydown='countChar("body","counter");' onkeyup='countChar("body","counter");'>{$news['body']}</textarea>
+<div class="weui_textarea_counter"><span id="counter">0</span>/2000</div>
+</div>
+</div>
+</div></div>
+<div class='demos-content-padded'>
+<a href="javascript:;" class="weui_btn weui_btn_primary" style="background:#ec6c53;width:96%;margin-top:20px;margin-bottom:20px;border: 0px solid #ebebeb;" id="save_btn" onclick="doUpload(this)">发布</a>
+</div>
+<script type="text/javascript">
+	var images = {
+		localId: [],
+		serverId: [],
+		count:9
+	};
+	function doSelect () {
+		// 判断图片数量
+		if($('#uploader_files li').size() > 9)
+		{
+			//alert("最多上传9张照片");
+			$.toast("最多上传9张照片", "text");
+			return;
+		}
+
+		wx.chooseImage({
+			count: images.count, // 默认9
+			sizeType: ['compressed'], // 可以指定是原图还是压缩图，默认二者都有
+			sourceType: ['album', 'camera'], // 可以指定来源是相册还是相机，默认二者都有
+			success: function (res) {
+				images.localId = res.localIds;
+				//alert('已选择 ' + res.localIds.length + ' 张图片');
+				//$.toast("已选择 " + res.localIds.length + " 张图片", "text");
+				// doUpload();
+				for(var i in res.localIds) {
+					addImg(res.localIds[i]);
+				}
+				images.count -= res.localIds.length;
+				if(!images.count)
+				{
+					$("#uploader_files_btn").hide();
+				}
+			}
+		});
+	};
+	// 添加上传图片
+	function addImg(localId) {
+		var html = "";
+		html += "<li class='weui_uploader_file' onclick='doDelete(this)' style='background-image:url("+localId+")'></li>";
+		//html += "<a><img src='"+localId+"'></a>";
+		//html +="</li>";
+		$("#uploader_files").append(html);
+	}
+
+	/*function doDelete(obj) {
+		if(!confirm('确认删除？')) {
+			return false;
+		}
+		$(obj).remove();
+	}*/
+
+	// 5.3 上传图片
+	function doUpload () {
+/*if(!$("#name").val() || !$("#weixin").val() || !$("#address").val()|| !$("#yingye").val()|| !$("#tel").val()|| !$("#body").val()) {
+			$.toast("信息必须全部填写", "text");
+			return;
+		}*/
+		$("#save_btn").attr('disabled',true);
+		if (images.localId.length == 0) {
+			doSave(0);
+
+		}else {
+			var i = 0, length = images.localId.length;
+			images.serverId = [];
+			function upload() {
+				wx.uploadImage({
+					localId: images.localId[i],
+					success: function (res) {
+						i++;
+						images.serverId.push(res.serverId);
+						if (i < length) {
+							upload();
+						}
+						else
+						{
+							var media_ids = images.serverId.join(',')
+							doSave(media_ids);
+						}
+					},
+					fail: function (res) {
+						alert(JSON.stringify(res));
+					}
+				});
+			}
+			upload();
+		}
+	};
+
+	function doSave(media_ids) {
+		$("#save_btn").html("发布中...");
+			$.ajax({
+			type:'post',
+			dataType:'json',
+			url:"{php echo $this->createMobileUrl('shop', array('act' => 'form'))}",
+			data:{media_ids:media_ids,name:$("#name").val(),tel:$("#tel").val(),weixin:$("#weixin").val(),yingye:$("#yingye").val(),body:$("#body").val(),address:$("#address").val(),},
+			success:function(msg){
+				if(msg.status==1){
+				$.toast("跳转到付款...", "text");
+				window.location.href='{php echo $this->createMobileUrl(pay)}'+'&id='+ msg.id;
+				}else{
+				$.toast("等待审核...", "text");
+				window.location.href='{php echo $this->createmobileUrl(shop)}';
+				}
+				}
+			})
+		}
+function countChar(textareaName,spanName)
+{  
+ document.geshopementById(spanName).innerHTML = 0 + document.geshopementById(textareaName).value.length;
+}
+</script>
+{template 'footer'}

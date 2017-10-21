@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>{if $op == 'upshare'}上传晒单{elseif $op == 'upspeech'}发起讨论{/if}  - {php echo $this->module['config']['sname']}</title>
+    {php echo register_jssdk();} 
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, width=device-width">
+	<meta content="telephone=no" name="format-detection">
+    <link href="{WELIAM_INDIANA_STATIC}css/increase/common.css" rel="stylesheet">
+    <script src="{WELIAM_INDIANA_STATIC}js/jquery.js"></script>
+    <script type='text/javascript' src='{WELIAM_INDIANA_STATIC}components/light/light7.min.js' charset='utf-8'></script>
+	<script type='text/javascript' src='{WELIAM_INDIANA_STATIC}components/light/light7-city-picker.js' charset='utf-8'></script>
+	<script type='text/javascript' src='http://static.ydbimg.com/API/YdbOnline.js' charset='utf-8'></script>
+	<link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.4.0/css/font-awesome.min.css" >
+</head>
+{template 'common/wxshare'}
+
+<body>
+	{template 'common/suspend'}
+	<div id="page">
+            <a href="javascript:save();" data-pro="ok" class="m-simpleHeader-ok" style="padding: 8px 14px 8px 0;font-size: 20px;"><i class="fa fa-save"></i></a>
+<div class="m-user" id="pro-view-5">
+	
+    
+    
+    <div class="m-user-addrAdd">
+        <div class="m-user-bar" data-pro="entry">
+        	
+            <div class="w-inputBar w-bar" id="pro-view-6">
+                <div class="w-bar-label">标题</div>
+                <div class="w-bar-control"><input data-pro="input" class="w-bar-input" type="text" id="title"></div>
+            </div>
+            
+            <div class="w-inputBar" id="pro-view-15">
+                <div class="w-bar-label" style="line-height: 47px;">{if $op == 'upshare'}评价{elseif $op == 'upspeech'}内容{/if}</div>
+                <div class="w-bar-control"><textarea class="w-bar-input" style="height: 150px;" id="detail"></textarea></div>
+            </div>
+            
+            <div class="m-user-bar-margin m-user-bar-border"  id="pro-view-175">
+	   			<ul id="addpicture">
+	   				<li style="display: block;">
+	   					<div class="pro-box">
+	   						{if m('member')->check_explorer() == 'weixin'}
+			   				<img src="{WELIAM_INDIANA_STATIC}img/icon/appimg/shi.png" onclick="select_picture()" />
+			   				{else}
+			   				<img src="{WELIAM_INDIANA_STATIC}img/icon/appimg/shi.png" onclick="appimage()" />
+			   				{/if}
+			   			</div>
+	   				</li>
+	   			</ul>
+            </div>
+           
+            <div class="m-index-mod m-index-popular">
+                <div class="m-index-mod-bd">
+                    <ul class="w-goodsList w-goodsList-s m-index-popular-list" id="img_s"></ul>                    
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+</div>
+{template 'common/common_message'}
+<script>
+	//定义全局变量localIds选择图片array，serverId上传图片服务器id
+	var localIdses = new Array();
+	var serverIdses = new Array();
+	var papars_picture = '';
+	/*********图片上传********/
+	function select_picture(){
+		var photo_num = 3;
+		thumb = '';
+		wx.chooseImage({
+			count: photo_num, // 默认9
+   		 success: function (res) {
+        	localIdses = res.localIds; // 返回选定照片的本地ID列表，localId可以作为img标签的src属性显示图片 
+        	upload_imgs();
+ 		   }
+		});
+	}
+	//图片上传
+	var img_num=0;
+	var thumb = '';
+	function upload_imgs(){
+		if(localIdses.length == 0){
+			$.toast('请选择图片');
+			return false;
+		}
+		wx.uploadImage({
+		    localId: localIdses[img_num].toString(), // 需要上传的图片的本地ID，由chooseImage接口获得
+		    isShowProgressTips: 1, // 默认为1，显示进度提示
+		    success: function (res) {
+		       serverIdses[img_num] = res.serverId; // 返回图片的服务器端ID
+		       var AjaxUrl = "{php echo $this->createMobileUrl('upshare',array('op'=>'up_picture'))}";
+		       $.ajax({
+			    	type:'POST',
+    				url:AjaxUrl,
+    				dataType:'json',
+    				data:{picture_url:serverIdses[img_num],picture_num:img_num,thumb:thumb},
+    				success:function(data){
+    					if(data.status == 2){
+    						var more = $('<li style="display: block;"><div class="pro-box" id="select_img"><img src="'+localIdses[img_num]+'"  /></div></li>');
+							if(img_num == 0){
+								//清空数据重新上传
+								$('#addpicture').html(more);
+							}else{
+								//图片注入
+								$('#addpicture').append(more);
+							}
+							if(img_num<localIdses.length){
+					       		img_num++;
+					       		more.slideDown('fast');
+					       		if(img_num>=localIdses.length){
+					       			$('#addpicture').append("<li style='display: block;'><div class='pro-box'><img src='{WELIAM_INDIANA_STATIC}img/icon/appimg/shi.png' onclick='select_picture()' /></div></li>");
+					       			//上传完毕
+					       			img_num=0;
+					       			thumb = data.data;
+					       			$.toast('图片上传完成');
+					       		}else{
+					       			thumb = data.data;
+					       			upload_imgs();
+					       		}
+					       		
+					       }
+    					}else{
+    						$.toast('图片上传失败，请重新上传');return;
+    					}
+    				}
+			    }); 
+		    }
+		});           
+    }
+	
+	function save(){
+		if($('#title').val() == ''){
+			$.toast('标题不能为空');return false;
+		}
+		var title = $('#title').val();
+		if($('#detail').val() == ''){
+			$.toast('评价不能为空');return false;
+		}
+		var detail = $('#detail').val();
+		
+		var AjaxUrl = '';
+		{if $op == 'upshare'}
+		if(thumb == ''){
+			$.toast('传张照片给我吧');return false;
+		}
+		var period_number = '{$period_number}';
+		AjaxUrl = "{php echo $this->createMobileUrl('upshare')}&type={$op}&op=save&period_number="+period_number;
+		{else}
+		AjaxUrl = "{php echo $this->createMobileUrl('upshare')}&type={$op}&op=save";
+		{/if}
+		$.post(AjaxUrl,{title:title,detail:detail,thumb:thumb},function(d){
+			if(d.status == 2){
+				$.toast(d.msg+',跳转中...');
+				setTimeout(function(){
+					location.href = "{php echo $this->createMobileUrl('person')}";
+				},1000)
+			}else{
+				$.toast(d.msg);
+			}
+		},'json');
+	}
+	
+	//app图片上传
+	function appimage(){
+		var YDB = new YDBOBJ();
+		YDB.UploadImage("http://weixin.weliam.cn/addons/weliam_indiana/core/api/appimage.api.php", 'appenImage', 'User:2962720130@qq.com', 'PassWd:ourteam123',1,600,800);
+	}
+	
+	function appenImage(msg){
+		alert(msg);
+	}
+</script>
+</body>
+</html>

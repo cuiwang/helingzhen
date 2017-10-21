@@ -1,0 +1,127 @@
+
+<style>
+.weui-flex-item {border-right: 1px solid #d9d9d9;height:18px;line-height:18px;}
+.weui-flex-item:first-child, .weui-flex-item:last-child{border-right: 0px solid #d9d9d9;}
+.weui-label{margin-bottom:2px;}
+.weui-weixin-page{position: relative;}
+.weui-weixin-title {margin-bottom: 0px;}
+.weui-weixin-content{line-height:18px;}
+.in-record .weui_cells{margin:0 0 5px;}
+.comments_content{background-color:#eeeef3;}
+.dropload-noData{background-color: #eeeef3;color:#999;}
+.moments__post .weui_cell_bd {font-size: 15px;width:100%;}
+.moments__post .weui_cell_bd .title {position: relative;}
+.moments__post .weui_cell_bd .actionMenu {top: 0px;}
+.moments__post .weui_cell_bd .toolbar .timestamp{font-size:12px;}
+.moments__post .weui_cell_bd .liketext {margin-top: 5px;padding:5px 5px;width:100%;min-height:14px;}
+.liketext .icon{margin-right:5px;}
+.right{float:right;display:block;}
+
+.weui_articles .grid{padding:10px 10px 0;}
+.weui_articles .grid:before{width:0px;border-right:0px solid #d9d9d9;}
+.weui_articles .grid:after{height:0px;border-bottom:0px solid #d9d9d9;}
+
+.paragraph{padding:0;line-height:18px;}
+.listp{background-color:#f5f5f5;padding:2px 2px 1px;}
+.moments__post .weui_cell_bd .actionToggles {
+  height: 15px;
+  margin-left: auto;
+  border-radius: 1px;
+  position: absolute;
+  right: 0;
+}
+
+.divider{font-size:12px;}
+.divider::after, .divider::before {text-align:left;color:#9500c0;}
+.toolbar{margin-top:10px;}
+
+.dayu .weui_media_box:last-child{padding:0 15px 15px;}
+</style>
+<div class="in-record">
+	{loop $rows $fid $item}
+<div class="comments_content">
+	<div class="weui_cells moments">
+		<div class="weui_cell moments__post">
+			<div class="weui_cell_hd weui-updown">
+				<img class="lazyload" src="{if !empty($item['user']['tag']['avatar'])}{$item['user']['tag']['avatar']}{else}{MODULE_URL}template/weui/images/noface.jpg{/if}" alt="" data-img="{if !empty($item['user']['tag']['avatar'])}{$item['user']['tag']['avatar']}{else}{MODULE_URL}template/weui/images/noface.jpg{/if}">
+			</div>
+			<div class="weui_cell_bd">
+				<div class="title" style="margin:0;">
+					<span>{$item['member']}</span>
+					<div>
+						<div class="actionMenu slideIn">
+							<p class="actionBtn" id="btnLike"><svg class="icon f22" aria-hidden="true"><use xlink:href="#icon-like"></use></svg></p>
+							<p class="actionBtn" id="btnComment"><svg class="icon f22" aria-hidden="true"><use xlink:href="#icon-empty"></use></svg></p>
+						</div>
+					</div>
+					<small class="actionToggles">{php echo date('Y/m/d', $item['createtime'])}</small>
+				</div>
+				{loop $children[$item['rerid']] $d}
+				<?php $fi=$this->get_fields($d['refid'],$reid); ?>
+                {if $fi['type'] == 'image'}
+					{if $d['data']}
+					<div class="listp">
+					<p class="paragraph f12"><strong>{$fi['title']}</strong></p>
+					<div class="thumbnails">
+						 <div class="thumbnail">
+							<img src="{php echo tomedia($d['data']);}" id="p{$fid}" />
+						</div>
+					</div>
+					</div>
+						<script>
+						document.querySelector('#p{$fid}').onclick = function () {
+							wx.previewImage({
+								current: '{php echo tomedia($d['data']);}',
+								urls: [
+								'{php echo tomedia($d['data']);}'
+								]
+							});
+						};
+						</script>
+					{/if}
+				{else}
+					<p class="paragraph f12"><strong>{$fi['title']}</strong>：{$d['data']}</p>
+                {/if}
+				{/loop}
+				{if !empty($item['thumb'])}
+					<div class="listp">
+					<p class="paragraph f12">{$activity['pluraltit']}</p>
+					<div class="thumbnails" id="previewImage{$item['rerid']}">
+					{loop $item['thumb'] $pic}
+						 <div class="thumbnail">
+							<img src="{php echo tomedia($pic)}" />
+						</div>
+					{/loop}
+					</div>
+					</div>
+					<script>
+					$(document).ready(function(){
+						$("#previewImage{$item['rerid']}").on("click","img",function(event){
+							var imgArray = [];
+							var curImageSrc = $(this).attr('src');
+							var oParent = $(this).parent();
+							if (curImageSrc && !oParent.attr('href')) {
+								$('#previewImage{$item['rerid']} img').each(function(index, el) {
+									var itemSrc = $(this).attr('src');
+									imgArray.push(itemSrc);
+								});
+								wx.previewImage({
+									current: curImageSrc,
+									urls: imgArray
+								});
+							}
+						});
+					});
+					</script>
+					{/if}
+				<div class="toolbar">
+					<small class="timestamp"><svg class="icon f18" aria-hidden="true"><use xlink:href="#icon-staff"></use></svg>处理结果：</small>
+				</div>
+				<p class="liketext f12 lheight">{$item['kfinfo']} <small class="f-gray right">{php echo date('Y/m/d', $item['yuyuetime'])}</small></p>
+			</div>
+		</div>
+	</div>
+</div>
+	{/loop}
+	{if $pager}<div class="p bg-gray" style="height:32px;">{$pager}</div>{/if}
+</div>

@@ -1,0 +1,450 @@
+{template 'common/header'}
+<script src="../addons/{php echo $this->m}/public/web/js/area_id.js"></script>
+{if $op == "display"}
+<ul class="nav nav-tabs">
+	<li><a href="{php echo $this->createWebUrl('activity');}">活动列表</a></li>
+	<li class="active"><a href="#">卡券列表</a></li>
+	<li><a href="{php echo $this->createWebUrl('coupon',array('op'=>'edit'));}">添加卡券</a></li>
+</ul>
+<div style="padding: 15px;">
+	<div class="panel panel-default">
+		<div class="panel-body table-responsive">
+			{if $list}
+			<table class="table table-hover">
+				<thead class="navbar-inner">
+					<tr>
+						<th align="center" style="width: 5%; text-align: center;">ID</th>
+						<th align="center" style="width: 10%; text-align: center;">名称</th>
+						<th align="center" style="width: 5%; text-align: center;">图片</th>
+						<th align="center" style="width: 10%; text-align: center;">Code</th>
+						<th align="center" style="width: 6%; text-align: center;">数量</th>
+						<th align="center" style="width: 6%; text-align: center;">已发出</th>
+						<th align="center" style="width: 13%; text-align: center;">卡券页</th>
+						<th align="center" style="width: 15%; text-align: center;">地区</th>
+						<th align="center" style="width: 15%; text-align: center;">活动</th>
+						<th align="center" style="width: 6%; text-align: center;">分享显示</th>
+						<th align="center" style="width: 4%; text-align: center;">状态</th>
+						<th style="text-align: center;">操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					{loop $list $row}
+					<tr>
+						<td align="center" style="text-align: center;">{$row['id']}</td>
+						<td align="center" style="text-align: center;">{$row['couponname']}</td>
+						<td align="center" style="text-align: center;">
+							<img width='100%' src='{php echo tomedia($row["couponthumb"])}' />
+						</td>
+						<td align="center" style="text-align: center;">{$row['couponcode']}</td>
+						<td align="center" style="text-align: center;">
+							<p>总数 <span class='badge'>{$row['couponcount']}</span></p>
+							<p>剩余 <span class='badge'>{$row['couponrest']}</span</p>
+							<p>需集 <span class='badge'>{$row['couponneed']}</span></p>
+						</td>
+						<td align="center" style="text-align: center;">
+							{php echo $this->getValueCouponCount($row['id']);}个
+						</td>
+						<td align="center" style="text-align: center;white-space:normal; word-break:break-all;">
+							{$row['couponmsg']}
+						</td>
+						<td align="center" style="text-align: center;white-space:normal; word-break:break-all;">
+							{if $row['location']}
+							<div class='location' data-area="{$row['area']}"></div>
+							{else}
+							所有地区
+							{/if}
+						</td>
+						<td align="center" style="text-align: center;">{$coupon['limit']}
+							{if $row['islimit']}
+								{$row['lista']}
+							{else}
+							所有活动
+							{/if}
+						</td>
+						<td align="center" style="text-align: center;">
+						{if $row['share'] == 1}
+							显示
+						{else}
+							不显示
+						{/if}
+						</td>
+						<td align="center" style="text-align: center;">
+							{if $row['status']}
+							<span class="badge" style='background-color:green'>正常</span>
+							{else}
+							<span class="badge" style='background-color:red'>关闭</span>
+							{/if}
+						</td>
+
+						<td style="text-align: center;">
+							<a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('coupon',array('couponid'=>$row['id'],'op'=>'edit'));}">
+								<i class="fa fa-edit"></i> 编辑
+							</a><br />
+							<a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('coupon',array('couponid'=>$row['id'],'op'=>'close'));}" title="删除"> 
+								<i class="fa fa-remove"> 关闭</i>
+							</a>
+						</td>
+					</tr>
+					{/loop}
+				</tbody>
+			</table>
+			{$pager}
+			{else}暂无数据{/if}
+		</div>
+	</div>
+</div>
+<script>
+require(['jquery'],function($){
+	$(function(){
+		$('.location').each(function(){
+			var str = $(this).data('area');
+			//var str = '1101,1102,1103,1104,1105,1106,1107,1108,1109,1111,1112,1113,1114,1115,1116,1117,1128,1129,';
+			//console.log(this);
+			var result = '';
+			var mark = 0
+			if(str.length>0){
+				for(var i in area_array){
+					for(var j in sub_array[i]){
+						if(str.indexOf(j) >= 0 ){
+							result += sub_array[i][j]+',';
+							mark=1;
+						}
+					}
+				}
+			}
+			if(mark==0) {
+				$(this).text('不开放');
+			}else{
+				$(this).text(result);
+			}
+		});
+	});
+});
+	
+</script>
+{/if}
+
+{if $op == "edit"}
+<style>
+.parentDiv{margin: 10px;padding: 5px;border: 1px solid #ccc}
+.subContent{margin-left: 30px;margin-top: 10px;margin-bottom: 10px;display: none}
+.province{cursor: pointer}
+.city{cursor: pointer;margin-right: 10px;margin-bottom: 10px;display: inline-block;margin-left: 5px}
+.cityAll{display: inline-block}
+.none{display: none}
+.areaSpan{cursor: pointer;margin-right: 25px;margin-left: 3px}
+.red{color: red}
+</style>
+
+<ul class="nav nav-tabs">
+	<li><a href="{php echo $this->createWebUrl('activity');}">活动列表</a></li>
+	<li><a href="{php echo $this->createWebUrl('coupon');}">卡券列表</a></li>
+	{if $couponid}
+	<li><a href="{php echo $this->createWebUrl('coupon',array('op'=>'edit'));}"> 新增卡券</a></li>
+	<li class="active"><a href="#"> 编辑卡券</a></li>
+	{else}
+	<li class="active"><a href="#"> 新增卡券</a></li>
+	{/if}
+</ul>
+<div style="padding: 15px;">
+	<div class="panel panel-default">
+		<form action="" method="post" class="form-horizontal form">
+			<div class="panel-body table-responsive">
+				<div class="form-group">
+                    <label class="col-xs-3 control-label"></label>
+                    <div class="col-xs-6">
+                        <input name="submit" type="submit" value="保存" class="btn btn-primary" />
+						<input type="hidden" name="token" value="{$_W['token']}" />
+                        <input type="hidden" name="couponid" value="{$couponid}" />
+                        <input type="hidden" name="op" value="{$op}" />
+                    </div>
+                </div>
+				<div class="form-group">
+					<label class="col-xs-3 control-label">名称：</label>
+					<div class="col-xs-6">
+						<input type="text" name="couponname" class="form-control" value="{$coupon['couponname']}" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-3 control-label">是否开启：</label>
+					<div class="col-xs-6">
+						<label class="radio-inline">
+  							<input type="radio" name="status" value="0" {if $coupon['status'] == 0 }checked{/if}> 否
+						</label>
+						<label class="radio-inline">
+  							<input type="radio" name="status" value="1" {if $coupon['status'] == 1 }checked{/if}> 是
+						</label>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-3 control-label">是否加入分享显示：</label>
+					<div class="col-xs-6">
+						<label class="radio-inline">
+  							<input type="radio" name="share" value="0" {if $coupon['share'] == 0 }checked{/if}> 否
+						</label>
+						<label class="radio-inline">
+  							<input type="radio" name="share" value="1" {if $coupon['share'] == 1 }checked{/if}> 是
+						</label>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-3 control-label">CODE：</label>
+					<div class="col-xs-6">
+						<input type="text" name="couponcode" class="form-control" value="{$coupon['couponcode']}" />
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-3 control-label">图片：</label>
+					<div class="col-xs-6">
+						{php echo tpl_form_field_image('couponthumb', $coupon['couponthumb']);}
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-3 control-label">信息：</label>
+					<div class="col-xs-6">
+                        <textarea class="form-control" name="couponmsg" rows="3" >{$coupon['couponmsg']}</textarea>
+                        <span class="help-block">卡券页显示在卡券上的信息</span>
+                    </div>
+                </div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-3 control-label">排序：</label>
+					<div class="col-xs-6">
+						<input type="text" name="displayorder" class="form-control" value="{$coupon['displayorder']}" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-3 control-label">总数量：</label>
+					<div class="col-xs-6">
+						<input type="text" name="couponcount" class="form-control" value="{$coupon['couponcount']}" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-3 control-label">兑换需求：</label>
+					<div class="col-xs-6">
+						<input type="text" name="couponneed" class="form-control" value="{$coupon['couponneed']}" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-3 control-label">剩余数量：</label>
+					<div class="col-xs-6">
+						<input type="text" name="couponrest" class="form-control" value="{$coupon['couponrest']}" disabled/>
+					</div>
+				</div>
+				<div class="form-group">
+					<span class="col-xs-3 control-label">活动选择：</span>
+					<div class="col-xs-6">
+						<input type="radio" name="islimit" value="0" {if empty($coupon['islimit'])}checked{/if} />
+						<span class="activitySpan">全部活动</span>
+						<input type="radio" name="islimit" value="1" {if !empty($coupon['islimit'])}checked{/if} />
+						<span class="activitySpan">部分活动</span>
+						<div class='{if empty($coupon['islimit'])}none{/if} parentDiv' id="activityBox" >
+							{loop $activities $activity}
+	        				<label class="checkbox-inline">
+	        					<input type="checkbox" name="limit[]" value="{$activity['id']}" {if !empty($coupon['limitarr'])&&in_array($activity['id'],$coupon['limitarr'])}checked{/if} />{$activity['name']}
+	        				</label>
+							{/loop}
+						</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<span class="col-xs-3 control-label">搜集信息：</span>
+					<div class="col-xs-6">
+						{loop $properties $property}
+        				<label class="checkbox-inline">
+        					<input type="checkbox" name="property[]" value="{$property['propertykey']}" {if !empty($coupon['info'])&&in_array($property['propertykey'],$coupon['info'])}checked{/if} >{$property['propertyvalue']}
+        				</label>
+						{/loop}
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-3 control-label">限制区域设置：</label>
+					<div class="col-xs-6">
+						<input type="radio" name="location" value="0" {if empty($coupon['location'])}checked{/if} /><span class="areaSpan">全国</span>
+						<input type="radio" name="location" value="1" {if !empty($coupon['location'])}checked{/if} /><span class="areaSpan">限制</span>
+					</div>
+					<input type="hidden" id="area" name="area" value="{$coupon['area']}" />
+					<div class="col-sm-7 col-xs-12 none" id="areaBox"></div>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+<script>
+	{if !empty($coupon['area'])}
+	var str = "{$coupon['area']}";
+	$(".areaSpan").click();
+	{else}
+	var str = "";
+	{/if}
+	$(".areaSpan").bind("click",function(){
+		$(this).prev().prop("checked",true);
+		if($("input[name='location']").eq(0).is(":checked")){
+			$("#areaBox").slideUp();
+		}
+		if($("input[name='location']").eq(1).is(":checked")){
+			$("#areaBox").slideDown();
+		}
+	});
+	
+	$("input[name='location']").bind("click",function(){
+		if($("input[name='location']").eq(0).is(":checked")){
+			$("#areaBox").slideUp();
+		}
+		if($("input[name='location']").eq(1).is(":checked")){
+			$("#areaBox").slideDown();
+		}
+	});
+
+	// 获取输出数据
+	for(var i in area_array){
+		var parentDiv = $('<div class="parentDiv"></div>');
+		$("#areaBox").append(parentDiv);
+
+		parentDiv.append('<div class="province"><input type="hidden" value="'+i+'"/><span class="provinceName" id="late9ye_'+i+'">'+area_array[i]+'</span></div>');
+
+		var childDiv = $('<div class="subContent"></div>');
+		parentDiv.append(childDiv);
+		childDiv.append('<input class="provinceInput" type="checkbox" id="all9ye_'+i+'" value="'+i+'"/><span class="city">全部</span>');
+		var all=1;
+		for(var j in sub_array[i]){
+			if(str.indexOf(j) < 0 ){
+				childDiv.append('<span class="cityAll"><input name="areaName[]" class="cityInput" type="checkbox" value="'+j+'"/><span class="city">'+sub_array[i][j]+'</span></span>');
+				all=0;
+			}else{
+				childDiv.append('<span class="cityAll"><input name="areaName[]" class="cityInput" type="checkbox" checked value="'+j+'"/><span class="city">'+sub_array[i][j]+'</span></span>');
+				if($("#late9ye_"+i).css("color") != "red"){
+					$("#late9ye_"+i).css("color","red");
+				}
+			}
+		}
+		if(all==1)
+		{
+			$("#all9ye_"+i).prop("checked",true);
+		}
+
+	}
+	// 点击input(全部)
+	$(".provinceInput").bind("click",function(){
+		if($(this).is(":checked")){
+			$(this).parent().find("input").prop("checked",true);
+			$(this).parent().siblings(".province").find(".provinceName").addClass("red");
+			for(var i=0;i<$(this).siblings(".cityAll").length;i++){
+				var theStr = $(this).siblings(".cityAll").find(".cityInput").eq(i).val() + ",";
+				if(str.indexOf(theStr) < 0 ){
+					str += theStr;
+				}
+			}
+		}else{
+			$(this).parent().find("input").prop("checked",false);
+			$(this).parent().siblings(".province").find(".provinceName").removeClass("red");
+			for(var i=0;i<$(this).siblings(".cityAll").length;i++){
+				var theStr = $(this).siblings(".cityAll").find(".cityInput").eq(i).val() + ",";
+				if(str.indexOf(theStr) >= 0 ){
+					str = str.replace(new RegExp(theStr), "");
+				}
+			}
+		}
+		$("#area").val(str);
+	});
+	// 点击市
+	$(".city").bind("click",function(){
+		if($(this).text() == "全部"){
+			if($(this).prev().is(":checked")){
+				$(this).parent().find("input").prop("checked",false);
+				$(this).parent().siblings(".province").find(".provinceName").removeClass("red");
+
+				for(var i=0;i<$(this).siblings(".cityAll").length;i++){
+					var theStr = $(this).siblings(".cityAll").find(".cityInput").eq(i).val() + ",";
+					if(str.indexOf(theStr) >= 0 ){
+						str = str.replace(new RegExp(theStr), "");
+					}
+				}
+			}else{
+				$(this).parent().find("input").prop("checked",true);
+				$(this).parent().siblings(".province").find(".provinceName").addClass("red");
+				for(var i=0;i<$(this).siblings(".cityAll").length;i++){
+					var theStr = $(this).siblings(".cityAll").find(".cityInput").eq(i).val() + ",";
+					if(str.indexOf(theStr) < 0 ){
+						str += theStr;
+					}
+				}
+			}
+			$("#area").val(str);
+		}
+		else{
+			if($(this).prev().is(":checked")){
+				$(this).prev().prop("checked",false);
+				$(this).parent().parent().find("input").eq(0).prop("checked",false);
+				if(str.indexOf($(this).prev().val() + ",") >= 0 ){
+					str = str.replace(new RegExp($(this).prev().val() + ","), "");
+				}
+			}else{
+				$(this).prev().prop("checked",true);
+				if(str.indexOf($(this).prev().val() + ",") < 0 ){
+					str += $(this).prev().val() + ",";
+				}
+			}
+			$("#area").val(str);
+			checkAllFunc(this);
+		}
+	});
+	// 点击市input
+	$(".cityInput").bind("click",function(){
+
+		if($(this).is(":checked")){
+			checkAllFunc(this);
+			if(str.indexOf($(this).val() + ",") < 0 ){
+				str += $(this).val() + ",";
+			}
+			$("#area").val(str);
+		}else{
+			$(this).parent().parent().find("input").eq(0).prop("checked",false);
+			if(str.indexOf($(this).val() + ",") >= 0 ){
+				str = str.replace(new RegExp($(this).val() + ","), "");
+			}
+			$("#area").val(str);
+		}
+	});
+	// 点击省上下拉
+	$(".province").bind("click",function(){
+		$(this).siblings(".subContent").slideToggle();
+	});
+	// 判断子市input是否所有选中
+	function checkAllFunc(obj){
+		var count = 0;
+		var len = $(obj).parent().parent().find(".cityAll").length;
+		for(var x = 0;x < len; ++x){
+			if($(obj).parent().parent().find(".cityAll").eq(x).find("input").is(":checked")){
+				++count;
+			}
+		}
+		if(count > 0){
+			$(obj).parent().parent().siblings(".province").find(".provinceName").addClass("red");
+		}else{
+			$(obj).parent().parent().siblings(".province").find(".provinceName").removeClass("red");
+		}
+		if(count == len){
+			$(obj).parent().parent().find("input").eq(0).prop("checked",true);
+		}
+	}
+
+	{if !empty($coupon['location'])}
+	$(".areaSpan").click();
+	{/if}
+
+	$(".activitySpan").bind("click",function(){
+		$(this).prev().prop("checked",true);
+		if($("input[name='islimit']").eq(0).is(":checked")){
+			$("#activityBox").slideUp();
+		}
+		if($("input[name='islimit']").eq(1).is(":checked")){
+			$("#activityBox").slideDown();
+		}
+	});
+	
+</script>
+{/if}
+{template 'common/footer'}

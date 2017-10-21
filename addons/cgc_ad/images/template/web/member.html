@@ -1,0 +1,326 @@
+{template 'common/header'}
+
+<ul class="nav nav-tabs">
+    <li class="active"><a href="{php echo $this->createWebUrl('member');}">用户管理</a></li>
+</ul>
+
+{if $op =="display"}
+	<div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+
+	<div class="panel-body">
+
+		<form action="./index.php" method="get" class="form-horizontal" role="form">
+
+			<input type="hidden" name="c" value="site" />
+			<input type="hidden" name="a" value="entry" />
+        	<input type="hidden" name="m" value="cgc_ad" />
+        	<input type="hidden" name="do" value="member" />
+
+
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">时间筛选</label>
+				<div class="col-xs-12 col-sm-8 col-lg-9">
+					{php echo tpl_form_field_daterange('time', $time);}
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">排序</label>
+				<div class="col-xs-12 col-sm-8 col-lg-9">
+					<select name="sort" class="form-control">
+						<option value="0">请选择排序方式</option>
+						<option value="fabu" {if $_GPC['sort']=='fabu'}selected{/if}>发布金额排序</option>
+						<option value="rob" {if $_GPC['sort']=='rob'}selected{/if}>抢钱金额排序</option>
+						<option value="credit" {if $_GPC['sort']=='credit'}selected{/if}>余额排序</option>
+						<option value="time" {if $_GPC['sort']=='time'}selected{/if}>注册时间排序</option>
+					</select>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">排序</label>
+				<div class="col-xs-12 col-sm-8 col-lg-9">
+					<select name="type" class="form-control">
+						<option value="0">账户类型</option>
+						<option value="1" {if $_GPC['type']=='1'}selected{/if}>微信用户</option>
+						<option value="2" {if $_GPC['type']=='2'}selected{/if}>机器人用户</option>
+						<option value="3" {if $_GPC['type']=='3'}selected{/if}>官方用户</option>
+						<option value="4" {if $_GPC['type']=='4'}selected{/if}>商家用户</option>
+					</select>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">广告平台筛选</label>
+				<div class="col-xs-12 col-sm-8 col-lg-9">
+					<select name="quan_id" class="form-control">
+						<option value="0">请选择所属广告平台</option>
+						{loop $quan $q}
+							{if $_GPC['quan_id']==$q['id']}
+							{php $quan_name=$q['aname'];}
+							<option value="{$q['id']}" selected>{$q['aname']}</option>
+							{else}
+							<option value="{$q['id']}" >{$q['aname']}</option>
+							{/if}
+						{/loop}
+					</select>
+				</div>
+			</div>
+			
+			
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">昵称</label>				
+					<div class="col-sm-7 col-xs-12">
+						<input type="text"  name="nickname" class="form-control"
+							   value="{$_GPC['nickname']}" />
+					
+					</div>
+			</div>
+			<input type="hidden"  name="advid" class="form-control"
+							   value="{$_GPC['advid']}" />
+			
+
+			<div class="form-group">
+			 	<div class=" col-xs-12 col-sm-2 col-lg-2">
+
+					<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+
+				</div>
+			</div>
+		</form>
+	</div>
+	</div>
+{/if}
+{if $op=='display'}
+	<div class="panel panel-default">
+
+		<div class="panel-heading">用户详细数据  |  总数:{$total}</div>
+
+		<div class="panel-body table-responsive">
+
+		    <form action="" method="post" onsubmit="">
+
+			<table class="table table-hover">
+
+				<thead class="navbar-inner">
+
+					<tr>
+
+						<th style="width:3%;" class="row-first">选择</td>
+
+						<th style="width:4%;">会员ID</th>
+
+						<th style="width:8%;">会员昵称</th>
+
+						<th style="width:10%;">会员头像 </th>
+						
+						<th style="width:10%;">微信二维码</th>
+
+						<th style="width:7%;">账户余额</th>
+
+						<th style="width:8%;">发布广告额</th>
+
+						<th style="width:8%;">抢到广告费</th>
+						
+						<th style="width:8%;">上供金额</th>
+                        <th style="width:8%;">上线id</th>
+						<th style="width:7%;">类型</th>
+						<th style="width:7%;">关注</th>
+                         <th style="width:8%;">会员地区</th>
+						<th style="width:10%;">注册时间</th>
+
+						<th style="width:16%;">操作</th>
+
+					</tr>
+
+				</thead>
+
+				<tbody id="main">
+					{php $time = time();}
+
+					{loop $list $row}
+
+					<tr>
+					    <td><input type="checkbox" name="select[]" value="{$row['id']}" /></td>
+
+					    <td title="{$row['openid']}">{$row['id']}</td>
+
+						<td  style="white-space:normal;word-break:break-all">{$row['nickname']}{if $row['message_notify']==1}(接受消息){/if}</td>
+
+						<td><img style="width:80px" src="{php echo tomedia($row['headimgurl'])}"></td>
+						
+						<td><img style="width:80px" src="{php echo tomedia($row['qr_code'])}"></td>
+
+						<td  style="white-space:normal;word-break:break-all">{$row['credit']} 元</td>
+
+						<td  style="white-space:normal;word-break:break-all">{$row['fabu']} 元</td>
+
+						<td  style="white-space:normal;word-break:break-all">{$row['rob']} 元</td>
+						
+						<td  style="white-space:normal;word-break:break-all">{$row['up_money']} 元</td>
+						
+						<td  style="white-space:normal;word-break:break-all">{$row['inviter_id']}</td>
+						
+						<td  style="white-space:normal;word-break:break-all">{if $row['type']==2}<span style="font-weight: bold;color:#FF1493">机器人</span>{/if}{if $row['type']==1}<span style="font-weight: bold;color:#008B00">微信</span>{/if}{if $row['type']==3}<span style="font-weight: bold;color:#66ee06">官方</span>{/if}{if $row['type']==4}<span style="font-weight: bold;color:#ff6600">商家</span>{/if}</td>
+
+                        <td  style="white-space:normal;word-break:break-all">{if empty($row['follow'])}未关注{else}已关注{/if}</td>
+                        <td  style="white-space:normal;word-break:break-all">{$row['last_city']}</td>
+						<td  style="white-space:normal;word-break:break-all">{php echo date('Y年n月j日', $row['createtime']);}</td>
+
+						<td style="white-space:normal;word-break:break-all">
+                     <div style="padding: 5px 2px;">
+					   <a href="{php echo $this->CreateWebUrl('member',array('op'=>'post','id'=>$row['id']))}"><div class="btn btn-success">修改</div></a>
+						<a href="{php echo $this->CreateWebUrl('member',array('op'=>'del','id'=>$row['id']))}"><div class="btn btn-default">删除</div></a>
+						</div>
+						
+						  <div style="padding: 5px 2px;">
+						{if $row['status']==1}
+						<a onclick="if(!confirm('确定提现?')) return false;" href="{php echo $this->CreateWebUrl('member',array('op'=>'tx','id'=>$row['id'],'quan_id'=>$row['quan_id']))}"><div class="btn btn-info">提现</div></a>
+						<a href="{php echo $this->CreateWebUrl('member',array('op'=>'forbidden','id'=>$row['id']))}"><div class="btn btn-danger">封号</div></a>
+						{else}
+						<a href="{php echo $this->CreateWebUrl('member',array('op'=>'huifu','id'=>$row['id']))}"><div class="btn btn-default">解封</div></a>
+						{/if}
+                         </div>
+
+						</td>
+
+					</tr>
+
+					{/loop}
+
+				</tbody>
+
+			</table>
+			{$pager}
+
+			</form>
+
+	    </div>
+
+	</div>
+	
+{/if}
+
+{if $op=='post'}
+<div class="main">
+	<form action="" method="post" class="form-horizontal form"
+		enctype="multipart/form-data">
+		<input type="hidden" name="id" value="{$member['id']}" />
+
+
+	
+
+		<div class="panel panel-danger">
+			<div class="panel-heading">
+				资料设置
+			</div>
+			<div class="panel-body">
+
+
+                <div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">昵称</label>
+					<div class="col-sm-7 col-xs-12">
+						<input type="text" name="member[nickname]" class="form-control"
+							   value="{$member['nickname']}" />
+					
+					</div>
+				</div>
+				
+				 <div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">用户openid</label>
+					<div class="col-sm-7 col-xs-12">
+						<input type="text" name="member[openid]" class="form-control"
+							   value="{$member['openid']}" />
+					
+					</div>
+				</div>
+				
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">头像</label>
+					<div class="col-sm-7 col-xs-12">
+						{php echo tpl_form_field_image("member[headimgurl]", $member['headimgurl']);}
+						<div class="help-block"></div>
+					</div>
+				</div>
+					<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">微信二维码</label>
+					<div class="col-sm-7 col-xs-12">
+						{php echo tpl_form_field_image("member[qr_code]", $member['qr_code']);}
+						<div class="help-block"></div>
+					</div>
+				</div>
+				
+				
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">地址</label>
+					<div class="col-sm-7 col-xs-12">
+						<input type="text" name="member[last_city]" class="form-control"
+							   value="{$member['last_city']}" />
+						
+					</div>
+				</div>
+
+			</div>
+		</div>
+
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				金额设置
+			</div>
+			<div class="panel-body">
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">发布金额</label>
+					<div class="col-sm-7 col-xs-12">
+						<input type="text" name="member[fabu]" class="form-control"
+							   value="{$member['fabu']}" />
+					</div>
+				</div>
+				
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">账户余额</label>
+					<div class="col-sm-7 col-xs-12">
+						<input type="text" name="member[credit]" class="form-control"
+							   value="{$member['credit']}" />
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">抢到金额</label>
+					<div class="col-sm-7 col-xs-12">
+						<input type="text" name="member[rob]" class="form-control"
+							   value="{$member['rob']}" />
+					</div>
+				</div>
+
+				
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+					<div class="col-sm-9 col-xs-12">
+						<input name="submit" type="submit" value="提交" class="btn btn-primary span3">
+						<input type="hidden" name="token" value="{$_W['token']}" />
+					</div>
+				</div>
+
+			</div>
+		</div>
+
+	
+	</form>
+</div>
+{/if}
+
+<script>
+$(function(){
+    $(".check_all").click(function(){
+       var checked = $(this).get(0).checked;
+       $("input[type=checkbox]").attr("checked",checked);
+    });
+});
+
+</script>
+
+{template 'common/footer'}

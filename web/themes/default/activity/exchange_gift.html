@@ -1,0 +1,231 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li {if $op == 'display'}class="active"{/if}><a href="{php echo url('activity/exchange/gift', array());}">礼品管理</a></li>
+	<li {if $op == 'post' && $type==3 && empty($id)}class="active"{/if}><a href="{php echo url('activity/exchange/gift', array('op'=>'post','type'=>3));}">真实物品兑换</a></li>
+	<li {if $op == 'post' && $type==5 && empty($id)}class="active"{/if}><a href="{php echo url('activity/exchange/gift', array('op'=>'post','type'=>5));}">活动参与次数兑换</a></li>
+	{if $op == 'post' && $id && in_array($type, $types)}
+	<li class="active"><a href="{php echo url('activity/exchange/gift', array('op'=>$op, 'type'=>$type,'id' => $item['id']));}">编辑</a></li>
+	{/if}
+</ul>
+{if $op == 'post'}
+<div class="main">
+	<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data"  role="form">
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				兑换{php echo activity_type_title($type)}
+			</div>
+			<div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">兑换名称</label>
+					<div class="col-sm-9">
+						<input type="text" name="title" class="form-control" value="{$item['title']}" />
+						<span class="help-block">此设置项为当前礼品兑换设置一个名称。</span>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">积分类型</label>
+					<div class="col-sm-9">
+						<select name="credittype" class="form-control">
+							{loop $creditnames $key $credit}
+							<option value="{$key}" {if $key == $item['credittype']}selected{/if}>{$credit}</option>
+							{/loop}
+						</select>
+						<span class="help-block">此设置项设置当前礼品兑换需要消耗的积分类型,如:金币、积分、贡献等。</span>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">积分数量</label>
+					<div class="col-sm-9">
+						<input type="text" name="credit" class="form-control" value="{$item['credit']}" />
+						<span class="help-block">此设置项设置当前礼品兑换需要消耗的积分数量。</span>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">兑换内容</label>
+					<div class="col-sm-9">
+						{if $type==1}
+						<select name="extra[id]" class="form-control">
+							{if $coupons}
+							{loop $coupons $coupon}
+							<option value="{$coupon['couponid']}" {if $coupon['couponid'] == $item['extra']['id']}selected{/if}>{$coupon['title']}</option>
+							{/loop}
+							{/if}
+						</select>
+						{elseif $type==2}
+						<select name="extra[id]" class="form-control">
+							{if $cashes}
+							{loop $cashes $cash}
+							<option value="{$cash['couponid']}" {if $cash['couponid'] == $item['extra']['id']}selected{/if}>{$cash['title']}</option>
+							{/loop}
+							{/if}
+						</select>
+						{elseif $type==3}
+						<input type="text" name="extra[title]" class="form-control" value="{$item['extra']['title']}" />
+						{elseif $type==4}
+						<input type="text" name="extra[title]" class="form-control" value="{$item['extra']['title']}" />
+						{elseif $type==5}
+						<select name="extra[name]" class="form-control">
+							{if $activities}
+							{loop $activities $key $activity}
+							<option value="{$key}" {if $key == $item['extra']['name']}selected{/if}>{$activity['title']}</option>
+							{/loop}
+							{/if}
+						</select>
+						{/if}
+						<span class="help-block">此设置项设置当前礼品兑换的礼品名称。</span>
+					</div>
+				</div>
+				{if $type==5}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">使用周期</label>
+					<div class="col-sm-9">
+						<label class="radio-inline" style="vertical-align:top"><input type="radio" name="extra[period]" value="1" checked="checked">一天</label>
+						<label class="radio-inline" style="vertical-align:top"><input type="radio" name="extra[period]" value="2" {if intval($item['extra']['period'])==2}checked="checked"{/if}>两天</label>
+						<label class="radio-inline" style="vertical-align:top"><input type="radio" name="extra[period]" value="7" {if intval($item['extra']['period'])==7}checked="checked"{/if}>一周</label>
+						<label class="radio-inline" style="vertical-align:top"><input type="radio" name="extra[period]" value="30" {if intval($item['extra']['period'])==30}checked="checked"{/if}>一月</label>
+						<label class="radio-inline" style="vertical-align:top">
+							<input type="radio" style="vertical-align:top" name="extra[period]" {if !in_array(intval($item['extra']['period']), array(1,2,7,30))}checked="checked"{/if}>
+						</label>
+						<input type="text" class="form-control" style="width:50px;display:inline" name="period" value="{if !in_array(intval($item['extra']['period']), array(1,2,7,30))}{$item['extra']['period']}{/if}"> 天
+						<span class="help-block">此设置项设置当前礼品兑的频率。</span>
+					</div>
+				</div>
+				{/if}
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">每人最大兑换次数</label>
+					<div class="col-sm-9">
+						<input type="text" name="pretotal" class="form-control" value="{$item['pretotal']}" />
+						<span class="help-block">此设置项设置每个用户最大兑换次数。</span>
+					</div>
+				</div>
+				{if $type!=1 && $type!=2 && $type!=5}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">兑换总数</label>
+					<div class="col-sm-9">
+						<input type="text" name="total" class="form-control" value="{$item['total']}" />
+						<span class="help-block">此设置项设置兑换总量。</span>
+					</div>
+				</div>
+				{/if}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">封面</label>
+					<div class="col-sm-9">
+						{php echo tpl_form_field_image('thumb', $item['thumb'])}
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">说明</label>
+					<div class="col-sm-9">
+						<textarea style="height:400px; width:100%;" class="form-control richtext" name="description" cols="70">{$item['description']}</textarea>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="form-group col-sm-12">
+			<input name="act" type="hidden" value="{$action}">
+			<input name="do" type="hidden" value="{$do}">
+			<input name="op" type="hidden" value="{$op}">
+			<input name="type" type="hidden" value="{$item['type']}">
+			<input name="id" type="hidden" value="{$item['id']}">
+			<input name="uniacid" type="hidden" value="{$item['uniacid']}">
+			<input name="submit" type="submit" value="提交" class="btn btn-primary col-lg-1">
+			<input type="hidden" name="token" value="{$_W['token']}" />
+		</div>
+	</form>
+</div>
+<script type="text/javascript">
+	var editor;
+	require(['jquery','util'],function($, u){
+		$(function(){
+			u.editor($('.richtext')[0], function(elm, e) {
+				editor = e;
+			});
+		});
+	});
+</script>
+{elseif $op == 'display'}
+<div class="main">
+	<div class="panel panel-info">
+		<div class="panel-heading">筛选</div>
+		<div class="panel-body">
+			<form action="./index.php" method="get" class="form-horizontal" role="form">
+			<input type="hidden" name="c" value="activity">
+			<input type="hidden" name="a" value="exchange">
+			<input type="hidden" name="do" value="gift">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">关键字</label>
+					<div class="col-sm-6 col-lg-8">
+						<input class="form-control" name="keyword" id="" type="text" value="{$_GPC['keyword']}">			
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">兑换类型</label>
+					<div class="col-sm-6 col-lg-8">
+						<select name="type" class="form-control">
+							<option value="" selected>所有</option>
+							<option value="1" {if intval($_GPC['type'])==1}selected="selected"{/if}>折扣券</option>
+							<option value="2" {if intval($_GPC['type'])==2}selected="selected"{/if}>代金券</option>
+							<option value="3" {if intval($_GPC['type'])==4}selected="selected"{/if}>真实物品</option>
+							<option value="5" {if intval($_GPC['type'])==5}selected="selected"{/if}>活动参与次数</option>
+						</select>
+					</div>
+					<div class="pull-right col-xs-12 col-sm-3 col-lg-2">
+						<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+	<div class="table-responsive">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<th style="width:10%;">标题</th>
+					<th style="width:5%;">图标</th>
+					<th style="width:10%;">兑换类型</th>
+					<th style="width:10%;">积分类型</th>
+					<th style="width:10%;">积分数量</th>
+					<th style="width:10%;">兑换物品</th>
+					<th style="width:10%">周期频率</th>
+					<th style="width:10%;">每人最大兑换次数</th>
+					<th style="width:10%;">已兑换数量</th>
+					<th style="width:5%;">发布总数</th>
+					<th style="text-align:right; min-width:85px; width: 100px;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $item}
+				<tr>
+					<td>{$item['title']}</td>
+					<td><img src="{$item['thumb']}" style="max-height: 30px; max-width:50px;"></td>
+					<td><label class="label label-success">{php echo activity_type_title($item['type']);}</label></td>
+					<td>{$creditnames[$item['credittype']]}</td>
+					<td>{$item['credit']}</td>
+					<td>{if !empty($item['extra']['title'])}{$item['extra']['title']}{/if}</td>
+					<td>{if !empty($item['extra']['period'])}{$item['extra']['period']}天{/if}</td>
+					<td>{$item['pretotal']}</td>
+					<td>{$item['num']}</td>
+					<td>{$item['total']}</td>
+					<td style="text-align:right;">
+						<a href="{php echo url('activity/exchange/gift', array('type' => $item['type'],'op'=>'post','id' => $item['id']))}" data-toggle="tooltip" data-placement="top" title="编辑" class="btn btn-default btn-sm"><i class="fa fa-edit"></i></a>
+						<a href="{php echo url('activity/exchange/gift', array('type' => $item['type'],'op'=>'delete','id' => $item['id']))}" onclick="return confirm('此操作不可恢复，确认删除？');return false;" data-toggle="tooltip" data-placement="top" title="删除" class="btn btn-default btn-sm"><i class="fa fa-times"></i></a>
+					</td>
+				</tr>
+				{/loop}
+			</tbody>
+		</table>
+		{$pager}
+	</div>
+</div>
+<script>
+	require(['bootstrap'],function($){
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+	});
+</script>
+{/if}
+{template 'common/footer'}

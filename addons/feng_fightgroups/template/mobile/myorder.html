@@ -1,0 +1,229 @@
+<!doctype html>
+<html>
+<head>
+    <title>我的订单</title>
+	{php echo register_jssdk();}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <meta name="format-detection" content="telephone=no">
+    <meta http-equiv="Pragma" content="no-cache">   
+    <meta http-equiv="Cache-Control" content="no-store">
+    <meta http-equiv="Expires" content="0">
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{S_URL}css/style_366c9ef.css?v={TIMESTAMP}">
+    <script src="{S_URL}js/jquery.min.js"></script>
+    <!--控制导航栏的样式-->
+    <style type="text/css">
+	 .mod_nav_lk a:visited{color: black;}
+	.line_bottom{position: relative;top: -3px;display: block;width: 100%;height: 2px;background-color: red;}
+	.lockDiv{width:100%;height:100%;background-color:#000000;position:fixed;top:0px;left:0px;opacity:0.8;z-index: 30;} 
+    </style>
+   	<script type="text/javascript">
+    $(document).ready(function(){
+      var op = "<?php echo $op;?>";
+      if(op=="0"){
+        $("#s1").addClass("line_bottom");
+      }else if(op=="1"){
+        $("#s2").addClass("line_bottom");
+      }else if(op=="2"){
+        $("#s3").addClass("line_bottom");
+      }else {
+        return false;
+      }
+    });
+    </script>
+    <!--end点击取消订单的按钮的操作-->
+</head>
+<body>
+<div id="checkqrode"></div>
+<div ms-controller="root" id="root">
+    <div class="mod_nav nav">
+        <div class="mod_nav_lk">
+            <a id="a1" href="{php echo $this->createMobileUrl('myorder',array('op' => 0))}" class="mod_nav_item "><span class="nav_txt">全部订单</span><span {if $op==0}class="line_bottom"{/if}></span></a>
+            <a id="a2" href="{php echo $this->createMobileUrl('myorder',array('op' => 1))}" class="mod_nav_item "><span class="nav_txt nav_payment">待付款</span><span {if $op==1}class="line_bottom"{/if}></span></a>
+            <a id="a3" href="{php echo $this->createMobileUrl('myorder',array('op' => 3))}" class="mod_nav_item "><span class="nav_txt nav_receiving">待收货</span><span {if $op==3}class="line_bottom"{/if}></span></a>
+        </div>
+    </div>
+    <div id="dealliststatus1">
+    	{if empty($orders)}
+    	<div style="text-align: center;"><b>没有数据！</b></div>
+    	{/if}
+        {loop $orders $order}
+        <div class="order" ms-repeat-order="orders">
+            <div class="order_hd">
+                {php echo date('Y-m-d H:i:s', $order['createtime']);}<label style="float: right;">{if $order['is_tuan']==1}拼团订单{$order['tuan_id']}{elseif $order['is_tuan']==0}单购订单{elseif $order['is_tuan']==2}团满退款{/if}</label>
+            </div>
+            <div class="order_bd">
+                <div class="order_glist">
+                    <!--获得商品的id-->
+                    <!--end获得商品的id-->
+                    <a href="{php echo $this->createMobileUrl('goodsdetails', array('id'=>$order['gid']));}">
+                        <div class="order_goods" data-url="">
+                            <div class="order_goods_img">
+                                <img alt="" src="{php echo tomedia($order['gimg']);}">
+                            </div>
+
+                            <div class="order_goods_info">
+                                <div class="order_goods_name">{$order['gname']}</div>
+                                <div class="order_goods_attr">
+                                    <div class="order_goods_attr_item">
+                                        <div class="order_goods_price"><i>￥</i>{if empty($order['pay_price'])}{$order['price']}{else}{$order['pay_price']}{/if}<i>/件</i></div>数量：{$order['gnum']}<br>
+                                    </div>
+                                </div>
+                                {if $order['optionname']}
+                            	<span class="order_goods_attr_tit">规格：</span>
+                                <div class="order_goods_num">{$order['optionname']}</div>
+                                {/if}
+                            </div>
+                        </div>
+                    </a>
+                    <div class="order_ft">
+                        <div class="order_total">
+                            <span class="order_total_info">运费{$order['freight']}元 <!--订单ID{$order['id']}--></span>
+                            <span class="order_price">实付：<b>￥{if empty($order['price'])}0.00{else}{$order['price']}{/if}</b>{if $order['is_usecard']==1}【优惠券已抵用<font color="brown">{php echo $order['pay_price']-$order['price']}元</font>】{/if}</span>
+                        </div>
+                        <div class="order_opt">
+                            <span class="order_status">
+                                    {if intval($order['status'])==0}  
+                                      		  未支付 
+                                    {else if intval($order['status'])==1}  
+                                     		  已支付
+                                    {else if intval($order['status'])==2}  
+                                   	                    待发货
+                                    {else if intval($order['status'])==3}  
+                                      	         已发货
+                                    {else if intval($order['status'])==4}
+                                        	已签收
+									{else if intval($order['status']) == 5}
+											已取消
+									{else if intval($order['status']) == 6}
+											退款处理中
+									{else if intval($order['status']) == 7}
+											已退款
+                                    {/if}
+                            </span>
+                            <input type="hidden" id="order_ma{$order['orderno']}" value="{$order['hexiaoma']}">
+                            {if $order['is_hexiao']==1 && $order['status']==2}
+							<div class="order_btn" ms-visible="order.total_status==3" >
+	                                <input  id="order_orderno{$order['orderno']}" type="hidden" value="{$order['orderno']}" />
+	                                <a style="background-color:burlywood;" id="check{$order['orderno']}"><i class="fa fa-qrcode"></i>&nbsp确认使用</a>
+	                        </div>
+	                        {elseif $order['is_hexiao']==2}
+	                        <div class="order_btn" ms-visible="order.total_status==3" >
+	                                <a style="background-color:gray;" > <i class="fa fa-qrcode"></i>&nbsp已经使用</a>
+	                        </div>
+	                        {/if}
+	                        <script type="text/jscript">
+							  $("#check{$order['orderno']}").bind("click", function(){
+								var orderno = $("#order_orderno{$order['orderno']}").val();
+								var ma = $("#order_ma{$order['orderno']}").val();
+									$("#checkalert").show();
+									$("#checkqrode").addClass("lockDiv");
+									$.post('{php echo $this->createMobileUrl('myorder',array('opp'=>'qrcode'))}',{orderno:orderno},function(data){
+									var obj = $("#hehe");
+           							obj.remove();
+           							var obj2 = $("#haha");
+           							obj2.remove();
+									var ht = "<img src='"+data.src+"' id='hehe'>";
+									var html = '<span id="haha"><font color="red" size="6">'+ma+'</font></span>';
+									$('#qrcode').append(ht);
+									$('#ma').append(html);
+								},"json");
+							 });
+	                        </script>
+                            {if intval($order['status'])==0}  
+	                            <div class="order_btn" ms-visible="order.total_status==0">
+	                               <a class="order_btn_buy" ms-click="orderBuy(order.order_id)" href="{php echo $this->createMobileUrl('pay',array('orderid'=>$order['id'],'topay'=>1));}">去支付</a>
+	                                <input name="order_id" type="hidden" value="{$order['orderno']}" />
+	                                <a class="js_del" href="{php echo $this->createMobileUrl('myorder', array('orderno'=>$order['orderno'],'type'=>'cancel','op'=>0));}" onclick="return confirm('确定要取消订单吗?');">取消订单</a>
+	                            </div>
+							{else}
+								<div class="order_btn" ms-visible="order.total_status==3">
+	                                <input  name="order_id" type="hidden" ms-attr-value="{$order['id']}" />
+	                                <a href="{php echo $this->createMobileUrl('orderdetails', array('orderno'=>$order['orderno']));}">订单详情</a>
+	                            </div>
+                            {/if}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {/loop}
+    </div>
+</div>
+<div style="height:58px;visibility:hidden "></div>
+    {if $this->module['config']['mode'] == 1}
+        {template 'footer'}
+    {else}
+        {template 'footerbar'}
+    {/if}
+</body>
+<!--二维码-->
+
+<div class="alert_box" id="checkalert" style="position: fixed;top:30px;z-index: 10000;left:9%;width: 82%;max-width:530px;background:white;padding: 5% 0 3%;border-radius: 5%;display: none;">
+		<img src="{S_URL}image/exit.png" class="exit" id='off' style="width: 10%;float: right;margin-right: -5%;margin-top: -10%;">
+		<div style="text-align: center;font-size: 18px;font-weight: 600;">
+			扫描二维码核销
+		</div>
+		<input type="hidden" id="qrcodepath" name="qrcodepath" value="{$qrcodepath}">
+		<div id="qrcode" style="text-align: center;">
+			
+		</div>
+		<div style="text-align: center;" id="ma">
+				
+		</div>
+		<div style="text-align: center;font-size: 18px;">
+				请将二维码出示给店员
+		</div>
+</div>
+
+<!--二维码-->
+<script>
+	$("#off").bind("click", function(){
+		$("#checkqrode").removeClass("lockDiv");
+		$("#checkalert").hide();
+	});
+	wx.ready(function (){
+	var shareData = {
+		title: "{$share_data['share_title']}",
+		desc: "{$share_data['share_desc']}",
+		link: "{$to_url}",
+		imgUrl: "{$_W['attachurl']}{$share_data['share_image']}",
+	};
+//分享朋友
+	wx.onMenuShareAppMessage({
+	    title: shareData.title,
+	  	desc: shareData.desc,
+	  	link: shareData.link,
+	  	imgUrl:shareData.imgUrl,
+	  	trigger: function (res) {
+	  	},
+	  	success: function (res) {
+	    	window.location.href =adurl;
+	  	},
+	  	cancel: function (res) {
+	  	},
+	  	fail: function (res) {
+	    	alert(JSON.stringify(res));
+	  	}
+	});
+//朋友圈
+	wx.onMenuShareTimeline({
+	  	title: shareData.title,
+	  	link: shareData.link,
+	  	imgUrl:shareData.imgUrl,
+	  	trigger: function (res) {
+	  	},
+	  	success: function (res) {
+	    	window.location.href =adurl;
+	  	},
+	  	cancel: function (res) {
+	  	},
+	  	fail: function (res) {
+	    	alert(JSON.stringify(res));
+	  	}
+	});
+});
+</script>
+</html>
+

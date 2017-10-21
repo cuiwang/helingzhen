@@ -1,0 +1,173 @@
+{template 'common/header'}
+
+<ul class="nav nav-tabs">
+<li {if $op == 'display'}class="active"{/if}><a href="{php echo url('site/entry/huodong',array('op'=>'display','m'=>'siyuan_cms'))}">活动列表</a></li>
+<li {if $op == 'post'}class="active"{/if}><a href="{php echo url('site/entry/huodong',array('op'=>'post','m'=>'siyuan_cms'))}">添加活动</a></li>
+<li><a href="{php echo url('site/entry/huodong_news',array('op'=>'display','hid'=>$hid,'m'=>'siyuan_cms'))}">软文管理</a></li>
+</ul>
+<style>
+  .table td span{display:inline-block;margin-top:4px;}
+  .table td input{margin-bottom:0;}
+</style>
+{if $op == 'display'}
+<div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+		<form action="./index.php" method="get" class="form-horizontal" role="form">
+			<input type="hidden" name="c" value="site" />
+			<input type="hidden" name="a" value="entry" />
+			<input type="hidden" name="op" value="display" />
+			<input type="hidden" name="do" value="huodong" />
+			<input type="hidden" name="m" value="siyuan_cms" />
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 control-label">活动名称</label>
+				<div class="col-sm-8 col-md-8 col-lg-8 col-xs-12">
+					<input class="form-control" name="name" type="text" value="{$_GPC['name']}">
+				</div>
+			</div>
+			 <div class="form-group">
+        <label class="col-xs-12 col-sm-2 col-md-2 control-label">文章分类</label>
+        <div class="col-sm-8 col-md-8 col-lg-8 col-xs-12">
+          <select class="form-control" style="margin-right:15px;" name="cate_1">
+            <option value="0">请选择分类</option>
+            {loop $fenlei $row}
+            <option value="{$row['id']}" {if $row['id'] == $_GPC['cate_1']} selected="selected"{/if}>{$row['name']}</option>
+            {/loop}
+          </select>
+        </div>
+				<div class="pull-right col-xs-12 col-sm-2 col-md-2 col-lg-2">
+					<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+
+<form action="" method="post">
+<div class="panel panel-default">
+	<div class="table-responsive panel-body">
+		<table class="table">
+			<thead>
+			<tr>
+				<th style="width:80px">排序</th>
+				<th style="width:200px">封面图</th>
+				<th>名称</th>
+				<th style="width:200px">活动状态</th>
+				<th style="width:200px">活动时间</th>
+				<th style="width:120px">活动网址</th>
+				<th style="width:200px;">操作</th>
+			</tr>
+			</thead>
+			<tbody>
+			{loop $list $item}
+			<tr>
+				<td><input type="text" class="form-control text-center" name="displayorder[{$item['id']}]" value="{$item['displayorder']}"></td>
+                <td>{if $item['thumb']}<img src="{$_W['attachurl']}{$item['thumb']}" height="50px">{/if}</td>
+				<td>
+<span class="cate">{if !empty($item['blei'])}<span class="text-info">[{$fenlei[$item['blei']]['name']}]</span>{/if}
+<a href="{php echo url('site/entry/huodong',array('op'=>'post', 'id' => $item['id'],'m'=>'siyuan_cms'))}" style="color:#333;">{$item['name']}</a>
+</td>
+				<td>{if $item['bm_time'] < $now}<span class="label label-default">报名结束</span>{else}<span class="label label-success">正在报名</span>{/if}&nbsp;&nbsp;{if $item['endtime'] > $now}<span class="label label-primary">活动进行中</span>{else}<span class="label label-default">活动已结束</span>{/if}</td>
+				<td><h5 style="color:#5bc0de">报名截止：{php echo date('m-d H:i', $item['bm_time'])}</h5><h5 style="color:#5bb85d">活动开始：{php echo date('m-d H:i', $item['time'])}</h5><h5 style="color:#efad4d">活动结束：{php echo date('m-d H:i', $item['endtime'])}</h5></td>
+				<td><a target="_blank" href="{$_W['siteroot']}app/{php echo $this->createMobileUrl('huodong', array('id' => $item['id'],'act' => news, 'weid' => $_W['weid']))}"><button type="button" class="btn btn-primary"><i class="fa fa-paper-plane"></i>点击访问</button></a></td>
+				<td>
+					<a href="{php echo url('site/entry/huodong',array('op'=>'post', 'id' => $item['id'],'m'=>'siyuan_cms'))}" title="编辑" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-edit"></i></a>
+					<a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo url('site/entry/huodong',array('op'=>'delete', 'id' => $item['id'],'m'=>'siyuan_cms'))}" title="删除" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-times"></i></a>
+				</td>
+			</tr>
+			{/loop} </tbody>
+		</table>
+	</div>
+</div>
+{$pager}
+<input name="submit" type="submit" value="更新排序" class="btn btn-primary col-lg-1">
+<input type="hidden" name="token" value="{$_W['token']}" />
+</form>
+<script type="text/javascript">
+	require(['bootstrap'],function($){
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+	});
+</script>
+
+{elseif $op == 'post'}
+<form class="form-horizontal form" action="" method="post" enctype="multipart/form-data" id="form1">
+	<input type="hidden" name="_id" value="{$item[id]}">
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			{if empty($item['id'])}
+				添加活动
+			{else}
+				编辑活动
+			{/if}
+		</div>
+		<div class="panel-body">
+			<ul class="nav nav-tabs" id="huodong_tabs_wrap">
+				<li class="active">
+					<a href="javascript:;" rel="base_wrap">基本信息</a>
+				</li>
+				<li class="">
+					<a href="javascript:;" rel="image_wrap">活动图片</a>
+				</li>
+				<li class="">
+					<a href="javascript:;" rel="params_wrap">自定义属性</a>
+				</li>
+			</ul>
+			<div class="tab-content">
+				<div class="tab-pane1 active" id="base_wrap">
+					{template 'web/huodong/huodong-base'}
+				</div>
+				<div class="tab-pane1" id="image_wrap">
+					{template 'web/huodong/huodong-image'}
+				</div>
+				<div class="tab-pane1" id="params_wrap">
+					{template 'web/huodong/huodong-params'}
+				</div>
+			</div>
+
+	<div class="form-group">
+		<div class="col-sm-12">
+			<input name="submit" type="submit" value="提交" class="btn btn-primary col-lg-1">
+			<input type="hidden" name="token" value="{$_W['token']}" />
+		</div>
+	</div>
+</form>
+<script>
+	require(['jquery', 'util'], function($, u){
+		//绑定tab切换
+		$('#huodong_tabs_wrap li a').bind('click', function(){
+			var id = $(this).attr('rel');
+			$('#huodong_tabs_wrap li').each(function(){
+				$(this).removeClass('active');
+			});
+			$('.tab-pane1').each(function(){
+				$(this).hide();
+			});
+			$('#'+id).show();
+			$(this).parent().addClass('active');
+		});
+
+
+	});
+</script>
+<script type="text/javascript">
+  require(['jquery', 'util'], function($, u){
+    $('#form1').submit(function(){
+      if($("input[name=name]").val().length <= 0) {
+        u.message('没有填写标题', '', 'error');
+        return false;
+      }
+	  if ($("select[id=fenlei_parent]").val() == "0"){
+u.message('请选择分类', '', 'error');
+return false;
+}
+      return true;
+    });
+  });
+</script>
+{/if}
+</div></div></div>
+{template 'common/footer'}

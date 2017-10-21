@@ -1,0 +1,76 @@
+{template 'common/header'}
+<style>
+td{
+	text-align: center;
+}
+th{
+	text-align: center;
+}
+</style>
+{if $op == 'display'}
+<div class="main">
+	<div style="padding:15px;background: white;">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<th>序号</th>
+					<th>昵称</th>
+					<th>头像</th>
+					<th>状态</th>
+					<th>总打赏金额</th>
+					<th>加入时间</th>
+					<th>操作</th>
+				</tr>
+			</thead>
+			<tbody>
+					{loop $list $k $item}
+				<tr>
+					<td>{php echo $k+1+($pindex-1)*$psize}</td>
+					<td>{$item['nickname']}</td>
+					<td><img src="{$item['avatar']}" style="width: 80px;height: 80px;"></td>
+					<td><label class="label {if !$item['status']}label-success{else}label-default{/if} is_ok" data-id="{$item['id']}">{if !$item['status']}正常{else}禁用{/if}</label></td>
+					<td>{$item['money']}</td>
+					<td>{php echo date('Y-m-d H:i:s',$item['createtime'])}</td>
+					<td>
+						<a href="{php echo $this->createWebUrl('album',array('mid'=>$item['id']))}" class="btn btn-info btn-sm">查看相册({$item['album']})</a>
+						<!-- <a href="{php echo $this->createWebUrl('black', array('id' => $item['id']))}" style="background: black;color: white;" class="btn btn-sm btn-default">拉黑</a> -->
+						<a onclick="return confirm('删除用户将删除其所有相册，确认删除吗？'); return false;" href="{php echo $this->createWebUrl('member', array('op' => 'del','id' => $item['id']))}" title="删除" class="btn btn-sm btn-danger"><i class="fa fa-remove"></i></a>
+					</td>
+				</tr>
+				
+				{/loop}
+			</tbody>
+		</table>
+		{$pager}
+	</div>
+<script>
+$(function(){
+	$(".is_ok").click(function(){
+		var that = $(this);
+		var id = $(this).attr('data-id');
+		$.ajax({
+			type:'post',
+			url:"{php echo $this->createWebUrl('checkmem')}",
+			data:{id:id},
+			success:function(data){
+				var data = $.parseJSON(data);
+				if(data == 21){
+					that.empty();
+					that.removeClass('label-default');
+					that.addClass('label-success');
+					that.html("正常");
+				}
+				if(data == 11){
+					that.empty();
+					that.removeClass('label-success');
+					that.addClass('label-default');
+					that.html("禁用");
+				}
+			}
+		});
+	});
+});
+</script>	
+</div>
+{/if}
+{template 'common/footer'}

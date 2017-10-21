@@ -1,0 +1,104 @@
+{template 'common/header'}
+<div class="we7-page-title">用户管理 </div>
+<ul class="we7-page-tab">
+	<li {if $_GPC['do'] == 'display' || $_GPC['do'] == ''}class="active"{/if}><a href="{url 'user/myxiaji'}">用户管理</a></li>
+	<li {if $_GPC['do'] == 'check_display'}class="active"{/if}><a href="{url 'user/myxiaji/check_display'}">审核用户</a></li>
+	<li {if $_GPC['do'] == 'recycle_display'}class="active"{/if}><a href="{url 'user/myxiaji/recycle_display'}">用户回收站</a></li>
+</ul>
+<div class="keyword-list-head clearfix we7-margin-bottom">
+	<form action="" method="get">
+		<input type="hidden" name="c" value="user">
+		<input type="hidden" name="a" value="display">
+		<input type="hidden" name="do" value="{$_GPC['do']}">
+		<div class="input-group pull-left col-sm-4">
+			<input type="text" name="username" id="" value="{$_GPC['username']}" class="form-control" placeholder="搜索用户名"/>
+			<span class="input-group-btn"><button class="btn btn-default"><i class="fa fa-search"></i></button></span>
+		</div>
+	</form>
+	<div class="pull-right">
+		{if $_GPC['do'] == 'display' || $_GPC['do'] == ''}<a href="{url 'user/myxiajiadd'}" class="btn btn-primary">+添加用户</a>{/if}
+	</div>
+</div>
+<table class="table we7-table table-hover table-manage vertical-middle" id="js-users-display" ng-controller="UsersDisplay" ng-cloak>
+	<col width="120px"/>
+	<col width="120px">
+	<col width="120px"/>
+	<col width="80px"/>
+	<col width="80px"/>
+	<col width="80px"/>
+	<col width="130px"/>
+	<col width="180px"/>
+	<col width="200px"/>
+	<tr>
+		<th></th>
+		<th class="text-left">用户名</th>
+		<th>用户权限组</th>
+		<th>创建公众号</th>
+		<th>使用公众号</th>
+		<th>应用</th>
+		<th>到期时间</th>
+		<th>消费记录</th>
+		<th class="text-right">操作</th>
+	</tr>
+	<tr ng-repeat="user in users" ng-if="users">
+		<td><img src="{{user.avatar}}" alt="" class="img-responsive icon"/></td>
+		<td class="text-left" ng-bind="user.username">{$user['username']}</td>
+		<td>
+			<span class="color-default" ng-if="user.founder">管理员</span>
+			<span class="color-default" ng-if="user.groupname && !user.founder" ng-bind="user.groupname"></span>
+			<span class="color-default" ng-if="!user.groupname && !user.founder">未分配</span>
+		</td>
+		<td class="color-default" ng-bind="user.maxaccount"></td>
+		<td class="color-default" ng-bind="user.uniacid_num"></td>
+		<td class="color-default">
+			<span ng-if="!user.founder" ng-bind="user.module_nums"></span>
+			<span ng-if="user.founder">全部</span>
+		</td>
+		<td>
+			<span ng-bind="user.endtime"></span>
+		</td>
+		<td>
+			<a ng-href="{{links.chongzhi}}uid={{user.uid}}" ng-if="do == 'display'">充值记录</a>
+			<a ng-href="{{links.record}}uid={{user.uid}}" ng-if="do == 'display'">消费记录</a>
+		</td>
+		<td>
+			<div class="link-group" ng-if="!user.founder">
+				<a ng-href="{{links.edit}}uid={{user.uid}}" ng-if="do == 'display'">编辑</a>
+				<a ng-href="{{links.deny}}uid={{user.uid}}" ng-if="do == 'display'" data-toggle="tooltip" data-placement="left" title="禁用后可在用户回收站查找到并重新启用。">禁用</a>
+				<a ng-href="{{links.checkPass}}uid={{user.uid}}" ng-if="do == 'check_display'">通过</a>
+				<a ng-href="{{links.deny}}uid={{user.uid}}" ng-if="do == 'check_display'" data-toggle="tooltip" data-placement="left" title="拒绝后可在用户回收站查找到并启用。">拒绝</a>
+				<a ng-href="{{links.recycleRestore}}uid={{user.uid}}" ng-if="do == 'recycle_display'">启用</a>
+				<a ng-href="{{links.recycleDel}}uid={{user.uid}}" class="del" ng-if="do == 'recycle_display'">删除</a>
+				<a ng-href="{{links.sq}}uid={{user.uid}}" ng-if="do == 'display'">授权</a>
+			</div>
+		</td>
+	</tr>
+	<tr ng-if="!users">
+		<td colspan="7" class="text-center">暂无数据</td>
+	</tr>
+</table>
+<div class="text-right">
+	{$pager}
+</div>
+<script type="text/javascript">
+	$(function(){
+		$('[data-toggle="tooltip"]').tooltip();
+	});
+	angular.module('userManageApp').value('config', {
+		do: "{php echo !empty($_GPC['do']) ? $_GPC['do'] : 'display'}",
+		users: {php echo !empty($users) ? json_encode($users) : 'null'},
+		usergroups: {php echo !empty($usergroups) ? json_encode($usergroups) : 'null'},
+		links: {
+			chongzhi: "{php echo url('shop/member/chongzhi')}",
+			record: "{php echo url('shop/member/record')}",
+			recycleDel: "{php echo url('user/myxiaji/recycle_delete')}",
+			recycleRestore: "{php echo url('user/myxiaji/recycle_restore')}",
+			checkPass: "{php echo url('user/myxiaji/check_pass')}",
+			deny: "{php echo url('user/myxiaji/recycle')}",
+			edit: "{php echo url('user/myxiajiedit')}",
+			sq: "{php echo url('user/sq')}",
+		},
+	});
+	angular.bootstrap($('#js-users-display'), ['userManageApp']);
+</script>
+{template 'common/footer'}

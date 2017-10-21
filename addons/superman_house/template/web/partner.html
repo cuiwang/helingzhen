@@ -1,0 +1,822 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li {if $act == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('partner', array('act' => 'display'));}">经纪人列表</a></li>
+	{if $_GPC['_id']}<li {if $act == 'post'}class="active"{/if}><a href="{php echo $this->createWebUrl('partner', array('act' => 'post', 'id' => $id));}">编辑经纪人</a></li>{/if}
+	<li {if $act == 'role'}class="active"{/if}><a href="{php echo $this->createWebUrl('partner', array('act' => 'role'));}">身份类型</a></li>
+	<li {if $act == 'displaycommission'}class="active"{/if}><a href="{php echo $this->createWebUrl('partner', array('act' => 'displaycommission'));}">佣金流水</a></li>
+	{if $act == 'editcommission'}<li class="active"><a href="{php echo $this->createWebUrl('partner', array('act' => 'editcommission', 'id' => $id));}">编辑佣金</a></li>{/if}
+	{if $act == 'friendlist'}<li class="active"><a href="{php echo $this->createWebUrl('partner', array('act' => 'friendlist', 'subuid' => $subuid));}">成员列表</a></li>{/if}
+	{if $act == 'detail'}<li class="active"><a href="{php echo $this->createWebUrl('partner', array('act' => 'detail'));}">经纪人信息</a></li>{/if}
+</ul>
+
+{if $act == 'display'}
+<div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+		<form action="./index.php" method="get" class="form-horizontal" role="form">
+			<input type="hidden" name="m" value="superman_house">
+			<input type="hidden" name="c" value="site">
+			<input type="hidden" name="a" value="entry">
+			<input type="hidden" name="do" value="partner">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">经纪人</label>
+				<div class="col-sm-6 col-md-8 col-lg-8 col-xs-12">
+					<input type="text" class="form-control" name="nickname" value="{$nickname}" placeholder="昵称 / uid">
+				</div>
+			</div>
+			{if !empty($roles)}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">身份类型</label>
+				<div class="col-sm-6 col-md-8 col-lg-8 col-xs-12">
+					<select class="form-control" name="roleid">
+						<option value="-99">全部</option>
+						{loop $roles $role}
+						<option {if $roleid == $role['id']}selected{/if} value="{$role['id']}">{$role['title']}</option>
+						{/loop}
+					</select>
+				</div>
+			</div>
+			{/if}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">姓名</label>
+				<div class="col-sm-6 col-md-8 col-lg-8 col-xs-12">
+					<input type="text" class="form-control" name="realname" value="{$realname}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">手机</label>
+				<div class="col-sm-6 col-md-8 col-lg-8 col-xs-12">
+					<input type="text" class="form-control" name="phone" value="{$phone}">
+				</div>
+                <button class="btn btn-default" style="margin-left: 10px;">
+                    <i class="fa fa-search"></i> 搜索
+                </button>
+			</div>
+		</form>
+	</div>
+</div>
+<div class="panel panel-default">
+	<div class="table-responsive panel-body">
+		<table class="table">
+			<thead>
+			<tr>
+				<th style="width:100px;">UID</th>
+				<th>头像/昵称</th>
+				<th>状态</th>
+				<th>姓名</th>
+				<th>手机</th>
+				<th>身份类型</th>
+				<!--<th>成员总数</th>
+				<th>佣金总数</th>-->
+				<!--<th>已提取佣金</th>
+				<th>未提取佣金</th>-->
+				<th>加入时间</th>
+				<th  style="width: 200px;">操作</th>
+			</tr>
+			</thead>
+			<tbody>
+
+			{loop $list $item}
+			<tr>
+				<td>{$item['subuid']}</td>
+                <td>
+					<div class="clear">
+						<div class="pull-left" style="width: 40px;height: 40px; overflow: hidden; border-radius: 50%;">
+							<img src="{php echo tomedia($item['avatar'])}" onerror="this.src='../app/resource/images/heading.jpg'" style="width: 100%" />
+						</div>
+						<div class="pull-left" style="line-height: 40px; margin-left: 10px;">
+							{$item['nickname']}
+						</div>
+					</div>
+                </td>
+				<td>
+                    {if $item['status'] == 1}
+    					<span class="label label-success">启用</span>
+					{else if $item['status'] == -1}
+						<span class="label label-default">未审核</span>
+					{else if $item['status'] == 2}
+    					<span class="label label-danger">禁用</span>
+                    {/if}
+				</td>
+				{if $customer_eid > 0 }
+				<td><a href="{php echo $this->createWebUrl('partner', array('act' => 'display', 'partnerid' => $item['id'], 'display_partner_name' => $item['realname']));}">{$item['realname']}</a></td>
+				{else}
+				<td>{$item['realname']}</td>
+				{/if}
+				<td>{$item['phone']}</td>
+				<td>{$roles[$item['roleid']]['title']}</td>
+				<td>{$item['createtime']}</td>
+				<td>
+                    {if $item['status'] == 1}
+					    <a href="{php echo $this->createWebUrl('partner', array('act' => 'setstatus', 'partnerid' => $item['id'], 'status' => 2));}" title="禁用" data-toggle="tooltip" data-placement="top" class="btn btn-danger"><i class="fa fa-ban"></i></a>
+                    {else}
+					    <a href="{php echo $this->createWebUrl('partner', array('act' => 'setstatus', 'partnerid' => $item['id'], 'status' => 1));}" title="启用" data-toggle="tooltip" data-placement="top" class="btn btn-success"><i class="fa fa-check"></i></a>
+                    {/if}
+					{if $item['show_friendlist']}
+					    <a href="{php echo $this->createWebUrl('partner', array('act' => 'friendlist', 'partnerid' => $item['id'], 'partneruid' => $item['subuid']));}" title="成员列表" data-toggle="tooltip" data-placement="top" class="btn btn-default"><i class="fa fa-user"></i></a>
+					{/if}
+					<a class="btn btn-default" href="{php echo $this->createWebUrl('partner', array('act' => 'detail', 'id' => $item['id']));}" title="编辑" data-toggle="tooltip" data-placement="top">
+						<i class="fa fa-edit"></i>
+					</a>
+					<a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('partner', array('act' => 'delete', '_id' => $item['id']));}" title="删除" data-toggle="tooltip" data-placement="top" class="btn btn-default">
+						<i class="fa fa-times"></i>
+					</a>
+				</td>
+			</tr>
+			{/loop}
+			</tbody>
+		</table>
+	</div>
+	<div class="panel-footer">
+		总共 <strong>{$total}</strong> 条
+	</div>
+</div>
+{$pager}
+<script type="text/javascript">
+	require(['bootstrap'],function($){
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+	});
+</script>
+{elseif $act == 'role'}
+<script type="text/javascript">
+	require(['bootstrap.switch', 'util'], function($, u){
+		$(function(){
+			$(':checkbox').bootstrapSwitch();
+			$('.isdisplay').on('switchChange.bootstrapSwitch', function(e, state){
+				$this = $(this);
+				var dat = $this.attr('data');
+				var ret = this.checked ? 1 : 0;
+				$.post(location.href, {dat: dat, ret: ret}, function(resp){
+					if(resp != 'success') {
+						u.message('操作失败, 请稍后重试.')
+					}
+				});
+			});
+		});
+	});
+</script>
+<div class="alert alert-info">
+	<strong>角色说明：</strong>
+	<ol>
+		<li>不同角色经纪人默认都可以推荐提交客户；</li>
+		<li>一级管理权限建议只设置一个，如：项目经理；</li>
+		<li>每个角色只可以有某级权限，不能设置多个权限；</li>
+		<li>一级管理权限可以分配楼盘项目，由后台管理员在楼盘编辑设置；</li>
+		<li>二级管理权限角色从属于一级管理权限，不能单独注册，必须由一级管理邀请注册；</li>
+		<li>大众经纪人或老带新等角色通常推荐提交客户，一般建议不设置管理权限；</li>
+	</ol>
+</div>
+<form action="" method="post">
+	<div class="panel panel-default">
+		<div class="table-responsive panel-body">
+			<table class="table">
+				<thead>
+					<tr>
+						<th style="width:80px">排序</th>
+						<th>名称</th>
+						<th>是否显示</th>
+						<th>一级管理权限（经理）</th>
+						<th>二级管理权限（业务员）</th>
+					</tr>
+				</thead>
+				<tbody>
+                    {loop $list $item}
+					<tr>
+						<input type="hidden" class="form-control text-center" name="id[]" value="{$item['id']}">
+						<td><input type="text" class="form-control text-center" name="displayorder[]" value="{$item['displayorder']}"></td>
+						<td class="text-center" style="width:150px;">
+							<input type="text" class="form-control input-sm" name="title[]" value="{$item['title']}">
+						</td>
+						<td class="text-left" style="width:130px;">
+							<input type="checkbox" value="{$item['isshow']}" data="{$item['id']}" class="isdisplay" {if $item['isshow'] == 1}checked{/if} name="isshow[]"/>
+						</td>
+						<td>
+							<input {if $item['issubadmin'] == 1}disabled{/if} class="admin_check" type="checkbox" value="{$item['id']}" {if $item['isadmin'] == 1}checked{/if} name="isadmin[]"/>
+						</td>
+						<td>
+							<input {if $item['isadmin'] == 1}disabled{/if} class="admin_check" type="checkbox" value="{$item['id']}" {if $item['issubadmin'] == 1}checked{/if} name="issubadmin[]"/>
+						</td>
+					</tr>
+                    {/loop}
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<input name="submit" type="submit" value="提交" class="btn btn-primary col-lg-1">
+    <input type="hidden" name="token" value="{$_W['token']}" />
+	<script>
+		require(['jquery'], function($){
+			$('.admin_check').click(function(){
+				var t = this;
+				var checks = $('.admin_check', $(t).parent().parent());
+				if ($(t).prop('checked')) {
+					checks.each(function(){
+						if (this != t) {
+							$(this).attr('disabled', true);
+						}
+					});
+				} else {
+					checks.each(function(){
+						if (this != t) {
+							$(this).attr('disabled', false);
+						}
+					});
+				}
+			});
+		});
+	</script>
+</form>
+{elseif $act == 'detail'}
+<form class="form-horizontal form" action="" method="post" enctype="multipart/form-data">
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			经纪人信息
+		</div>
+		<div class="panel-body">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">UID</label>
+				<div class="col-sm-8 col-xs-12">
+					<input type="text" class="form-control" disabled value="{$item['subuid']}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">头像/昵称</label>
+				<div class="col-sm-8 col-xs-12">
+					<div class="pull-left" style="width: 40px;height: 40px; overflow: hidden; border-radius: 50%;">
+						<img src="{php echo tomedia($item['avatar'])}" onerror="this.src='../app/resource/images/heading.jpg'" style="width: 100%" />
+					</div>
+					<div class="pull-left" style="line-height: 40px;margin-left: 5px;">
+						{$item['nickname']}
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">状态</label>
+				<div class="col-sm-8 col-xs-12">
+                    {if $item['status'] == 1}
+    					<span class="label label-success">启用</span>
+                    {else if $item['status'] == -1}
+						<span class="label label-default">未审核</span>
+					{else if $item['status'] == 2}
+    					<span class="label label-danger">禁用</span>
+                    {/if}
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">姓名</label>
+				<div class="col-sm-8 col-xs-12">
+					<input type="text" class="form-control" placeholder="" name="realname" value="{$item['realname']}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">手机</label>
+				<div class="col-sm-8 col-xs-12">
+					<input type="text" class="form-control" placeholder="" name="phone" value="{$item['phone']}">
+				</div>
+			</div>
+			{if !empty($roles)}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">身份类型</label>
+				<div class="col-sm-8 col-xs-12">
+					<select class="form-control" name="roleid" disabled>
+						{loop $roles $role}
+						<option {if $item['roleid'] == $role['id']}selected{/if} value="{$role['id']}">{$role['title']}</option>
+						{/loop}
+					</select>
+					<span class="help-block">修改身份类型可能导致上下级关系错误&nbsp;&nbsp;&nbsp;&nbsp;<a onclick="$(this).parent().prev().removeAttr('disabled')" href="javascript:;">已了解风险，点击确认修改</a></span>
+				</div>
+			</div>
+			{/if}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">成员总数</label>
+				<div class="col-sm-8 col-xs-12">
+					<input type="text" class="form-control" disabled placeholder="" name="" value="{$item['friend_total']}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">佣金总数</label>
+				<div class="col-sm-8 col-xs-12">
+					<input type="text" class="form-control" disabled placeholder="" name="" value="{$item['commission_total']}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">加入时间</label>
+				<div class="col-sm-8 col-xs-12">
+					<input class="form-control" disabled name="" value="{$item['createtime']}">
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="form-group">
+		<div class="col-sm-12">
+			<input name="submit" type="submit" value="提交" class="btn btn-primary col-lg-1">
+			<input type="hidden" name="token" value="{$_W['token']}" />
+		</div>
+	</div>
+</form>
+{elseif $act == 'friendlist'}
+<div class="panel panel-default">
+	<div class="panel-heading">
+		<div class="clear" style="height: 40px">
+			<div class="pull-left" style="width: 40px;height: 40px; overflow: hidden; border-radius: 50%;">
+				<img src="{php echo tomedia($partner['avatar'])}" onerror="this.src='../app/resource/images/heading.jpg'" style="width: 100%" />
+			</div>
+			<div class="pull-left" style="line-height: 40px; margin-left: 10px;">
+				{$partner['nickname']}
+			</div>
+		</div>
+	</div>
+	<div class="table-responsive panel-body">
+		<table class="table">
+			<thead>
+			<tr>
+				<th width="80">会员ID</th>
+				<th>头像/昵称</th>
+				<th>姓名</th>
+				<th>手机</th>
+				<th width="150">加入时间</th>
+				<th width="60">操作</th>
+			</tr>
+			</thead>
+			<tbody>
+			{loop $list $item}
+			<tr>
+				<td>{$item['subuid']}</td>
+				<td>
+					<div class="clear">
+						<div class="pull-left" style="width: 40px;height: 40px; overflow: hidden; border-radius: 50%;">
+							<img src="{php echo tomedia($item['avatar'])}" onerror="this.src='../app/resource/images/heading.jpg'" style="width: 100%" />
+						</div>
+						<div class="pull-left" style="line-height: 40px; margin-left: 10px;">
+							{$item['nickname']}
+						</div>
+					</div>
+				</td>
+				<td><a href="{php echo $this->createWebUrl('partner', array('act' => 'friend_customer_list', 'subuid' => $item['subuid'], 'realname' => $item['realname']));}">{$item['realname']}</a></td>
+				<td>{$item['phone']}</td>
+				<td>{$item['createtime']}</td>
+				<td>
+					<a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('partner', array('act' => 'delete', 'partnerid' => $partner['id'], 'subpartnerid' => $item['id'], 'from' => 'friendlist'));}" title="删除" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-times"></i></a>
+				</td>
+			</tr>
+			{/loop}
+			</tbody>
+		</table>
+	</div>
+</div>
+{$pager}
+<script type="text/javascript">
+	require(['bootstrap'],function($){
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+	});
+</script>
+{elseif $act == 'post'}
+<script type="text/javascript" src="resource/js/lib/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="resource/js/lib/jquery-ui-1.10.3.min.js"></script>
+<form class="form-horizontal form" action="" method="post" enctype="multipart/form-data">
+	<input type="hidden" name="_id" value="{$item['id']}">
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			{if empty($item['id'])}
+				添加经纪人
+			{else}
+				编辑经纪人信息
+			{/if}
+		</div>
+		<div class="panel-body">
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">经纪人ID</label>
+                <div class="col-sm-8 col-xs-12">
+                    <input type="text" class="form-control" placeholder="" name="uid" value="{$item['uid']}">
+                </div>
+            </div>
+			<!--
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">下线uid</label>
+                <div class="col-sm-8 col-xs-12">
+                    <input type="text" class="form-control" placeholder="" name="subuid" value="{$item['subuid']}">
+                </div>
+            </div>
+			-->
+		</div>
+	</div>
+	<div class="form-group">
+		<div class="col-sm-12">
+			<input name="submit" type="submit" value="提交" class="btn btn-primary col-lg-1">
+			<input type="hidden" name="token" value="{$_W['token']}" />
+		</div>
+	</div>
+</form>
+{elseif $act == 'displaycommission'}
+<div class="alert alert-info">
+	<strong>佣金状态说明</strong>
+	<style>
+		ul,li{list-style: none; padding: 5px 0 0 10px;}
+	</style>
+	<ul>
+		<li>
+			<span class="label label-warning">待支付</span> 经纪人佣金产生后的初始状态，等待支付佣金
+		</li>
+		<li>
+			<span class="label label-danger">取消</span> 管理员设置状态，可能不符合佣金支付条件
+		</li>
+		<li>
+			<span class="label label-danger">失败</span> 提现操作失败，点击编辑可查看具体原因
+		</li>
+		<li>
+			<span class="label label-success">已支付</span> 提现成功，会员手机端可显示到账查看方法：微信->我->钱包->零钱->零钱明细
+		</li>
+	</ul>
+</div>
+<div class="panel panel-info">
+    <div class="panel-heading">筛选</div>
+    <div class="panel-body">
+        <form action="" class="form-horizontal" role="form">
+            <input type="hidden" name="c" value="site">
+            <input type="hidden" name="a" value="entry">
+            <input type="hidden" name="do" value="partner">
+            <input type="hidden" name="act" value="{$_GPC['act']}">
+            <input type="hidden" name="export" value="">
+            <input type="hidden" name="m" value="superman_house">
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">提交时间</label>
+                <div class="col-sm-6 col-md-8 col-lg-8 col-xs-12">
+                    {php echo tpl_form_field_daterange('createtime', array('start' => date('Y-m-d', $starttime),'end' => date('Y-m-d', $endtime)), '')}
+                    <div style="margin-left: 50px; display: inline-block;">
+                        <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+                        <button class="btn btn-primary" onclick="$('input[name=export]').val('yes')">导出</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<div class="panel panel-default">
+	<div class="table-responsive panel-body">
+		<table class="table">
+			<thead>
+			<tr>
+				<th style="width:100px;">UID</th>
+				<th>头像/昵称</th>
+				<!--<th>订单</th>
+				<th>楼盘</th>-->
+				<th>姓名</th>
+				<th width="130">手机</th>
+				<th width="120">佣金</th>
+				<th width="100">状态</th>
+				<th width="160">提交时间</th>
+				<th width="130">操作</th>
+			</tr>
+			</thead>
+			<tbody>
+			{loop $list $item}
+			<tr>
+				<td>{$item['uid']}</td>
+                <td>
+					{if $item['partner']['avatar']}
+                        <img src="{php echo tomedia($item['partner']['avatar'])}" height="40" width="40" style="border-radius: 40px"/>
+					{else}
+                        <img src="resource/images/noavatar_middle.gif" height="40" width="40" style="border-radius: 40px"/>
+					{/if}
+					{$item['partner']['nickname']}
+				</td>
+				<!--<td>{$item['orderno']}</td>
+				<td>{$item['house_name']}</td>-->
+				<td>{$item['partner']['realname']}</td>
+				<td>{$item['partner']['phone']}</td>
+				<td>{$item['money']}</td>
+				<td>
+					{if $item['status'] == -1}<span class="label label-danger">已取消</span>
+					{elseif $item['status'] == -2}<span class="label label-danger">失败</span>
+					{elseif $item['status'] == 0}<span class="label label-warning">待支付</span>
+					{elseif $item['status'] == 1}<span class="label label-success">已支付</span>
+					{/if}
+                </td>
+				<td>{$item['createtime']}</td>
+				<td>
+					<a href="{php echo $this->createWebUrl('partner', array('act' => 'putcommission', 'id' => $item['id']));}" title="提现" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-dollar"></i></a>
+					<a href="{php echo $this->createWebUrl('partner', array('act' => 'editcommission', 'id' => $item['id']));}" title="编辑" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-edit"></i></a>
+					<a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('partner', array('act' => 'deletecommlog', '_id' => $item['id']));}" title="删除" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-times"></i></a>
+				</td>
+			</tr>
+			{/loop}
+			</tbody>
+		</table>
+	</div>
+	<div class="panel-footer">
+		总共 <strong>{$total}</strong> 条
+	</div>
+</div>
+{$pager}
+{elseif $act == 'editcommission'}
+<form class="form-horizontal form" action="" method="post" enctype="multipart/form-data">
+	<div class="panel panel-default">
+		<div class="panel-heading">佣金数据</div>
+		<div class="panel-body">
+			<input type="hidden" name="id" value="{$item[id]}">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">UID</label>
+				<div class="col-sm-8 col-xs-12">
+					<input type="text" class="form-control" placeholder="" value="{$item['uid']}" disabled>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">昵称/头像</label>
+				<div class="col-sm-8 col-xs-12">
+					<div class="pull-left" style="width: 40px;height: 40px; overflow: hidden; border-radius: 50%;">
+						<img src="{php echo tomedia($item['avatar'])}" onerror="this.src='../app/resource/images/heading.jpg'" style="width: 100%" />
+					</div>
+					<div class="pull-left" style="line-height: 40px; margin-left: 5px">
+						{$item['nickname']}
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">姓名</label>
+				<div class="col-sm-8 col-xs-12">
+					<input type="text" class="form-control" placeholder="" value="{$item['partner']['realname']}" disabled>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">手机</label>
+				<div class="col-sm-8 col-xs-12">
+					<input type="text" class="form-control" placeholder="" value="{$item['partner']['phone']}" disabled>
+				</div>
+			</div>
+			{if $item['customer']}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">客户姓名</label>
+				<div class="col-sm-8 col-xs-12">
+					<input type="text" class="form-control" placeholder="" value="{$item['customer']['realname']}" disabled>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">客户手机</label>
+				<div class="col-sm-8 col-xs-12">
+					<input type="text" class="form-control" placeholder="" value="{$item['customer']['mobile']}" disabled>
+				</div>
+			</div>
+			{/if}
+			<!--<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">openid</label>
+				<div class="col-sm-8 col-xs-12">
+					<input type="text" class="form-control" placeholder="" value="{$item['from_user']}" disabled>
+				</div>
+			</div>-->
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">交易号</label>
+				<div class="col-sm-8 col-xs-12">
+					<input type="text" class="form-control" placeholder="" value="{$item['payment_no']}" disabled>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">提现金额</label>
+				<div class="col-sm-8 col-xs-12">
+					<input type="text" class="form-control" placeholder="" name="money" value="{$item['money']}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">备注</label>
+				<div class="col-sm-8 col-xs-12">
+					<textarea name="remark" class="form-control">{$item['remark']}</textarea>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">回复备注</label>
+				<div class="col-sm-8 col-xs-12">
+					<textarea class="form-control" name="message" placeholder="佣金提现申请不通过时，可填写说明信息，会员可查看信息">{$item['message']}</textarea>
+					<span class="help-block">当状态变更为已提现、处理中、取消时，前台会员可在佣金记录里看到回复备注内容(点击状态即可展示)</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">提现状态</label>
+				<div class="col-sm-8 col-xs-12">
+					<label class="checkbox-inline">
+						<input type="radio" name="status" value="0" {if $item['status']==0}checked{/if}> 待支付
+					</label><br/>
+					<label class="checkbox-inline">
+						<input type="radio" name="status" value="-1" {if $item['status']==-1}checked{/if}> 取消
+					</label><br/>
+					<label class="checkbox-inline">
+						<input type="radio" name="status" value="-2" {if $item['status']==-2}checked{/if}> 失败
+					</label><br/>
+					<label class="checkbox-inline">
+						<input type="radio" name="status" value="1" {if $item['status']==1}checked{/if}> 已支付
+					</label><br/>
+					<span class="help-block">提现状态可在此手动修改，当操作提现时，将根据支付状态自动更新提现状态</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">失败原因</label>
+				<div class="col-sm-8 col-xs-12">
+					<textarea disabled class="form-control" name="reason" placeholder="">{$item['reason']}</textarea>
+					<span class="help-block">由微信支付接口返回的错误信息，方便排查接口问题，前台会员无法看到，只有管理员可以看到，不可修改</span>
+					<div class="alert alert-info">
+						<strong>微信支付限额提示：</strong>
+						<ul>
+							<li>给同一个实名用户付款，单笔单日限额2W</li>
+							<li>给同一个非实名用户付款，单笔单日限额2000</li>
+							<li>一个商户同一日付款总额限额100W</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">提交时间</label>
+				<div class="col-sm-8 col-xs-12">
+					<span class="help-block">
+						{if $item['createtime']}
+						{php echo date('Y-m-d H:i:s', $item['createtime'])}
+						{/if}
+					</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">更新时间</label>
+				<div class="col-sm-8 col-xs-12">
+					<span class="help-block">
+						{if $item['updatetime']}
+						{php echo date('Y-m-d H:i:s', $item['updatetime'])}
+						{/if}
+					</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">操作管理员</label>
+				<div class="col-sm-8 col-xs-12">
+					<span class="help-block">
+						{$item['user']['username']}
+					</span>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="form-group">
+		<div class="col-sm-12">
+			<input name="submit" type="submit" value="提交" class="btn btn-primary col-lg-1">
+			<input type="hidden" name="token" value="{$_W['token']}" />
+		</div>
+	</div>
+</form>
+{elseif $act == 'displaypaylog'}
+<div class="panel panel-default">
+	<div class="table-responsive panel-body">
+		<table class="table">
+			<thead>
+			<tr>
+				<th style="width:100px;">会员ID</th>
+				<th>头像/昵称</th>
+				<th>提现金额</th>
+				<th>状态</th>
+				<th>提现订单号</th>
+				<th>支付订单号</th>
+				<th>原因 </th>
+				<th>创建时间</th>
+				<th>更新时间</th>
+				<th style="width:120px;">操作</th>
+			</tr>
+			</thead>
+			<tbody>
+			{loop $list $item}
+			<tr>
+				<td>{$item['uid']}</td>
+                <td>
+					{if $item['avatar']}<img src="{$item['avatar']}" height="40" width="40" style="border-radius: 40px"/>
+					{else}<img src="resource/images/noavatar_middle.gif" height="40" width="40" style="border-radius: 40px"/>
+					{/if}
+					{$item['nickname']}
+				</td>
+				<td>{$item['applypay']}</td>
+				<td>
+                    {if $item['status'] == -1}<span class="label label-danger">已取消</span>
+					{elseif $item['status'] == -2}<span class="label label-danger">失败</span>
+					{elseif $item['status'] == 0}<span class="label label-warning">待支付</span>
+                    {elseif $item['status'] == 1}<span class="label label-success">已支付</span>
+                    {/if}
+                </td>
+				<td>{$item['cashorderno']}</td>
+				<td>{$item['paymentno']}</td>
+				<td title="{$item['reason']}">{$item['reason']}</td>
+				<td>{$item['createtime']}</td>
+				<td>{$item['updatetime']}</td>
+				<td>
+					<a href="{php echo $this->createWebUrl('partner', array('act' => 'cashapply', 'id' => $item['id']));}" title="提现" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-dollar"></i></a>
+					<a href="{php echo $this->createWebUrl('partner', array('act' => 'editcashapply', 'id' => $item['id']));}" title="编辑" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-edit"></i></a>
+					<a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('partner', array('act' => 'deletecashapply', '_id' => $item['id']));}" title="删除" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-times"></i></a>
+				</td>
+			</tr>
+			{/loop} </tbody>
+		</table>
+	</div>
+</div>
+{$pager}
+<script type="text/javascript">
+	require(['bootstrap'],function($){
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+	});
+</script>
+{elseif $act == 'editcashapply'}
+<form class="form-horizontal form" action="" method="post" enctype="multipart/form-data">
+	<div class="panel panel-default">
+		<div class="panel-heading">提现数据</div>
+		<div class="panel-body">
+			<input type="hidden" name="id" value="{$item[id]}">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">昵称</label>
+				<div class="col-sm-8 col-xs-12">
+					<input type="text" class="form-control" placeholder="" value="{$item['nickname']}" disabled>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">头像</label>
+				<div class="col-sm-8 col-xs-12">
+					<div class="pull-left" style="width: 40px;height: 40px; overflow: hidden; border-radius: 50%;">
+						<img src="{php echo tomedia($item['avatar'])}" onerror="this.src='../app/resource/images/heading.jpg'" style="width: 100%" />
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">UID</label>
+				<div class="col-sm-8 col-xs-12">
+					<input type="text" class="form-control" placeholder="" value="{$item['uid']}" disabled>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">openid</label>
+				<div class="col-sm-8 col-xs-12">
+					<input type="text" class="form-control" placeholder="" value="{$item['from_user']}" disabled>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">交易号</label>
+				<div class="col-sm-8 col-xs-12">
+					<input type="text" class="form-control" placeholder="" value="{$item['paymentno']}" disabled>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">提现金额</label>
+				<div class="col-sm-8 col-xs-12">
+					<input type="text" class="form-control" placeholder="" name="money" value="{$item['applypay']}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">备注</label>
+				<div class="col-sm-8 col-xs-12">
+					<textarea name="remark" class="form-control">{$item['remark']}</textarea>
+				</div>
+			</div>
+			<!--<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">回复备注</label>
+				<div class="col-sm-8 col-xs-12">
+					<textarea class="form-control" name="message" placeholder="提现申请不通过时，可填写相关说明信息">{$item['message']}</textarea>
+					<span class="help-block">当状态变更为已提现、处理中、取消时，前台会员可在提现记录里看到回复备注内容(点击状态即可展示)</span>
+				</div>
+			</div>-->
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">提现失败原因</label>
+				<div class="col-sm-8 col-xs-12">
+					<textarea disabled class="form-control" name="reason" placeholder="">{$item['reason']}</textarea>
+					<span class="help-block">由微信支付接口返回的错误信息，方便排查接口问题，前台会员无法看到，只有管理员可以看到，不可修改</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">提现状态</label>
+				<div class="col-sm-8 col-xs-12">
+					<label class="checkbox-inline">
+						<input type="radio" name="status" value="0" {if $item['status']==0}checked{/if}> 待支付
+					</label><br/>
+					<label class="checkbox-inline">
+						<input type="radio" name="status" value="-1" {if $item['status']==-1}checked{/if}> 取消
+					</label><br/>
+					<label class="checkbox-inline">
+						<input type="radio" name="status" value="-2" {if $item['status']==-2}checked{/if}> 失败
+					</label><br/>
+					<label class="checkbox-inline">
+						<input type="radio" name="status" value="1" {if $item['status']==1}checked{/if}> 已提现
+					</label><br/>
+					<span class="help-block">提现状态可在此手动修改，当操作提现时，将根据支付状态自动更新提现状态</span>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="form-group">
+		<div class="col-sm-12">
+			<input name="submit" type="submit" value="提交" class="btn btn-primary col-lg-1">
+			<input type="hidden" name="token" value="{$_W['token']}" />
+		</div>
+	</div>
+</form>
+{/if}
+{template 'common/footer'}

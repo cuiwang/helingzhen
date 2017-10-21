@@ -1,0 +1,91 @@
+{template 'common/header'}
+{template 'common'}
+<div class="main">
+	<ul class="nav nav-tabs">
+		<li class="active"><a href="{php echo $this->createWebUrl('goodscomment', array('store_base_id' => $store_base_id, 'id' => $id, 'store_type' => $store_type));}">评论管理</a></li>
+	</ul>
+	
+	<div class="panel panel-default">
+		<div class="panel-body table-responsive">
+		<table class="table table-hover" >
+			<thead class="navbar-inner">
+			<tr>
+				<th class='with-checkbox' style='width:30px;'>
+					<input type="checkbox" class="check_all" />
+				</th>
+				<th style="width:120px;">商品名称</th>
+				<th style="width:300px;">评论内容</th>
+				<th style='width:100px;'>评价级别</th>
+				<th style="width:150px;">评论时间</th>
+				<th style='width:120px;'>评论者</th>
+				<th style="width:320px;">操作</th>
+			</tr>
+			</thead>
+			<tbody>
+			{loop $comments $item}
+			<tr>
+				<td class="with-checkbox">
+					<input type="checkbox" name="check" value="{$item['id']}">
+				</td>
+				<td>{$item['title']}</td>
+				<td>{$item['comment']}</td>
+				<td>{$item['comment_level']}</td>
+				<td>{$item['createtime']}</td>
+				{if !empty($item['user_info'])}
+				<td>{$item['user_info']['nickname']}</td>
+				{else}
+				<td>{$item['uid']}</td>
+				{/if}
+				<td>
+					<a class="btn btn-default" href="#" onclick="drop_confirm('您确定要删除该评论吗?', '{php echo $this->createWebUrl('goodscomment',array('op'=>'delete', 'cid'=>$item['id'],'store_base_id'=>$item['hotelid'],'id'=>$item['goodsid'],'store_type'=> $store_type))}');" title="删除" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-times"></i></a>
+				</td>
+			</tr>
+			{/loop}
+			<tr>
+				<td colspan="7">
+					<input type="button" class="btn btn-primary" name="deleteall" value="删除选择的" />
+				</td>
+			</tr>
+			</tbody>
+		</table>
+		{$pager}
+	</div>
+</div>
+<script>
+	require(['bootstrap'],function($){
+		$('.btn').tooltip();
+	});
+	$(function(){
+		$(".check_all").click(function(){
+			var checked = $(this).get(0).checked;
+			$("input[type=checkbox]").prop("checked",checked);
+		});
+		$("input[name=deleteall]").click(function(){
+			var check = $("input[name='check']:checked");
+			if(check.length < 1){
+				alert('请选择要删除的记录!');
+				return false;
+			}
+			if( confirm("确认要删除选择的记录?")){
+				var id = new Array();
+				check.each(function(i){
+					id[i] = $(this).val();
+				});
+				$.post("{php echo $this->createWebUrl('goodscomment',array('op'=>'deleteall', 'store_base_id' => $store_base_id, 'id' => $id, 'store_type' => $store_type))}", {idArr:id},function(data){
+					if (data.errno == 0) {
+						location.reload();
+					} else {
+						alert(data.error);
+					}
+				},'json');
+			}
+		});
+	});
+	function drop_confirm(msg, url){
+		if(confirm(msg)){
+			window.location = url;
+		}
+	}
+</script>
+
+{template 'common/footer'}

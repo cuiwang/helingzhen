@@ -1,0 +1,181 @@
+{template 'common/header'}
+{php echo $this -> set_tabbar($action);}
+{if $operation == 'display'}
+<link rel="stylesheet" type="text/css" href="{RES}/themes/css/admin.css" />
+<div class="main">
+    <div class="panel panel-default">
+        <div class="table-responsive panel-body">
+            <a class="btn btn-success"
+               href="{php echo $this->createWebUrl('slide', array('op' => 'post', 'storeid' => $storeid))}" ><i
+                    class="fa fa-plus"></i> 添加广告</a>
+        </div>
+    </div>
+    {if $storeid!=0}
+    <div class="panel panel-default">
+        <div class="table-responsive panel-body">
+            所属门店:<code>{$store['title']}</code>
+        </div>
+    </div>
+    {/if}
+    <div class="panel panel-default">
+        <form action="" method="post" class="form-horizontal form">
+            <div class="table-responsive panel-body">
+                <table class="table table-hover">
+                    <thead class="navbar-inner">
+                    <tr>
+                        <th style="width:10%;">排序</th>
+                        <th style="width:15%;text-align: center;">广告图片</th>
+                        <th style="width:23%;text-align: center;">链接地址</th>
+                        <th style="width:15%;text-align: center;">时间段</th>
+                        <th style="width:10%;text-align: center;">页面</th>
+                        <th style="width:12%;text-align: center;">状态(点击可切换)</th>
+                        <th style="width:15%;text-align: center;">操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {loop $list $item}
+                    <tr>
+                        <td><input type="text" class="form-control" name="displayorder[{$item['id']}]" value="{$item['displayorder']}"></td>
+                        <td style="text-align: center;">
+                            <img  width="100" src="{php echo tomedia($item['attachment']);}" onerror="this.src='../addons/weisrc_icity/template/themes/images/nopic.jpeg'" style="border-radius: 2px;border-style: solid;border-width: 1px;border-color: rgb(226, 226, 226);"/><br/>
+                        </td>
+                        <td style="text-align: center;">
+                            {$item['url']}
+                        </td>
+                        <td style="text-align: center;">
+                            {if TIMESTAMP>$item['endtime']}
+                            <label class='label label-danger' >已过期</label>
+                            {else}
+                            {php echo date('Y-m-d H:i', $item['starttime'])}<br/>
+                            {php echo date('Y-m-d H:i', $item['endtime'])}
+                            {/if}
+                        </td>
+                        <td style="text-align: center;">
+                            {if $item['position'] == 1}首页{else}品牌页{/if}
+                        </td>
+                        <td style="text-align: center;">
+                            <label data='{$item['status']}' class='label label-default {if $item['status']==1}label-success{/if}' onclick="setProperty(this,{$item['id']},'status')">启用</label>
+                        </td>
+                        <td style="text-align: center;">
+                            <a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('slide', array('op' => 'post', 'id' => $item['id'], 'storeid' => $storeid))}" title="编辑"><i class="fa fa-pencil"></i></a>
+                            <a class="btn btn-default btn-sm" onclick="return confirm('确认删除吗？');return false;" href="{php echo $this->createWebUrl('slide', array('op' => 'delete', 'id' => $item['id'], 'storeid' => $storeid))}" title="删除"><i class="fa fa-remove"></i></a>
+                        </td>
+                    </tr>
+                    {/loop}
+                    </tbody>
+                    <tfoot>
+                    <tr>
+                        <td colspan="8">
+                            <input name="submit" type="submit" class="btn btn-primary" value="批量排序">
+                            <input type="hidden" name="token" value="{$_W['token']}" />
+                        </td>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </form>
+    </div>
+    {$pager}
+</div>
+<script type="text/javascript">
+    <!--
+    function setProperty(obj,id,type){
+        $(obj).html($(obj).html() + "...");
+        $.post("{php echo $this->createWebUrl('setslideproperty')}"
+                ,{id:id,type:type, data: obj.getAttribute("data")}
+                ,function(d){
+                    $(obj).html($(obj).html().replace("...",""));
+                    $(obj).attr("data",d.data)
+                    if(d.result==1){
+                        $(obj).toggleClass("label-success");
+                    }
+                },"json"
+        );
+    }
+    //-->
+</script>
+<script language='javascript'>
+    require(['jquery', 'util'], function ($, u) {
+        $(function () {
+            u.editor($('.richtext')[0]);
+        });
+    });
+</script>
+<script>
+    $(function(){
+        require(['jquery.zclip'], function(){
+            $('.qr').hover(function() {
+                var obj = this;
+                var img = $(this).attr('data-src');
+                var $pop = util.popover(obj, function($popover, obj) {
+                    obj.$popover = $popover;
+                }, '<div>微信扫一扫访问:<br><img src="'+ img+'" style="border:0px solid #CCC;padding:0px;border-radius:4px;"></div>');
+            }, function() {
+                this.$popover.remove();
+            });
+        });
+    });
+</script>
+{elseif $operation == 'post'}
+<div class="main">
+    <form action="" method="post" class="form-horizontal form" enctype="multipart/form-data">
+        <input type="hidden" name="storeid" value="{$storeid}" />
+        <input type="hidden" name="id" value="{$item['id']}" />
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                广告信息
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">广告图片(800*1370)</label>
+                    <div class="col-sm-9">
+                        {php echo tpl_form_field_image('attachment', $thumb, '../addons/weisrc_icity/template/themes/images/nopic.jpeg', array('width' => 480, 'height' => 200))}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style='color:red'>*</span> 时间段</label>
+                    <div class="col-sm-9 col-xs-12">
+                        {php echo tpl_form_field_daterange('datelimit', array('starttime'=>date('Y-m-d H:i',$item['starttime']),'endtime'=>date('Y-m-d H:i',$item['endtime'])), true)}
+                        <span class="help-block"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">位置</label>
+                    <div class="col-sm-9">
+                        <select class="form-control" id="position" name="position" autocomplete="off">
+                            <option value="1" {if $item['position'] == 1} selected="selected"{/if}>首页</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">链接地址</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="url" class="form-control" value="{if empty($item['url'])}#{else}{$item['url']}{/if}" placeholder="请填写链接地址"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">状态</label>
+                    <div class="col-sm-9">
+                        <label for="status" class="checkbox-inline">
+                            <input type="checkbox" name="status" value="1" id="status" {if $item['status'] == 1}checked="true"{/if} /> 是否启用
+                        </label>
+                        <span class="help-block"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">排序</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="displayorder" class="form-control" value="{if empty($item) || empty($item['displayorder'])}0{else}{$item['displayorder']}{/if}" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="form-group col-sm-12">
+            <input type="submit" name="submit" value="保存设置" class="btn btn-primary col-lg-1" />
+            <input type="hidden" name="token" value="{$_W['token']}" />
+        </div>
+    </form>
+</div>
+</div>
+{/if}
+{template 'common/footer'}

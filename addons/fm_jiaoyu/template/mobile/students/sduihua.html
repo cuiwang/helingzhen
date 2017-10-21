@@ -1,0 +1,121 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html" charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="no">
+<meta name="format-detection" content="telephone=no">
+<title>对话详情</title>
+<link href="{OSSURL}public/mobile/css/new_yab.css?v=10191009" rel="stylesheet" />
+<script type="text/javascript" src="{MODULE_URL}public/mobile/js/jquery-1.11.3.min.js?v=4.8"></script>
+<script type="text/javascript" src="{OSSURL}public/mobile/js/PromptBoxUtil.js?v=4.80309"></script>
+<style>
+.wd{background-color: #ff635b; border: 1px solid #ff635b; color: #fff; border-radius: 3px;font-size: 12px; height: 16px;line-height: 14px;padding: 1px 2px;margin: 0 1px;}
+</style>
+{php include $this->template('port');}
+</head>
+<body>
+{php include $this->template('facenew');}
+<div class="ADVtime">记录</div>
+<div class="ADVsay" id="scrolldIV" style="overflow:hidden">
+{loop $list $row}
+	{if $row['userid'] == $it['id']}
+	<div class="ASright1">
+		<div class="ascon">
+			<div class="name">{$row['time']}前</div>
+			<div class="txt">
+				{if $row['isread'] ==1}<span class="wd" style="color:#fff;">未读</span>{/if}<div class="arrow"></div>{$row['conet']}
+			</div>
+		</div>
+		<div class="head">
+			<img src="{if $student['icon']}{php echo tomedia($student['icon'])}{else}{php echo tomedia($school['spic'])}{/if}" />
+		</div>
+	</div>
+	{else}
+	<div class="ASleft">
+		<div class="head">
+			<img src="{php echo tomedia($row['icon'])}" />
+		</div>
+		<div class="ascon">
+			<div class="name">{$row['name']}  {$row['time']}前</div>
+			<div class="txt">
+				<div class="arrow"></div>{$row['conet']}{if $row['isread'] ==1}<span class="wd" style="color:#fff;">未读</span>{/if}
+			</div>
+		</div>
+	</div>
+	{/if}
+{/loop}	
+<a id="msg_end" name="1" href="#1"> </a> 
+</div>
+<div class="ad_back" onclick="window.location.href='{php echo $this->createMobileUrl('slylist',array('schoolid' => $schoolid), true)}'">
+    <img src="{OSSURL}public/mobile/img/back.png" />
+</div>
+<div class="h60"></div>
+<div class="ADVsend" style="z-index:999;">
+	<!-- 添加 -->
+	<ul>
+		<li class="public"><img id="emojiOpen" class="showEmojiBox dialog_showFace" style="margin-top: -2px;" alt="表情" src="{OSSURL}public/mobile/img/emojiOpen.png" width="30" height="30" onclick="showfeca();"></li>
+		<li class="input">
+			<input type="text" style="display: block;height: 30px;-webkit-user-modify: read-write-plaintext-only" id="content" value="" />
+		</li>
+		<li class="submit">
+			<button type="button" onclick="add();" >发送</button>
+		</li>
+	</ul>
+</div>
+<input id="touserid" value="{if $thisleave['userid'] == $it['id']}{$thisleave['touserid']}{/if}{if $thisleave['touserid'] == $it['id']}{$thisleave['userid']}{/if}" type="hidden">
+<script>
+
+	var PB = new PromptBox();
+	icon_replace($(".txt"));
+
+	var if_send = true;
+	function face() {
+		createFaceSet('{OSSURL}public/mobile/img/face/', objMap, $("#content"));
+	}
+	function add() {
+		content = $("#content").val();
+		touserid = $("#touserid").val();
+		if (content.length == 0) {
+			jTips('亲，请先写点什么吧！');
+			return;
+		}
+
+		if (if_send) {
+			if_send = false;
+			content = content;
+			$.ajax({
+				type: 'POST',
+				url: "{php echo $this->createMobileUrl('dongtaiajax',array('op'=>'hfavely'))}",
+				data: { content: content,weid:'{$weid}',schoolid:'{$schoolid}',userid:'{$it['id']}',touserid:touserid,openid:'{$openid}',id:'{$id}'},
+				dataType: 'json',
+				success: function (data) {
+					if_send = true;
+					if(data.result){
+						html = '<div class="ASright1">' +
+						  '<div class="ascon">' +
+							'<div class="name">' + '刚刚' + '</div>' +
+							'<div class="txt"><div class="arrow"></div>' + content + '</div>' +
+						  '</div>' +
+						  '<div class="head"><img src="{if $student['icon']}{php echo tomedia($student['icon'])}{else}{php echo tomedia($school['spic'])}{/if}" /></div>' +
+						'</div>';
+						$(".ADVsay").append(html);
+						$("#content").val('');
+						document.getElementById("msg_end").click();
+					}else{
+						jTips(data.msg);
+					}
+				},
+				error: function () {
+					if_send = true;
+					jTips('抱歉，咨询出错啦，请检查一下你的网络！');
+				}
+			});
+		}
+		
+	}
+document.getElementById("msg_end").click();
+</script>
+</body>
+</html>
+

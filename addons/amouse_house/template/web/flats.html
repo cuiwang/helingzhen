@@ -1,0 +1,504 @@
+{template 'common/header'}
+<div class='container' style='padding:0 5px 10px;margin:0;width:100%'>
+<ul class="nav nav-tabs">
+  <li {if $op == 'post' && empty($id)}class="active"{/if}><a href="{php echo $this->createWebUrl('premises', array('op' => 'post'));}">添加新楼盘</a> </li>
+  <li {if $op == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('premises',array('op'=>'display'));}">管理新楼盘</a> </li>
+  {if !empty($id) && $op == 'post'}
+  <li class="active">  <a href="{php echo $this->createWebUrl('premises',array('op'=>'post','id'=>$id));}">编辑新楼盘</a> </li>
+  {/if}
+</ul>
+
+{if $op =='display'}
+<div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+        <form role="form" class="form-horizontal" method="get" action="./index.php">
+        <input type="hidden" name="m" value="amouse_house" >
+        <input type="hidden" name="do" value="premises" >
+        <input type="hidden" name="c" value="site" />
+        <input type="hidden" name="a" value="entry" />
+        <input type="hidden" value="display" name="op">
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">关键字</label>
+			<div class="col-sm-8">
+					<input type="text" placeholder="搜索新楼盘名称" value="{$_GPC['keyword']}" id="" name="keyword" class="form-control">
+			</div>				
+		</div>
+
+		<div class="form-group">
+			<div class="pull-right col-xs-12 col-sm-2 col-lg-1">
+				<button class="btn btn-block"><i class="fa fa-search"></i> 搜索</button>
+			</div>
+		</div>
+		</form>
+	</div>
+</div>
+
+<div style="padding:15px;">
+	<form id="form2" class="form-horizontal" method="post">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<th style="width:50px;">全选</th>
+					<th style="width:120px;">名称</th>
+					<th>建筑类型</th>
+					<th>开发商</th>
+                    <th>物业公司</th>
+					<th style="width:150px;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $v}
+				<tr>
+					<td>
+						<input type="checkbox" value="{$item['id']}" name="delete[]">
+					</td>
+					<th title="{$v['name']}">{php echo cutstr($v['name'],30)} </th>
+					<th>{php echo cutstr($v['type'],30)} </th>
+					<td title="{$v['developers']}">
+						 {php echo cutstr($v['developers'],30)}
+					</td>
+                    <td title="{$v['property_compay']}">
+                        {php echo cutstr($v['property_compay'],30)}
+                    </td>
+					<td>
+					<a href="{php echo $this->createWebUrl('premises', array('op' => 'post', 'id' => $v['id']))}" title="编辑" class="btn btn-mini btn-primary"><i class="fa fa-edit"></i></a>
+					<a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('premises', array('id' => $v['id'],'op'=>'del'))}" title="删除" class="btn btn-mini btn-danger"><i class="fa fa-times"></i></a>
+					</td>				
+				</tr>
+				{/loop}
+
+                <tr>
+				    <td colspan="3">
+                    <input type="checkbox"  onclick="var ck = this.checked;$(':checkbox').each(function(){this.checked = ck});" name=''>
+				    <input class="btn btn-primary" type="submit" value="删除" name="submit" ></td><td></td><td></td><td></td>
+				</tr>
+			</tbody>
+		</table>
+        <div style="margin:0 auto;margin-right: auto;vertical-align: middle;text-align: center;" >
+            {$pager}
+        </div>
+		<input type="hidden" value="premises" name="do">
+		<input type="hidden" value="del" name="op">
+		<input type="hidden" name="token" value="{$_W['token']}" />
+    </form>
+	<script>
+		 $('#form2').submit(function(){
+			if($(":checkbox[name='delete[]']:checked").size() > 0){
+				return confirm('删除后不可恢复，您确定删除吗？');
+			}
+			return false;
+		}); 
+	</script>
+</div>
+{elseif $op == 'post'}
+    <div class="main">
+	<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" onsubmit="return validate(this);">
+	<div class="panel panel-default">
+
+        <div class="panel-heading"><h4>基本信息</h4></div>
+        <div class="panel-body">
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">图片</label>
+                <div class="col-sm-9">
+                    {php echo tpl_form_field_image('thumb', $item['thumb'])}
+                    <span class="help-block">
+                        建议图片大小为：400*240
+                    </span>
+                </div>
+            </div>
+            <div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">
+					<span style='color:red'>*</span>楼盘名称</label>
+				<div class="col-sm-4">
+					<input type="text" name="name" id="name" class="form-control" value="{$item['name']}" />
+				</div>
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                    <span style='color:red'>*</span>价 格</label>
+                <div class="col-sm-4">
+                    <input type="text" name="price" id="price" class="form-control" value="{$item['price']}" />
+                </div>
+			</div>
+
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                  建筑类型
+                </label>
+                <div class="col-sm-4">
+                    <input type="text" name="type" class="form-control" value="{$item['type']}" placeholder="比如：多层" />
+                </div>
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                    产权年限
+                </label>
+                <div class="col-sm-4">
+                    <input type="text" name="years" class="form-control" value="{$item['years']}" placeholder="70" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                    物业类别
+                </label>
+                <div class="col-sm-4">
+                    <input type="text" name="wytype" class="form-control" value="{$item['wytype']}" placeholder="普通住宅,商铺,建筑综合体" />
+                </div>
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                    产权类型
+                </label>
+                <div class="col-sm-4">
+                    <input type="text" name="cqtype" class="form-control" value="{$item['cqtype']}" placeholder="大产权房" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                    建筑面积
+                </label>
+                <div class="col-sm-4">
+                    <input type="text" name="jzarea" class="form-control" value="{$item['jzarea']}" placeholder="320000平方米 " />
+                </div>
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                    容  积  率
+                </label>
+                <div class="col-sm-4">
+                    <input type="text" name="ratio" class="form-control" value="{$item['ratio']}" placeholder="2.50" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                    占地面积
+                </label>
+                <div class="col-sm-4">
+                    <input type="text" name="floor_area" class="form-control" value="{$item['floor_area']}" placeholder="115000平方米" />
+                </div>
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                    绿  化  率
+                </label>
+                <div class="col-sm-4">
+                    <input type="text" name="afforestation" class="form-control" value="{$item['afforestation']}" placeholder="53%" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                    总  户  数
+                </label>
+                <div class="col-sm-4">
+                    <input type="text" name="total" class="form-control" value="{$item['total']}" placeholder="2294" />
+                </div>
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                    户型面积
+                </label>
+                <div class="col-sm-4">
+                    <input type="text" name="door_area" class="form-control" value="{$item['door_area']}" placeholder="二居86平米 三居101.24平米 三居125.74平米" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                    道路交通
+                </label>
+                <div class="col-sm-4">
+                    <input type="text" name="road_transport" class="form-control" value="{$item['road_transport']}" placeholder="乘坐公交5路、23路公交在锁江楼站下车，乘坐公交12路、17路、18路在171医院下车" />
+                </div>
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                    投  资  商
+                </label>
+                <div class="col-sm-4">
+                 <input type="text" name="investors" class="form-control" value="{$item['investors']}" placeholder="xxx节能置业" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                    开  发  商
+                </label>
+                <div class="col-sm-4">
+                    <input type="text" name="developers" class="form-control" value="{$item['developers']}" placeholder="置业有限公司" />
+                </div>
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                    物业公司
+                </label>
+                <div class="col-sm-4">
+                    <input type="text" name="property_compay" class="form-control" value="{$item['property_compay']}" placeholder="物业服务有限公司" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                    物  业  费
+                </label>
+                <div class="col-sm-4">
+                    <input type="text" name="propertypay" class="form-control" value="{$item['propertypay']}" placeholder="1.8元/月/平方米" />
+                </div>
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                    楼盘特色
+                </label>
+                <div class="col-sm-4">
+                    <input type="text" name="features" class="form-control" value="{$item['features']}" placeholder="品牌地产,科技住宅" />
+                </div>
+            </div>
+
+            <div class="panel-heading"><h4>销售信息</h4></div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                        售楼地址
+                    </label>
+                    <div class="col-sm-4">
+                        <input type="text" name="sales_addres" class="form-control" value="{$item['sales_addres']}" placeholder="与环城北路交汇" />
+                    </div>
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                        入住时间
+                    </label>
+                    <div class="col-sm-4">
+                        <input type="text" name="checkin_time" class="form-control" value="{$item['checkin_time']}" placeholder="二期2015.09.30" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                        销售状况
+                    </label>
+                    <div class="col-sm-4">
+                         <select name="sales_status" class="form-control" >
+                             <option value="">请选择</option>
+                             <option value="在售">在售</option>
+                             <option value="售罄">售罄</option>
+                             <option value="待罄">待罄</option>
+                         </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-heading"><h4>价格信息</h4></div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                        均　　价
+                    </label>
+                    <div class="col-sm-4">
+                        <input type="text" name="average_price" class="form-control" value="{$item['average_price']}" placeholder="5800元/平米" />
+                    </div>
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                        折扣价格
+                    </label>
+                    <div class="col-sm-4">
+                        <input type="text" name="discounted_costs" class="form-control" value="{$item['discounted_costs']}" placeholder="一次性95折，按揭97折，按时三天之内签99折" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                        付款方式
+                    </label>
+                    <div class="col-sm-4">
+                        <input type="text" name="payment" class="form-control" value="{$item['payment']}" placeholder="银行按揭贷款、一次性付款" />
+                    </div>
+                </div>
+            </div>
+            <div class="panel-heading"><h4>配套信息</h4></div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                        商业配套
+                    </label>
+                    <div class="col-sm-4">
+                        <textarea name="business" style="margin: 0px; width: 348px; height: 51px;">{$item['business']}</textarea>
+                    </div>
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                        银行
+                    </label>
+                    <div class="col-sm-4">
+                        <input type="text" name="banks" class="form-control" value="{$item['banks']}" placeholder="中国银行、建设银行、农业银行" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                        商圈
+                    </label>
+                    <div class="col-sm-4">
+                        <input type="text" name="trading_area" class="form-control" value="{$item['trading_area']}" placeholder="平洋商业中心" />
+                    </div>
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                        公园
+                    </label>
+                    <div class="col-sm-4">
+                        <input type="text" name="park" class="form-control" value="{$item['park']}" placeholder="新城中央公园" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                        酒店
+                    </label>
+                    <div class="col-sm-4">
+                        <input type="text" name="hotel" class="form-control" value="{$item['hotel']}" placeholder="速8,金钱豹大酒店" />
+                    </div>
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                        超市
+                    </label>
+                    <div class="col-sm-4">
+                        <input type="text" name="supermarket" class="form-control" value="{$item['supermarket']}" placeholder="华润万家、乐购、家乐福等" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                        人文自然景观
+                    </label>
+                    <div class="col-sm-4">
+                        <input type="text" name="humanities" class="form-control" value="{$item['humanities']}" placeholder="平洋商业中心" />
+                    </div>
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                        社区内配套
+                    </label>
+                    <div class="col-sm-4">
+                        <input type="text" name="supporting" class="form-control" value="{$item['supporting']}" placeholder="平洋商业中心" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                        内部配套
+                    </label>
+                    <div class="col-sm-4">
+             <input type="text" name="internal" class="form-control" value="{$item['internal']}" placeholder="双语幼儿园" />
+                    </div>
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                        车  位  数
+                    </label>
+                    <div class="col-sm-4">
+                        <input type="text" name="parking_number" class="form-control" value="{$item['parking_number']}" placeholder="1640（地上602、地下1038）" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                        基本参数
+                    </label>
+                    <div class="col-sm-4">
+                        <input type="text" name="base" class="form-control" value="{$item['base']}" placeholder="学区划分：小学、七中" />
+                    </div>
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                        公摊系数
+                    </label>
+                    <div class="col-sm-4">
+                        <input type="text" name="equally" class="form-control" value="{$item['equally']}" placeholder="高层19%" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                        周边商业
+                    </label>
+                    <div class="col-sm-4">
+                        <input type="text" name="surrounding" class="form-control" value="{$item['surrounding']}" placeholder="平洋商业中心" />
+                    </div>
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                        周边景观
+                    </label>
+                    <div class="col-sm-4">
+                        <input type="text" name="landscape" class="form-control" value="{$item['landscape']}" placeholder="平洋商业中心" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                        周边医院
+                    </label>
+                    <div class="col-sm-4">
+                        <input type="text" name="hospitals" class="form-control" value="{$item['hospitals']}" placeholder="人民医院" />
+                    </div>
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                        周边学校
+                    </label>
+                    <div class="col-sm-4">
+                        <input type="text" name="school" class="form-control" value="{$item['school']}" placeholder="一中" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                        周边交通
+                    </label>
+                    <div class="col-sm-4">
+                        <input type="text" name="traffic" class="form-control" value="{$item['traffic']}" placeholder="21路，18路，5路，119路" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-heading"><h4>设计施工</h4></div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                        建筑施工单位
+                    </label>
+                    <div class="col-sm-4">
+                        <input type="text" name="construction" class="form-control" value="{$item['construction']}" placeholder="南通一建" />
+                    </div>
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                        规划设计单位
+                    </label>
+                    <div class="col-sm-4">
+                        <input type="text" name="design" class="form-control" value="{$item['design']}" placeholder="美国XXX设计公司" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                        销售公司
+                    </label>
+                    <div class="col-sm-4">
+                        <input type="text" name="salecom" class="form-control" value="{$item['salecom']}" placeholder="香港美新置业公司" />
+                    </div>
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                        销售公司所在位置图片
+                    </label>
+                    <div class="col-sm-4">
+                        {php echo tpl_form_field_image('address', $item['address'])}
+                    <span class="help-block">
+                        建议图片大小为：400*240
+                    </span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                       项目介绍
+                    </label>
+                    <div class="col-sm-9 col-xs-12">
+                        <textarea id="introduction" name="introduction" class="form-control" cols="60">{$item['introduction']}</textarea>
+                    </div>
+                </div>
+
+            </div>
+
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+				<div class="col-sm-4">
+				<input type="hidden" name="id" value="{$item[id]}">
+				<input type="hidden" name="token" value="{$_W['token']}" />
+					<input name="submit" type="submit" value="提交" class="btn btn-primary span3" />
+				</div>
+			</div>
+		</div>
+
+
+	</div>
+	</form>
+</div>
+<script text="text/javascript">
+function validate() {
+	if($.trim($('select[name="bid"]').val()) == ''
+		||$.trim($('select[name="bid"]').val()) == 0) {
+		message('必须选择所属品牌.', '', 'error');
+		return false;
+	}
+	if($.trim($('select[name="sid"]').val()) == ''
+		||$.trim($('select[name="sid"]').val()) == 0) {
+		message('必须选择所属车系.', '', 'error');
+		return false;
+	}
+	if($.trim($(':text[name="title"]').val()) == '') {
+		message('必须填写年款名称.', '', 'error');
+		return false;
+	}
+	return true;
+}
+
+$(function () {
+    require(['jquery', 'util'], function ($, u) {
+        $(function () {
+            u.editor($('#introduction')[0]);
+        });
+    });
+});
+</script>
+{/if}	
+</div>

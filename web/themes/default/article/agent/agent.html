@@ -1,0 +1,242 @@
+{template 'common/header'}
+<ol class="breadcrumb">
+	<li><a href="./?refresh"><i class="fa fa-home"></i></a></li>
+	<li><a href="{url 'system/welcome'}">系统</a></li>
+	<li class="active">公司列表</li>
+</ol>
+<ul class="nav nav-tabs">
+	<li {if $do == 'category' || $do == 'category_post'}class="active"{/if}><a href="{php echo url('article/agent/category');}">公司地区</a></li>
+	<li {if $do == 'list'}class="active"{/if}><a href="{php echo url('article/agent/list');}">公司列表</a></li>
+	<li {if $do == 'post' && !$id}class="active"{/if}><a href="{php echo url('article/agent/post');}">添加公司</a></li>
+	{if $do == 'post' && $id}<li class="active"><a href="{php echo url('article/agent/post');}">编辑公司</a></li>{/if}
+</ul>
+{if $do == 'list'}
+<div class="clearfix">
+	<div class="panel panel-info">
+		<div class="panel-heading">筛选</div>
+		<div class="panel-body">
+			<form action="" method="get" class="form-horizontal" role="form">
+				<input type="hidden" name="c" value="article">
+				<input type="hidden" name="a" value="agent">
+				<input type="hidden" name="do" value="list">
+				<input type="hidden" name="cateid" value="{$_GPC['cateid']}">
+				<input type="hidden" name="createtime" value="{$_GPC['createtime']}">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">公司地区</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<div class="btn-group">
+							<a href="{php echo filter_url('cateid:0');}" class="btn {if $_GPC['cateid'] == 0}btn-primary{else}btn-default{/if}">不限</a>
+							{loop $categorys $category}
+							<a href="{php echo filter_url('cateid:' . $category['id']);}" class="btn {if $_GPC['cateid'] == $category['id']}btn-primary{else}btn-default{/if}">{$category['title']}</a>
+							{/loop}
+						</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">添加时间</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<div class="btn-group">
+							<a href="{php echo filter_url('createtime:0');}" class="btn {if $_GPC['createtime'] == 0}btn-primary{else}btn-default{/if}">不限</a>
+							<a href="{php echo filter_url('createtime:3');}" class="btn {if $_GPC['createtime'] == 3}btn-primary{else}btn-default{/if}">三天内</a>
+							<a href="{php echo filter_url('createtime:7');}" class="btn {if $_GPC['createtime'] == 7}btn-primary{else}btn-default{/if}">一周内</a>
+							<a href="{php echo filter_url('createtime:30');}" class="btn {if $_GPC['createtime'] == 30}btn-primary{else}btn-default{/if}">一月内</a>
+							<a href="{php echo filter_url('createtime:90');}" class="btn {if $_GPC['createtime'] == 90}btn-primary{else}btn-default{/if}">三月内</a>
+						</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">标题</label>
+					<div class="col-sm-8 col-lg-3 col-xs-12">
+						<input class="form-control" name="title" id="" type="text" value="{$_GPC['title']}">
+					</div>
+					<div class="pull-left col-xs-12 col-sm-2 col-lg-2">
+						<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+	<form action="{php echo url('article/agent/batch_post');}" method="post" class="form-horizontal" role="form">
+		<div class="panel panel-default">
+			<div class="panel-body table-responsive">
+				<table class="table table-hover">
+					<thead>
+						<tr>
+							<th width="80">排序</th>
+							<th width="160">公司电话</th>
+							<th width="300">标题</th>
+							<th>所属地区</th>
+							<th>在首页显示</th>
+							<th>是否显示</th>
+							<th>添加时间</th>
+							<th class="text-right">操作</th>
+						</tr>
+					</thead>
+					<tbody>
+					{loop $agent $agent}
+						<input type="hidden" name="ids[]" value="{$agent['id']}" />
+						<tr>
+							<td>
+								<input type="text" class="form-control" name="displayorder[]" value="{$agent['displayorder']}"/>
+							</td>
+							<td>
+								<input type="text" class="form-control" name="telephone[]" value="{$agent['telephone']}"/>
+							</td>
+							<td>
+								<input type="text" class="form-control" name="title[]" value="{$agent['title']}"/>
+							</td>
+							<td>{$categorys[$agent['cateid']]['title']}</td>
+							<td>
+								{if $agent['is_show_home'] == 1}
+								<span class="label label-success">是</span>
+								{else}
+								<span class="label label-danger">否</span>
+								{/if}
+							</td>
+							<td>
+								{if $agent['is_display'] == 1}
+									<span class="label label-success">显示中</span>
+								{else}
+									<span class="label label-danger">已隐藏</span>
+								{/if}
+							</td>
+							<td>{php echo date('Y-m-d H:i', $agent['createtime']);}</td>
+							<td class="text-right">
+								<a href="{php echo url('article/agent/post', array('id' => $agent['id']));}" class="btn btn-default">编辑</a>
+								<a href="{php echo url('article/agent/del', array('id' => $agent['id']));}" onclick="if(!confirm('确定删除吗')) return false;" class="btn btn-default">删除</a>
+							</td>
+						</tr>
+					{/loop}
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<div class="form-group">
+			<div class="col-sm-8 col-lg-9 col-xs-12">
+				<input type="submit" class="btn btn-primary" name="submit" value="提交" />
+				<input type="hidden" name="token" value="{$_W['token']}" />
+			</div>
+		</div>
+		{$pager}
+	</form>
+</div>
+{elseif $do == 'post'}
+<div class="clearfix">
+	<form action="{php echo url('article/agent/post');}" method="post" class="form-horizontal" role="form" id="form1">
+		<input type="hidden" name="id" value="{$agent['id']}"/>
+		<div class="panel panel-default">
+			<div class="panel-heading">编辑公司</div>
+			<div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">公司标题</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<input type="text" class="form-control" name="title" value="{$agent['title']}" placeholder="公司标题"/>
+						<div class="help-block">请填写公司标题</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">公司地区</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<select name="cateid" id="cateid" class="form-control">
+							<option value="">==请选择公司地区==</option>
+							{loop $categorys $category}
+							<option value="{$category['id']}" {if $agent['cateid'] == $category['id']}selected{/if}>{$category['title']}</option>
+							{/loop}
+						</select>
+						<div class="help-block">还没有地区，点我 <a href="{php echo url('article/agent/category_post');}" target="_blank"><i class="fa fa-plus-circle"></i> 添加分类</a></div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">缩略图</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						{php echo tpl_form_field_image('thumb', $agent['thumb'], '', array('dest_dir' => 'articles'));}
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label"></label>
+					<div class="col-sm-8">
+						<div class="help-block"><label class="checkbox-inline"><input type="checkbox" name="autolitpic" value="1"{if empty($item['thumb'])} checked="true"{/if}>提取内容的第一个图片为缩略图</label></div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">内容</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						{php echo tpl_ueditor('content', $agent['content']);}
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">公司电话</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<input type="text" class="form-control" name="telephone" value="{$agent['telephone']}" placeholder="公司电话"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">公司联系人</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<input type="text" class="form-control" name="author" value="{$agent['author']}" placeholder="公司联系人"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">手机号码</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<input type="text" class="form-control" name="mobilephone" value="{$agent['mobilephone']}" placeholder="手机号码"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">公司地址</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<input type="text" class="form-control" name="address" value="{$agent['address']}" placeholder="公司地址"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">排序</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<input type="text" class="form-control" name="displayorder" value="{$agent['displayorder']}" placeholder="阅读次数"/>
+						<div class="help-block">数字越大，越靠前。</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">是否显示</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<label class="radio-inline"><input type="radio" name="is_display" value="1" {if $agent['is_display'] == 1} checked{/if}> 显示</label>
+						<label class="radio-inline"><input type="radio" name="is_display" value="0" {if $agent['is_display'] == 0} checked{/if}> 不显示</label>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">显示在首页</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<label class="radio-inline"><input type="radio" name="is_show_home" value="1" {if $agent['is_show_home'] == 1} checked{/if}> 是</label>
+						<label class="radio-inline"><input type="radio" name="is_show_home" value="0" {if $agent['is_show_home'] == 0} checked{/if}> 否</label>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="form-group">
+			<div class="col-sm-8 col-lg-9 col-xs-12">
+				<input type="submit" class="btn btn-primary" name="submit" value="提交" />
+				<input type="hidden" name="token" value="{$_W['token']}" />
+			</div>
+		</div>
+	</form>
+</div>
+{/if}
+<script>
+	$(function(){
+		$('#form1').submit(function(){
+			if(!$.trim($(':text[name="title"]').val())) {
+				util.message('请填写公司标题', '', 'error');
+				return false;
+			}
+			if(!$.trim($('#cateid').val())) {
+				util.message('请选择公司地区', '', 'error');
+				return false;
+			}
+			if(!$.trim($('textarea[name="content"]').val())) {
+				util.message('请填写公司内容', '', 'error');
+				return false;
+			}
+			return true;
+		});
+	});
+</script>
+{template 'common/footer'}

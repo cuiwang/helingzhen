@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>城市店铺</title>
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" id="viewport">
+		<meta name="viewport" content="height=device-height, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" id="viewport">
+		<meta name="apple-touch-fullscreen" content="yes">
+	    <meta name="apple-mobile-web-app-capable" content="yes">
+	    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+	    <meta name="format-detection" content="telephone=no">
+	    <meta http-equiv="x-rim-auto-match" content="none"/>
+	    <meta name="HandheldFriendly" content="true"/>
+	    <meta name="viewport" content="target-densitydpi=device-dpi, width=480px, user-scalable=no" />
+        <meta name="viewport" content="target-densitydpi=get-target-densitydpi, width=device-width, user-scalable=no" />	
+
+		<link rel="stylesheet" type="text/css" href="{php echo HT}css/weui.css" />
+		<link rel="stylesheet" type="text/css" href="{php echo HT}css/Conn.css"/>
+		<link rel="stylesheet" href="{php echo HT}css/List_Info.css" />
+	</head>
+	<body>
+        {template 'guanzhu'}
+		
+		<!--最大的类目-->
+		<div class="screening">
+		    <ul class="item">
+		        <li class="Regional classColor">全部分类<div class="DownTriangle transformthis"></li>
+		        <li class="Brand ">全城 <div class="DownTriangle transformthis"></li>
+		        <li class="Sort">附近优先 <div class="DownTriangle transformthis"></li>
+		    </ul>
+		</div>
+	<div class="whiteCeng"></div>
+		<!--全部分类-->
+		<div class="grade-eject">
+		    <ul class="grade-w" id="gradew">
+		        <li onclick="grade1(this)" value="0">全部</li>
+		    	{loop $category $item}
+			        <li onclick="grade1(this)" value="{$item['id']}">{$item['name']}</li>
+		    	{/loop}
+		    </ul>
+		    <ul class="grade-t" id="gradet">
+
+		    </ul>
+		</div>
+		<!--全城-->
+		<div class="Category-eject">
+	    <ul class="Category-w" id="Categorytw">
+	    	{loop $district_all $district}
+		        <li onclick="Categorytw(this)" value="{$district['cir_id']}">{$district['district']}</li>
+	    	{/loop}
+	    </ul>
+	    <ul class="Category-t" id="Categoryt">
+	        
+	    </ul>
+	</div>
+	<!--附近优先-->	
+	<div class="Sort-eject Sort-height">
+    <ul class="Sort-Sort" id="Sort-Sort">
+        <li onclick="Sorts(this)" value="1">1千米</li>
+        <li onclick="Sorts(this)" value="3">3千米</li>
+        <li onclick="Sorts(this)" value="5">5千米</li>
+    </ul>
+</div>
+<div class="classify_cell"></div>
+	<div class="content">
+		<div class="weui_cells weui_cells_access ">
+		
+		</div>
+	</div>
+	</body>
+	<div style="height: 50px; text-align:center;">版权所有 {$confing['copyright']}</div>
+<script src="{php echo HT}js/jquery-1.8.2.min.js"></script>
+<script type="text/javascript" src="{php echo HT}js/dropload.min.js" ></script>
+<script src="{php echo HT}js/demo.js"></script>
+<script src="{php echo HT}js/lyz.delayLoading.min.js" type="text/javascript"></script><!-- 延迟加载的js-->
+<script type="text/javascript" src="{php echo HT}js/jweixin-1.0.0.js"></script>
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak={$confing['baiduak']}"></script>
+<script type="text/javascript">
+	
+	 	var latitude;
+        var longitude;
+        var dropObj;
+        var geolocation = new BMap.Geolocation();
+		geolocation.getCurrentPosition(function(r){
+			if(this.getStatus() == BMAP_STATUS_SUCCESS){
+				var mk = new BMap.Marker(r.point);
+				latitude = r.point.lat; 
+		     	longitude = r.point.lng;
+		     	if(latitude>1&&longitude>1){
+		   			for(var i=0;i<$('.jwVal').length;i++){
+				        var latlng=$('.jwVal').eq(i).attr('latlng').split(',');
+				       	if(latlng[0]>1&&latlng[1]>1){
+				       		$('.jwVal').eq(i).html(getdistance(latlng[0],latlng[1],latitude,longitude));
+				        }   
+			      	}  
+		          dropObj.resetload();
+		      	}
+			}
+			else {
+				alert('failed'+this.getStatus());
+			}        
+		},{enableHighAccuracy: true});
+
+		dropload('category,p',0);
+
+
+		$(".whiteCeng").click(function(event) {
+			$('.grade-eject,.Category-eject,.Sort-height').removeClass('grade-w-roll');
+			$(".whiteCeng").hide();
+			$('.item li').children("div").addClass('transformthis');
+			$('.item li').removeClass('zhuan');
+		});
+		$('.item li').each(function() {
+			$(this).click(function(event) {
+				if ($(this).children("div").hasClass('transformthis')) {
+					$(".whiteCeng").show();
+				}else{
+					$(".whiteCeng").hide();
+				}
+
+				if ($(this).hasClass('zhuan')) {
+					$(this).removeClass('zhuan');
+
+				}else{
+					for (var i = $('.item li').length - 1; i >= 0; i--) {
+						if ($('.item li').eq(i).hasClass('zhuan')) {
+							$('.item li').eq(i).children("div").toggleClass("transformthis");
+							$('.item li').eq(i).removeClass('zhuan')
+						}
+					}
+					$(this).addClass('zhuan');
+				}
+				$(this).addClass('classColor').siblings('li').removeClass('classColor');
+			});	
+		});
+		$('#gradew li').each(function() {
+			$(this).click(function(event) {
+				$(this).addClass('classColor').siblings('li').removeClass('classColor');
+			});	
+		});
+		$('#Categorytw li').each(function() {
+			$(this).click(function(event) {
+				$(this).addClass('classColor').siblings('li').removeClass('classColor');
+			});	
+		});
+
+
+	function grade1(obj){
+		dropObj.lock();
+        dropObj.noData();
+		var $this = $(obj);
+		dropload('category,p', $this.attr('value'));
+		if ($this.attr('value') == 0) {
+			$('.grade-eject,.Category-eject,.Sort-height').removeClass('grade-w-roll');
+			$(".whiteCeng").hide();
+			$('.item li').children("div").addClass('transformthis');
+			$('.item li').removeClass('zhuan');
+			return false;
+		}
+
+		var id = $this.attr('value');
+		var data = {
+			'id' : id
+		}
+	     $.ajax({
+            url: "{php echo $this->createMobileUrl('halfbus',array('op'=>'categoryAjax'))}",
+            type: "POST",
+            data: data,
+            cache:false,
+            dataType: "JSON",
+           	success: function(res){
+            	var result = "";
+            	$.each(res,function(index,value){
+            		result+='<li onclick="gradet(this)" value='+value.id+'>'+value.name+'<div class="classify_amount"></div></li>';
+            	});
+            	$('#gradet').html(result);
+            },
+            error: function(xhr, type){
+                // alert('Ajax error!');
+                // 即使加载出错，也得重置
+                me.resetload();
+            }
+        });            
+	}
+	function gradet(obj){
+		dropObj.lock();
+        dropObj.noData();
+		var $this = $(obj);
+		dropload('category,c', $this.attr('value'));
+		$('.grade-eject,.Category-eject,.Sort-height').removeClass('grade-w-roll');
+		$(".whiteCeng").hide();
+		$('.item li').children("div").addClass('transformthis');
+		$('.item li').removeClass('zhuan');
+	}
+	function Categorytw(obj){
+		dropObj.lock();
+        dropObj.noData();
+
+		var $this = $(obj);
+		dropload('district,p', $this.attr('value'));
+		var cir_id = $this.attr('value');
+		var data = {
+			'cir_id' : cir_id 
+		}
+	     $.ajax({
+            url: "{php echo $this->createmobileurl('halfbus',array('op'=>'circleAjax'))}",
+            type: "post",
+            data: data,
+            cache:false,
+            datatype: "json",
+           	success: function(res){
+           	
+                var lgt = eval('('+res+')');
+               
+            	var result = "";
+            	$.each(lgt,function(index,value){
+            		result+='<li onclick="Categoryt(this)" value='+value.cir_id+'>'+value.name+'</li>'
+            	});
+            	$('#Categoryt').html(result);
+            },
+            error: function(xhr, type){
+                // alert('ajax error!');
+                // 即使加载出错，也得重置
+                me.resetload();
+            }
+        });    
+
+	}
+	function Categoryt(obj){
+		dropObj.lock();
+        dropObj.noData();
+		var $this = $(obj);
+		dropload('district,c', $this.attr('value'));
+		$('.grade-eject,.Category-eject,.Sort-height').removeClass('grade-w-roll');
+		$(".whiteCeng").hide();
+		$('.item li').children("div").addClass('transformthis');
+		$('.item li').removeClass('zhuan');
+	}
+	function Sorts(obj){
+		dropObj.lock();
+        dropObj.noData();
+		var $this = $(obj);
+		dropload('sorts', $this.attr('value'));
+		$('.grade-eject,.Category-eject,.Sort-height').removeClass('grade-w-roll');
+		$(".whiteCeng").hide();
+		$('.item li').children("div").addClass('transformthis');
+		$('.item li').removeClass('zhuan');
+	}
+	//2016年6月1日15:00:37注释 动态加载商家
+	function dropload(type, id){
+		var page = 0;
+		$('.weui_cells_access').empty();
+		$('.dropload-down').remove();
+		$('.content').dropload({
+        scrollArea : window,
+        loadDownFn : function(me){
+        	
+            $.ajax({
+                type: 'POST',
+                url: "{php echo $this->createmobileurl('halfbus',array('op'=>'shopDroploadAjax'))}",
+                data:{page:page,id:id,type:type,latitude:latitude,longitude:longitude},
+                dataType: 'json',
+                success: function(data){
+                    var result = '';
+                    $.each(data,function(index,value){
+					
+						//2016年6月25日14:13:22添加
+						var now = new Date();
+						var week = now.getDay(); //当前周几 1周一...7周日
+						if(week == 0){
+							week = 7;
+						}
+						var day = now.getDay(); //每月多少号
+						if(value.discount_sign == 0){
+								desc = "天天享"
+						}else if(value.discount_sign == 1){ //每周享
+							var   discount_time = value.discount_time ;
+								if(discount_time == week){
+									desc = "今天可用";
+								}else {
+								   if(discount_time == 1){
+									   var ritime = '一';
+								   }else if(discount_time == 2){
+									   var ritime= '二'; 
+								   }else if(discount_time == 3){
+										var ritime= '三';
+								   }else if(discount_time == 4){
+									   var ritime= '四'; 
+								   }else if(discount_time == 5){
+									  var ritime= '五';  
+								   }else if(discount_time == 6){
+										var ritime= '六';
+								   }else if(discount_time == 7){
+									   var ritime= '日'; 
+								   }
+								   desc = "每周" +ritime  + "可用";
+								}
+						}else if(value.discount_sign == 2){ //每月享
+							if(discount_time == day){
+								desc = "今天可用";
+							}else {
+								desc = "每月" + value.discount_time + "号可用";
+							}
+						}
+					
+					
+                    	result+='<a class="weui_cell" href="{$_W['siteroot']}app/index.php?i={$_W['uniacid']}&c=entry&op=info&do=halfbus&m=hetu_halfoff&type=2&bus_id='+value.bus_id+'">';
+		        		result+='<div class="weui_cell_hd">';
+		            	result+='<img originalSrc={$_W['attachurl']}'+value.img+'  style="width:120px;height:70px;margin-right:4px;display:block">';
+		        		result+='</div>';
+		        		result+='<div class="weui_cell_bd weui_cell_primary">';
+		            	result+='<h2 style="color:#080808;" class="text_flow">'+value.name+'';
+						//2016年6月17日 10:19:03先设置为“折”   
+						result+='<p class="font-class" style="background-color: #FE6D3E;">'+desc+'</p>';
+		            	if (value.qiang > 0) {
+		            		result+='<p class="font-class">抢</p>';
+		            	}
+		            	if (value.zhe > 0) {
+		            		result+='<p class="font-class" style="background-color: #FE6D3E;">折</p>';
+		            	}
+		            	if (value.juan > 0) {
+		            		result+='<i class="font-class" style="background-color: #2CBBFF;">券</i>';
+		            	}
+		            	if (value.dui > 0) {
+		            		result+='<p class="font-class" style="background:rgb(234,50,130)">兑</p>';
+		            	}
+		            	result+='</h2>';
+		            	result+='<p class="m-p">'+ value.businesshour+'营业</p>';
+		            	result+='<p style="font-size:12px;"><span >'+value.cat_name+' | '+value.district+'</span>';
+		            	//判断是不是附近优先事件
+		            	if (!value.latlng) {
+		            		if (latitude>1&&longitude>1&&value.lat>1&&value.lng>1) {
+		            			result+='<em class="jwVal" style="float:right;">'+getdistance(latitude,longitude,value.lat,value.lng)+'</em></p>';
+		            		}else{
+		            			result+='<em class="jwVal" style="float:right;" latlng="'+value.lat+','+value.lng+'"></em></p>';
+		            		}
+		            	}else{
+		            		result+='<em class="jwVal" style="float:right;">'+value.latlng+'km</em></p>';
+		            	}
+		        		result+='</div>';
+		        		result+='<div class="weui_cell_ft">';
+		        		result+='</div>';
+		    			result+='</a>';
+                    });
+					dropObj=me;
+                    if (data.length < 6) {
+                        me.lock();
+                        // 无数据
+                        me.noData(); 
+                    }
+                    $('.weui_cells_access').append(result);
+                    page++;
+                    
+                    // 每次数据加载完，必须重置
+                    me.resetload();
+        			$("img").delayLoading({
+						defaultImg: "/wx/Public/Home/img/loading.jpg",           // 预加载前显示的图片
+						errorImg: "",                        // 读取图片错误时替换图片(默认：与defaultImg一样)
+						imgSrcAttr: "originalSrc",           // 记录图片路径的属性(默认：originalSrc，页面img的src属性也要替换为originalSrc)
+						beforehand: 0,                       // 预先提前多少像素加载图片(默认：0)
+						event: "scroll",                     // 触发加载图片事件(默认：scroll)
+						duration: "normal",                  // 三种预定淡出(入)速度之一的字符串("slow", "normal", or "fast")或表示动画时长的毫秒数值(如：1000),默认:"normal"
+						container: window,                   // 对象加载的位置容器(默认：window)
+						success: function (imgObj) {},      // 加载图片成功后的回调函数(默认：不执行任何操作)
+						error: function (imgObj) { }         // 加载图片失败后的回调函数(默认：不执行任何操作)
+					});
+                },
+                error: function(xhr, type){
+                    // alert('Ajax error!');
+                    // 即使加载出错，也得重置
+                    me.resetload();
+                }
+            });
+        },
+    });
+	}
+
+	function getRad(d){ 
+		return d*Math.PI/180.0; 
+	} 
+    function getdistance(lat1,lng1,lat2,lng2){ 
+
+		var f = getRad((parseFloat(lat1) + parseFloat(lat2))/2); 
+		var g = getRad((parseFloat(lat1) - parseFloat(lat2))/2); 
+		var l = getRad((parseFloat(lng1) - parseFloat(lng2))/2); 
+
+		var sg = Math.sin(g); 
+		var sl = Math.sin(l); 
+		var sf = Math.sin(f); 
+
+		var s,c,w,r,d,h1,h2; 
+		var a = 6378137.0; 
+		var fl = 1/298.257; 
+
+		sg = sg*sg; 
+		sl = sl*sl; 
+		sf = sf*sf; 
+
+		s = sg*(1-sl) + (1-sf)*sl; 
+		c = (1-sg)*(1-sl) + sf*sl; 
+
+		w = Math.atan(Math.sqrt(s/c)); 
+		r = Math.sqrt(s*c)/w; 
+		d = 2*w*a; 
+		h1 = (3*r -1)/2/c; 
+		h2 = (3*r +1)/2/s; 
+
+		return (d*(1 + fl*(h1*sf*(1-sg) - h2*(1-sf)*sg))/1000).toFixed(1)+'km'; 
+	} 
+
+
+
+    
+</script>
+
+	 <script type="text/javascript">
+    var _hmt = _hmt || [];
+    setTimeout(function(){
+        (function() {
+            var hm = document.createElement("script");
+            hm.src = "http://s4.cnzz.com/stat.php?id=1256263775&web_id=1256263775";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();
+    },0);
+</script>
+<script>
+	
+
+$(".con-ma,.g-em,.gray").click(function(event){
+	$(".gray").hide();
+	$(".link-KF").hide();
+	//$(".code_wrap").hide();
+	
+	
+	event.stopPropagation();
+
+});
+
+$(".linkKeFu").bind('click.myfunction',function(event){
+
+	$(".gray").show();
+	$(".gray").css("height",$(document).height());
+	$(".link-KF").css("top",$(window).height()/2-178);
+	$(".link-KF").show();
+/*event.stopPropagation();*/
+});
+
+	</script>
+
+</html>

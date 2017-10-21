@@ -1,0 +1,201 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li {if $op == 'post'}class="active"{/if}><a href="{php echo $this->createWebUrl('report', array('op' => 'post'));}">添加举报</a></li>
+	<li {if $op == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('report', array('op' => 'display'));}">举报管理</a></li>
+	<li {if $op == 'record'}class="active"{/if}><a href="{php echo $this->createWebUrl('report', array('op' => 'record'));}">举报记录</a></li>
+</ul>
+<style>
+.table td span{display:inline-block;margin-top:4px;}
+.table td input{margin-bottom:0;}
+th{
+	text-align: center !important;
+}
+td{
+	text-align: center !important;
+}
+.red{color:red;font-weight:bold}
+</style>
+{if $op == 'post'}
+<div class="panel panel-info">
+		<div class="panel-body">
+			<form action="" method="post" class="form-horizontal" role="form">
+			<input type="hidden" name="id" value="{$item[id]}">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">举报内容</label>
+				<div class="col-sm-4">
+					<input class="form-control" required="required" name="content" type="text" value="{$item['content']}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">排序</label>
+				<div class="col-sm-4">
+					<input class="form-control" name="sort" type="number" min="0" value="{$item['sort']}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">状态</label>
+				<div class="col-sm-4">
+					<label><input type="radio" name="status" checked="checked" value="0"> 禁用</label>
+					<label style="margin-left: 10px;"><input type="radio" name="status" {if $item['status']}checked="checked"{/if} value="1"> 启用</label>
+				</div>
+			</div>
+			<button type="submit" class="btn btn-primary" name="submit" value="提交">保存</button>
+			<input type="hidden" name="token" value="{$_W['token']}" />
+			</form>
+	</div>
+</div>
+{elseif $op == 'display'}
+<div class="main">
+<form action="" method="post" class="form-horizontal" role="form">
+	<div style="padding:15px;background: white;">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<th style="width: 90px;">序号</th>
+					<th>举报内容</th>
+					<th>状态</th>
+					<th>修改/删除</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $item}
+				<tr>
+					<td><input type="text" class="form-control" style="text-align: center;" name="sort[{$item['id']}]" value="{$item['sort']}"></td>
+					<td>{$item['content']}</td>
+					<td data-id='{$item["id"]}'>{if $item['status']}<label class="label label-success">启用</label>{else}<label class="label label-default">禁用</label>{/if}</td>
+					<td>
+						<a href="{php echo $this->createWebUrl('report', array('op' => 'post', 'id' => $item['id']))}" title="编辑" class="btn btn-sm btn-default"><i class="fa fa-edit"></i></a>
+						<a onclick="return confirm('确认删除吗？'); return false;" href="{php echo $this->createWebUrl('report', array('op' => 'del','id' => $item['id']))}" title="删除" class="btn btn-sm btn-danger"><i class="fa fa-remove"></i></a>
+					</td>
+				</tr>
+				{/loop}
+				<tr>
+	                <td colspan="4" style="text-align: left !important;">
+	                	<input name="token" type="hidden" value="{$_W['token']}" />
+	                    <input type="submit" class="btn btn-primary" name="submit" value="提交排序" />
+	                </td>
+	            </tr>
+			</tbody>
+		</table>
+		{$pager}
+	</div>
+</form>
+</div>
+<script>
+$('table label').click(function(){
+	var label = $(this);
+	$.ajax({
+		url:'{php echo $this->createWebUrl("report",array("op"=>"status"))}',
+		type:'post',
+		data:{id:label.parent().attr('data-id')},
+		success:function(status){
+			if(status == '1'){
+				if(label.hasClass('label-success')){
+					label.removeClass('label-success').addClass('label-default');
+					label.text('禁用');
+				}else{
+					label.removeClass('label-default').addClass('label-success');
+					label.text('启用');
+				}
+			}
+		}
+	});
+});
+</script>
+{elseif $op == 'record'}
+<style>
+.match_article {
+  width: 93%;
+  height: 5rem;
+  border-radius: 8px;
+  margin: 0 auto;
+  margin-top: 0.4rem;
+  position: relative;
+  display: block;
+}
+.match_article .article_title {
+  font-size: 0.725rem;
+  position: absolute;
+  left: 80%;
+  bottom: 8%;
+  color: white;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  z-index: 1;
+}
+.new_btn {
+  width: 1.2rem;
+  height: 1.2rem;
+  position: absolute;
+  right: 20%;
+  border-radius: 50%;
+  bottom: 5%;
+  z-index: 999;
+  overflow: hidden;
+}
+.article_dec{
+  width: 90%;
+  height: 2.5rem;
+  margin: 0 auto;
+  color: white;
+  font-size: 1rem;
+  font-family: PingFangSC-Medium;
+  font-size: 19px;
+  color: #FFFFFF;
+  padding-top: 0.625rem;
+  position: absolute;
+  left: 5%;
+  z-index: 1;
+  text-align: left;
+}
+.zhezhao{
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.29);
+  position: absolute;
+  top: 0; 
+}
+</style>
+<div class="main">
+<form action="" method="post" class="form-horizontal" role="form">
+	<div style="padding:15px;background: white;">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<th>简记</th>
+					<th>举报内容</th>
+					<th>时间</th>
+					<th>操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $item}
+				<tr>
+					<td>
+						<div class="match_article" data="niyuanyi" style="background:url({$item['cover']}) no-repeat;  background-position: center;background-repeat: no-repeat;background-size: cover;">
+							<img src="{$item['avatar']}" alt="" class="new_btn">
+							<div class="article_title">{$item['nickname']}</div>
+							<p class="article_dec">{$item['title']}</p>
+							<div class="zhezhao"></div>
+						</div>
+					</td>
+					<td>{$item['content']}</td>
+					<td>{php echo date('Y-m-d H:i:s',$item['createtime'])}</td>
+					<td>
+						<a href="../app/{php echo $this->createMobileUrl('myworks', array('wid' => base64_encode($item['wid']),'sp'=>$item['psw'],'f'=>'web'))}" target="view_window" class="btn btn-sm btn-default">访问</a>&nbsp;&nbsp;
+						{if !$item['status']}<a onclick="return confirm('确定禁用该简记吗?');return false;" href="{php echo $this->createWebUrl('report', array('op' => 'forbidden', 'wid' => $item['wid']))}" class="btn btn-sm btn-danger">禁用</a>{/if}
+					</td>
+				</tr>
+				{/loop}
+			</tbody>
+		</table>
+		{$pager}
+	</div>
+</form>
+</div>
+{/if}
+
+{template 'common/footer'}

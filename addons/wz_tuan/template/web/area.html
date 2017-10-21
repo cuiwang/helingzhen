@@ -1,0 +1,487 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<!--<li {if $operation=='limit'}class="active"{/if}><a href="{php echo $this->createWebUrl('area', array('op'=>'limit'));}">省份限制管理</a>
+	</li>-->
+	<li {if $operation=='yunfei' && $_GPC['yunfeiop']==''}class="active"{/if}><a href="{php echo $this->createWebUrl('area', array('op'=>'yunfei'));}">配送方式管理</a>
+	</li>
+	{if $_GPC['yunfeiop']}
+	<li {if $_GPC['yunfeiop']=='post'}class="active"{/if}><a href="{php echo $this->createWebUrl('area', array('op'=>'yunfei','yunfeiop'=>'post'));}">编辑配送方式</a>
+	</li>
+	{/if}
+</ul>
+{if $operation == 'limit'}
+<div class="main">
+    <form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" onsubmit='return formcheck()'>
+        <input type="hidden" name="id" value="{$dispatch['id']}" />
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                省份限制管理
+            </div>
+            <div class="panel-body">
+              <div class="form-group dispatch0">
+                    <div class="col-sm-9 col-xs-12">
+                   
+                        <table class="table table-hover" style="min-width: 300px;">
+                            <thead class="navbar-inner">
+                            <tr>
+                                <th style="height:40px;width:400px;">可购买商品的省份</th>
+                                <th style="height:40px;width:400px;">删除</th>
+                            </tr>
+                            </thead>
+                            <tbody id='tbody-areas'>
+                            {loop $arealimit_areas $row}
+                               {php $random = random(16);}
+                               {template 'web/arealimit'}
+                            {/loop}
+                            </tbody>
+                        </table>
+                          <a class='btn btn-default' href="javascript:;" onclick='addArea(this)'><span class="fa fa-plus"></span> 新增省份</a>
+                    </div>
+                    
+                        
+                    </div>
+                  </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label" >是否启用</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <label class='radio-inline'>
+                            <input type='radio' name='enabled' value=1' {if $arealimit2['enabled']==1}checked{/if} /> 是
+                        </label>
+                        <label class='radio-inline'>
+                            <input type='radio' name='enabled' value=0' {if $arealimit2['enabled']==0}checked{/if} /> 否
+                        </label>
+                    </div>
+                </div>
+            <div class="form-group"></div>
+            <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+                    <div class="col-sm-9 col-xs-12">
+                            <input type="submit" name="submitlimit" value="提交" class="btn btn-primary col-lg-1" onclick="return formcheck()" />
+                            <input type="hidden" name="token" value="{$_W['token']}" />
+                    </div>
+            </div>
+            
+            
+            </div>
+        </div>
+     
+    </form>
+</div>
+<style type='text/css'>
+    .province { float:left; position:relative;width:150px; height:35px; line-height:35px;border:1px solid #fff;}
+    .province:hover { border:1px solid #f7e4a5;border-bottom:1px solid #fffec6; background:#fffec6;}
+    .province .cityall { margin-top:10px;}
+    .province ul { list-style: outside none none;position:absolute;padding:0;background:#fffec6;border:1px solid #f7e4a5;display:none;
+    width:auto; width:300px; z-index:999999;left:-1px;top:32px;}
+    .province ul li  { float:left;min-width:60px;margin-left:20px; height:30px;line-height:30px; }
+ </style>
+ <div id="modal-areas"  class="modal fade" tabindex="-1">
+    <div class="modal-dialog" style='width: 920px;'>
+        <div class="modal-content">
+            <div class="modal-header"><button aria-hidden="true" data-dismiss="modal" class="close" type="button">×</button><h3>选择区域</h3></div>
+            <div class="modal-body" style='height:280px;;' > 
+                
+                {loop $areas['address']['province'] $value}
+                <div class='province'>
+                     <label class='checkbox-inline' style='margin-left:20px;'>
+                         <input type='checkbox' class='cityall' cityall="{php echo $value['@attributes']['name']}"/> {php echo $value['@attributes']['name']}
+                         <span class="citycount" style='color:#ff6600'></span>
+                     </label>
+                    {if count($value['city'])>0}
+                    <ul>
+                        {loop $value['city'] $c}
+                        <li>
+                             <label class='checkbox-inline'>
+                                  <input type='checkbox' class='city' style='margin-top:8px;' city="{php echo $c['@attributes']['name']}" /> {php echo $c['@attributes']['name']}
+                            </label>
+                     </li>
+                        {/loop}
+                    </ul>
+                    {/if}
+                </div>
+                {/loop}
+            
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id='btnSubmitArea' class="btn btn-success" data-dismiss="modal" aria-hidden="true">确定</a>
+                <a href="javascript:;" class="btn btn-default" data-dismiss="modal" aria-hidden="true">关闭</a>
+            </div>
+        </div>
+     </div>
+</div> 
+{elseif $operation == 'yunfei'}
+	{if $yunfeiop == 'display'}
+	<form action="" method="post">
+	<div class="main panel panel-default">
+	    <div class="panel-body table-responsive">
+	        <table class="table table-hover">
+	            <thead class="navbar-inner">
+	                <tr>
+	                    <th style="width:50px;">ID</th>
+	                    <th>派送名称</th>
+	                    <th>默认运费</th>
+	                    <th>状态</th>
+	                    <th>操作</th>
+	                </tr>
+	            </thead>
+	            <tbody>
+	                {loop $list $item}
+	                <tr>
+	                    <td>{$item['id']}</td>
+	                    <td>{$item['dispatchname']}</td>
+	                    <td>{$item['firstprice']}</td>
+	                    <td><label class='label  label-default {if $item['enabled']==1}label-info{/if}' >{if $item['enabled']==1}显示{else}隐藏{/if}</label></td>
+	                    <td style="text-align:left;">
+	                         <a href="{php echo $this->createWebUrl('area', array('op' => 'yunfei', 'yunfeiop'=>'post','id' => $item['id']))}" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="修改"><i class="fa fa-pencil"></i></a>
+	                         <a href="{php echo $this->createWebUrl('area', array('op' => 'yunfei', 'yunfeiop'=>'delete','id' => $item['id']))}" class="btn btn-default btn-sm" onclick="return confirm('确认删除此派送方式?')" title="删除"><i class="fa fa-times"></i></a>
+	                    </td>
+	                </tr>
+	                {/loop}
+	                <tr>
+	                    <td colspan='8'>
+	                        <a class='btn btn-default' href="{php echo $this->createWebUrl('area',array('op'=>'yunfei','yunfeiop'=>'post'))}"><i class='fa fa-plus'></i> 添加派送方式</a>
+	                        <input type="hidden" name="token" value="{$_W['token']}" />
+	                    </td>
+	                </tr>
+	            </tbody>
+	        </table>
+	    </div>
+	</div>
+	</form>
+	{elseif $yunfeiop == 'post'}
+		<div class="main">
+    <form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" onsubmit='return formcheck()'>
+        <input type="hidden" name="id" value="{$dispatch['id']}" />
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              	  派送区域运费设置
+            </div>
+             <div class="panel-body">
+             <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style="color:red">*</span>派送名称</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <input type="text" id='dispatchname' name="dispatchname" class="form-control" value="{$dispatch['dispatchname']}" />
+                    </div>
+                </div>
+              <div class="form-group dispatch0">
+                         <label class="col-xs-12 col-sm-3 col-md-2 control-label">派送区域</label>
+                    <div class="col-sm-9 col-xs-12">
+                   
+                        <table class="table table-hover" style="min-width: 300px;">
+                             <thead class="navbar-inner">
+                            <tr>
+                                <th style="height:40px;width:400px;">区域</th>
+                                <th style="width:120px;">运费（元）</th>
+                                <th style="width:120px;">管理</th>
+                            </tr>
+                            </thead>
+                            <tbody id='tbody-areas'>
+                            <tr>
+                                <td style="padding:10px;">全国 [默认运费]</td>
+                                <td class="text-center">
+                                    <input type="text" value="{$dispatch['firstprice']}" class="form-control" name="default_firstprice"  style="width:100px;"></td>
+                                <td></td>
+                            </tr>
+                            {loop $dispatch_areas $row}
+                               {php $random = random(16);}
+                               {template 'web/dispatch'}
+                            {/loop}
+                            </tbody>
+                        </table>
+                          <a class='btn btn-default' href="javascript:;" onclick='addArea(this)'><span class="fa fa-plus"></span> 新增派送区域</a>
+                    </div>
+                        
+                    </div>
+                  </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">是否启用</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <label class='radio-inline'>
+                            <input type='radio' name='enabled' value=1 {if $dispatch['enabled']==1}checked{/if} /> 是
+                        </label>
+                        <label class='radio-inline'>
+                            <input type='radio' name='enabled' value=0 {if $dispatch['enabled']==0}checked{/if} /> 否
+                        </label>
+                    </div>
+                </div>
+            <div class="form-group"></div>
+            <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+                    <div class="col-sm-9 col-xs-12">
+                            <input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" onclick="return formcheck()" />
+                            <input type="hidden" name="token" value="{$_W['token']}" />
+                    </div>
+            </div>
+            </div>
+    </form>
+</div>
+<style type='text/css'>
+    .province { float:left; position:relative;width:150px; height:35px; line-height:35px;border:1px solid #fff;}
+    .province:hover { border:1px solid #f7e4a5;border-bottom:1px solid #fffec6; background:#fffec6;}
+    .province .cityall { margin-top:10px;}
+    .province ul { list-style: outside none none;position:absolute;padding:0;background:#fffec6;border:1px solid #f7e4a5;display:none;
+    width:auto; width:300px; z-index:999999;left:-1px;top:32px;}
+    .province ul li  { float:left;min-width:60px;margin-left:20px; height:30px;line-height:30px; }
+ </style>
+ <div id="modal-areas"  class="modal fade" tabindex="-1">
+    <div class="modal-dialog" style='width: 920px;'>
+        <div class="modal-content">
+            <div class="modal-header"><button aria-hidden="true" data-dismiss="modal" class="close" type="button">×</button><h3>选择区域</h3></div>
+            <div class="modal-body" style='height:280px;;' > 
+                
+                {loop $areas['address']['province'] $value}
+                <div class='province'>
+                     <label class='checkbox-inline' style='margin-left:20px;'>
+                         <input type='checkbox' class='cityall' /> {php echo $value['@attributes']['name']}
+                         <span class="citycount" style='color:#ff6600'></span>
+                     </label>
+                    {if count($value['city'])>0}
+                    <ul>
+                        {loop $value['city'] $c}
+                        <li>
+                             <label class='checkbox-inline'>
+                                  <input type='checkbox' class='city' style='margin-top:8px;' city="{php echo $c['@attributes']['name']}" /> {php echo $c['@attributes']['name']}
+                            </label>
+                     	</li>
+                        {/loop}
+                    </ul>
+                    {/if}
+                </div>
+                {/loop}
+            
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:;" id='btnSubmitArea' class="btn btn-success" data-dismiss="modal" aria-hidden="true">确定</a>
+                <a href="javascript:;" class="btn btn-default" data-dismiss="modal" aria-hidden="true">关闭</a>
+            </div>
+        </div>
+     </div>
+</div> 
+	{/if}
+
+
+{/if}
+<script language='javascript'>
+    $(function(){
+        
+        $(':radio[name=dispatchtype]').click(function(){
+            var val = $(this).val();
+            $(".dispatch0,.dispatch1").hide();
+            $(".dispatch" + val ).show();
+        })
+      
+        $("select[name=express]").change(function(){
+              var obj = $(this);
+                var sel = obj.find("option:selected");
+                $(":input[name=expressname]").val(sel.data("name"));
+        });
+        {if !empty($dispatch['express'])}
+           $("select[name=express]").val("{$dispatch['express']}");
+        {/if}
+
+   
+        $('.province').mouseover(function(){
+              $(this).find('ul').show();
+        }).mouseout(function(){
+              $(this).find('ul').hide();
+        });
+        
+        $('.cityall').click(function(){
+            var checked = $(this).get(0).checked;
+            var citys = $(this).parent().parent().find('.city');
+            citys.each(function(){
+                $(this).get(0).checked = checked;
+            });
+            var count = 0;
+            if(checked){
+                count =  $(this).parent().parent().find('.city:checked').length;
+            }
+            if(count>0){
+               $(this).next().html("(" + count + ")")    ;
+            }
+            else{
+                $(this).next().html("");
+            }
+        });
+        $('.city').click(function(){
+            var checked = $(this).get(0).checked;
+            var cityall = $(this).parent().parent().parent().parent().find('.cityall');
+          
+            if(checked){
+                cityall.get(0).checked = true;
+            }
+            var count = cityall.parent().parent().find('.city:checked').length;
+            if(count>0){
+               cityall.next().html("(" + count + ")")    ;
+            }
+            else{
+                cityall.next().html("");
+            }
+        });    
+      
+    });
+    function getCurrents(withOutRandom){
+        var citys = "";
+        $('.citys').each(function(){
+             var crandom = $(this).prev().val();
+             if(withOutRandom && crandom==withOutRandom){
+                 return true;
+             }
+             citys+=$(this).val();
+        });
+        return citys;
+    }
+    function addCarrier(btn){
+        $(btn).button('loading');
+        $.ajax({
+            url:"{php echo $this->createWebUrl('area',array('op'=>'tpl1'))}",
+            dataType:'json',
+            success:function(json){
+                $(btn).button('reset');
+                 $('#tbody-carriers').append(json.html);
+            }
+        });
+    }
+    var current = '';
+    {if $operation=='yunfei'}
+    function addArea(btn){
+        $(btn).button('loading');
+        $.ajax({
+            url:"{php echo $this->createWebUrl('area',array('op'=>'tpl'))}",
+            dataType:'json',
+            success:function(json){
+                $(btn).button('reset');
+                current = json.random;
+              
+                $('#tbody-areas').append(json.html);
+                
+                 clearSelects();
+                
+                $("#modal-areas").modal();
+                var currents = getCurrents();
+                currents = currents.split(';');
+                var citystrs = "";
+               
+                $('.city').each(function(){
+                    var parentdisabled =false;
+                    for(var i in currents){
+                        if(currents[i]!='' && currents[i]==$(this).attr('city')){
+                            $(this).attr('disabled',true);
+                            $(this).parent().parent().parent().parent().find('.cityall').attr('disabled',true);
+                        }
+                    }
+                  
+                });
+                $('#btnSubmitArea').unbind('click').click(function(){
+                      $('.city:checked').each(function(){              
+                         citystrs+= $(this).attr('city') +";";
+                      });
+                      $('.' + current + ' .cityshtml').html(citystrs);
+                      $('.' + current + ' .citys').val(citystrs);
+                })
+            }
+        })
+    }
+    {else}
+    function addArea(btn){
+        $(btn).button('loading');
+        $.ajax({
+            url:"{php echo $this->createWebUrl('area',array('op'=>'tpl','limit'=>'limit'))}",
+            dataType:'json',
+            success:function(json){
+                $(btn).button('reset');
+                current = json.random;
+              
+                $('#tbody-areas').append(json.html);
+                
+                 clearSelects();
+                
+                $("#modal-areas").modal();
+                var currents = getCurrents();
+                currents = currents.split(';');
+                var citystrs = "";
+                 var priv = "";
+                $('.city').each(function(){
+                    var parentdisabled =false;
+                    for(var i in currents){
+                        if(currents[i]!='' && currents[i]==$(this).attr('city')){
+                            $(this).attr('disabled',true);
+                            $(this).parent().parent().parent().parent().find('.cityall').attr('disabled',true);
+                        }
+                    }
+                  
+                });
+                $('#btnSubmitArea').unbind('click').click(function(){
+                		$('.cityall:checked').each(function(){              
+                         priv+= $(this).attr('cityall') +";";
+                      });
+                      $('.city:checked').each(function(){              
+                         citystrs+= $(this).attr('city') +";";
+                      });
+                      $('.' + current + ' .cityshtml').html(priv);
+                      $('.' + current + ' .citys').val(priv);
+                })
+            }
+        })
+    }
+    {/if}
+    function clearSelects(){
+          $('.city').attr('checked',false).removeAttr('disabled');
+         $('.cityall').attr('checked',false).removeAttr('disabled');
+         $('.citycount').html('');
+    }
+    function editArea(btn){
+        current = $(btn).attr('random');
+        clearSelects();
+        var old_citys = $(btn).prev().val().split(';');
+      
+                
+        $('.city').each(function(){
+            var parentcheck = false;
+            for(var i in old_citys){
+                if(old_citys[i]==$(this).attr('city')){
+                    parentcheck = true;
+                    $(this).get(0).checked = true;
+                    break;
+                }
+            }
+            if(parentcheck){
+                $(this).parent().parent().parent().parent().find('.cityall').get(0).checked=  true;
+            }
+        });
+        
+        $("#modal-areas").modal();
+        var citystrs = '';
+        $('#btnSubmitArea').unbind('click').click(function(){
+                   $('.city:checked').each(function(){              
+                     citystrs+= $(this).attr('city') +";";
+                   });
+                   $('.' + current + ' .cityshtml').html(citystrs);
+                   $('.' + current + ' .citys').val(citystrs);
+        })
+           var currents = getCurrents(current);
+                currents = currents.split(';');
+                var citys = "";
+                $('.city').each(function(){
+                    var parentdisabled =false;
+                    for(var i in currents){
+                        if(currents[i]!='' && currents[i]==$(this).attr('city')){
+                            $(this).attr('disabled',true);
+                            $(this).parent().parent().parent().parent().find('.cityall').attr('disabled',true);
+                        }
+                    }
+                  
+                });
+    }
+    function formcheck() {
+        if ($("#dispatchname").isEmpty()) {
+            Tip.focus("dispatchname", "请填写派送方式名称!", "top");
+            return false;
+        }
+        return true;
+    }
+</script>
+
+
+
+{template 'common/footer'}

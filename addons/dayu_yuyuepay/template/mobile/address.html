@@ -1,0 +1,379 @@
+{template 'welocation'}
+<style>
+body{background-color:#f0f0f0;}
+h4 span{font-weight:300;font-size:12px;}
+
+.address-main{background:#fff;color:#999;}
+.address-main1{background:#e3fbfe;color:#333}
+
+.addadd{margin:10px 0 0;}
+.weui_media_box {padding:5px 15px 10px;}
+.weui_media_box.weui_media_text .weui_media_info {
+  margin-top: 10px;
+  padding-bottom: 0px;
+  font-size: 13px;
+  color: #CECECE;
+  line-height: 1em;
+  list-style: none;
+  overflow: hidden;
+}
+.weui_media_box.weui_media_text .weui_media_title {margin-bottom: 0px;}
+.weui_media_box .weui_media_desc {font-size: 13px;line-height: 1.2;}
+.weui_media_desc{padding:0;}
+</style>
+<div class="bg-blue weui-header "> 
+	<div class="weui-header-left">
+		<a class="f-white" href="javascript:history.go(-1)">
+			<svg class="icon f-white" aria-hidden="true">
+				<use xlink:href="#icon-left"></use>
+			</svg>
+		</a>
+	</div>
+		<h1 class="weui-header-title">我的联系方式</h1>
+	<div class="weui-header-right"><a class="icon icon-10 f-white"></a></div> 
+</div>  
+<div class="weui_tab_bd">
+<form class="form-horizontal" method="post" role="form">
+	
+		<div class="weui_panel weui_panel_access" style="margin:0;">
+		<div id="myaddress" class="weui_panel_bd">
+		{loop $addresses $row}
+			<div id="address_{$row['id']}" class="weui_media_box weui_media_text {if $row['isdefault']==1}address-main1{else}address-main{/if} address_item">
+				<h4 class="weui_media_title">
+					{$row['username']} 
+					<small><svg class="icon f14" aria-hidden="true">
+						<use xlink:href="#icon-phone"></use>
+					</svg>{$row['mobile']}</small>
+				</h4>
+				<div class="weui_media_desc">{$row['province']} {$row['city']} {$row['district']} {$row['address']}</div>
+				<ul class="weui_media_info">
+					<li class="weui_media_info_meta">
+						<a href="javascript:;" onclick="editAddress({$row['id']},{php echo $row['isdefault']==1?'1':'0'})" class="weui_btn weui_btn_mini weui_btn_default">
+							<svg class="icon" aria-hidden="true">
+								<use xlink:href="#icon-huibao"></use>
+							</svg> 修改
+						</a>
+					</li>
+					<li class="weui_media_info_meta">
+						<a href="javascript:;" onclick="removeAddress(event,{$row['id']})" class="weui_btn weui_btn_mini weui_btn_default">
+							<svg class="icon" aria-hidden="true">
+								<use xlink:href="#icon-close"></use>
+							</svg> 删除
+						</a>
+					</li>
+					<li class="weui_media_info_meta weui_media_info_meta_extra">
+						<a href="javascript:;" onclick="saveDefaultAddress(event,{$row['id']})" class="weui_btn weui_btn_mini weui_btn_primary right">
+							<svg class="icon" aria-hidden="true">
+								<use xlink:href="#icon-check"></use>
+							</svg> 设为默认
+						</a>
+					</li>
+				</ul>
+			</div>
+		{/loop}
+		</div>
+			<a href="javascript:void(0);" class="weui_panel_ft bold f-black" onclick="addAddress()">
+			<svg class="icon f-white" aria-hidden="true">
+				<use xlink:href="#icon-huibao"></use>
+			</svg> 添加联系方式</a>
+		</div>
+		
+		<div class="add-address" id="addAddressPanel" {if !empty($addresses)} style="display:none;"{/if}>
+		<div class="weui_cells_title">请填写联系方式：</div>
+		<div class="weui_cells weui_cells_form">
+    <div class="weui_cell">
+        <div class="weui_cell_hd"><label class="weui_label f14">联系人：</label></div>
+        <div class="weui_cell_bd weui_cell_primary">
+            <input class="weui_input" id="realname" type="text" placeholder="请输入联系人姓名">
+        </div>
+    </div>
+    <div class="weui_cell">
+        <div class="weui_cell_hd"><label class="weui_label f14">联系手机：</label></div>
+        <div class="weui_cell_bd weui_cell_primary">
+            <input class="weui_input" id="mobile" name="mobile" type="tel" placeholder="请输入联系电话">
+        </div>
+    </div>
+	{if $setting['smsid']}
+    <div class="weui_cell">
+		<input type="hidden" id="htel">
+		<input type="hidden" id="hsms">
+        <div class="weui_cell_hd"><label class="weui_label f14">验证码<span>*</span></label></div>
+        <div class="weui_cell_bd weui_cell_primary">
+            <input class="weui_input" id="sms" name="sms" type="tel" placeholder="请输入验证码">
+        </div>
+		<div class="weui_cell_ft" style="margin:0;">
+        <input type="button" id="sendsms" class="weui_btn weui_btn_mini weui_btn_primary" value="获取验证码">
+		</div>
+    </div>
+<script type="text/javascript">
+		var wait=60;  
+		function time(o) {
+			if (wait == 0) {
+				o.removeAttribute("disabled");
+				o.value="获取验证码";
+				wait = 60;
+			} else {
+				o.setAttribute("disabled", true);
+				o.value="重新发送(" + wait + ")";
+				wait--;  
+				setTimeout(function() {
+					time(o)
+				},
+            1000)
+			}
+		}
+	$("#sendsms").bind("click",function(){
+		var checktel = /^(((13[0-9]{1})|(15[0-9]{1})|(18[0-9]{1}))+\d{8})$/;
+			if($.trim($(':input[name="mobile"]').val())=='' || !checktel.test($.trim($('input[name="mobile"]').val()))){
+				$('#mobile').attr("readonly",false);
+				$.toast("请输入正确的手机号码", "cancel");
+				return false;
+			}else{
+				$('#mobile').attr('readonly',true);
+				var submitData = {};
+				$.post("{php echo murl('entry', array('do' => 'SendSms', 'id' => $setting['smsid'], 'm' => 'dayu_sms', 'form' => $_W['current_module']['name'], 'openid' => $openid), true, true)}"+"&mobile="+$("#mobile").val(), submitData,function(data){
+					if(data.message.state == 1) {
+						$("#htel").val(data.message.mobile);
+						$("#hsms").val(data.message.yzm);
+						$.toast(data.message.msg, "success");
+					}else{
+						$.toast(data.message.msg, "cancel");
+					}
+				},"json");
+				time(this);
+			}
+	});
+</script>
+	{/if}
+	
+              <div class="weui_cell weui_cell_select">
+                <div class="weui_cell_bd weui_cell_primary">
+						<select id="sel-provance" onChange="selectCity();" class="weui_select f14" style="width:30%; margin-right:2%;">
+							<option value="" selected="true">省/直辖市</option>
+						</select>
+						<select id="sel-city" onChange="selectcounty()" class="weui_select f14" style="width:30%; margin-right:2%;">
+							<option value="" selected="true">请选择</option>
+						</select>
+						<select id="sel-area" class="weui_select f14" style="width:30%;">
+							<option value="" selected="true">请选择</option>
+						</select>
+                </div>
+            </div>
+			<div class="weui_cell">
+				<div class="weui_cell_hd"><label class="weui_label f14">详细地址：</label></div>
+				<div class="weui_cell_bd weui_cell_primary">
+					<input class="weui_input" id="address" type="text" name="gpsaddress" placeholder="请输入详细地址">
+				</div>
+				{if $setting['qqkey']}
+				<span class="weui_cell_ft">
+					<a href="javascript:void(0);" onclick="getLocation(this);" class="f-red f18">
+						<svg class="icon f-white" aria-hidden="true">
+							<use xlink:href="#icon-Geo-fence"></use>
+						</svg>
+					</a>
+				</span>
+				<script type="text/javascript" src="{TEMPLATE_WEUI}QQgetLocation.js"></script>
+				{/if}
+			</div>
+
+			</div>
+		<div class="weui-flex">
+			<div class="weui-flex-item">
+				<div class="placeholder">
+					<button type="button" class="weui_btn weui_btn_primary" onclick="saveAddress()">
+						<svg class="icon f-white" aria-hidden="true">
+							<use xlink:href="#icon-check"></use>
+						</svg> 保存
+					</button>
+				</div>
+			</div>
+			<div class="weui-flex-item">
+				<div class="placeholder">
+					<button type="button" class="weui_btn weui_btn_default" onclick="addAddress();$('#addAddressPanel').hide();$('#addressid').val('');">
+						<svg class="icon f-white" aria-hidden="true">
+							<use xlink:href="#icon-close"></use>
+						</svg> 取消
+					</button>
+				</div>
+			</div>
+        </div>
+		</div>
+
+</form>
+	</div>
+<script type="text/javascript" src="{TEMPLATE_WEUI}area/cascade.js"></script>
+<script type="text/javascript">
+	var from='{$_GPC['from']}';
+	var returnurl = '{$_GPC['returnurl']}';
+	cascdeInit('','','');
+
+	function saveAddress() {
+		var realname = $('#realname').val();
+		var mobile = $('#mobile').val();
+		var province = $('#sel-provance').val();
+		var city = $('#sel-city').val();
+		var area = $('#sel-area').val();
+		var address = $('#address').val();
+		if (!realname) {
+			$.toast("请输入联系人！", "cancel");
+			return false;
+		}
+		if (!mobile) {
+			$.toast("请输入联系手机！", "cancel");
+			return false;
+		}
+		{if $activity['smsid']!=0}
+		var htel=$("#htel").val();
+		var hsms=$("#hsms").val();
+		var tel=$("#mobile").val();
+		var sms=$("#sms").val();
+		if(htel==tel){
+			if(hsms==sms){
+			}else{
+				$.toast("请输入正确验证码", "cancel");
+				return false;
+			}
+		}else{
+			$.toast("请获取验证码", "cancel");
+			return false;
+		}
+		{/if}
+		if (mobile.search(/^([0-9]{11})?$/) == -1) {
+			$.toast("请输入正确的联系手机！", "cancel");
+			return false;
+		}
+//		if (!address) {
+//			alert('请输入您的详细地址！');
+//			return false;
+//		}
+		$.showLoading();
+		$.post('{php echo $this->createMobileUrl('address')}', {
+			'op' : 'post',
+			'realname' : realname,
+			'mobile' : mobile,
+			'province' : province,
+			'city' : city,
+			'area' : area,
+			'address' : address,
+			'id' : $('#addressid').val()
+		}, function(s) {
+			$.toast("保存成功");
+			if (s.message != 0) {
+				if (from == 'dayu_yuyuepay') {
+					if (returnurl != '') {
+						window.location.href = decodeURIComponent(returnurl);;
+						return;
+					}
+					window.location.href = '{php echo $this->createMobileUrl('dayu_yuyuepay', array('reid'=>$reid,'datetime'=>$datetime))}';
+				}
+				$("input [name='address']").attr('checked', false);
+				
+			var html='<div class="weui_media_box weui_media_text address-main1 address_item" onclick="editAddress(' + s.message +')">' +
+					'<h4 class="weui_media_title">' +realname+' <span class="f14 tright"><i class="iconfont f14">&#xe601;</i>'+mobile+'</span></h4>' +
+					'<div class="weui_media_desc">'+province+' '+city+' '+area+' '+''+address+'</div>' +
+					'<ul class="weui_media_info">' +
+					'<li class="weui_media_info_meta"><a href="javascript:;" onclick="editAddress('+ s.message +')" class="weui_btn weui_btn_mini weui_btn_default"><i class="iconfont f12">&#xe627;</i> 修改</a></li>' +
+					'<li class="weui_media_info_meta"><a href="javascript:;" onclick="removeAddress('+ s.message +')" class="weui_btn weui_btn_mini weui_btn_default"><i class="iconfont f12">&#xe625;</i> 删除</a></li>' +
+					'<li class="weui_media_info_meta weui_media_info_meta_extra"><a href="javascript:;" onclick="saveDefaultAddress('+ s.message +')" class="weui_btn weui_btn_mini weui_btn_primary right"><i class="iconfont f12">&#xe626;</i> 设为默认</a></li>' +
+					'</ul>' +
+					'</div>';
+
+				if ($('#address_'+s.message).get(0)) {
+					$('#address_'+s.message).html(html1);
+				} else {
+					$(".address_item").removeClass("address-main1").addClass("address-main");
+					$('#myaddress').append($(html));
+				}
+
+				$('#realname').val('');
+				$('#mobile').val('');
+				$('#address').val('');
+				cascdeInit('','','');
+			}
+			$('#addAddressPanel').hide();
+		}, 'json');
+	}
+
+	function addAddress() {
+		$('#addAddressPanel').show();
+		$('#realname').val('');
+		$('#mobile').val('');
+		$('#address').val('');
+		cascdeInit('','','');
+		$('#addressid').val('');
+	}
+
+	function saveDefaultAddress(e,id) {
+		$.showLoading();
+		$.post('{php echo $this->createMobileUrl('address', array('op' => 'default'))}', {'id' : id}, function(s) {
+			$(".address_item").removeClass("address-main1").addClass("address-main");
+			$("#address_"+id).addClass("address-main1");
+			setTimeout(function() {
+				$.hideLoading();
+			}, 500)
+		}, 'json');
+			if (returnurl != '') {
+				window.location.href = decodeURIComponent(returnurl);
+				return;
+			}	
+		e.stopPropagation() ;
+	}
+
+	function removeAddress(e,id){
+		$.confirm("确认要删除此地址资料吗?", "确认删除?", function() {
+			$.showLoading();
+			$.post('{php echo $this->createMobileUrl('address', array('op' => 'remove'))}',
+					{ 'id' : id,},
+					function(s) {
+						$("#address_"+id).remove();
+						if(s.maxid!='0'){
+							$(".address_item").removeClass("address-main1").addClass("address-main");
+							$("#address_"+s.maxid).addClass("address-main1");
+						}
+						setTimeout(function() {
+							$.hideLoading();
+						}, 500)
+						$.toast("删除成功");
+					},
+					'json');
+			e.stopPropagation() ;
+		});
+	}
+
+	var isdef = 0;
+
+	function editAddress(id) {
+		if (false && from == 'dayu_yuyuepay'){
+			$.showLoading();
+			$.post('{php echo $this->createMobileUrl('address', array('op' => 'default'))}', {'id' : id}, function(s) {
+				setTimeout(function() {
+					$.hideLoading();
+				}, 500)
+			if (returnurl != '') {
+				window.location.href = decodeURIComponent(returnurl);
+				return;
+			}
+				window.location.href = '{php echo $this->createMobileUrl('dayu_yuyuepay', array('reid'=>$reid,'datetime'=>$datetime))}';
+			});
+			return;
+		}
+
+		$.showLoading();
+		$.get('{php echo $this->createMobileUrl('address', array('op' => 'detail'))}', {'id' : id}, function(s){
+			setTimeout(function() {
+				$.hideLoading();
+			}, 500)
+			if (s.message) {
+				$('#addAddressPanel').show();
+				$('#realname').val(s.message.username);
+				$('#mobile').val(s.message.mobile);
+				$('#address').val(s.message.address);
+				cascdeInit(s.message.province,s.message.city,s.message.district);
+				$('#addressid').val(s.message.id);
+			}
+		}, 'json');
+	}
+</script>
+{php $footer_off = 1;}
+{php $share = 1;}
+{template 'footers'}

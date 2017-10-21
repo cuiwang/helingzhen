@@ -1,0 +1,283 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+    <li class="active"><a href="{php echo $this->createWebUrl('feedback');}">问题反馈</a></li>
+</ul>
+
+<div class="panel panel-info">
+    <div class="panel-heading">筛选</div>
+
+    <div class="panel-body">
+
+        <form action="./index.php" method="get" class="form-horizontal" role="form">
+
+            <input type="hidden" name="c" value="site" />
+            <input type="hidden" name="a" value="entry" />
+            <input type="hidden" name="m" value="{MD}" />
+            <input type="hidden" name="do" value="feedback" />
+
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">关键字</label>
+                <div class="col-xs-12 col-sm-8 col-lg-9">
+                    <input class="form-control" name="keyword" type="text" value="{$_GPC['keyword']}" placeholder="请输入反馈内容/联系方式/用户微信昵称">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">受理状态</label>
+                <div class="col-xs-12 col-sm-8 col-lg-9">
+                    <select class="form-control" name="status">
+                        <option value="3" {if $_GPC['status']==3} selected  {/if}>请选择反馈意见的受理状态</option>
+                        <option value="1" {if $_GPC['status']==1} selected  {/if}>已受理</option>
+                        <option value="2" {if $_GPC['status']==2} selected  {/if} >未受理</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">时间筛选</label>
+                <div class="col-xs-12 col-sm-8 col-lg-9">
+                    {php echo tpl_form_field_daterange('time', $time);}
+                </div>
+            </div>
+
+
+            <div class="form-group">
+                <div class=" col-xs-12 col-sm-2 col-lg-2">
+
+                    <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="panel panel-default">
+
+
+
+    <div class="panel-heading">{if !empty($condition)}<span style="color:red">【符合搜索条件】</span>{/if}问题反馈详细数据  |  总数:{$total}</div>
+
+    <div class="panel-body table-responsive">
+
+        <form action="" method="post" onsubmit="">
+
+            <table class="table table-hover">
+
+                <thead class="navbar-inner">
+
+                <tr>
+                    <th style="width:1%;" class="row-first"></th>
+
+                    <th style="width:5%;" class="row-first">ID</th>
+
+                    <th style="width:10%;">昵称</th>
+
+                    <th style="width:10%;">头像</th>
+
+                    <th style="width:10%;">联系方式</th>
+
+                    <th style="width:28%;">反馈</th>
+
+                    <th style="width:10%;">状态</th>
+
+                    <th style="width:12%;">反馈时间</th>
+
+                    <th style="width:15%;">操作</th>
+
+                </tr>
+
+                </thead>
+
+                <tbody id="main">
+
+                {loop $feedback $row}
+
+                <tr class="selectedTr">
+
+                    <td><input  style="display:none" type="checkbox" name="ids[]" value="{$row['id']}" /></td>
+
+                    <td>{$row['id']}</td>
+
+                    <td style="white-space:normal;word-break:break-all"><a href="{php echo $this->createWebUrl('member',array('op'=>'mingxi','id'=>$row['id']))}" target="_blank">{if empty($row['nickname'])}用户{$row['id']}{else}{$row['nickname']}{/if}</a></td>
+
+                    <td><a href="{php echo $this->createWebUrl('member',array('op'=>'mingxi','id'=>$row['id']))}" target="_blank"><img style="width:70px" src="{php echo tomedia($row['avatar'])}"></a></td>
+
+                    <td style="white-space:normal;word-break:break-all">{$row['contact']}</td>
+
+                    <td style="white-space:normal;word-break:break-all">{$row['feedback']}</td>
+
+                    <td style="white-space:normal;word-break:break-all">{if !empty($row['status'])}已受理{else}<span style="color: red">未受理</span>{/if}</td>
+
+                    <td>{php echo date('Y-n-j G:i', $row['createtime']);}</td>
+
+                    {if empty($row['status'])}
+                    <td>
+                        {if !empty($iswebxinxi)}
+                        <a href="{php echo $this->CreateWebUrl('xinxi',array('op'=>'send','mid'=>$row['id']))}" ><div class="btn btn-success btn-sm">发信</div></a>
+                        {/if}
+                        {if $this->perm_check('apply',$user_perm,$perm_route)}
+                        <a href="{php echo $this->CreateWebUrl('feedback',array('op'=>'apply','id'=>$row['id']))}" onclick="return confirm('确认已受理该反馈信息吗？');return false;"><div class="btn btn-info btn-sm">受理</div></a>
+                        {/if}
+                        {if $this->perm_check('del',$user_perm,$perm_route)}
+                        <a href="{php echo $this->CreateWebUrl('feedback',array('op'=>'del','id'=>$row['id']))}" onclick="return confirm('确认删除此反馈信息吗？');return false;"><div class="btn btn-danger btn-sm">删除</div></a>
+                        {/if}
+                    </td>
+                    {else}
+                    <td>
+                        {if !empty($iswebxinxi)}
+                        <a href="{php echo $this->CreateWebUrl('xinxi',array('op'=>'send','mid'=>$row['id']))}" ><div class="btn btn-success btn-sm">发信</div></a>
+                        {/if}
+                        {if $this->perm_check('return',$user_perm,$perm_route)}
+                        <a href="{php echo $this->CreateWebUrl('feedback',array('op'=>'return','id'=>$row['id']))}" onclick="return confirm('确认重新受理该反馈信息吗？');return false;"><div class="btn btn-default  btn-sm">重新受理</div></a>
+                        {/if}
+                        {if $this->perm_check('del',$user_perm,$perm_route)}
+                        <a href="{php echo $this->CreateWebUrl('feedback',array('op'=>'del','id'=>$row['id']))}" onclick="return confirm('确认删除此反馈信息吗？');return false;"><div class="btn btn-danger btn-sm">删除</div></a>
+                        {/if}
+                    </td>
+                    {/if}
+                </tr>
+
+                {/loop}
+                {if !empty($_GPC['status'])}
+                <tr>
+                    <td colspan="2"></td>
+                    <td colspan="1"><div class="btn btn-success btn-sm" onclick="all2()">全选</div></td>
+                    <td colspan="1"><div class="btn btn-danger btn-sm" onclick="all3()">全不选</div></td>
+                    {if $_GPC['status']==2}
+                    <td colspan="1"></td>
+                    <td colspan="1">{if $this->perm_check('apply',$user_perm,$perm_route)}<div class="btn btn-primary btn-sm" onclick="allt()">受理选中的</div>{/if}</td>
+                    <td colspan="2">{if $this->perm_check('del',$user_perm,$perm_route)}<div class="btn btn-danger btn-sm" onclick="delall()">删除选中的</div>{/if}</td>
+                    <td colspan="1"></td>
+                    {else}
+                    <td colspan="1"></td>
+                    <td colspan="1">{if $this->perm_check('return',$user_perm,$perm_route)}<div class="btn btn-default btn-sm" onclick="allc()">全部重新受理</div>{/if}</td>
+                    <td colspan="3"></td>
+                    {/if}
+                </tr>
+                {/if}
+
+                </tbody>
+
+            </table>
+
+
+        </form>
+
+    </div>
+
+</div>
+{$pager}
+
+
+</div>
+<script>
+    function all2()
+    {
+        for(var i=0;i<$(".selectedTr").length;++i){
+            $(".selectedTr").eq(i).css("background","#FFCCCC");
+            $("input[name='ids[]']").eq(i).prop("checked", true);
+        }
+    }
+
+    function all3()
+    {
+        for(var i=0;i<$(".selectedTr").length;++i){
+            $(".selectedTr").eq(i).css("background","#fff");
+            $("input[name='ids[]']").eq(i).prop("checked", false);
+        }
+    }
+    function allc()
+    {
+        var str='';
+        var ids=0;
+        for(var i=0;i<$(".selectedTr").length;++i){
+            if($("input[name='ids[]']").eq(i).prop("checked")){
+                ids++;
+                str+=$("input[name='ids[]']").eq(i).val()+',';
+            }
+        }
+        if(ids==0)
+        {
+            alert("您未选中任意的需要受理的反馈信息!");
+        }
+        else
+        {
+            var a=confirm("您确定选中的"+ids+"个反馈信息重新受理吗？")
+            if(a==true){
+                location.href = "{php echo $_W['siteroot'].'web/'.substr($this->createWebUrl('feedback',array('op'=>'allc')),2)}"+"&str="+str;
+            }
+        }
+    }
+    function allt()
+    {
+        var str='';
+        var ids=0;
+        for(var i=0;i<$(".selectedTr").length;++i){
+            if($("input[name='ids[]']").eq(i).prop("checked")){
+                ids++;
+                str+=$("input[name='ids[]']").eq(i).val()+',';
+            }
+        }
+        if(ids==0)
+        {
+            alert("您未选中任意的需要受理的反馈信息!");
+        }
+        else
+        {
+            var a=confirm("您确定选中的"+ids+"个反馈信息为受理完毕吗？");
+            if(a==true){
+                location.href = "{php echo $_W['siteroot'].'web/'.substr($this->createWebUrl('feedback',array('op'=>'allt')),2)}"+"&str="+str;
+            }
+        }
+    }
+
+    function delall()
+    {
+        var str='';
+        var ids=0;
+        for(var i=0;i<$(".selectedTr").length;++i){
+            if($("input[name='ids[]']").eq(i).prop("checked")){
+                ids++;
+                str+=$("input[name='ids[]']").eq(i).val()+',';
+            }
+        }
+        if(ids==0)
+        {
+            alert("您未选中任意的需要删除的反馈信息!");
+        }
+        else
+        {
+            var a=confirm("您确定删除选中的"+ids+"个反馈信息吗？")
+            if(a==true){
+                location.href = "{php echo $_W['siteroot'].'web/'.substr($this->createWebUrl('feedback',array('op'=>'delall')),2)}"+"&str="+str;
+            }
+        }
+    }
+    $(function(){
+
+        $(".check_all").click(function(){
+
+            var checked = $(this).get(0).checked;
+
+            $("input[type=checkbox]").attr("checked",checked);
+
+        });
+
+        $(".selectedTr").bind('click', function() {
+            var index = $(this).index();
+            if($("input[name='ids[]']").eq(index).prop("checked")){
+                $(this).css("background","#fff");
+                $("input[name='ids[]']").eq(index).prop("checked", false);
+            }
+            else{
+                $(this).css("background","#FFCCCC");
+                $("input[name='ids[]']").eq(index).prop("checked", true);
+            }
+        });
+
+    });
+</script>
+
+{php echo $this->webnotice()}
+{template 'common/footer'}

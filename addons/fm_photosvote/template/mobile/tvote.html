@@ -1,0 +1,1350 @@
+{if strstr($templatename,'stylemb')}
+	<link href="{$_W['siteroot']}app/resource/css/bootstrap.min.css" rel="stylesheet">
+	<script src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+	<style>.container { padding-right: 0;padding-left: 0;}</style>
+{/if}
+{if ($_GPC['do'] == 'tuser' || $_GPC['do'] == 'tuserphotos') && !empty($tfrom_user)}
+<div style="  position: fixed;  bottom: 200px;  width: 65px;  height: 65px;  z-index: 10000;  right: 10px; {if ($_W['account']['level'] >= 3)}{if (!$rdisplay['openqr'])}display: none;{/if}{else}display: none;{/if} " onclick="ewm();">
+	<img src="{FM_STATIC_MOBILE}public/photos/ewm.png" width="65" style="border-radius:100px;">
+</div>
+<div class="modal fade" id="ewmdisplay" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="  margin-top: 0px;z-index:10000000">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<!--<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+				<h4 class="modal-title text-danger">{if $from_user == $tfrom_user}我{else}{if $user['realname']}{$user['realname']}{else}{$user['nickname']}{/if}{/if}的专属二维码</h4>
+			</div>-->
+			<div class="modal-body ewmbg" style="  background: #F9F9F9;">
+				<div class="form-group">
+					<div style="text-align:center; background-color: transparent;" id="ewmcode">
+						<span class="text-info tishi">{if $user['ewm']}正在生成{else}第一次生成会比较慢，请耐心等待{/if}
+							<p><img src="{FM_STATIC_MOBILE}public/photos/ajax-loader.gif" width="50"></p>
+							</span>
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="text-danger sys" style="text-align:center; background-color: transparent;  font-size: 20px;display:none">
+						<strong>扫码后为你喜欢的选手投票！</strong>
+					</div>
+				</div>
+
+			</div>
+		</div>
+		<!-- /.modal-content -->
+	</div>
+	<!-- /.modal-dialog -->
+</div>
+<!-- /.modal -->
+{/if}
+{if $rvote['iscode'] == 1} {if ($_GPC['do'] == 'tuser' || $_GPC['do'] == 'tuserphotos' || $_GPC['do'] == 'photosvote' || $_GPC['do'] == 'comment')}
+<style type="text/css">
+	* {
+	    margin: 0 auto;
+	}
+	.boxge {
+		position: fixed;
+		top: 25%;
+		/**left: 20%;**/
+		width: 300px;
+		margin: 30px auto;
+		z-index: 1111111;
+   		 width: 100%;
+	}
+
+	.header {
+		margin: 80px auto 30px auto;
+		text-align: center;
+		font-size: 34px;
+	}
+
+	input {
+		width: 200px;
+		padding: 6px 9px;
+	}
+
+	button {
+		cursor: pointer;
+		line-height: 35px;
+		width: 110px;
+		margin: 30px 0 0 90px;
+		border: 1px solid #FFFFF0;
+		background-color: #31C552;
+		border-radius: 4px;
+		font-size: 14px;
+		color: #FFFFF0;
+	}
+	.gt_holder{
+		left: 0;
+    		right: 0;
+   		margin: 0 auto;
+	}
+</style>
+<div class="boxge" id="div_geetest_lib">
+	<div id="captcha"></div>
+	<script src="http://static.geetest.com/static/tools/gt.js"></script>
+</div>
+{/if} {/if}
+{if $rvote['votenumpiao'] || $rvote['voteerinfo']}
+<div class="modal fade" id="vote_times" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="  margin-top: 60px;    z-index: 1200000;">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+				<h4 class="modal-title">{if $rvote['votenumpiao'] && !$rvote['voteerinfo']}请选择投票数{else}提交信息{/if}</h4>
+			</div>
+			<div class="modal-body">
+
+
+				<div class="form-group">
+					<div class="panel">
+						<div class="clearfix" style="padding-top:10px;">
+
+							{if $rvote['voteerinfo'] == 1}
+							<div class="input-group" style="    margin-bottom: 10px;">
+								<span class="input-group-addon" style="    font-size: 1.5em;">姓名</span>
+								<input type="text" name="vote_user_realname" id="vote_user_realname" class="form-control" value="{php $vinfo = $this->gettpinfo($rid, $from_user); echo $vinfo['realname']}" style="height: 46px; font-size: 1.5em;" />
+							</div>
+							<div class="input-group" style="    margin-bottom: 10px;">
+								<span class="input-group-addon" style="    font-size: 1.5em;">手机</span>
+								<input type="text" name="vote_user_mobile" id="vote_user_mobile" class="form-control" value="{php echo $vinfo['mobile']}" style="height: 46px; font-size: 1.5em;" />
+							</div>
+							{/if}
+
+							{if $rvote['votenumpiao'] == 1 && $rvote['votepay']}
+							<ul class="nav nav-pills" role="tablist" style="background: none;height: auto;position: relative;">
+							    <li role="presentation" class="active" style="width: 35%;"><a href="#payvote_nav" aria-controls="home" role="tab" data-toggle="tab" style="padding: 10px 5px;height: auto; text-align: center;    font-size: 15px;">付费投票</a></li>
+							    {if $rvote['giftvote']}
+							   		 <li role="presentation" style="width: 35%;"><a id="giftvoteurl" style="padding: 10px 5px;height: auto;    text-align: center;color: #428BCA;    font-size: 15px;">给他送礼</a></li>
+							    {/if}
+							  </ul>
+								<div class="tab-content" style="    margin-top: 20px;">
+							    		<div role="tabpanel" class="tab-pane active" id="payvote_nav">
+											<div class="input-group" {if $rvote[ 'voteerinfo']==1 }style="margin-top: 20px;" {/if}>
+												<!--<span class="input-group-addon" style="    font-size: 1.5em;">我要投</span>-->
+												<input type="hidden" name="vote_times" id="vote_times_val" class="form-control" value="1" style="height: 46px; font-size: 1.5em;" />
+												<!--<span class="input-group-addon" style="   font-size: 1.5em;">票</span>-->
+											</div>
+											<style type="text/css">
+												.list-group {
+													padding-left: 0;
+													margin-bottom: 20px;
+													width: 30%;
+													float: left;
+													margin-right: 3.3333%;
+												}
+
+												.list-group-item {
+													border: 1px solid #4cae4c;
+												}
+
+												a.list-group-item .list-group-item-heading {
+													color: #4cae4c;
+													text-align: center;
+													font-size: 16px;
+												}
+
+												.list-group-item-text {
+													color: #4cae4c;
+													text-align: center;
+													font-size: 12px;
+													padding: 0px 0px;
+    													margin: 0 -15px;
+												}
+											</style>
+											<div class="list-group">
+												<a href="javascript:;" class="list-group-item active" id="votepay_1" onclick="changevote('1')">
+													<h4 class="list-group-item-heading">1 票</h4>
+													<p class="list-group-item-text">价格{php echo $rvote['votepayfee']} 元</p>
+												</a>
+											</div>
+											<div class="list-group">
+												<a href="javascript:;" class="list-group-item" id="votepay_5" onclick="changevote('5')">
+													<h4 class="list-group-item-heading">5 票</h4>
+													<p class="list-group-item-text">价格{php echo $rvote['votepayfee']*5} 元</p>
+												</a>
+											</div>
+											<div class="list-group">
+												<a href="javascript:;" class="list-group-item" id="votepay_10" onclick="changevote('10')">
+													<h4 class="list-group-item-heading">10票</h4>
+													<p class="list-group-item-text">价格{php echo $rvote['votepayfee']*10} 元</p>
+												</a>
+											</div>
+											<div class="list-group">
+												<a href="javascript:;" class="list-group-item" id="votepay_30" onclick="changevote('30')">
+													<h4 class="list-group-item-heading">30 票</h4>
+													<p class="list-group-item-text">价格{php echo $rvote['votepayfee']*30} 元</p>
+												</a>
+											</div>
+											<div class="list-group">
+												<a href="javascript:;" class="list-group-item" id="votepay_50" onclick="changevote('50')">
+													<h4 class="list-group-item-heading">50 票</h4>
+													<p class="list-group-item-text">价格{php echo $rvote['votepayfee']*50} 元</p>
+												</a>
+											</div>
+											<div class="list-group">
+												<a href="javascript:;" class="list-group-item" id="votepay_100" onclick="changevote('100')">
+													<h4 class="list-group-item-heading">100票</h4>
+													<p class="list-group-item-text">价格{php echo $rvote['votepayfee']*100} 元</p>
+												</a>
+											</div>
+									</div>
+							    </div>
+							{/if}
+							<button class="btn btn-success btn-block col-sm-12" style="    padding: 2px 12px;text-align: center;margin: 0 auto;    background-color: #5cb85c;border-color: #4cae4c; color: #fff;    font-size: 16px;" id="vote_sub">确定</button>
+
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- /.modal-content -->
+	</div>
+	<!-- /.modal-dialog -->
+</div>
+<!-- /.modal -->
+{/if} {if $rvote['votepay'] || $rvote['regpay']}
+
+<div class="modal fade" id="pay" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="  margin-top: 60px;    z-index: 11111;">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+				<h4 class="modal-title">支付中心</h4>
+			</div>
+			<div class="modal-body">
+				<div class="form-group">
+					<!--<div style="text-align:center; background-color: transparent;" id = "ewmcode">
+								<div style="word-break: break-all;width:100%" id="payinfo">付款</div>
+							</div>-->
+					<div class="panel">
+						<div class="clearfix" style="padding-top:10px;font-size: 100%;text-align: left;">
+							{if $_GPC['do']=='reg'}
+								<p style="font-size: 16px;">付费名称 :<span class="pull-right">{$rvote['regpaytitle']}</span></p>
+								<p style="font-size: 16px;">付费说明 :<span class="pull-right">{$rvote['regpaydes']}</span></p>
+								<p style="font-size: 16px;">商家名称 :<span class="pull-right">{$_W['account']['name']}</span></p>
+								<p style="font-size: 16px;"><strong style="color:red">支付金额 :<span class="pull-right" id="votefee">￥{php echo sprintf('%.2f', $rvote['regpayfee']);} 元</span></strong></p>
+							{else}
+								<p style="font-size: 16px;">付费名称 :<span class="pull-right">{$rvote['votepaytitle']}</span></p>
+								<p style="font-size: 16px;">付费说明 :<span class="pull-right">{$rvote['votepaydes']}</span></p>
+								<p style="font-size: 16px;">商家名称 :<span class="pull-right">{$_W['account']['name']}</span></p>
+								<p style="font-size: 16px;">投票数 :<span class="pull-right" id="votenum">1</span></p>
+								<p style="font-size: 16px;"><strong style="color:red">支付金额 :<span class="pull-right" id="votefee">￥{php echo sprintf('%.2f', $rvote['votepayfee']);} 元</span></strong></p>
+							{/if}
+
+
+						</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<div class="" style="text-align: center;">
+						{if !empty($pay['wechat']['switch'])}
+						<div class="pay-btn" id="wechat-panel">
+							<form action="{php echo url('mc/cash/wechat');}" method="post">
+								<input type="hidden" name="params" id="toparams" value="{if $_GPC['do']=='reg'}{php echo base64_encode(json_encode($params));}{/if}" />
+								<input type="hidden" name="code" value="" />
+								<input type="hidden" name="coupon_id" value="" />
+								<button class="btn btn-success btn-block col-sm-12" style="padding: 0px 12px;margin: 0 auto;color: #fff;" disabled="disabled" type="submit" id="wBtn" value="wechat">微信支付</button>
+							</form>
+						</div>
+
+						<script type="text/javascript">
+							document.addEventListener('WeixinJSBridgeReady', function onBridgeReady() {
+								$('#wBtn').removeAttr('disabled');
+								$('#wBtn').html('微信支付');
+							});
+						</script>
+
+						{else}
+						<button class="btn btn-info btn-block col-sm-12" style="padding: 6px 12px;font-size: 15px;">请商家先在后台正确开启微信支付</button> {/if}
+					</div>
+
+				</div>
+
+			</div>
+		</div>
+		<!-- /.modal-content -->
+	</div>
+	<!-- /.modal-dialog -->
+</div>
+<!-- /.modal -->
+{/if} {if $rshare['subscribe']}
+<div class="modal fade bs-example-modal-sm" id="subsribe" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="  margin-top: 60px;">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title">关注 {$_W['account']['name']}</h4>
+			</div>
+			<div class="modal-body">
+				<div class="alert alert-warning text-center" role="alert">{if !empty($rshare['subscribedes'])}{$rshare['subscribedes']}{else}长按二维码进入{/if}<img src="{$_W['account']['qrcode']}" class="img-rounded" style="width:100%;" /></div>
+
+				<!--<div class="alert alert-info" role="alert"><a href="{$rshare['shareurl']}" class="btn btn-info" style='color:#fff;width:100%'>关注</a></div>-->
+
+			</div>
+		</div>
+		<!-- /.modal-content -->
+	</div>
+	<!-- /.modal-dialog -->
+</div>
+<!-- /.modal -->
+{/if}
+<div class="modal fade" id="fminfo" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="  margin-top: 60px;z-index:1000000000">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+				<h4 class="modal-title text-info">系统提示</h4>
+			</div>
+			<div class="modal-body">
+				<div class="form-group">
+					<div style="text-align:center; " class="alert alert-info text-info" id="fminfotext"></div>
+				</div>
+				{if $rvote['unimoshi']}
+				<div class="form-group">
+					{php $uniarr = explode(',',$rbasic['binduniacid']);} {loop $uniarr $row} {php $accounts = $this->getaccount($row);}
+					<div style="clear:both;"></div>
+					<div class="list-group" style="width: 100%;">
+
+						<div class="pull-left list-group-item-heading" style="    z-index: 1;padding: 6px;    position: relative;">
+							<img src="{php echo tomedia('qrcode_'.$accounts['acid'].'.jpg');}?time={php echo time()}" class="img-responsive img-thumbnail" style="height:50px;padding:0;" />
+						</div>
+						<a href="{$_W['siteroot']}app/index.php?i={$row}&c=entry&rid={$rid}&do=photosvote&m=fm_photosvote" class="list-group-item">
+							<h4 class="list-group-item-heading" style="text-align: left;">关注 {$accounts['name']} 参与活动</h4>
+							<p class="list-group-item-text" style="text-align: left;">长按左侧二维码，关注获得更多投票次数</p>
+						</a>
+					</div>
+					{/loop}
+				</div>
+				{/if}
+				{if $_GPC['do'] == 'photosvote' || $_GPC['do'] == 'tuser'|| $_GPC['do'] == 'tuserphotos' } {if !empty($rhuihua['huodongname']) && !empty($rhuihua['hhhdpicture']) && $rhuihua['ishuodong'] == 1 && !empty($rhuihua['huodongurl']) }
+
+				<div style="clear:both;"></div>
+				<div class="list-group" style="width: 100%;">
+					<a href="{$rhuihua['huodongurl']}&from=fm_photosvote&oid={$from_user}" class="list-group-item">
+						<div class="pull-left list-group-item-heading" style="margin-right:15px;    position: relative;top: -4px;">
+							<img src="{php echo toimage($rhuihua['hhhdpicture'])}" class="img-responsive img-thumbnail" style="height:50px;padding:0;" />
+						</div>
+						<h4 class="list-group-item-heading" style="text-align: left;">{$rhuihua['huodongname']}</h4>
+						<p class="list-group-item-text" style="text-align: left;">{php echo cutstr($rhuihua['huodongdes'],'30')}</p>
+					</a>
+				</div>
+				{/if}
+				{/if}
+				{if $rdisplay['isvotexq']}
+				<div class="form-group">
+					<a href="{$advarr['link']}"><img src="{$advarr['thumb']}" alt="{$advarr['advname']}" width="100%"></a>
+				</div>
+				{/if}
+			</div>
+		</div>
+		<!-- /.modal-content -->
+	</div>
+	<!-- /.modal-dialog -->
+</div>
+<!-- /.modal -->
+<style type="text/css">
+	.overlay_container {
+		position: fixed;
+		z-index: 100003;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		background: rgba(0, 0, 0, .15);
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		-webkit-box-orient: vertical;
+		-webkit-flex-flow: column;
+		-webkit-flex-direction: column;
+		-ms-flex-direction: column;
+		flex-direction: column;
+		-webkit-transition-property: opacity;
+		-webkit-transition-duration: 100ms;
+		-webkit-backface-visibility: hidden
+	}
+
+	.overlay_container:after,
+	.overlay_container:before {
+		content: '';
+		display: block;
+		-webkit-box-flex: 1;
+		-webkit-flex: 1;
+		-ms-flex: 1;
+		flex: 1
+	}
+
+	.overlay_container.unmasked {
+		background: transparent;
+		pointer-events: none
+	}
+
+	.overlay_container.beforeFadeIn {
+		opacity: 0
+	}
+
+	.overlay_container.afterFadeOut {
+		opacity: 0
+	}
+
+	.overlay_content_container {
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		-webkit-box-orient: horizon;
+		-webkit-flex-flow: row;
+		-webkit-flex-direction: row;
+		-ms-flex-direction: row;
+		flex-direction: row
+	}
+
+	.overlay_content_container:after,
+	.overlay_content_container:before {
+		content: '';
+		display: block;
+		-webkit-box-flex: 1;
+		-webkit-flex: 1;
+		-ms-flex: 1;
+		flex: 1
+	}
+
+	.overlay_content {
+		-webkit-transition-property: -webkit-transform;
+		-webkit-transition-duration: 150ms;
+		-webkit-transform-origin: 50% 50%;
+		pointer-events: auto
+	}
+
+	.toast {
+		width: 210px;
+		padding: 16px;
+		font-size: 16px;
+		line-height: 20px;
+		background-color: rgba(0, 0, 0, .9);
+		border-radius: 8px;
+		color: #fff;
+		text-align: center;
+		z-index: 100000;
+	}
+
+	#bodyhidden {
+		position: fixed;
+		z-index: 10000;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		background: rgba(0, 0, 0, .15);
+		display: -webkit-box;
+		display: -webkit-flex;
+		display: -ms-flexbox;
+		display: flex;
+		-webkit-box-orient: vertical;
+		-webkit-flex-flow: column;
+		-webkit-flex-direction: column;
+		-ms-flex-direction: column;
+		flex-direction: column;
+		-webkit-transition-property: opacity;
+		-webkit-transition-duration: 100ms;
+		-webkit-backface-visibility: hidden;
+		background: rgba(0, 0, 0, 0.7);
+	}
+	.Share{ position: fixed; z-index: 9999999; top: 0; right: 0; bottom: 0; left: 0;
+background-color: rgba(0, 0, 0, 0.8);  display: none; }
+
+.close, .Aclose{
+	position: absolute;
+	right: 0%;
+	width: 20%;
+	text-align: center;
+	display: block;
+	/**height: 10%;**/
+}
+.close{top: 4%;}
+.Aclose{
+	top: 12%;
+}
+.Afu {
+	background: url({FM_STATIC_MOBILE}public/images/tpmsgbg.png?s=2) no-repeat;
+	background-size: 100%;
+	height: 100%;
+	margin-top: 10%;
+	padding-top: 19%;
+}
+
+.Afu-change{
+	text-align: center;
+	color: #fff;
+	font-size: 14px;
+	padding-top:1%;
+}
+.Afu-change font{
+	color: #ffde4f;
+
+}
+.Afu .Bfu-but {
+	margin-top: 0%;
+
+}
+.Afu-title{
+	text-align: center;
+	color: #fff;
+	font-size: 17px;
+	font-weight: bold;
+	padding-bottom: 20%;
+    width: 70%;
+    margin: 0 auto;
+}
+
+.Afu-but{
+	background: url({FM_STATIC_MOBILE}public/images/ana.png) no-repeat;
+	background-size: 100%;
+	width: 65%;
+	margin: 0px auto;
+	display: block;
+	height: 10%;
+	line-height: 40px;
+	color: #fff;
+	text-align: center;
+	font-weight: bold;
+	font-size: 16px;
+}
+
+.Bfu-but{
+	background: url({FM_STATIC_MOBILE}public/images/anb.png) no-repeat;
+	background-size: 100%;
+	width: 65%;
+	margin: 0px auto;
+	display: block;
+	height: 9%;
+	line-height: 40px;
+	color: #fff;
+	text-align: center;
+	font-weight: bold;
+	font-size: 16px;
+}
+.fu-text {
+	color:#ffde4f;
+}
+</style>
+<div class="Share" id="ready_vote" style="/* display: none; */">
+	<div class="Afu">
+		<p class="Afu-title" id="vote_msg">您今天投票次数已经用完</p>
+		{if $rvote['votenumpiao'] == 1}
+			{if $rvote['giftvote']}
+				<a href="" class="Afu-but" id="gifta" style="color:#fff;">给Ta送礼物</a>
+			{/if}
+			{if $rvote['votepay']}
+				<a href="javascript:;" id="giftff" class="Afu-but" style="color:#fff;">付费投票</a>
+			{/if}
+		{/if}
+		{if $rvote['isanswer'] == 1}
+			{if ($voteer['is_user_chance'] > 0 || $voteer['is_user_chance'] === '')}
+				<a href="" id="answer" class="Afu-but" style="color:#fff;">答题获取</a>
+			{/if}
+		{/if}
+			<a href="" id="giftb" class="Bfu-but" style="color:#fff;">看看他</a>
+
+		{if $rvote['addpvapp']}
+			<!--<p class="Afu-change"><font>一起来参与吧</font></p>-->
+			<a href="{php echo $this->createMobileUrl('reg', array('rid' => $rid))}" class="Bfu-but" style="color:#fff;">我要报名</a>
+		{/if}
+		<!--<p class="Afu-change"><font><a href="{php echo $this->createMobileUrl('des', array('rid' => $rid))}" style="color:#ffde4f;">活动详情</a></font></p>
+		<p style="text-align: center; font-size: 11px; color: #b589ea;"></</p>-->
+		<a href="javascript:closeDiv();" class="close" style="height: 10%; right:10%;"></a>
+	</div>
+</div>
+<div class="loading" style="display: none;"></div>
+<div class="overlay_container j_overlay_container unmasked beforeFadeIn" style="display: none;">
+	<div class="overlay_content_container j_overlay_content_container">
+		<div class="overlay_content">
+			<div id="toast" class="toast"></div>
+		</div>
+	</div>
+</div>
+<div id="bodyhidden" style="display: none;"></div>
+{if ($rvote['open_lbs_type'] != 2 && $rvote['open_lbs_type'] != 3)}
+	<script charset="utf-8" src="http://map.qq.com/api/js?v=2.exp&libraries=convertor"></script>
+{/if}
+<script>
+	function closeDiv(){
+		fmloaddingt('.overlay_container', '', '2');
+		$("#bodyhidden").hide();
+		document.getElementById('ready_vote').style.display='none';
+		//document.getElementById('no_change').style.display='none';
+		//document.getElementById('draw_fu').style.display='none';
+	}
+	function sharecloseDiv(){
+		fmloaddingt('.overlay_container', '', '2');
+		document.getElementById('share_fu').style.display='none';
+	}
+	function showsharediv(){
+		fmloaddingt('.overlay_container', '', '2');
+		document.getElementById('share_fu').style.display='block';
+	}
+	function showtp(tfrom_user,msg) {
+		var giftaurl ="{php echo $this->createMobileUrl('giftvote', array('rid' => $rid))}&tfrom_user="+tfrom_user;
+		var tuseraurl ="{php echo $this->createMobileUrl('tuser', array('rid' => $rid))}&tfrom_user="+tfrom_user;
+		var answer ="{php echo $this->createMobileUrl('answer', array('rid' => $rid))}&tfrom_user="+tfrom_user;
+		$('#gifta').attr('href',giftaurl);
+		$('#giftb').attr('href',tuseraurl);
+		$('#answer').attr('href',answer);
+        $("#ready_vote").show();
+        $("#vote_msg").html(msg);
+        $("#giftff").click(function(){
+			//$('#vote_times').modal('show');
+			$('#vote_times').modal({backdrop: 'static', keyboard: false});
+			$("#ready_vote").hide();
+			$("#vote_sub").one("click", function() {
+				var vote_times = $('#vote_times_val').val(),
+					vfrom = "{$_GPC['do']",
+					votepay = "{$rvote['votepay']}",
+					posturl = "{php echo $this->createMobileUrl('Tvotestart', array('vote' => '1', 'rid' => $rid, 'votepay'=>1, 'vcd' => $this->votecode($rid, $from_user,'fmoons')))}&up_voteer=1";;
+
+				var submitData = {
+					tfrom_user: tfrom_user,
+					vote_times: vote_times,
+					vfrom: vfrom,
+				};
+
+				post_vote(submitData, posturl, tfrom_user, votepay, '1');
+				return false;
+			});
+		});
+	}
+	$("#vote_times").click(function(){
+		$("#bodyhidden").hide();
+	});
+
+	$("#pay").click(function(){
+		$("#bodyhidden").hide();
+	});
+
+	$("#fminfo").click(function(){
+		$("#bodyhidden").hide();
+	});
+	function changevote(p) {
+		$("#vote_times_val").val(p);
+		$(".list-group-item").removeClass("active");
+		$("#votepay_" + p).addClass("active");
+	}
+
+	function fmloadding(id, text) {
+		$(id).show();
+		$("#bodyhidden").show();
+		$(id).removeClass("beforeFadeIn");
+		$(id).css("top", "0");
+		setTimeout(function() {
+			$(id).hide();
+			$("#bodyhidden").hide();
+			$(id).addClass("beforeFadeIn");
+		}, 3000)
+		$('#toast').html(text);
+	}
+
+	function fmloaddingt(id, text, status) {
+		if (status == 2) {
+			$(id).hide();
+			$(id).addClass("beforeFadeIn");
+		} else if (status == 3) {
+			$(id).show();
+			$(id).removeClass("beforeFadeIn");
+			$(id).css("z-index", "100000000");
+			$(id).css("top", "0");
+			$(".modal").css("z-index", "1000000");
+			setTimeout(function() {
+				$(id).hide();
+				$(id).addClass("beforeFadeIn");
+			}, 3000)
+			$('#toast').html(text);
+		} else if (status == 4) {
+			$(id).show();
+			$(id).removeClass("beforeFadeIn");
+			$(id).css("top", "35%");
+
+			$('#toast').html(text);
+		} else {
+			$(id).show();
+			$("#bodyhidden").show();
+			$(id).removeClass("beforeFadeIn");
+			$(id).css("top", "0");
+			$('#toast').html(text);
+		}
+
+	}
+
+	function fminfo(text) {
+		$('#fminfo').modal('toggle');
+		$('#fminfotext').html(text);
+	}
+
+	function ewm() {
+		$('#ewmdisplay').modal({backdrop: 'static', keyboard: false});
+		var ewm = "{$ewmurl}";
+		if (ewm != '' && ewm != null) {
+			$('.tishi').hide();
+			$('.sys').show();
+			$('#ewmcode').html('<img width="100%" src="' + ewm + '"/>');
+			return
+		}else{
+			$.post("{php echo $this->createMobileUrl('qrcode', array('rid' => $rid,'url' => $url, 'code' => $qrcodearr, 'uid' => $user['uid'], 'tfrom_user' => $tfrom_user))}", function(data) {
+			//console.log(data);
+				if (data.success == true) {
+					$('.tishi').hide();
+					$('.sys').show();
+					$('#ewmcode').html('<img width="100%" src="' + data.linkurl + '" alt="{$user['nickname']}"/>');
+					return
+				} else {
+					fmloadding('.overlay_container', data.msg);
+					$('#ewmcode').html('<span class="text-danger">' + data.msg + '</span>');
+					setTimeout(function () {
+						window.location.reload();
+					},2000)
+					return
+				}
+			}, "json")
+		}
+
+	}
+
+	function tvotep(tfrom_user) {
+
+		{if $rvote['opendx']}
+			fmloadding('.overlay_container', '请点击多选投票');
+			return false;
+		{/if}
+		var iscode = "{$rvote['iscode']}";
+		var from_user = "{$from_user}";
+		var now = "{$now}";
+		var tstart_time = "{$rbasic['tstart_time']}";
+		var tend_time = "{$rbasic['tend_time']}";
+		var ttipstart = "{$rbasic['ttipstart']}";
+		var ttipend = "{$rbasic['ttipend']}";
+		var votetime = "{$rbasic['votetime']}";
+		var ttipvote = "{$rbasic['ttipvote']}";
+		var ucreatetime = $("#ucreatetime" + tfrom_user).val();
+		var subscribe = "{$rshare['subscribe']}";
+		var follow = "{$follow}";
+		var isdaojishi = "{$rbasic['isdaojishi']}";
+		var vfrom = "photosvote";
+		var votetime = votetime * 3600 * 24;
+		var isvtime = now - ucreatetime;
+		if (isdaojishi == 1) {
+			if (isvtime >= votetime) {
+				fmloadding('.overlay_container', ttipvote);
+				return false;
+			}
+		}
+		if (now <= tstart_time) {
+			fmloadding('.overlay_container', ttipstart);
+			return false;
+		}
+		if (now >= tend_time) {
+			fmloadding('.overlay_container', ttipend);
+			return false;
+		}
+		if (from_user == '' || from_user == null) {
+			subsribe();
+			return
+		}
+		if (iscode == 1) {
+			if (subscribe == 1) {
+				if (follow == 1) {
+
+					tvotestart(tfrom_user, vfrom, iscode);
+					return
+				} else {
+					subsribe();
+					return
+				}
+			} else {
+				tvotestart(tfrom_user, vfrom, iscode);
+			}
+		} else {
+			if (subscribe == 1) {
+				if (follow == 1) {
+					tvotestart(tfrom_user, vfrom, iscode);
+					return
+				} else {
+					subsribe();
+					return
+				}
+			} else {
+				tvotestart(tfrom_user, vfrom, iscode);
+			}
+		}
+
+	}
+
+	function tvote() {
+
+		{if $rvote['opendx']}
+			fmloadding('.overlay_container', '请在首页点击多选投票');
+			return false;
+		{/if}
+		var iscode = "{$rvote['iscode']}";
+		var now = "{$now}";
+		var from_user = "{$from_user}";
+		var tstart_time = "{$rbasic['tstart_time']}";
+		var tend_time = "{$rbasic['tend_time']}";
+		var ttipstart = "{$rbasic['ttipstart']}";
+		var ttipend = "{$rbasic['ttipend']}";
+		var subscribe = "{$rshare['subscribe']}";
+		var follow = "{$follow}";
+		var tfrom_user = "{$tfrom_user}";
+		var vfrom = "{$_GPC['do']}";
+
+		var isdaojishi = "{$rbasic['isdaojishi']}";
+		var votetime = "{$rbasic['votetime']}";
+		var ttipvote = "{$rbasic['ttipvote']}";
+		var ucreatetime = "{$user['createtime']}";
+
+		var votetime = votetime * 3600 * 24;
+		var isvtime = now - ucreatetime;
+		if (isdaojishi == 1) {
+			if (isvtime >= votetime) {
+				fmloadding('.overlay_container', ttipvote);
+				return false;
+			}
+		}
+
+		if (now <= tstart_time) {
+			fmloadding('.overlay_container', ttipstart);
+			return false;
+		}
+		if (now >= tend_time) {
+			fmloadding('.overlay_container', ttipend);
+			return false;
+		}
+
+		if (from_user == '' || from_user == null) {
+			subsribe();
+			return
+		}
+		if (iscode == 1) {
+
+			if (subscribe == 1) {
+				if (follow == 1) {
+					tvotestart(tfrom_user, vfrom, iscode);
+					return
+				} else {
+					subsribe();
+					return
+				}
+			} else {
+				tvotestart(tfrom_user, vfrom, iscode);
+			}
+		} else {
+			if (subscribe == 1) {
+				if (follow == 1) {
+					tvotestart(tfrom_user, vfrom, iscode);
+					return
+				} else {
+					subsribe();
+					return
+				}
+
+			} else {
+				tvotestart(tfrom_user, vfrom, iscode);
+			}
+		}
+	}
+
+
+	function tvotestart(tfrom_user, vfrom, iscode) {
+		{if $rvote['open_lbs_localtion']}
+			{if $_GPC['do'] == 'photosvote' || $_GPC['do'] == 'tuser' || $_GPC['do'] == 'tuserphotos'}
+				var tdw = sessionStorage.getItem("dw");
+				if (!tdw) {
+					var userlocal = sessionStorage.getItem("userlocal"),
+						diqu = sessionStorage.getItem("diqu");
+					{if !empty($rvote['open_lbs_link'])}
+						var stoplocal = '{$rvote['open_lbs_link']}';
+					{else}
+						var stoplocal = '{php echo $this->createMobileUrl('stopip', array('rid'=> $rid, 'iptype' => 'local'))}&nowlocal=' + userlocal + "&diqu={$rvote['iplocallimit']}";
+					{/if}
+					window.location.href = stoplocal;
+					return false;
+				}
+			{/if}
+		{/if}
+		fmloaddingt('.overlay_container', '投票中……', '1');
+		if (iscode == 1) {
+			document.getElementById("bodyhidden").style.display = "block";
+			var handler = function(captchaObj) {
+				// 将验证码加到id为captcha的元素里
+				captchaObj.appendTo("#captcha");
+				captchaObj.onSuccess(function() {
+
+					var geetest = document.getElementById("geetest_" + captchaObj.id);
+					geetest.style.display = "none";
+					document.getElementById("bodyhidden").style.display = "none";
+					var message = '';
+					post_info(tfrom_user, vfrom, message);
+					return false;
+				});
+			};
+			$.ajax({
+				// 获取id，challenge，success（是否启用failback）
+				url: "{php echo $this->createMobileUrl('jiyan', array('rid'=>$rid))}&tfrom_user=" + tfrom_user + "&rand=" + Math.round(Math.random() * 100),
+				type: "get",
+				dataType: "json", // 使用jsonp格式
+				success: function(data) {
+					//console.log(data);
+					initGeetest({
+						gt: data.gt,
+						challenge: data.challenge,
+						product: "embed", // 产品形式
+						offline: !data.success
+					}, handler);
+				}
+			});
+		} else {
+			post_info(tfrom_user, vfrom, 'nocode');
+			return false;
+		}
+	}
+
+	function post_info(tfrom_user, vfrom, message) {
+
+		var votepay = "{$rvote['votepay']}",
+			giftvote = "{$rvote['giftvote']}",
+			votenumpiao = "{$rvote['votenumpiao']}",
+			voteerchance = "{$voteer['chance']}",
+			f_daytpxz = {php echo $this->gettpnum($rid, $from_user, '', '2')},
+			daytpxz = {$rvote['daytpxz']},
+			voteer = "{$voteer}",
+			voteerinfo = "{$rvote['voteerinfo']}";
+
+		if (votepay != 1 && giftvote == 1 && f_daytpxz  >= daytpxz) {
+			if (voteerchance < 1) {
+				showtp(tfrom_user,'免费投票次数已用完');
+				return
+			}
+		}
+		if (votepay == 1 && giftvote == 1 && f_daytpxz  >= daytpxz) {
+			$("#giftvoteurl").one("click", function() {
+				window.location.href = "{php echo $this->createMobileUrl('giftvote', array('rid' => $rid));}&tfrom_user=" + tfrom_user + "&vfrom=" + vfrom;
+			});
+		}
+		if (voteer == '' || voteer == null || voteerinfo == 1) {
+			var up_voteer = 1;
+		}
+
+		if (votenumpiao == 1 && votepay == 1 && f_daytpxz  >= daytpxz) {
+			var posturl = "{php echo $this->createMobileUrl('Tvotestart', array('vote' => '1', 'rid' => $rid, 'votepay'=>1, 'vcd' => $this->votecode($rid, $from_user,'fmoons')))}&up_voteer=" + up_voteer;
+		} else {
+			var posturl = "{php echo $this->createMobileUrl('Tvotestart', array('vote' => '1', 'rid' => $rid, 'from_user'=>$from_user, 'vcd' => $this->votecode($rid, $from_user,'fmoons')))}&up_voteer=" + up_voteer;
+		}
+
+		if ((votenumpiao == 1 && votepay == 1 && f_daytpxz  >= daytpxz) || voteerinfo ==1 ) {
+			if (voteerinfo ==1) {
+				$('#vote_times').modal({backdrop: 'static', keyboard: false});
+			}else{
+				showtp(tfrom_user,'免费投票次数已用完');
+			}
+
+			fmloaddingt('.overlay_container', '', '2');
+			$("#vote_sub").one("click", function() {
+				//alert();
+				if (voteerinfo == 1) {
+					var vote_user_realname = $('#vote_user_realname').val(),
+						vote_user_mobile = $('#vote_user_mobile').val();
+					if (vote_user_realname == '') {
+						fmloaddingt('.overlay_container', '姓名不能为空', '3');
+						return false;
+					}
+					if (vote_user_mobile == '') {
+						fmloaddingt('.overlay_container', '手机不能为空', '3');
+						return false;
+					}
+				}
+				if (votenumpiao == 1 && votepay == 1 && f_daytpxz  >= daytpxz) {
+					var vote_times = $('#vote_times_val').val();
+					if (vote_times > 100) {
+						fmloaddingt('.overlay_container', '不能超过 100 票', '3');
+						return false;
+					}
+				}
+				var submitData = {
+					message: message,
+					tfrom_user: tfrom_user,
+					vote_times: vote_times,
+					vote_user_realname: vote_user_realname,
+					vote_user_mobile: vote_user_mobile,
+					vfrom: vfrom,
+					lbslocal : sessionStorage.getItem("userlocal"),
+				};
+
+				post_vote(submitData, posturl, tfrom_user, votepay,'');
+				return false;
+
+			});
+		} else {
+			var submitData = {
+				message: message,
+				tfrom_user: tfrom_user,
+				vfrom: vfrom,
+				lbslocal : sessionStorage.getItem("userlocal"),
+			};
+			post_vote(submitData, posturl, tfrom_user, votepay,'');
+			return false;
+		}
+
+	}
+
+	function post_vote(submitData, posturl, tfrom_user, votepay,isvotepay) {
+		var votenumpiao = "{$rvote['votenumpiao']}",
+			voteerinfo = "{$rvote['voteerinfo']}";
+			f_daytpxz = {php echo $this->gettpnum($rid, $from_user, '', '2')},
+			daytpxz = {$rvote['daytpxz']},
+			$('#vote_times').modal('hide');
+		fmloaddingt('.overlay_container', '投票中……', '1');
+		$.post(posturl, submitData, function(data) {
+				//console.log(data);
+				fmloaddingt('.overlay_container', '', '2');
+				if (data.success == true) {
+					if (votenumpiao == 1 && votepay == 1 && (f_daytpxz  >= daytpxz || isvotepay == 1)) {
+						//console.log(data);
+						if (data.flag == 1) {
+							//$('#pay').modal('show');
+							$('#pay').modal({backdrop: 'static', keyboard: false});
+							$('#votenum').html(data.votenum);
+							$('#votefee').html("￥ " + data.votefee + " 元");
+							var to = document.getElementById("toparams");
+							//console.log(to);
+							to.value = data.params;
+						}
+						return false;
+					} else {
+						var photosnum = "#photosnum" + tfrom_user;
+						var photosnumf = "#photosnum_" + tfrom_user;
+
+						$(photosnumf).html(data.photosnum);
+						$(photosnum).html(data.photosnum);
+						$("#acount").html(data.ljtp);
+						$("#acountcyrs").html(data.cyrs);
+
+						{if ($rhuihua['ishuodong'] == 1)}
+							fminfo(data.msg);
+							$(".huodongt").show();
+							$(".huodong").show();
+						{else}
+							fmloadding('.overlay_container', data.msg);
+							//setTimeout(function () {
+							//	window.location.reload();
+							//},3000)
+						{/if}
+						}
+						///end
+					} else {
+						if (data.success == -2) {
+							fmloadding('.overlay_container', data.msg);
+							setTimeout(function() {
+								window.location.href = data.linkurl;
+							}, 1000)
+							return false;
+						}
+						if (data.success == -3) {
+							showtp(tfrom_user,data.msg);
+							return
+						}
+						if (data.success == -1) {
+							fmloadding('.overlay_container', data.msg);
+							if (data.flag !== 1) {
+								showtp(tfrom_user,data.msg);
+							}
+
+							//fmloadding('.overlay_container', data.msg);
+							return false;
+						}
+					}
+				}, "json")
+		}
+		{if $rvote['votepay']}
+			{if $paymore['paystatus'] == 'success' && $paymore['vote'] == '1' && $paymore['votepay'] == '1' && $paymore['ordersn'] == $payordersn['ordersn'] && $paymore['payyz'] == $payordersn['payyz'] && empty($voteordersn)}
+
+			payresult();
+
+			{/if}
+		{/if}
+
+		function payresult() {
+			fmloaddingt('.overlay_container', '投票中……', '1');
+			var posturl = "{php echo $this->createMobileUrl('Tvotestart', array('paymore' => $paymore, 'rid' => $rid, 'payordersn'=>$payordersn,'vfrom' => 'photosvote', 'voteordersn'=> $voteordersn))}";
+			var tfrom_user = "{$paymore['tfrom_user']}",
+				votepay = 2;
+			var submitData = {
+				tfrom_user: tfrom_user
+			};
+			post_vote(submitData, posturl, tfrom_user, votepay,'');
+		}
+
+		function bbsreply(content, iscode, bbstype) {
+			if (iscode == 1) {
+				var handler = function(captchaObj) {
+					// 将验证码加到id为captcha的元素里
+					captchaObj.appendTo("#captcha");
+					captchaObj.onSuccess(function() {
+
+						var geetest = document.getElementById("geetest_" + captchaObj.id);
+						geetest.style.display = "none";
+						var submitData = {
+							content: content
+						};
+						$.post("{php echo $this->createMobileUrl('tbbsreply', array('isbbsreply' => '1', 'tfrom_user' => $tfrom_user, 'rid' => $rid))}", submitData, function(data) {
+							//qs('#' + id).parentNode.parentNode.style.display = "none";
+							geetest.style.display = "none";
+							if (data.success == true) {
+								if (bbstype == 'bbsreply') {
+									fmloadding('.overlay_container', data.msg);
+									setTimeout(function() {
+										window.location.reload();
+									}, 3000)
+
+								} else {
+									fmloadding('.overlay_container', data.msg);
+								}
+
+								return true;
+
+							} else {
+
+								if (data.success == -1) {
+									fmloadding('.overlay_container', data.msg);
+									return false;
+								}
+
+								if (data.success == -3) {
+									//windows.location.href = data.linkurl;
+									fmloadding('.overlay_container', data.msg);
+									setTimeout(function() {
+										window.location.href = data.linkurl;
+									}, 1000)
+									return false;
+								}
+							}
+						}, "json")
+					});
+				};
+				$.ajax({
+					// 获取id，challenge，success（是否启用failback）
+					url: "{php echo $this->createMobileUrl('jiyan', array('rid'=>$rid, 'tfrom_user' => $tfrom_user))}&rand=" + Math.round(Math.random() * 100),
+					type: "get",
+					dataType: "json", // 使用jsonp格式
+					success: function(data) {
+						initGeetest({
+							gt: data.gt,
+							challenge: data.challenge,
+							product: "embed", // 产品形式
+							offline: !data.success
+						}, handler);
+					}
+				});
+			} else {
+				var submitData = {
+					content: content
+				};
+				$.post("{php echo $this->createMobileUrl('tbbsreply', array('isbbsreply' => '1', 'tfrom_user' => $tfrom_user, 'rid' => $rid))}", submitData, function(data) {
+					if (data.success == true) {
+
+						if (bbstype == 'bbsreply') {
+							fmloadding('.overlay_container', data.msg);
+							setTimeout(function() {
+								window.location.reload();
+							}, 3000)
+						} else {
+							fmloadding('.overlay_container', data.msg);
+						}
+						return true;
+					} else {
+
+						if (data.success == -1) {
+							fmloadding('.overlay_container', data.msg);
+							return false;
+						}
+
+						if (data.success == -3) {
+							fmloadding('.overlay_container', data.msg);
+							setTimeout(function() {
+								window.location.href = data.linkurl;
+							}, 1000)
+							return false;
+						}
+					}
+				}, "json")
+			}
+
+		}
+
+		function getcode() {
+			var pic = document.getElementById('getcodesrc');
+			pic.src = "{php echo $this->createMobileUrl('code');}&" + Math.random();
+		}
+
+		function subsribe() {
+			//$('#subsribe').modal('toggle');
+			$('#subsribe').modal({backdrop: 'static', keyboard: false});
+		}
+		{if $rvote['open_lbs_localtion']}
+
+
+			var lbstype = {$rvote['open_lbs_type']},
+				lbskeybaidu = "{$rvote['open_lbs_key_baidu']}",
+				lbskeyqq = "{$rvote['open_lbs_key_qq']}",
+				lbsaddr = "{$rvote['iplocallimit']}";
+
+			function getlocaltion(){
+				if (lbstype==2) {
+					var loc;
+			        var isMapInit = false;
+			        //监听定位组件的message事件
+			        window.addEventListener('message', function(event) {
+			            loc = event.data; // 接收位置信息
+			            if(loc  && loc.module == 'geolocation') { //定位成功,防止其他应用也会向该页面post信息，需判断module是否为'geolocation'
+							sessionStorage.setItem("getLocation", lbsaddr);
+							var diqu = lbsaddr.split(",");
+							var str = loc.nation + "," + loc.province + "," + loc.city + "," + loc.addr;
+							//alert(str);
+							sessionStorage.setItem("userlocal", str);
+							sessionStorage.setItem("diqu", diqu);
+							var dw = false;
+							$.each(diqu, function(i, item) {
+								if (str.indexOf(item) > -1) {
+									dw = true;
+									sessionStorage.setItem("dw", dw);
+									return false;
+								}
+							});
+			              // alert(loc.lat + ',' + loc.lng + ',' + loc.nation  + ',' + loc.province + ',' + loc.city + ',' + loc.addr  + ',' + loc.accuracy);
+			            } else { //定位组件在定位失败后，也会触发message, event.data为null
+			                alert('定位失败');
+			            }
+			        }, false);
+			        //为防止定位组件在message事件监听前已经触发定位成功事件，在此处显示请求一次位置信息
+			        document.getElementById("geoPage").contentWindow.postMessage('getLocation', '*');
+
+			        //设置6s超时，防止定位组件长时间获取位置信息未响应
+			        setTimeout(function() {
+			            if(!loc) {
+			                //主动与前端定位组件通信（可选），获取粗糙的IP定位结果
+			            document.getElementById("geoPage")
+			                .contentWindow.postMessage('getLocation.robust', '*');
+			            }
+			        }, 6000); //6s为推荐值，业务调用方可根据自己的需求设置改时间，不建议太短
+				}else if (lbstype==3) {
+					// 百度地图API功能
+					var geolocation = new BMap.Geolocation();
+					geolocation.getCurrentPosition(function(r){
+						//alert('您的位置：' + lbskeybaidu +r.point.lat+','+r.point.lng);
+						if(this.getStatus() == BMAP_STATUS_SUCCESS){
+							var latlng = r.point.lat+','+r.point.lng;
+							var url = "http://api.map.baidu.com/geocoder/v2/" + "?ak=" + lbskeybaidu + "&callback=renderReverse&location=" + latlng + "&output=json&pois=0";
+							$.ajax({
+								type: "get",
+								async: false,
+								url: url,
+								dataType: "jsonp",
+								jsonp: "callback", //传递给请求处理程序或页面的，用以获得jsonp回调函数名的参数名(默认为:callback)
+								jsonpCallback: "renderReverse", //自定义的jsonp回调函数名称，默认为jQuery自动生成的随机函数名
+								success: function(json) {
+									if (json.status == "0") {
+										sessionStorage.setItem("getLocation", lbsaddr);
+										var address = json.result.addressComponent;
+										var diqu = lbsaddr.split(",");
+										var str = address.country + "," + address.province + "," + address.city + "," + address.district;
+										//alert(str);
+										sessionStorage.setItem("userlocal", str);
+										sessionStorage.setItem("diqu", diqu);
+										var dw = false;
+										$.each(diqu, function(i, item) {
+											if (str.indexOf(item) > -1) {
+												dw = true;
+												sessionStorage.setItem("dw", dw);
+												return false;
+											}
+										});
+									} else {
+										alert("获取定位失败");
+									}
+								},
+								error: function() {
+									alert('获取定位失败');
+								}
+							});
+						}
+						else {
+							alert('failed'+this.getStatus());
+						}
+					},{enableHighAccuracy: true})
+
+				}else{
+					//判断是否支持 获取本地位置
+				  	if (navigator.geolocation) {
+				    		navigator.geolocation.getCurrentPosition(showPosition);
+				   	}else{
+				   		x.innerHTML="浏览器不支持定位.";
+				   	}
+				}
+
+			}
+			{if ($rvote['open_lbs_type'] != 2 && $rvote['open_lbs_type'] != 3)}
+				function showPosition(position) {
+					var lat=position.coords.latitude;
+					var lng=position.coords.longitude;
+
+					//调用地图命名空间中的转换接口   type的可选值为 1:gps经纬度，2:搜狗经纬度，3:百度经纬度，4:mapbar经纬度，5:google经纬度，6:搜狗墨卡托
+					qq.maps.convertor.translate(new qq.maps.LatLng(lat,lng), 3, function(res){
+				  		//取出经纬度并且赋值
+				     	latlng = res[0];
+						//百度接口，一天可以调用100w次
+						var url = "http://api.map.baidu.com/geocoder/v2/" + "?ak=" + lbskeybaidu + "&callback=renderReverse&location=" + latlng + "&output=json&pois=0";
+						$.ajax({
+							type: "get",
+							async: false,
+							url: url,
+							dataType: "jsonp",
+							jsonp: "callback", //传递给请求处理程序或页面的，用以获得jsonp回调函数名的参数名(默认为:callback)
+							jsonpCallback: "renderReverse", //自定义的jsonp回调函数名称，默认为jQuery自动生成的随机函数名
+							success: function(json) {
+								if (json.status == "0") {
+									sessionStorage.setItem("getLocation", lbsaddr);
+									var address = json.result.addressComponent;
+									var diqu = lbsaddr.split(",");
+									var str = address.country + "," + address.province + "," + address.city + "," + address.district;
+
+									sessionStorage.setItem("userlocal", str);
+									sessionStorage.setItem("diqu", diqu);
+									var dw = false;
+									$.each(diqu, function(i, item) {
+										if (str.indexOf(item) > -1) {
+											dw = true;
+											sessionStorage.setItem("dw", dw);
+											return false;
+										}
+									});
+								} else {
+									alert("获取定位失败");
+								}
+							},
+							error: function() {
+								alert('获取定位失败');
+							}
+						});
+
+				  	});
+				}
+			{/if}
+		{/if}
+</script>
+{if $rvote['open_lbs_localtion']}
+	{if $rvote['open_lbs_type'] == 2}
+	 	<!--  通过 iframe 嵌入前端定位组件，此处没有隐藏定位组件，使用了定位组件的在定位中视觉特效  -->
+	   	<iframe id="geoPage" width=0 height=0 frameborder=0  style="display:none;" scrolling="no"
+	    	src="http://apis.map.qq.com/tools/geolocation?key={$rvote['open_lbs_key_qq']}&referer=myapp&effect=zoom">
+		</iframe>
+	{/if}
+	{if $rvote['open_lbs_type'] == 3}
+		<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak={$rvote['open_lbs_key_baidu']}"></script>
+	{/if}
+{/if}

@@ -1,0 +1,198 @@
+{template 'common/header'}
+{template '_menu'}
+<div class="main">
+    <form class="form-horizontal form" action="" method="post">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                模块入口域名绑定
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">绑定域名</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <div class="input-group">
+                            <input type='text' autocomplete="off" autofocus="true" name='set[domain]' id="domain" value="{$item['domain']}" class='form-control'/>
+                            <span class="input-group-addon">类型:</span>
+                            <span class="input-group-addon"> 
+                            {if ($limit['domain']&1)==1}<input type="radio" id="type0" name="set[type]" {if empty($item['type'])}checked{/if} value="0"/>独立域名{/if}
+                            {if ($limit['domain']&2)==2||empty($limit['domain']) }<input type="radio" id="type1" name="set[type]" {if $item['type']==1}checked{/if} value="1"/>子域名{/if}
+                            </span>
+                        </div>
+                        <span class='help-block'>子域名:为系统域名[{$host}]的下级域名[如:test.{$host}],只须输入子域名名称[test];<br/>独立域名:完整域名,跟系统域名类似,须输入完整[如:wx.abc.com]</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">入口类型</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <div class="input-group">
+                            {if ($limit['type']&1)==1}
+                            <label class="radio-inline">
+                                <input type="radio" value="1" class="entry"  name="set[all]" id="isaccount1" {if $item['all']} checked="checked"{/if}>
+                               公众号
+                            </label>{/if}
+                            {if ($limit['type']&2)==2}
+                            <label class="radio-inline">
+                                <input type="radio" value="0" class="entry"   name="set[all]" id="isaccount0"  {if empty($item['all'])} checked="checked"{/if}>
+                               模块
+                            </label>{/if}
+                        </div>
+                        <span class='help-block'>公众号:域名对应公众号,app访问url须手工替换域名或用绑定域名登录web后台获取对应的url;<br/>模块:域名对应模块入口</span>
+                    </div>
+                </div>
+                <div class="form-group" id="o-module" style="{if $item['all']}display:none{/if}">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+                    <div class="col-sm-9 col-xs-12">
+                        <div class="input-group">
+                            <input type="hidden" id="title_val" name="set[title]" value="{$item['title']}"/>
+                            <span class="input-group-addon"  id="title">{php echo empty($item['title'])?'入口名称':$item['title']}</span>
+                            <input type='text' id="url"  name='set[entry]' value="{$item['entry']}" class='form-control'/>
+                            <div class="input-group-btn">
+                                <a class="btn btn-primary" id="select"><i class="fa fa-external-link"></i> 系统链接</a>
+                            </div>
+                        </div>
+                        <span class='help-block'>请选择要绑定的模块功能入口或粘贴输入对应的模块入口url;<br/>**注意:找不到模块的入口,可以手工输入,请确认链接正确,输入须使用相对链接./index.php开关 **
+                            
+                        </span>
+                    </div>
+                </div>
+         
+                <div class="form-group" id="o-account" style="{if empty($item['all'])}display:none{/if}" >
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+                    <div class="col-sm-9 col-xs-12">
+                        <div class="input-group">
+                             <span class="input-group-addon"> 
+                                <input type='checkbox' value="1" id="redirect" {if !empty($item['redirect'])}checked="checked"{/if} name="set[redirect]">允许域名跳转到</span>
+                                <input type='text' id="domains" name='ext[domains]' placeholder="跳转域名应为全域名已绑定且无跳转;多个域名 | 分隔,随机跳转"
+                                   value="{php echo empty($ext['domains'])?'':$ext['domains']}" class='form-control'/>
+                        </div>
+                        <span class='help-block'>允许域名跳转:指app访问有绑定域名的url时,会用指定域名替换绑定域名并跳转;</span>
+                    </div>
+                </div>
+                {if $_W['isfounder']}
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">App限制</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <div class="input-group">
+                            <label class="radio-inline">
+                                <input type='radio' value="0" name="all_account" {if !empty($item['uniacid'])}checked="checked"{/if}/>
+                                只允许当前公众号"{$_W['uniaccount']['name']}"访问
+                            </label>
+                            <label class="radio-inline">
+                                <input type='radio' value="1" name="all_account" {if empty($item['uniacid'])}checked="checked"{/if}/>所有公众号都可访问
+                            </label>
+                        </div>
+                        <span class='help-block'>绑定域名只允许当前公众号可用时,非当前公众号app端url使用绑定域名将禁止访问,提示:公众号禁止访问 !;</span>
+                    </div>
+                </div>
+       
+       
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">Web后台限制</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <div class="input-group">
+                            <label class="radio-inline">
+                                <input type='radio' value="1" name="ext[login]" {if !empty($ext['login'])}checked="checked"{/if}/>允许当前绑定域名Web后台访问
+                            </label>
+                            <label class="radio-inline">
+                                <input type='radio' value="0" name="ext[login]" {if empty($ext['login'])}checked="checked"{/if}/>禁止当前绑定域名Web后台访问
+                            </label>
+                        </div>
+                        <span class='help-block'>是否允许当前绑定域名Web后台访问,在"非绑定域名禁止使用"模式下才有效;公众号回复要使用域名配置api接口,才有效</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">操作限制</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <div class="input-group">
+                            <label class="checkbox-inline">
+                                <input type='checkbox' value="1" name="ext[right]" {if !empty($ext['right'])}checked="checked"{/if}/>禁止修改\删除,只有系统Founder才权操作
+                            </label>
+                        </div>
+
+                    </div>
+                </div>{/if}
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+                    <div class="col-sm-9 col-xs-12">
+                        <input type="submit" name="submit" value="提交" class="btn btn-primary"/>
+                        <input type="hidden" name="token" value="{$_W['token']}"/>
+                        <input type="button" name="back" onclick='history.back()' style='margin-left:10px;' value="取消返回列表" class="btn btn-default" />
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </form>
+</div>
+<script type="text/javascript">
+    <!--
+ 
+    require(['bootstrap', 'util'],function($, u) {
+        $('#select').click(function() {
+            var footer = '<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>';
+            var modalobj = u.dialog('请选择链接',['./index.php?c=utility&a=link&callback=selectLinkComplete'],footer,{containerName:'link-container'});
+            modalobj.modal({'keyboard': false});
+            modalobj.find('.modal-body').css({'height':'380px','overflow-y':'auto' });
+            modalobj.modal('show');
+            
+            window.selectLinkComplete = function (a, b) {
+                $('#url').val(a);
+                $('#title').html(b);
+                $('#title_val').val(b);
+                modalobj.modal('hide');
+            };
+ 
+        });
+        $('form').submit(function(){
+            var  domain=$('#domain').val().trim();
+            var v=/^[_\-0-9a-z]*$/;
+            var msg='请输入有效的子域名!';
+            if($('#type0').is(':checked')){
+                v=/^[_\-0-9a-z]+(\.[_\-0-9a-z]+)+?$/;
+                msg='请输入有效的域名!';
+            }
+            if(!v.test(domain)){
+                $('#domain').focus();
+                u.message(msg);
+                return false;
+            }
+            var ismodule=$('#isaccount0').is(':checked');
+            if(ismodule) {
+                var url = $('#url').val().trim();
+                if (!/^\.\/index\.php\?/.test(url)) {
+                    $('#url').focus();
+                    u.message('请选择效有模块入口!');
+                    return false;
+                }
+            }else{
+                var  domains=$('#domains').val().trim();
+                if($('#redirect').is(':checked')){
+                    if (!/^[0-9a-zA-Z]+[0-9a-zA-Z\.-\|]*?[0-9a-zA-Z]$/.test(domains)) {
+                        $('#domains').focus();
+                        u.message('请输入有效的跳转域名!');
+                        return false; 
+                    }
+                }
+            }
+            return true;
+        });
+        $('.entry').bind('change',function(){
+            var value= $(this).val();
+            var check=$(this).is(":checked");
+            if(check &&value==1){
+                $('#o-module').hide();
+                $('#o-account').show();
+            }else{
+                $('#o-account').hide();
+                $('#o-module').show();
+          
+            }
+        });
+    });
+
+
+    //-->
+       
+ 
+</script>
+{template 'common/footer'}

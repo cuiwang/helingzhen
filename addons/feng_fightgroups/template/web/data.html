@@ -1,0 +1,83 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li class="active"><a href="javascript:;">{if $status==''}全部订单{elseif $status==0}待付款{elseif $status==1}已支付{elseif $status==2}待发货{elseif $status==3}已发货{elseif $status==4}待签收{elseif $status==5}已签收{elseif $status==6}待退款{elseif $status==7}已退款{/if}-订单统计</a></li>
+</ul>
+ <div class="panel panel-info">
+	    <div class="panel-heading">时间<a href="{php echo $this->createWebUrl('order', array('status'=>$status));}"  style="margin-left: 80%;" class="btn btn-success btn-sm">返回</a></div>
+	    <div class="panel-body">
+            <form action="./index.php" method="get" class="form-horizontal" role="form" id="form1">
+                <input type="hidden" name="c" value="site" />
+                <input type="hidden" name="a" value="entry" />
+                <input type="hidden" name="m" value="feng_fightgroups" />
+                <input type="hidden" name="do" value="data" />
+                <input type="hidden" name="status" value="{$status}" />
+                <div class="form-group">
+                        <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">日期</label>
+                        <div class="col-sm-5 col-lg-7 col-xs-12">
+                            {php echo tpl_form_field_daterange('time', array('start'=>date('Y-m-d H:i:s', $starttime),'end'=>date('Y-m-d H:i:s', $endtime)));}
+                        </div>
+                    </div>
+                <div class="form-group">
+                </div>
+            </form>
+	    </div>
+	</div>
+<div class="clearfix" id="clear">
+	<div class="pull-left">
+	</div>
+	<div class="clearfix"></div>
+	<br>
+	<div class="panel panel-default" style="padding:1em">
+		<nav role="navigation" class="navbar navbar-default navbar-static-top" style="margin: -1em -1em 1em -1em;">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<a href="javascript:;" class="navbar-brand">订单统计</a>
+				</div>
+			</div>
+		</nav>
+		<div style="margin-top:20px;">
+			<canvas id="myChart" height="80"></canvas>
+		</div>
+	</div>
+	{loop $keywords $id $row}
+	<div class="panel panel-default" style="padding:1em">
+		<nav role="navigation" class="navbar navbar-default navbar-static-top" style="margin: -1em -1em 1em -1em;">
+			<div class="container-fluid">
+				<div class="navbar-header">
+					<a href="javascript:;" class="navbar-brand">所属关键字使用趋势图&nbsp;&nbsp;&nbsp;<small>(关键字：{$keywordnames[$id]['content']})</small></a>
+				</div>
+			</div>
+		</nav>
+		<div style="margin-top:20px">
+			<canvas id="trend_keyword_{$id}" height="80"></canvas>
+		</div>
+	</div>
+	{/loop}
+</div>
+	<script>
+		require(['chart', 'daterangepicker'], function(c){
+			$('.daterange').on('apply.daterangepicker', function(ev, picker) {
+				$('#form1')[0].submit();
+			});
+			var label = {php echo json_encode($day)};
+			var datasets =  {php echo json_encode($hit)};
+			var lineChartData = {
+				labels : label,
+				datasets : [
+					{
+						fillColor : "rgba(36,165,222,0.1)",
+						strokeColor : "rgba(36,165,222,1)",
+						pointColor : "rgba(36,165,222,1)",
+						pointStrokeColor : "#fff",
+						pointHighlightFill : "#fff",
+						pointHighlightStroke : "rgba(36,165,222,1)",
+						data : datasets
+					}
+				]
+			}
+
+			var myLine = new Chart(document.getElementById("myChart").getContext("2d")).Line(lineChartData, {responsive : true});
+
+		});
+	</script>
+{template 'common/footer'}

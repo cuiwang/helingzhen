@@ -1,0 +1,165 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>拼车-出行行程列表</title>
+ <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+ <base href="{php echo $this->yobyurl}">
+  <link rel="stylesheet" href="weui/weuix.min.css"/>
+      <script src="weui/zepto.min.js"></script>
+
+</head>
+
+<body ontouchstart >
+<div class="weui_cells_title">管理已加入的行程,可删除</div>
+     <?php  
+            if(empty($list)){
+            echo '<div class="weui_msg"><p><i class="icon icon-18 f22 f-green"></i>暂无数据</p></div> ';
+            
+            }else{
+           
+            
+            
+            ?>
+            
+<div class="weui_cells weui_cells_access">
+<a href="javascript:;" class="weui_cell">
+<div class="weui_cell_bd weui_cell_primary">
+                    <p class=" f14">出发地<span class="icon icon-61 f-green"></span>目的地</p>
+                </div>
+                <div class=" f14">出行时间</div>
+            </a>  
+             <?php   foreach($list as  $v1){ 
+              $v = pdo_fetch('SELECT * FROM ' . tablename('yoby_car') . " WHERE id=".$v1['cid']);
+             ?>
+<a href="javascript:;" class="weui_cell" onclick="sheet({$v1['cid']})">
+<div class="weui_cell_bd weui_cell_primary">
+                    <p><?php if(time()>strtotime($v['sendtime'])){echo "<span class='icon icon-19 f-red'></span><span class='f-red'>已过期</span>";}else{echo "<span class='icon icon-19 f-green'></span><span class='f-green'>进行中</span>";} ?><br><span class="icon icon-65 f-green"></span>{$v['address1']}<br><span class="icon icon-5 f-green"></span>{$v['address2']}</p>
+                </div>
+                <div class="weui_cell_ft f14">{$v['sendtime']}</div>
+            </a>     
+             <?php
+             
+ } ?>
+        </div>
+   <div id="actionSheet_wrap">
+        <div class="weui_mask_transition" id="mask"></div>
+        <div class="weui_actionsheet" id="weui_actionsheet">
+            <div class="weui_actionsheet_menu">
+
+                <div class="weui_actionsheet_cell  view">查看</div>
+                <div class="weui_actionsheet_cell f-red dell">删除</div>
+            </div>
+            <div class="weui_actionsheet_action">
+                <div class="weui_actionsheet_cell" id="actionsheet_cancel">取消</div>
+            </div>
+        </div>
+    </div>
+<script>
+function  sheet(id){
+var view ="{$_W['siteroot']}app/index.php?i={$weid}&c=entry&do=view&m=yoby_car&id="+id;
+
+$(".view").click(function(){window.location.href=view;});
+
+$(".dell").click(function(){
+$.confirm("您确定要删除吗?", "确认删除?", function() {
+     $.post("{$_W['siteroot']}app/index.php?i={$weid}&c=entry&do=del3&m=yoby_car",{id:id},function(data){  
+            if(data.code==1){
+            $.toast("删除成功");
+            location.reload(true);
+            }else{
+              $.toast("行程不存在", "forbidden");
+            }
+},'json');    
+        }, function() {
+          $.toast("取消操作", "cancel");
+        });
+        
+
+
+});
+
+                    var mask = $('#mask');
+                    var weuiActionsheet = $('#weui_actionsheet');
+                    weuiActionsheet.addClass('weui_actionsheet_toggle');
+                    mask.show().addClass('weui_fade_toggle').one('click', function () {
+                        hideActionSheet(weuiActionsheet, mask);
+                    });
+                    $('#actionsheet_cancel').one('click', function () {
+                        hideActionSheet(weuiActionsheet, mask);
+                    });
+                    weuiActionsheet.unbind('transitionend').unbind('webkitTransitionEnd');
+
+                    function hideActionSheet(weuiActionsheet, mask) {
+                        weuiActionsheet.removeClass('weui_actionsheet_toggle');
+                        mask.removeClass('weui_fade_toggle');
+                        weuiActionsheet.on('transitionend', function () {
+                            mask.hide();
+                        }).on('webkitTransitionEnd', function () {
+                            mask.hide();
+                        })
+                    }
+ };
+ </script> 
+  {$pager}
+    <div class="weui_cells_title" style="margin-top:35px">&nbsp;</div>      
+        <?php  } ?>
+<div class="weui_tab tab-bottom" style="height:55px;">
+            
+            <div class="weui_tabbar ">
+                <a href="{$_W['siteroot']}app/index.php?i={$weid}&c=entry&do=chenke&m=yoby_car" class="weui_tabbar_item">
+                    <div class="weui_tabbar_icon">
+                        <i class="icon icon-54 f24"></i>
+                    </div>
+                    <p class="weui_tabbar_label">乘客行程</p>
+                </a>
+                <a href="{$_W['siteroot']}app/index.php?i={$weid}&c=entry&do=chezhu&m=yoby_car" class="weui_tabbar_item">
+                    <div class="weui_tabbar_icon">
+                         <i class="icon icon-55 f24"></i>
+                    </div>
+                    <p class="weui_tabbar_label">车主行程</p>
+                </a>
+                <a href="{$_W['siteroot']}app/index.php?i={$weid}&c=entry&do=fabu&m=yoby_car" class="weui_tabbar_item">
+                    <div class="weui_tabbar_icon">
+                         <i class="icon icon-107 f24"></i>
+                    </div>
+                    <p class="weui_tabbar_label">发布行程</p>
+                </a>
+                  <a href="{$_W['siteroot']}app/index.php?i={$weid}&c=entry&do=gl&m=yoby_car" class="weui_tabbar_item ">
+                    <div class="weui_tabbar_icon">
+                         <i class="icon icon-37 f24 "></i>
+                    </div>
+                    <p class="weui_tabbar_label">个人中心</p>
+                </a>              
+            </div>
+        </div> 
+
+      
+<script type="text/javascript" src='http://res.wx.qq.com/open/js/jweixin-1.0.0.js'></script>
+	<?php
+$wx = $_W['account']['jssdkconfig'];
+$wx['url'] ='http://'.$_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] ;
+?> 
+<script>
+    var appIdstr = "{$wx['appId']}";
+    var timestampstr = "{$wx['timestamp']}";
+    var nonceStrstr = "{$wx['nonceStr']}";
+    var signaturestr = "{$wx['signature']}";
+wx.config({
+	debug: false,
+	appId: appIdstr,
+	timestamp: timestampstr,
+	nonceStr: nonceStrstr,
+	signature: signaturestr,
+		jsApiList: [
+		'checkJsApi',
+		'onMenuShareTimeline',
+		'onMenuShareAppMessage','showMenuItems','hideOptionMenu'
+	]
+});
+wx.ready(function () {
+wx.hideOptionMenu();
+
+});
+</script></body>
+</html>

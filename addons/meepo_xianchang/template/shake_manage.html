@@ -1,0 +1,91 @@
+{template 'common/header'}
+{template 'nav'}
+{if $op == 'list'}
+<div class="main panel panel-danger">
+<div class="panel-heading ">
+	轮数列表
+</div>
+	<div class="panel-body table-responsive">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<th>轮数</th>
+					<th>游戏状态</th>
+					<th>获奖人数</th>
+					<th>参与人数</th>
+					<th>操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $key $shake}
+				<tr>
+				    <td>第{php echo $key+1}轮</td>
+					<td>{if $shake['status']==1}未开始{elseif $shake['status']==2}进行中{else}已结束{/if}</td>
+					<td>{$shake['pnum']}人</td>
+					<td>{php echo intval(pdo_fetchcolumn("SELECT count(id) FROM ".tablename($this->shake_user_table)." WHERE rid=:rid AND weid=:weid AND rotate_id=:rotate_id",array(':rid'=>$rid,':weid'=>$weid,':rotate_id'=>$shake['id'])));}人</td>
+					<td style="text-align:left;">
+						<a href="{php echo $this->createWebUrl('shake_manage', array('id' => $id,'op' => 'post', 'shake_id' => $shake['id']))}" class="btn btn-success btn-sm" data-toggle="tooltip" data-placement="top" title="修改"><i class="fa fa-edit"></i></a>
+						<a href="{php echo $this->createWebUrl('shake_record', array('id' => $id, 'rotate_id' => $shake['id']))}"class="btn btn-danger btn-sm" data-toggle="tooltip" data-placement="top" title="摇一摇记录" ><i class="fa fa-users"></i></a>
+						<a href="{php echo $this->createWebUrl('shake_manage', array('id' => $id,'op' => 'del', 'shake_id' => $shake['id']))}"class="btn btn-danger btn-sm" data-toggle="tooltip" data-placement="top" title="删除" onclick="return confirm('删除将无法恢复，确认吗？');return false;"><i class="fa fa-times"></i></a>
+					</td>
+				</tr>
+				{/loop}
+			</tbody>
+		</table>
+		{$pager}
+	</div>
+</div>
+<script>
+	require(['bootstrap'],function($){
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+	});
+</script>
+{elseif $op == 'post'}
+<div class="main">
+	<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" onsubmit='return formcheck()'>
+		<input type="hidden" name="shake_id" value="{$shake['id']}" />
+		<div class="panel panel-danger">
+			<div class="panel-heading">
+				添加摇一摇
+			</div>
+			<div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2  control-label">摇一摇状态</label>
+					<div class="col-sm-9 ">
+						<label class="radio-inline">
+							<input type="radio" name="status" value="1"  {if $shake['status'] == '1'}checked="true"{/if}> 未开始
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="status" value="2"  {if $shake['status'] == '2'}checked="true"{/if}>进行中
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="status" value="3"  {if $shake['status'] == '3'}checked="true"{/if}>已结束
+						</label>
+						<span class="help-block">若是游戏开始后、粉丝退出了游戏界面[包括 不小心关闭摇一摇界面或者主持人点击开始前没有及时进入游戏界面]将无法再次进入、请告知主持人</span>
+					</div>
+					
+				</div>
+				<div class="form-group">
+									<label class="col-xs-12 col-sm-3 col-md-2  control-label">中奖人数:</label>
+									<div class="col-sm-9 ">
+										<div class="input-group">
+											<input type="text" name="pnum"  class="form-control" value="{$shake['pnum']}">
+											<span class="input-group-addon">人</span>
+										</div>
+									</div>
+				</div>
+				
+			</div>
+		</div>
+		<div class="form-group col-sm-12">
+			<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+			<input type="hidden" name="token" value="{$_W['token']}" />
+			</div>
+			</form>
+		</div>
+{/if}
+{template 'common/footer'}

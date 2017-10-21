@@ -1,0 +1,132 @@
+{template 'header'}
+<script type="text/javascript" src="http://api.map.baidu.com/api?ak=qen1OGw9ddzoDQrTX35gote2&v=2.0&services=false"></script>
+<link rel="stylesheet" href="../addons/enjoy_city/public/css/_v1_shop_edit.css">
+<header class="mui-bar mui-bar-nav"> <a class="mui-icon mui-icon-left-nav mui-pull-left mui-action-back" href="javascript:history.go(-1)"></a>
+  <h1 class="mui-title">编辑人脉</h1>
+</header>
+<style>
+</style>
+<form class=" large-form" data-api="shop_edit" method="post" data-valid="1" data-enterfocus="input,textarea" data-call="shopCallback" id="shop-edit">
+  <div class="mui-input-group mui-content-padded">
+    <h2 class="user-title">微友圈信息</h2>
+    <div class="form-text" id="wx-tip"></div>
+    <div class="mui-input-row">
+      <input type="text" class="mui-input-clear" name="wei_num" placeholder="微信号" id="wei_num" value="{$firm['cweixin']}" data-valid="^[^\s]{2,}$" required="" data-input-clear="1">
+      <span class="mui-icon mui-icon-clear mui-hidden"></span> </div>
+    <div class="form-text" id="name-tip"></div>
+    <div class="mui-input-row">
+      <input type="text" class="mui-input-clear" name="wei_name" placeholder="微信名称" id="wei_name" value="{$firm['cnickname']}" data-valid="^[^\s]{2,}$" required="" data-input-clear="2">
+      <span class="mui-icon mui-icon-clear mui-hidden"></span> </div>
+    <div class="form-text" id="sex-tip"></div>
+    <div class="mui-input-row mui-radio">
+      <label>英俊潇洒的帅哥</label>
+      <input type="radio" name="wei_sex" value="1" id="wei_sex" data-valid="^(true|false)$" {if $firm['wei_sex']==1}checked="checked"{/if} required="">
+    </div>
+    <div class="mui-input-row mui-radio">
+      <label>温柔美丽的靓妹</label>
+      <input type="radio" name="wei_sex" value="0" id="wei_sex" data-valid="^(true|false)$" {if $firm['wei_sex']==0}checked="checked"{/if} required="">
+    </div>
+    <div class="form-text" id="wechatdesc-tip"></div>
+    <div class="mui-input-row">
+      <input type="text" class=" mui-input-clear" name="wei_intro" placeholder="个人一句话介绍" id="wei_intro" data-valid="^.{10,}$" data-error="请输入十个字以上的介绍" required="" value="{$firm[descript]}" data-input-clear="5">
+      <span class="mui-icon mui-icon-clear mui-hidden"></span> </div>
+    <div class="mui-clearfix"></div>
+    <div class="mui-input-row">
+      <div class="upload-img mui-pull-left"> <img id="boss" class="crop-row" {if empty($firm[cavatar])}style="display: none"{else} src="{php echo tomedia($firm['cavatar'])}"{/if}>
+      </div>
+      <div class="mui-pull-right text-gray" data-upload="boss" data-field="wechat" data-id="  " data-aspectratio="1" data-minwidth="150" data-minheight="150"> 选择头像(150x150) <span class="mui-btn add-img">+</span> </div>
+      <div class="mui-clearfix"></div>
+    </div>
+    <div class="mui-input-row">
+      <div class="upload-img mui-pull-left"> <img id="bossqr" class="crop-row" {if empty($firm[cewm])}style="display: none"{else} src="{php echo tomedia($firm['cewm'])}"{/if}>
+      </div>
+      <div class="mui-pull-right text-gray" data-upload="bossqr" data-field="wechat" data-id="  " data-aspectratio="1" data-minwidth="200" data-minheight="200"> 选择二维码(200x200) <span class="mui-btn add-img">+</span> </div>
+    </div>
+  </div>
+  <input type="hidden" name="wei_avatar" id="boss1" value="{$firm[cavatar]}"/>
+  <input type="hidden" name="wei_ewm" id="bossqr1" value="{$firm[cewm]}"/>
+  <input type="hidden" name="cid" value="{$firm[id]}"/>
+  <input type="hidden" name="token" value="{$_W[token]}">
+  <input type="submit" name="submit" class="mui-btn mui-btn-primary mui-btn-block" value="确 认" onclick="return check(this.form)">
+  </div>
+  <div class="mui-content-padded">&nbsp;</div>
+  <div id="crop-dialog" class="mui-popover simple-dialog upload-dialog">
+    <div class="mui-popover-arrow"></div>
+    <div class="mui-content-padded">
+      <h4 style="text-align: center;margin: 10px;position: relative">
+        <div class="upload-progress"></div>
+        <div class="mui-pull-left">
+          <button type="button" class="mui-btn" id="crop-plus-btn">+</button>
+          <button type="button" class="mui-btn" id="crop-dec-btn">-</button>
+          <button type="button" class="mui-btn mui-icon mui-icon-refreshempty" style="font-size:0.9rem" id="crop-rotate-btn"></button>
+        </div>
+        <div class="mui-pull-right">
+          <button type="button" class="mui-btn mui-btn-blue" id="crop-submit-btn">确定</button>
+          <button type="button" class="mui-btn" id="crop-cancel-btn">取消</button>
+        </div>
+        <div class="mui-clearfix"></div>
+      </h4>
+      <div class="crop-img"> loading... </div>
+    </div>
+  </div>
+  <div id="img-dialog" class="mui-popover simple-dialog" style="top:20px;left:20px;right:20px;">
+    <div class="mui-content-padded">
+      <div class="close" onclick="mui(&#39;#img-dialog&#39;).popover(&#39;hide&#39;)">×</div>
+      <div class="crop-img" style=""> <img src="" class="upload preview"> </div>
+    </div>
+  </div>
+</form>
+<script src="../addons/enjoy_city/public/js/_v1_global.js"></script>
+<script usetime="4.35ms">
+function check(form) {
+  if (form.wei_num.value == '') {
+    alert("请输入老板微信号!");
+    form.wei_num.focus();
+    return false;
+  }
+  if (form.wei_intro.value == '') {
+    alert("请输入老板描述!");
+    form.wei_intro.focus();
+    return false;
+  }
+  if (form.wei_avatar.value == '') {
+    alert("请添加老板头像!");
+    return false;
+  }
+  if (form.wei_ewm.value == '') {
+    alert("请添加老板二维码!");
+    return false;
+  }
+  return true;
+}
+
+function onBridgeReady() {
+  WeixinJSBridge.call(hideWXMenu == 1 ? 'hideOptionMenu' : 'showOptionMenu');
+}
+if (typeof WeixinJSBridge == "undefined") {
+  if (document.addEventListener) {
+    document.addEventListener('WeixinJSBridgeReady', onBridgeReady, false);
+  }
+  else if (document.attachEvent) {
+    document.attachEvent('WeixinJSBridgeReady', onBridgeReady);
+    document.attachEvent('onWeixinJSBridgeReady', onBridgeReady);
+  }
+}
+else {
+  try {
+    onBridgeReady();
+  }
+  catch (e) {}
+}
+setTimeout(function () {
+  document.getElementById('countjs').innerHTML = '<img src="http://img.users.51.la/18746113.asp" style="display: none" >';
+  var url = "//api.share.baidu.com/s.gif?r=" + encodeURIComponent(document.location.href),
+    img = new Image;
+  img.src = url;
+}, 0);
+</script>
+<script src="../addons/enjoy_city/public/js/jweixin-1.1.0.js"></script>
+<script type="text/javascript">var imgurlcity="{php echo $this->createMobileUrl('imgload')}";</script>
+<script src="../addons/enjoy_city/public/js/_v1_shop_edit.js"></script>
+<div style="height:40px;"></div>
+</body></html>

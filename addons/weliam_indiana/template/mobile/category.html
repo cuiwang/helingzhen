@@ -1,0 +1,96 @@
+		<div id="pro-view-2">
+                <ul class="w-goodsList w-goodsList-l m-list-goodsList" data-pro="entry" id='newmorelist'>
+                	{loop $periods $period}
+                    <li class="w-goodsList-item" id="pro-view-3">
+                    	{if $period['init_money']==10}<i class="ico ico-label ico-label-ten"></i>{/if}
+                        <div class="w-goods w-goods-l w-goods-ing">
+                            <i class="ico-label ico-label-ten"></i>
+                            <div class="w-goods-pic">
+                                <a href="{php echo $this->createMobileUrl('detail', array('id' => $period['goodsid']))}">
+                                <img src="{php echo tomedia($period['picarr']);}"  style="width: 90px;"></a>
+                            </div>
+                            <div class="w-goods-info">
+                                <p class="w-goods-title f-txtabb f-breakword">
+                                    <a href="{php echo $this->createMobileUrl('detail', array('id' => $period['goodsid']))}">{$period['title']}</a>
+                                </p>
+                                <div class="w-progressBar">
+                                    <p class="wrap">
+                                        <span class="bar" style="width:{$period['scale']}%">
+                                            <i class="color"></i>
+                                        </span></p>
+                                        <ul class="txt">
+                                          <li class="txt-l"><p>总需{$period['zong_codes']} 人次</p></li>
+                                            <li class="txt-r">
+                                                <p>剩余<b class="txt-blue">{$period['shengyu_codes']}</b></p>
+                                            </li>
+                                        </ul>
+                                </div>
+                            </div>
+                            <div class="w-goods-shortFunc">
+                                <button id="addToCart" onclick="addToCart(this,'{$period['period_number']}','{$period['title']}');"  class="w-button w-button-round w-button-addToCart"></button>
+                            </div>
+                            </div>
+                    </li>
+                    {/loop}
+                </ul>
+                                <div data-pro="more">
+                    <div class="w-more" id="pro-view-13">
+                        <div data-pro="link" id="newrefresh">{if !empty($periods)}上拉加载更多{else}没有商品{/if} </div>                   
+                    </div>
+                </div>
+            </div>
+ <script language="javascript" src="{WELIAM_INDIANA_STATIC}js/jquery.js"></script>
+<script>
+	//自动刷新
+	var num=5;
+	var flag=0;
+	var type = '{$type}';
+	var child = '{$child}';
+	var parent = '{$parent}';
+	var op = '{$op}';
+	var category = '{$category}';
+	//判断div是否在可视区域
+	  $(document).ready(function () {
+            $(window).scroll(function () {
+                var a = document.getElementById("newrefresh").offsetTop;
+                if (a >= $(window).scrollTop() && a < ($(window).scrollTop()+$(window).height())&&flag==0) {
+                   document.getElementById('newrefresh').innerHTML='努力加载中<i class="fa fa-spinner fa-pulse"></i>';
+					flag = 1;
+					down_load();	
+                }
+            });
+        });
+//回传数据
+	
+	function down_load(){
+		//传值验证返回
+	    $.post("{php echo $this->createMobileUrl('refreshgategory')}",
+	    {
+	    	num:num,
+	    	type:type,
+	    	child:child,
+	    	parent:parent,
+	    	op:op,
+	    	category:category
+	    },
+	    function(m){
+				if(m == '-1'){
+					document.getElementById('newrefresh').innerHTML="没有可加载项";
+				}else{
+					num = num+5;
+				   for(i=0;i<m.length;i++){
+				   		var csss = '';
+						if(m[i].init_money==10){
+							csss = '<i class="ico ico-label ico-label-ten"></i>';
+						}
+				   		var mess = "addToCart(this," + "'" +m[i].period_number+ "'," +"'"+m[i].title+"')";
+				   		var more = '<li class="w-goodsList-item" id="pro-view-3">'+csss+'<div class="w-goods w-goods-l w-goods-ing"><i class="ico-label ico-label-ten"></i><div class="w-goods-pic"><a href="{php echo $this->createMobileUrl('detail')}&id='+m[i].goodsid+'"><img src="'+m[i].picarr+'"  style="width: 90px;"></a></div><div class="w-goods-info"><p class="w-goods-title f-txtabb f-breakword"><a href={php echo $this->createMobileUrl('detail')}&id='+m[i].goodsid+'">'+m[i].title+'</a></p><div class="w-progressBar"><p class="wrap"><span class="bar" style="width:'+m[i].scale+'%"><i class="color"></i></span></p><ul class="txt"><li class="txt-l"><p>总需'+m[i].zong_codes+' 人次</p></li><li class="txt-r"><p>剩余<b class="txt-blue">'+m[i].shengyu_codes+'</b></p></li></ul></div></div><div class="w-goods-shortFunc"><button id="addToCart" onclick="'+mess+'"  class="w-button w-button-round w-button-addToCart"></button></div></div></li>';
+				   		$('#newmorelist').append(more);
+				   		flag=0;
+				   }
+				}
+
+             },"json");
+	}
+	
+</script>

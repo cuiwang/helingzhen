@@ -1,0 +1,163 @@
+{template 'common/header'}
+<style>
+	body{background:#EEE;}
+	.container-fill{}
+	h4{margin:15px 0;}
+	h4:first-of-type{margin-top:10px;}
+	.panel{padding:.5em; margin-bottom:10px;}
+	.nav.nav-tabs{margin-bottom:.8em;}
+	.alert .form-group{margin-bottom:0;}
+	label.form-group{display:block;}
+	label.form-group{font-weight:normal; overflow:hidden; border-top:1px #DDD solid; padding-top:10px;padding-bottom:0;margin-bottom:0 }
+	label.form-group .col-xs-2{margin-top:0px;}
+	label.form-group input[name="type"]{opacity:0; width:0;}
+	#wq_card .form-group{border-top:none;border-bottom:1px solid #ccc;}
+	#wq_card .form-group .col-xs-2{margin-top:15px;}
+	#wq_card .form-group:last-child{border-bottom:none}
+	.list-group-item{border: 1px solid #FFF;}
+	.tr-main{background-color: #FFFFFF;border-top: 1px solid rgba(222,222,220,0.8);border-bottom: 1px solid rgba(222,222,220,0.8);padding-left: 15px;margin-top: 20px;}
+	.tr-main p{display: block;height: 44px;line-height: 44px;border-bottom: 1px solid rgba(222,222,220,0.8);color: #333333;position: relative; font-size: 15px}
+	.tr-main p:last-child{border-bottom:none;}
+	p{margin: 0 0 0px;}
+	.pull-right{margin-right: 8px;}
+	.btn-success{background-color: #04BE02;border-color: #04BE02;}
+</style>
+<script>
+	require(['bootstrap'], function($){
+		$(function(){
+		});
+	});
+	document.title="支付方式";
+</script>
+<h4 style="text-align: center;">
+</h4>
+<div class="tr-main" style="margin-bottom: 20px;">
+	<p>商品名称 :<span class="pull-right" style="overflow: hidden; text-overflow: ellipsis;width: 160px;white-space: nowrap; text-align: right;">{$params['title']}</span></p>
+	<p>订单编号 :<span class="pull-right">{$params['ordersn']}</span></p>
+	<p>商家名称 :<span class="pull-right">{$_W['account']['name']}</span></p>
+	<p>支付金额 :<span class="pull-right">￥{php echo sprintf('%.2f', $params['fee']);} 元</span></p>
+	{if $cards}
+	<p id="order_card" style="display: none">商品优惠 :<span class="pull-right text-danger"></span></p>
+	{/if}
+	{if !empty($mine)}
+		{loop $mine $mi}
+		<p>{$mi['name']} :<span class="pull-right">{$mi['value']}</span></p>
+		{/loop}
+	{/if}
+</div>
+<!--微信卡券-->
+{if $pay['card']['switch'] == 3 && !empty($cards)}
+	<div id="coupon">
+		<div class="tr-main" style="padding:5px, 0" id="card">
+			<p>优惠 <span class="label label-danger">{php echo count($cards);}张可用</span>：<span class="text-success pull-right" id="wq_card_info">未使用 <i class="fa fa-angle-right"></i></span></p>
+		</div>
+	</div>
+	{if !empty($cards)}
+		<div class="modal fade bs-example-modal-lg" id="wq_card" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true">
+			<div class="modal-dialog modal-lg">
+			<div class="modal-content">
+				<div class="modal-header" style="text-align: center;">
+					<h4 class="modal-title" id="gridSystemModalLabel">使用优惠券</h4>
+				</div>
+				<div class="modal-body" style="max-height:400px;overflow-y:scroll">
+					{loop $cards $li}
+					<label class="form-group">
+						<div class="col-xs-2">
+							<i class="fa fa-check-circle fa-lg" data-id="{$li['couponid']}"></i>
+						</div>
+						<div class="col-xs-10">
+							{if $li['type'] == 1}
+							<span class="label label-danger">折扣券</span> {$li['title']} &nbsp;满{$li['condition']}打{php echo $li['discount'] * 10;}折
+							{else}
+							<span class="label label-success">代金券</span> {$li['title']} &nbsp;满{$li['condition']}减{$li['discount']}
+							{/if}
+							<div class="help-block">有效期至：{php echo date('Y-m-d', $li['endtime']);}</div>
+						</div>
+					</label>
+					{/loop}
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default col-sm-6" data-dismiss="modal" style="width: 49%;height: 42px;">取消</button>
+					<button type="button" class="btn btn-primary col-sm-6" style="width: 49%;height: 42px;margin-left: 0px;">确定</button>
+				</div>
+			</div>
+			</div>
+		</div>
+	{/if}
+{/if}
+
+<div class="panel clearfix" style="border-radius: 0px;">
+	<div class="tab-content">
+		<!-- 直接到账 -->
+		<div class="tab-pane animated active fadeInLeft" id="direct">
+			{if !empty($pay['wechat']['switch'])}
+			<div class="pay-btn" id="wechat-panel">
+				<form action="{php echo url('mc/cash/wechat');}" method="post">
+					<input type="hidden" name="params" value="{php echo base64_encode(json_encode($params));}" />
+					<input type="hidden" name="encrypt_code" value="" />
+					<input type="hidden" name="card_id" value="{php echo base64_encode($card_id);}" />
+					<input type="hidden" name="coupon_id" value="" />
+					<button class="btn btn-success btn-block col-sm-12" disabled="disabled" type="submit" id="wBtn" value="wechat" style="height: 42px; font-size: 18px;">微信支付(必须使用微信内置浏览器)</button>
+				</form>
+			</div>
+			<script type="text/javascript">
+				document.addEventListener('WeixinJSBridgeReady', function onBridgeReady() {
+					$('#wBtn').removeAttr('disabled');
+					$('#wBtn').html('微信支付');
+				});
+			</script>
+			{/if}
+		</div>
+	</div>
+</div>
+<input type="hidden" name="token" value="{$_W['token']}" />
+<script type="text/javascript">
+	require(['bootstrap'], function($){
+
+		if ($('#direct .pay-btn').size() == 0) {
+			$('.nav-tabs a[href="#collect"]').trigger('click');
+			return false;
+		}
+
+		$('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+			var from = $(e.relatedTarget).attr('href');
+			var to = $(e.delegateTarget).attr('href');
+			if($(to).index() < $(from).index()) {
+				$(to).removeClass('fadeInRight fadeInLeft').addClass('fadeInLeft');
+			} else {
+				$(to).removeClass('fadeInRight fadeInLeft').addClass('fadeInRight');
+			}
+		});
+
+		$('#card').click(function(){
+			$('.bs-example-modal-lg').modal('show');
+		});
+		var cards_str = '{$cards_str}';
+		cards_str = $.parseJSON(cards_str);
+		$('#wq_card .form-group').click(function(){
+			var status = $(this).find('.fa').hasClass('text-danger');
+			$(this).siblings().find('.fa').removeClass('text-danger');
+			if(status) {
+				$(this).find('.fa').removeClass('text-danger');
+			} else {
+				$(this).find('.fa').addClass('text-danger');
+			}
+		});
+
+		$('#wq_card .btn-primary').click(function(){
+			var checked_card = $('#wq_card .fa.text-danger').attr('data-id');
+			if(checked_card && cards_str[checked_card]) {
+				$('#wq_card_info').html('已抵用'+cards_str[checked_card].discount_cn+'元');
+				$('#order_card span:first').html('-￥'+cards_str[checked_card].discount_cn+'元');
+				$('.pay-btn input[name="coupon_id"]').val(checked_card);
+				$('#order_card').show();
+			} else {
+				$('.pay-btn input[name="coupon_id"]').val(0);
+				$('#wq_card_info').html('未使用 <i class="fa fa-angle-right"></i>');
+				$('#order_card').hide();
+			}
+			$('.bs-example-modal-lg').modal('hide');
+		});
+	});
+</script>
+{template 'common/footer'}

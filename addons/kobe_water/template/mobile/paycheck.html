@@ -1,0 +1,258 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="pragma" content="no-cache" >
+  <meta http-equiv="Cache-Control" content="no-store,must-revalidate" >
+  <meta http-equiv="expires" content="Web, 26 Feb 1997 08:21:57 GMT">
+  <meta http-equiv="expires" content="0">
+  <title>{$setting['title']}</title>
+  <meta name="keywords" content="微订水">
+  <meta name="description" content="微订水">
+  <meta author="kobe" contet="QQ:2779736086">
+  <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+  <script type="text/javascript" src="../addons/kobe_water/template/js/jquery.min.js" ></script>
+  <script type="text/javascript" src="../addons/kobe_water/template/js/jquery.lazyload.min.js"></script>
+  <script type="text/javascript" src="../addons/kobe_water/template/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="../addons/kobe_water/template/css/font-awesome.min.css">
+  <link rel="stylesheet" type="text/css" href="../addons/kobe_water/template/css/main.css">
+  <meta content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0" name="viewport">
+  <meta name="format-detection" content="telephone=no">
+  <script type="text/javascript" src="../addons/kobe_water/template/js/target-script-min.js"></script>
+  <style type="text/css">
+     .inputText{
+      background-color:#ffffff;border:1px solid #cccccc;box-shadow:inset 0 1px 1px rgba(0, 0, 0, 0.075);
+      transition: border linear 0.2s, 
+      box-shadow linear 0.2s;
+      display: inline-block;
+      height: 20px;
+      padding: 6px 6px;
+      width:280px;
+      margin-bottom: 10px;
+      font-size: 14px;
+      line-height: 20px;
+      color: #555555;
+      vertical-align: middle;
+      -webkit-border-radius: 4px;
+      -moz-border-radius: 4px;
+      border-radius: 4px;
+     }
+     #parent {
+      background: url('yourimage') no-repeat;
+      width: 100px;
+      height: 30px;
+      overflow: hidden;
+     }
+     #parent select {
+      background: transparent;
+      border: none;
+      padding-left: 10px;
+      width: 120px;
+      height: 100%;
+     }
+  </style>
+</head>
+<body>
+    <div class="shopPage">
+        <div class="topFloatBar">
+            <div class="topMenu">
+              <div class="topBack">
+                  <a href="javascript:history.go(-1)">
+                      <img src="../addons/kobe_water/template/images/icon-back.png" style="-webkit-touch-callout:none;-webkit-user-select:none;">
+                  </a>
+              </div>
+              <div class="topMore">
+                  <a href="javascript:history.go(-1)">
+                      <img src="../addons/kobe_water/template/images/icon-cato.png" style="-webkit-touch-callout:none;-webkit-user-select:none;">
+                  </a>
+              </div>
+              <div class="topTitle">订单确认</div>
+            </div>
+        </div>        
+    </div>
+    <form method="post" action="{php echo $this->createMobileUrl('pay')}" onsubmit="return check();" >
+    <div class="order-list">
+        <div class="deliverItem">
+            <div class="cart-list">
+            <h2 style="float:left;">购买清单</h2>
+            <div style="clear:both;"></div>
+            <ul>
+                {loop $carts $id $cart}
+                {php $shop = pdo_fetch("SELECT * FROM ".tablename('hao_water_goods')." WHERE id = :id LIMIT 1", array(':id' => $cart['shop_id']));}
+                <li>
+                  <input type="hidden" class="price" value="{php echo $shop['goods_price']*$cart['shop_count']}" >
+                  <div class="item">
+                    <div class="img">
+                      <a href="">
+                        <img src="{php echo tomedia($shop['goods_image'])}" style="-webkit-touch-callout:none;-webkit-user-select:none;">
+                      </a>
+                    </div>
+                    <div class="info">
+                      <h3>{$shop['goods_title']}</h3>
+                      <p>
+                        <br>
+                      </p>
+                      <strong>￥{php echo number_format($shop['goods_price'],2);}</strong>&nbsp;×&nbsp;{$cart['shop_count']}
+                    </div>
+                  </div>
+                  <input type="hidden" name="shop_id[]" value="{$cart['shop_id']}" />
+                  <input type="hidden" name="cart_id[]" value="{$cart['id']}" />
+                  <input type="hidden" name="shop_count[]" value="{$cart['shop_count']}" />
+                </li>
+                {/loop}
+            </ul>
+        </div>
+            <div class="bottom">
+                <div class="recommoned" style="padding:10px;" >
+                <div class="content">
+                    <div id="recommondedShow">
+                        <div class="item">
+                            <strong style="color:#03F">地址</strong>
+                            <input type="text" name="useraddress" placeholder="送货地址" class="inputText" value="{$address['address_detail']}">
+                        </div>
+                        <div class="item">
+                            <strong style="color:#03F">送货时间</strong>
+                            <select id="parent" class="date" name="date">
+                                <option value="{php echo date("Y-m-d",time());}">今日</option>
+                                <option value="{php echo date("Y-m-d",strtotime("+1 day"));}">明日</option>
+                                <option value="{php echo date("Y-m-d",strtotime("+2 day"));}">后天</option>
+                            </select>
+                            <select id="parent" class="hour" name="hour">
+                                {if (date('H') < 9)}
+                                <option>9:00</option>
+                                {/if}
+                                {if (date('H') < 10 )}
+                                <option>10:00</option>
+                                {/if}
+                                {if (date('H') < 11 )}
+                                <option>11:00</option>
+                                {/if}
+                                {if (date('H') < 12 )}
+                                <option>12:00</option>
+                                {/if}
+                                {if (date('H') < 13 )}
+                                <option>13:00</option>
+                                {/if}
+                                {if (date('H') < 14 )}
+                                <option>14:00</option>
+                                {/if}
+                                {if (date('H') < 15 )}
+                                <option>15:00</option>
+                                {/if}
+                                {if (date('H') < 16 )}
+                                <option>16:00</option>
+                                {/if}
+                                {if (date('H') < 17 )}
+                                <option>17:00</option>
+                                {/if}
+                                {if (date('H') < 18 )}
+                                <option>18:00</option>
+                                {/if}
+                                {if (date('H') < 19 )}
+                                <option>19:00</option>
+                                {/if}
+                                {if (date('H') >= 19 )}
+                                <option>{php echo '今日售完';}</option>
+                                {/if}
+                            </select>
+                            <select id="parent" class="hour1" name="" style="display:none;">
+                                <option>9:00</option>
+                                <option>10:00</option>
+                                <option>11:00</option>
+                                <option>12:00</option>
+                                <option>13:00</option>
+                                <option>14:00</option>
+                                <option>15:00</option>
+                                <option>16:00</option>
+                                <option>17:00</option>
+                                <option>18:00</option>
+                                <option>19:00</option>
+                            </select>
+                            <script type="text/javascript">
+                                $('.date').change(function(){
+                                    var sel =  $(".date option:selected").html();
+                                    if(sel == '今日'){
+                                        $('.hour').attr('style','');
+                                        $('.hour1').attr('style','display:none');
+                                        $(".hour").attr("name","hour");
+                                        $(".hour1").attr("name","");
+                                    }if(sel == '明日'){
+                                        $('.hour').attr('style','display:none');
+                                        $('.hour1').attr('style','');
+                                        $(".hour").attr("name","");
+                                        $(".hour1").attr("name","hour");
+                                    }if(sel == '后天'){
+                                        $('.hour').attr('style','display:none');
+                                        $('.hour1').attr('style','');
+                                        $(".hour").attr("name","hour");
+                                        $(".hour1").attr("name","hour");
+                                    }
+                                });
+                            </script>
+                        </div>
+                        <div class="item">
+                            <strong style="color:#03F">姓名</strong>
+                            <input type="text" name="username" value="{$member['member_nickname']}" class="inputText">
+                        </div>
+                        <div class="item">
+                            <strong style="color:#03F">电话</strong>
+                            <input type="number" name="userphone" value="{$member['member_phone']}" class="inputText">
+                        </div>
+                        <div class="item">
+                            <strong style="color:#03F;padding-right:12px;">商品总价</strong>
+                            ￥<span id="pricetotal">60.00</span>
+                        </div>
+                    </div>
+                    <strong style="color:green;">应付总金额<span style="color:#f60">￥<span id="payprice">60.00</span></span></span></strong>
+                    <input type="hidden" value="" name="fee" />
+                </div>
+            </div>
+            <script type="text/javascript">
+                $(function(){
+                    $length = $('.order-list ul li').length;
+                    $val = 0;
+                    for (var i = 0; i < $length; i++) {
+                        $val += parseInt($('.order-list ul li').eq(i).children().eq(0).val());
+                    }
+                    $('#pricetotal').text($val.toFixed(2));
+                    $('#payprice').text($val.toFixed(2));
+                    $('input[name="fee"]').val($val);
+                });
+            </script>
+            <div class="btnBar">
+                <button class="bigBtn orangeBtn" type="submit" name="submit"  style="width:100%;background-color:green;">微信支付</button>
+                <input type="hidden" value="{$_W['token']}" name="token" />
+            </div>
+            </div>
+        </div>
+    </div>
+    </form>
+</body>
+<script type="text/javascript">
+	function check(){
+		var address = $('input[name="useraddress"]').val();
+		var hour = $(".hour option:selected").val();
+		var username = $('input[name="username"]').val();
+		var userphone = $('input[name="userphone"]').val();
+		if(address == ''){
+			alert('请填上送货地址');
+			return false;
+		}if(hour == '今日售完'){
+			alert('今日售完');
+			return false;
+		}if(username == ''){
+			alert('请填写用户名');
+			return false;
+		}if(userphone == ''){
+            alert('请填写联系方式');
+            return false;
+		}var reg = /^1\d{10}$/;
+        iso = reg.test(userphone);
+        if (!iso) {
+            alert("电话格式错误");
+            return false;
+        }
+	}
+</script>
+</html>
+

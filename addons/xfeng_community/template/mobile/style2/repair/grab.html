@@ -1,0 +1,168 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+    <title>报修详情</title>
+    <link rel="stylesheet" type="text/css" href="{MODULE_URL}template/mobile/style2/static/css/weui.css"/>
+    <script type="text/javascript" src="{$_W['siteroot']}app/resource/js/lib/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript">
+        // jssdk config 对象
+        jssdkconfig = {php echo json_encode($_W['account']['jssdkconfig']);} || {};
+        // 是否启用调试
+        jssdkconfig.debug = false;
+        jssdkconfig.jsApiList = [
+            'previewImage',
+        ];
+    </script>
+    <style>
+        .page_title {
+            text-align: center;
+            font-size: 14px;
+            color: #888;
+            margin: 0 15%;
+        }
+        body {
+            background-color: #efeef4;
+        }
+    </style>
+</head>
+<body ontouchstart="">
+<div class="container" id="container">
+    <div class="cell">
+        <!--<div class="hd">-->
+        <!--<h1 class="page_title">新增地址</h1>-->
+        <!--</div>-->
+        <div class="bd">
+            <div class="weui_cells_title">报修详情</div>
+            <div class="weui_panel weui_panel_access">
+                <div class="weui_panel_bd">
+                    <div class="weui_media_box weui_media_text">
+                        <p class="weui_media_desc">
+                            <p>姓名：{$item['realname']}</p>
+                            <p>电话：<a href="tel:{$item['mobile']}" style="color: red">{$item['mobile']}</a></p>
+                            <p>状态：<span class="label label-success">{if $item['status'] == 3}处理中{elseif $item['status'] == 1}已处理{elseif $item['status'] == 2}未处理{/if}</span></p>
+                            <p>内容：{$item['content']}</p>
+                            <div id="previewImage" onclick="showImg()">
+                                {if $imgs}
+                                {loop $imgs $img}
+                                <img src="{$img['src']}" class="img-thumbnail" width="90" height="90">
+                                {/loop}
+                                {/if}
+                            </div>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <a style="height:20px;width:100%;background-color: #efeef4;display:block"></a>
+            <div class="weui_cells_title">处理方法</div>
+            <div class="weui_cells weui_cells_form">
+                <div class="weui_cell weui_cell_select weui_select_after">
+                    <div class="weui_cell_hd">
+                        <label for="" class="weui_label">状态</label>
+                    </div>
+                    <div class="weui_cell_bd weui_cell_primary">
+                        <select class="weui_select" id="status">
+                            <option value="2" {if intval($item['status'])==2} selected{/if}>未处理</option>
+                            <option value="3" {if intval($item['status'])==3} selected{/if}>处理中</option>
+                            <option value="1" {if intval($item['status'])==1} selected{/if}>已处理</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="weui_cell">
+                    <div class="weui_cell_bd weui_cell_primary">
+                        <textarea class="weui_textarea" placeholder="请输入处理结果" rows="3" id="resolve">{$item['resolve']}</textarea>
+                        <div class="weui_textarea_counter"><span>0</span>/200</div>
+                    </div>
+                </div>
+            </div>
+            <div class="bd spacing" style="margin:0 auto;text-align:center;margin-top:10px;">
+                <a href="javascript:;" class="weui_btn weui_btn_primary" style="margin-bottom:-10px;width:50%" id="showToast">保存</a>
+
+            </div>
+
+        </div>
+    </div>
+    <div id="loadingToast" class="weui_loading_toast" style="display:none;">
+        <div class="weui_mask_transparent"></div>
+        <div class="weui_toast">
+            <div class="weui_loading">
+                <div class="weui_loading_leaf weui_loading_leaf_0"></div>
+                <div class="weui_loading_leaf weui_loading_leaf_1"></div>
+                <div class="weui_loading_leaf weui_loading_leaf_2"></div>
+                <div class="weui_loading_leaf weui_loading_leaf_3"></div>
+                <div class="weui_loading_leaf weui_loading_leaf_4"></div>
+                <div class="weui_loading_leaf weui_loading_leaf_5"></div>
+                <div class="weui_loading_leaf weui_loading_leaf_6"></div>
+                <div class="weui_loading_leaf weui_loading_leaf_7"></div>
+                <div class="weui_loading_leaf weui_loading_leaf_8"></div>
+                <div class="weui_loading_leaf weui_loading_leaf_9"></div>
+                <div class="weui_loading_leaf weui_loading_leaf_10"></div>
+                <div class="weui_loading_leaf weui_loading_leaf_11"></div>
+            </div>
+            <p class="weui_toast_content">数据加载中</p>
+        </div>
+    </div>
+    <div id="toast" style="display: none;">
+        <div class="weui_mask_transparent"></div>
+        <div class="weui_toast">
+            <i class="weui_icon_toast"></i>
+            <p class="weui_toast_content">已提交</p>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $(function() {
+
+        $("#showToast").click(function(event) {
+            var status = $('#status option:selected').val();
+            var resolve = $('#resolve').val();
+            var id = "{$id}";
+            $.ajax({
+                url: "{php echo $this->createMobileUrl('repair',array('op' => 'grab'))}",
+                dataType: 'json',
+                data: {
+                    status: status,
+                    resolve: resolve,
+                    id:id
+                },
+                success: function(s) {
+                    if (s.result == 1) {
+                        $('#loadingToast').show();
+                        setTimeout(function() {
+                            $('#loadingToast').hide();
+                            $('#toast').show();
+                        }, 30);
+                    }
+                }
+            })
+
+
+        });
+
+    })
+</script>
+<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+<script type="text/javascript">
+    wx.config(jssdkconfig);
+
+    function showImg(){
+        var imgArray = [];
+        var curImageSrc = $('#previewImage img').attr('src');
+        // alert(curImageSrc);
+        if (curImageSrc) {
+            $('#previewImage img').each(function(index, el) {
+                var itemSrc = $(this).attr('src');
+                imgArray.push(itemSrc);
+            });
+
+            wx.previewImage({
+                current: curImageSrc,
+                urls: imgArray
+            });
+
+        }
+
+    }
+</script>
+</body>
+</html>

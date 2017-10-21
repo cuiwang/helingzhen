@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>商品管理</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Bootstrap -->
+<script src="../addons/cy163_goodssales/static/admin/js/jquery.min.js"></script>
+<script src="../addons/cy163_goodssales/static/admin/bootstrap/js/bootstrap.min.js"></script>
+<script src="../addons/cy163_goodssales/static/admin/bootstrap/js/bootstrap-datetimepicker.min.js"></script>
+<script src="../addons/cy163_goodssales/static/admin/validate/jquery-html5Validate-min.js"></script>
+<script src="../addons/cy163_goodssales/static/ueditor/ueditor.config.js"></script>
+<script src="../addons/cy163_goodssales/static/ueditor/ueditor.all.min.js"></script>
+<script src="{$_W['siteroot']}web/resource/js/lib/jquery-ui-1.10.3.min.js"></script>
+<script src="../addons/cy163_goodssales/static/admin/js/jUploader.js"></script>
+<link rel="stylesheet" type="text/css" href="../addons/cy163_goodssales/static/admin/bootstrap/css/bootstrap.min.css" />
+<link rel="stylesheet" type="text/css" href="../addons/cy163_goodssales/static/admin/css/datetimepicker.css" />
+<link rel="stylesheet" type="text/css" href="../addons/cy163_goodssales/static/admin/css/admin.css" />
+<style>
+ .panel{margin-bottom:20px;background-color:#fff;border:1px solid transparent;border-radius:4px;-webkit-box-shadow:0 1px 1px rgba(0,0,0,.05);box-shadow:0 1px 1px rgba(0,0,0,.05)}
+ .panel-body{padding:15px}
+ .panel-heading{padding:10px 15px;border-bottom:1px solid transparent;border-top-left-radius:3px;border-top-right-radius:3px}
+ .panel-info{border-color:#bce8f1}
+ .panel-info>.panel-heading{color:#31708f;background-color:#d9edf7;border-color:#bce8f1}
+ .panel-info>.panel-heading+.panel-collapse>.panel-body{border-top-color:#bce8f1}
+ .panel-info>.panel-heading .badge{color:#d9edf7;background-color:#31708f}
+</style>
+<script type="text/javascript">
+	window.UEDITOR_HOME_URL = "../addons/cy163_goodssales/static/ueditor/";
+	$(function(){
+		$("#form").html5Validate();
+		window.UEDITOR_CONFIG.initialFrameWidth=800;  //初始化编辑器宽度,默认1000
+        window.UEDITOR_CONFIG.initialFrameHeight=500;  //初始化编辑器高度,默认320
+		window.UEDITOR_CONFIG.imageUrl = "{$_W['siteroot']}app/{php echo str_replace('./','',$this->createMobileUrl('adminupload'));}";
+		window.UEDITOR_CONFIG.imagePath = "../attachment/images/{$_W['uniacid']}/";
+		UE.getEditor('content');
+		
+		$.jUploader.setDefaults({
+			cancelable: false, // 可取消上传
+			allowedExtensions: ['jpg', 'png', 'gif','jpeg'], // 只允许上传图片
+			messages: {
+				upload: '上传',
+				cancel: '取消',
+				emptyFile: "{file} 为空，请选择一个文件.",
+				invalidExtension: "{file} 后缀名不合法. 只有 {extensions} 是允许的.",
+				onLeave: "文件正在上传，如果你现在离开，上传将会被取消。"
+			}
+		});
+		
+		$.jUploader({
+			button: 'uploadify', // 这里设置按钮id
+			action: "{$_W['siteroot']}app/{php echo str_replace('./','',$this->createMobileUrl('adminuploadmore'));}", // 这里设置上传处理接口
+			
+			onUpload: function (fileName) {
+				$('#thumb_msg').html("<span style='color:green;'>正在上传"+fileName+"</span>");
+			 },
+		
+			// 上传完成事件
+			onComplete: function (fileName, response) {
+				// response是json对象，格式可以按自己的意愿来定义，例子为： { success: true, fileUrl:'' }
+				if (response.success) {
+					$('#thumb').val(response.fileUrl);
+					$('#fileQueue').html('<img src="'+response.realUrl+'" width="200" height="200" class="img-polaroid" /><i class="icon-remove" onclick="delpic();" style="cursor:pointer;margin-left:5px;"></i>');
+					$('#thumb_msg').html("<span style='color:green;'>上传"+fileName+"成功！</span>");
+				} else {
+					$('#thumb_msg').html("<span style='color:red;'>上传"+response.msg+"失败！</span>");
+				}
+			},	
+		});
+		
+		$.jUploader({
+			button: 'uploadifys', // 这里设置按钮id
+			action: "{$_W['siteroot']}app/{php echo str_replace('./','',$this->createMobileUrl('adminuploadmore'));}", // 这里设置上传处理接口
+			
+			onUpload: function (fileName) {
+				$('#thumbs_msg').html("<span style='color:green;'>正在上传"+fileName+"</span>");
+			 },
+		
+			// 上传完成事件
+			onComplete: function (fileName, response) {
+				// response是json对象，格式可以按自己的意愿来定义，例子为： { success: true, fileUrl:'' }
+				if (response.success) {
+					var imghtml = '<input type="hidden" name="thumbs[]" value="'+response.fileUrl+'" />';
+					$('#fileQueues').append('<img src="'+response.realUrl+'" width="200" height="200" class="img-polaroid" /><i class="icon-remove" onclick="delpics($(this));" style="cursor:pointer;margin:0 10px 0 5px;"></i>'+imghtml);
+					$('#thumbs_msg').html("<span style='color:green;'>上传"+fileName+"成功！</span>");
+				} else {
+					$('#thumbs_msg').html("<span style='color:red;'>上传"+response.msg+"失败！</span>");
+				}
+			},	
+		});
+	})
+	
+	function delpic(){
+		$('#fileQueue').html("");
+		$('#thumb').val("");
+	}
+	function delpics(obj){
+		obj.prev("img").remove();
+		obj.next("input").remove();
+		obj.remove();
+	}
+</script>
+</head>
+
+<body>
+<div id="container">
+	<ul class="nav nav-tabs">		
+		<li {if $operation == 'display'}class="active"{/if}><a href="{php echo $this->createMobileUrl('admingoods', array('op' => 'display'))}">管理商品</a></li>
+		<li {if $operation == 'post'}class="active"{/if}><a href="{php echo $this->createMobileUrl('admingoods', array('op' => 'post'))}">{if empty($item['id'])}添加商品{else}{if $fuzhi == 1}复制商品{else}编辑商品{/if}{/if}</a></li>
+		<li {if $operation == 'recyclebin'}class="active"{/if}><a href="{php echo $this->createMobileUrl('admingoods', array('op' => 'recyclebin'))}">商品回收站</a></li>
+	</ul>
+	{if $operation == 'post'}
+	<div class="tabbable">
+		<ul class="nav nav-tabs">
+			<li class="active"><a data-toggle="tab" href="#A">基本信息</a></li>
+			<li class=""><a data-toggle="tab" href="#B">商品描述</a></li>
+			<li class=""><a data-toggle="tab" href="#C">自定义属性</a></li>
+			<li class=""><a data-toggle="tab" href="#D">商品规格</a></li>
+			<li class=""><a data-toggle="tab" href="#E">其他设置</a></li>
+			<li class=""><a data-toggle="tab" href="#F">客服设置</a></li>
+			<li class=""><a data-toggle="tab" href="#G">分销设置</a></li>
+		</ul>
+		<form action="" method="post" id="form" class="form-horizontal">
+			<input type="hidden" name="c" value="entry" />
+			<input type="hidden" name="op" value="post" />
+			<fieldset>
+				<div class="tab-content">
+					<div id="A" class="tab-pane active">		
+						{template 'admin/goods_basic'}
+					</div>
+					<div id="B" class="tab-pane">		
+						{template 'admin/goods_des'}
+					</div>
+					<div id="C" class="tab-pane">		
+						{template 'admin/goods_param'}
+					</div>
+					<div id="D" class="tab-pane">		
+						{template 'admin/goods_option'}
+					</div>
+					<div id="E" class="tab-pane">		
+						{template 'admin/goods_other'}
+					</div>
+					<div id="F" class="tab-pane">		
+						{template 'admin/goods_cservice'}
+					</div>
+					<div id="G" class="tab-pane">		
+						{template 'admin/goods_fenxiao'}
+					</div>
+					<div class="control-group">
+						<label class="control-label"></label>
+						<div class="controls">
+							<input type="submit" name="submit" class="btn btn-success" value="提交" />
+							<input type="hidden" name="token" value="{$_W['token']}" />
+						</div>
+					</div>
+				</div>	
+			</fieldset>
+		</form>
+	</div>
+	{elseif $operation == 'recyclebin'}
+	<div class="panel panel-info">
+		<div class="panel-heading">筛选</div>
+		<div class="panel-body">
+			<form action="./index.php" method="get" class="form-horizontal">
+				<input type="hidden" name="c" value="entry" />
+				<input type="hidden" name="m" value="cy163_goodssales" />
+				<input type="hidden" name="do" value="admingoods" />
+				<input type="hidden" name="op" value="recyclebin" />
+				<input type="hidden" name="i" value="{$_W['uniacid']}" />
+				<div class="control-group">
+					<label class="control-label">关键字</label>
+					<div class="controls">
+						<input class="form-control" name="keyword" type="text" value="{$_GPC['keyword']}">
+					</div>
+				</div>
+				
+				<div class="control-group">
+					<label class="control-label"></label>
+					<div class="controls">
+						<button class="btn btn-default"><i class="icon-search"></i> 搜索</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<table class="table table-bordered table-hover">		
+		<thead>
+			<tr>
+				<th style="width:3%;">ID</th>
+				<th>商品标题</th>
+				<th style="width:5%;">库存</th>
+				<th style="width:5%;">销量</th>
+				<th style="width:10%;">价格</th>
+				<th style="text-align:right; width:15%;">操作</th>
+			</tr>
+		</thead>
+		<tbody>
+			{loop $list $item}
+			<tr>
+				<td>{$item['id']}</td>				
+				<td>
+					<button type="button" class="btn btn-success btn-small" data-toggle="modal" data-target="#myModal{$item['id']}">
+					  {$item['title']}
+					</button>
+				</td>
+				<div class="modal hide  fade" id="myModal{$item['id']}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+						<h4>{$item['title']}二维码</h4>
+					</div>
+					<div class="modal-body text-center">
+						<script>
+							var mmurl = encodeURIComponent('{$_W["siteroot"]}app/{php echo str_replace("./","",$this->createMobileUrl("detail",array("id"=>$item["id"])));}');
+							document.write("<img src='http://qr.liantu.com/api.php?text="+mmurl+"' />");
+						</script>
+					</div>
+				</div>
+				<td>{$item['total']}</td>
+				<td>{$item['sales']}</td>
+				<td>
+					<span class="label label-success">售价：{$item['normalprice']}</span><br />
+					<span class="label label-default">原价：{$item['originalprice']}</span>
+				</td>
+				<td style="text-align:right;">
+					<a href="{php echo $this->createMobileUrl('admingoods', array('id' => $item['id'], 'op' => 'huifu'))}" class="btn btn-success btn-mini" title="恢复商品">恢复商品</a>&nbsp;&nbsp;
+					<a href="{php echo $this->createMobileUrl('admingoods', array('id' => $item['id'], 'op' => 'post'))}" class="btn btn-default btn-mini" title="编辑"><i class="icon-edit"></i></a>&nbsp;&nbsp;
+				</td>
+			</tr>
+			{/loop}
+		</tbody>		
+	</table>
+	<div class="pagination">{$pager}</div>
+	{elseif $operation == 'display'}
+	<div class="panel panel-info">
+		<div class="panel-heading">筛选</div>
+		<div class="panel-body">
+			<form action="./index.php" method="get" class="form-horizontal">
+				<input type="hidden" name="c" value="entry" />
+				<input type="hidden" name="m" value="cy163_goodssales" />
+				<input type="hidden" name="do" value="admingoods" />
+				<input type="hidden" name="op" value="display" />
+				<input type="hidden" name="i" value="{$_W['uniacid']}" />
+				<div class="control-group">
+					<label class="control-label">关键字</label>
+					<div class="controls">
+						<input class="form-control" name="keyword" type="text" value="{$_GPC['keyword']}">
+					</div>
+				</div>
+				
+				<div class="control-group">
+					<label class="control-label">状态</label>
+					<div class="controls">
+						<select class="form-control" name="status">
+							<option value="1" {if $_GPC['status'] != '0'} selected{/if}>上架</option>
+							<option value="0" {if $_GPC['status'] == '0'} selected{/if}>下架</option>
+						</select>
+					</div>
+				</div>
+				
+				<div class="control-group">
+					<label class="control-label"></label>
+					<div class="controls">
+						<button class="btn btn-default"><i class="icon-search"></i> 搜索</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<table class="table table-bordered table-hover">		
+		<thead>
+			<tr>
+				<th style="width:3%;">ID</th>
+				<th>商品标题</th>
+				<th style="width:5%;">库存</th>
+				<th style="width:5%;">销量</th>
+				<th style="width:10%;">价格</th>
+				<th style="width:6%;">状态</th>
+				<th style="text-align:right; width:15%;">操作</th>
+			</tr>
+		</thead>
+		<tbody>
+			{loop $list $item}
+			<tr>
+				<td>{$item['id']}</td>
+				<td>
+					<button type="button" class="btn btn-success btn-small" data-toggle="modal" data-target="#myModal{$item['id']}">
+					  {$item['title']}
+					</button>
+				</td>
+				<div class="modal hide  fade" id="myModal{$item['id']}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+						<h4>{$item['title']}二维码</h4>
+					</div>
+					<div class="modal-body text-center">
+						<script>
+							var mmurl = encodeURIComponent('{$_W["siteroot"]}app/{php echo str_replace("./","",$this->createMobileUrl("detail",array("id"=>$item["id"])));}');
+							document.write("<img src='http://qr.liantu.com/api.php?text="+mmurl+"' />");
+						</script>
+					</div>
+				</div>
+				<td>{$item['total']}</td>
+				<td>{$item['sales']}</td>
+				<td>
+					<span class="label label-success">售价：{$item['normalprice']}</span><br />
+					<span class="label label-default">原价：{$item['originalprice']}</span>
+				</td>
+				<td>
+					{if $item['status']==1}
+						<label class='label label-warning'>上架</label>
+					{else}
+						<label class='label label-default'>下架</label>
+					{/if}
+				</td>
+				<td style="text-align:right;">
+					<a href="{php echo $this->createMobileUrl('admingoods', array('id' => $item['id'], 'op' => 'post','fuzhi'=>1))}" class="btn btn-success btn-mini" title="复制商品">复制商品</a>&nbsp;&nbsp;
+					<a href="{php echo $this->createMobileUrl('admingoods', array('id' => $item['id'], 'op' => 'post'))}" class="btn btn-default btn-mini" title="编辑"><i class="icon-edit"></i></a>&nbsp;&nbsp;
+					<a href="{php echo $this->createMobileUrl('admingoods', array('id' => $item['id'], 'op' => 'delete'))}" onclick="return confirm('此操作不可恢复，确认删除？');return false;" class="btn btn-default btn-mini" title="删除"><i class="icon-trash"></i></a>
+				</td>
+			</tr>
+			{/loop}
+		</tbody>		
+	</table>
+	<div class="pagination">{$pager}</div>
+	{/if}
+</div>
+</body>
+</html>

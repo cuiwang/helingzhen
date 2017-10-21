@@ -1,0 +1,146 @@
+{template 'common/header'}
+<script type="text/javascript" src="resource/js/lib/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="resource/js/lib/jquery-ui-1.10.3.min.js"></script>
+<ul class="nav nav-tabs">
+	<li><a href="{php echo $this->createWebUrl('List', array('op' => 'detail'))}">添加/修改</a></li>	
+	<li><a href="{php echo $this->createWebUrl('List', array('op' => 'display'))}">文章管理</a></li>
+	<li {if $operation == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('comment', array('ar_id'=>$ar_id))}">评论管理</a></li>
+	<li><a href="{php echo $this->createWebUrl('List', array('op' => 'dashang_detail','id'=>$id))}">打赏管理</a></li>	
+</ul>
+<style type="text/css">
+.table-hover td {
+ vertical-align: middle!important;
+}
+</style>
+{if $operation == 'display'}
+<div class="panel panel-info">
+	    <div class="panel-heading"style="text-align:center" ><b>《 {$title['title']} 》</b><b> {$title['author']} </b></div>
+</div>
+	<div class="category">
+		<form action="" method="post" onsubmit="return formcheck(this)">
+			
+			<div class="panel panel-default">
+				<div class="panel-body table-responsive">
+					<table class="table table-hover">
+						<thead>
+							<tr>
+								<th style="width:80px;">昵称</th>
+								<th style="width:80px;">头像</th>
+								<th style="width:180px;">评论文章</th>							
+								<th style="width:20px;"></th>							
+								<th style="width:180px;">评论内容</th>
+								<th style="width:180px;">评论时间</th>	
+								<th style="width:100px;">普通/精选</th>
+								<th style="width:100px;">操作</th>
+							</tr>
+						</thead>
+						<tbody>
+						{loop $comments $v}
+						<tr>
+							<td><div class="type-parent">{$v['nickname']}</div></td>
+							<td><img src="{$v['heading']}" style="width:50px;height:50px;"></td>
+							<td><div class="type-parent">《{$v['title']}》</div></td>
+							<td></td>
+							<td>
+								<div class="col-sm-15">
+									<textarea class="form-control" name="field_setting">{$v['comment']}</textarea>
+								</div>
+							</td>
+							<td>{php echo date("Y-m-d H:i:s",$v['createtime'])}</td>
+							<td>
+								<label data="{$v['is_jing']}" onclick="jingxuan(this,{$v['id']})" class='label  label-default {if $v['is_jing']==1}label-info{/if}'>{if $v['is_jing']==1}精选评论{else}普通评论{/if}</label>
+							</td>
+							<td>
+								<a onclick="huifu(this,{$v['id']})" data="{$v['is_jing']}" href="javascript:void(0);"class="btn btn-default btn-sm">回复评论</a>
+							</td>
+						</tr>
+						<tr id="id{$v['id']}" style="display:none" >
+							<td colspan="6">
+								
+									<textarea id="hf{$v['id']}" class="form-control" style="width:100%" rows="2" name="">{$v['zuozhe_comment']}</textarea>
+								
+							</td>
+							<td colspan="2">
+								
+									<a onclick="author_huifu({$v['id']})" href="javascript:void(0)"class="btn btn-success btn-sm">确认回复</a>
+									<a onclick="quxiao({$v['id']})" href="javascript:void(0);"class="btn btn-danger btn-sm">取消</a>
+							</td>
+						</tr>
+						{/loop}
+						<tr>
+							<td colspan="8"><a href="{php echo $this->createWebUrl('xuni',array('ar_id' => $_GPC['ar_id']))}" class="btn btn-default btn-sm">添加评论</a></td>
+						</tr>
+						</tbody>
+					</table>
+					
+				</div>
+			</div>{$pager}
+		</form>
+	</div>
+
+<script>
+	function author_huifu(id){
+		var canshu ="#hf"+id;
+		var data = $(canshu).val();
+		$.ajax({
+			url:"{php echo $this->createWebUrl('comment',array('op'=>'huifu'))}"+"&id="+id,
+			data:{'content':data},
+			type:'post',
+			dataType:'json',
+			success:function(res){
+				if(res.info==100){
+					quxiao(id);
+					if(data){
+						alert('回复成功');
+					}else{
+						alert('取消回复成功');
+					}
+				}else{
+					alert('回复失败');
+				}
+			}
+		});
+	}
+	function huifu(obj,id){
+		var is_jing = $(obj).attr('data');
+		if(is_jing == 1){
+			var id = "#id"+id;
+			$(id).show();
+		}else{
+			alert("只有精选评论才可以回复哦！");
+		}		
+	}
+	function quxiao(id){
+		var id = "#id"+id;
+		$(id).hide();
+	}
+
+	function jingxuan(obj,id){
+		var is_jing = $(obj).attr('data');
+		var url ="{php echo $this->createWebUrl('comment', array('op' => 'shezhi'))}"+"&id="+id+"&is_jing="+is_jing;
+		$.post(url
+			,function(d,status){
+				var zero = d.info;
+				if(zero==100){
+					if(is_jing == 1){
+						$(obj).removeClass('label-info');
+						$(obj).attr('data','0');
+						$(obj).parent().next().find('a').attr('data','0');
+						$(obj).html('普通评论');
+					}else{
+						$(obj).addClass('label-info');
+						$(obj).attr('data','1');
+						$(obj).parent().next().find('a').attr('data','1');
+						$(obj).html('精选评论');
+					}
+				}
+			}
+			,"json"
+		);
+		
+	}
+
+</script>
+
+{/if}
+{template 'common/footer'}

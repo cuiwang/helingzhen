@@ -1,0 +1,127 @@
+<style>
+	.we7-checkbox-option {
+		display: none;
+	}
+</style>
+<div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+		<form action="" method="get" class="form-horizontal" role="form">
+			<input type="hidden" name="c" value="site"/>
+			<input type="hidden" name="a" value="entry"/>
+			<input type="hidden" name="do" value="task"/>
+			<input type="hidden" name="m" value="superman_creditmall"/>
+			<input type="hidden" name="act" value="display"/>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 control-label">任务类型</label>
+				<div class="col-sm-8 col-md-8 col-lg-8 col-xs-12">
+					<select name="type" class="form-control">
+						<option value="0">全部</option>
+						{loop $types $type}
+						<option value="{$type['id']}" {if $type['id']==$_GPC['type']}selected{/if}>{$type['title']}</option>
+						{/loop}
+					</select>
+				</div>
+				<div class="pull-right col-xs-12 col-sm-2 col-md-2 col-lg-2">
+					<button class="btn btn-default"><i class="fa fa-search"></i>搜索</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+<form action="" method="post">
+	<div class="panel panel-default">
+		<div class="table-responsive panel-body">
+			<table class="table table-hover">
+				<thead>
+				<tr>
+					<th style="width:80px" class="tac">排序</th>
+					<th width="60" class="tac">图标</th>
+					<th width="15%" class="tac">名称</th>
+					<th style="width:120px;" class="tac">类型</th>
+					<th style="width:170px;" class="tac">时间</th>
+					<th style="width:120px;" class="tac">奖励</th>
+					<th style="width:100px;" class="tac">申请人次</th>
+					<th style="width:100px;" class="tac">完成人次</th>
+					<th style="width:175px;" class="tac">是否开启</th>
+					<th style="width:112px;" class="tac">操作</th>
+				</tr>
+				</thead>
+				<tbody>
+				{loop $list $item}
+				<tr>
+					<td>
+						<input type="text" class="form-control text-center" name="displayorder[{$item['id']}]" value="{$item['displayorder']}">
+					</td>
+					<td class="tac">
+						<img class="task_icon" src="{$item['icon']}" style="border-radius: 50%"/>
+					</td>
+					<td class="tac">
+						{$item['title']}
+					</td>
+					<td class="tac">
+						{$types[$item['type']]['title']}
+					</td>
+					<td class="tac">
+						{if !$item['starttime']&&!$item['endtime']}不限制
+						{else}
+							{if !$item['starttime']}不限制{else}<span title="开始时间">{$item['starttime']}</span>{/if}<br>
+							{if !$item['endtime']}不限制{else}<span title="结束时间">{$item['endtime']}</span>{/if}
+						{/if}
+					</td>
+					<td class="tac">
+						{$item['award']}{$item['credit_title']}
+					</td>
+					<td class="tac">
+						{$item['applied']}
+					</td>
+					<td class="tac">
+						{$item['completed']}
+					</td>
+					<td class="tac">
+						<input type="checkbox" value="{$item['isshow']}" data-id="{$item['id']}" data-field="isshow" {if $item['isshow'] == 1}checked{/if} name="isshow[]"/>
+					</td>
+					<td class="tac">
+						<a href="{php echo $this->createWebUrl('task', array('act' => 'edit','id' => $item['id']));}" title="编辑" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm" style="padding: 5px 9px"><i class="fa fa-edit"></i></a>
+						<a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('task', array('act' => 'delete','id' => $item['id']));}" title="删除" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm" style="padding: 5px 10px"><i class="fa fa-times"></i></a>
+					</td>
+				</tr>
+				{/loop}
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-2 text-left">
+			<input name="submit" type="submit" value="更新排序" class="btn btn-primary" />
+			<input type="hidden" name="token" value="{$_W['token']}" />
+		</div>
+		<div class="col-xs-10 text-right">
+			<div>
+				{$pager}
+			</div>
+		</div>
+	</div>
+</form>
+<script type="text/javascript">
+	require(['jquery', 'bootstrap', 'util', 'bootstrap.switch'],function($){
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+
+		$(':checkbox').bootstrapSwitch();
+		$(':checkbox').on('switchChange.bootstrapSwitch', function(e, state){
+			var t = $(this);
+			var id = t.attr('data-id');
+			var field = t.attr('data-field');
+			var value = this.checked ? 1 : 0;
+			$.post(location.href, {_method: 'switch', id: id, field: field, value: value}, function(resp){
+				if(resp != 'success') {
+					util.message(resp);
+				}
+			});
+		});
+	});
+</script>

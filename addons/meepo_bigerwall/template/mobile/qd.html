@@ -1,0 +1,149 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0,  user-scalable=0;" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+<meta name="format-detection" content="telephone=no" />
+<title>{$ridwall['qdtitle']}</title>
+<link rel="stylesheet" href="{MEEPO}tp/css/style.css" type="text/css">
+<link rel="stylesheet" href="{MEEPO}shake/css/semantic.min.css" type="text/css">
+<script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+<style>
+{if !empty($ridwall['qd_weixin_bg'])}
+#vote{
+background: url({php echo tomedia($ridwall['qd_weixin_bg'])}) no-repeat !important;
+background-size:cover;
+overflow:hidden;
+}
+{/if}
+.main{padding-top:30px;}
+#toast {
+    display: none;
+    position: fixed;
+    padding: 9px 15px;
+    background-color: #333;
+    z-index: 8000;
+    border-radius: 5px;
+	font-size: 15px;
+    color: #ffffff;
+    line-height: 25px;
+    text-align: center;
+	
+}
+.sign_des{display:inline-block;width:60%;line-height:40px;height:40px;}
+</style>
+</head>
+<body id='vote'>
+<div class="main container">
+<div class="ui page grid">
+<div class="column">
+		<h4 class="ui attached green segment votehead" style="text-align:Center">
+		   {$ridwall['qdtitle']}
+		</h4>
+		<div class="ui attached segment content">
+		<div class="image" style="text-align:center;">
+		  <img src="{$member['avatar']}" style="width:120px;height:120px;border-radius:100%">
+		</div>
+		<div  style="height:40px;line-height:40px;text-align:center">
+			  <a class="header">{$member['nickname']}</a>
+		</div>
+		{if empty($check_sign)}
+		{if is_array($zhufus) && !empty($zhufus)}
+		<div class="select" style="margin-top:0px;outline:none;border:1px solid #BBBBBB;border-radius:4px;position:relative;"> 
+			<select id="orderTimeDataSel" class="text" style="height:40px;-webkit-appearance:none;appearance:none;border:none;font-size:18px;padding:0px 10px;display:block;width:100%;-webkit-box-sizing:border-box;box-sizing:border-box;background-color: #FFFFFF;color:#333333;border-radius:4px;" onchange="doit(this.value)"> 
+			<option value="-1">--祝福语快捷选择--</option> 
+			{loop $zhufus $row}
+				<option value="{$row}">{$row}</option> 
+			{/loop}
+			</select> 
+		</div> 
+		
+		<div style="height:20px;"></div>
+		{/if}
+			<div class="ui labeled input" style="width:100%">
+			  <input type="text" id="sign_words" placeholder="说点祝福语吧！" value="{$check_sign['content']}">
+			</div>
+		{else}
+		<div  style="height:40px;line-height:40px;text-align:center;margin-bottom:20px">
+			  <div class="content" style="display:inline-block;width:60%;background:pink;border-radius:5px;">恭喜签到成功</div>
+		</div>
+		<div  style="width:100%;text-align:center;border-radius:5px;">
+			<div  style="width:100%;text-align:center;border-radius:5px;background:#F7F2F2;">
+			  <div class="content sign_des" style="">你是第<font color=pink>{$sign_nums}</font>位签到</div>
+			  <div class="content sign_des" style="border-top:1px solid gray;font-size:12px;">{php echo date('Y-m-d H:i:s',$check_sign['createtime'])}</div>
+			  </div>
+		</div>
+		{/if}
+		</div>
+		{if empty($check_sign)}
+		<input class="fluid ui  bottom attached {if empty($check_sign)}green{else}red{/if} button" type="submit" id="submit" value="签&nbsp;&nbsp;&nbsp;&nbsp;到">
+		{/if}
+</div>
+</div>
+<small class="footer">
+	<center>
+	 {$ridwall['votepower']}
+	</center>
+</small>
+</div>
+ <div id="toast"></div>
+ <script type="text/javascript"> 
+ $('#submit').on('click',function(){
+	var sign_words = $('#sign_words').val();
+   if("undefined" == typeof sign_words || sign_words==''){
+	_loading_toast._show('请输入签到祝福语！');
+	$('#sign_words').focus();
+	return;
+   }
+   $.ajax({
+             type: "POST",
+             url: "{php echo $this->createMobileUrl('qd_post',array('rid'=>$rid))}",
+             data: {'sign_words':sign_words},
+             dataType: "json",
+             success: function(data){
+			  
+			  _loading_toast._show(data.message);
+			   if(data.errno=='0'){
+				 setTimeout('refresh()',2 * 1000);
+				
+			   }
+			 }
+   });
+   
+ })
+ function refresh(){
+	window.location.href="{php echo $this->createMobileUrl('qd',array('rid'=>$rid))}&t="+new Date().getTime();
+ }
+ var _loading_toast= {
+    _center: function() {
+		var _left = ($(window).width() - $("#toast").outerWidth()) / 2 + "px";
+        $("#toast").css({
+            "top": "50%",
+            "left": _left
+        });
+    },
+    _show: function(text, fun) {
+        $("#toast").html(text);
+        _loading_toast._center();
+        $("#toast").show();
+        $("#toast").bind("resize", _loading_toast._center);
+        setTimeout(function() {
+            _loading_toast._hide(fun);
+        }, 3 * 1000);
+    },
+    _hide: function(fun) {
+        $("#toast").hide();
+        $("#toast").unbind("resize");
+        if (fun) {
+            (fun)();
+        }
+    }
+};
+function doit(obj){
+	  if(obj==-1){
+		 return;
+	  }
+	  document.getElementById("sign_words").value =obj;
+  }
+</script> 
+</body>
+</html>

@@ -1,0 +1,109 @@
+{php $perm = include IA_ROOT . '/addons/' . MD . '/class/perm.php';}
+<div class="panel-body">
+    <div class="form-group">
+        <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">权限</label>
+        <div class="col-sm-5">
+            <div id="accordion" class="panel-group">
+                <div class='panel panel-default' >
+                    {php $i=0}
+                    {loop $perm $value}
+                    <div class='panel-heading' style='background:#f8f8f8' >
+                        <a class="btn btn-link btn-sm pull-right" data-toggle="collapse"  data-parent="#accordion" href="#collapsemodule{$value['module']}"><i class='fa fa-angle-down'></i>展开</a>
+                        <label class='checkbox-inline'>
+
+                            <input type='checkbox' id="perm_module{$value['module']}" name='perms[]' value='{$value['module']}' class='perm-all' data-group='module{$value['module']}'
+                                   {if in_array($value['module'],$perms_arr) || in_array($value['module'],$role_perms_arr) } checked{/if}
+                            {if  $op=='adduser' && in_array($value['module'],$role_perms_arr)} disabled{/if}
+                            /> {$value['title']}
+
+                        </label>
+                    </div>
+                    <div id="collapsemodule{$value['module']}" class="panel-collapse {if $i==0}in{else}collapse{/if}">
+                        <div class='panel-body perm-group'>
+                            {if !empty($value['items'])}
+                            {loop $value['items'] $val}
+                            <span>
+
+                                     <label class='checkbox-inline'>
+                                         <input type='checkbox'  name='perms[]'  value='{$value['module']}.{$val['op']}' class='perm-all-item'
+                                                data-group='module{$value['module']}' data-parent='text'
+                                                {if in_array($value['module'].".".$val['op'],$perms_arr) || in_array($value['module'].".".$val['op'],$role_perms_arr)} checked{/if}
+                                         {if $op=='adduser' && in_array($value['module'].".".$val['op'],$role_perms_arr)} disabled{/if}
+                                         />  <b>{$val['title']}</b>
+                                     </label>
+                                    {loop $val['perms'] $v}
+                                        <label class='checkbox-inline'>
+                                             <input type='checkbox'  name='perms[]'  value='{$value['module']}.{$val['op']}.{$v['op']}' class='perm-item'
+                                                    data-group='module{$value['module']}' data-parent='items{$val['op']}' data-son="perms{$v['op']}"
+                                                    {if in_array($value['module'].".".$val['op'].".".$v['op'],$perms_arr) || in_array($value['module'].".".$val['op'].".".$v['op'],$role_perms_arr)} checked{/if}
+                                             {if $op=='adduser' && in_array($value['module'].".".$val['op'].".".$v['op'],$role_perms_arr)} disabled{/if}
+                                             />  {$v['title']}
+                                        </label>
+                                    {/loop}
+                                <br>
+
+                            </span>
+                            {/loop}
+                            {/if}
+
+                        </div>
+                    </div>
+                    {php $i++}
+                    {/loop}
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+<script language="javascript">
+    $(function () {
+        $('.perm-all').click(function () {
+            var checked = $(this).get(0).checked;
+            var group = $(this).data('group');
+            $(".perm-item[data-group='" + group + "'],.perm-all-item[data-group='" + group + "']").each(function () {
+                $(this).get(0).checked = checked;
+            })
+        })
+        $('.perm-all-item').click(function () {
+            var checked = $(this).get(0).checked;
+            var group = $(this).data('group');
+            $(this).parent().parent().find(".perm-item").each(function () {
+                $(this).get(0).checked = checked;
+            });
+            group_check(this);
+
+        });
+        $('.perm-item').click(function () {
+            var group = $(this).data('group');
+            var parent = $(this).data('parent');
+            var son = $(this).data('son');
+            var check = false;
+            $(this).closest('span').find(".perm-item").each(function () {
+                if ($(this).get(0).checked) {
+                    check = true;
+                    return false;
+                }
+            });
+            var allitem = $(this).parents("span").find(".perm-all-item");
+            if (allitem.length == 1) {
+                allitem.get(0).checked = check;
+            }
+            group_check(this);
+
+        });
+
+    });
+
+    function group_check(obj) {
+        var check = false;
+        $(obj).parents('.perm-group').find(":checkbox").each(function (index, item) {
+            if (item.checked) {
+                check = true;
+            }
+        });
+        var group = $(obj).eq(0).data('group');
+        $(".perm-all[data-group=" + group + "]").get(0).checked = check;
+    }
+</script>

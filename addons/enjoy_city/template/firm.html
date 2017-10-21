@@ -1,0 +1,457 @@
+{template 'common/header'}
+<link href="../addons/enjoy_city/public/css/commono.css" rel="stylesheet" type="text/css">
+<ul class="nav nav-tabs">
+  <li {if $op == 'display'} class="active" {/if}><a href="{php echo $this->createWebUrl('firm',array('op' =>'display'))}">商户列表</a></li>
+  <li{if empty($firm['id']) && $op == 'post'} class="active" {/if}><a href="{php echo $this->createWebUrl('firm',array('op' =>'post'))}">添加商户</a>
+  </li>
+  {if !empty($firm['id']) && $op== 'post'}
+  <li class="active"><a href="{php echo $this->createWebUrl('firm',array('op' =>'post','id'=>$firm['id']))}">编辑商户</a></li>
+  {/if}
+  <!-- 
+   <li {if $op== 'gather'}class="active"{/if}><a href="{php echo $this->createWebUrl('firm',array('op' =>'gather'))}">商户信息采集</a></li>
+   -->
+</ul>
+{if $op=='post'}
+<div class="clearfix main">
+  <form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" id="form1">
+    {if !empty($payment)}
+    <div class="panel panel-default" id="step1">
+      <div class="panel-heading"> 支付信息 </div>
+      <div class="panel-body"></div>
+      <div class="form-group">
+        <label class="col-xs-12 col-sm-3 col-md-2 control-label">商户订单号</label>
+        <div class="col-sm-8 col-xs-12">
+          <input type="text" class="form-control" value="{$payment['uniontid']}" readonly/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-xs-12 col-sm-3 col-md-2 control-label">支付费用</label>
+        <div class="col-sm-8 col-xs-12">
+          <input type="text" class="form-control" value="{$payment['fee']}元" readonly/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-xs-12 col-sm-3 col-md-2 control-label">支付状态</label>
+        <div class="col-sm-8 col-xs-12"> {if $payment[status]==1} <span class="label label-success">已支付</span> {else} <span class="label label-dangerous">未支付</span> {/if} </div>
+      </div>
+    </div>
+    {/if}
+    <div class="panel panel-default" id="step1">
+      <div class="panel-heading"> 商户信息 </div>
+      <div class="panel-body">
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label">排序</label>
+          <div class="col-sm-8 col-xs-12">
+            <input type="text" class="form-control" name="hot" value="{$firm['hot']}"/>
+            <span class="help-block">数字越高，排序越置顶</span> </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger">*</span> 商户名</label>
+          <div class="col-sm-8 col-xs-12">
+            <input type="text" class="form-control" name="title" value="{$firm['title']}"/>
+            <span class="help-block">商户名称</span> </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label">有效起止时间</label>
+          <div class="col-sm-4 col-xs-6">{php echo tpl_form_field_date('stime', !empty($firm['stime']) ? $firm['stime'] : date('Y-m-d H:i'), 1)}</div>
+          <div class="col-sm-4 col-xs-6">{php echo tpl_form_field_date('etime', !empty($firm['etime']) ? $firm['etime'] : date('Y-m-d H:i'), 1)}</div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger">*</span>商户类型</label>
+          <div class="col-sm-8 col-xs-12"> {php echo tpl_form_field_category_2level('category', $parent, $children, $firm['parentid'], $firm['childid'])} </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span> </label>
+          <div class="col-sm-8 col-xs-12"> <span class="help-block">请选择商户类目商户类目必须合法有效</span> </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger">*</span> 地址</label>
+          <div class="col-sm-8 col-xs-12"> {php echo tpl_fans_form('reside',array('province' => $firm['province'],'city' => $firm['city'],'district' => $firm['district']));} </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger">*</span> 详细地址</label>
+          <div class="col-sm-8 col-xs-12">
+            <input type="text" name="address" id="addresss" class="form-control" placeholder="输入详细地址，请勿重复填写省市区信息" value="{$firm['address']}"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger">*</span> 定位</label>
+          <div class="col-sm-8 col-xs-12" id="map"> {php echo tpl_form_field_coordinate('baidumap', $firm['baidumap'])} </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger">*</span> 电话</label>
+          <div class="col-sm-8 col-xs-12">
+            <input type="text" class="form-control" name="tel" value="{$firm['tel']}"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span> 简介</label>
+          <div class="col-sm-8 col-xs-12">
+            <textarea name="intro" class="form-control" cols="7" rows="5">{$firm['intro']}</textarea>
+            <span class="help-block">商户简介，主要用于首页展示 </span> </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span>图文简介</label>
+          <div class="col-sm-8 col-xs-12">
+            <textarea name="fax" class="form-control richtext" cols="7" rows="10">{$firm['fax']}</textarea>
+            <span class="help-block">商户简介，主要介绍商户详细信息，此功能只有商家后台管理员添加 </span> </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span>商家优惠信息</label>
+          <div class="col-sm-8 col-xs-12">
+            <textarea name="breaks" class="form-control" cols="20" rows="3">{$firm[breaks]}</textarea>
+            <span class="help-block">不填写，不显示优惠</span> </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label">自定义按钮名</label>
+          <div class="col-sm-8 col-xs-12">
+            <input type="text" class="form-control" name="custom" value="{$firm['custom']}"/>
+            <span class="help-block">如：易企秀，商品展示，查看本店更多商品等</span> </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span>商家商品外链</label>
+          <div class="col-sm-8 col-xs-12">
+            <input type="text" class="form-control" name="firmurl" value="{$firm['firmurl']}"/>
+            <span class="help-block">不填写，不显示</span> </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span>视频链接1</label>
+          <div class="col-sm-8 col-xs-12">
+            <input type="text" class="form-control" name="video1" value="{$firm['video1']}"/>
+            <span class="help-block">放在简介首，不需要可以不填</span> </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span>视频链接2</label>
+          <div class="col-sm-8 col-xs-12">
+            <input type="text" class="form-control" name="video2" value="{$firm['video2']}"/>
+            <span class="help-block">放在简介尾，不需要可以不填</span> </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label">LOGO图片</label>
+          <div class="col-sm-9 col-xs-12" id="apic"> {php echo tpl_form_field_image('icon', $firm['icon'])} <span class="help-block">参考图片大小：180px*180px</span> </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label">横幅图片</label>
+          <div class="col-sm-9 col-xs-12" id="apic"> {php echo tpl_form_field_image('img', $firm['img'])} <span class="help-block">参考图片大小：600px*300px</span> </div>
+          <div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">浏览次数</label>
+            <div class="col-sm-8 col-xs-12">
+              <input type="text" class="form-control" name="browse" value="{$firm['browse']}"/>
+              <span class="help-block">浏览次数</span> </div>
+          </div>
+          <div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">转发次数</label>
+            <div class="col-sm-8 col-xs-12">
+              <input type="text" class="form-control" name="forward" value="{$firm['forward']}"/>
+              <span class="help-block">转发次数</span> </div>
+          </div>
+          <div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">是否审核</label>
+            <div class="col-sm-9 col-xs-12">
+              <label class="radio-inline">
+              <input type="radio" name="ischeck" value="1" {if $firm['ischeck']==1}checked{/if}>
+              通过 </label>
+              <label class="radio-inline">
+              <input type="radio" name="ischeck" value="0" {if $firm['ischeck']==0}checked{/if}>
+              审核中 </label>
+              <span class="help-block">审核后可以在微信端查看到该商家</span> </div>
+          </div>
+          <div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">是否在线支付</label>
+            <div class="col-sm-9 col-xs-12">
+              <label class="radio-inline">
+              <input type="radio" name="ismoney" value="1" {if $firm['ismoney']==1}checked{/if}>
+              是 </label>
+              <label class="radio-inline">
+              <input type="radio" name="ismoney" value="0" {if $firm['ismoney']==0}checked{/if}>
+              否 </label>
+              <span class="help-block">是否付过费了</span> </div>
+          </div>
+        </div>
+      </div>
+      <div class="panel panel-default" id="step1">
+        <div class="panel-heading"> 老板信息 </div>
+        <div class="panel-body"> </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger">*</span> 老板微信号</label>
+          <div class="col-sm-8 col-xs-12">
+            <input type="text" class="form-control" name="wei_num" value="{$firm['wei_num']}"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger">*</span> 老板微信名称</label>
+          <div class="col-sm-8 col-xs-12">
+            <input type="text" class="form-control" name="wei_name" value="{$firm['wei_name']}"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label">老板性别</label>
+          <div class="col-sm-9 col-xs-12">
+            <label class="radio-inline">
+            <input type="radio" name="wei_sex" value="1" {if $firm['wei_sex']==1}checked{/if}>
+            男 </label>
+            <label class="radio-inline">
+            <input type="radio" name="wei_sex" value="0" {if $firm['wei_sex']==0}checked{/if}>
+            女 </label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label">老板头像</label>
+          <div class="col-sm-9 col-xs-12" id="apic"> {php echo tpl_form_field_image('wei_avatar', $firm['wei_avatar'])} <span class="help-block">参考图片大小：150px*150px</span> </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label">老板二维码</label>
+          <div class="col-sm-9 col-xs-12" id="apic"> {php echo tpl_form_field_image('wei_ewm', $firm['wei_ewm'])} <span class="help-block">参考图片大小：200px*200px</span> </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label">申请人姓名</label>
+          <div class="col-sm-8 col-xs-12">
+            <input type="text" class="form-control" name="s_name" value="{$firm['s_name']}"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label">申请人uid</label>
+          <div class="col-sm-8 col-xs-12">
+            <input type="text" class="form-control" name="uid" value="{$firm['uid']}"/>
+            <span class="help-block"><a href="{php echo $this->createWebUrl('fans')}" target="_blank">点击搜索</a></span> </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger">*</span> 老板微信个人简介</label>
+          <div class="col-sm-8 col-xs-12">
+            <input type="text" class="form-control" name="wei_intro" value="{$firm['wei_intro']}"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label">请选择业务员</label>
+          <div class="col-sm-8 col-xs-12">
+            <select name="sid" class="form-control">
+              <option value="0">无</option>
+							{loop $sellers $item}
+              <option {if $firm['sid']==$item['id']}selected{/if} value="{$item[id]}">{$item[realname]}</option>
+							{/loop}
+            </select>
+          </div>
+        </div>
+        <script language='javascript'>
+			require(['jquery', 'util'], function ($, u) {
+			  $(function () {
+				u.editor($('.richtext')[0]);
+			  });
+			});
+		</script>
+      </div>
+    </div>
+    <div class="form-group col-sm-12">
+      <input name="submit" id="submit" type="submit" value="提交" class="btn btn-primary col-lg-1">
+      <input type="hidden" name="token" value="{$_W['token']}" />
+    </div>
+  </form>
+</div>
+{elseif $op=='display'}
+<div class="panel panel-info main">
+  <div class="panel-heading">筛选</div>
+  <div class="panel-body">
+    <form action="" method="get" class="form-horizontal" role="form">
+      <input type="hidden" name="a" value="entry" />
+      <input type="hidden" name="c" value="site" />
+      <input type="hidden" name="m" value="enjoy_city" />
+      <input type="hidden" name="do" value="firm" />
+      <div class="form-group">
+        <label class="col-xs-12 col-sm-2 col-md-2 control-label">商户名称</label>
+        <div class="col-sm-8 col-md-8 col-lg-8 col-xs-12">
+          <input class="form-control"  style="display: inline-block;width:80%" name="title" type="text" value="{$_GPC['title']}">
+          <button class="btn btn-default" style="display: inline-block;"><i class="fa fa-search"></i> 搜索</button>
+        </div>
+      </div>
+    </form>
+    <form action="" method="get" class="form-horizontal" role="form">
+      <input type="hidden" name="a" value="entry" />
+      <input type="hidden" name="c" value="site" />
+      <input type="hidden" name="m" value="enjoy_city" />
+      <input type="hidden" name="do" value="firm" />
+      <div class="form-group">
+        <label class="col-xs-12 col-sm-2 col-md-2 control-label">未通过审核的</label>
+        <div class="col-sm-8 col-md-8 col-lg-8 col-xs-12">
+          <input class="form-control" name="unusual" type="hidden" value="1">
+          <input class="form-control"  style="display: inline-block;width:80%" type="text" disabled value="查询未审核的商家">
+          <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+        </div>
+      </div>
+    </form>
+    <form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" style="margin:0 auto;width:60%;">
+      <input type="hidden" name="leadExcel" value="true">
+      <input type="hidden" name="c" value="site" />
+      <input type="hidden" name="a" value="entry" />
+      <input type="hidden" name="m" value="enjoy_city" />
+      <input type="hidden" name="do" value="firm" />
+      <input type="hidden" name="op" value="UploadExcel" />
+      <input type="hidden" name="ac" value="category" />
+      <a class="btn btn-primary" href="javascript:location.reload()"><i class="fa fa-refresh"></i> 刷新</a>
+      <input name="viewfile" id="viewfile" type="text" value="" style="margin-left: 40px;" class="form-control-excel" readonly>
+      <a class="btn btn-primary">
+      <label for="unload" style="margin: 0px;padding: 0px;">上传...</label>
+      </a>
+      <input type="file" class="pull-left btn-primary span3" name="inputExcel" id="unload" style="display: none;" onchange="document.getElementById('viewfile').value=this.value;this.style.display='none';">
+      <input type="submit" class="btn btn-primary" name="submit" value="导入数据">
+      <a class="btn btn-primary" href="../addons/enjoy_city/example/example_goods.xls">下载导入模板</a> <a class="btn btn-primary" style="float: right;margin-right:10px;" href="{php echo $this->createWebUrl('firm',array('op'=>'excel'))}">数据全部导出</a>
+    </form>
+  </div>
+</div>
+<div class="clearfix main">
+<form action="" method="post">
+  <div class="panel panel-default">
+    <div class="table-responsive panel-body">
+      <table class="table table-hover">
+        <tr>
+          <th style="width:25%;">申请店铺:{$sumfirm}个</th>
+          <th style="width:25%;">通过审核店铺:{$checkfirm}个</th>
+          <th style="width:25%;">在线支付店铺:{$payfirm}个</th>
+          <th style="width:25%;">在线支付金额:{$paymoney}元</th>
+        </tr>
+      </table>
+    </div>
+    <div class="panel-body table-responsive">
+      <table class="table table-hover" ng-controller="advAPI" style="width:100%;" cellspacing="0" cellpadding="0">
+        <thead class="navbar-inner">
+          <tr>
+            <th width="30">排序</th>
+            <th width="50">商户名称</th>
+            <th  width="30">LOGO</th>
+            <th width="30">类型</th>
+            <th width="30">电话</th>
+            <th width="100">详细地址</th>
+            <th width="30">在线支付</th>
+            <th width="30">审核状态</th>
+            <th width="80" style="text-align:right">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+        {loop $list $li}
+        <tr>
+          <td><input type="text" value="{$li['hot']}" name="hot[{$li['id']}]" class="form-control"></td>
+          <td>{$li['title']}</td>
+          <td><img src="{php echo tomedia($li['icon'])}" width="50px"></td>
+          <td>{$li['name']}</td>
+          <td>{$li['tel']}</td>
+          <td>{$li['district']} {$li['address']}</td>
+          <!-- 	<td>{$li['etime']}</td>-->
+          <td> {if $li['ismoney'] == 1} <span class="label label-success">是</span> {elseif $li['ismoney'] == 0} <span class="label label-default">否</span> {/if} </td>
+          <td> {if $li['ischeck'] == 1} <span class="label label-success">审核通过</span> {elseif $li['ischeck'] == 0} <span class="label label-default">审核中</span> {else} <span class="label label-danger">审核未通过</span> {/if} </td>
+          <td style="text-align:right"><a href="{php echo $this->createWebUrl('firm', array('op' => 'ischeck', 'ischeck' => $li[ischeck],'id'=>$li['id']))}" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title=""> {if $li['ischeck']==1} <i class="fa fa-unlock"></i> {else} <i class="fa fa-lock"></i> {/if} </a> <a href="{php echo $this->createWebUrl('firm',array('op' =>'post','id'=>$li['id']))}" class="btn btn-default" title="编辑"><i class="fa fa-pencil"></i></a> <a href="{php echo $this->createWebUrl('loadimg',array('fid'=>$li['id']))}" class="btn btn-default" target="_blank" title="查看商户图片"><i class="fa fa-photo"></i></a> <a href="{php echo $this->createWebUrl('job',array('fid'=>$li['id']))}" class="btn btn-default" target="_blank" title="招聘"><i class="fa fa-user"></i></a> {if empty($li['rid'])}<a href="{php echo $this->createWebUrl('firm',array('op' =>'rule','id'=>$li['id']))}" class="btn btn-default" title="增加粉丝功能"><i class="fa fa-plus"></i></a>{/if} <a href="{php echo $this->createWebUrl('firm',array('op' =>'delete','id'=>$li['id']))}" class="btn btn-default" onclick="if(!confirm('您确定要删除吗？')) return false;" title="删除"><i class="fa fa-times"></i></a> </td>
+        </tr>
+        {/loop}
+        <tr>
+          <td colspan="4"><input name="submit" type="submit" class="btn btn-primary" value="排序提交">
+            <input type="hidden" name="token" value="{$_W['token']}" />
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {$pager}
+</form>
+</div>
+{elseif $op=='gather'}
+<div class="panel panel-info main">
+  <div class="panel-heading">筛选</div>
+  <div class="panel-body">
+    <form action="" method="get" class="form-horizontal" role="form">
+      <input type="hidden" name="a" value="entry" />
+      <input type="hidden" name="c" value="site" />
+      <input type="hidden" name="m" value="enjoy_city" />
+      <input type="hidden" name="do" value="firm" />
+      <input type="hidden" name="ops" value="1" />
+      <input type="hidden" name="op" value="gather" />
+      <div class="form-group">
+        <label class="col-xs-12 col-sm-2 col-md-2 control-label">关键字</label>
+        <div class="col-sm-8 col-md-8 col-lg-8 col-xs-12">
+          <input class="form-control" placeholder="如：江苏南京美食"  style="display: inline-block;width:80%" name="key" type="text" value="{$_GPC['key']}">
+          <button class="btn btn-default" style="display: inline-block;"><i class="fa fa-search"></i> 搜索</button>
+        </div>
+      </div>
+    </form>
+    <form action="" method="get" class="form-horizontal" role="form">
+      <input type="hidden" name="a" value="entry" />
+      <input type="hidden" name="c" value="site" />
+      <input type="hidden" name="m" value="enjoy_city" />
+      <input type="hidden" name="do" value="firm" />
+    </form>
+    <form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" style="margin:0 auto;width:60%;">
+      <input type="hidden" name="leadExcel" value="true">
+      <input type="hidden" name="c" value="site" />
+      <input type="hidden" name="a" value="entry" />
+      <input type="hidden" name="m" value="enjoy_city" />
+      <input type="hidden" name="do" value="firm" />
+      <input type="hidden" name="op" value="UploadExcel" />
+      <input type="hidden" name="ac" value="category" />
+      <a class="btn btn-primary" href="javascript:location.reload()"><i class="fa fa-refresh"></i> 刷新</a>
+      <input name="viewfile" id="viewfile" type="text" value="" style="margin-left: 40px;" class="form-control-excel" readonly>
+      <a class="btn btn-primary">
+      <label for="unload" style="margin: 0px;padding: 0px;">上传...</label>
+      </a>
+      <input type="file" class="pull-left btn-primary span3" name="inputExcel" id="unload" style="display: none;" onchange="document.getElementById('viewfile').value=this.value;this.style.display='none';">
+      <input type="submit" class="btn btn-primary" name="submit" value="导入数据">
+      <a class="btn btn-primary" href="../addons/enjoy_city/example/example_goods.xls">下载导入模板</a> <a class="btn btn-primary" style="float: right;margin-right:10px;" href="{php echo $this->createWebUrl('firm',array('op'=>'excel'))}">数据全部导出</a>
+    </form>
+  </div>
+</div>
+<div class="clearfix main">
+<form action="" method="post">
+  <div class="panel panel-default">
+    <div class="table-responsive panel-body">
+      <table class="table table-hover">
+        <tr>
+          <th style="width:25%;">申请店铺:{$sumfirm}个</th>
+          <th style="width:25%;">通过审核店铺:{$checkfirm}个</th>
+          <th style="width:25%;">在线支付店铺:{$payfirm}个</th>
+          <th style="width:25%;">在线支付金额:{$paymoney}元</th>
+        </tr>
+      </table>
+    </div>
+    <div class="panel-body table-responsive">
+      <table class="table table-hover" ng-controller="advAPI" style="width:100%;" cellspacing="0" cellpadding="0">
+        <thead class="navbar-inner">
+          <tr>
+            <th width="30">排序</th>
+            <th width="50">商户名称</th>
+            <th  width="30">LOGO</th>
+            <th width="30">类型</th>
+            <th width="30">电话</th>
+            <th width="100">详细地址</th>
+            <th width="30">在线支付</th>
+            <th width="30">审核状态</th>
+            <th width="80" style="text-align:right">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+        {loop $list $li}
+        <tr>
+          <td><input type="text" value="{$li['hot']}" name="hot[{$li['id']}]" class="form-control"></td>
+          <td>{$li['title']}</td>
+          <td><img src="{php echo tomedia($li['icon'])}" width="50px"></td>
+          <td>{$li['name']}</td>
+          <td>{$li['tel']}</td>
+          <td>{$li['district']} {$li['address']}</td>
+          <!-- 	<td>{$li['etime']}</td>-->
+          <td> {if $li['ismoney'] == 1} <span class="label label-success">是</span> {elseif $li['ismoney'] == 0} <span class="label label-default">否</span> {/if} </td>
+          <td> {if $li['ischeck'] == 1} <span class="label label-success">审核通过</span> {elseif $li['ischeck'] == 0} <span class="label label-default">审核中</span> {else} <span class="label label-danger">审核未通过</span> {/if} </td>
+          <td style="text-align:right"><a href="{php echo $this->createWebUrl('firm', array('op' => 'ischeck', 'ischeck' => $li[ischeck],'id'=>$li['id']))}" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title=""> {if $li['ischeck']==1} <i class="fa fa-unlock"></i> {else} <i class="fa fa-lock"></i> {/if} </a> <a href="{php echo $this->createWebUrl('firm',array('op' =>'post','id'=>$li['id']))}" class="btn btn-default" title="编辑"><i class="fa fa-pencil"></i></a> <a href="{php echo $this->createWebUrl('loadimg',array('fid'=>$li['id']))}" class="btn btn-default" target="_blank" title="查看商户图片"><i class="fa fa-photo"></i></a> <a href="{php echo $this->createWebUrl('job',array('fid'=>$li['id']))}" class="btn btn-default" target="_blank" title="招聘"><i class="fa fa-user"></i></a> {if empty($li['rid'])}<a href="{php echo $this->createWebUrl('firm',array('op' =>'rule','id'=>$li['id']))}" class="btn btn-default" title="增加粉丝功能"><i class="fa fa-plus"></i></a>{/if} <a href="{php echo $this->createWebUrl('firm',array('op' =>'delete','id'=>$li['id']))}" class="btn btn-default" onclick="if(!confirm('您确定要删除吗？')) return false;" title="删除"><i class="fa fa-times"></i></a> </td>
+        </tr>
+        {/loop}
+        <tr>
+          <td colspan="4"><input name="submit" type="submit" class="btn btn-primary" value="排序提交">
+            <input type="hidden" name="token" value="{$_W['token']}" />
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {$pager}
+</form>
+</div>
+{/if}
+
+{template 'footer'}
+{template 'common/footer'}

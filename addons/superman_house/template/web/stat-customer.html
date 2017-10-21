@@ -1,0 +1,111 @@
+<div class="panel panel-default">
+	<div class="panel-heading">
+		数据统计
+	</div>
+	<div class="panel-body" id="scroll">
+		<div class="pull-left">
+			<form action="" id="form1">
+				<input name="c" value="site" type="hidden" />
+				<input name="a" value="entry" type="hidden" />
+				<input name="type" value="customer" type="hidden" />
+				<input name="do" value="stat" type="hidden" />
+				<input name="act" value="display" type="hidden" />
+				<input name="m" value="superman_house" type="hidden" />
+				{php echo tpl_form_field_daterange('datelimit', array('start' => date('Y-m-d', $starttime),'end' => date('Y-m-d', $endtime)), '')}
+				<input type="hidden" value="" name="scroll">
+			</form>
+		</div>
+		<div class="pull-right">
+			<div class="checkbox">
+				{loop $customer_status $k $v}
+				<label style="color:rgba({$v['color']}, 1);"><input checked type="checkbox">{$v['title']}</label>&nbsp;
+				{/loop}
+			</div>
+		</div>
+		<div style="margin-top:20px">
+			<canvas id="myChart" width="1200" height="300"></canvas>
+		</div>
+	</div>
+</div>
+<script>
+var template_flows = {};
+</script>
+{loop $customer_status $k $v}
+{php $k+=1;}
+<script>
+	template_flows.flow{$k} = {
+		label: '{$v["title"]}',
+		fillColor : "rgba({$v['color']}, 0.1)",
+		strokeColor : "rgba({$v['color']}, 1)",
+		pointColor : "rgba({$v['color']}, 1)",
+		pointStrokeColor : "#fff",
+		pointHighlightFill : "#fff",
+		pointHighlightStroke : "rgba({$v['color']}, 1)"
+	};
+</script>
+{/loop}
+<script>
+	require(['chart', 'daterangepicker'], function(c) {
+		$('.daterange').on('apply.daterangepicker', function(ev, picker) {
+			$('input[name="scroll"]').val($(document).scrollTop());
+			$('#form1')[0].submit();
+		});
+		{if $scroll}
+		var scroll = "{$scroll}";
+		$("html,body").animate({scrollTop: scroll}, 300);
+		{/if}
+		var chart = null;
+		var chartDatasets = null;
+
+		function refreshData() {
+			if(!chart || !chartDatasets) {
+				return;
+			}
+			var visables = [];
+			var i = 0;
+			$('.checkbox input[type="checkbox"]').each(function(){
+				if($(this).attr('checked')) {
+					visables.push(i);
+				}
+				i++;
+			});
+			var ds = [];
+			$.each(visables, function(){
+				var o = chartDatasets[this];
+				ds.push(o);
+			});
+			chart.datasets = ds;
+			chart.update();
+		}
+
+		var url = location.href + '&#aaaa';
+		$.post(url, function(data){
+			var data = $.parseJSON(data);
+			var datasets = data.datasets;
+			if(!chart) {
+				var label = data.label;
+				var ds = $.extend(true, {}, template_flows);
+				var arr = new Array;
+				for (var key in template_flows) {
+					template_flows[key]['data'] = datasets[key];
+					arr.push(template_flows[key]);
+				}
+				var lineChartData = {
+					labels : label,
+					datasets : arr
+				};
+				var ctx = document.getElementById("myChart").getContext("2d");
+				chart = new Chart(ctx).Line(lineChartData, {
+					responsive: true
+				});
+				chartDatasets = $.extend(true, {}, chart.datasets);
+			}
+			refreshData();
+		});
+
+		$('.checkbox input[type="checkbox"]').on('click', function(){
+			$(this).attr('checked', !$(this).attr('checked'))
+			refreshData();
+		});
+	});
+</script>

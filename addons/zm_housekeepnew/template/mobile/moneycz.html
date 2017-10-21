@@ -1,0 +1,72 @@
+{template 'header'}
+    <link rel="stylesheet" href="{MODULE_URL}images/css/mobile/style.css">
+    <link rel="stylesheet" href="{MODULE_URL}images/css/mobile/reset.css">
+    <script src="{MODULE_URL}images/js/mobile/jquery-1.9.1.js"></script>
+    <script src="{MODULE_URL}images/js/mobile/font.js"></script>
+<body>
+<dl class="members_up">
+    <dt><h3>会员充值</h3></dt>
+    <form action="" method="get" name="form1">
+    {loop $list $k $v}
+        <input type="hidden" name="money{php echo $v[id]}" value="{$v[czmoney]}">
+        <!--<button id="query" style="width:210px; height:50px; border-radius: 15px;background-color:#FE6714; border:0px #FE6714 solid; cursor: pointer;  color:white;  font-size:16px;" type="button"  >立即支付</button>-->
+    <dd>
+        <span>充值{$v[czmoney]} 元</span><span>(赠送{$v[zsmoney]}元)</span><a id="query{php echo $k+1}">充值</a>
+    </dd>
+    {/loop}
+    </form>
+</dl>
+<script type="application/javascript">
+    require(['jquery', 'util'], function ($, util) {
+        $(document).ready(function () {
+            <?php foreach($list as $k=>$v){ ?>
+            $("#query<?php echo $k+1;?>").click(function () {
+                $.get("", {money: $("[name='form1'] input[name='money<?php echo $v[id];?>']").val()}, function (user) {
+                    if (user){
+                        var mafan =  eval("(" + user + ")");
+                        callpay(mafan);
+//                        console.log(user);
+                        //调用微信JS api 支付
+                        function jsApiCall(aa)
+                        {
+                            WeixinJSBridge.invoke(
+                                'getBrandWCPayRequest',{
+                                    "appId": aa.appId,
+                                    "nonceStr": aa.nonceStr,
+                                    "package": aa.package,
+                                    "paySign":  aa.paySign,
+                                    "signType":  aa.signType,
+                                    "timeStamp":  aa.timeStamp
+                                },
+                            function(res){
+                                WeixinJSBridge.log(res.err_msg);
+                                if(res.err_msg == "get_brand_wcpay_request:ok" ) {
+                                    window.location.href="<?php echo $_W[siteroot].'app/index.php?i='.$_W[uniacid].'&c=entry&do=Moneycz&m='.$this->module[name]?>&fee="+$("[name='form1'] input[name='money<?php echo $v[id];?>']").val();
+                                }
+//            alert(res.err_code+res.err_desc+res.err_msg);
+                            }
+                        );
+                        }
+                        function callpay(user)
+                        {
+                            if (typeof WeixinJSBridge == "undefined"){
+                                if( document.addEventListener ){
+                                    document.addEventListener('WeixinJSBridgeReady', jsApiCall, false);
+                                }else if (document.attachEvent){
+                                    document.attachEvent('WeixinJSBridgeReady', jsApiCall);
+                                    document.attachEvent('onWeixinJSBridgeReady', jsApiCall);
+                                }
+                            }else{
+                                jsApiCall(user);
+                            }
+                        }
+
+                    }
+                });
+            });
+            <?php }?>
+        });
+    });
+
+</script>
+{template 'footer'}

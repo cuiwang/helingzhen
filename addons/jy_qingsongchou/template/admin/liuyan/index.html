@@ -1,0 +1,95 @@
+{template 'common/header'}
+
+<div class="panel panel-info">
+
+    <div class="panel-heading">
+        留言列表
+    </div>
+    <div class="panel-body">
+
+        <table class="table text-center">
+
+            <tr>
+              <td>ID</td>
+              <td>头像</td>
+              <td>昵称</td>
+              <td>邮箱</td>
+              <td>电话</td>
+              <td>留言内容</td>
+              <td>留言时间</td>
+              <td>
+                操作
+              </td>
+            </tr>
+            {loop $_list $row}
+            <tr>
+              <td>{$row['id']}</td>
+              <td><img src="{$row['avatar']}" width='32px;' alt=""></td>
+              <td>{php echo urldecode($row['nickname'])}</td>
+
+              <td>{$row['email']}</td>
+              <td>{$row['tel']}</td>
+              <td style="word-wrap:break-word; white-space : normal">{$row['content']}</td>
+              <td>{php echo date('Y-m-d H:i:s',$row['upbdate'])}</td>
+              <td>
+                <!-- <button type="button" name="button" class="btn btn-xs btn-success"  data-nickname="{php echo urldecode($row['nickname'])}" data-openid="{$row['openid']}" data-toggle="modal" data-target="#myModal">发送信息</button> -->
+                <a href="{php echo $this->createWebUrl('liuyan',array('id'=>$row['id'],'dopost'=>'del'))}"  onclick="return confirm('确定删除该评论吗?')"class="btn  btn-xs btn-danger">删除</a>
+              </td>
+            </tr>
+            {/loop}
+        </table>
+    </div>
+</div>
+
+
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">向[<span class="nickname"></span>]发送信息</h4>
+      </div>
+      <div class="modal-body">
+       <textarea name="name" rows="8" cols="40"  class="form-control msg_msg" ></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary send_msg">发送</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+      require(['bootstrap'],function(){
+        $('#myModal').on('show.bs.modal', function (event) {
+          var b = $(event.relatedTarget);
+          var openid = b.data('openid');
+          var nickname = b.data('nickname');
+          $(".nickname").html(nickname);
+            $(document).on('click','.send_msg',function(){
+              $.ajax({
+                 url:"{php echo $this->createWebUrl('member')}",
+                 type:"post",
+                 dataType:'json',
+                 data:{
+                    dopost:'mes_ajax',
+                    msg:$(".msg_msg").val(),
+                    openid:openid
+                 },success:function(msg){
+                      if(msg.errcode==0){
+                        alert('发送成功');
+                        $('#myModal').modal('hide');
+                      }else{
+                        alert('发送失败');
+                        $('#myModal').modal('hide');
+                      }
+                    // $(".msg_msg").val(msg);
+                 }
+              })
+            })
+        });
+
+      })
+
+</script>

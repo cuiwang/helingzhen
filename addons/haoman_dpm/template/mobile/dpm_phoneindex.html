@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>普通签到</title>
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+    <script src="../addons/haoman_base/base/jquery-1.9.1.min.js" type="text/javascript" charset="utf-8"></script>
+    <link rel="stylesheet" href="../addons/haoman_dpm/file/defaultwall.css">
+    <script type="text/javascript" src="../addons/haoman_base/base/jquery.cookie.js"></script>
+    <link rel="stylesheet" href="../addons/haoman_dpm/img2/common.css?v=433223" type="text/css">
+</head>
+<style>
+    body{
+        background: url({$bg}) center center;
+        background-repeat: no-repeat;
+        background-size: cover;
+        width: 100%;
+        overflow: hidden;
+    }
+    @media screen and (min-width:1441px) {
+        .signIn_list_ul{
+            width: 1600px;
+        }
+    }
+    @media screen and (max-width:1024px) {
+        .signIn_list_ul{
+            width: 930px;
+            margin-left: auto;
+            margin-right: auto;
+            padding-left: 15px;
+        }
+    }
+    @media screen and (max-width:1440px) and (min-width:1025px) {
+        .signIn_list_ul{
+            width: 1396px;
+            margin-left: auto;
+            margin-right: auto;
+            padding-left: 20px;
+        }
+    }
+</style>
+<body {if !empty($vedio_bg)}data-vide-bg="{$vedio_bg}"{/if}>
+<input type="hidden" id="max_id" name="max_id" value="{$list[0]['id']}">
+<div class="chrometips chromeTip" style="display:none;">
+    <a href="javascript:void(0);" class="btntips-close" id="chromeTipCloseBtn">×</a>
+    <div class="inner-chrometips">
+        <p class="chrm-word1">由于你正在使用非Chrome浏览器，大屏幕的体验处于不佳状态，建议您立刻更换浏览器，以获得更好的大屏幕产品用户体验</p>
+    </div>
+</div>
+<script>
+    $(function() {
+
+        var isChrome = navigator.userAgent.indexOf('Chrome') != -1;
+        if (!isChrome) {
+            $('.chromeTip').show();
+        }
+        $('#chromeTipCloseBtn').click(function() {
+            $('.chromeTip').hide();
+        });
+        //10s后自动关闭
+        setTimeout(function() {
+            $('.chromeTip').hide();
+        }, 30000);
+    });
+</script>
+
+<div id="whole" >
+    <div id="header" class="clearfix">
+        <div class="word-scroll left">
+            <div class="clearfix">
+                <div class="scrollbox left">
+                    <ul class="word-list wordList">
+                        <li class="themeBox" style="text-align:center;line-height: 86px; font-size: 46px; display: list-item;color: #fff">{$shouqian['pm_title']}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="right" style="position: relative;left: 0;font-size: 20px;">
+				<span class="tipword messageword " style="display: inline-block;margin-top: 25px;text-align: center">
+					<span id="messageNum" class="num">{$totaldata}</span><br>
+					<span class="plus">人</span>
+				</span>
+            <span class="reserved right showIntroBtn" style="display: inline-block;margin-left: 20px;">
+              <img class="qrcodeAll" src="{php echo tomedia($reply['up_qrcode'])}" style="max-width:126px;max-height:96px;">
+            </span>
+        </div>
+
+    </div>
+
+</div>
+
+
+<div id="pic-wall-block" class="wall-box block">
+    <div id="slider" class="slider">
+        <table class="first" width="100%" height="100%">
+            <tbody>
+            <tr>
+                <td><img src=""></td>
+            </tr>
+            </tbody>
+        </table>
+        <table class="second" width="100%" height="100%">
+            <tbody>
+            <tr>
+                <td><img src=""></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="applysign-wall-block" class="wall-box" style="display: block;max-width: 1600px;width: 100%;">
+    <div class="signIn_bg"></div>
+    <ul class="signIn_list signIn_list_ul">
+        {loop $list $row}
+        <li data-id="{$row['id']}">
+            <div class="use-block in"><a href="javascript:;"><img src="{php echo tomedia($row['avatar'])}"></a>
+                <p class="nickname">{$row['nickname']}</p></div>
+        </li>
+       {/loop}
+    </ul>
+</div>
+
+<audio src="{$music}" preload="auto" id="media" autoplay="autoplay" loop="loop"></audio>
+<script type="text/javascript">
+    var stop = false
+    setInterval(get_new_sign_list, 3000);
+
+    function get_new_sign_list() {
+
+        var data = {};
+        if (stop) return;
+
+        stop = true;
+        data.max_id = $('#max_id').val();
+
+        $.ajax({
+            url: "{php echo $this->createMobileUrl('dpm_getnew_qd',array('rid'=>$rid))}",
+            dataType: "JSON",
+            type: "GET",
+            data: data,
+            success: function(result) {
+
+                if (result.max_id) {
+                    $('#max_id').val(result.max_id);
+                }
+                if(result.number){
+                    $('#messageNum').html(result.number);
+                }
+                if (result.record) {
+                   var  n=   result.record;
+                    if (n.length) {
+                        var i = n[0];
+                        console.log(i)
+                        $(".signIn_list li>div").addClass("in").removeClass("rotate"),animation(i, "next");
+                    }
+                }
+
+                stop = false;
+
+            }
+        });
+    }
+
+
+
+    animation = function (n, e) {
+        console.log(n)
+        var i = n.id, t = n.nickname;
+        if ($('.signIn_list li[data-id="' + i + '"]').length)return !0;
+        var a = n.avatar;
+//        n.imgPath && (a = Hi.String.dealUrl(n.imgPath));
+        var o = '<li data-id="' + i + '"><div class="use-block rotate"><a href="javascript:;"><img src="' + a + '"></a><p class="nickname">' + t + "</p></div></li>";
+        return $(".signIn_list").prepend(o), !0
+    };
+
+</script>
+
+<script>
+    $(function() {
+        if($('#music_img',window.parent.document).attr("src") == '../addons/haoman_dpm/common/footer/no_music.png'){
+            document.getElementById('media').pause();
+        }
+    });
+
+
+
+
+    $(document).keydown(function(e){
+
+
+    });
+
+
+
+
+
+
+</script>
+
+    </body>
+{template 'dpm_Keyborad'}
+</html>

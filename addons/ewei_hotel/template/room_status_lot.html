@@ -1,0 +1,124 @@
+{template 'common/header'}
+{php load()->func('tpl')}
+{template 'common'}
+<div class="main">
+	<ul class="nav nav-tabs">
+		<li><a href="{php echo $this->createWebUrl('hotel');}">酒店管理</a></li>
+		<li><a href="{php echo $this->createWebUrl('hotel', array('op'=>'edit','id' => $hotelid));}">酒店编辑</a></li>
+		<li {if $_GPC['op'] == 'edit'}class="active"{/if}><a href="{php echo $this->createWebUrl('room', array('op'=>'edit','hotelid' => $hotelid));}">添加房型</a></li>
+		<li><a href="{php echo $this->createWebUrl('room', array('hotelid' => $rid));}">房型管理</a></li>
+		<li><a href="{php echo $this->createWebUrl('room_status', array('hotelid' => $hotelid));}">维护房态/房量</a></li>
+		<li class="active"><a href="{php echo $this->createWebUrl('room_status', array('ac'=>'updatelot','hotelid' => $hotelid));}">批量修改房态/房量</a></li>
+	</ul>
+	<div class="main">
+		<div class="panel panel-info">
+			<div class="panel-heading">条件</div>
+			<div class="panel-body">
+				<form action="./index.php" method="get" class="form-horizontal" role="form">
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">日期范围</label>
+						<div class="col-sm-8 col-lg-9">
+							{php echo tpl_form_field_daterange('datelimit',array('starttime'=>date('Y-m-d', $startime),'endtime'=>date('Y-m-d', $endtime)))}
+							<label class="checkbox-inline">
+								<input type="checkbox" name="days_checkall" class='days_checkall' checked/> 全选
+							</label>
+							<label class="checkbox-inline">
+								<input type="checkbox" name="days" value="1" class='days' checked/> 周一
+							</label>
+							<label class="checkbox-inline">
+								<input type="checkbox" name="days"  value="2" class='days' checked/> 周二
+							</label>
+							<label class="checkbox-inline">
+								<input type="checkbox" name="days" value="3"  class='days' checked/> 周三
+							</label>
+							<label class="checkbox-inline">
+								<input type="checkbox" name="days" value="4"  class='days' checked/> 周四
+							</label>
+							<label class="checkbox-inline">
+								<input type="checkbox" name="days"  value="5" class='days' checked/> 周五
+							</label>
+							<label class="checkbox-inline">
+								<input type="checkbox" name="days"  value="6" class='days' checked/> 周六
+							</label>
+							<label class="checkbox-inline">
+								<input type="checkbox" name="days" value="0" class='days' checked/> 周日
+							</label>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">房型选择</label>
+						<div class="col-sm-8 col-lg-9">
+							<label class="checkbox-inline">
+								<input type="checkbox" name="checkall" class='checkall' checked/> 全选
+							</label>
+							{loop $rooms $r}
+							<label class="checkbox-inline">
+								<input type="checkbox" name="checkall" class='room' value="{$r['id']}" checked/> {$r['title']}
+							</label>
+							{/loop}
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">房态</label>
+						<div class="col-sm-8 col-lg-9">
+							<label class="radio-inline">
+								<input type="radio" name="status" value="1"/> 开
+							</label>
+							<label class="radio-inline">
+								<input type="radio" name="status" value="0"/> 关
+							</label>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label"></label>
+						<div class=" col-xs-12 col-sm-2 col-lg-2">
+							<button class="btn btn-default" id='create_btn' type='button'><i class="fa fa-search"></i> 生成房量/房态表</button>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+		<div class="panel panel-info">
+			<div class="panel-heading">房量/房态表</div>
+			<div class="panel-body">
+				<div  id="d_list">
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<input type="hidden" id="hotelid" value="{$hotelid}" />
+<script type="text/javascript">
+	$(function () {
+		$(".checkall").click(function(){
+			$(".room").attr("checked",$(this).get(0).checked);
+		})
+		$(".days_checkall").click(function(){
+			$(".days").prop("checked",$(this).get(0).checked);
+		})
+		$("#create_btn").click(function () {
+			var start = $(":hidden[name='datelimit[start]']").val();
+			var end = $(":hidden[name='datelimit[end]']").val();
+			var rooms = [];
+			var days = [];
+			$(".room").each(function(){
+				if($(this).get(0).checked){
+					rooms.push($(this).val());
+				}
+			});
+			$(".days").each(function(){
+				if($(this).get(0).checked){
+					days.push($(this).val());
+				}
+			});
+			$("#d_list").html("正在加载...");
+			$.post("{php echo $this->createWebUrl('room_status')}", {ac: 'updatelot_create', hotelid:{$hotelid}, rooms:rooms,days:days,start:start,end:end}, function (data) {
+				data = eval("(" + data + ")");
+				if (data.result == 1) {
+					$("#d_list").html(data.code);
+				}
+			});
+		});
+	});
+</script>
+{template 'common/footer'}

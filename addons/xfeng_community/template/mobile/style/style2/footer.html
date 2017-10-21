@@ -1,0 +1,165 @@
+<style type="text/css">
+.mainMenuWrap {
+    width: 100%;
+    position: fixed;
+    background-color: #f8f8f8;
+    border-top: 1px solid #ddd;
+    height: 58px;
+    left: 0;
+    bottom: 0;
+    z-index: 2100;
+}
+
+.mainMenu {
+    width: 100%;
+    text-align: center;
+    height: 58px;
+}
+
+.mainMenu a {
+    width: 25%;
+    line-height: 1.2em;
+    display: block;
+    float: left;
+    text-align: center;
+    font-size: 12px;
+    color: #82878b;
+}
+
+.mainMenu a .cur,
+.mainMenu .a1 a,.a2 a,.a4 a:hover {
+    color: #48b54e;
+}
+
+.mainMenu a .thumb {
+    -webkit-transform-origin: center top;
+    -webkit-transform: scale(0.62);
+    background-image:url({MODULE_URL}template/mobile/style/style1/static/image/bottom.png);
+    background-repeat: no-repeat;
+    background-size: 130px auto;
+    margin: -1px auto -19px;
+    width: 60px;
+    height: 60px;
+    /*margin-left:10px;*/
+}
+
+.mainMenu .a1 .thumb {
+    background-position: -8px 10px;
+}
+
+.mainMenu .a1 .cur .thumb,
+.mainMenu .a1:hover .thumb {
+    background-position: -67px 10px;
+}
+
+.mainMenu .a2 .thumb {
+    background-position: -5px -50px;
+}
+
+.mainMenu .a2 .cur .thumb,
+.mainMenu .a2:hover .thumb {
+    background-position: -67px -50px;
+}
+
+.mainMenu .a3 .thumb {
+    background-position: -2px -110px;
+}
+
+
+/*.mainMenu .a3 .cur .thumb,.mainMenu .a3:hover .thumb{ background-position:-50px -90px;}*/
+
+.mainMenu .a4 .thumb {
+    background-position: -5px -175px;
+}
+
+.mainMenu .a4 .cur .thumb,
+.mainMenu .a4:hover .thumb {
+    background-position: -67px -175px;
+}
+.noread_num{ position:absolute; background:#ff3e3e; padding:0px 5px; border-radius:10px;   color:#fff; top:5px; left:39%; font-size:12px;}
+</style>
+<script>
+function a1() {
+    window.location.href = "{php echo $this->createMobileUrl('home')}";
+}
+
+function a2() {
+    window.location.href = "{php echo $this->createMobileUrl('announcement',array('op' => 'list'))}";
+}
+
+function a4() {
+    window.location.href = "{php echo $this->createMobileUrl('member')}";
+}
+
+function select(s) {
+    if (s == 'a1') {
+        //$(".a1 .thumb").addClass("cur");
+        $(".a1 .thumb").css("background-position", "-67px 10px");
+        $(".a1 p").css("color", "#48b54e")
+    } else if (s == 'a2') {
+        // $(".a2").addClass("cur");
+        $(".a2 .thumb").css("background-position", "-67px -50px");
+        $(".a2 p").css("color", "#48b54e")
+    } else if (s == 'a3') {
+
+    } else {
+        // $(".a4").addClass("cur");
+        $(".a4 .thumb").css("background-position", "-67px -175px");
+        $(".a4 p").css("color", "#48b54e")
+    }
+
+}
+// $(function(){
+//           $(".a3").click(function(event) {
+//               $(".a3 .thumb").css("background-position", "-65px -175px");
+//                 $(".a3 p").css("color", "#48b54e")
+//           });      
+// });
+</script>
+<div class="mainMenuWrap">
+    <div class="mainMenu">
+        <a class="a1" href="javascript:a1();">
+            <div class="thumb"></div>
+            <p>小区</p>
+        </a>
+        <?php 
+            $row  = pdo_fetchall("select * from ".tablename("xcommunity_announcement")." where weid=:weid",array(':weid' => $_W['weid']));
+            $list = array();
+            $mem = $this->changemember();
+            foreach ($row as $key => $value) {
+                if($value['regionid'] != 'N;'){
+                    $regions = unserialize($value['regionid']);
+                    if (@in_array($mem['regionid'], $regions)) {
+                        $list[$key]['id'] = $value['id'];
+                        $list[$key]['createtime'] = $value['createtime'];
+                        $list[$key]['title'] = $value['title'];
+                        $list[$key]['datetime'] = $value['datetime'];
+                        $list[$key]['location'] = $value['location'];
+                        $list[$key]['reason'] = $value['reason'];
+                        $list[$key]['remark'] = $value['remark'];
+                    }
+                    
+                }
+                
+            }
+            $c1 = count($list);
+            $c2 = pdo_fetchcolumn("SELECT COUNT(*) FROM".tablename('xcommunity_reading_member')."WHERE uniacid =:uniacid AND openid=:openid",array(':openid' => $_W['fans']['from_user'],':uniacid' => $_W['uniacid'])); 
+            $count = $c1-$c2;
+            
+        ?>
+        <a class="a2" href="javascript:a2();">
+            <div class="thumb"></div>
+            <p>通知{if $count>0}<span class="noread_num">{$count}</span>{/if}</p>
+        </a>
+        {php $member  = $this->changemember();$region = pdo_fetch("SELECT * FROM".tablename('xcommunity_region')."WHERE id=:id",array(':id' => $member['regionid']));}
+        <a class="a3" href="tel:{$region['linkway']}">
+            <div class="thumb"></div>
+            <p>电话</p>
+        </a>
+        <a class="a4" href="javascript:a4();">
+            <div class="thumb"></div>
+            <p>我</p>
+        </a>
+    </div>
+</div>
+

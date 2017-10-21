@@ -1,0 +1,219 @@
+{template 'head'}
+{php register_jssdk()}
+<div class="weui_cells weui_cells_form margin1">
+<div class="weui_cell">
+<div class="weui_cell_bd weui_cell_primary">
+<div class="weui_uploader">
+<div class="weui_uploader_bd">
+<ul class="weui_uploader_files" id="uploader_files">
+{loop $list $ls}
+<li class='weui_uploader_file' onclick='doDelete(this)' style="background-image:url({$ls['pic']})"></li>
+{/loop}
+</ul>
+<div class="weui_uploader_input_wrp" id="uploader_files_btn">
+<button class="weui_uploader_input" onclick="doSelect()"></button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="weui_cells_tips" style="text-align: center;padding-bottom:5px;">(请一次性多选需要上传的图片)</div></div>
+<div class="weui_cells weui_cells_form margin1">
+<div class="weui_cell">
+<div class="weui_cell_hd">标题</div>
+<div class="weui_cell_bd weui_cell_primary">
+<input class="weui_input padding-left10" type="text" name="title" id="title" placeholder="例：xx小区三室两厅xx平米住房出售" value="{$news['title']}">
+</div>
+</div>
+<div class="weui_cell weui_cell_primary">
+<div class="weui_cell_hd">户型</div>
+<div class="weui_cell_bd">
+<input class="weui_input padding-left10" id="huxing" name="huxing" type="text" placeholder="请选择户型"  value="{$news['huxing']}">
+</div>
+</div>
+<div class="weui_cell weui_cell_primary">
+<div class="weui_cell_hd">装修</div>
+<div class="weui_cell_bd">
+<input class="weui_input padding-left10"  name="zhuangxiu" id="zhuangxiu" type="text" placeholder="请选择装修风格" value="{$news['zhuangxiu']}">
+</div>
+</div>
+<div class="weui_cell">
+<div class="weui_cell_hd">楼层</div>
+<div class="weui_cell_bd weui_cell_primary padding-left10 f-gray">
+第<input class="weui_input f-black" style="width:20%;text-align: center;" name="louceng_1" type="text" id="louceng_1" onkeyup="if(/\D/.test(this.value)){$.toast('只能输入数字', 'text');this.value='';}"  value="{$news['louceng_1']}">层  /  共<input class="weui_input f-black" style="width:20%;text-align: center;" name="louceng_2" type="text" id="louceng_2" onkeyup="if(/\D/.test(this.value)){$.toast('只能输入数字', 'text');this.value='';}"  value="{$news['louceng_2']}">层
+</div>
+</div>
+<div class="weui_cell">
+<div class="weui_cell_hd">面积</div>
+<div class="weui_cell_bd weui_cell_primary padding-left10 f-gray">
+<input class="weui_input f-black" style="width:30%;text-align: center;" name="mianji" type="text" id="mianji" onkeyup="if(/\D/.test(this.value)){$.toast('只能输入数字', 'text');this.value='';}"  value="{$news['mianji']}">㎡
+</div>
+</div>
+<div class="weui_cell">
+<div class="weui_cell_hd">价格</div>
+<div class="weui_cell_bd weui_cell_primary f-gray">
+<input class="weui_input padding-left10 f-black" style="width:30%;text-align: center;" type="text" name="jiage" id="jiage" onkeyup="if(/\D/.test(this.value)){$.toast('只能输入数字', 'text');this.value='';}" placeholder="" value="{$news['jiage']}">万 <span style="font-size:14px">(面议请填0)</span>
+</div>
+</div>
+<div class="weui_cells weui_cells_form margin1">
+<div class="weui_cell">
+<div class="weui_cell_bd weui_cell_primary">
+<textarea name="body" id="body" class="weui_textarea" placeholder="请输入信息说明" rows="3" onkeydown='countChar("body","counter");' onkeyup='countChar("body","counter");'>{$news['body']}</textarea>
+<div class="weui_textarea_counter"><span id="counter">0</span>/2000</div>
+</div>
+</div>
+<div class="weui_cells weui_cells_form margin1">
+<div class="weui_cell">
+<div class="weui_cell_hd">姓名</div>
+<div class="weui_cell_bd weui_cell_primary">
+<input class="weui_input padding-left10" type="text" name="name" id="name" placeholder="请输入姓名"  value="{$news['name']}">
+</div>
+</div>
+<div class="weui_cell">
+<div class="weui_cell_hd">手机</div>
+<div class="weui_cell_bd weui_cell_primary">
+<input class="weui_input padding-left10" type="text" onkeyup="if(/\D/.test(this.value)){$.toast('只能输入数字', 'text');this.value='';}" name="phone" id="phone" placeholder="请输入手机号码" value="{$news['phone']}">
+</div>
+</div>
+</div></div>
+<div class='demos-content-padded'>
+<a href="javascript:;" class="weui_btn weui_btn_primary" style="background: {$set['color']};width:96%;margin-top:20px;margin-bottom:20px;border: 0px solid #ebebeb;" id="save_btn" onclick="doUpload(this)">发布</a>
+</div>
+<script type="text/javascript">
+	var images = {
+		localId: [],
+		serverId: [],
+		count:9
+	};
+	function doSelect () {
+		// 判断图片数量
+		if($('#uploader_files li').size() > 9)
+		{
+			//alert("最多上传9张照片");
+			$.toast("最多上传9张照片", "text");
+			return;
+		}
+
+		wx.chooseImage({
+			count: images.count, // 默认9
+			sizeType: ['compressed'], // 可以指定是原图还是压缩图，默认二者都有
+			sourceType: ['album', 'camera'], // 可以指定来源是相册还是相机，默认二者都有
+			success: function (res) {
+				images.localId = res.localIds;
+				//alert('已选择 ' + res.localIds.length + ' 张图片');
+				//$.toast("已选择 " + res.localIds.length + " 张图片", "text");
+				// doUpload();
+				for(var i in res.localIds) {
+					addImg(res.localIds[i]);
+				}
+				images.count -= res.localIds.length;
+				if(!images.count)
+				{
+					$("#uploader_files_btn").hide();
+				}
+			}
+		});
+	};
+	// 添加上传图片
+	function addImg(localId) {
+		var html = "";
+		html += "<li class='weui_uploader_file' onclick='doDelete(this)' style='background-image:url("+localId+")'></li>";
+		//html += "<a><img src='"+localId+"'></a>";
+		//html +="</li>";
+		$("#uploader_files").append(html);
+	}
+
+	/*function doDelete(obj) {
+		if(!confirm('确认删除？')) {
+			return false;
+		}
+		$(obj).remove();
+	}*/
+
+	// 5.3 上传图片
+	function doUpload () {
+if(!$("#title").val() || !$("#phone").val() || !$("#huxing").val() || !$("#zhuangxiu").val() || !$("#mianji").val() || !$("#louceng_1").val() || !$("#louceng_2").val() || !$("#jiage").val() || !$("#body").val()) {
+			$.toast("信息必须全部填写", "text");
+			return;
+		}
+		$("#save_btn").attr('disabled',true);
+		if (images.localId.length == 0) {
+			doSave(0);
+
+		}else {
+			var i = 0, length = images.localId.length;
+			images.serverId = [];
+			function upload() {
+				wx.uploadImage({
+					localId: images.localId[i],
+					success: function (res) {
+						i++;
+						images.serverId.push(res.serverId);
+						if (i < length) {
+							upload();
+						}
+						else
+						{
+							var media_ids = images.serverId.join(',')
+							doSave(media_ids);
+						}
+					},
+					fail: function (res) {
+						alert(JSON.stringify(res));
+					}
+				});
+			}
+			upload();
+		}
+	};
+
+	function doSave(media_ids) {
+		$("#save_btn").html("发布中...");
+			$.ajax({
+			type:'post',
+				{if $id}
+				url:"{php echo $this->createMobileUrl('xinxi_house', array('act' => 'edit','id' => $id))}",
+				{else}
+				url:"{php echo $this->createMobileUrl('xinxi_house', array('act' => 'house_form'))}",
+				{/if}
+			data:{media_ids:media_ids,title:$("#title").val(),louceng_2:$("#louceng_2").val(),louceng_1:$("#louceng_1").val(),zhuangxiu:$("#zhuangxiu").val(),jiage:$("#jiage").val(),mianji:$("#mianji").val(),huxing:$("#huxing").val(),phone:$("#phone").val(),body:$("#body").val(),name:$("#name").val()},
+			success:function(d,s) {
+				$.showLoading('信息发布中...');
+				$("#save_btn").html("发布成功");
+				window.location.href="{php echo $this->createMobileUrl('my')}";	
+			}
+		});
+	}
+</script>
+<script>
+function countChar(textareaName,spanName)
+{  
+ document.getElementById(spanName).innerHTML = 0 + document.getElementById(textareaName).value.length;
+}
+      $("#zhuangxiu").select({
+        title: "选择装修风格",
+        items: ["简装", "精装", "毛坯"],
+        onChange: function(d) {
+          console.log(this, d);
+        },
+        onClose: function() {
+          console.log("close");
+        },
+        onOpen: function() {
+          console.log("open");
+        },
+      });
+      $("#huxing").picker({
+        title: "请选择户型",
+        cols: [
+          {
+            textAlign: 'center',
+            values: ['1室', '2室', '3室', '4室', '其他']
+          },
+          {
+            textAlign: 'center',
+            values: ['1厅', '2厅','']
+          }
+        ]
+      });
+    </script>

@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1.0,maximum-scale=1.0,minimum-scale=1,user-scalable=no">
+    <meta content="yes" name="apple-mobile-web-app-capable">
+    <meta content="black" name="apple-mobile-web-app-status-bar-style">
+    <meta content="telephone=no" name="format-detection">
+    <meta content="email=no" name="format-detection">
+    <title>{$group['groupname']}</title>
+    <link rel="stylesheet" href="{MD_ROOT}static/newui/css/reset.css"/>
+	<link rel="stylesheet" href="{MD_ROOT}static/iconfont/iconfont.css?v=20170625"/>
+	<link rel="stylesheet" href="{MD_ROOT}static/css/weui.min.css"/>
+	<link rel="stylesheet" href="{MD_ROOT}static/css/jquery-weui.min.css"/>
+	<link rel="stylesheet" href="{MD_ROOT}static/newui/css/style.css?v=20170625"/>
+	<link rel="stylesheet" href="{MD_ROOT}/emoji/emoji.css"/>
+	{php echo register_jssdk(false);}
+    <script>
+        var deviceWidth = document.documentElement.clientWidth;
+        document.documentElement.style.fontSize = deviceWidth / 7.5 + 'px';
+    </script>
+	<style>
+	.hide{
+		display:none;
+	}	
+	.sssbbb{
+        cursor:pointer
+    }
+	.nick-text{padding-top:0.1rem;}
+	.nick-img{border-radius:1rem;}
+	.chat-msg .right .nickname{margin-bottom:0.1rem;text-align:right;}
+	.chat-msg .left .nickname{margin-bottom:0.1rem;text-align:left;}
+	</style>
+</head>
+
+<body class="chat" style="background-color:{$setting['bgcolor']};">
+	{if $_SERVER['HTTP_REFERER']}
+	<div style="width:0.8rem;height:0.8rem;line-height:0.8rem;border-radius:0.8rem;text-align:center;font-size:0.3rem;position:fixed;z-index:10001;background:#000;opacity:0.6;color:#fff;top:0.2rem;left:0.2rem;" onclick="history.go(-1);" class="iconfont">&#xe612;</div>
+	{/if}
+	<!--录音区域-->
+	<div class="mask hide"></div>
+    <div class="fix fx-audio hide">
+        <i class="audio-start bigvoice iconfont">&#xe643;</i>
+        <p>按住此区域语音</p>
+    </div>
+	
+	<!--消息内容-->
+    <div class="chat-content" id="messagelist" style="-webkit-overflow-scrolling:touch;">
+	<div class="main">
+		<div class="chat-msg">
+			<div class="time">群聊{if $setting['ishowgroupnum'] == 1}（{$allpeople}人）{/if}创建时间：{php echo date("Y-m-d H:i:s",$group['time'])}</div>
+			{if $group['autoreply']}
+			<div class="msg left clear">
+				<div class="nick-img">
+					<img src="{php echo tomedia($group['thumb']);}" />
+				</div>
+				<div class="nick-text">
+					<div class="txt-con">
+						{php echo str_replace("\n","<br/>",$group['autoreply']);}
+					</div>
+				</div>
+			</div>
+			{/if}
+		</div>
+		{if $groupcontent}
+			{loop $groupcontent $row}
+			<div class="chat-msg">
+				<div class="time">{php echo date('Y-m-d H:i:s',$row['time'])}</div>
+				{if $row['openid'] != $_W['fans']['from_user']}
+				<div class="msg left clear">
+				{else}
+				<div class="msg right clear">
+				{/if}
+					<div class="nick-img">
+						<img src="{$row['avatar']}" />
+					</div>
+					<div class="nick-text">
+						<div class="nickname">{$row['nickname']}</div>
+						<div class="txt-con">
+							{if $row['type'] == 3}
+							<img src="{$row['content']}" class="sssbbb" style="max-width:100%;"  />
+							{elseif $row['type'] == 5}
+								<span class="audio-msg voiceplay" style="width:{php echo (($row['yuyintime']*3.5)/60)+0.3}rem;" onclick="playvoice('{$row['content']}');"><i class="a-icon iconfont">&#xe601;</i></span>
+							{else}
+								{$row['content']}
+							{/if}
+						</div>
+						{if $row['type'] == 5}
+						<span class="miaoshu">{$row['yuyintime']}''</span>
+						{/if}
+					</div>
+				</div>
+			</div>
+			{/loop}
+		{/if}
+	</div>
+	</div>
+
+	<!--回复输入区域-->
+	<div class="chat-input" style="position:fixed;bottom:0;">
+		<div class="quickandvoice">
+			<div class="quick iconfont">&#xe63d;</div>
+			<div class="qqface iconfont">&#xe63c;</div>
+		</div>
+		
+		<div class="input">
+			<textarea type="text" class="cell input-txt" id="chatcontent" placeholder="请输入咨询内容..."></textarea>
+		</div>
+		
+		<div class="other">
+			<div class="jia iconfont">&#xe641;</div>
+			<div class="send" id="btnSend">发送</div>
+		</div>
+    </div>
+	
+	<div class="showmore hide">
+		<div class="camera itemitem">
+			<div class="item">
+				<div class="photo iconfont">&#xe647;</div>
+				<div class="text">上传图片</div>
+			</div>
+		</div>
+		<div class="itemitem">
+			<div class="item">
+				<div class="audio iconfont">&#xe643;</div>
+				<div class="text">语音</div>
+			</div>
+		</div>
+		<div class="itemitem tuichu">
+			<div class="item">
+				<div class="tuichu iconfont">&#xe680;</div>
+				<div class="text">退出</div>
+			</div>
+		</div>
+	</div>
+	
+	<!--快捷回复-->
+	<div class="quick-list hide">
+		<ul>
+			{if empty($quickcon)}
+			 <li>暂无快捷消息</li>
+			{else}
+				{loop $quickcon $fansrow}
+				<li class="autocontent">{$fansrow}</li>
+				{/loop}
+			{/if}
+		</ul>
+	</div>
+<input type="hidden" id="imglistjson" value="{$imglistval}" />
+
+<div id="facebox" style="position: absolute; z-index: 1000;display:none;" class="qqFace">
+	<table border="0" cellspacing="0" cellpadding="0">
+		<tbody>
+			<tr>
+				<td><img src="../addons/cy163_customerservice/static/arclist/1.gif" data-emstr="[em_1]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/2.gif" data-emstr="[em_2]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/3.gif" data-emstr="[em_3]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/4.gif" data-emstr="[em_4]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/5.gif" data-emstr="[em_5]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/6.gif" data-emstr="[em_6]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/7.gif" data-emstr="[em_7]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/8.gif" data-emstr="[em_8]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/9.gif" data-emstr="[em_9]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/10.gif" data-emstr="[em_10]" /></td>
+			</tr>
+			<tr>
+				<td><img src="../addons/cy163_customerservice/static/arclist/11.gif" data-emstr="[em_11]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/12.gif" data-emstr="[em_12]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/13.gif" data-emstr="[em_13]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/14.gif" data-emstr="[em_14]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/15.gif" data-emstr="[em_15]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/16.gif" data-emstr="[em_16]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/17.gif" data-emstr="[em_17]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/18.gif" data-emstr="[em_18]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/19.gif" data-emstr="[em_19]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/20.gif" data-emstr="[em_20]" /></td>
+			</tr>
+			<tr>
+				<td><img src="../addons/cy163_customerservice/static/arclist/21.gif" data-emstr="[em_21]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/22.gif" data-emstr="[em_22]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/23.gif" data-emstr="[em_23]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/24.gif" data-emstr="[em_24]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/25.gif" data-emstr="[em_25]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/26.gif" data-emstr="[em_26]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/27.gif" data-emstr="[em_27]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/28.gif" data-emstr="[em_28]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/29.gif" data-emstr="[em_29]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/30.gif" data-emstr="[em_30]" /></td>
+			</tr>
+			<tr>
+				<td><img src="../addons/cy163_customerservice/static/arclist/31.gif" data-emstr="[em_31]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/32.gif" data-emstr="[em_32]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/33.gif" data-emstr="[em_33]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/34.gif" data-emstr="[em_34]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/35.gif" data-emstr="[em_35]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/36.gif" data-emstr="[em_36]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/37.gif" data-emstr="[em_37]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/38.gif" data-emstr="[em_38]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/39.gif" data-emstr="[em_39]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/40.gif" data-emstr="[em_40]" /></td>
+			</tr>
+			<tr>
+				<td><img src="../addons/cy163_customerservice/static/arclist/41.gif" data-emstr="[em_41]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/42.gif" data-emstr="[em_42]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/43.gif" data-emstr="[em_43]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/44.gif" data-emstr="[em_44]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/45.gif" data-emstr="[em_45]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/46.gif" data-emstr="[em_46]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/47.gif" data-emstr="[em_47]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/48.gif" data-emstr="[em_48]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/49.gif" data-emstr="[em_49]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/50.gif" data-emstr="[em_50]" /></td>
+			</tr>
+			<tr>
+				<td><img src="../addons/cy163_customerservice/static/arclist/51.gif" data-emstr="[em_51]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/52.gif" data-emstr="[em_52]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/53.gif" data-emstr="[em_53]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/54.gif" data-emstr="[em_54]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/55.gif" data-emstr="[em_55]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/56.gif" data-emstr="[em_56]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/57.gif" data-emstr="[em_57]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/58.gif" data-emstr="[em_58]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/59.gif" data-emstr="[em_59]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/60.gif" data-emstr="[em_60]" /></td>
+			</tr>
+			<tr>
+				<td><img src="../addons/cy163_customerservice/static/arclist/61.gif" data-emstr="[em_61]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/62.gif" data-emstr="[em_62]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/63.gif" data-emstr="[em_63]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/64.gif" data-emstr="[em_64]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/65.gif" data-emstr="[em_65]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/66.gif" data-emstr="[em_66]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/67.gif" data-emstr="[em_67]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/68.gif" data-emstr="[em_68]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/69.gif" data-emstr="[em_69]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/70.gif" data-emstr="[em_70]" /></td>
+			</tr>
+			<tr>
+				<td><img src="../addons/cy163_customerservice/static/arclist/71.gif" data-emstr="[em_71]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/72.gif" data-emstr="[em_72]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/73.gif" data-emstr="[em_73]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/74.gif" data-emstr="[em_74]" /></td>
+				<td><img src="../addons/cy163_customerservice/static/arclist/75.gif" data-emstr="[em_75]" /></td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+</body>
+<script src="{MD_ROOT}/static/newui/js/socket.io.js"></script>
+<script src="{MD_ROOT}/static/newui/js/jquery-3.1.1.min.js"></script>
+<script src="{MD_ROOT}/static/newui/js/jquery-weui.min.js"></script>
+<script src="{MD_ROOT}/static/newui/js/swiper.min.js"></script>
+<script>
+	var uid = "{$_W['fans']['from_user']}{$groupid}";
+	var allmember = "{$allmember}";
+	var sendurl = 'https://api.qiumipai.com:2121/?type=grouppublish';
+	var windowHeight = $(window).height();
+	var cansend = 1;
+    $(function(){
+		domInit();
+		// 连接服务端
+		var socket = io('https://api.qiumipai.com:2120');
+		// 连接后登录
+		socket.on('connect', function(){
+			socket.emit('login', uid);
+		});
+
+		// 后端推送来消息时
+		socket.on('new_msg', function(msg){			
+			var returnmsg = replace_em(msg.content);
+			returnmsg = '<div class="chat-msg">'
+							+'<div class="time">'+msg.datetime+'</div>'
+							+'<div class="msg left clear">'
+								+'<div class="nick-img">'
+									+'<img src="'+msg.avatar+'" />'
+								+'</div>'
+								+'<div class="nick-text">'
+									+'<div class="nickname">'+msg.nickname+'</div>'
+									+'<div class="txt-con">'+returnmsg+'</div>'+msg.wwwddd
+								+'</div>'
+							+'</div>'
+						+'</div>';
+			$('#messagelist .main').append(returnmsg);
+			$(".chat-content").animate({scrollTop:$('.main').height()},500);
+		});
+		
+		$('.tuichu').click(function(){
+			$.confirm("确定要退出吗？", function() {
+				$.ajax({
+					url:"{php echo $this->createMobileUrl('tuichuqun');}",   
+					type:'post', 
+					data:{
+						groupid:{$groupid},
+					},
+					dataType:'json',
+					success:function(data){
+						if (data.error == 1) {
+							$.alert(data.msg);
+						}else{
+							window.location = "{php echo $this->createMobileUrl('chosekefu')}";
+						}
+					}
+				});
+			}, function() {
+
+			});
+		});
+
+		var nowindex = 0;
+		$('.sssbbb').each(function(){
+			$(this).attr('attr-index',nowindex);
+			nowindex++;
+		});
+		$('.txt-con').each(function(){
+			$(this).html(replace_em($(this).html()));
+		});
+		$(document).on("click",".sssbbb", function() {
+			var imglistjson = $("#imglistjson").val().split(",");
+			var pb = $.photoBrowser({
+				items:imglistjson,
+				initIndex:$(this).attr('attr-index'),
+			});
+			pb.open();  //打开
+		});
+		$('.qqface').click(function(){
+			$("#facebox").toggle();
+		});
+		$("#facebox td img").click(function(){
+			$("#chatcontent").val($("#chatcontent").val()+$(this).attr("data-emstr"));
+			$("#facebox").hide();
+		});
+		$('.jia').click(function(){
+			$('.showmore').toggle();
+			if($('.showmore').hasClass('hide')){
+				var chatContentHeight=windowHeight-deviceWidth / 7.5*1;
+				$(".chat-content").css({"height":chatContentHeight});
+			}else{
+				var chatContentHeight=windowHeight-deviceWidth / 7.5*3.8;
+				$(".chat-content").css({"height":chatContentHeight});
+			}
+			$("body").animate({scrollTop:chatContentHeight},300);
+		});
+	
+		{if $group['isautosub'] == 0}
+		$('.quick-list li.autocontent').click(function(){
+			addchat($(this).text(),1,0);
+		});
+		{else}
+		$('.quick-list li.autocontent').click(function(){
+			$('#chatcontent').val($('#chatcontent').val()+$(this).text());
+			$('.quick-list').addClass("hide");
+		});
+		{/if}
+        //点击输入框
+        $(".input-txt").on("focus",function(){
+            setTimeout(function(){
+                $(window).scrollTop(windowHeight);
+            },300);
+        });
+		
+		$(".quick").on("click",function(){
+			if($(".quick-list").hasClass("hide")){
+				$(".quick-list").removeClass("hide");
+			}else{
+				$(".quick-list").addClass("hide")
+			}
+		})
+		
+        //点击发送按钮
+        $(".send").on("click",function(){
+			addchat($('#chatcontent').val(),1,0);
+        });
+
+        //录音按钮
+        $(".audio").on("click",function(){
+            $(".mask,.fx-audio").removeClass("hide");
+        });
+        //关闭弹层
+        $(".mask").on("click",function(){
+            $(".mask,.fix,.fsz").addClass("hide");
+        });
+    });
+	//查看QQ表情结果
+	function replace_em(str){
+		str = str.replace(/\[em_([0-9]*)\]/g,'<img src="{MD_ROOT}/static/arclist/$1.gif" style="width:0.5rem;" border="0" />');
+		return str;
+	}
+	function domInit(){
+        var chatContentHeight=windowHeight-deviceWidth / 7.5*1;
+        $(".chat-content").css({"height":chatContentHeight}).animate({scrollTop:$(".main").height()},300);
+		$(".chat-input").attr("style","");
+    }
+	
+	//发送消息到数据库
+	function addchat(content,type,yuyintime){
+		if(cansend == 1){
+			cansend = 0;
+			$.ajax({   
+				 url:"{php echo $this->createMobileUrl('addgroupchat')}",   
+				 type:'post', 
+				 data:{
+					yuyintime:yuyintime,
+					groupid:{$groupid},
+					content:content,
+					type:type,
+				 },
+				 dataType:'json',
+				 success:function(data){   
+					if(data.error == 0){
+						var returnmsg = replace_em(data.content);
+						returnmsg = '<div class="chat-msg">'
+										+'<div class="time">'+data.datetime+'</div>'
+										+'<div class="msg right clear">'
+											+'<div class="nick-img">'
+												+'<img src="'+data.avatar+'" />'
+											+'</div>'
+											+'<div class="nick-text">'
+												+'<div class="nickname">'+data.nickname+'</div>'
+												+'<div class="txt-con">'+returnmsg+'</div>'+data.yuyincon
+											+'</div>'
+										+'</div>'
+									+'</div>';
+						$('#messagelist .main').append(returnmsg);
+						$(".chat-content").animate({scrollTop:$('.main').height()},500);
+						$('#chatcontent').val("");
+						$('.quick-list').addClass("hide");
+						
+						$.ajax({   
+							url:sendurl,   
+							type:'post', 
+							data:{
+								content:content,
+								msgtype:type,
+								to:allmember,
+								avatar:"{$isin['avatar']}",
+								nickname:"{$isin['nickname']}",
+							},
+							dataType:'jsonp',
+							success:function(data){ 
+
+							}
+						});
+					}else{
+						$.alert(data.msg);
+					}
+					cansend = 1;
+				 }
+			});
+		}
+	}
+	
+	function playvoice(serverid){
+		wx.downloadVoice({
+			serverId: serverid,
+			success: function (res) {
+				wx.playVoice({
+					localId: res.localId, // 需要播放的音频的本地ID，由stopRecord接口获得
+				});
+			}
+		});
+	}
+</script>
+<script type="text/javascript">
+var images = {
+	localIds: [],
+};
+var voice = {
+	localId: '',
+	serverId: ''
+};
+$(function(){
+	//假设全局变量已经在外部定义	
+	
+	$('.bigvoice').on('touchstart', function(event){
+		$('.fx-audio p').text('松开即可完成录音');
+		event.preventDefault();
+		START = new Date().getTime();
+
+		recordTimer = setTimeout(function(){
+			wx.startRecord({
+				success: function(){
+					localStorage.rainAllowRecord = 'true';
+				},
+				cancel: function () {
+					$.alert('您拒绝授权录音');
+				}
+			});
+		},300);
+	});
+	//松手结束录音
+	$('.bigvoice').on('touchend', function(event){
+		$('.fx-audio p').text('请按住进行录音');
+		event.preventDefault();
+		END = new Date().getTime();
+		
+		if((END - START) < 300){
+			END = 0;
+			START = 0;
+			//小于300ms，不录音
+			$.alert('录音时间太短');
+			clearTimeout(recordTimer);
+		}else{
+			wx.stopRecord({
+				success: function (res) {
+					voice.localId = res.localId;
+					$('.fx-audio').addClass("hide");
+					$('.mask').addClass("hide");
+					var yuyintime = (END - START);
+					uploadVoice(yuyintime);
+			    },
+			    fail: function (res) {
+					$.alert('录音失败');
+			    }
+			});
+		}
+	});
+	//上传录音
+	function uploadVoice(yuyintime){
+		//调用微信的上传录音接口把本地录音先上传到微信的服务器
+		//不过，微信只保留3天，而我们需要长期保存，我们需要把资源从微信服务器下载到自己的服务器
+		wx.uploadVoice({
+			localId: voice.localId, // 需要上传的音频的本地ID，由stopRecord接口获得
+			isShowProgressTips: 1, // 默认为1，显示进度提示
+			success: function (res) {
+				//把录音在微信服务器上的id（res.serverId）发送到自己的服务器供下载。
+				addchat(res.serverId,5,yuyintime);
+			}
+		});
+	}
+	$('.camera').click(function(){
+		wx.chooseImage({
+			count: 3, // 最多选3张
+			sizeType: ['compressed'], // 可以指定是原图还是压缩图，默认二者都有
+			sourceType: ['album', 'camera'], // 可以指定来源是相册还是相机，默认二者都有
+			success: function(res) {
+				images.localIds = res.localIds; // 返回选定照片的本地ID列表，localId可以作为img标签的src属性显示图片
+				var i = 0; var length = images.localIds.length;
+				var upload = function() {
+					wx.uploadImage({
+						localId:'' + images.localIds[i],
+						isShowProgressTips: 1,
+						success: function(res) {
+							var serverId = res.serverId;
+							$.ajax({   
+								 url:"{php echo $this->createMobileUrl('getmedia')}",   
+								 type:'post', 
+								 data:{
+									media_id:serverId,
+								 },
+								 dataType:'json',
+								 success:function(data){   
+									if (data.error == 1) {
+										$.alert(data.message);
+									} else {
+										addchat(data.imgurl,3,0);
+									}  
+								 }
+							});
+							//如果还有照片，继续上传
+							i++;
+							if (i < length) {
+								upload();
+							}
+						}
+					});                    
+				};
+				upload();
+			}
+		});
+	});
+})
+</script>
+<script type="text/javascript">
+wx.ready(function () {
+	wx.hideOptionMenu();
+	sharedata = {
+		title: '{$setting["sharetitle"]}',
+		desc: '{$setting["sharedes"]}',
+		link: '{$setting["shareurl"]}',
+		imgUrl: '{php echo tomedia($setting["sharethumb"]);}',
+		trigger: function (res) {
+			//$.alert('用户点击发送给朋友');
+		},
+		success: function (res) {
+			//$.alert('已分享');
+		},
+		cancel: function (res) {
+			//$.alert('已取消');
+		},
+		fail: function (res) {
+			$.alert("分享失败");
+		}
+	};
+	wx.onMenuShareAppMessage(sharedata);
+	wx.onMenuShareTimeline(sharedata);
+	wx.onMenuShareQQ(sharedata);
+	wx.onMenuShareWeibo(sharedata);
+	//注册微信播放录音结束事件【一定要放在wx.ready函数内】
+	wx.onVoicePlayEnd({
+		success: function (res) {
+
+		}
+	});
+	wx.onVoiceRecordEnd({
+		complete: function (res) {
+			voice.localId = res.localId;
+			$.alert('录音时间已超过一分钟');
+		}
+	});
+});
+</script>
+</html>

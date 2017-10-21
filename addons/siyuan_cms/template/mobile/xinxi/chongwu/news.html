@@ -1,0 +1,160 @@
+{template 'header'}
+<style>
+body{background-color: #f6f6f6;}
+</style>
+<div class="siyuan_top weui-row">
+<div class="weui-col-15"><a href="javascript:history.go(-1)"><i class="fa fa-angle-left f-32"></i></a></div>
+<div class="weui-col-70">{$set['name']}</div>
+<div class="weui-col-15"><a class="cd-bouncy-nav-trigger" href="#0"><img src="{$_W['siteroot']}addons/siyuan_cms/ui/img/daohang.png"></a></div>
+</div>
+<div class="cd-bouncy-nav-modal">
+<nav>
+<ul class="cd-bouncy-nav">
+{loop $menu $caidan}
+<li><a href="{$caidan['url']}"><img src="{$_W['attachurl']}{$caidan['thumb']}"><p>{$caidan['title']}</p></a></li>
+{/loop}
+</ul>
+</nav>
+<a href="#0" class="cd-close fa fa-power-off">返回</a>
+</div>
+<div style="height:40px;"></div>
+<div class="swiper-container">
+<div class="swiper-wrapper">
+{loop $flash $flash}
+<img onclick="window.location.href='{$flash['url']}'" src="{php echo tomedia($flash['attachment'])}" style="width:100%;" class="swiper-slide">
+{/loop}
+</div>
+<div class="swiper-pagination"></div>
+</div>
+<div class="area-name whitebg">
+<div class="tit_area">
+<h1 class="name black">{$news['title']}</h1>
+</div>
+<dl class="name-info">
+<dd>发布：{php echo date('m-d H:i', $news['time'])}</dd>
+<dd>浏览：{$news['yuedu']}</dd>
+</dl>
+<span class="collect"><i class="fa fa-star-o"></i>收藏</span>
+</div>
+<div class="area-infor whitebg mt5">
+<ul class="infor-price">
+<li>价格<i class="yellow cheng">{if $news['jiage'] =='0'}{$news['leixing']}{else}{$news['jiage']} 元{/if}</i></li>
+<li>类型<i class="yellow cheng">{$news['leixing']}</i></li>
+<li>性别<i class="yellow cheng">{$news['sex']}</i></li>
+</ul>
+</div>
+<div class="mt5"></div>
+<div class="xinxi_body">
+{$news['body']}
+{loop $thumb $img}
+<img src="{$img['pic']}">
+{/loop}
+</div>
+<div class="mt5"></div>
+
+<div class="jubao">
+<div class="jubao-font">
+<p class="one-line">如遇无效、虚假、诈骗信息，请立即举报!</p>
+<p class="two-line">求职过程请勿缴纳费用，谨防诈骗！若信息不实请举报。</p>
+</div>
+<div class="jubao-logo">
+<a onClick="doBug('{$_W['siteroot']}app{php echo str_replace('./','/',$this->createMobileUrl('xinxi_chongwu', array('act' => 'news','id' => $id)))}')"><i class="fa fa-renren"></i><p>举报</p></a>
+</div>
+</div>
+<script>
+function doBug(t) {
+$.ajax({
+type:'post',
+dataType:'json',
+url:"{php echo $this->createMobileUrl('tip', array('type' => 'xinxi_chongwu','title' => $news['title']))}",
+data:{url:t},
+success:function(msg){
+if(msg.status==1){
+$.toast("举报成功", "text");
+window.location.href="{php echo $this->createMobileUrl('index')}";
+}else{
+$.toast("未举报成功", "text");
+window.location.href="{php echo $this->createMobileUrl('index')}";
+}
+}
+})
+}
+</script>
+<div class="public-module-title"> 
+<p><span class="base-bgcolor public-title-icon"></span>推荐信息</p>
+</div>
+<div class="info_list">
+<ul>
+{loop $list $item}
+<li>
+<a href="{php echo $this->createMobileUrl('xinxi_chongwu', array('act' => 'news', 'id' => $item['id']))}">
+<div class="pic" style="background:url({if $item['pic']}{php echo tomedia($item['pic'])}{else}{$_W['siteroot']}addons/siyuan_cms/ui/img/xinxi/no_pic.jpg{/if}) no-repeat center center;background-size:cover;"></div>
+<div class="con">
+<h3 style="height:54px;">{$item['title']}</h3>
+<p><span class="rooms"><i class="fa fa-clock-o"></i> {php echo date('m-d', $item['time'])}</span>
+<span class="rooms"><i class="fa fa-heart-o"></i> {$item['leixing']}</span>
+<span class="rooms"><i class="fa fa-github-square"></i> {$item['sex']}</span>
+<span class="price">{if $item['jiage'] =='0'}<em>{$item['leixing']}</em>{else}<em>{$item['jiage']}</em> 元{/if}</span></p>
+</div></a></li>
+{/loop}
+<div class='demos-content-padded'><a id="aMore" href="#" class="cont-more">点击加载更多</a></div>
+<div style="height:10px;"></div>
+</ul>
+</div>
+<script language="javascript" type="text/javascript">
+var totalpage = {$total_page}, currentpage = 1;
+if (totalpage < 2) $('#aMore').remove();
+else
+$('#aMore').click(function () {
+$.ajax({ url: '{php echo $this->createMobileUrl("xinxi_chongwu", array("act" => "list"))}', type: 'POST', data: { currentpage: currentpage + 1}, complete: function (xhr) {
+if (xhr.status == '200') {
+currentpage++;
+if (currentpage > totalpage) $('#aMore').remove($.toast("没有信息了...", "text"));
+$(xhr.responseText).insertBefore('#aMore');
+}
+else $.toast("没有信息了...", "text");
+}
+});
+return false;
+});
+</script>
+<div class="floatTel" style="margin-top:-44px;">
+<dl>
+<dt class="head"><img src="{if !empty($news['avatar'])}{$news['avatar']}{else}{$_W['siteroot']}addons/siyuan_cms/ui/img/xinxi/invite_avator.png{/if}" width="100%" /></dt>
+<dt class="info">
+<p>联系电话：</p>
+<p class="cheng f-14">{$news['phone']}</p>
+{if $tel_city}<p class="f-10 f-hui">({$tel_city}{$tel_lx})</p>{/if}
+</dt>
+<dd>
+<a class="tj-tel" href="tel:{$news['phone']}"><i></i>打电话 </a>
+</dd>
+<dd>
+<a class="tj-mes tj-chat" href="sms:{$news['phone']}"><i></i>发短信 </a>
+</dd>
+<dd>
+<a class="tj-yy btn btn_yykfBottom" href="{php echo $this->createMobileUrl('xinxi', array('act' => 'fabu'))}"><i></i>发布信息</a>
+</dd>
+</dl>
+</div>
+</div>
+{php echo register_jssdk(false);}
+<script type="text/javascript">
+wx.ready(function () {
+sharedata = {
+title: "{$news['title']}",
+desc: "{$news['title']}",
+link: window.location.href,
+imgUrl: "{if $news['pic']}{$news['pic']}{else}{$_W['siteroot']}addons/siyuan_cms/ui/img/xinxi/weixin7.jpg{/if}",
+success: function (res) {},
+cancel: function(){
+}
+};
+wx.onMenuShareAppMessage(sharedata);
+wx.onMenuShareTimeline(sharedata);
+wx.onMenuShareQQ(sharedata);
+wx.onMenuShareWeibo(sharedata);
+wx.onMenuShareQZone(sharedata);
+});
+</script>
+{template 'footer1'}

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>充值记录 - {php echo $this->module['config']['sname']}</title>
+    <meta name="wap-font-scale" content="no">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta content="app-id=518966501" name="apple-itunes-app">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <meta content="yes" name="apple-mobile-web-app-capable">
+    <meta content="black" name="apple-mobile-web-app-status-bar-style">
+    <meta content="telephone=no" name="format-detection">
+    <link href="../addons/weliam_indiana/secondstatic/css/newcomm.css" rel="stylesheet" type="text/css">
+    <link href="../addons/weliam_indiana/secondstatic/css/newaccounts.css" rel="stylesheet" type="text/css">
+    <script language="javascript" src="../addons/weliam_indiana/secondstatic/js/jquery.js"></script>
+</head>
+<body fnav="1" class="g-acc-bg" style="zoom: 1;">
+    <input name="hidShowData" type="hidden" id="hidShowData" value="0">
+    <input name="hidHasMobile" type="hidden" id="hidHasMobile" value="1">
+    <input name="hidHasPaypwd" type="hidden" id="hidHasPaypwd" value="0">
+    <input name="hidHasMoney" type="hidden" id="hidHasMoney" value="1">
+    <div>
+        <div id="divRechage" class="g-accounts-details g-recharge-details clearfix" style="display: block;">           
+            <dl id="morelist">
+                <dt>
+                	<span>充值时间</span>
+                	<span>金额</span>
+                	<span>渠道</span>
+                </dt>
+                {loop $result $result}
+            	<dd>
+            		<span>{php echo date("Y-m-d H:i:s",$result['createtime'])}</span>
+            		<span>￥{$result['num']}.00</span>
+            		<span>{if $result['paytype']==2}支付宝支付{elseif $result['paytype']==3}微信支付{elseif $result['paytype']==4}京东支付{elseif $result['paytype']==5}百度钱包支付{/if}</span>
+            	</dd>
+            	{/loop}
+            </dl>
+            <div class="loading clearfix g-acc-bg" id="more" style="display: block;">上拉加载</div>
+            
+        <div class="pro_foot">
+            <ul>
+                <li id="btnTransfer" class="border-orange-Btn"><a href="{php echo $this->createMobileUrl('consume')}">消费记录</a></li>
+                <li><a href="{php echo $this->createMobileUrl("recharge");}" class="orangeBtn">去充值</a></li>
+            </ul>
+        </div>     
+    </div>
+    {template 'menu'}
+</body>
+<script>
+	//自动刷新
+	var id={$id};
+	var flag=0;
+	//判断div是否在可视区域
+	  $(document).ready(function () {
+            $(window).scroll(function () {
+                var a = document.getElementById("more").offsetTop;
+                if (a >= $(window).scrollTop() && a < ($(window).scrollTop()+$(window).height())&&id!='-1'&&flag=='0') {
+                   document.getElementById('more').innerHTML="努力加载中";
+					flag = 1;
+					down_load();	
+                }
+            });
+        });
+//回传数据
+	
+	function down_load(){
+		//传值验证返回	
+	    $.post("{php echo $this->createMobileUrl('recharge_records')}",
+	    {
+	    	id:id
+	    },
+	    function(m){
+				if(m==''){
+					document.getElementById('more').innerHTML="没有可加载项";
+				}else{
+					if(m.success=='-1'){
+						document.getElementById('more').innerHTML='没有更多的信息了';
+					}else{
+						
+						id = m.success;
+						for(var i=0;i<m.list.length;i++){
+							if(m.list[i].paytype==3){
+								m.list[i].paytype = '微信支付';
+							}else if(m.list[i].paytype==2){
+								m.list[i].paytype = '支付宝支付';
+							}else if(m.list[i].paytype==4){
+								m.list[i].paytype = '京东支付';
+							}else if(m.list[i].paytype==5){
+								m.list[i].paytype = '百度钱包支付';
+							}
+							var more = '<dd><span>'+m.list[i].createtime+'</span><span>￥'+m.list[i].num+'.00</span><span>'+m.list[i].paytype+'</span></dd>';
+							$("#morelist").append(more);
+							flag = 0;
+							document.getElementById('more').innerHTML="<b></b>正在加载";
+						}
+						
+					}
+				}
+
+             },"json");
+	}
+	
+</script>
+</html>

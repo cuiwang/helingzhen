@@ -1,0 +1,339 @@
+{template 'common/header'}
+{if $do == 'display'}
+<div class="we7-page-title">
+	应用权限套餐
+</div>
+
+<ul class="we7-page-tab">
+	<li class="active"><a href="{php echo url('module/group/display') }">应用权限套餐列表  </a></li>
+</ul>
+<div class="js-system-module_group" ng-controller="moduleGroupCtrl" ng-cloak>
+	<div class="combo-list">
+		<div class="we7-page-search clearfix">
+			{if uni_user_see_more_info(ACCOUNT_MANAGE_NAME_VICE_FOUNDER, true)}
+			<div class="pull-right">
+				<a href="{php echo url('module/group/post')}" class="btn btn-primary">+添加应用权限套餐</a>
+			</div>
+			{/if}
+			<form action="" method="get" class="we7-form row">
+				<div class="form-group we7-padding-none col-sm-4">
+					<input type="hidden" name="c" value="module">
+					<input type="hidden" name="a" value="group">
+					<input type="hidden" name="do" value="display">
+					<div class="input-group">
+						<input class="form-control" name="name" value="{$_GPC['name']}" type="text" placeholder="名称" >
+						<span class="input-group-btn"><button class="btn btn-default"><i class="fa fa-search"></i></button></span>
+					</div>
+				</div>
+			</form>
+		</div>
+		<table class="table we7-table table-hover vertical-middle">
+
+			<col width="180px" />
+			<col width="140px"/>
+			<col width="140px" />
+			<col width="140px" />
+			<col width="180px" />
+			<tr>
+				<th class="text-left">套餐名称</th>
+				<th>公众号应用个数</th>
+				<th>小程序应用个数</th>
+				<th>模板个数</th>
+				<th class="text-right">操作</th>
+			</tr>
+			{loop $modules_group_list $module_group}
+			<tr >
+				<td class="text-left">{$module_group['name']}</td>
+				<td>{php echo count($module_group['modules'])}</td>
+				<td>{php echo count($module_group['wxapp'])}</td>
+				<td>{php echo count($module_group['templates'])}</td>
+				<td>
+					<div class="link-group">
+						<a href="javascript:;" class="color-default js-unfold" data-toggle="table-collapse" data-target="toggle-{$module_group['id']}" ng-click="changeText($event)">展开</a>
+						{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER || $_W['role'] == ACCOUNT_MANAGE_NAME_VICE_FOUNDER}
+						<a href="{php echo url('module/group/post', array('id' => $module_group['id']))}">编辑套餐</a>
+						<a href="{php echo url('module/group/delete', array('id' => $module_group['id']))}" class="del" onclick="return confirm('确定要删除套餐吗？')">删除</a>
+						{/if}
+					</div>
+				</td>
+			</tr>
+			<tr class="collapse bg-light-gray" aria-expanded="true" data-id="toggle-{$module_group['id']}">
+				<td colspan="5">
+					<div class="col-sm-1 color-gray text-left we7-padding-none">公众号应用</div>
+					<div class="col-sm-11">
+						{loop $module_group['modules'] $module}
+						<div class="col-sm-3 text-left text-over">
+							<!--<img src="{$module['logo']}" style="width:50px;height:50px;">-->
+							<!--<a href="">{$module['title']}</a>-->
+							{if empty($module['main_module'])}
+							<img src="{$module['logo']}" alt="">
+							{$module['title']}
+							{else}
+							<span class="img">
+								<img src="{$module['logo']}" alt="子应用icon" class="plugin-img"/>
+								<img src="{$modules[$module['main_module']]['logo']}" alt="主应用icon" class="module-img"/>
+							</span>
+							{/if}
+						</div>
+						{/loop}
+					</div>
+				</td>
+			</tr>
+			<tr class="collapse bg-light-gray" aria-expanded="true" data-id="toggle-{$module_group['id']}">
+				<td colspan="5">
+					<div class="col-sm-1 color-gray text-left we7-padding-none">小程序应用</div>
+					<div class="col-sm-11">
+						{loop $module_group['wxapp'] $wxapp}
+						<div class="col-sm-3 text-left text-over">
+							<img src="{$wxapp['logo']}">
+							<a href="">{$wxapp['title']}</a>
+						</div>
+						{/loop}
+					</div>
+				</td>
+			</tr>
+			<tr class="collapse bg-light-gray" aria-expanded="true" data-id="toggle-{$module_group['id']}">
+				<td colspan="5">
+					<div class="col-sm-1 color-gray text-left we7-padding-none">模板</div>
+					<div class="col-sm-11">
+						{loop $module_group['templates'] $template}
+						<div class="col-sm-3 text-left  text-over">
+							<i class="glyphicon glyphicon-th-large"></i>
+							<a href="">{$template['title']}</a>
+						</div>
+						{/loop}
+					</div>
+				</td>
+			</tr>
+			{/loop}
+		</table>
+	</div>
+</div>
+<script>
+	angular.bootstrap($('.js-system-module_group'), ['moduleApp']);
+	$('[data-toggle="table-collapse"]').on('click',function(){
+		var id = '[data-id="'+$(this).data('target')+'"]';
+		$(id).collapse('toggle');
+	});
+</script>
+{elseif $do == 'post'}
+<div class="js-modulegroup-post" ng-controller="moduleGroupPostCtrl" ng-cloak>
+	<div class="combo-list-add">
+		<ol class="breadcrumb we7-breadcrumb">
+			<a href="{php echo url('module/group')}"><i class="wi wi-back-circle"></i> </a>
+			<li>
+				<a href="{php echo url('module/group') }">套餐应用列表</a>
+			</li>
+			<li>
+				添加套餐应用列表
+			</li>
+		</ol>
+		<div class="we7-form">
+			<div class="form-group">
+				<label for="" class="control-label col-sm-3">应用套餐名称</label>
+				<div class="form-controls col-sm-8">
+					<input type="text" ng-model="moduleGroup.name" class="form-control"/>
+				</div>
+			</div>
+		</div>
+		<div class="panel we7-panel">
+			<div class="panel-heading">
+				选择公众号应用
+			</div>
+			<div class="panel-body we7-padding">
+				<div class="row">
+					<div class="col-sm-2 text-left" ng-repeat="module in groupHaveModuleApp" style="overflow: hidden">
+						<img ng-src="{{ module.logo }}" alt="" style="width:33px;height:33px;" ng-if="module.main_module == ''">
+						<span class="img" ng-if="module.main_module != ''">
+							<img ng-src="{{ module.logo }}" alt="子应用icon" class="plugin-img"/>
+							<img ng-src="{{ groupHaveModuleApp[module.main_module].logo || groupNotHaveModuleApp[module.main_module].logo }}" alt="主应用icon" class="module-img"/>
+						</span>
+						<span class="name">{{ module.title }}</span>
+						<span class="del bg-default" ng-click="delHaveModule(module)">删除</span>
+					</div>
+					<div class="col-sm-2 add-more">
+						<div class="we7-input-img input-more input-img">
+							<a href="" class="input-addon" ng-click="addModule()">
+								<span class="color-gray"></span>
+							</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="panel we7-panel">
+			<div class="panel-heading">
+				选择小程序应用
+			</div>
+			<div class="panel-body we7-padding">
+				<div class="row">
+					<div class="col-sm-2 text-left" ng-repeat="module in groupHaveModuleWxapp" style="overflow: hidden">
+						<img src="{{ module.logo }}" alt="" class="img">{{ module.title }}
+						<span class="del bg-default" ng-click="delHaveModuleWxapp(module)">删除</span>
+					</div>
+					<div class="col-sm-2 add-more">
+						<div class="we7-input-img input-more input-img">
+							<a href="" class="input-addon" ng-click="addModuleWxapp()">
+								<span class="color-gray"></span>
+							</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="panel we7-panel">
+			<div class="panel-heading">
+				选择模板
+			</div>
+			<div class="panel-body we7-padding">
+				<div class="row">
+					<div class="col-sm-2 text-left text-over" ng-repeat="template in groupHaveTemplate">
+						<i class="wi wi-home"></i>
+						<a href="">{{ template.title }}</a>
+						<span class="del bg-default" ng-click="delHaveTemplate(template)">删除</span>
+					</div>
+					<div class="col-sm-2 add-more">
+						<div class="we7-input-img input-more input-img">
+							<a href="" class="input-addon" ng-click="adTemplate()">
+								<span class="color-gray"></span>
+							</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="uploader-modal modal fade module" id="add_template"  tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-dialog we7-modal-dialog" style="width:800px">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+					<h4 class="modal-title">添加模板(点击添加)</h4>
+				</div>
+
+				<div class="modal-body material-content clearfix">
+					<div class="material-body">
+						<div class="row">
+							<div class="col-sm-2 select-module" ng-repeat="template in groupNotHaveTemplate" ng-click="selectOrCancelModule(template, 'template')">
+								<div class="item" ng-class="{true:'active',false:''}[template.selected]">
+									<i class="wi wi-home" style="color: #ddd;font-size: 48px;position:relative; top:-15px; margin: 0;"></i>
+									<div class="name">{{ template.title }}</div>
+									<div class="mask">
+										<span class="wi wi-right"></span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!--注意全部有分页-->
+					<div class="material-pager text-right"></div>
+				</div>
+
+				<div class="modal-footer">
+					<button type="button" class="btn btn-primary" ng-click="addHaveTemplate()">确定</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="uploader-modal modal fade module" id="add_module"  tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-dialog  modal-dialog modal-lg we7-modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+					<h4 class="modal-title">添加模块(点击添加)</h4>
+				</div>
+
+				<div class="modal-body material-content clearfix">
+					<div class="material-head">
+						<form action="" method="get" class="form-horizontal clearfix form-inline" role="form">
+							<div class="input-group pull-left col-sm-4">
+								<input type="text" name="keyword" id="" ng-model='keyword' class="form-control" placeholder="搜索关键字"/>
+								<span class="input-group-btn"><button type="button" class="btn btn-default"><i class="wi wi-search"></i></button></span>
+							</div>
+						</form>
+					</div>
+					<div class="material-body">
+						<div class="row">
+							<div class="col-sm-2 select-module" ng-repeat="module in groupNotHaveModuleAppArray | filter:keyword" ng-click="selectOrCancelModule(module, 'module')">
+								<div class="item" ng-class="{true:'active',false:''}[module.selected]">
+									<img ng-src="{{ module.logo }}"  alt="" class="icon" ng-if="module.main_module == ''"/>
+									<div class="name">{{ module.title }}</div>
+									<div class="mask">
+										<span class="wi wi-right"></span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!--注意全部有分页-->
+					<div class="material-pager text-right"></div>
+				</div>
+
+				<div class="modal-footer">
+					<button type="button" class="btn btn-primary" ng-click="addHaveModule()">确定</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="uploader-modal modal fade module" id="add_module_wxapp"  tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-dialog we7-modal-dialog" >
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+					<h4 class="modal-title">添加小程序(点击添加)</h4>
+				</div>
+
+				<div class="modal-body material-content clearfix">
+					<div class="material-body">
+						<div class="row">
+							<div class="col-sm-2 select-module" ng-repeat="module in groupNotHaveModuleWxapp" ng-click="selectOrCancelModule(module, 'module_wxapp')">
+								<div class="item" ng-class="{true:'active',false:''}[module.selected]">
+									<img ng-src="{{ module.logo }}"  alt="" class="icon" ng-if="module.main_module == ''"/>
+									<div class="name">{{ module.title }}</div>
+									<div class="mask">
+										<span class="wi wi-right"></span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!--注意全部有分页-->
+					<div class="material-pager text-right"></div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-primary" ng-click="addHaveModuleWxapp()">确定</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<span class="btn btn-primary we7-padding-horizontal" ng-click="saveGroup()">提交</span>
+</div>
+<script>
+require(['underscore'], function() {
+	angular.module('moduleApp').value('config', {
+		'moduleGroup' : {php echo json_encode($module_group)},
+		'groupHaveModuleApp' : {php echo json_encode($group_have_module_app)},
+		'groupHaveModuleWxapp' : {php echo json_encode($group_have_module_wxapp)},
+		'groupNotHaveModuleApp' : {php echo json_encode($group_not_have_module_app)},
+		'groupNotHaveModuleAppArray' : {php echo json_encode(array_values($group_not_have_module_app))}, // angular filter 只能数组
+		'groupNotHaveModuleWxapp' : {php echo json_encode($group_not_have_module_wxapp)},
+		'groupHaveTemplate' : {php echo json_encode($group_have_template)},
+		'groupNotHaveTemplate' : {php echo json_encode($group_not_have_template)},
+		'url' : "{php echo url('module/group/save')}"
+	});
+
+	angular.bootstrap($('.js-modulegroup-post'), ['moduleApp']);
+	$('[data-toggle="table-collapse"]').on('click',function(){
+		var id = '[data-id="'+$(this).data('target')+'"]';
+		$(id).collapse('toggle');
+	});
+});
+</script>
+{/if}
+{template 'common/footer'}

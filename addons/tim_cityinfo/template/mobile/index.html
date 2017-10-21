@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>{$set['title']}</title>
+    <base href="{$_W['siteurl']}" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="format-detection" content="email=no">
+    <meta name="format-detection" content="address=no;">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+	<link rel="stylesheet" type="text/css" href="<?php echo MODULE_URL;?>template/mobile/css/style.css?v=<?php echo time();?>">
+</head>
+<body>
+
+<div id="pageSearch" style="display:none;">
+    <div class="tmSearch">
+        <form class="formBox" action="<?php echo $this->createMobileUrl('search');?>" method="post">
+            <span class="search-icon"></span>
+            <input type="text" name="search_content" class="searchTxt" value="" />
+            <button type="submit" id="search-btn">搜索</button>
+        </form>
+        <span class="rightTxt" id="btn">取消</span>
+    </div>
+</div>
+
+<div id="xctmhBox">
+	<div class="weather-bar"><i>{$location}</i> {$response['weather']} {$response['temperature']} ℃ {$response['wind']}</div>
+	<div class="top">
+        <div class="tmHeader" style="top:20px">
+            <div class="logo">
+            		<a href="<?php echo $this->createMobileUrl('comeIn');?>"><img src="{$_W['attachurl']}{$set['logo']}" alt="" width="60" height="30"></a>
+            </div>
+			<div class="location" id="n_locat">{php if(empty($_GPC['location'])) {}北京市{php }}{$_GPC['location']}<i></i></div>
+            <div class="tmSearch">
+        		<form class="formBox" action="#" method="get">
+            		<span class="fa fa-search"></span>
+                	<input type="text" id="search2" class="searchTxt" value="搜索本地信息" />
+            	</form>
+			</div>
+        	
+            <span class="text-icon"><a href="<?php echo $this->createMobileUrl('per');?>">我的</a></span>
+            <span class="text-icon">|</span>
+        </div></div>
+        <div class="table" style="margin-top:20px">
+           <div class="table-row-group-1">
+           {loop $cates $c}
+           		<a id="cat_url{$c['cate_id']}" href="<?php echo $this->createMobileUrl('category',array("cate_id"=>$c['cate_id']));?>"><div class="table-cell"><span><img src="{$_W['attachurl']}{$c['thumb']}" style="width:60px;height:40px"></span>{$c['name']}</div></a>
+           	{/loop}
+           </div>
+        </div>
+        <!--轮播图效-->
+        <div class="slide-adv">
+			<div class="fullSlide">
+	            <div class="bd">
+	                <ul>
+	                {loop $slides $s}
+	                    <li><a href="{$s['slide_url']}"><img src="{$_W['attachurl']}{$s['slide_pic']}"/></a></li>
+	                {/loop}
+	                </ul>
+	            </div>
+			</div>
+		</div>
+    {loop $category $cat}
+    <div class="cate-list">
+    	<div class="cate-title">{$cat['name']}<i></i><a href="<?php echo $this->createMobileUrl('category',array("cate_id"=>$cat['cate_id']));?>"><span>发布</span></a></div>
+    	<div class="cate-list-a">
+    	{loop $cat['son'] $cs}
+    		<a id="cat_url{$cs['cate_id']}" href="<?php echo $this->createMobileUrl('list',array('cate_id'=>$cs['cate_id']));?>">{$cs['name']}</a>
+    	{/loop}
+    	</div>
+    </div>
+    {/loop}
+    <div class="footer">
+    	<p>{$set['footer_info']}</p>
+    </div>
+</div>
+</body>{php echo register_jssdk(false);}
+<script language="javascript" src="<?php echo MODULE_URL;?>template/mobile/js/jquery.min.js"></script>
+<script type="text/javascript" src="<?php echo MODULE_URL;?>template/mobile/js/jquery.SuperSlide.2.1.2.js"></script>
+<script type="text/javascript" src="https://webapi.amap.com/maps?v=1.3&key=806b15d8d62650770d0594676691bc44&plugin=AMap.Geocoder"></script>
+<script type="text/javascript">
+jQuery(".fullSlide").slide({ titCell:".hd ul", mainCell:".bd ul", effect:"leftLoop", vis:"auto", autoPlay:true, autoPage:true, trigger:"click" });
+</script>
+<script language="javascript"> 
+   
+    window.onload = function(){
+        var boxDom1 = document.getElementById("pageSearch");
+        var boxDom2 = document.getElementById("xctmhBox");
+        var searchDom = document.getElementById("search2");
+        var hvr = document.getElementById("ellipsis");
+        var titleDom = document.getElementById("titleBox");
+        var btn = document.getElementById("btn");
+        searchDom.onfocus = function(){
+            boxDom2.style.display = "none";
+            boxDom1.style.display = "block";
+        }
+        btn.onclick = function(){
+            boxDom2.style.display = "block";
+            boxDom1.style.display = "none";
+        }
+		$(window).scroll(function(){
+			if( $(window).scrollTop() > 30 ) {
+				$(".tmHeader").css({top:'0'});
+			} else {
+				$(".tmHeader").css({top:'20px'});
+			}
+        });
+    }
+
+	wx.ready(function () {
+		wx.getLocation({
+    			success: function (res) {
+        			var latitude = res.latitude; // 纬度，浮点数，范围为90 ~ -90
+        			var longitude = res.longitude; // 经度，浮点数，范围为180 ~ -180。
+        			var speed = res.speed; // 速度，以米/每秒计
+        			var accuracy = res.accuracy; // 位置精度
+				//alert(latitude+' '+longitude);
+				regeocoder([longitude, latitude]);
+    			},
+    			cancel: function (res) {
+        			alert('用户拒绝授权获取地理位置');
+    			}
+		});
+	});
+
+    lnglatXY = [longitude, latitude]; //已知点坐标
+    function regeocoder(lnglatXY) {  //逆地理编码
+        var geocoder = new AMap.Geocoder({
+            radius: 1000,
+            extensions: "all"
+        });        
+        geocoder.getAddress(lnglatXY, function(status, result) {
+            if (status === 'complete' && result.info === 'OK') {
+                geocoder_CallBack(result);
+            }
+        });        
+        
+    }
+    function geocoder_CallBack(data) {
+        var address = data.regeocode.formattedAddress; //返回地址描述
+		var city = data.regeocode.addressComponent.district;
+		if (city.indexOf('区')>0) {
+			city = (data.regeocode.addressComponent.city).replace("市", "");
+		}
+		if (city.indexOf('县')>0) {
+			city = city.replace("县", "");
+		}
+		var son_cate = {php echo json_encode($son_cate)};
+		var location = "{php echo $_GPC['location']}";
+		if(city!=location){
+        if(confirm("当前定位城市是"+city+",是否切换")){
+			//document.getElementById("n_locat").innerHTML = city.replace("县", "")+"<i></i>";
+			for (var i=0; i<son_cate.length; i++) {
+				var new_url = $("#cat_url"+son_cate[i].cate_id).attr('href')+"&location="+city;
+				$("#cat_url"+son_cate[i].cate_id).attr('href', new_url);
+			}
+			window.location.href=window.location.href+"&location="+city;
+		}
+		}
+    }
+</script>
+</html>

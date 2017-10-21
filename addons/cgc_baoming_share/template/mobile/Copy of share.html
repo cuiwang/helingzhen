@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+<meta name="format-detection" content="telephone=no" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0"/>
+<link rel="stylesheet" href="{STYLE_PATH}/css/qcode.css"/>
+<script type="text/javascript" src="{STYLE_PATH}/js/jquery-1.7.2.min.js"></script>
+
+{if !empty($settings['debug_mode'])}
+  {php echo register_jssdk(true);}
+{else}
+  {php echo register_jssdk(false);}
+{/if}
+
+<script type="text/javascript"> 
+  wx.ready(function () {
+        shareMeta = {      		
+            imgUrl:"{php echo tomedia($activity['share_thumb'])}",
+            link: "{$activity['share_url']}",
+            desc : "{$activity['share_desc']}",
+            title : "{$activity['share_title']}",
+            success: function(){ 
+            	{if empty($activity['share_type']) || ($activity['share_type']=="1") }
+                  get_info();
+                {else}
+                  alert("必须发给盆友才可以生效");
+                {/if}
+            },
+            cancel: function(){
+                // alert("分享失败，可能是网络问题，一会儿再试试？");
+            }
+        };
+   
+       
+        
+        shareMetb = {      		
+                imgUrl:"{php echo tomedia($activity['share_thumb'])}",
+                link: "{$activity['share_url']}",
+                desc : "{$activity['share_desc']}",
+                title : "{$activity['share_title']}",
+                success: function(){  
+                	{if empty($activity['share_type']) || ($activity['share_type']=="2")}
+                	   get_info();
+                	{else}
+                       alert("必须发到*盆友*圈才可以生效");
+                     {/if}
+                },
+                cancel: function(){
+                    // alert("分享失败，可能是网络问题，一会儿再试试？");
+                }
+            };
+       
+            wx.onMenuShareTimeline(shareMeta);
+        wx.onMenuShareAppMessage(shareMetb);
+        
+
+    });
+ 
+
+  function get_info(){
+		$.ajax({
+			url:'{php echo $this->createMobileUrl("share",array('op'=>"post",'id'=>$_GPC['id'],'ticket'=>$_GPC['ticket']))}',	
+			type:'POST',
+			dataType:'json',
+			data:{},
+			success:function(data){				
+				if(data.code == 1){
+			        alert(data.info);
+
+                    {if ($activity['pay_money'])>0 && $activity['pay_time_point']==1 }
+						var data = jQuery.parseJSON(data.data);
+						window.location.href='{php echo $_W['siteroot'] . 'app/' . substr($this->createMobileUrl('payment',array('op'=>'display','title'=>$activity['title'])), 2)}&tid='+data.tid+'&activity_id='+data.activity_id;
+						return;
+                    {/if}
+
+					window.location.href =data.succ_url;					
+				}  else {
+					alert(data.code+"|"+data.msg);
+				}
+			},
+		      error:function(){
+		          alert('服务器报错');
+		      }
+		});
+  }
+  </script>
+
+
+<style type="text/css">
+
+</style>
+	<title>{$activity['title']}</title>
+</head>
+<body>
+<div class="wrapper">
+	<div class="share-area">
+		<img class="share-arr" src="{STYLE_PATH}/images/share-arr.png"/>
+		<p class="title">您已提交报名信息</p>
+		<p class="desc">{if !empty($activity['share_guide_info'])}
+		 {php echo htmlspecialchars_decode($activity['share_guide_info'])}
+		{else}点击右上角，点击下图所示按钮，发送后即可报名{/if}</p>
+		<img class="share-guide" src="{$share_guide}"/>
+	</div>
+	<div class="bottom">—&nbsp;活动&nbsp;—</div>
+</div>
+
+</body>
+</html>

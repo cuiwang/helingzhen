@@ -1,0 +1,123 @@
+<div class="form-group">
+	<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style='color:red'>*</span>商品名称</label>
+	<div class="col-sm-9 col-xs-12">
+		<input type="text" name="goodsname" id="goodsname" class="form-control" value="{$item['title']}" />
+	</div>
+</div>
+
+<div class="form-group">
+	<label class="col-xs-12 col-sm-3 col-md-2 control-label">商品简介</label>
+	<div class="col-sm-9 col-xs-12">
+		<input type="text" name="abstract" id="abstract" class="form-control" value="{$item['abstract']}" />
+	</div>
+</div>
+
+<!--<div class="form-group">
+	<label class="col-xs-12 col-sm-3 col-md-2 control-label">提货券</label>
+	<div class="col-sm-8 col-xs-12">
+		<select class="form-control" name="goods[categoryid]">
+			<option value="">选择提货券</option>
+			{loop $categories $cid $category}
+			<option value="{$cid}" {if $goods['categoryid'] == $cid}selected="selected"{/if}>{$category['name']}</option>
+			{/loop}
+		</select>
+	</div>
+</div>-->
+
+<div class="form-group">
+	<label class="col-xs-12 col-sm-3 col-md-2 control-label">商品图</label>
+	<div class="col-sm-9 col-xs-12">
+		{php echo tpl_form_field_image('thumb', $item['thumb'], '', array('extras' => array('text' => 'readonly')))}
+	</div>
+</div>
+<div class="form-group">
+	<label class="col-xs-12 col-sm-3 col-md-2 control-label">其他图片</label>
+	<div class="col-sm-9 col-xs-12">
+		{php echo tpl_form_field_multi_image('thumbs',$piclist)}
+	</div>
+</div>
+<div class="form-group">
+	<label class="col-xs-12 col-sm-3 col-md-2 control-label">商品价格</label>
+	<div class="col-sm-9 col-xs-12">
+		<div class="input-group form-group">
+			<span class="input-group-addon">销售价</span>
+			<input type="text" name="marketprice" id="marketprice" class="form-control" value="{$item['marketprice']}" />
+			<span class="input-group-addon">元</span>
+		</div>
+		<div class="input-group form-group">
+			<span class="input-group-addon">市场价</span>
+			<input type="text" name="productprice" id="productprice" class="form-control" value="{$item['productprice']}" />
+			<span class="input-group-addon">元</span>
+		</div>
+	</div>
+</div>
+<div class="form-group">
+	<label class="col-xs-12 col-sm-3 col-md-2 control-label">库存</label>
+	<div class="col-sm-6 col-xs-12">
+		<div class="input-group">
+			<input type="text" name="total" id="total" class="form-control" value="{$item['total']}" />
+			<span class="input-group-addon">件</span>
+		</div>
+		<span class="help-block">当前商品的库存数量</span>
+	</div>
+</div>
+<div class="form-group">
+	<label class="col-xs-12 col-sm-3 col-md-2 control-label">已出售数</label>
+	<div class="col-sm-6 col-xs-12">
+		<div class="input-group">
+			<input type="text" name="sales" id="sales" class="form-control" value="{$item['sales']}" />
+			<span class="input-group-addon">件</span>
+		</div>
+	</div>
+</div>
+<script language="javascript">
+
+	$(function () {
+		var i = 0;
+		$('#selectimage').click(function () {
+			var editor = KindEditor.editor({
+				allowFileManager: false,
+				imageSizeLimit: '30MB',
+				uploadJson: './index.php?act=attachment&do=upload'
+			});
+			editor.loadPlugin('multiimage', function () {
+				editor.plugin.multiImageDialog({
+					clickFn: function (list) {
+						if (list && list.length > 0) {
+							for (i in list) {
+								if (list[i]) {
+									html = '<li class="imgbox" style="list-type:none">' +
+												'<a class="item_close" href="javascript:;" onclick="deletepic(this);" title="删除"></a>' +
+												'<span class="item_box"> <img src="' + list[i]['url'] + '" style="height:80px"></span>' +
+												'<input type="hidden" name="attachment-new[]" value="' + list[i]['filename'] + '" />' +
+											'</li>';
+									$('#fileList').append(html);
+									i++;
+								}
+							}
+							editor.hideDialog();
+						} else {
+							alert('请先选择要上传的图片！');
+						}
+					}
+				});
+			});
+		});
+	});
+
+	function deletepic(obj) {
+		if (confirm("确认要删除？")) {
+			var $thisob = $(obj);
+			var $liobj = $thisob.parent();
+			var picurl = $liobj.children('input').val();
+			$.post('{php echo $this->createMobileUrl('ajaxdelete',array())}', {pic: picurl}, function (m) {
+				if (m == '1') {
+					$liobj.remove();
+				} else {
+					alert("删除失败");
+				}
+			}, "html");
+		}
+	}
+
+</script>

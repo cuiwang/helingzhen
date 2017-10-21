@@ -1,0 +1,196 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	{if $op == 'post'}<li class="active"><a href="#">编辑模板</a></li>{/if}
+	<li {if !$op || $op == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('style', array('op' => 'display'));}">模板列表</a></li>
+</ul>
+<style>
+.table td span{display:inline-block;margin-top:4px;}
+.table td input{margin-bottom:0;}
+th{
+	text-align: center !important;
+}
+td{
+	text-align: center !important;
+}
+.red{color:red;font-weight:bold}
+</style>
+{if !$op ||  $op == 'display'}
+<div class="main">
+	<form action="" method="get" class="form-horizontal" role="form">
+	   	<div class="panel panel-info" style="margin-top: 20px;">
+	    	<div class="panel-heading">筛选</div>
+	     	<div class="panel-body">
+	    		<input type="hidden" name="c" value="site" />
+	            <input type="hidden" name="a" value="entry" />
+	            <input type="hidden" name="m" value="junsion_simpledaily" />
+	            <input type="hidden" name="do" value="style" />
+	            <input type="hidden" name="op" value="display" />
+	            <div class="form-group">
+	                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">模板名</label>
+		             <div class="col-xs-3 col-sm-2">
+		              	<input class="form-control" name="title" id="" type="text" value="{$title}">
+		             </div>
+		             <div class=" col-xs-3 col-sm-2">
+		       			<input name="submit" type="submit" class="btn btn-primary" value="查询">
+		         	</div>
+	            </div>
+	        </div>
+	    </div>
+	</form>
+	{if !$list}<a class="btn btn-sm btn-info" href="{php echo $this->createWebUrl('startStyle');}">初始化模板</a>{/if}
+	<form action="" method="post" class="form-horizontal" role="form">
+		<div style="padding:15px;background: white;">
+			<table class="table table-hover">
+				<thead class="navbar-inner">
+					<tr>
+						<th style="width: 90px;">排序</th>
+						<th>模板名称</th>
+						<th>模板路径</th>
+						<th>价格</th>
+						<th>状态</th>
+						<th>修改</th>
+					</tr>
+				</thead>
+				<tbody>
+						{loop $list $item}
+					<tr>
+						<td><input type="text" class="form-control" style="text-align: center;" name="sorts[{$item['id']}]" value="{$item['sort']}"></td>
+						<td>{$item['title']}</td>
+						<td>{$item['path']}</td>
+						<td>{$item['price']}</td>
+						<td data-id='{$item["id"]}'><label class="label {if $item['status']}label-success{else}label-default{/if} is_ok" data-tid="{$item['id']}" style="cursor:pointer;">{if $item['status']}启用{else}禁用{/if}</label></td>
+						<td>
+							<a href="{php echo $this->createWebUrl('style', array('op' => 'post', 'id' => $item['id']))}" title="编辑" class="btn btn-sm btn-default"><i class="fa fa-edit"></i></a>
+						</td>
+					</tr>
+					
+					{/loop}
+				</tbody>
+				<tr>
+                <td colspan="5" style="text-align: left !important;">
+                	<input name="token" type="hidden" value="{$_W['token']}" />
+                    <input type="submit" class="btn btn-primary" name="submit" value="提交排序" />
+                </td>
+            </tr>
+			</table>
+			{$pager}
+		</div>
+	</form>
+	<script>
+$(function(){
+	$(".is_ok").click(function(){
+		alert("禁用或启用该模板则属于该模板的简记都会被禁用或启用！");
+		var that = $(this);
+		var id = $(this).attr('data-tid');
+		$.ajax({
+			type:'post',
+			url:"{php echo $this->createWebUrl('style',array('op'=>'check'))}",
+			data:{id:id},
+			success:function(data){
+				var data = $.parseJSON(data);
+				console.log(data);
+				if(data == 21){
+					that.empty();
+					that.removeClass('label-success');
+					that.addClass('label-default');
+					that.html("禁用");
+				}
+				if(data == 11){
+					that.empty();
+					that.removeClass('label-default');
+					that.addClass('label-success');
+					that.html("启用");
+				}
+			}
+		});
+	});
+});
+</script>
+</div>
+{elseif $op == 'post'}
+<div class="panel panel-info">
+		<div class="panel-body">
+			<form action="" method="post" class="form-horizontal" role="form">
+			<input type="hidden" name="id" value="{$item[id]}">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">模板名称</label>
+				<div class="col-sm-4">
+					<input class="form-control" required="required" name="title" id='title' type="text" value="{$item['title']}">
+				</div>
+			</div>
+<style>
+.template .item {position: relative;display: block;float: left;border: 1px #ddd solid;border-radius: 5px;background-color: #fff;padding: 5px; width: 190px;margin: 0 20px 20px 0;overflow: hidden;}
+.template .title {margin: 5px auto;line-height: 2em;}
+.template .item img { width: 178px;height: 270px;cursor: pointer;}
+.img-rounded {border-radius: 6px;}
+img {vertical-align: middle;}
+img { border: 0;}
+.template .active.item-style img, .template .item-style:hover img{width:178px;height:270px;border:3px #009cd6 solid;padding:1px; }
+.template .title .fa{display:none}
+.template .active .fa.fa-check{display:inline-block;position:absolute;bottom:33px;right:6px;color:#FFF;background:#009CD6;padding:5px;font-size:14px;border-radius:0 0 6px 0;}
+.template .fa.fa-times{cursor:pointer;display:inline-block;position:absolute;top:10px;right:6px;color:#D9534F;background:#ffffff;padding:5px;font-size:14px;text-decoration:none;}
+.template .fa.fa-times:hover{color:red;}
+.template .item-bg{width:100%; height:342px; background:#000; position:absolute; z-index:1; opacity:0.5; margin:-5px 0 0 -5px;}
+.template .item-build-div1{position:absolute; z-index:2; margin:-5px 10px 0 5px; width:168px;}
+.template .item-build-div2{text-align:center; line-height:30px; padding-top:150px;}
+</style>
+
+
+			<div class="form-group" id="style_detail">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">当前简记模板</label>
+				<div class="col-sm-8 col-xs-12">
+					<div class="template">
+						<div class="item item-style">
+							<div class="title">
+								<div style="overflow:hidden; height:28px;" id="current-title">{if !empty($item['path'])}{php echo str_replace(STYLEPATH,'',$item['path'])}{/if}</div>
+								<a href="javascript:;">
+									<img {if empty($item['path'])}src=""{else}src="{if $isdefault}{$item['path']}/img/default.png{else}{RES}images/default.jpg{/if}"{/if} id="current-preview" class="img-rounded">
+								</a>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+<script>
+
+</script>			
+			
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">状态</label>
+				<div class="col-sm-4">
+					<label><input type="radio" name="status" checked="checked" value="0"> 禁用</label>
+					<label style="margin-left: 10px;"><input type="radio" name="status" {if $item['status']}checked="checked"{/if} value="1"> 启用</label>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">价格</label>
+				<div class="col-sm-4">
+					<input type="text" name="price" value="{$item['price']}" class="form-control">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">排序</label>
+				<div class="col-sm-4">
+					<input type="number" name="sort" value="0" class="form-control">
+				</div>
+			</div>
+			<button type="submit" class="btn btn-primary" name="submit" id='summit_info' value="提交">保存</button>
+			<input type="hidden" name="token" value="{$_W['token']}" />
+			</form>
+	</div>
+</div>
+<script>
+$(function(){
+	$("#summit_info").click(function(){
+		var title = $("#title").val();
+		if(!title){
+			alert("请输入模板名称");
+			return false;
+		}
+	});
+});
+
+</script>
+{/if}
+{template 'common/footer'}

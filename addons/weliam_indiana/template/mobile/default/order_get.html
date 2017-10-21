@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>中奖记录 - {php echo $this->module['config']['sname']}</title>
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, width=device-width">
+    <meta content="telephone=no" name="format-detection">
+    <link href="{WELIAM_INDIANA_STATIC}css/common.css" rel="stylesheet">
+    <link href="{WELIAM_INDIANA_STATIC}css/user.css" rel="stylesheet">
+    <script language="javascript" src="{WELIAM_INDIANA_STATIC}js/jquery.js"></script>
+</head>
+{template wxshare}
+<script>
+	//自动刷新
+	var id2={$id2};
+	var flag=0;
+	//检测没有数据
+	function refresh(){
+		var re = document.getElementById('more');
+		if({$id2} == -1){
+			re.innerHTML='没有更多的信息了';
+		}
+	}
+	//判断div是否在可视区域
+	  $(document).ready(function () {
+            $(window).scroll(function () {
+                var a = document.getElementById("more").offsetTop;
+                if (a >= $(window).scrollTop() && a < ($(window).scrollTop()+$(window).height())&&id2!='-1'&&flag=='0') {
+                   document.getElementById('more').innerHTML="努力加载中";
+					flag = 1;
+					down_load();	
+                }
+            });
+        });
+//回传数据
+	
+	function down_load(){
+		//传值验证返回	
+	    $.post("{php echo $this->createMobileUrl('order_get')}",
+	    {
+	    	id2:id2
+	    },
+	    function(m){
+				if(m==''){
+					document.getElementById('more').innerHTML="没有可加载项";
+				}else{
+					if(m.success=='-1'){
+						document.getElementById('more').innerHTML='没有更多的信息了';
+					}else{
+						id2 = m.success;
+						for(var i=0;i<m.list.length;i++){
+							if(m.list[i].status == 3){
+								m.list[i].status = '待确认收货地址</span>';
+							}else if(m.list[i].status == 4){
+								m.list[i].status = '待发货</span>';
+							}else if(m.list[i].status == 5){
+								m.list[i].status = '待确认收货</span>';
+							}else if(m.list[i].status == 6){
+								var addr = "{php echo $this->createMobileUrl('upshare')}&period_number="+m.list[i].period_number;
+								var mess = "location.href='"+addr+"'";
+								m.list[i].status = '待晒单</span><button class="w-button w-button-main w-button-s" onclick="'+mess+'" style="float: right;margin-right: 10px;">去晒单</button>';
+							}else{
+								m.list[i].status = '已完成</span>'
+							}
+							var more ='<li class="w-goodsList-item" id="pro-view-4"><div class="w-goods w-goods-l w-goods-ing m-user-goods m-user-goods-winList"><div class="w-goods-pic"><a href="{php echo $this->createMobileUrl('detail')}&periodid='+m.list[i].id+'"><img src="'+m.list[i].picarr+'" style="width: 90px;"></a></div><div class="w-goods-info"><p class="w-goods-title f-txtabb"><a href="{php echo $this->createMobileUrl('detail')}&periodid='+m.list[i].id+'">'+m.list[i].title+'</a></p><p class="w-goods-price">总需：'+m.list[i].zong_codes+' 人次</p><p class="w-goods-price">期号：'+m.list[i].period_number+'</p><p class="m-user-goods-code">幸运号码：<span class="txt-impt">'+m.list[i].code+'</span></p><div class="m-user-goods-common">本期参与：'+m.list[i].partakes+'人次</div><div class="m-user-box m-user-goods-calTime"><p class="m-user-box-name">揭晓时间：</p><p class="m-user-box-cont">'+m.list[i].endtime+'</p></div><p class="m-user-goods-common">商品状态：<span class="txt-suc">'+m.list[i].status+'</p></div><div class="m-user-goods-ext"><a class="winLink" href="{php echo $this->createMobileUrl('order_get', array('op' => 'detail'))}&id='+m.list[i].id+'"><b class="ico-next"></b></a></div></div></li>';
+							$("#morelist").append(more);
+							flag = 0;
+							document.getElementById('more').innerHTML="上拉加载更多";
+						}
+						
+					}
+				}
+
+             },"json");
+	}
+	
+</script>
+
+<body onload="refresh()">
+<div class="m-user">
+    <div class="m-simpleHeader" id="dvHeader">
+        <a href="{if $operation=='list'}{php echo $this->createMobileUrl('person')}{else}{php echo $this->createMobileUrl('order_get')}{/if}" data-pro="back" data-back="true" class="m-simpleHeader-back"><i class="ico ico-back"></i></a>
+        <h1>中奖记录</h1>
+    </div>
+    {if $operation=='list'}
+    <div class="m-user-duobaoRecord" id="win_dvWrapper">
+    <div id="pro-view-2">
+    	<div data-pro="loading"></div>
+    <ul class="w-goodsList w-goodsList-l m-user-goodsList" id='morelist'>
+    {loop $period $list}
+    <li class="w-goodsList-item" id="pro-view-4">
+        <div class="w-goods w-goods-l w-goods-ing m-user-goods m-user-goods-winList">
+            <div class="w-goods-pic">
+                <a href="{php echo $this->createMobileUrl('detail', array('periodid' => $list['id']))}">
+                    <img src="{php echo tomedia($list['picarr'])}" style="width: 90px;">
+                </a>
+            </div>
+            <div class="w-goods-info">
+                <p class="w-goods-title f-txtabb"><a href="{php echo $this->createMobileUrl('detail', array('periodid' => $list['id']))}">{$list['title']}</a></p>
+                <p class="w-goods-price">总需：{$list['zong_codes']} 人次</p>
+                <p class="w-goods-price">期号：{$list['period_number']}</p>
+                <p class="m-user-goods-code">幸运号码：<span class="txt-impt">{$list['code']}</span></p>
+                <div class="m-user-goods-common">本期参与：{$list['partakes']}人次</div>
+                <div class="m-user-box m-user-goods-calTime"><p class="m-user-box-name">揭晓时间：</p><p class="m-user-box-cont">{php echo date('Y-m-d H:i:s',$list['endtime'])}</p></div>
+                <p class="m-user-goods-common">商品状态：<span class="txt-suc">{if $list['status']==3}待确认收货地址{elseif $list['status']==4}待发货{elseif $list['status']==5}待确认收货{elseif $list['status']==6}待晒单{else}已完成{/if}</span>{if $list['status']==6}<button class="w-button w-button-main w-button-s" onclick="location.href='{php echo $this->createMobileUrl('upshare', array('period_number'=>$list['period_number']))}'" style="float: right;margin-right: 10px;">去晒单</button>{/if}</p>
+            </div>
+            <div class="m-user-goods-ext"><a class="winLink" href="{php echo $this->createMobileUrl('order_get', array('op' => 'detail','id'=>$list['id']))}"><b class="ico-next"></b></a></div>
+        </div>
+    </li>
+    {/loop}
+    </ul>
+    <div data-pro="more">
+        	<div class="w-more" id="pro-view-5">
+            	<div data-pro="link" id = "more">上拉加载更多</div>
+        	</div>
+        </div>    
+    {else}
+    <div class="m-user-winDetail">
+        <div class="status">
+            <div class="m-user-winDetail-hd">商品状态</div>
+            <div class="m-user-progress">
+                <div class="m-user-progress-item over">
+                    <div class="txt">获得商品</div>
+                    <div class="aside">{php echo date('Y-m-d H:i',$period['endtime'])}</div>
+                    <div class="bdr"></div>
+                    <div class="dot"></div>
+                </div>
+                {if $period['status']>3}
+                <div class="m-user-progress-item over">
+                    <div class="txt">确认收货地址</div>
+                    <div class="aside">{php echo date('Y-m-d H:i',$period['confirmtime'])}</div>
+                    <div class="cont"></div>
+                    <div class="bdr"></div>
+                    <div class="bdr bdr-expand"></div>
+                    <div class="dot"></div>
+                </div>
+                {elseif $period['status']==3}
+                <div class="m-user-progress-item on bg expand">
+                    <div class="txt txt-impt"><strong>确认收货地址</strong></div>
+                    {if empty($address)}
+                    <div class="cont" id="progBlank">
+                        <p>您还没有收货地址哦～</p>
+                        <button class="w-button w-button-main w-button-s" onclick="location.href='{php echo $this->createMobileUrl('addaddress', array('pid' => $period['id']))}'">填写地址</button>
+                    </div>
+                    {else}
+                    <div class="cont" id="progList">
+                        <div class="m-user-addrList" id="progAddrList">
+	                        <div class="item default selected" id="pro-view-61">
+							    <div class="name">{$address['username']}</div>
+							    <div class="mobile">{$address['mobile']}</div>
+							    <div class="detail">{if $address['isdefault']==1}<span class="m-user-link dftTag">[默认]</span>{/if}{$address['province']}{$address['city']}{$address['district']}{$address['address']}</div>
+							    <div style="float: right;"><textarea placeholder="备注" id = 'remark' ></textarea></div>
+							</div>
+                        </div>
+                        <div class="opt"><button onclick="saveaddress()" class="w-button w-button-main w-button-s">确认</button><button onclick="location.href='{php echo $this->createMobileUrl('address', array('pid' => $period['id']))}'" class="w-button w-button-gray w-button-s">使用其他</button></div>
+                    </div>
+                    <script>
+                    	function saveaddress(){
+                    		var remark = document.getElementById('remark').value;
+                    		$.post(
+                    			"{php echo $this->createMobileUrl('order_get', array('op' => 'confirm','aid'=>$address['id'],'pid'=>$period['id']))}",
+                    			{
+                    				remark:remark,
+                    			},function(data){
+                    				if(data == 'true'){
+                    					window.location.href = "{php echo $this->createMobileUrl('order_get')}";
+                    				}else{
+                    					alert("信息保存失败!");
+                    				}
+                    			},'json'
+                    		);
+                    		
+                    	}
+                    </script>
+                    {/if}
+                    <div class="bdr"></div>
+                    <div class="bdr bdr-expand"></div>
+                    <div class="dot"></div>
+                </div>
+				{/if}
+                <div class="m-user-progress-item {if $period['status']>=5}over{elseif $period['status']==4}on wait{/if}">
+                    <div class="txt">商品派发</div>
+                    <div class="aside">{if $period['status']>=5}{php echo date('Y-m-d H:i',$period['sendtime'])}{elseif $period['status']==4}请等待{/if}</div>
+                    <div class="bdr"></div>
+                    <div class="dot"></div>
+                </div>
+                <div class="m-user-progress-item {if $period['status']>=6}over{elseif $period['status']==5}on wait{/if}">
+                    <div class="txt">确认收货</div>
+                    <div class="aside">{if $period['status']>=6}{php echo date('Y-m-d H:i',$period['taketime'])}{elseif $period['status']==5}<button class="w-button w-button-main w-button-s" onclick="location.href='{php echo $this->createMobileUrl('order_get', array('op' => 'confirmm','pid'=>$period['id']))}'">确认收货</button>{/if}</div>
+                    <div class="bdr"></div>
+                    <div class="dot"></div>
+                </div>
+                <div class="m-user-progress-item {if $period['status']>=6}over{/if}">
+                    <div class="txt {if $period['status']>=6}txt-suc{/if}"><strong>已签收</strong></div>
+                    <div class="aside">{if $period['status']==6}<button class="w-button w-button-main w-button-s" onclick="location.href='{php echo $this->createMobileUrl('upshare', array('period_number'=>$period['period_number']))}'" style="float: right;margin-right: 10px;">去晒单</button>{/if}</div>
+                    <div class="bdr"></div>
+                    <div class="dot"></div>
+                </div>
+            </div>
+        </div>
+        {if $period['expressn']}
+        <div class="addressInfo">
+            <p>物流公司：{$period['express']}</p>
+            <p>运单号码：{$period['expressn']}<button class="w-button w-button-main w-button-s" onclick="location.href='http://m.kuaidi100.com/index_all.html?type={$period['express']}&postid={$period['expressn']}#input'" style="float: right;margin-right: 10px;">物流信息</button></p>
+        </div>
+        {/if}
+        {if $period['realname']}
+        <div class="m-user-winDetail-hd">收货信息</div>
+        <div class="m-user-addrList">
+            <div class="item ">
+                <div class="name">{$period['realname']}</div>
+                <div class="mobile">{$period['mobile']}</div>
+                <div class="detail">{$period['address']}</div>
+            </div>
+        </div>
+        {/if}
+        <div class="m-user-winDetail-hd">商品信息</div>
+        <ul class="w-goodsList w-goodsList-l m-user-goodsList">
+            <li class="w-goodsList-item">
+                <div class="w-goods w-goods-l w-goods-ing m-user-goods">
+                    <div class="w-goods-pic">
+                        <a href="{php echo $this->createMobileUrl('detail', array('periodid' => $period['id']))}">
+                            <img src="{php echo tomedia($goods['picarr'])}" style="width: 90px;">
+                        </a>
+                    </div>
+                    <div class="w-goods-info">
+                        <p class="w-goods-title f-txtabb"><a href="{php echo $this->createMobileUrl('detail', array('periodid' => $period['id']))}">{$goods['title']}</a></p>
+                        <p class="w-goods-price">总需：{$period['zong_codes']} 人次</p>
+                        <p class="w-goods-period">期号：{$period['period_number']}</p>
+                        <p class="m-user-goods-code">幸运号码：<span class="txt-impt">{$period['code']}</span></p>
+                        <p class="m-user-goods-time">本期参与：{$period['partakes']}人次</p>
+                        <p class="m-user-goods-time">揭晓时间：{php echo date('Y-m-d H:i:s',$period['endtime'])}</p>
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </div>
+    {/if}
+</div>
+{template 'common_message'}
+</body></html>

@@ -1,0 +1,171 @@
+{php $bootstrap_type = 3;}
+{template 'header'}
+{template 'common'}
+<script language="javascript" src="../addons/haoman_virtuamall/images/touchslider.min.js"></script>
+<script language="javascript" src="../addons/haoman_virtuamall/images/swipe.js"></script>
+<style>
+   .td_a { height:7em; text-align: center}
+</style>
+<link type="text/css" rel="stylesheet" href="../addons/haoman_virtuamall/images/style.css?{TIMESTAMP}">
+<div class="head">
+	<!-- <a href="javascript:;" onclick="$('.head .order').toggleClass('hide');" class="bn pull-left"><i class="fa fa-ellipsis-v"></i></a> -->
+	<span class="title">商城首页{if $_GPC['pcate']} - {$category[$_GPC['pcate']]['name']}{/if}{if $_GPC['ccate']} - {$children[$_GPC['pcate']][$_GPC['ccate']]['name']}{/if}</span>
+	<a onclick="$('.head .order').toggleClass('hide');" href="javascript:;" class="bn pull-right"><i class="fa fa-bars"></i></a>
+	<ul class="unstyled order hide">
+		{loop $category $item}
+		<li>
+			<a href="{php echo $this->createMobileUrl('list2', array('pcate' => $item['id']))}" class="bigtype"><i class="fa fa-bookmark"></i> {$item['name']}</a>
+			{loop $children[$item['id']] $child}
+			<a href="{php echo $this->createMobileUrl('list2', array('ccate' => $child['id']))}" class="smtype"><i class="fa fa-bookmark"></i> {$child['name']}</a>
+			{/loop}
+		</li>
+		{/loop}
+	</ul>
+</div>
+
+<div id="banner_box" class="box_swipe" style='width:100%;float:left;max-height: 200px;'>
+	<ul>
+		{loop $advs $adv}
+		<li>
+			<a href="{if empty($adv['link'])}#{else}{$adv['link']}{/if}">
+				<img src="{php echo tomedia($adv['thumb']);}" title="{$adv['advname']}" height='200px'/>
+			</a>
+			<span class="title" style="height: 40px;line-height: 40px;color: #fff;font-size: 16px;z-index: 999">{$adv['advname']}</span>
+		</li>
+		{/loop}
+	</ul>
+	<ol style="height: 40px;line-height: 40px;top: -20px;left: 0;">
+	   {php $slideNum = 1;}
+	{loop $advs $adv}
+		<li{if $slideNum == 1} class="on"{/if} ></li>
+		{php $slideNum++;}
+		{/loop}
+	</ol>
+</div>
+<script>
+	$(function() {
+		new Swipe($('#banner_box')[0], {
+			speed:500,
+			auto:3000,
+			callback: function(){
+				var lis = $(this.element).next("ol").children();
+				lis.removeClass("on").eq(this.index).addClass("on");
+			}
+		});
+	});
+</script>
+
+<div class="shopping-main" style="margin-top:200px;">
+		<form action="index.php" method="get">
+		<input type="hidden" name="i" value="{$_W['weid']}" />
+		<input type="hidden" name="c" value="entry" />
+		<input type="hidden" name="m" value="haoman_virtuamall" />
+		<input type="hidden" name="do" value="list2" />
+   		{if $_GPC['isnew']==1}<input type="hidden" name="isnew" value="1" />{/if}
+		{if $_GPC['ishot']==1}<input type="hidden" name="ishot" value="1" />{/if}
+		{if $_GPC['isdiscount']==1}<input type="hidden" name="isdiscount" value="1" />{/if}
+		{if $_GPC['istime']==1}
+			<input type="hidden" name="istime" value="1" />
+		{/if}
+		<input type="hidden" name="sort" value="{$sort}" />
+		<div class="input-group" style="margin-top: 5px;width: 100%;padding: 15px 15px 0 15px;">
+			<input style="height: 45px;background-image:url(../addons/haoman_virtuamall/images/icon_ss.png);background-repeat: no-repeat;background-position: 5%;padding-left: 20%;" type="text" class="form-control input-lg" name="keyword" value="{$_GPC['keyword']}" placeholder="请输入关键字">
+			<span class="input-group-btn" style="height: 45px;">
+				<button class="btn btn-danger btn-lg" type="submit">搜索</button>
+			</span>
+		</div>
+	</form>
+
+
+		<div class="list" id="list">
+			{loop $rlist $item}
+			<div class="list-item img-rounded" style="border-radius: 3px;">
+				<div>
+					<a href="{php echo $this->createMobileUrl('detail', array('id' => $item['id']))}">
+						<img src="{php echo tomedia($item['thumb']);}" style="width: 100%">
+					</a>
+					<span class="title">
+						<a href="{php echo $this->createMobileUrl('detail', array('id' => $item['id']))}">
+							{$item['title']}
+						</a>
+						{if $item['type'] == '2'}{/if}
+					</span>
+				</div>
+					<span class="sold">
+						<span class="soldnum pull-left">已售{$item['sales']}件</span>
+						<!--<span class="price pull-right">原价{$item['marketprice']}元</span>-->
+						<span class="price pull-right">{$item['marketprice']}元</span>
+					</span>
+			</div>
+			{/loop}
+		</div>
+		<div class="show-more" style="margin-bottom: 60px;">
+			<a href="javascript:;" onclick="loadPage('{$pindex}', 'list_{$item['parentid']}_{$item['id']}', '{$item['parentid']}', '{$item['id']}')" class="img-rounded pager" id="pager_{$item['parentid']}_{$item['id']}">浏览更多商品</a>
+		</div>
+
+</div>
+
+
+<script type="text/javascript">
+function loadPage(pindex, container, pcate, ccate) {
+	pindex = parseInt(pindex) + 1;
+	var pager = $('#pager_' + pcate + "_" + ccate);
+	pager.html('正在加载数据...');
+	var url = "{php echo $this->createMobileUrl('listmore')}";
+	$.get(url, {'page' : pindex, 'pcate':pcate, 'ccate':ccate}, function(html){
+		if (html.indexOf('list-item') > - 1) {
+			pager.html('浏览更多商品');
+			$('#' + container).append(html);
+			pager.get(0).onclick = function(){
+				loadPage(pindex, container, pcate, ccate);
+			}
+		} else {
+			pager.html('已经显示全部商品');
+		}
+	});
+}
+
+function loadRecPage(pindex, container) {
+	pindex = parseInt(pindex) + 1;
+	var pager = $('#pager_rec');
+	pager.html('正在加载数据...');
+	var url = "{php echo $this->createMobileUrl('listmore_rec')}";
+	$.get(url, {'page' : pindex}, function(html){
+		if (html.indexOf('list-item') > - 1) {
+			pager.html('浏览更多商品1');
+			$('#' + container).append(html);
+			pager.get(0).onclick = function(){
+				loadRecPage(pindex, container);
+			}
+		} else {
+			pager.html('已经显示全部商品1');
+		}
+	});
+}
+</script>
+<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+<script>
+	// 微商城分享
+	wx.config({
+		debug:false,
+		appId: '{$package["appId"]}',
+		timestamp: '{$package["timestamp"]}',
+		nonceStr: '{$package["nonceStr"]}',
+		signature: '{$package["signature"]}',
+		jsApiList: [
+			'onMenuShareTimeline','onMenuShareQQ','onMenuShareQZone','onMenuShareAppMessage','onMenuShareWeibo'
+		]
+	});
+	wx.ready(function () {
+		sharedata = {
+			title: "{$sharetitle}",
+			desc: '{$sharedesc}',
+			link: "{$_W['siteurl']}",
+			imgUrl: "{php echo tomedia($shareimg);}"
+		};
+		wx.onMenuShareAppMessage(sharedata);
+		wx.onMenuShareTimeline(sharedata);
+	});
+</script>
+
+{template 'footerbar'}

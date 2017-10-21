@@ -1,0 +1,513 @@
+{template 'agenthader'}
+<script src="{HT}js/kit.js"></script>
+<script src="{HT}js/array.js"></script>
+<script src="{HT}js/date.js"></script>
+<script src="{HT}js/dom.js"></script>
+<script src="{HT}js/selector.js"></script>
+<script src="{HT}js/datepicker.js"></script>
+<link rel="stylesheet" href="{HT}css/datepicker.css" />
+	<style>
+		#li_history_image{
+			display :none;
+		}
+        
+    </style> 
+
+   <div class="main">
+  <ul class="nav nav-tabs">
+    <li><a href="{php echo $this->createMobileUrl('halfagent', array('op'=>'agentlist', 'id'=>$id));}">商家列表</a></li>
+    {if $item['bus_id']}
+        <li class="active"><a href="{php echo $this->createMobileUrl('halfagent', array('op'=>'edit', 'id'=>$id,'bus_id'=> $item['bus_id']));}">商家编辑</a></li>
+    {else}
+	   <li class="active"><a href="{php echo $this->createMobileUrl('halfagent', array('op'=>'agentpost', 'id'=>$id));}">商家添加</a></li>
+    {/if}
+	<li><a href="{php echo $this->createMobileUrl('halfagent', array('op'=>'agentgetcardlist', 'id'=>$id));}">购卡列表</a></li>
+	<li><a href="{php echo $this->createMobileUrl('halfagent', array('op'=>'agentcirclelist', 'id'=>$id));}">商圈列表</a></li>
+	<li><a href="{php echo $this->createMobileUrl('halfagent', array('op'=>'agentcirclepost', 'id'=>$id));}">商圈添加</a></li>
+  </ul>
+   
+
+    <form action="{php echo $this->createMobileUrl('halfagent', array('op'=>'agentpost'));}" class="form-horizontal form" method="post" enctype="multipart/form-data" onsubmit="return formcheck()">
+		<input type="hidden" name="bus_id"  id="bus_id" value="{$item['bus_id']}">
+        <input type="hidden" name="id"  id="id" value="{$id}">
+		<div class="panel panel-default">
+			<div class="panel-heading">商家信息</div>
+			<div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">商家名称：</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" name="name" id="name"  class="form-control" value="{$item['name']}" onblur="shareInfo();">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">商家密码：</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="password" name="password" id="password"  class="form-control" value="">
+						{if $item['bus_id']}
+							<div class="help-block">如不修改，可留空！</div>
+						{/if}
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">确认密码：</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="password" name="confirmpassword" id="confirmpassword"  class="form-control" value="" onblur="checkpwd();">
+						{if $item['bus_id']}
+							<div class="help-block">如不修改，可留空！</div>
+						{/if}
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">商家营业时间：</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" name="businesshour" id="businesshour"  class="form-control" value="{$item['businesshour']}">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">商家联系电话：</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" name="phone" id="phone"  class="form-control" value="{$item['phone']}">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">商家门户照片：</label>
+					<div class="col-sm-9 col-xs-12">
+						{php echo $this->form_field_image('img', $item['img']);}
+						<code class='help-block'>图片尺寸大小建议：120 * 70</code>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">商家营业执照：</label>
+					<div class="col-sm-9 col-xs-12">
+						{php echo $this->form_field_image('license', $item['license']);}
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">商家分类：</label>
+					<div class="col-sm-3 col-xs-12" id="fl">
+						<select name="category" id="category" class="form-control">
+							<option value="">商家父分类</option>
+							{loop $category $son}
+								<option value="{$son['id']}" {if $pid == $son['id']} selected {/if}>{$son['name']}</option>
+							{/loop}
+						</select>
+					</div>
+					<div class="col-sm-3 col-xs-12" id="fl_son">
+						<select name="category_son" id="category_son" class="form-control">
+							<option value="">二级分类</option>
+							{loop $category_son $sons}
+								<option value="{$sons['id']}" {if $item['category_id'] == $sons['id']} selected {/if}>{$sons['name']}</option>
+							{/loop}
+						</select>
+					</div>
+					<div class="col-xs-3 col-sm-4 col-md-4 col-lg-4">
+						<span id="categoryadd" title="添加" class="btn btn-primary">添加</span>
+					</div>
+					<script>
+						$("#categoryadd").click(function(){
+							var cat_id = $("#category_son").find("option:selected").val();//选中的文本
+							var cat_name = $("#category_son").find("option:selected").text();//选中的值
+							//alert(cat_id);
+							//alert(cat_name);
+							if(cat_id != ''){
+								html = '<span onclick="removeCategory(this);"><input type="hidden" name="categorylist[]" value="'+cat_id+'"/><span class="label label-success">'+cat_name+'</span>&nbsp;&nbsp;&nbsp;</span>';
+								$("#categorylist").append(html);
+							}
+						});
+						$("#category").change(function(){
+							$("#categorylist").html('');
+						});
+						function removeCategory(obj){
+							$(obj).remove();
+						}
+					</script>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+					<div class="col-sm-9 col-xs-12" id="bus_district">
+						<div class="help-block">
+							<div class="well" id="categorylist" name="categorylist">
+								{loop $category_list $c}
+									<span onclick="removeCategory(this);">
+										<input type="hidden" name="categorylist[]" value="{$c['cat_id']}"/>
+										<span class="label label-success"> {$c['cat_name']}</span>&nbsp;&nbsp;&nbsp;
+									</span>
+								{/loop}
+							</div>
+							<input type="hidden" id="hidden_city_list" value=""/>
+						</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">商家所在地区：</label>
+					<div class="col-sm-9 col-xs-12" id="bus_district">
+							<div class="col-sm-9 col-xs-12" id="bus_district">
+					{php echo $this->halfoff_district('birth', $id, array('province' => $item['province'], 'city' => $item['city'], 'district' => $item['county'] ));}
+					</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">商家详细地址：</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" name="address" id="address"  class="form-control" value="{$item['address']}" onblur="omcid();">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">商家中心圈：</label>
+					<div class="col-sm-9 col-xs-12" id="zxq">
+						<select name="cir_id" class="form-control">
+							<option value="{$item['cir_id']}">{$item['cir_name']}</option>
+							{loop $result $son}
+								<option value="{$son['cir_id']}">{$son['name']}</option>
+							{/loop}
+						</select>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">商家坐标：</label>
+						<div class="col-sm-9 col-xs-12">
+						{php echo $this->form_field_coordinate('baidumap',$item)}
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">商家介绍：</label>
+					<div class="col-sm-9 col-xs-12">
+						  {php echo $this->ueditor('desc_text', $item['desc_text']);}
+					   </div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">优惠信息概述：</label>
+					<div class="col-sm-9 col-xs-12">
+						<!-- <textarea style="height:200px;" id="desc_img" name="desc_img" class="form-control description" cols="5">{$item['desc_img']}</textarea> -->
+						<input type="text" name="desc_img" id="desc_img"  class="form-control" value="{$item['desc_img']}">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">优惠信息详情：</label>
+					<div class="col-sm-9 col-xs-12">
+						{php echo $this->ueditor('desc_dis', $item['desc_dis']);}
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">状态：</label>
+					<div class="col-sm-9 col-xs-12">
+						<label class="radio-inline">
+							<input type="radio" name="status" value="0" {if $item['status'] == 0}checked{/if}/>隐藏
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="status" value="1" {if $item['status'] == 1}checked{/if}/>显示
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="status" value="2" {if $item['status'] == 2}checked{/if}/>未审核
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="status" value="3" {if $item['status'] == 3}checked{/if}/>已拒绝
+						</label>
+						<span class='help-block'>手机前台是否显示</span>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">优惠标识：</label> <!-- 0天天享/1每周/2每月 -->
+					<div class="col-sm-9 col-xs-12">
+						<select name="discount_sign" class="form-control" onchange="discount_sign_change(this);">
+							<option value="0" {if $item['discount_sign'] == '0'}selected{/if}>天天享</option>
+							<option value="1" {if $item['discount_sign'] == '1'}selected{/if}>优惠享</option>
+						</select>
+					</div>
+				</div>
+				<div class="form-group" id="div_discount_time">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">{$config['zhekou']}优惠时间：</label> <!-- 0天天享/1每周/2每月 -->
+					<div class="col-sm-9 col-xs-12">
+						<textarea rows="4" cols="20" name="discount_time" id="discount_time"  class="form-control">{$item['discount_time']}</textarea>
+						<span class='help-block' style="color:red;">按住【CTRL】可多选时间</span>
+					</div>
+				</div>
+				<div class="form-group" id="div_other_discount">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">其余时间优惠(折)：</label> <!-- 0天天享/1每周/2每月 -->
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" name="other_discount" id="other_discount"  class="form-control" value="{$item['other_discount']}">
+						<span class='help-block' style="color:red;">若不填写则默认其余时间无优惠</span>
+					</div>
+				</div> 
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">优惠次数：</label> <!-- 0天天享/1每周/2每月 -->
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" name="discount_num" id="discount_num"  class="form-control" value="{$item['discount_num']}">
+						<span class='help-block' style="color:red;">每次打折限多少人使用，用完则不在提供打折服务  注：0为不限量</span>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">分类排序：</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" name="sequence" id="sequence"  class="form-control" value="{$item['sequence']}">
+					</div>
+				</div>				
+			</div>
+			
+			<div class="panel panel-default">
+				<div class="panel-heading">分享设置</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">分享标题：</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="share_title" id="share_title"  class="form-control" value="{$item['share_title']}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">分享图片：</label>
+				<div class="col-sm-9 col-xs-12">
+					{php echo $this->form_field_image('share_img', $item['share_img']);}
+					<code class='help-block'>图片尺寸大小建议：90 * 90</code>
+				</div>
+                
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">分享描述：</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="share_desc" id="share_desc"  class="form-control" value="{$item['share_desc']}">
+				</div>
+			</div>         
+       	</div>      
+		<div class="form-group col-sm-12">
+			<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+		</div>
+	</form>
+</div>
+
+<script>
+
+function discount_sign_change(obj){
+	var sign = obj.value;
+	if(sign == '0'){ //天天享
+		$("#div_discount_time").hide();
+		$("#div_other_discount").hide();
+	}else{
+		$("#div_discount_time").show();
+		$("#div_other_discount").show();
+	}
+}
+
+function checkpwd(){
+	var pwd = $("#password").val().trim();
+	var confirmpwd = $("#confirmpassword").val().trim();
+	if(pwd != '' && confirmpwd != '' && pwd != confirmpwd){
+		
+         swal("两次密码输入不一致，请重新输入！");
+	}
+}
+	
+$(function() {
+	var sign = "{$item['discount_sign']}";
+	if(sign == '' || sign == '0'){ //天天享
+		$("#div_discount_time").hide();
+		$("#div_other_discount").hide();
+	}else{
+		$("#div_discount_time").show();
+		$("#div_other_discount").show();
+	}
+	
+	$("select[name='category']").change(function() {
+	  ;
+		var cat_id = $.trim($("select[name='category']").val());
+		var data = {
+			'category_id':cat_id
+		}
+		$.ajax({
+			url: "{php echo $this->createMobileUrl('HalfcategoryAjax')}",
+			type: "POST",
+			data: data,
+			cache:false,
+			dataType: "JSON",
+			success: function (res) {
+				$("#fl_son").html(res);
+			}
+		});  
+	});
+});
+
+function shareInfo(){
+    var zhekou = "{$config['zhekou']}"
+	var name = $("#name").val().trim();
+	$("#share_title").val(name + zhekou +"来袭");
+}
+
+function formcheck() {
+	
+	if ($("#name").val().trim() == '') {
+	
+        swal("请填写商家名称");
+		return false;
+	}
+
+	var bus_id = $("#bus_id").val();
+	if(!bus_id){
+		if ($("#password").val().trim() == '') {
+            ("请填写商家登陆密码");
+			return false;
+		}
+	}
+	if ($("#businesshour").val().trim() == '') {
+	       swal("请填写商家营业时间");
+		return false;
+	}
+	if ($("#phone").val().trim() == '') {
+        swal("请填写商家电话");
+		return false;
+	}
+	if ($('input[name="img"]').val().trim() == '') {
+        swal("请上传商家门户照片");
+		return false;
+	}
+	if ($('input[name="license"]').val().trim() == '') {
+        swal("请上传商家营业执照");
+		return false;
+	}
+	if ($('#categorylist').text().trim() == '') {
+		util.message('请选择商家分类','','error');
+		return false;
+	}
+	if ($("select[name=cir_id]").val().trim() == '') {
+        swal("请选择商家中心圈");
+		return false;
+	}
+	if ($("#name").val().trim() == '') {
+        swal("请填写商家名称");
+		return false;
+	}
+	var province = $.trim($("#hetu_province").val());
+	if (!province) {
+        swal("请选择省/直辖市");
+		return false;
+	}
+	var city = $.trim($("#hetu_city").val());
+	if (!city) {
+        swal("请选择市");
+		return false;
+	}
+	var district = $.trim($("#hetu_district").val());
+	if (!district) {
+        swal("请选择区/县");
+		return false;
+	} 
+	if ($("#address").val().trim() == '') {
+        swal("请填写商家详细地址");
+		return false;
+	}
+	var lng = $.trim($("input[name='baidumap[lng]']").val());
+	if (!lng) {
+        swal("请选择商户地理坐标经度");
+		return false;
+	}
+	var lat = $.trim($("input[name='baidumap[lat]']").val());
+	if (!lat) {
+        swal("请选择商户地理坐标纬度");
+		return false;
+	}
+    
+  
+	return true;
+}
+
+function change_province(obj){
+	var province_id = obj.value;
+	var data = {
+		'id' : province_id,
+		'type' : 1
+	};
+	$.ajax({
+		url: "{php echo $this->createMobileUrl('HalfcityAjax')}",
+		type: "POST",
+		data: data,
+		cache:false,
+		dataType: "JSON",
+		success: function (res) {
+			$("#hetu_city").html(res);
+		}
+	});
+}
+
+function change_city(obj){
+	var city_id = obj.value;
+	var data = {
+		'id' : city_id,
+		'type' : 2
+	};
+	$.ajax({
+		url: "{php echo $this->createMobileUrl('HalfcityAjax')}",
+		type: "POST",
+		data: data,
+		cache:false,
+		dataType: "JSON",
+		success: function (res) {
+			$("#hetu_district").html(res);
+		}
+	});
+}
+
+function omcid(){
+    
+	var province = $.trim($("#hetu_province").val());
+ 
+	if (!province) {
+	   swal("请选择省/直辖市");
+		return false;
+	}
+	var city = $.trim($("#hetu_city").val());
+	if (!city) {
+         swal("请选择市");
+		return false;
+	}
+	var district = $.trim($("#hetu_district").val());
+	if (!district) {
+         swal("请选择区/县");
+		return false;
+	} 
+	var data = {
+		'province':province,
+		'city':city,
+		'district':district
+	};
+	$.ajax({
+		url: "{php echo $this->createMobileUrl('HalfcircleAjax')}",
+		type: "POST",
+		data: data,
+		cache:false,
+		dataType: "JSON",
+		success: function (res) {
+			$("#zxq").html(res);
+		}
+	});            
+}
+
+	$kit.$(function() {
+		//输入框下拉
+		$kit.ev({
+			el : '#discount_time',
+			ev : 'focus',
+			fn : function(e) {
+				var d, ipt = e.target;
+				d = e.target[$kit.ui.DatePicker.defaultConfig.kitWidgetName];
+				if(d) {
+					d.show();
+				} else {
+					d = new $kit.ui.DatePicker({
+						date : ipt.value
+					}).init();
+					d.adhere($kit.el('#discount_time'));
+					d.show();
+				}
+			}
+		});
+		$kit.ev({
+			el : document,
+			ev : 'click',
+			fn : function(e) {
+				var input = $kit.el('#discount_time');
+				d = input[$kit.ui.DatePicker.defaultConfig.kitWidgetName];
+				if(d && !$kit.contains(d.picker, e.target) && input != e.target) {
+					d.hide();
+				}
+			}
+		});
+	})
+</script>

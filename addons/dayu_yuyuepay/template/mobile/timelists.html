@@ -1,0 +1,113 @@
+{template 'timeheader'}
+<script src="{TEMPLATE_WEUI}jquery-weui.min.js"></script>
+<script src="{TEMPLATE_WEUI}iscroll.js"></script>
+<script type="text/javascript">	
+$(function(){
+	TagNav('#tagnav',{
+		type: 'scrollToFirst',
+	});
+	$('.weui_tab').tab({
+		defaultIndex: 0,
+		activeClass:'weui_bar_item_osn',
+		onToggle:function(index){
+			if(index>0){
+//				alert(index)
+			}
+		}
+	});
+});
+</script>
+<style type="text/css">
+a.weui_cell .weui_cell_hd{padding-right:5px;}
+
+.weui-navigator{background:#fff;position:relative;padding:0;margin:0}
+.weui-navigator-list{width:100%;list-style:none;display:-webkit-box;margin:0 auto}
+.weui-navigator-list li{padding:0;list-style:none;line-height:34px;font-size:16px;font-weight:normal;text-align:center;-webkit-box-flex:1;display:-webkit-box;white-space:nowrap;-webkit-box-align:center;-webkit-box-pack:center}
+.weui-navigator.weui-navigator-wrapper{z-index:1;width:100%;overflow:hidden;position:relative;-webkit-backface-visibility:hidden}
+.weui-navigator-list li a{text-decoration:none;color:#666;display:block;width:100%;-webkit-box-sizing:border-box;padding:0 15px}
+.weui-navigator-list li.weui-state-hover,.weui-navigator-list li.weui-state-active a{color:#04be02;}
+.weui-navigator-list li.weui-state-hover,.weui-navigator-list li.weui-state-active a:after{content:'';display:block;height:2px;background-color:#04be02}
+.weui-navigator .weui-navigator-list{display:table;table-layout:fixed;white-space:nowrap;width:auto}
+.weui-navigator .weui-navigator-list:after{content:'';clear:both;display:inline-block;width:0;height:0;overflow:hidden}
+.weui-navigator .weui-navigator-list li{display:inline-block}
+
+.weui-navigator .weui-navigator-list li span {background-color: #4fc3f7;color: #fff;display:block;padding:0 28px;}
+.weui_navbar_item.weui_bar_item_on, .weui-state-active{background-color:#e1f5fe}
+
+.weui_grids{text-align:center;}
+.weui_grids:before{border:0px solid #d9d9d9;}
+.weui_grid{position:relative;float:left;padding:10px 5px;width:32%;box-sizing:border-box;border:1px solid #d9d9d9;margin:0 0 1% 1%;}
+.weui_grid:before{border-bottom:0px solid #d9d9d9;border-right:0px solid #d9d9d9;}
+</style>
+{template 'insert/time_header'}
+	<div id="tagnav" class="weui-navigator weui-navigator-wrapper weui_navbar" style="background-color:#fefefe;">
+		<ul class="weui-navigator-list" style="margin:0;">
+		{loop $dates $date}
+			{if !in_array(date("Y-m-d",strtotime($date)), $remove, TRUE)}
+			{if strtotime($date)<$project['endtime']}
+			<li class="weui_navbar_item">
+				<span class="">{php echo $weekarray[date("w",strtotime($date))]}</span>
+				{php echo date("m月d",strtotime($date))}
+			</li>
+			{else}
+			{/if}
+			{/if}
+		{/loop}
+		</ul>
+	</div>
+<div class="weui_tab_bds" style="margin-top:10px;">
+
+	{loop $dates $date}
+	{if !in_array(date("Y-m-d",strtotime($date)), $remove, TRUE)}
+		<div class="weui_tab_bd_item">
+			<div class="weui_grids">
+		{php $ii=0;}
+		{loop $timelist['times'] $time}
+		{php $datestr=$date.' '.$time['start'].'-'.$time['end']}
+		{if ($week[date("w",strtotime($date))]=="1" && in_array($time['start'], $out1, TRUE)) || ($week[date("w",strtotime($date))]=="2" && in_array($time['start'], $out2, TRUE)) || ($week[date("w",strtotime($date))]=="3" && in_array($time['start'], $out3, TRUE)) || ($week[date("w",strtotime($date))]=="4" && in_array($time['start'], $out4, TRUE)) || ($week[date("w",strtotime($date))]=="5" && in_array($time['start'], $out5, TRUE)) || ($week[date("w",strtotime($date))]=="6" && in_array($time['start'], $out6, TRUE)) || ($week[date("w",strtotime($date))]=="7" && in_array($time['start'], $out7, TRUE))}
+				
+		{else}
+			{if $time['number']<=$havs[$datestr]['rescount'] || (date("d",strtotime($date))==date("d") and strtotime("now")+$todaytime>strtotime($date." ".$time['start']))}
+
+				<a href="javascript:;" class="weui_grid js_grid bg-gray">
+					<p class="weui_grid_label">
+						<svg class="icon f-gray" aria-hidden="true">
+							<use xlink:href="#icon-clockfill"></use>
+						</svg>
+						{$time['start']}-{$time['end']}
+					</p>
+					<p class="weui_grid_label">
+						<small>满额</small>
+					</p>
+				</a>
+			{else}
+				<a href="{php echo $this->createMobileUrl('dayu_yuyuepay',array('id' => $project['reid'],'datetime'=>base64_encode($datestr),'ii' => $ii,'sid' => $sid))}" class="weui_grid js_grid radius-sm">
+					<p class="weui_grid_label">
+						<svg class="icon f-green" aria-hidden="true">
+							<use xlink:href="#icon-clockfill"></use>
+						</svg>
+						{$time['start']}-{$time['end']}
+					</p>
+					<p class="weui_grid_label">
+						<small>名额 {php echo ($time['number']-$havs[$datestr]['rescount']);}</small>
+					</p>
+				</a>
+			{/if}
+		{/if}
+		{php $ii++;}
+		{/loop}
+			</div>
+		</div>
+	{/if}
+	{/loop}
+
+</div>
+<script type="text/javascript">
+    function changeAddress(){
+        location.href = '{php echo $this->createMobileUrl('address', array('from'=>'dayu_yuyuepay','returnurl' => $returnUrl))}'
+    }
+    function changeInfo(){
+        location.href = '{php echo $this->createMobileUrl('info', array('from'=>'dayu_yuyuepay','returnurl' => $returnUrl))}'
+    }
+</script>
+{template 'footers'}

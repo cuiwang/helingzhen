@@ -1,0 +1,241 @@
+{php $title=$wall['topic']}
+
+{template 'inc/header'}
+
+    <link rel="stylesheet" type="text/css" href="{MODULE_URL}/css/card/card1.css">   
+    <link rel="stylesheet" type="text/css" href="{MODULE_URL}/css/card/foxui.min.css">
+	<link rel="stylesheet" type="text/css" href="{MODULE_URL}/css/card/style.css">
+	<link rel="stylesheet" type="text/css" href="{MODULE_URL}/css/card/coupon.css">
+	
+	<script type="text/javascript">
+		wx.ready(function () {
+			wx.onMenuShareAppMessage({
+				title:'{if empty($wall["share_title"])}{$wall["topic"]}{else}{$wall["share_title"]}{/if}',
+				desc:'我得到了{php echo empty($total[0]["total_all"])?0:$total[0]['total_all']}张卡券',
+				imgUrl:'{$_W["attachurl"]}{if empty($wall["share_img"])}{$wall["banner"]}{else}{$wall["share_img"]}{/if}'
+			});
+			wx.onMenuShareTimeline({
+				title:'我得到了{php echo empty($total[0]["total_all"])?0:$total[0]['total_all']}张卡券',
+				imgUrl:'{$_W["attachurl"]}{if empty($wall["share_img"])}{$wall["banner"]}{else}{$wall["share_img"]}{/if}'
+			});
+		});
+	</script>
+
+	<style>
+		#sends_list{}
+		#sends_list .weui_cell:active{background-color:#ececec;}
+		#sends_list .weui_cell p{color:#000000;text-overflow:ellipsis;white-space:nowrap;overflow:hidden;}
+	</style>
+
+	<!-- 公共变量 -->
+	<input type="hidden" id="is_user_infoed" value="{$is_user_infoed}"/>
+
+		
+	<!-- 首页 -->
+    <div class="app-page" data-page="index_page">
+		<div class="app-topbar" style="display:none;height:0px;"></div>
+		<div class="header">
+			<div style="position: initial;" class="c-hd">
+			<div class="cut-city-box cut-city-box-l">
+		        <section class="cut_city">
+		              <a onclick="window.history.go(-1);"><i class="iconfont"></i></a>
+			    </section>
+			</div>
+		        <section class="logo_img split-line">我的优惠券</section>
+		        <div class="cut-city-box cut-city-box-r">
+		        <section class="cut_city">
+		        	<a id="header_back_btn" href="{php echo $_W['siteroot'] . 'app/' . substr($this->createMobileUrl('index',array('quan_id'=>$quan_id)), 2)}"><i class="iconfont"></i></a>
+		        </section>
+		        </div>
+		     </div>
+		</div>
+		<div class="criteria_tab">
+		   	<ul class="tab_box">
+		   	     <li {if empty($_GPC['tag'])}class="this"{/if}  ref='0' onclick = "javascript:location.href='{php echo $_W['siteroot'] . 'app/' . substr($this->createMobileUrl('my',array('op'=>'couponc','tag'=>'0','quan_id'=>$quan_id)), 2)}'">我的券</li>
+		   	     <li {if $_GPC['tag']=='2'}class="this"{/if}　ref ='2' onclick = "javascript:location.href='{php echo $_W['siteroot'] . 'app/' . substr($this->createMobileUrl('my',array('op'=>'couponc','tag'=>'2','quan_id'=>$quan_id)), 2)}'">已使用</li>					   	     
+				 <li {if $_GPC['tag']=='1'}class="this"{/if}　ref ='1' onclick = "javascript:location.href='{php echo $_W['siteroot'] . 'app/' . substr($this->createMobileUrl('my',array('op'=>'couponc','tag'=>'1','quan_id'=>$quan_id)), 2)}'">已过期</li>
+		   </ul>
+		</div>
+		
+		<div style="margin-top: 100px;" class="fui-content">
+		<!-- 优惠券开始  -->						
+		<div id="sends_list" class="coupon-container" data-url="{php echo $_W['siteroot'] . 'app/' . substr($this->createMobileUrl('my',array('op'=>'couponc_list','tag'=>$_GPC['tag'],'quan_id'=>$quan_id)), 2)}" data-start="0"  data-more="1"></div>	
+		<div id="sends_list_load" class="list_load more"><span class="icon"></span> <span class="text">查看更多</span></div>
+		<script id="sends_list_tpl" type="text/template" >
+		<%
+		var sends_list_load=$('#sends_list_load');
+		sends_list_load.removeClass('loading');
+		if(more==1){
+			sends_list_load.addClass('more');
+			sends_list_load.find('.text').html('查看更多');
+		}else{
+			sends_list_load.find('.text').html('');
+		}
+		if(!list){
+			return;
+		}
+		for(var i=0;i<list.length;i++){
+			var item = list[i];
+		%>
+		<a href="<%=item._url%>" onclick="$('#toast_loading').show();" data-nocache="true">
+			<div class="coupon-item">
+				<div class="bg cside side side-left"></div>				
+				<div class="cthumb" style="width:8px;"> 					
+				</div>
+				
+				<div class="cinfo">
+					<div class="inner">
+						<div class="name"><%=item.couponc_shoper%></div>
+						<div class="time">截止日期：<%=item._couponc_valid_date%></div>
+      					<div class="pay">
+		                <span class="cfree">地址：<%=item.couponc_add%></span>
+
+						</div>
+					</div>
+				</div>
+		
+		<% if(item.couponc_type =='0'){%>
+			<div class="cright">
+				<div class="bg png png-discount"></div>
+				<div class="bg sideleft side side-discount"></div>
+				<div class="rinfo">
+					<div class="rinner discount">
+						<div class="price"><span><%=item.couponc_discount%></span></div>
+						<div class="type">折扣券</div>
+					</div>
+				</div>
+				<div class="bg sideright side side-discount"></div>
+			</div>
+			<%}else if(item.couponc_type =='1'){%>
+			<div class="cright">
+				<div class="bg png png-deduct"></div>
+				<div class="bg sideleft side side-deduct"></div>
+				<div class="rinfo">
+					<div class="rinner deduct">
+						<div class="price">￥<span><%=item.couponc_money%></span></div>
+						<div class="type">代金券</div>
+					</div>
+				</div>
+				<div class="bg sideright side side-deduct"></div>
+			</div>
+			<%}else if(item.couponc_type =='2'){%>
+			<div class="cright">
+				<div class="bg png png-money"></div>
+				<div class="bg sideleft side side-money"></div>
+				<div class="rinfo">
+					<div class="rinner money">
+						<div class="price"><span style="font-size: 16px;">免费领取</span></div>
+						<div class="type">礼品券</div>
+					</div>
+				</div>
+				<div class="bg sideright side side-money"></div>
+			</div>
+			<%}else if(item.couponc_type =='3'){%>
+			<div class="cright">
+				<div class="bg png png-money"></div>
+				<div class="bg sideleft side side-money"></div>
+				<div class="rinfo">
+					<div class="rinner money">
+						<div class="price"><span style="font-size: 16px;"><%=item.couponc_miaosha%></span></div>
+						<div class="type">秒杀券</div>
+					</div>
+				</div>
+				<div class="bg sideright side side-money"></div>
+			</div>
+			<%}%>
+   
+			</div>
+		</a>
+		
+		<%}%>
+		</script>
+		<!-- 优惠券结束  -->
+		
+		
+		<!-- loading toast -->
+		<div id="toast_loading" class="weui_loading_toast" style="display:none;z-index:99999;position:fixed;">
+			<div class="weui_mask_transparent"></div>
+			<div class="weui_toast">
+				<div class="weui_loading">
+					<div class="weui_loading_leaf weui_loading_leaf_0"></div>
+					<div class="weui_loading_leaf weui_loading_leaf_1"></div>
+					<div class="weui_loading_leaf weui_loading_leaf_2"></div>
+					<div class="weui_loading_leaf weui_loading_leaf_3"></div>
+					<div class="weui_loading_leaf weui_loading_leaf_4"></div>
+					<div class="weui_loading_leaf weui_loading_leaf_5"></div>
+					<div class="weui_loading_leaf weui_loading_leaf_6"></div>
+					<div class="weui_loading_leaf weui_loading_leaf_7"></div>
+					<div class="weui_loading_leaf weui_loading_leaf_8"></div>
+					<div class="weui_loading_leaf weui_loading_leaf_9"></div>
+					<div class="weui_loading_leaf weui_loading_leaf_10"></div>
+					<div class="weui_loading_leaf weui_loading_leaf_11"></div>
+				</div>
+				<p class="weui_toast_content">正在进入...</p>
+			</div>
+		</div>
+		
+		<!-- 底部菜单区 -->
+		{php $bmenu='card'}
+		{template 'inc/bmenu'}
+
+    </div> <!-- END 首页 -->
+
+
+{template 'inc/script'}
+<script type="text/javascript">
+	$(function(){
+
+		App.controller('index_page', function (page) {
+			initBottomMenu(page);
+			
+			// 内容加载
+			var list=$(page).find('#sends_list');
+			var list_load=$(page).find('#sends_list_load');
+			var list_tpl=baidu.template($(page).find('#sends_list_tpl').html());
+			var loadList = function(){
+				if(0==list.data('more')){
+					return;
+				}
+				list_load.removeClass('more');
+				list_load.addClass('loading');
+				list_load.find('.text').html('正在加载...');
+				$.post(list.data('url'),{
+					start:list.data('start')
+				},function(resp) {
+					if(!resp){
+						alert('加载失败，请检查网络后重试');
+						return;
+					}
+					if(resp.status!=1){
+						alert(resp.info);
+						return;
+					}
+					var data=resp.data;
+					list.data('start',data.start);
+					list.data('more',data.more);
+					var html=list_tpl(data);
+					list.html(list.html()+html);
+				});
+			};
+
+			list_load.on('click',function(){
+				loadList();
+			});
+			loadList();
+			
+			// 规则页初始化
+			App.controller('rule_page', function (page) {
+				this.transition = 'scale-in';
+				$(page).find('.btn_back').on('click',function(){
+					App.back();
+				});
+			});
+
+
+		});
+
+		App.load('index_page','fade');
+	});
+</script>
+
+{template 'inc/footer'}

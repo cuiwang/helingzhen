@@ -1,0 +1,141 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>{$reply['mobtitle']}</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=0">
+    <meta name="apple-touch-fullscreen" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="format-detection" content="telephone=no">
+    <link href="../addons/haoman_dpm/img9/vote_show.css" rel="stylesheet" type="text/css"/>
+    <!-- <link rel="stylesheet" type="text/css" href="../addons/haoman_dpm/mobimg/bottom.css?v=20161124170424" /> -->
+    <style type="text/css">
+        body{
+            background-image: url({$bg});
+            background-repeat: no-repeat;
+            background-size: 100% auto;
+        }
+    </style>
+</head>
+<body>
+<div id="header">
+    <div id="logo"><img src="{if empty($reply['tptop_url'])}../addons/haoman_dpm/img9/tpbanner.png{else}{php echo tomedia($reply['tptop_url'])}{/if}">
+    </div>
+    <div id="titles">大屏幕投票</div>
+    <div id="time"><li>时间：{php echo date('m月d日 H:i',$reply['tp_starttime']);} 至 {php echo date('m月d日 H:i',$reply['tp_endtime']);}</li></div>
+</div>
+<div id="main">
+    <div id="search">
+        <div id="ss"><input type="text" id="st" placeholder="编号/标题"></div>
+        <div id="sb">查询</div>
+    </div>
+    <div id="list" style="margin-bottom: 75px;">
+        {loop $toupiao $row}
+        <div class="show">
+            <div class="ll">
+                <div class="p" data-original=""><img src="{if empty($row['img'])}../addons/haoman_dpm/img9/582c1db1c84c3.jpg{else}{php echo tomedia($row['img'])}{/if}"></div>
+            </div>
+            <div class="lr">
+                <li class="na">{$row['description']}</li>
+                <li class="no">{$row['name']}<span>编号：{$row['number']}</span></li>
+                <li class="vs"><span class="vsb"></span><span class="vsp" id="vs206" style="width: {$row['xyz']}%"></span></li>
+                <li class="vo"><span class="vol">票数：{$row['get_num']}</span><span class="vor" rel="206">{$row['xyz']}%</span></li>
+            </div>
+         </div>
+        {/loop}
+    </div>
+ 
+<div class="zoom">
+    <div class="pinch-zoom">
+        <div class="show_zoom"></div>
+    </div>
+    <div class="title_zoom"></div>
+</div>
+<div class="result"></div>
+<input id="cid" name="cid" type="hidden" value="0">
+
+    <script type="text/javascript" src="../addons/haoman_base/base/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="../addons/haoman_dpm/img9/vote_show.min.js"></script>
+    <script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+    <script>
+        var vote_show_list = "{php echo $this->createMobileUrl("vote_show_list", array('rid' => $rid))}";
+    </script>
+    <script>
+        wx.config({
+            debug:false,
+            appId: '{$package["appId"]}',
+            timestamp: '{$package["timestamp"]}',
+            nonceStr: '{$package["nonceStr"]}',
+            signature: '{$package["signature"]}',
+            jsApiList: [
+                'getLocation', {if $reply['is_b_share'] != 2}'onMenuShareTimeline','onMenuShareQQ','onMenuShareQZone','onMenuShareAppMessage','onMenuShareWeibo'{/if}
+        ]
+        });
+        var sharedata = {
+            "imgUrl" : "{$shareimg}",
+            "link" : "{$sharelink}",
+            "desc" : "{$sharedesc}",
+            "title" : "{$sharetitle}"
+        };
+        wx.ready(function () {
+            {if $reply['isallowip']==1}
+            wx.getLocation({
+                type: 'wgs84', // 默认为wgs84的gps坐标，如果要返回直接给openLocation用的火星坐标，可传入'gcj02'
+                success: function (res) {
+
+                    var latitude = res.latitude; // 纬度，浮点数，范围为90 ~ -90
+                    var longitude = res.longitude; // 经度，浮点数，范围为180 ~ -180。
+                    var speed = res.speed; // 速度，以米/每秒计
+                    var accuracy = res.accuracy; // 位置精度
+
+
+
+                    var submitData = {
+                        lat: latitude,
+                        lon: longitude,
+                        lbsip: "{$reply['allowip']}"
+                    };
+
+
+                    $.post('{php echo $this->createMobileUrl('getlbs',array('id' => $rid))}', submitData, function(idata) {
+
+                        if (idata.success == 1) {
+
+                        } else {
+                            alert(idata.msg);
+                            location.href = "{php echo $this->createMobileUrl('other', array('id' => $rid,'type'=>2))}";
+
+                        }
+                    },"json");
+
+                },
+                fail: function () {
+                    alert("获取位置失败,请打开GPS功能！");
+                    location.href = "{php echo $this->createMobileUrl('index', array('id' => $rid))}";
+
+                }
+            });
+            {/if}
+
+            {if $reply['is_b_share'] == 2}
+            wx.hideOptionMenu();
+            {else}
+            wx.showOptionMenu();
+            wx.onMenuShareAppMessage(sharedata);
+            wx.onMenuShareTimeline(sharedata);
+            wx.onMenuShareQQ(sharedata);
+            wx.onMenuShareQZone(sharedata);
+            wx.onMenuShareWeibo(sharedata);
+            {/if}
+        });
+
+        wx.error(function (res) {
+            //alert(res.errMsg);
+        });
+    </script>
+    <div class="power-by" style="position: fixed;bottom: 50px;width: 100%;left: 0px;right: 0px;font-size: 12px;text-align: center;color:#EAB387;">
+        <div class="copyright fixed">{if empty($reply['copyright'])} &copy;{$_W['account']['name']}{else}&copy;{$reply['copyright']}{/if}</div>
+    </div>
+    {template 'm_footer'}
+</body>
+</html>

@@ -1,0 +1,205 @@
+{template 'common/header'}
+{template 'common'}
+<ul class="nav nav-tabs">
+    <li><a href="{php echo $this->createWebUrl('manage');}">活动管理</a></li>
+    <li><a href="{php echo url('platform/reply/post',array('m'=>'weisrc_tree'));}">添加活动规则</a></li>
+    <li{if $operation == 'display'} class="active"{/if}><a href="{php echo $this->createWebUrl('fanslist', array('op' => 'display', 'rid' => $rid))}">参与用户管理</a></li>
+    <li{if $operation == 'post'} class="active"{/if}><a href="{php echo $this->createWebUrl('fanslist', array('id' => $item['id'], 'op' => 'post', 'rid' => $rid))}">添加用户</a></li>
+</ul>
+{if $operation == 'display'}
+<div class="main">
+    <div class="alert alert-info">
+        温馨提示：被屏蔽用户将不会显示在排行榜
+    </div>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            活动概览
+        </div>
+        <div class="panel-body">
+            <div class="alert" style="margin-bottom:0;">
+                排名模式：<font color="red">{if $reply['mode'] == 1}完成时间{else}植树数量{/if}</font>&nbsp;&nbsp;&nbsp;&nbsp;参与人数：{$total}&nbsp;&nbsp;&nbsp;&nbsp;已屏蔽人数：{$lost_total}
+            </div>
+        </div>
+    </div>
+    <div class="panel panel-default" style="margin-top: 15px;">
+        <div class="panel-heading">筛选</div>
+        <div class="table-responsive panel-body">
+            <form action="./index.php" method="get" class="navbar-form navbar-left" role="form">
+                <input type="hidden" name="c" value="site" />
+                <input type="hidden" name="a" value="entry" />
+                <input type="hidden" name="m" value="weisrc_tree" />
+                <input type="hidden" name="do" value="fanslist" />
+                <input type="hidden" name="op" value="display" />
+                <input type="hidden" name="rid" value="{$rid}" />
+                <div class="form-group">
+                    <select class="form-control" id="types" name="types" autocomplete="off">
+                        <option value="tel">手机号码</option>
+                        <option value="username">用户名称</option>
+                        <option value="nickname">昵称</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <input type="text" class="form-control" placeholder="请输入" name="keyword">
+                </div>
+                <button class="btn btn-success"><i class="fa fa-search"></i> 搜索</button>
+                <a class="btn btn-default" href="{php echo $this->createWebUrl('fanslist', array('rid'=>$rid, 'op' => 'display'))}"><i class="fa fa-refresh"></i> 返回</a>
+            </form>
+        </div>
+    </div>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <div class="row-fluid">
+                <div class="span8 control-group">
+                    <a class="btn btn-default" data-toggle="tooltip" data-placement="top" href="{php echo url('platform/reply/post',array('m'=>'weisrc_tree','rid'=> $rid));}" title="编辑"><i class="fa fa-edit"> 编辑活动</i></a>
+                    <a class="btn btn-success" href="{php echo $this->createWebUrl('fanslist', array('rid'=>$rid, 'op' => 'display','out_put' => 'output', 'type' => 'all'))}"><i class="fa fa-file"></i> 导出全部用户</a>
+                    <a class="btn btn-success" href="{php echo $this->createWebUrl('fanslist', array('rid'=>$rid, 'op' => 'display','out_put' => 'output', 'type' => 'success'))}"><i class="fa fa-file"></i> 导出前200名用户</a>
+                    <a class="btn btn-warning" onclick="return confirm('此操作不可恢复，确认同步？');return false;" href="{php echo $this->createWebUrl('fanslist', array('rid'=>$rid, 'op' => 'synchrodata'))}"><i class="fa fa-cog" ></i> 同步助力数</a>
+                </div>
+            </div>
+        </div>
+        <div style="position:relative">
+            <div class="panel-body table-responsive">
+                <table class="table table-hover" style="position:relative">
+                    <thead class="navbar-inner">
+                    <tr>
+                        <th style="width: 10%;">排名</th>
+                        <th style="width: 15%;">昵称</th>
+                        <th style="width: 15%;">联系信息</th>
+                        <th style="width: 10%;">奖品状态</th>
+                        <th style="width: 10%;">状态</th>
+                        <th style="width: 15%;">参与时间</th>
+                        <th style="width: 10%;">助力记录</th>
+                        <th style="width: 15%;">操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {loop $list $key $row}
+                    {php $num = ($pindex -1) * $psize + $key + 1;}
+                    <tr>
+                        <td style="{if $num < 4}color:red{/if}">
+                            {php echo $num;}
+                        </td>
+                        <td style="white-space:normal;">
+                            <img src="{php echo tomedia($row['headimgurl']);}" width="50" onerror="this.src='resource/images/noavatar_middle.gif'" style="border-radius: 3px;"/>
+                            <br>{$row['nickname']}
+                        </td>
+                        <td style="white-space:normal;">
+                            {if $row['username']}
+                            {$row['username']}
+                            {else}
+                            {$row['nickname']}
+                            {/if}
+                            <br/>
+                            {$row['tel']}<br/>
+                            {$row['address']}
+                        </td>
+                        <td>
+                            {if $row['issend']==1}
+                            <span class="label label-success" >已发</span>
+                            {else}
+                            <span class="label label-danger" >未发</span>
+                            {/if}
+                        </td>
+                        <td>
+                            {if $row['status']==1}
+                            <span class="label label-success" >正常</span>
+                            {else}
+                            <span class="label label-danger" >已屏蔽</span>
+                            {/if}
+                        </td>
+                        <td>{php echo date('Y/m/d H:i',$row['dateline']);}</td>
+                        <td><a class="btn btn-default btn-sm" title="助力记录" href="{php echo $this->createWebUrl('recordlist', array('op' => 'display', 'rid' => $rid, 'fansid' => $row['id']))}"><i class="fa fa-area-chart">({$row['totalnum']})</i></a></td>
+                        <td>
+                            <a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('fanslist', array('id' => $row['id'], 'op' => 'post', 'rid' => $rid))}" title="编辑"><i class="fa fa-pencil"></i></a>&nbsp;&nbsp;
+                            <a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('fanslist', array('id' => $row['id'], 'op' => 'delete', 'rid' => $rid))}" onclick="return confirm('此操作不可恢复，确认删除？');return false;" title="删除"><i class="fa fa-times"></i></a>
+                        </td>
+                    </tr>
+                    {/loop}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {$pager}
+</div>
+{elseif $operation == 'post'}
+<div class="main">
+    <form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" autocomplete = "off">
+        <input type="hidden" name="parentid" value="{$parent['id']}" />
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                用户编辑
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">OPENID</label>
+                    <div class="col-sm-9">
+                        <p class="form-control-static">
+                        {$item['from_user']}
+                        </p>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">昵称</label>
+                    <div class="col-sm-9">
+                        <input type="text" id="nickname" name="nickname" class="form-control" value="{$item['nickname']}" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style='color:red'>*</span> 头像</label>
+                    <div class="col-sm-9 col-xs-12">
+                        {php echo tpl_form_field_image('headimgurl',$item['headimgurl']);}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">名称</label>
+                    <div class="col-sm-9">
+                        <input type="text" id="username" name="username" class="form-control" value="{$item['username']}" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">电话</label>
+                    <div class="col-sm-9">
+                        <input type="text" id="tel" name="tel" class="form-control" value="{$item['tel']}" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">地址</label>
+                    <div class="col-sm-9">
+                        <input type="text" id="address" name="address" class="form-control" value="{$item['address']}" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">助力数量</label>
+                    <div class="col-sm-9">
+                        <input type="text" id="totalnum" name="totalnum" class="form-control" value="{$item['totalnum']}" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">奖品状态</label>
+                    <div class="col-sm-9">
+                        <label for="issend1" class="radio-inline"><input type="radio" name="issend" value="1" id="issend1"  {if $item['issend'] == 1}checked="true"{/if} /> 已发</label>
+                        <label for="issend2" class="radio-inline"><input type="radio" name="issend" value="0" id="issend2" {if $item['issend'] == 0}checked="true"{/if} /> 未发</label>
+                        <span class="help-block"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">状态</label>
+                    <div class="col-sm-9">
+                        <label for="status2" class="radio-inline"><input type="radio" name="status" value="1" id="status2"  {if $item['status'] == 1}checked="true"{/if} /> 正常</label>
+                        <label for="status1" class="radio-inline"><input type="radio" name="status" value="0" id="status1" {if $item['status'] == 0}checked="true"{/if} /> 屏蔽</label>
+                        <span class="help-block"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-12">
+                <button type="submit" class="btn btn-primary col-lg-1" name="submit" value="提交">保存设置</button>
+                <input type="hidden" name="token" value="{$_W['token']}" />
+            </div>
+        </div>
+    </form>
+</div>
+{/if}
+{template 'common/footer'}

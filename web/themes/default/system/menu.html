@@ -1,0 +1,154 @@
+{template 'common/header'}
+<div class="we7-page-title">
+	菜单管理
+</div>
+<ul class="we7-page-tab"></ul>
+<div class="js-menu-container" ng-controller="MenuCtrl" ng-cloak>
+	<div class="we7-padding-bottom clearfix">
+		<div class="pull-right">
+			<a class="btn btn-primary we7-padding-horizontal" ng-click="editItemPanel({group : 'frame'})">+新建菜单</a>
+		</div>
+	</div>
+	<table class="table we7-table table-hover article-list">
+		<col width="150px"/>
+		<col width="380px"/>
+		<col width="90px"/>
+		<col width="280px"/>
+		<tr>
+			<th class="text-left">排序</th>
+			<th class="text-left">菜单名称</th>
+			<th>显示</th>
+			<th class="text-right">操作</th>
+		</tr>
+		{loop $system_menu $permission_name $menu}
+			<tr>
+				<td class="text-left"></td>
+				<td class="text-left"> 
+					<span>{$menu['title']}</span>
+				</td>
+				<td>
+					{if in_array($permission_name, $system_top_menu)}
+					<div class="switch" ng-init="displayStatus['{$permission_name}'] = {php echo $menu['is_display'] ? 'true' : 'false'}" ng-click="changeDisplay('{$permission_name}')" ng-class="{'switchOn' : displayStatus['{$permission_name}'], 'switchOff' : !displayStatus['{$permission_name}']}"></div>
+					{/if}
+				</td>
+				<td>
+					{if empty($menu['is_system'])}
+					<a href="javascript:;" ng-click="removeSubItem('{$menu['permission_name']}')" class="btn btn-danger">删除</a>
+					{/if}
+				</td>
+			</tr>
+			{loop $menu['section'] $section_name $section}
+				<tr>
+					<td class="text-left"><div class="pad-bottom "></div></td>
+					<td class="text-left"> 
+						<span style="margin-left: 25px;">{$section['title']}</span>
+					</td>
+					<td></td>
+					<td class="text-right we7-padding-right">
+						{if $section_name != 'platform_module'}
+						<a href="javascript:;" class="color-default we7-margin-right-sm" ng-click="addSubItem('{$section_name}', {title : '新增菜单', displayorder : 0, isDisplay : 1})">+添加下级分类</a>
+						{/if}
+					</td>
+				</tr>
+				{loop $section['menu'] $sub_permission_name $sub_menu}
+					<tr class="bg-light-gray">
+						<td class="text-left">
+							<div class="pad-bottom ">{php echo intval($sub_menu['displayorder'])}</div>
+						</td>
+						<td class="text-left"> 
+							<span style="margin-left: 60px;">{$sub_menu['title']}</span>
+						</td>
+						<td>
+							<div class="switch" ng-init="displayStatus['{$sub_menu['permission_name']}'] = {php echo $sub_menu['is_display'] ? 'true' : 'false'}" ng-click="changeDisplay('{$sub_menu['permission_name']}')" ng-class="{'switchOn' : displayStatus['{$sub_menu['permission_name']}'], 'switchOff' : !displayStatus['{$sub_menu['permission_name']}']}"></div>
+						</td>
+						<td class="we7-padding-right">
+							<div class="link-group">
+								<a href="javascript:;" class="we7-margin-right-sm" ng-click="editItemPanel({displayorder: '{$sub_menu['displayorder']}', title : '{$sub_menu['title']}', url : '{$sub_menu['url']}', permissionName : '{$sub_menu['permission_name']}', isSystem : '{$sub_menu['is_system']}', id : '{$sub_menu['id']}', 'group' : '{$sub_menu['group']}'})">编辑</a>
+								{if empty($sub_menu['is_system'])}<a href="javascript:;" ng-click="removeSubItem('{$sub_permission_name}')" class="del">删除</a>{/if}
+							</div>
+						</td>
+					</tr>
+				{/loop}
+				<tr class="bg-light-gray" ng-repeat="submenu in subItemGroup['{$section_name}']">
+					<td class="text-left">
+						<div class="pad-bottom ">{{submenu.displayorder}}</div>
+					</td>
+					<td class="text-left">
+						<span style="margin-left: 50px;">{{submenu.title}}</span>
+					</td>
+					<td>
+						<label>
+							<div ng-show="submenu.isDisplay" class="switch switchOn"></div>
+							<div ng-show="!submenu.isDisplay" class="switch switchOff"></div>
+						</label>
+					</td>
+					<td class="text-right we7-padding-right">
+						<div class="link-group">
+							<a href="javascript:;" class="we7-margin-right-sm" ng-click="editItemPanel({group : '{$section_name}', displayorder: '0', title : submenu.title + submenu.$$hashKey})">编辑</a>
+							<a href="javascript:;" ng-click="removeSubItem('{$section_name}', $index)" class="del">删除</a>
+						</div>
+					</td>
+				</tr>
+			{/loop}
+		{/loop}
+	</table>
+
+	<div class="modal fade bs-example-modal-sm js-edit-panel" id="edit" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-dialog we7-modal-dialog ">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+					<h4 class="modal-title">编辑菜单</h4>
+				</div>
+				<form action="" method="post" enctype="multipart/form-data" class="we7-form form" >
+					<div class="modal-body">
+						<div class="form-group" ng-hide="activeItem.group == 'frame'">
+							<label class="col-sm-2 control-label">菜单排序</label>
+							<div class="col-sm-10">
+								<input type="text" name="displayorder" ng-model="activeItem.displayorder" class="form-control">
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="col-sm-2 control-label">菜单名称</label>
+							<div class="col-sm-10">
+								<input type="text" name="title" ng-model="activeItem.title" class="form-control">
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="col-sm-2 control-label"> 菜单标识</label>
+							<div class="col-sm-10">
+								<input type="text" name="permission_name" ng-readonly="activeItem.isSystem == '1'" ng-model="activeItem.permissionName" class="form-control">
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="col-sm-2 control-label"> 菜单链接</label>
+							<div class="col-sm-10">
+								<input type="text" name="url" ng-readonly="activeItem.isSystem == '1'" ng-model="activeItem.url" class="form-control">
+							</div>
+						</div>
+						<div class="form-group" ng-hide="activeItem.isSystem == '1' || activeItem.group == 'frame'">
+							<label class="col-sm-2 control-label"> 菜单图标</label>
+							<div class="col-sm-10">
+								<div class="input-group">
+									<input type="text" name="icon" value="" ng-model="activeItem.icon" class="form-control">
+									<span class="input-group-addon" style="width:35px; border-left:none"><i class="fa fa-external-link"></i></span>
+									<span class="input-group-btn"> <a href="javascript:;" class="btn btn-default" ng-click="selectMenuIcon();">&nbsp;选择图标</a></span>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+						<button type="button" class="btn btn-primary" name="submit" value="保存" ng-click="editItem()">保存</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+	$(function(){
+		angular.bootstrap($('.js-menu-container'), ['systemApp']);
+	});
+</script>
+{template 'common/footer'}

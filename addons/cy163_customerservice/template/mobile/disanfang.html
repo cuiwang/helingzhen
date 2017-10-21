@@ -1,0 +1,144 @@
+<html style="background:#f5f5f5;">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1.0,maximum-scale=1.0,minimum-scale=1,user-scalable=no">
+    <meta content="yes" name="apple-mobile-web-app-capable">
+    <meta content="black" name="apple-mobile-web-app-status-bar-style">
+    <meta content="telephone=no" name="format-detection">
+    <meta content="email=no" name="format-detection">
+    <title>{if $setting['footertext3']}{$setting['footertext3']}{else}通讯录{/if}</title>
+    <link rel="stylesheet" href="{MD_ROOT}static/css/reset.css"/>
+    <link rel="stylesheet" href="{MD_ROOT}static/css/home.css?v=20170620"/>
+	<link rel="stylesheet" href="{MD_ROOT}static/iconfont/iconfont.css"/>
+    <script>
+        var deviceWidth = document.documentElement.clientWidth;
+        document.documentElement.style.fontSize = deviceWidth / 7.5 + 'px';
+    </script>
+	{php echo register_jssdk(false);}
+	<style>
+	#header{background:{$setting['temcolor']};}
+	.mychatmain .item .left .text .name{color:{$setting['temcolor']};}
+	.load{height:0.8rem;line-height:0.8rem;text-align:center;font-size:0.28rem;color:#999;}
+	.hide{display:none;}
+	.search{padding:0.2rem;width:7.1rem;height:0.6rem;}
+	.search input{display:block;width:5.9rem;float:left;height:0.6rem;border:none;line-height:0.6rem;background:#fff;font-size:0.28rem;text-indent:5px;border-radius:0.15rem;color:#333;}
+	.search button{display:block;border:none;background:#3ACED8;color:#fff;font-size:0.3rem;width:1rem;float:right;text-align:center;height:0.6rem;line-height:0.6rem;border-radius:0.15rem;}
+	</style>
+</head>
+
+<body>
+<div id="header">
+	{if $referer}
+	<div onclick="history.go(-1);" class="iconfont back">&#xe612;</div>
+	{else}
+	<div class="iconfont back"></div>
+	{/if}
+    <div class="title">{if $setting['footertext3']}{$setting['footertext3']}{else}通讯录{/if}</div>
+	<div class="other"></div>
+</div>
+<div class="search">
+	<form action="{php echo $this->createMobileUrl('disanfang',array('op'=>'search'))}" method="post" id="form">
+		<input type="text" placeholder="输入昵称搜索" name="nickname" value="" />
+		<input type="hidden" name="qudao" value="{$qudao}" />
+		<button type="submit">搜索</button>
+	</form>
+</div>
+<div class="mychatmain">
+	<div id="searchres" style="display:none;border-bottom:solid 1px #3ACED8;"></div>
+	{if $chatlist}
+		{loop $chatlist $row}
+		<div class="item">
+			<a href="{php echo $this->createMobileUrl('sanchat',array('toopenid'=>$row['fansopenid'],'qudao'=>$qudao))}">
+			<div class="left">
+				<div class="img">
+					<img src="{$row['fansavatar']}">
+					{if $row['notread'] > 0}
+					<span class="mychatbadge">{$row['notread']}</span>
+					{/if}
+				</div>
+				<div class="text">
+					<div class="name">
+						{$row['fansnickname']}
+						<span style="color:#999;margin-left:0.1rem;font-size:0.23rem;">{php echo date("Y-m-d H:i:s",$row['lasttime'])}</span>
+					</div>
+					<div class="zu">
+						{if $row['msgtype'] == 2}
+							<span style="color:#900;">[图片消息]</span>
+						{else if $row['msgtype'] == 3}
+							<span style="color:green;">[语音消息]</span>
+						{else}
+							{php echo preg_replace('/\xEE[\x80-\xBF][\x80-\xBF]|\xEF[\x81-\x83][\x80-\xBF]/', '[无法识别字符]', $row['lastcon'])}
+						{/if}
+					</div>
+				</div>
+			</div>
+		</a>
+		<a onclick="return confirm('确认要删除聊天记录吗？');return false;" href="{php echo $this->createMobileUrl('disanfang',array('op'=>'delete','toopenid'=>$row['fansopenid'],'qudao'=>$qudao))}">
+			<div class="right iconfont">&#xe736;</div>
+		</a>
+		</div>
+		{/loop}
+	{else}
+		<div style="margin-top:2rem;text-align:center;">
+			<div class="iconfont" style="font-size:0.75rem;color:#999;">&#xe66d;</div>
+			<div style="font-size:0.35rem;color:#999;margin-top:0.2rem;">暂无聊天记录</div>
+		</div>
+	{/if}
+</div>
+<div class="load hide">数据加载中</div>
+</body>
+<script type="text/javascript" src="{MD_ROOT}static/js/jquery-3.1.1.min.js"></script>
+<script type="text/javascript" src="{MD_ROOT}static/js/fastclick.js"></script>
+<script type="text/javascript" src="{MD_ROOT}static/js/jquery-weui.min.js"></script>
+<script type="text/javascript" src="{MD_ROOT}static/js/jquery.form.js"></script>
+<script type="text/javascript">
+$("#form").ajaxForm({
+	type: "POST",
+	dataType:"json",
+	success: function(data) {
+		if(data.error == 1){
+			$('#searchres').hide()
+			alert(data.msg);
+		}else{
+			$('#searchres').show().html(data.html);
+		}
+	},
+});
+$(function(){
+	FastClick.attach(document.body);
+})
+//滚动加载
+var loading = false;  //状态标记
+var count = 2;
+$(document.body).infinite().on("infinite", function() {
+	if(loading) return;
+	loading = true;
+	if(count < {$allpage}){
+		$('.load').removeClass('hide');
+		setTimeout(function() {			
+			$.ajax({
+				url:"{php echo $this->createMobileUrl('disanfang')}",
+				data:{
+					page:count,
+					isajax:1,
+				},
+				dataType:'html',
+				type:'post',        
+				success:function(data){
+					if(data != ''){
+						$('.mychatmain').append(data);
+						count++;
+					}
+					loading = false;
+				},
+			});
+		}, 500);   //模拟延迟
+	}else{
+		$('.load').text('全部数据已经加载完毕');
+	}
+});
+wx.ready(function () {
+	wx.hideOptionMenu();
+});
+</script>
+</html>

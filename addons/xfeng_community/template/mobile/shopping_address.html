@@ -1,0 +1,221 @@
+{php $bootstrap_type = 3;}
+{template 'header'}
+{template 'shopping_common'}
+<link rel="stylesheet" href="{MODULE_URL}template/shopping/css/jointCSS.css?ver=0430">
+    <link href="{MODULE_URL}template/shopping/css/buttons.css" rel="stylesheet" type="text/css" media="all">
+    <link href="{MODULE_URL}template/shopping/css/theme3.css" rel="stylesheet" type="text/css" media="all">
+     <link href="{MODULE_URL}template/shopping/css/flexslider.css" type="text/css" rel="stylesheet" media="all">
+    <link href="{MODULE_URL}template/shopping/css/style.css" type="text/css" rel="stylesheet" media="all">
+     <link href="{MODULE_URL}template/shopping/css/font-awesome.min.css" rel="stylesheet" type="text/css" media="all">
+    <link href="{$_W['siteroot']}app/resource/css/font-awesome.min.css" rel="stylesheet">
+<link type="text/css" rel="stylesheet" href="../addons/xfeng_community/template/shopping/mobile/style.css">
+<div class="head" style=" background: #0bca9f;">
+	<a href="javascript:history.back();" class="bn pull-left"><i class="fa fa-angle-left"></i></a>
+	<span class="title">收货地址</span>
+	<a href="javascript:;" class="bn pull-right"><i class="fa fa-shopping-cart"></i><span class="buy-num img-circle"> {$carttotal} </span></a>
+</div>
+<form class="form-horizontal" method="post" role="form">
+	<input type="hidden" name="goodstype" value="{$goodstype}" />
+	<div class="order-main">
+		<div id="myaddress">
+		{loop $address $row}
+			<div id='address_{$row['id']}' class="{if $row['isdefault']==1}shopcart-main1{else}shopcart-main{/if} img-rounded address_item" style='margin:0;padding:10px;margin-bottom:10px;cursor:pointer' onclick='editAddress({$row['id']},{php echo $row['isdefault']==1?'1':'0'})'>
+				<span>{$row['province']} {$row['city']} {$row['area']} {$row['address']} <br/> {$row['realname']}, {$row['mobile']}</span><br/>
+				<span>
+					<a href="javascript:;" onclick="saveDefaultAddress(event,{$row['id']})">设为默认</a>
+					<a href="javascript:;" onclick="removeAddress(event,{$row['id']})"><i class="fa fa-remove"></i> 删除</a>
+				</span>
+			</div>
+		{/loop}
+		</div>
+		<div><button type="button" class="btn btn-danger" onclick="addAddress()"><i class="fa fa-plus"></i> 添加修改地址</button></div>
+		<div class="add-address img-rounded" id="addAddressPanel" {if !empty($address)} style="display:none;"{/if}>
+			<div class="add-address-hd">请仔细填写收货地址：</div>
+			<div class="add-address-main">
+				<div class="form-group">
+					<label for="" class="col-sm-3 control-label">收货人：</label>
+					<div class="col-sm-9">
+						<input type="text" class="form-control" id="realname">
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="" class="col-sm-3 control-label">联系电话：</label>
+					<div class="col-sm-9">
+						<input type="text" class="form-control" id="mobile">
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="" class="col-sm-3 control-label">地区：</label>
+					<div class="col-sm-9">
+						<select id="sel-provance" onChange="selectCity();" class="pull-left form-control" style="width:30%; margin-right:5%;">
+							<option value="" selected="true">省/直辖市</option>
+						</select>
+						<select id="sel-city" onChange="selectcounty()" class="pull-left form-control" style="width:30%; margin-right:5%;">
+							<option value="" selected="true">请选择</option>
+						</select>
+						<select id="sel-area" class="pull-left form-control" style="width:30%;">
+							<option value="" selected="true">请选择</option>
+						</select>
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="" class="col-sm-3 control-label">详细地址：</label>
+					<div class="col-sm-9">
+						<input type="text" class="form-control" id="address">
+					</div>
+				</div>
+				<input type="hidden" id="addressid" value="" />
+				<div class="form-group">
+					<div class="col-sm-12">
+						<button type="button" class="btn btn-danger" onclick="saveAddress()">保存</button>
+						<button type="button" class="btn btn-default" onclick="addAddress();$('#addAddressPanel').hide();$('#addressid').val('');">取消</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</form>
+<script type="text/javascript" src="../app/resource/components/area/cascade.js"></script>
+<script type="text/javascript">
+var from='{$from}';
+var returnurl = '{$returnurl}';
+cascdeInit('','','');
+function saveAddress() {
+	var realname = $('#realname').val();
+	var mobile = $('#mobile').val();
+	var province = $('#sel-provance').val();
+	var city = $('#sel-city').val();
+	var area = $('#sel-area').val();
+	var address = $('#address').val();
+	if (!realname) {
+		alert('请输入您的真实姓名！');
+		return false;
+	}
+	if (!mobile) {
+		alert('请输入您的手机号码！');
+		return false;
+	}
+	if (mobile.search(/^([0-9]{11})?$/) == -1) {
+		alert('请输入正确的手机号码！');
+		return false;
+	}
+	if (!address) {
+		alert('请输入您的详细地址！');
+		return false;
+	} tip("正在处理数据...");
+	$.post("{php echo $this->createMobileUrl('shopping',array('op' => 'address'))}", {
+									'operation' : 'post',
+		'realname' : realname,
+		'mobile' : mobile,
+		'province' : province,
+		'city' : city,
+		'area' : area, 
+		'address' : address,
+		'id' : $('#addressid').val()
+	}, function(s) {
+			tip_close();
+		if (s.message != 0) {
+			if (from=='confirm'){
+				  if(returnurl!=''){
+						location.href = returnurl;
+						return;
+					}
+				location.href = "{php echo $this->createMobileUrl('shopping',array('op' => 'confirm'))}";
+			}
+			$("input [name='address']").attr('checked', false);
+			var html='<div class="shopcart-main1 img-rounded" style="margin:0;padding:10px;margin-bottom:10px;cursor:pointer" onclick="editAddress(' + s.message +')">';
+			var html1='<span>'+province+' '+city+' '+area+' '+''+address+' '+' <br/> ' +realname+', '+mobile+'</span>' +
+ 				'<span style="float:right">' +
+				'&nbsp;&nbsp;<a href="javascript:;" onclick="saveDefaultAddress('+ s.message +')">设置为默认收货地址</a></span>';
+			var html2= '</div>';
+ 
+			if ($('#address_'+s.message).get(0)) {
+				$('#address_'+s.message).html(html1);
+			} else {
+				$(".address_item").removeClass("shopcart-main1").addClass("shopcart-main");
+				$('#myaddress').append($(html + html1 + html2));
+			}
+			
+			$('#realname').val('');
+			$('#mobile').val('');
+			$('#address').val('');
+			cascdeInit('','','');
+		}
+		$('#addAddressPanel').hide();
+	}, 'json');
+
+}
+
+function addAddress() {
+	$('#addAddressPanel').show();
+	$('#realname').val('');
+	$('#mobile').val('');
+	$('#address').val('');
+	cascdeInit('','','');
+	$('#addressid').val('');
+}
+
+function saveDefaultAddress(e,id) {
+	tip("正在处理数据...");
+	$.post("{php echo $this->createMobileUrl('shopping', array('op' => 'address','operation' => 'default'))}", {
+		'id' : id,
+	}, function(s) {
+		//$("input [name='address']").attr('checked', false);
+		$(".address_item").removeClass("shopcart-main1").addClass("shopcart-main");
+		$("#address_"+id).addClass("shopcart-main1");
+		tip_close();
+	}, 'json');
+	e.stopPropagation() ;
+}
+function removeAddress(e,id){
+	if(confirm('确认要删除此收货地址吗?')){
+		 tip("正在处理数据...");
+		$.post("{php echo $this->createMobileUrl('shopping', array('op' => 'address','operation' => 'remove'))}",
+				{ 'id' : id,}, 
+				function(s) {
+					$("#address_"+id).remove();
+					if(s.maxid!='0'){
+						$(".address_item").removeClass("shopcart-main1").addClass("shopcart-main");
+						$("#address_"+s.maxid).addClass("shopcart-main1");
+					}
+					tip_close();
+				},
+				'json');
+		e.stopPropagation() ;
+	}
+}
+var isdef = 0;
+function editAddress(id) {
+	if (false && from=='confirm'){
+		//	 location.href = '{php echo $this->createMobileUrl('confirm')}';
+		tip("正在处理数据...");
+		$.post("{php echo $this->createMobileUrl('shopping', array('op' => 'address','operation' => 'default'))}", 
+				{ 'id' : id,}, 
+				function(s) {
+					tip_close(); 
+					if(returnurl!=''){
+						location.href = returnurl;
+						return;
+					}
+				location.href = "{php echo $this->createMobileUrl('shopping',array('op' => 'confirm'))}";
+				});
+		return;
+	}
+	
+	tip("正在处理数据...");
+	$.get("{php echo $this->createMobileUrl('shopping', array('op' => 'address','operation' => 'detail'))}", {
+		'id' : id,
+	}, function(s){
+		tip_close();
+		if (s.message) {
+			$('#addAddressPanel').show();
+			$('#realname').val(s.message.realname);
+			$('#mobile').val(s.message.mobile);
+			$('#address').val(s.message.address);
+			cascdeInit(s.message.province,s.message.city,s.message.area);
+			$('#addressid').val(s.message.id);
+		}
+	}, 'json');
+}
+</script>
+{template 'shopping_footerbar'}

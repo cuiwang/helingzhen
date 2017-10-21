@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>消费记录 - {php echo $this->module['config']['sname']}</title>
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, width=device-width">
+	<meta content="telephone=no" name="format-detection">
+    <link href="{WELIAM_INDIANA_STATIC}css/common.css" rel="stylesheet">
+    <link href="{WELIAM_INDIANA_STATIC}css/user.css" rel="stylesheet">
+    <script language="javascript" src="{WELIAM_INDIANA_STATIC}js/jquery.js"></script>
+</head>
+{template wxshare}
+<script>
+	//自动刷新
+	var id={$id};
+	var flag=0;
+		//检测没有数据
+		
+	function refresh(){
+		var re = document.getElementById('more');
+		if({$id} == -1){
+			re.innerHTML='没有更多的信息了';
+		}
+	}
+	//判断div是否在可视区域
+	  $(document).ready(function () {
+            $(window).scroll(function () {
+                var a = document.getElementById("more").offsetTop;
+                if (a >= $(window).scrollTop() && a < ($(window).scrollTop()+$(window).height())&&id!='-1'&&flag=='0') {
+                   document.getElementById('more').innerHTML="努力加载中";
+					flag = 1;
+					down_load();	
+                }
+            });
+        });
+//回传数据
+	
+	function down_load(){
+		//传值验证返回	
+	    $.post("{php echo $this->createMobileUrl('consume')}",
+	    {
+	    	id:id
+	    },
+	    function(m){
+				if(m==''){
+					document.getElementById('more').innerHTML="没有可加载项";
+				}else{
+					if(m.success=='-1'){
+						document.getElementById('more').innerHTML='没有更多的信息了';
+					}else{
+						
+						id = m.success;
+						for(var i=0;i<m.list.length;i++){
+							var more = '<div class="item" id="pro-view-4"><p class="from" style="width: 70%;"><a href="{php echo $this->createMobileUrl('detail')}&periodid='+m.list[i].periodid+'">'+m.list[i].periods+'期,'+m.list[i].title+'</a></p><p class="time">时间:'+m.list[i].createtime+'</p><p class="num"> '+m.list[i].num+'夺宝币</p></div>';
+							$("#morelist").append(more);
+							flag = 0;
+							document.getElementById('more').innerHTML="上拉加载更多";
+						}
+						
+					}
+				}
+
+             },"json");
+	}
+	
+</script>
+<body onload="refresh();">
+<div class="m-user">
+    <div class="m-simpleHeader" id="dvHeader">
+        <a href="{php echo $this->createMobileUrl("person");}" data-pro="back" data-back="true" class="m-simpleHeader-back"><i class="ico ico-back"></i></a>
+        <a href="{php echo $this->createMobileUrl("index");}" data-pro="ok" class="m-simpleHeader-ok">首页</a>
+        <h1>消费记录</h1>
+    </div>
+    <div class="m-user-chargeRecord">
+        <div class="remark">
+            <p class="item">目前仅提供最近三个月的消费记录。</p>
+        </div>
+        
+        <div id="dvWrapper">
+            <!--最近三个月有消费记录-->
+            <div id="have-more">
+                <div data-pro="loading"></div>
+                <!-- 消费记录 -->
+                <div class="list" data-pro="list" id="morelist">
+                	 {loop $result $result}
+                    <div class="item" id="pro-view-4">
+                		<p class="from" style="width: 70%;"><a href="{php echo $this->createMobileUrl('detail', array('periodid' => $result['periodid']))}">第{$result['periods']}期,{$result['title']}</a></p>
+                		<p class="time">时间:{php echo date("Y-m-d H:i:s",$result['createtime'])}</p>
+               			<p class="num"> {$result['num']}夺宝币</p>
+                    </div>
+                    {/loop}
+                </div>
+				
+        <div data-pro="more">
+        	<div class="w-more" id="pro-view-5">
+            	<div data-pro="link" id = "more">上拉加载更多</div>
+        	</div>
+        </div>
+        </div>
+    </div>
+    </div>
+</div>
+
+<button class="w-button w-button-round w-button-backToTop" style="display:none" id="pro-view-0">返回顶部</button></body></html>

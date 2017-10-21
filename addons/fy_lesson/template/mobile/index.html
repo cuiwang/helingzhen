@@ -1,0 +1,222 @@
+<!-- 
+ * 微课堂首页
+ * ============================================================================
+-->
+{php include $this->template('_header');}
+<link href="{MODULE_URL}template/mobile/style/index.css?v=20170422" rel="stylesheet" />
+<script src="{MODULE_URL}template/mobile/style/js/breakingnews.js?v=20170424"></script>
+<script type="text/javascript" src="{MODULE_URL}template/mobile/style/js/jquery.lazyload.js?v=20170422"></script>
+<script>
+$(function(){
+	$('#breakingnews1').BreakingNews({
+		title: '全部公告'
+	});
+
+});
+<?php if($lazyload['lazyload_switch']==1){ ?>
+jQuery(document).ready(function($){ 
+	$("img.lazy").lazyload({ 
+		placeholder : "<?php echo $lazyload_image; ?>", 
+		effect      : "fadeIn",
+		threshold : 200
+	}); 
+});
+<?php } ?>
+</script>
+
+{if $setting['isfollow']==1 && !empty($fans) && $fans['follow']==0}
+<div class="follow_topbar"><div class="headimg"><img src="{$_W['attachurl']}{$setting['qrcode']}"></div><div class="info"><div class="i">{$_W['account']['name']}</div><div class="i">关注公众号，享海量课程</div></div><div class="sub" onclick="location.href='{php echo $this->createMobileUrl('follow');}'">立即关注</div></div>
+<div style='height:44px;'>&nbsp;</div>
+{/if}
+
+<!-- Start head -->
+<header class="head cbox">
+	{if !empty($setting['logo'])}
+    <a href="{php echo $this->createMobileUrl('index');}" style="background-image:url({$_W['attachurl']}{$setting['logo']});" class="ico ico-logo"></a>
+	{/if}
+    <div class="flex head-search">
+        <form action="javascript:return true;">
+        <input type="search" class="input-text" id="head_searchKeywords" placeholder="搜索课程名称或讲师">
+        </form>
+    </div>
+    <!-- <a href="javascript:;" class="head-features cbox">
+        <i class="ico ico-features"></i>
+    </a> -->
+</header>
+<!-- Start 内容 -->
+<div class="content">
+    <!-- 焦点图 START-->
+	{if !empty($setting['banner'])}
+    <div class="focus" id="banner">
+        <div class="focus-box">
+            <ul>
+			{loop $banner $b}
+				{if !empty($b['img'])}
+                <li><a href="{$b['link']}"><img src="{$_W['attachurl']}{$b['img']}" width="320" height="126"/></a></li>
+				{/if}
+			{/loop}
+			</ul>
+        </div>
+    </div>
+	{/if}
+	<!-- 焦点图 END-->
+
+	<!-- 文章公告  START -->
+	{if !empty($articlelist) && is_array($articlelist)}
+	<div class="BreakingNewsController easing" id="breakingnews1">
+		<div class="bn-title" onclick="location.href='{php echo $this->createMobileUrl('article', array('op'=>'list'));}'"></div>
+		<ul>
+			{loop $articlelist $article}
+			<li><a href="{php echo $this->createMobileUrl('article', array('op'=>'display','aid'=>$article['id']));}">[{php echo date('m-d',$article['addtime']);}]{$article['title']}</a></li>
+			{/loop}
+		</ul>
+	</div>
+	{/if}
+
+	<!-- 分类 START-->
+	<div class="category-home-nav fixed-Width">
+		<ul>
+			{loop $category_list $cat}
+			<li>
+				<a href="{php echo $this->createMobileUrl('search', array('cid'=>$cat['id']));}"><span><img src="{$_W['attachurl']}{$cat['ico']}"></span>
+					<p>{$cat['name']}</p>
+				</a>
+			</li>
+			{/loop}
+			<li>
+				<a href="{php echo $this->createMobileUrl('search',array('op'=>'allcategory'));}"><span><img src="{$allCategoryIco}"></span>
+					<p>全部分类</p>
+				</a>
+			</li>
+		</ul>
+	</div>
+	<!-- 分类 END-->
+
+	{if !empty($list)}
+	<!-- 课程模块遍历 START-->
+	{loop $list $key $rec}
+    <div class="index-course shadow">
+        <h3 class="g-title">{$rec['rec_name']}</h3>
+        <ul class="course-list row2 wider">
+			{loop $rec['lesson'] $item}
+			{if $setting['lessonshow']==1}
+			<li class="item">
+                <a href="{php echo $this->createMobileUrl('lesson', array('op'=>'display', 'id'=>$item['id']));}">
+                    <img class="lazy" src="{$_W['attachurl']}{$item['images']}">
+                    <div class="con">
+                        <h3 class="title te2">{$item['bookname']}</h3>
+                        <p class="info te2">
+							{if $setting['stock_config']==1}
+							剩余:<span class="evaluate">{$item['stock']}</span>
+							{/if}
+							(共<span class="evaluate">{$item['evaluate']}</span>条评论)
+							{if $item['price']>0 && $item['vipview']==1}
+								<span style="float:right;color:#62CC45;">VIP免费</span>
+							{/if}
+						</p>
+                        <div class="cbox overview">
+                            <p class="flex te">
+								共<em class="c-green">{$item['count']}</em>节课&nbsp;&nbsp;
+								<em style="color:#3BC0B6;">{php echo $item['price']>0?$item['price'].'元':'免费';}</em>
+							</p>
+                            <span class="te">
+								<em class="c-green">{if $item['price']>0}{php echo $item['buynum']+$item['virtual_buynum'];}{else}{php echo $item['buynum']+$item['virtual_buynum']+$item['visit'];}{/if}</em>人已学习
+							</span>
+                        </div>
+                    </div>
+                </a>
+			</li>
+			{elseif $setting['lessonshow']==2}
+			<li class="module-courseList__item module-courseList_right">
+				<a href="{php echo $this->createMobileUrl('lesson', array('op'=>'display', 'id'=>$item['id']));}">
+					<div class="module-courseCard">
+						<div class="module-courseCard__img">
+							<img class="lazy" src="{$_W['attachurl']}{$item['images']}" alt="{$item['bookname']}" width="100%" height="100%">
+						</div>
+						<div class="module-courseCard__title">
+							{$item['bookname']}
+						</div>
+						<div class="module-courseCard__info">
+							<span class="module-courseCard__price u-price">{php echo $item['price']>0?'¥'.$item['price']:'免费';}</span>
+							<span class="module-courseCard__classify">共<em class="c-green">{$item['count']}</em>节课</span>
+						</div>
+						<div class="module-courseCard__info">
+							<span class="module-courseCard__price u-price">
+							{if $setting['stock_config']==1}
+								<span style="font-size:13px;color:#666;">剩余:{$item['stock']}</span>
+							{else}
+								{if $item['price']>0 && $item['vipview']==1}
+								<span style="font-size:13px;color:#62CC45;">VIP免费</span>
+								{/if}
+							{/if}
+							</span>
+							<span class="module-courseCard__classify">
+								{if $item['price']>0}{php echo $item['buynum']+$item['virtual_buynum'];}{else}{php echo $item['buynum']+$item['virtual_buynum']+$item['visit'];}{/if}人已学习
+							</span>
+						</div>
+					</div>
+				</a>
+			</li>
+			{/if}
+			{/loop}
+		</ul>
+    </div>
+	{/loop}
+	<!-- 课程模块遍历 END-->
+	{/if}
+   
+	<a href="{php echo $this->createMobileUrl('search');}" class="index-btn-view">查看更多课程</a>
+</div>
+<script src="{MODULE_URL}template/mobile/style/js/jquery.touchSlider.js"></script>
+<script type="text/javascript">
+var numpic = $('.focus-box li').size() - 1,
+    ulstart   = '<div class="focus-point">',
+    ulcontent = '',
+    ulend     = '</div>',
+    html   = '';
+
+var add_ul_li = function() {
+    for(var i = 0; i <= numpic; i++) {
+        ulcontent += '<a href="javascript:;">' + (i + 1) + '</a>';
+    }
+    $('.focus-box').after(ulstart + ulcontent + ulend);
+}
+$(function() {
+    add_ul_li();
+    $('#banner .focus-box').touchSlider({
+        flexible : true,
+        speed    : 600,
+        paging   : $('#banner .focus-point a'),
+        widthHeightRatio : 320/126,
+        counter : function (e) {
+            $('#banner .focus-point a').removeClass('cur').eq(e.current-1).addClass('cur');
+        }
+    });
+})
+</script>
+
+{php echo register_jssdk(false);}
+<script type="text/javascript">
+wx.ready(function(){
+	var shareData = {
+		title: "{$sharelink['title']} - {$setting['sitename']} - {$_W['account']['name']}",
+		desc: "{$sharelink['desc']}",
+		link: "{php echo $shareurl;}",
+		imgUrl: "{php echo $_W['attachurl'];}{$sharelink['images']}",
+		trigger: function (res) {},
+		complete: function (res) {},
+		success: function (res) {},
+		cancel: function (res) {},
+		fail: function (res) {}
+	};
+	wx.onMenuShareTimeline(shareData);
+	wx.onMenuShareAppMessage(shareData);
+	wx.onMenuShareQQ(shareData);
+	wx.onMenuShareWeibo(shareData);
+	wx.onMenuShareQZone(shareData);
+	
+});
+</script>
+
+
+{php include $this->template('_footer');}

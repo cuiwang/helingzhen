@@ -1,0 +1,220 @@
+{template 'header'}
+<link href="{$_W['siteroot']}addons/siyuan_cms/ui/css/vod_form.css" rel="stylesheet">
+<div class="siyuan_top weui-row">
+<div class="weui-col-15"><a href="javascript:history.go(-1)"><i class="fa fa-angle-left f-32"></i></a></div>
+<div class="weui-col-70">{$set['name']}</div>
+<div class="weui-col-15"><a class="cd-bouncy-nav-trigger" href="#0"><img src="{$_W['siteroot']}addons/siyuan_cms/ui/img/daohang.png"></a></div>
+</div>
+<div class="cd-bouncy-nav-modal">
+<nav>
+<ul class="cd-bouncy-nav">
+{loop $menu $caidan}
+<li><a href="{$caidan['url']}"><img src="{$_W['attachurl']}{$caidan['thumb']}"><p>{$caidan['title']}</p></a></li>
+{/loop}
+</ul>
+</nav>
+<a href="#0" class="cd-close fa fa-power-off">返回</a>
+</div>
+<div style="height:40px;"></div>
+<div class="namecard-page">
+<section class="editcontent-column">
+<div class="editcontent-inner">
+<div id="photoList">
+{php $i=0}
+{if $img}
+<div class="editcontent-box">
+<div class="editcontent-image">
+<div class="editcontent-upload">
+<a class="upload-btn" href="javascript:;"><img style="display: block;" id="fileimg{$i}" src="{$_W['attachurl']}{$img}" width="100%;" height="100%;" class="fillIn-avatar-thumbnail">
+<span class="upload-text">点击上传视频</span>
+<input type="file" id="{$i}" name="file" onchange="imageupload(this)" class="uploadFile" single="" accept="image/*">
+<input type="hidden" id="pic_url{$i}" name="headimg[]" value="{$img}">
+<div class="progress">{$i}</div>
+</a>
+<div class="editcontent-editor-btn">
+<a class="image-btn edit-btn up-btn" href="javascript:;">上移</a>
+<a class="image-btn detele-btn" href="javascript:;">删除</a>
+</div>
+</div>
+</div>
+</div>
+{/if}
+{php $i=$i+1}
+</div>
+<div class="editcontent-addbox"><span class="editcontent-addbtn" id="addbtn" style="background:#ec6c53;">点击添加视频</span>
+</div>
+<p class="tougaotishi">(一次最多上传1个横拍小视频(10秒以内)，请等待上传成功提示出现再提交！)</p>
+</div>
+</section>
+<div class="weui_cells weui_cells_form margin1">
+<div class="weui_cell">
+<div class="weui_cell_bd weui_cell_primary">
+<textarea name="body" id="body" class="weui_textarea" placeholder="说点什么吧！" rows="3" onkeydown='countChar("body","counter");' onkeyup='countChar("body","counter");'></textarea>
+<div class="weui_textarea_counter"><span id="counter">0</span>/2000</div>
+</div>
+</div>
+<div class='demos-content-padded'>
+<a href="javascript:;" class="weui_btn weui_btn_primary" style="background:#ec6c53;width:96%;margin-top:20px;margin-bottom:20px;border: 0px solid #ebebeb;" id="save_btn" onclick="doSave(this)">发布</a>
+</div>
+
+<script src="{$_W['siteroot']}addons/siyuan_cms/ui/js/tishi.js"></script>
+<script type="text/javascript" src="{$_W['siteroot']}addons/siyuan_cms/ui/js/zepto.form.js"></script>
+<script>
+var fileNum = $('.uploadFile');
+var count = fileNum.length;
+
+function addNewphoto(){
+var $photoList = $("#photoList");
+var $temp = $('<div class="editcontent-box">'+
+'<div class="editcontent-image">'+
+'<div class="editcontent-upload">'+
+'<a class="upload-btn" href="javascript:;">'+
+'<img  style="display:none" id="fileimg'+count+'" width="100%;" height="100%;"class="fillIn-avatar-thumbnail">'+
+'<input type="file" id="'+count+'" name="file" onchange="imageupload(this)" class="uploadFile" single accept="video/*">'+
+'<input type="hidden" id="pic_url'+count+'" name="headimg[]" value=""/>'+
+'<div class="progress">0</div>'+
+'</a>'+
+'</div>'+
+'</div>'+
+'</div>');
+count = count +1;
+$temp.find(".detele-btn").click(function(){
+$temp.remove();
+});
+
+$photoList.append($temp);
+
+}
+
+function imageupload(obj){
+inputId = "#"+obj.id;
+fileimgId = "#fileimg"+obj.id;
+fileimgElementId = "fileimg"+obj.id;
+pic_urlId = "#pic_url"+obj.id;
+$(inputId).wrap('<form method="post" id="formUpload" action="{php echo $this->createMobileUrl(QiniuVod);}" enctype="multipart/form-data"></form>');
+document.getElementById(fileimgElementId).style.display = 'none';
+$("#formUpload").ajaxSubmit({
+dataType:  'json',
+beforeSend: function() {
+$.showLoading('视频上传中');
+},
+uploadProgress: function(event, position, total, percentComplete) {
+
+},
+success: function(data) {
+if(data.error==1) {
+$.toast("视频文件太大", "text");
+}else{
+var picurl = data.filename;
+$(fileimgId).attr('src',picurl+'?vframe/jpg/offset/0');
+$(pic_urlId).attr('value',picurl);
+document.getElementById(fileimgElementId).style.display = 'block';
+$.toast(data.tishi, "text");
+}
+},
+error:function(xhr){
+$.toast("上传失败", "text");
+}
+});
+}
+
+//组装数据
+function pushData(){
+var $photoList = $("#photoList");
+var $photoListLi = $photoList.find(".editcontent-box");
+var items = [];
+
+$photoListLi.each(function(){
+var $this = $(this);
+var pic = $this.find(".picPath").val();
+if(pic){
+items.push({"pic":pic});
+}
+});
+
+var datas = {"photos":items};
+return datas;
+}
+
+//数据提交
+function savePersonInfo() {
+$("#saveBtn").text("正在保存...");
+$("#personForm").submit();
+}
+
+
+$(function(){
+$("#photoList .editcontent-box1").each(function(){
+//$(this).h5upload();
+});
+
+//添加
+$("#addbtn").click(function(){
+//--不能超过30个
+if($(".editcontent-box").length >= 1){
+$.toast("一次只能上传1个", "text");
+return false;
+}
+addNewphoto();
+});
+
+//上移
+$("#photoList").on("click", ".up-btn", function(){
+var $thisP = $(this).parents(".editcontent-box1");
+if($thisP.index()>0){
+$thisP.prev().before($thisP);
+}else{
+$.flytip("已经是最顶了");
+}
+});
+//删除
+$("#photoList").on("click", ".detele-btn", function(){
+$(this).parents(".editcontent-box1").remove();
+});
+
+//图标
+iconsList();
+
+var $iconsList = $("#iconsList");
+var $iconsPrev = $("#iconsPrev");
+
+$iconsPrev.click(function(){
+$iconsList.show();
+});
+
+$iconsList.on("click", ".icons-list-item", function(){
+var $this = $(this);
+var url = $this.find("img").attr("src");
+$("#iconsPath").val(url);
+$iconsPrev.find("img").attr("src",url);
+$iconsList.hide();
+});
+
+$("#footerFixed").bottomFixed();
+
+});
+</script>
+<script type="text/javascript">
+function doSave(media_ids) {
+if(!$("#pic_url").val() && !$("#pic_url0").val() || !$("#body").val()) {
+$.toast("未填完整", "text");
+return;
+}
+$.ajax({
+type:'post',
+dataType:'json',
+url:"{php echo $this->createMobileUrl('quan', array('act' => 'vod_form'))}",
+data:{headimg:$("#pic_url0").val(),body:$("#body").val()},
+success:function(msg){
+if(msg.status==1){
+$.toast("发布成功", "text");
+window.location.href="{php echo $this->createMobileUrl('quan')}";
+}else{
+$.toast("未发布成功", "text");
+//window.location.href=window.location.href;
+}
+}
+})
+}
+</script>
+{template 'footer'}

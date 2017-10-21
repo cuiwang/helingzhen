@@ -1,0 +1,130 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+    <li><a href="{php echo $this->createWebUrl('threadclass');}">主题列表</a></li>
+    <li><a href="{php echo $this->createWebUrl('group');}">会员组管理</a></li>
+    {if empty($setting['typeid'])}
+    <li class="active"><a href="{php echo $this->createWebUrl('threadclass', array('foo'=>'create'));}">新增主题</a></li>
+    {else}
+    <li class="active"><a href="{php echo $this->createWebUrl('threadclass', array('foo'=>'create', 'id'=>$setting['typeid']));}">编辑主题</a></li>
+    {/if}
+</ul>
+<script>
+    require(['jquery', 'angular', 'util', 'underscore'], function($, angular, u, _){
+        $(function(){
+            angular.module('app', []).controller('custom', function($scope, $http) {
+                $scope.submit = function() {
+                    var message = '';
+                    
+                    if(message) {
+                        u.message(message);
+                    } else {
+                        $('#theform')[0].submit();
+                    }
+                };
+            });
+            angular.bootstrap(document, ['app']);
+        });
+    });
+
+</script>
+<div class="clearfix">
+    <form id="theform" class="form form-horizontal ng-cloak" action="" method="post" ng-controller="custom">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <a class="btn btn-default" href="{php echo $this->createWebUrl('threadclass')}">板块列表</a>
+				<a class="btn btn-success" href="{php echo $this->createWebUrl('threadclass', array('foo'=>'create'))}">新增版块</a>
+				<a class="btn btn-default" href="{php echo $this->createWebUrl('credit')}">快捷操作</a>
+            </div>
+            <div class="panel-body">
+            	<div class="form-group">
+            	    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">所属主题</label>
+            	    <div class="col-sm-8 col-lg-9 col-xs-12">
+            	        <select name="fid" id="" class="form-control">
+                            <option value="0" {if empty($setting['fid'])}selected{/if}>顶级主题</option>
+                            {loop $cats $cat}
+                            <option value="{$cat['typeid']}" {if $cat['typeid']==$setting['fid']}selected{/if}>|{$cat['name']}</option>
+                            {loop $cat['ch'] $ca}
+                            <option value="{$ca['typeid']}" {if $ca['typeid']==$setting['fid']}selected{/if}>--|{$ca['name']}</option>
+                            {/loop}
+                            {/loop}
+            	        </select>
+            	        <span class="help-block"></span>
+            	    </div>
+            	</div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">主题名称</label>
+                    <div class="col-sm-8 col-lg-9 col-xs-12">
+                        <input type="text" name="name" placeholder="" value="{$setting['name']}" class="form-control"/>
+                        <span class="help-block"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">显示顺序</label>
+                    <div class="col-sm-8 col-lg-9 col-xs-12">
+                        <input type="text" name="displayorder" placeholder="" value="{$setting['displayorder']}" class="form-control"/>
+                        <span class="help-block"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">可查看的会员组</label>
+                    <div class="col-sm-8 col-lg-9 col-xs-12">
+                        {php $group = M('group')->getall();}
+                        {loop $group $li}
+                        <label class="checkbox-inline">
+                            <input type="checkbox" name="look_group[]" value="{$li['id']}" {if in_array($li['id'], (array)$setting['post_group'])}checked{/if}> {$li['title']}
+                        </label>
+                        {/loop}
+                        <span class="help-block"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">可发帖的会员组</label>
+                    <div class="col-sm-8 col-lg-9 col-xs-12">
+                        {php $group = M('group')->getall();}
+                        {loop $group $li}
+                        <label class="checkbox-inline">
+                            <input type="checkbox" name="post_group[]" value="{$li['id']}" {if in_array($li['id'], (array)$setting['post_group'])}checked{/if}> {$li['title']}
+                        </label>
+                        {/loop}
+                        <span class="help-block"></span>
+                    </div>
+                </div>
+				<div class="form-group">
+				    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">管理组</label>
+				    <div class="col-sm-8 col-lg-9 col-xs-12">
+                        {php $group = M('group')->getall();}
+                        {loop $group $g}
+				        <label class="checkbox-inline">
+				            <input type="checkbox" name="manage_group[]" value="{$g['id']}" {if in_array($g['id'], (array)$setting['manage_group'])}checked{/if}> {$g['title']}
+				        </label>
+                        {/loop}
+				        <span class="help-block"></span>
+				    </div>
+				</div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">主题图标</label>
+                    <div class="col-sm-8 col-lg-9 col-xs-12">
+                        {php echo tpl_form_field_image('icon',$setting['icon'])}
+                        <span class="help-block"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">主题简介</label>
+                    <div class="col-sm-8 col-lg-9 col-xs-12">
+                        <textarea name="content"  class="form-control" id="" cols="30" rows="10">{$setting['content']}</textarea>
+                        <span class="help-block"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+                    <div class="col-md-2 col-lg-1">
+                        <input type="button" value="保存" class="btn btn-primary btn-block" ng-click="submit();" />
+                        <input type="hidden" name="token" value="{$_W['token']}" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </form>
+</div>
+{template 'common/footer'}

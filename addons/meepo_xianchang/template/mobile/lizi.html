@@ -1,0 +1,181 @@
+{template 'pc_header'}
+<link rel="stylesheet" type="text/css" href="{MODULE_URL}template/mobile/app/css/screen_lottory_free.css">
+<link rel="stylesheet" href="{MODULE_URL}template/mobile/app/css/3d.css?t={php echo time()}">
+<link rel="stylesheet" href="{MODULE_URL}template/mobile/app/css/3dstyle.css?t={php echo time()}" media="screen" type="text/css">
+<link rel="stylesheet" href="{MODULE_URL}template/mobile/app/css/normalize.css?t={php echo time()}">
+<script src="{MODULE_URL}template/mobile/app/js/qdbase.js" type="text/javascript" charset="utf-8"></script>
+<script src="{MODULE_URL}template/mobile/app/js/screen_qd.js" type="text/javascript" charset="utf-8"></script>
+{if !empty($sd_config['bg_img'])}
+<style>
+	body {
+		background: url({php echo tomedia($sd_config['bg_img'])}) #000 !important;
+		background-size: cover !important;
+	}
+</style>
+{/if}
+</head>
+<body class="FUN WALL" {if !empty($basic_config['bg_vedio'])}data-vide-bg="{php echo tomedia($basic_config['bg_vedio'])}"{/if}>
+<div class="ui" style="display:none">
+	<input class="ui-input" type="text" />
+	<span class="ui-return"></span> 
+</div> 
+<input type="hidden" id="max_id" name="max_id" value="{php echo intval($qd_maxid)}">
+{template 'top_panel'}
+<div id="container" style="display:none;opacity: 0;"></div>
+<canvas class="canvas" style="display:none;opacity: 0;"></canvas>
+<div class="Panel Lottery" style="display: none; opacity: 1;">
+<div id="ddd"></div>
+  <script type="text/javascript">
+    	var is_show_info = 1;
+    	var hFont;
+    /*** html节点字体大小随屏幕大小改变 ***/
+    (function (doc, win) {
+        var docEl = doc.documentElement,
+            resizeEvt = 'orientationchange' in window ? 'orientationchange' : 'resize',
+            recalc = function () {
+                var clientWidth = docEl.clientWidth;
+                if (!clientWidth) return;
+                hFont = 20 * (clientWidth / 320);
+                docEl.style.fontSize = hFont + 'px';
+            };
+
+        if (!doc.addEventListener) return;
+        win.addEventListener(resizeEvt, recalc, false);
+        doc.addEventListener('DOMContentLoaded', recalc, false);
+    })(document, window);	   
+	function senddh(){
+		$('.canvas').show();
+		$('.canvas,#container').css('opacity','1');
+	}
+</script>
+<script src="{MODULE_URL}template/mobile/app/js/2d.js?t={php echo time()}"></script>
+<script type="text/javascript">
+    S.Drawing.init('.canvas');
+    /* 默认图片列表 */
+    var placeholder_image_arr = {php echo json_encode($placeholder_image_arr)};
+        
+    var placeholder_image_cnt = {php echo count($placeholder_image_arr)};
+    var placeholder_image_index = 0;
+    var default_placeholder_image = "{$placeholder_image_arr[0]}";
+/* 已经签到的用户列表 */
+var personArray = {php echo json_encode($qds)};
+
+var edit_personArray = new Array;
+var placeholder_image = default_placeholder_image;
+var table = new Array;
+for (var i=0;i<160;i++){
+	table[i]=new Object();
+	if(i<personArray.length){
+		table[i] = personArray[i];
+		table[i].src=personArray[i].avatar;
+	}else{
+		if (placeholder_image_cnt > 0){
+			if (placeholder_image_index >= placeholder_image_cnt){
+					placeholder_image_index = 0;
+			}
+			placeholder_image = placeholder_image_arr[placeholder_image_index];
+			placeholder_image_index++;
+		}
+		table[i].src= placeholder_image;
+	}
+	table[i].p_x = i%20+1;
+	table[i].p_y = Math.floor(i/20)+1;
+}
+//打乱数组顺序
+table = table.sort(function(){return Math.random()});	
+/* 动画墙显示 屏 列表 */
+//var signwall_show_str = "米波网络|#sphere|#torus|#helix";
+var signwall_show_str = "{$str}";
+/* 动画墙 切换时间？做什么用？ */
+var show_interval = "0"; // 间隔时间
+var return_array = new Array();
+function getArrayItems(arr, num) {
+    //新建一个数组,将传入的数组复制过来,用于运算,而不要直接操作传入的数组;
+    var temp_array = new Array();
+    for (var index in arr) {
+        temp_array.push(arr[index]);
+    }
+    //取出的数值项,保存在此数组
+    for (var i = 0; i<num; i++) {
+        //判断如果数组还有可以取出的元素,以防下标越界
+        if (temp_array.length>0) {
+            //在数组中产生一个随机索引
+            var arrIndex = Math.floor(Math.random()*temp_array.length);
+            //将此随机索引的对应的数组元素值复制出来
+            return_array[i] = temp_array[arrIndex];
+            //然后删掉此索引的数组元素,这时候temp_array变为新的数组
+            temp_array.splice(arrIndex, 1);
+        } else {
+            //数组中数据项取完后,退出循环,比如数组本来只有10项,但要求取出20项.
+            return false;
+        }
+    }
+    return return_array;
+}
+getArrayItems(personArray,50);
+window.onload = function(){ 
+	S.init();
+	S.UI.simulate(signwall_show_str);
+}
+var signBox = $('.signBox'),
+imgShow = $('.imgShow'),
+newPic = new Array(),
+signNo = 0,
+className = " rightBottom ",
+name,job,company,text,bowtie;
+setInterval(get_new_sign_list, 2000);
+  function get_new_sign_list(){
+  	var data = {};
+  	data.mid =  $('#max_id').val();
+  	$.ajax({
+  		url : "{php echo $this->createMobileUrl('new_qd',array('rid'=>$rid))}",
+  		dataType:"JSON",
+  		type:"GET",
+  		data:data,
+  		success:function(result){  
+  				if (result.mid){
+  					$('#max_id').val(result.mid);
+  				}  	
+				if (result.omid < result.mid) { 
+						personArray.push(result);
+						$('.element').eq(personArray.length-1).find('img').attr('src',result.avatar);
+  				}
+  			
+  		}//success
+  	});
+	
+};
+setInterval(function() {
+	getArrayItems(personArray,50);
+}, 10 * 1000);
+  	</script>
+  	<script src="{MODULE_URL}template/mobile/app/js/three.min.js"></script>
+ 	<script src="{MODULE_URL}template/mobile/app/js/tween.min.js"></script>
+  	<script src="{MODULE_URL}template/mobile/app/js/CSS3DRenderer.js"></script>
+  	<script src="{MODULE_URL}template/mobile/app/js/3d.js?t={php echo time()}"></script>
+  	<script type="text/javascript">
+		init();
+		animate();
+		transform( targets.table, 2000, 'table', 10);
+		var signAlert = $("#signAlert");
+	    /* 新增功能，头像弹窗的展示与关闭 */
+		function addEventHandler(ele, event, hanlder) {
+				if (ele.addEventListener) {
+						ele.addEventListener(event, hanlder, false);
+				} else if (ele.attachEvent) {
+						ele.attachEvent("on"+event, hanlder);
+				} else  {
+						ele["on" + event] = hanlder;
+				}
+		 }
+		function isNull(value) {
+			if (typeof value === "undefined" || typeof value === "" || typeof value === "null" || value == "null" || value == null || value == "" || value == "undefined") {
+				return true;
+			} else {
+				return false;
+			}
+		}
+        
+ </script>
+</div>
+{template 'pc_footer'}

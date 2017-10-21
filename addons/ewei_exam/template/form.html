@@ -1,0 +1,159 @@
+<style>
+    .clear{width:100%;height:0;clear:both;}
+    .alert{margin:1px 0;padding:10px 15px;background:#F5F5F5;}
+    .item-show .reply-news-list-cover{width:30%;height:100px;float:right;overflow:hidden;}
+    .item-show .reply-news-list-cover img{width:100%;height:auto;}
+    .item-show .reply-news-list-detail{width:65%;float:left;overflow:hidden;height:auto}
+    .item-show .reply-news-list-detail .help-block{margin:5px 0}
+
+    .item-list-first .reply-news-list-cover{width:100%;height:200px;;overflow:hidden;}
+    .item-list-first .reply-news-list-cover img{width:100%;height:auto;}
+    .item-list-first .reply-news-list-detail{width:100%;position:absolute;bottom:0;left:0;overflow:hidden;height:50px;color:#FFF;filter:Alpha(opacity=70);background:#000;background:rgba(0, 0, 0, 0.7);text-shadow:none;font-family:arial,宋体b8b\4f53,sans-serif;}
+    .item-list-first .help-block{padding:0 10px}
+    .item-list-first .pull-right{position:absolute;bottom:10px;right:0}
+</style>
+<div class="panel panel-default">
+    <div class="panel-heading"> 
+        选择要展示的试卷
+    </div>
+    <div class="panel-body" id="new-reply">
+        <div class="row">
+            {if !empty($reply)}
+            {php $i = 0;}
+            {loop $reply $li}
+            <div class="reply-item">
+                <input type="hidden" name="paperid[]" value="{$row['paperid']}"/>
+                <div class="col-sm-12 item-show {if $i < 1}item-list-first{/if}" id="item-show-{$li['id']}">
+                    <div class="alert">
+                        <div style="position:relative">
+                            <div class="reply-news-list-cover">
+                                <img src="{php echo toimage($album[$row['paperid']]['thumb'])}"/>
+                            </div>
+                            <div class="reply-news-list-detail">
+                                <span class="help-block title"><strong>{$album[$row['paperid']]['title']}</strong></span>
+                                <span class="help-block content">{php echo cutstr($album[$row['paperid']]['content'], 30, '...')}</span>
+                                <span class="help-block pull-right">
+                                    <a href="javascript:;" onclick='examHandler.doDeleteItem("item-show-{$li['id']}")'>删除</a> 
+                                </span>
+                            </div>
+                            <div class="clear"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {php $i++;}
+            {/loop}
+            {/if}
+        </div>
+        <div class="col-sm-12">
+            <div class="alert" style="text-align:center;">
+                <a href="javascript:;" class="btn btn-default" onclick="examHandler.buildForm();"><i class="fa fa-plus"></i> 添加要展示的试卷</a>
+            </div>
+        </div>
+    </div>
+    <script id="news-form-html" type="text/html">
+        <div class="reply-item">
+            <input type="hidden" name="paperid[]" value="(item-add-id)"/>
+            <div class="col-sm-12 item-show (item-add-first)"  id="(item-add-show)">
+                <div class="alert">
+                    <div style="position:relative">
+                        <div class="reply-news-list-cover">
+                            <img src="(item-add-thumb)"/>
+                        </div>
+                        <div class="reply-news-list-detail">
+                            <span class="help-block title"><strong>(item-add-title)</strong></span>
+                            <span class="help-block content">(item-add-content)</span>
+                            <span class="help-block pull-right">
+                                <a href="javascript:;" onclick='examHandler.doDeleteItem("(item-add-show)");'>删除</a> 
+                            </span>
+                        </div>
+                        <div class="clear"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </script>
+    <div id="modal-module-menus"  class="modal fade" tabindex="-1">
+    <div class="modal-dialog" style='width: 920px;'>
+        <div class="modal-content">
+             <div class="modal-header"><button aria-hidden="true" data-dismiss="modal" class="close" type="button">×</button><h3>选择要展示的项目</h3></div>
+            <div class="modal-body" >  
+                <div class="row">
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="keyword" value="" id="search-kwd" placeholder="请输入试卷名称" />
+                         <span class='input-group-btn'><button type="button" class="btn btn-default" onclick="search_entries();">搜索</button></span>
+                    </div>
+                </div>
+                <div id="module-menus" style="padding-top:5px;"></div>
+                </div>
+               <div class="modal-footer"><a href="#" class="btn btn-default" data-dismiss="modal" aria-hidden="true">关闭</a></div>
+            </div>
+             
+        </div>
+    </div>
+    <script>
+		var attachurl = "{php echo $_W['attachurl'];}";
+		var examHandler = {
+			'buildForm' : function(){
+				if ($('#new-reply .reply-item').size() >= 8) {
+					require(['util'], function(u){
+						u.message('单条图文信息最多添加八条内容！', '', 'error');
+					});
+
+					return false;
+				}
+				popwin = $('#modal-module-menus').modal();
+			},
+            'updateList' : function(){
+				$('#new-reply .reply-item:first').find('.item-show').addClass('item-list-first')
+			},
+			'doEditItem' : function(showid, formid){
+				this.updateList();
+				$('#' + showid).hide();
+				$('#' + formid).show();
+			},
+			'doDeleteItem' : function(itemid){
+				$('#' + itemid).parent().remove();
+				this.updateList();
+			}
+        };
+        var popwin;
+	function search_entries() {
+		var kwd = $.trim($('#search-kwd').val());
+                $("#module-menus").html("正在查询, 请稍后...");
+		$.post('{php echo $this->createWebUrl('query');}', {keyword: kwd}, function(dat){
+			$('#module-menus').html(dat);
+		});
+	}
+	function select_entry(o) {
+        if ($('.reply-item').size() >= 8) {
+			popwin.modal('hide');
+			//message('超过图文规则最大显示条数！');
+            require(['util'], function(u){
+            	u.message('单条图文信息最多添加八条内容！', '', 'error');
+            });
+			return false;
+		}
+		var size = $('.reply-item').size();
+        var html = $('#news-form-html').html();
+        html = html.replace(/\(item-add-first\)/gm, size<=0?' item-list-first':'');
+		html = html.replace(/\(item-add-show\)/gm, 'item-show-' + (++size));
+		html = html.replace(/\(item-add-form\)/gm, 'item-form-' + (size));
+        html = html.replace(/\(item-add-id\)/gm, o.id);
+        html = html.replace(/\(item-add-content\)/gm, o.content);
+        html = html.replace(/\(item-add-thumb\)/gm, o.thumb);
+        html = html.replace(/\(item-add-title\)/gm, o.title);
+		$('#new-reply .row').append(html);
+	}
+    </script>
+    <script language="javascript">
+        $('form').submit(function(){
+        	if ($('.reply-item').size() <= 0) {
+            	require(['util'], function(u){
+                	u.message('至少选择一个试卷！', '', 'error');
+                });
+			return false;
+			}
+        	return true;
+        })
+    </script>

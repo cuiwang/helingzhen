@@ -1,0 +1,391 @@
+{template 'common/header'}
+<div class="main">
+	<ul class="nav nav-tabs">
+		<li><a href="{php echo $this->createWebUrl('giftManage');}">礼品管理</a></li>
+		<li><a href="{php echo $this->createWebUrl('adManage');}">广告管理</a></li>
+		<li><a href="{php echo $this->createWebUrl('giftOrderManage');}">兑换记录</a></li>
+		<li class="active"><a href="{php echo $this->createWebUrl('checkRecordManage');}">核销记录</a></li>
+		<li><a href="{php echo $this->createWebUrl('tplNoticeConfig');}">模板消息设置</a></li>
+		<li><a href="{php echo $this->createWebUrl('updatePage');}">手动更新</a></li>
+	</ul><!--
+	<div>
+		<a href="{php echo $this->createWebUrl('GiftOrderManage')}"><button type="button" class="btn btn-default btn-sm {if $status == -1 }active{/if}">默认排序</button></a>
+		<a href="{php echo $this->createWebUrl('GiftOrderManage',array('s'=>0))}"><button type="button" class="btn btn-default btn-sm {if $status == 0}active{/if}">待处理</button></a>
+		<a href="{php echo $this->createWebUrl('GiftOrderManage',array('s'=>1))}"><button type="button" class="btn btn-default btn-sm {if $status == 1}active{/if}">成功</button></a>
+		<a href="{php echo $this->createWebUrl('GiftOrderManage',array('s'=>2))}"><button type="button" class="btn btn-default btn-sm {if $status == 2}active{/if}">失败</button></a>
+	</div>-->
+	<div class="" style="padding 10px">
+		<form action="" method="post">
+			<table class="table table-hover">
+				<thead class="navbar-inner">
+					<tr>
+						<th width="5%">编号</th>						
+	                    <th width="15%">礼品名</th>
+	                    <th width="8%">模式</th>
+						<th width="7%">消耗积分</th>
+						<th width="7%">领取姓名</th>
+						<th width="10%">联系电话</th>
+						<!--<th width="10%">目标对象</th>-->
+						<th width="15%">时间</th>
+						<th width="15%">状态</th>
+						<th width="10%">抽奖</th>
+					</tr>
+				</thead>
+				<tbody>
+					{loop $gift_orders $o}
+						<tr>
+							<td data-id="{$o['id']}">{$o['id']}</td>
+							<td>{$o['gift_name']}</td>
+							<td><span class="label label-danger">{if $o['mode'] == 1}微信红包{elseif $o['mode'] == 2}话费充值{elseif $o['mode'] == 3}实物礼品{elseif $o['mode'] == 4}自领礼品{/if}</span></td>
+							<td>{$o['order_price']}</td>
+							<td>{$o['real_name']}</td>
+							<td>{$o['mobile']}</td>
+							<!--<td>{$o['target']}</td>-->
+							<td>{php echo date("Y-m-d H:i:s",$o['createtime'])}</td>
+							{if $o['order_mode'] == 0}
+								<td data-option="status">{if $o['status'] == 0}待处理{if $o['mode'] == 3}{if $o['pay_status'] == 0}(未支付){elseif $o['pay_status'] == 1}(已支付){/if}{/if}{elseif $o['status'] == 1}{if $o['mode'] == 1}红包已发放{/if}{if $o['mode'] == 2}已充值{/if}{if $o['mode'] == 3}已支付({if $o['trans_num'] == 0}未发货{else}已发货{/if}){/if}{if $o['mode'] == 4}待领取{/if}{elseif $o['status'] == 2}失败{elseif $o['status'] == 5}已核销{/if}</td>
+							{elseif $o['order_mode'] == 1}
+								<td data-option="status">{if $o['raffle_status'] == 0}<span class="label label-danger">未中奖</span>{elseif $o['raffle_status' == 1]}{if $o['status'] == 0}待处理{if $o['mode'] == 3}{if $o['pay_status'] == 0}(未支付){elseif $o['pay_status'] == 1}(已支付){/if}{/if}{elseif $o['status'] == 1}{if $o['mode'] == 1}红包已发放{/if}{if $o['mode'] == 2}已充值{/if}{if $o['mode'] == 3}已支付({if $o['trans_num'] == 0}未发货{else}已发货{/if}){/if}{if $o['mode'] == 4}待领取{/if}{elseif $o['status'] == 2}失败{elseif $o['status'] == 5}已领取{/if}{/if}</td>
+							{/if}
+							<td><span class="label label-success">{if $o['order_mode'] == 0}{elseif $o['order_mode'] == 1}抽奖{/if}</span></td>
+						</tr>
+					{/loop}
+				</tbody>
+			</table>
+		</form>
+		{$pager}
+	</div>
+</div>
+<!-- 模态框（Modal） -->
+<div class="modal fade" id="detail-modal-1" tabindex="-1" role="dialog"
+	 aria-labelledby="myModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal"
+						aria-hidden="true">×
+				</button>
+				<h4 class="modal-title" id="modal-1-label">
+					礼品详情(微信红包)
+				</h4>
+			</div>
+			<div class="modal-body">
+				<table class="table">
+					<tbody>
+						<tr>
+							<td>兑换人账户</td>
+							<td name="openid"></td>
+						</tr>
+						<tr>
+							<td>金额</td>
+							<td name="hongbao_money"></td>
+						</tr>
+						<tr>
+							<td>打款状态</td>
+							<td name="status_text"></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">
+					关闭
+				</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<div class="modal fade" id="detail-modal-2" tabindex="-1" role="dialog"
+	 aria-labelledby="myModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal"
+						aria-hidden="true">×
+				</button>
+				<h4 class="modal-title" id="modal-2-label">
+					礼品详情(话费充值)
+				</h4>
+			</div>
+			<div class="modal-body">
+				<table class="table">
+					<tbody>
+						<tr>
+							<td>充值手机</td>
+							<td name="mobile"></td>
+						</tr>
+						<tr>
+							<td>金额</td>
+							<td name="mobile_fee_money"></td>
+						</tr>
+						<tr>
+							<td>充值状态</td>
+							<td name="status"></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">
+					关闭
+				</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<div class="modal fade" id="detail-modal-3" tabindex="-1" role="dialog"
+	 aria-labelledby="myModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal"
+						aria-hidden="true">×
+				</button>
+				<h4 class="modal-title" id="modal-3-label">
+					礼品详情(实物礼品)
+				</h4>
+			</div>
+			<div class="modal-body">
+				<table class="table">
+					<tbody>
+
+						<tr class="hide id">
+							<td>id</td>
+							<td name="id"></td>
+						</tr>
+						<tr>
+							<td>收货人姓名</td>
+							<td name="name"></td>
+						</tr>
+						<tr>
+							<td>收获地址</td>
+							<td name="address"></td>
+						</tr>
+						<tr>
+							<td>手机号码</td>
+							<td name="mobile"></td>
+						</tr>
+						<tr>
+							<td>订单状态</td>
+							<td name="order_status"></td>
+						</tr>
+						<tr>
+							<td>邮费支付方式</td>
+							<td name="pay_mothod"></td>
+						</tr>
+						<tr>
+							<td>支付状态</td>
+							<td name="pay_status"></td>
+						</tr>
+						<tr>
+							<td>邮费金额</td>
+							<td name="send_price"></td>
+						</tr>
+						<tr>
+							<td>快递单号</td>
+							<td name="trans_num">
+								<input type="text" name="trans_num" value="" />
+								<button class="btn-sm btn-primary update-trans-num" data-update-trans-num-url="{php echo $this->createWebUrl('updateTransNum')}">保存</button>
+								<i class="glyphicon glyphicon-ok text-success" style="display: none;"></i>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">
+					关闭
+				</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<div class="modal fade" id="detail-modal-4" tabindex="-1" role="dialog"
+	 aria-labelledby="myModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal"
+						aria-hidden="true">×
+				</button>
+				<h4 class="modal-title" id="modal-4-label">
+					订单详情
+				</h4>
+			</div>
+			<div class="modal-body">
+				<table class="table">
+					<tbody>
+					<tr>
+						<td>收货人姓名</td>
+						<td name="name"></td>
+					</tr>
+					<tr>
+						<td>收获地址</td>
+						<td name="address"></td>
+					</tr>
+					<tr>
+						<td>手机号码</td>
+						<td name="mobile"></td>
+					</tr>
+					<tr>
+						<td>订单状态</td>
+						<td name="order_status"></td>
+					</tr>
+					<tr>
+						<td>支付方式</td>
+						<td name="pay_mothod"></td>
+					</tr>
+					<tr>
+						<td>支付状态</td>
+						<td name="pay_status"></td>
+					</tr>
+					<tr>
+						<td>邮费金额</td>
+						<td name="send_price"></td>
+					</tr>
+					<tr>
+						<td>是否来自分享</td>
+						<td name="share"></td>
+					</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">
+					关闭
+				</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<script type="text/javascript">
+	$(function(){
+		//微信红包模态框
+		$('a.order-detail-1').on('click', function () {
+			//修改数据
+			var btn = $(this);
+			var openid = btn.data('openid');
+			var hongbao_money = btn.data('hongbao-money');
+			var status_text = (btn.data('status') == 1 ? '已打款' : '未打款');
+			if(btn.data('status') == 2){
+				status_text = '失效(未通过审核)'
+			}
+			$('#detail-modal-1 td[name=openid]').text(openid);
+			$('#detail-modal-1 td[name=hongbao_money]').text(hongbao_money);
+			$('#detail-modal-1 td[name=status_text]').text(status_text);
+			$('#detail-modal-1').modal();
+		});
+		//充值卡模态框
+		$('a.order-detail-2').on('click', function () {
+			//修改数据
+			var btn = $(this);
+			var mobile = btn.data('mobile');
+			var mobile_fee = btn.data('mobile-fee');
+			var status = parseInt(btn.data('status'));
+			var status_text = (status == 1 ? '已充值' : '未充值');
+			if(btn.data('status') == 2){
+				status_text = '失效(未通过审核)'
+			}
+			$('#detail-modal-2 td[name=mobile]').text(mobile);
+			$('#detail-modal-2 td[name=mobile_fee_money]').text(mobile_fee);
+			$('#detail-modal-2 td[name=status]').text(status_text);
+			$('#detail-modal-2').modal();
+		});
+		//实物礼品模态框
+		$('a.order-detail-3').on('click', function () {
+			$('#detail-modal-3 td[name=trans_num] i').hide();
+			//修改数据
+			var btn = $(this);
+			var id = btn.data('id');
+			var name = btn.data('name');
+			var address = btn.data('address');
+			var mobile = btn.data('mobile');
+			var order_status_text = (btn.data('status') == 1 ? '已发放' : '待审核');
+			if(btn.data('status') == 2){
+				order_status_text = '失效(未通过审核)'
+			}
+			var pay_mothod = (btn.data('pay-method') == 1 ? '微信支付' : '货到支付');
+			var pay_status = (btn.data('pay-status') == 1 ? '已支付' : '未支付');
+			var send_price = btn.data('send-price');
+			var trans_num = btn.data('trans-num');
+			$('#detail-modal-3 td[name=id]').text(id);
+			$('#detail-modal-3 td[name=name]').text(name);
+			$('#detail-modal-3 td[name=address]').text(address);
+			$('#detail-modal-3 td[name=mobile]').text(mobile);
+			$('#detail-modal-3 td[name=order_status]').text(order_status_text);
+			$('#detail-modal-3 td[name=pay_mothod]').text(pay_mothod);
+			$('#detail-modal-3 td[name=pay_status]').text(pay_status);
+			$('#detail-modal-3 td[name=send_price]').text(send_price);
+			$('#detail-modal-3 td input[name=trans_num]').val(trans_num);
+			$('#detail-modal-3 td button.update-trans-num').data('id',id);
+			$('#detail-modal-3').modal();
+		});
+		//自领礼品模态框
+//		$('a.order-detail-4').on('click', function () {
+//			//修改数据
+//			var btn = $(this);
+//			var name = btn.parent('td').siblings('td[name=name]').text();
+//			var address = btn.parent('td').siblings('td[name=address]').text();
+//			var mobile = btn.parent('td').siblings('td[name=mobile]').text();
+//			var order_status = btn.parent('td').siblings('td[name=order_status]').text();
+//			var pay_mothod = btn.parent('td').siblings('td[name=pay_mothod]').text();
+//			var pay_status = btn.parent('td').siblings('td[name=pay_status]').text();
+//			var send_price = btn.parent('td').siblings('td[name=send_price]').text();
+//			var share = ( btn.parent('td').siblings('td[name=share_openid]').text() != "" ) ? '是' : '否';
+//			$('#detail-modal-4 td[name=name]').text(name);
+//			$('#detail-modal-4 td[name=address]').text(address);
+//			$('#detail-modal-4 td[name=mobile]').text(mobile);
+//			$('#detail-modal-4 td[name=order_status]').text(order_status);
+//			$('#detail-modal-4 td[name=pay_mothod]').text(pay_mothod);
+//			$('#detail-modal-4 td[name=pay_status]').text(pay_status);
+//			$('#detail-modal-4 td[name=send_price]').text(send_price);
+//			$('#detail-modal-4 td[name=share]').text(share);
+//			$('#detail-modal-4').modal();
+//		});
+		
+		$('.update-trans-num').on('click',function () {
+			var btn = $(this);
+			var url = $(this).data('update-trans-num-url');
+			var postData = {
+				'order_id' : btn.data('id') ,
+				'num' : btn.siblings('input[name=trans_num]').val(),
+			};
+			$.post(url,postData, function (e) {
+				var json = JSON.parse(e);
+				if(json.status != 200){
+					alert(json.message);
+				}else{
+					//trans-num
+					$('a.order-detail-3[data-id='+postData.order_id+']').data('trans-num',postData.num);
+					btn.siblings('i').show();
+				}
+			});
+		});
+
+		//更改订单状态
+		$(".opt-gift-order").on("click",function(){
+			var btn = $(this);
+			var url = btn.attr('url')
+			$.post(url,function(result){
+				$id = $(this).attr('data-id');
+				var json = eval('('+result+')');
+				if(json.status != 200){
+					alert(json.message);
+					return false;
+				}else{
+					btn.siblings("a.opt-gift-order").attr("disabled","disabled");
+					btn.attr("disabled","disabled");
+					if(url.indexOf('opt=refuse') != -1){
+						btn.parent().parent().attr("class","danger");
+						btn.parent().siblings("td[data-option='status']").text("失败");
+					}else if(url.indexOf('opt=ok') != -1 ){
+						btn.parent().parent().attr("class","success");
+						btn.parent().siblings("td[data-option='status']").text("成功");
+					}
+				}
+			});
+
+		});
+	});
+</script>
+{template 'common/footer'}

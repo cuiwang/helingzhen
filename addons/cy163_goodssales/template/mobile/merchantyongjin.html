@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1.0,maximum-scale=1.0,minimum-scale=1,user-scalable=no">
+    <meta content="yes" name="apple-mobile-web-app-capable">
+    <meta content="black" name="apple-mobile-web-app-status-bar-style">
+    <meta content="telephone=no" name="format-detection">
+    <meta content="email=no" name="format-detection">
+    <title>佣金记录</title>
+    <link rel="stylesheet" href="{MD_ROOTN}/messi/css/reset.css"/>
+    <link rel="stylesheet" href="{MD_ROOTN}/messi/iconfont/iconfont.css"/>
+	<link rel="stylesheet" href="{MD_ROOTN}/messi/css/account.css"/>
+	<link rel="stylesheet" href="{MD_ROOTN}/jqueryweui/css/weui.min.css"/>
+	<link rel="stylesheet" href="{MD_ROOTN}/jqueryweui/css/jquery-weui.min.css"/>
+	<link rel="stylesheet" href="{MD_ROOTN}/messi/css/common.css"/>
+    <script>
+        var deviceWidth = document.documentElement.clientWidth;
+        document.documentElement.style.fontSize = deviceWidth / 7.5 + 'px';
+    </script>
+	<style>
+	.weui-dialog__hd {
+		padding:0;
+		font-size:0.5rem;
+	}
+	</style>
+</head>
+
+<body style="background:#f5f5f5;">
+<div id="header">
+	<div class="goback iconfont" onclick="history.go(-1);">&#xe612;</div>
+	<div class="title textellipsis1 text-c">佣金记录</div>
+	<div class="empty"></div>
+</div>
+
+<div id="main">
+	<div class="list">
+		{if $yongjinlist}
+			{loop $yongjinlist $row}
+			<div class="item">
+				<div class="iconfont">&#xe695;</div>
+				<div class="msg">
+					<div class="ordersn textellipsis1">{php echo date('Y-m-d H:i:s',$row['createtime'])}</div>
+					<div class="status">订单号：{$row['ordersn']}</div>
+				</div>
+				<div class="yongjin text-c">¥{$row['fenxiaoprice']}</div>
+			</div>
+			{/loop}
+		{else}
+		<div class="noaccount text-c">( ⊙ o ⊙ )啊哦，没有记录啦~</div>
+		{/if}
+	</div>
+	<div class="load text-c hide">数据加载中</div>
+</div>
+<script type="text/javascript" src="{MD_ROOTN}/messi/js/jquery-3.1.1.min.js"></script>
+<script type="text/javascript" src="{MD_ROOTN}/jqueryweui/js/fastclick.js"></script>
+<script type="text/javascript" src="{MD_ROOTN}/jqueryweui/js/jquery-weui.min.js"></script>
+<script type="text/javascript">
+$(function(){
+	FastClick.attach(document.body);
+})
+//滚动加载
+var loading = false;  //状态标记
+var count = 2;
+$(document.body).infinite().on("infinite", function() {
+	if(loading) return;
+	loading = true;
+	if(count < {$allpage}){
+		$('.load').removeClass('hide');
+		setTimeout(function() {
+			$.ajax({
+				url:"{php echo $this->createMobileUrl('merchantyongjin')}",
+				data:{
+					page:count,
+					isajax:1,
+				},
+				dataType:'html',
+				type:'post',        
+				success:function(data){
+					if(data != ''){
+						$('.list').append(data);
+						count++;
+					}
+					loading = false;
+				},
+			});
+		}, 500);   //模拟延迟
+	}else{
+		$('.load').text('全部数据已经加载完毕');
+	}
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+{template 'header'}
+{template 'header-common'}
+<link type="text/css" rel="stylesheet" href="{$_W['siteroot']}addons/superman_house/template/mobile/css/partner.css">
+<link type="text/css" rel="stylesheet" href="{$_W['siteroot']}addons/superman_house/template/mobile/css/house-list.css">
+<div class="margin">
+	<div class="card border-1px" style="margin-top: 0">
+		{if !empty($this->from_member)}
+		<div class="fontcolor partner-share" style="padding: 10px 0">
+			<span>
+				<img class="img-responsive" src="{if !empty($this->from_member['avatar'])}{php echo $this->from_member['avatar']}{else}resource/images/heading.jpg{/if}"/>
+				<span style="color: #ff822e">{php echo $this->from_member['partner']['realname']}</span> 邀请您加入经纪人赚佣金
+			</span>
+		</div>
+		{/if}
+		<form action="" method="post" id="regilster">
+			<div class="form-group">
+				<input type="text" class="form-control" placeholder="姓名" name="name">
+			</div>
+			<div class="form-group">
+				<input type="tel" class="form-control" placeholder="手机" name="phone">
+			</div>
+			<div class="form-group">
+				<select class="form-control" name="roleid">
+					<option value="-1">选择您的身份类型</option>
+					{loop $roles $role}
+					{if !$role['isshow']}
+						{php continue;}
+					{/if}
+					{if $this->from_member}
+						{if $this->from_member['role']['isadmin']}
+							{if !$role['issubadmin']}
+								{php continue;}
+							{/if}
+						{else if $this->from_member['role']['issubadmin']}
+							{if $role['issubadmin'] || $role['isadmin']}
+								{php continue;}
+							{/if}
+						{/if}
+					{else}
+						{if $role['issubadmin']}
+							{php continue;}
+						{/if}
+					{/if}
+					<option value="{$role['id']}">{$role['title']}</option>
+					{/loop}
+				</select>
+			</div>
+			{if $this->module[config][partner][agreement]}
+			<div class="checkbox text-center">
+				<label>
+					<input type="checkbox" name="agreement">我同意《经纪人协议》
+				</label>
+				<a href="javascript:;" data-toggle="modal" data-target="#agreementModal">查看经纪人协议</a>
+				<div class="modal fade" id="agreementModal" tabindex="-1" role="dialog" aria-labelledby="agreementModalLabel">
+					<div class="modal-dialog" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+								<h4 class="modal-title" id="agreementModalLabel">经纪人协议</h4>
+							</div>
+							<div class="modal-body">
+								{php echo htmlspecialchars_decode($this->module[config][partner][agreement])}
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			{/if}
+			<input type="hidden" name="token" value="{$_W['token']}">
+			<button type="submit" id="btnAddPartner" name="submit" value="yes" class="btn btn-danger btn-lg btn-block">注册</button>
+			<span style="font-size: 12px; display: block; margin-top: 10px;">温馨提示：请输入<strong>真实姓名和手机资料</strong>，否则无法结算佣金。</span>
+		</form>
+		<script>
+			require(['jquery', 'util'],function($, u){
+				$('#regilster').bind('submit', function(){
+					var name = $('input[name=name]');
+					var phone = $('input[name=phone]');
+					var roleid = $('select[name=roleid]');
+					if (name.val() == '') {
+						u.message('请输入您的姓名', '', 'error');
+						return false;
+					}
+					if (phone.val() == '') {
+						u.message('请输入您的手机号', '', 'error');
+						return false;
+					}
+					if (roleid.val() == '-1') {
+						u.message('请选择您的身份类型', '', 'error');
+						return false;
+					}
+					var reg = /^\d{11}$/;
+					var re = new RegExp(reg);
+					if (!re.test($.trim(phone.val()))) {
+						u.message('手机号格式不正确', '', 'error');
+						return false;
+					}
+					return true;
+				});
+				$('input[name=agreement]').click(function(){
+					if ($(this).prop('checked')) {
+						$('#btnAddPartner').attr('disabled', false);
+					} else {
+						$('#btnAddPartner').attr('disabled', true);
+					}
+				});
+				$('form').submit(function(){
+					{if $this->module['config']['partner']['agreement']}
+					var agreement = $('input[name=agreement]');
+					if (!agreement.prop('checked')) {
+						u.message('请查看和勾选同意经纪人协议', '', 'error');
+						return false;
+					}
+					{/if}
+					return true;
+				});
+			});
+		</script>
+	</div>
+</div>

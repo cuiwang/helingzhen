@@ -1,0 +1,212 @@
+<!--
+ * ============================================================================
+ * 版权所有 2015-2016 米粒源码，并保留所有权利。
+ * 网站地址: http://www.webmili.com；
+ * ----------------------------------------------------------------------------
+ * 这不是一个自由软件！已购买用户允许对程序代码进行修改和使用，但是不允许对
+ * 程序代码以任何形式任何目的的再发布，作者将保留追究法律责任的权力和最终解
+ * 释权。
+ * ============================================================================
+-->
+  
+{template 'common/header'}
+<ul class="nav nav-tabs">
+    <li {if $operation=='display'}class="active"{/if}><a href="{php echo $this->createWebUrl('allorder');}">订单汇总</a></li>
+</ul>
+{if $operation == 'display'}
+<style>
+        .page-nav {
+            margin: 0;
+            width: 100%;
+            min-width: 800px;
+        }
+
+        .page-nav > li > a {
+            display: block;
+        }
+
+        .page-nav-tabs {
+            background: #EEE;
+        }
+
+        .page-nav-tabs > li {
+            line-height: 40px;
+            float: left;
+            list-style: none;
+            display: block;
+            text-align: -webkit-match-parent;
+        }
+
+        .page-nav-tabs > li > a {
+            font-size: 14px;
+            color: #666;
+            height: 40px;
+            line-height: 40px;
+            padding: 0 10px;
+            margin: 0;
+            border: 1px solid transparent;
+            border-bottom-width: 0px;
+            -webkit-border-radius: 0;
+            -moz-border-radius: 0;
+            border-radius: 0;
+        }
+
+        .page-nav-tabs > li > a, .page-nav-tabs > li > a:focus {
+            border-radius: 0 !important;
+            background-color: #f9f9f9;
+            color: #999;
+            margin-right: -1px;
+            position: relative;
+            z-index: 11;
+            border-color: #c5d0dc;
+            text-decoration: none;
+        }
+
+        .page-nav-tabs >li >a:hover {
+            background-color: #FFF;
+        }
+
+        .page-nav-tabs > li.active > a, .page-nav-tabs > li.active > a:hover, .page-nav-tabs > li.active > a:focus {
+            color: #576373;
+            border-color: #c5d0dc;
+            border-top: 2px solid #4c8fbd;
+            border-bottom-color: transparent;
+            background-color: #FFF;
+            z-index: 12;
+            margin-top: -1px;
+            box-shadow: 0 -2px 3px 0 rgba(0, 0, 0, 0.15);
+        }
+		.col-lg-3{width:22%;}
+    </style>
+<div class="main">
+    <div class="panel panel-info">
+        <div class="panel-heading">筛选</div>
+        <div class="panel-body">
+            <form action="./index.php" method="get" class="form-horizontal" role="form">
+                <input type="hidden" name="c" value="site" />
+                <input type="hidden" name="a" value="entry" />
+                <input type="hidden" name="m" value="cash_car" />
+                <input type="hidden" name="do" value="allorder" />
+                <input type="hidden" name="op" value="display" />
+                <input type="hidden" name="storeid" value="{$storeid}" />
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label" style="width:100px;">订单编号</label>
+                    <div class="col-sm-2 col-lg-3">
+                        <input class="form-control" name="ordersn" id="" type="text" value="{$_GPC['ordersn']}">
+                    </div>
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">客户手机</label>
+                    <div class="col-sm-2 col-lg-3">
+                        <input class="form-control" name="tel" id="" type="text" value="{$_GPC['tel']}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label" style="width:100px;">订单状态</label>
+                    <div class="col-sm-8 col-lg-3 col-xs-12">
+                        <select name="status" class="form-control">
+                            <option value="">不限</option>
+							<option value="1" {if $_GPC['status'] == 1} selected="selected" {/if}>待接单/已付款</option>
+							<option value="2" {if $_GPC['status'] == 2} selected="selected" {/if}>已接单/已付款</option>
+                            <option value="3" {if $_GPC['status'] == 3} selected="selected" {/if}>已完成/待评价</option>
+                            <option value="-1" {if $_GPC['status'] == -1} selected="selected" {/if}>已取消</option>
+                        </select>
+                    </div>
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">客户姓名</label>
+                    <div class="col-sm-2 col-lg-3">
+                        <input class="form-control" name="username" id="" type="text" value="{$_GPC['username']}">
+                    </div>
+                </div>
+                <div class="form-group">
+				    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label" style="width:100px;">服务点</label>
+                    <div class="col-sm-8 col-lg-3 col-xs-12">
+                        <select name="storeid" class="form-control">
+                            <option value="">不限</option>
+							{loop $storelist $store}
+                            <option value="{$store['id']}" {if $_GPC['storeid'] == $store['id']} selected="selected" {/if}>{$store[title]}</option>
+							{/loop}
+                        </select>
+                    </div>
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label" style="width: 100px;">下单时间</label>
+                    <div class="col-sm-8 col-lg-3 col-xs-12">
+                        {php echo tpl_form_field_daterange('time', array('starttime'=>date('Y-m-d', $starttime),'endtime'=>date('Y-m-d', $endtime)));}
+                    </div>
+                    <div class="col-sm-3 col-lg-3" style="width: 18%;">
+                        <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+						<button class="btn btn-success" name="out_put" value="output"><i class="fa fa-file"></i> 导出</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <ul class="page-nav page-nav-tabs" style="background:none;float: left;margin-left: 0px;padding-left: 0px;border-bottom:1px #c5d0dc solid;">
+        <li{if empty($_GPC['status'])} class="active"{/if}>
+        <a href="{php echo $this->createWebUrl('allorder', array('op' => 'display', 'status' => 0))}">全部订单({$order_count_all})</a>
+        </li>
+        <li{if $_GPC['status']==2} class="active"{/if}>
+        <a href="{php echo $this->createWebUrl('allorder', array('op' => 'display', 'status' => 2))}">已付款订单({$order_count_pay})</a>
+        </li>
+        <li{if $_GPC['status']==3} class="active"{/if}>
+        <a href="{php echo $this->createWebUrl('allorder', array('op' => 'display', 'status' => 3))}">已完成订单({$order_count_finish})</a>
+        </li>
+        <li{if $_GPC['status']==-1} class="active"{/if}>
+        <a href="{php echo $this->createWebUrl('allorder', array('op' => 'display', 'status' => -1))}">已取消订单({$order_count_cancel})</a>
+        </li>
+    </ul>
+    <div class="panel panel-default">
+        <form action="" method="post" class="form-horizontal form" >
+        <input type="hidden" name="storeid" value="{$storeid}" />
+        <div class="table-responsive panel-body">
+            <table class="table table-hover">
+                <thead class="navbar-inner">
+                <tr>
+                    <th style="width:12%;">订单编号</th>
+                    <th style="width:10%;">姓名</th>
+                    <th style="width:12%;">电话</th>
+                    <th style="width:12%;">支付方式</th>
+                    <th style="width:9%;">订单状态</th>
+					<th style="width:13%;">服务点</th>
+                    <th style="width:13%;">下单时间</th>
+                    <th style="width:10%; text-align:right;">查看/删除</th>
+                </tr>
+                </thead>
+                <tbody>
+                {loop $list $item}
+                <tr>
+                    <td>{$item['ordersn']}</td>
+                    <td>{$item['username']}</td>
+                    <td>{$item['tel']}</td>
+                    <td>
+                        {if empty($item['usecard'])}
+						   {if $item['paytype'] == 1}余额支付
+						   {elseif $item['paytype'] == 2}在线支付
+						   {elseif $item['paytype'] == 3}现金付款
+						   {else}无{/if}
+						{else}
+						   {if $item['paytype'] == 0 && $item['usecard']}洗车卡支付
+						   {elseif $item['paytype'] == 1 && $item['usecard']}洗车卡+余额支付{/if}
+						{/if}
+                    </td>
+                    <td>
+                        {if $item['status'] == 0}<span class="label label-danger">未付款</span>{/if}
+						{if $item['status'] == 1}<span class="label label-warning">待接单</span>{/if}
+                        {if $item['status'] == 2}<span class="label label-success">已接单</span>{/if}
+                        {if $item['status'] == 3 && $item['is_evaluate']==0}<span class="label label-success">待评价</span>{/if}
+						{if $item['status'] == 3 && $item['is_evaluate']==1}<span class="label label-success">已评价</span>{/if}
+                        {if $item['status'] == -1}<span class="label label-default">已取消</span>{/if}
+                    </td>
+					<td>{$item['store']['title']}</td>
+                    <td>{php echo date('Y-m-d H:i', $item['dateline'])}</td>
+                    <td style="text-align:right;">
+                        <a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('order', array('op' => 'detail', 'id' => $item['id'], 'storeid' => $item['storeid']))}" title="查看订单"><i class="fa fa-pencil"></i></a>
+                        <a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('order', array('op' => 'delete', 'id' => $item['id'], 'status' => $_GPC['status'], 'refurl'=>'allorder'))}" title="删除订单" onclick="return confirm('此操作不可恢复，确认删除？');return false;"><i class="fa fa-times"></i></a>
+                    </td>
+                </tr>
+                {/loop}
+                </tbody>
+            </table>
+            {$pager}
+        </div>
+    </div>
+    </form>
+</div>
+{/if}
+{template 'common/footer'}

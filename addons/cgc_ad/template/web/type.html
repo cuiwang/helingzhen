@@ -1,0 +1,269 @@
+{template 'common/header'}
+
+<ul class="nav nav-tabs">
+	<li {if $op== 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl($filename)}">类型管理</a></li>
+	<li {if $op== 'post' && empty($id)}class="active"{/if}><a href="{php echo $this->createWebUrl($filename,array('op'=>'post'))}">新建类型</a></li> {if !empty($id)}
+	<li class="active"><a>编辑类型</a></li> {/if}
+</ul>
+{if $op=='display'}
+<div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+
+	<div class="panel-body">
+		<form action="./index.php" id="form1" method="get" class="form-horizontal" role="form">
+			<input type="hidden" name="c" value="site" /> <input type="hidden" name="a" value="entry" /> <input type="hidden" name="m" value="{php echo $this->modulename}" /> <input type="hidden" name="do" value="{$filename}" />
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">名称</label>
+				<div class="col-xs-12 col-sm-2 col-md-2 col-lg-4">
+					<input class="form-control" name="info_type_name" id="" type="text" value="{$_GPC['info_type_name']}" placeholder="">
+				</div>
+			</div>
+			
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">广告平台筛选</label>
+				<div class="col-xs-6 col-sm-4 col-lg-4">
+					<select name="quan_id" id="quan_id" class="form-control">
+						<option value="0">请选择所属广告平台</option>
+						{loop $quan $q}
+							<option value="{$q['id']}" {if $_GPC['quan_id']==$q['id']}selected{/if}>{$q['aname']}</option>
+						{/loop}
+					</select>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<div class="col-xs-12 col-sm-3 col-md-2 control-label">
+					<button class="btn btn-default">
+						<i class="fa fa-search"></i>搜索
+					</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+
+
+<div class="panel panel-default">
+
+	<div class="panel-heading">类型列表</div>
+
+	<div class="panel-body table-responsive" style="overflow: visible;">
+
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<th style="width: 20px;"></th>
+					<th style="width: 5%;">qun_id</th>
+					<th style="width: 25%;">类型名称</th>
+					<th style="width: 5%;">排序</th>
+					<th style="width: 5%;">是否启用</th>
+					<th style="width: 10%;">创建时间</th>
+					<th style="width: 20%;">操作</th>
+				</tr>
+			</thead>
+			<tbody id="main">
+				{loop $list $row}
+				<tr>
+					<td>{if count($children[$row['id']]) > 0}<a href="javascript:;"><i class="fa fa-chevron-down"></i></a>{/if}</td>
+					<td style="white-space: normal; word-break: break-all">{$row['quan_id']}</td>
+					<td style="white-space: normal; word-break: break-all">{$row['info_type_name']}(分类ID：{$row['id']})</td>
+					
+					<td style="white-space: normal; word-break: break-all">{$row['sequence']}</td>
+					<td style="white-space: normal; word-break: break-all">{if empty($row['status'])}启用{else}禁用{/if}</td>
+					<td style="white-space: normal; word-break: break-all">{php echo date('Y-m-d', $row['create_time'])}</td>
+					<td style="white-space: normal; word-break: break-all; overflow: visible;">
+						<a href="{php echo $this->CreateWebUrl($filename,array('op'=>'post','id'=>$row['id']))}"><div class="btn btn-success"><i class="fa fa-edit"></i>编辑</div></a> 
+						<a onclick="if(!confirm('确定删除，删除后数据不可恢复?')) return false;" href="{php echo $this->CreateWebUrl($filename,array('op'=>'delete','id'=>$row['id']))}"><div class="btn btn-danger"><i class="fa fa-times"></i>删除</div></a>
+						<a class='btn btn-default btn-sm' href="{php echo $this->createWebUrl($filename, array('parent_id' => $row['id'], 'op' => 'post'))}" title='添加子分类' ><i class="fa fa-plus"></i>添加子分类</a>
+						<a class='btn btn-default btn-sm' href="{php echo $this->createWebUrl('type_banner', array('type_id' => $row['id'],'quan_id'=> $row['quan_id']))}" title='添加子分类' ><i class="fa fa-plus"></i>添加幻灯片</a>
+					</td>
+				</tr>
+				{loop $children[$row['id']] $row}
+						<tr>
+							<td></td>
+							<td>
+								{$row['quan_id']}
+							</td>
+							<td>
+								<div style="padding-left:50px;height:30px;line-height:30px;background:url('./resource/images/bg_repno.gif') no-repeat -245px -545px;">{$row['info_type_name']}(子分类ID：{$row['id']})
+								</div>
+							</td>
+							<td>{$row['sequence']}</td>
+							<td>
+							{if empty($row['status'])}启用{else}禁用{/if}
+							</td>
+							<td>
+								{php echo date('Y-m-d', $row['create_time'])}
+							</td>
+							<td>
+								<a href="{php echo $this->CreateWebUrl($filename,array('op'=>'post','parent_id' => $row['parent_id'], 'id'=>$row['id']))}"><div class="btn btn-success"><i class="fa fa-edit"></i>编辑</div></a> 
+						<a onclick="if(!confirm('确定删除，删除后数据不可恢复?')) return false;" href="{php echo $this->CreateWebUrl($filename,array('op'=>'delete','id'=>$row['id']))}"><div class="btn btn-danger"><i class="fa fa-times"></i>删除</div></a>
+							</td>
+						</tr>
+						{/loop}
+				{/loop}
+			</tbody>
+		</table>
+		</form>
+	</div>
+	{$pager}
+</div>
+<script type="text/javascript">
+    require([ 'bootstrap' ], function($) {
+
+	$('.btn').hover(function() {
+
+	    $(this).tooltip('show');
+
+	}, function() {
+
+	    $(this).tooltip('hide');
+
+	});
+
+    });
+
+    function delete_all() {
+	if (confirm('确认删除所有信息吗,删除完不可恢复?')) {
+	    location.href = "{php echo $this->createWebUrl($filename, array('op' => 'delete_all'))}";
+	}
+    }
+
+    function batch_del() {
+	if (!confirm('确定批量删除吗?'))
+	    return false;
+	else {
+	    $('#op').val('batch_del');
+	    $('#form1').submit();
+	}
+    }
+</script>
+
+{/if} {if $op=='post'}
+<div class="main">
+	<form action="" method="post" class="form-horizontal form" id="form">
+		<div class="panel panel-default">
+			<div class="panel-heading">类型信息</div>
+			<div class="panel-body">
+				{if !empty($parent_id)}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">上级分类</label>
+					<div class="col-sm-9 col-xs-12 control-label" style="text-align:left;">{$parent['info_type_name']}</div>
+				</div>
+				
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">所属平台</label>
+					<div class="col-sm-9 col-xs-12 control-label" style="text-align:left;">{$quan['aname']}</div>
+				</div>
+				
+				<input type="hidden" name="page_data[quan_id]" value="{$parent['quan_id']}" /> 
+				<input type="hidden" name="page_data[parent_id]" value="{$parent['id']}" /> 
+				
+				{else}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">所属平台</label>
+					<div class="col-sm-5">
+						<select name="page_data[quan_id]" class="form-control">
+						
+							<option value="0">请选择所属平台</option>
+							{loop $quan $q}
+							<option value="{$q['id']}" {if $page_data['quan_id']==$q['id']}selected{/if}>{$q['aname']}</option>
+							{/loop}
+						</select>
+					</div>
+				</div>
+				
+				<input type="hidden" name="page_data[parent_id]" value="0" /> 
+				
+				{/if}
+				
+				
+				
+				
+				
+			   <div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">排序</label>
+					<div class="col-xs-12 col-sm-8">
+						<input type="text" class="form-control" name="page_data[sequence]" value="{$page_data['sequence']}" />
+					    	<div class="help-block">
+						     数字越小，排在越前面。
+						</div>
+					</div>
+				</div>
+				
+			
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">类型名称</label>
+					<div class="col-xs-12 col-sm-8">
+						<input type="text" class="form-control" name="page_data[info_type_name]" value="{$page_data['info_type_name']}" />
+					</div>
+				</div>
+				
+				
+				 
+				
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">自定义图标</label>
+					<div class="col-sm-7 col-xs-12">
+						{php echo tpl_form_field_image("page_data[info_type_pic]", $page_data['info_type_pic']);}
+						<div class="help-block">
+						 如果设置了这个图标，那就优先显示这个图标.下面2个图标颜色和代码设置无效。图标大小:42x42px;
+						 点此下载图标例子地址:<a href="http://www.mingfengfushi.cn/addons/cgc_ad/icon.zip">下载</a>
+						</div>
+					</div>
+				</div> 
+				
+				    <div class="form-group">
+						<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">图标颜色</label>
+						<div class="col-sm-8 col-xs-12">
+					
+							{php echo tpl_form_field_color("page_data[info_type_color]",$page_data['info_type_color']);}
+							<span class="help-block">图标颜色，上传图标时此设置项无效</span>
+						</div>
+					</div> 
+					
+					<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">图标字体代码</label>
+					<div class="col-xs-12 col-sm-8">
+						<input type="text" class="form-control" name="page_data[info_type_icon]" value="{$page_data['info_type_icon']}" />
+					  <div class="help-block">
+						 点此选择图标代码，http://fontawesome.io/icons/,如果没显示，就默认。不管这个参数。
+						</div>
+					
+					</div>
+				</div>
+				
+				
+					<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">外链</label>
+					<div class="col-xs-12 col-sm-8">
+						<input type="text" class="form-control" name="page_data[info_type_url]" value="{$page_data['info_type_url']}" />
+					  <div class="help-block">
+						  以http开头，如果设置了这个参数，那首页导航菜单就可以指向这个链接。
+						</div>				
+					</div>
+				</div>
+				
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">是否启用</label>
+					<div class="col-sm-5">
+						<label for="enabled3" class="radio-inline"><input type="radio" name="page_data[status]" value="1" id="enabled3" {if !empty($page_data['status'])}checked="true"{/if} />禁用</label>
+	                    &nbsp;&nbsp;&nbsp;
+	                    <label for="enabled4" class="radio-inline"><input type="radio" name="page_data[status]" value="0" id="enabled4"  {if empty($page_data['status'])}checked="true"{/if} />启用</label>
+					</div>
+				</div>
+				
+				
+				<div class="form-group">
+					<div class="col-xs-12 col-sm-9 col-md-10 col-lg-10 col-sm-offset-3 col-md-offset-2 col-lg-offset-2">
+						<input type="hidden" name="id" value="{$id}" /> 
+						<input name="submit" type="submit" value="提交" class="btn btn-primary" /> 
+						<input type="hidden" name="token" value="{$_W['token']}" />
+					</div>
+				</div>
+
+			</div>
+		</div>
+	</form>
+</div>
+{/if}

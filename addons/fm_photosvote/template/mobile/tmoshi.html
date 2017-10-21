@@ -1,0 +1,437 @@
+{if $rdisplay['tmoshi'] == 0}
+ <link href="{FM_STATIC_MOBILE}styleeasy/css/base.css?V={php echo time()}" rel="stylesheet" />
+  <style type="text/css">
+    .tab_bd {
+      background:{$rbody_photosvote['photosvote_tp_color']};
+    }
+    #images .items .bg {
+        background: {if !empty($rbody_photosvote['photosvote_tp_user_color'])}{$rbody_photosvote['photosvote_tp_user_color']}{else}rgba(46, 1, 68, 0.52){/if};;
+        border: 1px solid {$rbody_photosvote['photosvote_tp_user_border_color']};
+    }
+    #images .items p .name{color: {if !empty($rbody_photosvote['photosvote_tp_user_text_color'])}{$rbody_photosvote['photosvote_tp_user_text_color']}{else}#ffb{/if}}
+    #images .items p .num{color: {if !empty($rbody_photosvote['photosvote_tp_user_num_color'])}{$rbody_photosvote['photosvote_tp_user_num_color']}{else}#ffb{/if}}
+    #images .items .sort {
+      background: {$rbody_photosvote['photosvote_tp_user_ps_color']};
+      color: {$rbody_photosvote['photosvote_tp_user_ps_text_color']};
+  }
+  #images .items .piao {
+    color: {$rbody_photosvote['photosvote_tp_user_ps_num_color']};
+  }
+  #images .items .vote {
+    color: {$rbody_photosvote['photosvote_tp_user_ps_an_text_color']};
+    background: {$rbody_photosvote['photosvote_tp_user_ps_an_bg_color']} url({php echo toimage($rbody_photosvote['photosvote_tp_user_ps_an_bg_img'])}) no-repeat;
+  }
+  .duoxuan {
+  	    position: absolute;
+	    width: 30px;
+	    height: 30px;
+	    top: 10px;
+	    left: 20px;
+	    display: none;
+	    z-index: 2;
+  }
+  .opendx {
+  	    width: 10%;
+    height: 30px;
+    line-height: 30px;
+    position: fixed;
+    bottom: 10rem;
+    right: 1rem;
+    vertical-align: middle;
+    display: inline;
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    text-align: center;
+    border-radius: 5px;
+  }
+  .opentj {
+
+    width: 35%;
+    line-height: 30px;
+    position: fixed;
+    bottom: 4rem;
+    /* right: 1rem; */
+    vertical-align: middle;
+    display: inline;
+    /* background: rgba(0, 0, 0, 0.5); */
+    /* color: #fff; */
+    text-align: center;
+    border-radius: 5px;
+    /* margin: 0 auto; */
+    left: 25%;
+    font-size: 18px;
+    display: none;
+    z-index: 3;
+  }
+  .zzz {
+  	    background: rgba(0, 0, 0, 0.46);
+    z-index: 1;
+    width: 95%;
+    height: 97%;
+    position: absolute;
+  }
+  </style>
+  <div class="tab" id="tab">
+        <div class="tab_bd">
+            <div class="items" style="display: none"><div class="bg"><div class="sort"></div></div></div>
+            <div id="images">
+            </div>
+            <p class='masonryload' style="display:none;color: {if !empty($rbody_photosvote['photosvote_tp_user_text_color'])}{$rbody_photosvote['photosvote_tp_user_text_color']}{else}#ffb{/if}">数据加载完了</p>
+        </div>
+    </div>
+    {if $rvote['opendx']}
+    		<div class="opendx" onclick="opendx();">多选</div>
+    {/if}
+    <div class="opentj vote btn btn-info" id="opentj" onclick="opentj();">提交</div>
+    <script src="{FM_STATIC_MOBILE}styleeasy/js/fastclick.js"></script>
+    <script src="{FM_STATIC_MOBILE}styleeasy/js/jquery.masonry.min.js"></script>
+    <script src="{FM_STATIC_MOBILE}styleeasy/js/imagesloaded.min.js"></script>
+  <script type="text/javascript">
+    var index = 1;
+    //var page = 0;
+      $(function() {
+          //FastClick.attach(document.getElementById('tab'));
+          $("#images").empty();
+          ajax_load_data(0,'new');
+          $(window).scroll(function() {
+              // 当滚动到最底部以上100像素时， 加载新内容
+              //if ($(this).scrollTop() + $(window).height() + 100 >= $(document).height() && $(this).scrollTop() > 100) {
+             if ($(this).scrollTop() + $(this).height() + 20 >= $(document).height() && $(this).scrollTop() > 20) {
+
+                  (function(page) {
+                      ajax_load_data(index,'new')
+                  })(++index);
+                  //$("img").lazyload({placeholder:"../addons/fm_photosvote/template/mobile/grey.gif", effect: "fadeIn",container:"#images"});
+
+              }
+
+          });
+
+
+      })
+
+       function ajax_load_data(index,type) {
+          var $container = $('#images');
+          $container.masonry({
+              itemSelector: '.items',
+              isAnimated: false
+          });
+           fmloaddingt('.overlay_container', '正在加载中...','4');
+          var tmoshi = "{$rdisplay['tmoshi']}";
+          $.ajax({
+              url: "{php echo $this->createMobileUrl('Pagedatab', array('rid' => $rid,'tagid' => $tagid,'tagpid' => $tagpid,'tagtid' => $tagtid, 'indextpxz' => $rdisplay['indextpxz'], 'indexorder' => $rdisplay['indexorder'], 'isindex' => $rdisplay['isindex'], 'open_vote_count' => $rdisplay['open_vote_count']))}",
+              type: "post",
+              data: {
+                  pagesnum: index,
+                  keyword : "{$keyword}"
+              },
+              datatype: "json",
+              success: function(data) {
+                  var data = eval('('+data+')');
+                  var obj = data[0];
+
+                  var insertHTML = "";
+                  $(".masonryload").hide();
+                  $(".masonryload").empty();
+
+
+                  $(".masonryload").append("<img src='{FM_STATIC_MOBILE}styleeasy/img/loading.gif' style='width:10%' >");
+
+
+                  if(data.length==0){
+                     $(".masonryload").empty();
+                     fmloaddingt('.overlay_container', '','2');
+                     $(".masonryload").append("数据已加载完");
+                     $(".masonryload").show();
+                  }else{
+
+                    for (var i = 0; i < data.length; i++) {
+                      if ($.trim(data[i].type) == 'adv') {
+                        insertHTML += "<div class='items'>";
+                        insertHTML += "<div class='bg' style='padding: 0;'><a href='" + $.trim(data[i].link) + "'><img src='" + data[i].avatar + "' /></a>";
+                        insertHTML += " <div class='sort text-center' ><span class='vote ' style='float:none;background: transparent;'><a href='" + $.trim(data[i].link) + "' style='color:#fff;text-align:center;'>" + $.trim(data[i].username) + "</a></span></div></div></div>";
+                      }else{
+                        var moshi = "{$rvote['moshi']}";
+                        if (moshi == 2) {
+                           var linkurl = "{php echo $this->createMobileUrl('tuser', array('rid' => $rid))}&tfrom_user=" + $.trim(data[i].from_user);
+                        }else {
+                           var linkurl = "{php echo $this->createMobileUrl('tuserphotos', array('rid' => $rid))}&tfrom_user="+$.trim(data[i].from_user);
+                        }
+
+                        insertHTML += "<div class='items'>";
+                        insertHTML += "<input type='checkbox' class='duoxuan' name='checkid[]' id='checkid[]' onclick='dctimes(this);' value='" + $.trim(data[i].from_user) + "' /><div class='zzz'></div>";
+                        insertHTML += "<div class='bg'><a href='" + linkurl +"'><img src='" + data[i].avatar + "' /></a>";
+                        if ($.trim(data[i].istuijian) == 1) {
+                          insertHTML += "<img src='http://bbs.012wz.com/static/image/stamp/006.gif' style='position: absolute;top: 10px;  width: 100px;right: 20px;'/>";
+                        }
+                        insertHTML += "<p><span class='name'>" + data[i].username + "</span><span class='num'>" + $.trim(data[i].uid) + "号</span></p>";
+                        insertHTML += " <div class='sort'><span onclick='tvotep(\"" + $.trim(data[i].from_user) + "\")' class='vote btn btn-danger voteanniu'>{$rdisplay['tpname']}</span><span id='photosnum"+$.trim(data[i].from_user)+"' class='piao' >" + data[i].piao + "</span>票</div></div></div>";
+                      }
+                    }
+
+                  }
+
+                  $(".masonryload").show();
+                  $boxes = $(insertHTML);
+
+                  $container.append($boxes).masonry('appended', $boxes);
+                  	$("#opentj").hide();
+	        			$("#tab input[type='checkbox'][name^='checkid']").hide();
+			        $(".zzz").hide();
+			        $(".voteanniu").show();
+	        			tmp = "";
+                  //imagesLoaded 等待图片加载完成后执行masonry
+                  $container.imagesLoaded(function() {
+                      $container.masonry();
+
+                    fmloaddingt('.overlay_container', '','2');
+                  });
+                 // var page = index + 1;
+              }
+          });
+      };
+     // $('img .lazy').lazyload();
+
+	var tmp = "";
+	function opendx() {
+	    if(tmp == ""){
+	    		$("#opentj").show();
+	    		$("#tab input[type='checkbox'][name^='checkid']").show();
+	        tmp = '1';
+	        $(".zzz").show();
+	        $(".voteanniu").hide();
+	    }else{
+	    		$("#opentj").hide();
+	        $("#tab input[type='checkbox'][name^='checkid']").hide();
+	        tmp = "";
+	        $(".zzz").hide();
+	        $(".voteanniu").show();
+	    }
+	}
+
+	function dctimes(obj) {
+        var ckobj = $("#tab input[type='checkbox'][name!='checkid'][name^='checkid']:checked");
+		var dxtimes = ckobj.size(),
+		limittimes = "{$rvote['limittimes']}";
+		if (dxtimes > limittimes) {
+			fmloadding('.overlay_container', '最多只能选择'+limittimes+'个人投票');
+			obj.checked = false;
+			return false;
+		}
+	}
+	function opentj() {
+		var ckobj = $("#tab input[type='checkbox'][name!='checkid'][name^='checkid']:checked");
+		var dxtimes = ckobj.size(),
+		limittimes = "{$rvote['limittimes']}";
+		if (dxtimes < limittimes) {
+			fmloadding('.overlay_container', '请同时选择 '+limittimes+' 个人投票');
+			obj.checked = false;
+			return false;
+		}
+		var iscode = "0";
+		var from_user = "{$from_user}";
+		var now = "{$now}";
+		var tstart_time = "{$rbasic['tstart_time']}";
+		var tend_time = "{$rbasic['tend_time']}";
+		var ttipstart = "{$rbasic['ttipstart']}";
+		var ttipend = "{$rbasic['ttipend']}";
+		var ttipvote = "{$rbasic['ttipvote']}";
+		var subscribe = "{$rshare['subscribe']}";
+		var follow = "{$follow}";
+		var vfrom = "photosvote";
+		var votetime = "{php echo $rbasic['votetime'] * 3600 * 24}";
+
+		if (now <= tstart_time) {
+			fmloadding('.overlay_container', ttipstart);
+			return false;
+		}
+		if (now >= tend_time) {
+			fmloadding('.overlay_container', ttipend);
+			return false;
+		}
+		if (from_user == '' || from_user == null) {
+			subsribe();
+			return false;
+		}
+
+		var ckobj = $("#tab input[type='checkbox'][name!='checkid'][name^='checkid']:checked");
+
+		if(ckobj.size() > 0)
+		{
+			if(confirm("确定要为这些选手投票么？"))
+			{
+				var ids = '';
+
+				ckobj.each(function(){
+					if($(this).val() != 'on'){
+						if (subscribe == 1) {
+							if (follow == 1) {
+								tvotestart($(this).val(), vfrom, iscode);
+								return
+							} else {
+								subsribe();
+								return
+							}
+
+						} else {
+							tvotestart($(this).val(), vfrom, iscode);
+						}
+						//tvotestart($(this).val(), vfrom, iscode);
+						ids += $(this).val() + ',';
+					}
+				});
+
+				//ids = ids.slice(0,-1);
+				//console.log(ids);
+				/**$.ajax({
+					url : "member.php?c=author_do&tbname=infolist&action=delall&ids="+ids,
+					type:'get',
+					dataType:'html',
+					beforeSend:function(){
+						fmloadding('.overlay_container', '正在投票中...');
+					},
+					success:GetDone
+				});**/
+			}
+			else
+			{
+				return false;
+			}
+		}
+		else
+		{
+			fmloadding('.overlay_container', '没有任何选中信息');
+			return false;
+		}
+	}
+  </script>
+{else}
+  <style type="text/css">
+    .falls ul {
+      background: {$rbody_photosvote['photosvote_tp_color']};
+  }
+  .falls ul li {
+      background: {if !empty($rbody_photosvote['photosvote_tp_user_color'])}{$rbody_photosvote['photosvote_tp_user_color']}{else}rgba(46, 1, 68, 0.52){/if};;
+      border: 1px solid {$rbody_photosvote['photosvote_tp_user_border_color']};
+  }
+  .falls ul li .toupiao a{
+    color: {$rbody_photosvote['photosvote_tp_user_ps_an_text_color']};
+    background: {$rbody_photosvote['photosvote_tp_user_ps_an_bg_color']} url({php echo toimage($rbody_photosvote['photosvote_tp_user_ps_an_bg_img'])}) no-repeat;
+    border-color: {$rbody_photosvote['photosvote_tp_user_ps_an_bg_color']};
+  }
+  .falls ul li .toupiao .piaoshu{
+    color: {$rbody_photosvote['photosvote_tp_user_ps_text_color']};
+  }
+  .usr_more {
+    color: {$rbody_photosvote['photosvote_tp_user_ps_text_color']};
+    background: {if !empty($rbody_photosvote['photosvote_tp_user_color'])}{$rbody_photosvote['photosvote_tp_user_color']}{else}rgba(0, 0, 0, 0.4){/if};
+  }
+  </style>
+  <script type="text/javascript">
+    $(document).ready(function() {
+        var track_click = 0; //track user click on "load more" button, righ now it is 0 click
+        var total_pages = {$total_pages};
+        $('#results').load("{php echo $this->createMobileUrl('pagedata', array('rid' => $rid,'pagesnum' => $psize,'keyword' => $keyword,'tagid' => $tagid,'tagpid' => $tagpid,'tagtid' => $tagtid, 'indexorder' => $rdisplay['indexorder'], 'tmoshi' => $rdisplay['tmoshi'], 'tpname' => $rdisplay['tpname'], 'moshi' => $rvote['moshi']))}", {'page':track_click}, function() {track_click++;}); //initial data to load
+        $(".load_more").click(function (e) { //user clicks on button
+            $(this).hide(); //hide load more button on click
+            $('.animation_image').show(); //show loading image
+            if(track_click <= total_pages) //make sure user clicks are still less than total pages
+            {
+                $.post('{php echo $this->createMobileUrl('pagedata', array('rid' => $rid,'pagesnum' => $psize,'keyword' => $keyword,'tagid' => $tagid,'tagpid' => $tagpid,'tagtid' => $tagtid, 'indexorder' => $rdisplay['indexorder'], 'tmoshi' => $rdisplay['tmoshi'], 'tpname' => $rdisplay['tpname'], 'moshi' => $rvote['moshi']))}',{'page': track_click}, function(data) {
+                    $(".load_more").show(); //bring back load more button
+                    $("#results").append(data); //append data received from server
+                    $("html, body").animate({scrollTop: $("#load_more_button").offset().bottom}, 500);
+                    $('.animation_image').hide(); //hide loading image once data is received
+                    track_click++; //user click increment on load button
+                }).fail(function(xhr, ajaxOptions, thrownError) {
+                    alert(thrownError); //alert any HTTP error
+                    $(".load_more").show(); //bring back load more button
+                    $('.animation_image').hide(); //hide loading image once data is received
+                });
+                if(track_click >= total_pages-1)
+                {
+                    $(".load_more").attr("disabled", "disabled");
+                    $(".load_more").html("全部加载完成");
+                }
+             }
+            });
+    });
+  </script>
+
+  {if $rdisplay['tmoshi'] == 1}
+    <!--单行-->
+    <style>
+    .falls ul {
+      width: 100%;
+      padding: 0 10px;
+      float: left;
+      box-sizing: border-box;
+    }
+    </style>
+    <section class="falls">
+      <ul class="columns" id="results">
+
+      </ul>
+    </section>
+  {elseif $rdisplay['tmoshi'] == 2}
+    <!--双行-->
+
+    <style>
+      .falls ul {
+        width: 100%;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      .falls ul li{
+        width: 48%;
+         margin-top: -8px;
+        margin: 0 2% 8px 0;
+
+      }
+      .xs_pic {
+        position: relative;
+        overflow: hidden;
+        height: 100px;
+      }
+      .falls ul li img {
+        width: 100%;
+      }
+    </style>
+    <section class="falls">
+      <ul class="columns" id="results"></ul>
+    </section>
+  {elseif $rdisplay['tmoshi'] == 3}
+    <!--三行-->
+
+    <style>
+      .falls ul {
+        width: 100%;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      .falls ul li{
+        width: 33%;
+        margin: 0;
+      }
+      .falls ul li img {
+        width: 100%;
+        max-height: 100px;
+      }
+      .btn {
+        padding: 2px 4px;
+      }
+      .xs_pic {
+        position: relative;
+        height: 100px;
+        width: 90%;
+        text-align: center;
+        margin: 0 auto;
+      }
+    </style>
+    <section class="falls">
+      <ul class="columns" id="results">
+      </ul>
+    </section>
+  {/if}
+{/if}
+<script src="{FM_STATIC_MOBILE}styleeasy/js/common.js"></script>

@@ -1,0 +1,143 @@
+{template 'common/header'}
+<div class="main">
+    <ul class="nav nav-tabs">
+        <li{if $_GPC['do'] == 'index' || $_GPC['do'] == '' } class="active"{/if}><a href="{php echo $this->createWebUrl('index');}">活动管理</a></li>
+        <li><a href="{php echo url('platform/reply/post',array('m'=>'msyou_meituzone'));}"><i class="fa fa-plus"></i> 添加 秀图空间</a></li>
+        <li><a href="{php echo url('home/welcome/ext',array('m'=>'msyou_meituzone'));}"><i class="fa fa-reply"></i> 返回</a></li>
+    </ul>
+    
+
+ 	<div class="panel panel-info">
+    	<div class="panel-heading">筛选</div>
+		<div class="panel-body">
+			<form action="" method="post" class="form-horizontal form" onsubmit="return formcheck(this)">
+		        <div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">关键字</label>
+					<div class="col-sm-8 col-lg-9">
+						<input class="form-control" name="keyword" id="keyword" type="text" value="{$_GPC['keyword']}" placeholder="可查询活动名称">
+					</div>
+		            <div class=" col-xs-12 col-sm-2 col-lg-2">
+						<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+					</div>
+				</div>
+				<div class="form-group">
+				</div>
+			</form>
+	    </div>
+	</div>
+	
+	<div class="panel panel-default">
+		<div class="panel-body table-responsive">
+		    <input type="button" class="btn btn-primary" name="deleteall" value="删除选择的" />
+		    {$pager}
+			<table class="table table-hover">
+				<thead class="navbar-inner">
+					<tr>
+						<th class='with-checkbox' style="width:30px;"><input type="checkbox" class="check_all" /></th>
+						<th style="width:150px;">活动名称</th>
+		                <th >参与数</th>
+		                <th >点赞数</th>
+		                <th >分享数</th>
+		                <th >浏览数</th>
+						<th style="width:130px;">起止时间</th>
+						<th style="width:260px;">操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					{loop $reply $item}
+					<tr>
+						<td class="with-checkbox">
+                        	<input type="checkbox" name="check" value="{$item['rid']}">
+                    	</td>
+						<td>{$item['title']}</td>
+						<td>{$item['joincount']}</td>
+						<td>{$item['zancount']}</td>
+						<td>{$item['sharecount']}</td>
+						<td>{$item['viewcount']}</td>
+						<td>
+			            	{php echo date('Y-m-d H:i',$item['starttime'])}<br>
+	                    {php echo date('Y-m-d H:i',$item['endtime'])}
+						</td>
+						<td>
+		                    <a class="btn btn-default" rel="tooltip" href="{php echo url('platform/reply/post',array('m'=>'msyou_meituzone','rid'=>$item['rid']));}" title="编辑"><i class="fa fa-edit"></i></a>
+							{if $item['starttime']>time() }
+			                    <a class="btn   btn-default" title="未开始" ><i class="fa fa-pause"></i></a>
+							{elseif $item['endtime'] < time() }
+			                    <a class="btn   btn-default" title="已结束" ><i class="fa fa-power-off"></i></a>
+		                    {elseif $item['status']==0}
+		    	                <a class="btn   btn-default" title="开始活动" href="#" onclick="drop_confirm('您确定要开始吗?', '{php echo $this->createWebUrl('setshow',array('rid'=>$item['id'],'isshow'=>1))}');"><i class="fa fa-play"></i></a>
+		                    {else}
+			                    <a class="btn   btn-default" title="结束活动" href="#" onclick="drop_confirm('您确定要暂停吗?', '{php echo $this->createWebUrl('setshow',array('rid'=>$item['id'],'isshow'=>0))}');"><i class="fa fa-stop"></i></a>
+			                {/if}		                    
+							<a href="{php echo $this->createWebUrl('replydel', array('rid' => $item['rid']))}" onclick="return confirm('此操作不可恢复，确认删除？');return false;" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" title="删除"><i class="fa fa-times"></i></a>
+							<a href="{php echo $this->createWebUrl('joinlists', array('rid' => $item['rid'],'page' => $_GPC['page']))}" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" title="参与详情"><i class="fa"></i>参与详情</a>
+							<a href="{php echo murl('entry', array('do' =>'index', 'm' => 'msyou_meituzone','rid' => $item['rid']), true, true);}" target="_blank" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" title="预览">预览</a>
+						</td>
+					</tr>
+					{/loop}
+				</tbody>
+			</table>
+	        <input type="button" class="btn btn-primary" name="deleteall" value="删除选择的" />
+			{$pager}
+		</div>
+	</div>
+</div>
+
+<script>
+	require(['bootstrap'], function($){
+		$(function () {
+			$('[data-toggle="tooltip"]').tooltip();
+		});
+	});
+	function formcheck(obj){
+        if ($.trim($("#keyword").val()).length<=0) {
+			util.message('请输入有效的查询关键字.');
+			return false;
+		}
+		return true;
+	}
+	
+	function drop_confirm(msg, url){
+		if (confirm(msg)){
+			window.location = url;
+		}
+	}
+</script>
+<script>
+	$(function(){
+		$(".check_all").click(function(){
+			var checked = $(this).get(0).checked;
+			var check = $("input[type=checkbox]");
+			check.each(function(i){
+            	$(this).attr("checked", checked);
+            });
+            //$("input[type=checkbox]").attr("checked", checked);
+		});
+		
+		$("input[name=deleteall]").click(function(){
+            var check = $("input:checked");
+			if (check.length < 1){
+            	util.message('请选择要删除的记录!','','error');
+				return false;
+			}
+            if (confirm("确认要删除选择的记录?")){
+	            var id = new Array();
+                check.each(function(i){
+                    id[i] = $(this).val();
+                });
+                $.post("{php echo $this->createWebUrl('replydel')}", {idArr:id}, function(data){
+                	//alert(JSON.stringify(data));
+                    if (data.error == ''){
+	                    location.reload();
+                    } else {
+    	                alert(data.error);
+                    }
+                }, 'json');
+            }
+
+		});
+	});
+</script>
+{php echo $this->baiduhtml_bottom}
+
+{template 'common/footer'}

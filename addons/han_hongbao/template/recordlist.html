@@ -1,0 +1,125 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+    <li {if $op == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('recordlist', array('op' => 'display'))}">发放记录</a></li>
+</ul>
+<div class="main">
+  <div class="panel panel-info">	
+	<div class="panel-heading">筛选</div>
+		<div class="panel-body">
+			<form action="./index.php" method="get" class="form-horizontal" role="form">
+            <input type="hidden" name="c" value="site" />
+            <input type="hidden" name="a" value="entry" />
+			<input type="hidden" value="han_hongbao" name="m">
+			<input type="hidden" value="recordlist" name="do">
+			<input type="hidden" value="display" name="op">
+			<input type="hidden" name="token" value="{$_W['token']}" />
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">活动名称</label>
+				<div class="col-sm-8">
+						<input type="text" placeholder="活动名称" value="" id="" name="arc_name" class="form-control">
+				</div>				
+			</div>
+			<div class="form-group">
+				<div class="pull-right col-xs-12 col-sm-2 col-lg-1">
+					<button class="btn btn-block"><span class="icon icon-search"></span> 搜索</button>				
+				</div>
+			</div>
+			</form>	
+		</div>
+	</div>
+  </div>
+  <div class="panel panel-default">
+	<div class="panel-body table-responsive">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+                    <th class='with-checkbox' style='width:30px;'>
+					<input type="checkbox" class="check_all" />
+				    </th>
+                    <th style="text-align:center; width:100px;">红包类型</th>
+					<th style="text-align:center; width:100px;">活动名称</th>
+                    <th style="text-align:center; width:100px;">粉丝昵称</th>
+					<th style="text-align:center; width:130px;">openid</th>
+					<th style="text-align:center; width:60px;">领取金额</th>
+					<th style="text-align:center; width:100px;">领取时间</th>
+					<th style="text-align:center; width:60px;">状态</th>
+					<th style="text-align:center; width:130px;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $row}
+				<tr  style="text-align:center;">
+                    <td class="with-checkbox"><input type="checkbox" name="check" value="{$row['id']}"></td>
+                   <td style="text-align:center;">{if $row['type']=='sd'}手动发红包{elseif $row['type']=='ye'}余额兑换红包{elseif $row['type']=='kl'}口令红包{elseif $row['type']=='pt'}普通红包{/if}</td>
+                   <td style="text-align:center;">{$row['arc_name']}</td>				
+				   <td style="text-align:center;">{$row['nick_name']}</td>
+				   <td style="text-align:center;">{$row['openid']}</td>
+				   <td style="text-align:center;">{php echo $row['get_money']*0.01}元</td>
+					<td style="text-align:center;">{php echo date('Y-m-d H:i:s', $row['get_time'])}</td>
+					<td>
+					{if $row['get_status']=='SUCCESS'}<span class="label label-success">成功</span>{else}<span class="label label-info">失败</span>{/if}
+					</td>		
+					<td>
+                    {php $dlink=$this->createWebUrl('recordlist', array('op' => 'delete','id' => $row['id']))}
+					<a href="{$dlink}" onclick="return confirm(此操作不可恢复，确认删除？');return false;" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" title="删除该活动记录？！"><i class="fa fa-times"></i></a>
+					</td>
+				</tr>
+				{/loop}
+                 <tr>
+				<td colspan="2">
+					<input type="button" class="btn btn-primary" name="deleteall" value="删除选择的" />
+				</td>
+                
+                <td colspan="7"></td>
+			    </tr>		
+			</tbody>
+		</table>
+		{$pager}
+	</div>
+  </div>
+</div>
+<script>
+	$(function(){
+	
+		$(".check_all").click(function(){
+			var checked = $(this).get(0).checked;
+			$(':checkbox').each(function(){this.checked = checked});
+		});
+		$("input[name=deleteall]").click(function(){
+
+			var check = $("input:checked");
+			if(check.length<1){
+				alert('请选择要删除的记录!');
+				return false;
+			}
+			if( confirm("确认要删除选择的记录?")){
+				var id = new Array();
+				check.each(function(i){
+					id[i] = $(this).val();
+				});
+
+				$.post("{php echo $this->createWebUrl('recordlist',array('op'=>'deleteall'))}", {idArr:id},function(data){
+					location.href="{php echo $this->createWebUrl('recordlist', array('op' => 'display'))}";
+					/*if (data.errno ==0)
+					{
+						//location.reload();
+						location.href="{php echo $this->createWebUrl('kouling', array('op' => 'display'))}";
+					} else {
+						alert(data.error);
+					}*/
+				},'json');
+			}
+
+		});
+	
+		
+		
+	});
+</script>
+<script>
+	function drop_confirm(msg, url){
+		if(confirm(msg)){
+			window.location = url;
+		}
+	}
+</script>

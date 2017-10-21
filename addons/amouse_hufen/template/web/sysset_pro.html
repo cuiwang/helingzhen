@@ -1,0 +1,477 @@
+{template 'common/header'}
+<div class='container' style='padding: 0 5px 10px; margin: 0; width: 100%'>
+
+    {template 'web/tab_header'}
+
+    <div class="alert alert-info">
+        回复规则那边必须设置  <font  color="red"> 全民互粉推广</font> 关键字，获取临时二维码,突破10W 推广二维码限制. <kbd>且推广设置这边的关键字不能与 全民互粉推广 重复</kbd>
+    </div>
+    <div class="alert alert-info">
+            <a onclick="return confirm('清除当前推广图片缓存，确认吗？'); return false;" href="{php echo $this->createWebUrl('card', array('op' => 'clear'))}" title="删除"
+               class="btn btn-danger"><i class="fa fa-times">清除当前推广图片缓存</i></a>
+         
+    </div>
+    <script type="text/javascript" src="./resource/js/lib/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="{AMOUSE_HUFEN_RES}js/jquery.gcjs.js"></script>
+    <script type="text/javascript" src="{AMOUSE_HUFEN_RES}js/jquery.form.js"></script>
+    <script type="text/javascript" src="{AMOUSE_HUFEN_RES}js/tooltipbox.js"></script>
+    <script language='javascript' src="{AMOUSE_HUFEN_RES}js/designer.js"></script>
+    <script language='javascript' src="{AMOUSE_HUFEN_RES}js/jquery.contextMenu.js"></script>
+    <link href="{AMOUSE_HUFEN_RES}js/jquery.contextMenu.css" rel="stylesheet">
+    <style type='text/css'>
+        #poster {
+            width:320px;height:504px;border:1px solid #ccc;position:relative
+        }
+        #poster .bg { position:absolute;width:100%;z-index:0}
+        #poster .drag[type=img] img,#poster .drag[type=thumb] img { width:100%;height:100%; }
+        {if $poster}
+        #poster .drag { position: absolute; width:80px;height:80px; border:1px solid #000; }
+        {else}
+        #poster .drag { position: absolute; width:80px;height:80px; }
+        {/if}
+
+        #poster .drag[type=nickname] { width:80px;height:40px; font-size:16px; font-family: 黑体;}
+        #poster .drag img {position:absolute;z-index:0;width:100%; }
+
+        #poster .rRightDown,.rLeftDown,.rLeftUp,.rRightUp,.rRight,.rLeft,.rUp,.rDown{
+            position:absolute;
+            width:7px;
+            height:7px;
+            z-index:1;
+            font-size:0;
+        }
+
+        {if $poster}
+        #poster .rRightDown,.rLeftDown,.rLeftUp,.rRightUp,.rRight,.rLeft,.rUp,.rDown{
+            background:#C00;
+        }
+        {/if}
+        .rLeftDown,.rRightUp{cursor:ne-resize;}
+        .rRightDown,.rLeftUp{cursor:nw-resize;}
+        .rRight,.rLeft{cursor:e-resize;}
+        .rUp,.rDown{cursor:n-resize;}
+        .rLeftDown{left:-4px;bottom:-4px;}
+        .rRightUp{right:-4px;top:-4px;}
+        .rRightDown{right:-4px;bottom:-4px;}
+        {if $poster}
+        .rRightDown{background-color:#00F;}
+        {/if}
+
+        .rLeftUp{left:-4px;top:-4px;}
+        .rRight{right:-4px;top:50%;margin-top:-4px;}
+        .rLeft{left:-4px;top:50%;margin-top:-4px;}
+        .rUp{top:-4px;left:50%;margin-left:-4px;}
+        .rDown{bottom:-4px;left:50%;margin-left:-4px;}
+        .context-menu-layer { z-index:9999;}
+        .context-menu-list { z-index:9999;}
+
+    </style>
+    <form class="form-horizontal form"  action="" method="post"  id="theform" enctype="multipart/form-data">
+        <input type='hidden' name='posterid' value="{$poster['id']}"/>
+        <input type='hidden' name='op' value="pro"/>
+        <div class="panel panel-success">
+            <div class="panel-heading">推广设置：</div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style='color:red'>*</span> 生成二维码关键词</label>
+                    <div class="col-sm-9 col-xs-12">
+
+                        <input type="text" name="keyword" class="form-control" value="{$poster['keyword']}" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style='color:red'>*</span>推广图片设计</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <table style='width:100%;'>
+                            <tr>
+                                <td style='width:300px;padding:10px;' valign='top'>
+                                    <div id='poster'>
+                                        {if !empty($poster['bg'])}
+                                        <img src='{php echo tomedia($poster['bg'])}' class='bg'/>
+                                        {/if}
+                                        {if !empty($data)}
+                                        {loop $data $key $d}
+                                        <div class="drag" type="{$d['type']}" index="{php echo $key+1}" style="zindex:{php echo $key+1};left:{$d['left']};top:{$d['top']};
+                                               width:{$d['width']};height:{$d['height']}" src="{$d['src']}" size="{$d['size']}"
+                                             color="{$d['color']}"
+                                                >
+                                            {if $d['type']=='qr'}
+                                            <img src="../addons/amouse_hufen/style/images/qr.jpg" />
+                                            {elseif $d['type']=='head'}
+                                            <img src="../addons/amouse_hufen/style/images/head.jpg" />
+                                            {elseif $d['type']=='img' || $d['type']=='thumb'}
+                                            <img
+                                                    src="{php echo empty($d['src'])?'../addons/amouse_hufen/style/images/img.jpg':tomedia($d['src'])}" />
+                                            {elseif $d['type']=='nickname'}
+                                            <div class=text style="font-size:{$d['size']};color:{$d['color']}">昵称</div>
+                                            {elseif $d['type']=='title'}
+                                            <div class=text style="font-size:{$d['size']};color:{$d['color']}">商品名称</div>
+                                            {elseif $d['type']=='marketprice'}
+                                            <div class=text style="font-size:{$d['size']};color:{$d['color']}">商品现价</div>
+                                            {elseif $d['type']=='productprice'}
+                                            <div class=text style="font-size:{$d['size']};color:{$d['color']}">商品原价</div>
+                                            {/if}
+                                            <div class="rRightDown"> </div><div class="rLeftDown"> </div><div class="rRightUp"> </div><div class="rLeftUp"> </div><div class="rRight"> </div><div class="rLeft"> </div><div class="rUp"> </div><div class="rDown"></div>
+                                        </div>
+                                        {/loop}
+                                        {/if}
+                                    </div>
+                                </td>
+
+                                <td valign='top' style='padding:10px;'>
+                                    <div class='panel panel-default'>
+                                        <div class='panel-body'>
+                                            <div class="form-group" id="bgset">
+                                                <label class="col-xs-12 col-sm-3 col-md-2 control-label">背景图片</label>
+                                                <div class="col-sm-9 col-xs-12">
+                                                    {php echo tpl_form_field_image('bg', $poster['bg']);}
+                                                    <span class='help-block'>背景图片尺寸: 640 * 1008</span>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="col-xs-12 col-sm-3 col-md-2 control-label">推广图片元素</label>
+                                                <div class="col-sm-9 col-xs-12">
+                                                    <button class='btn btn-default btn-com' type='button' data-type='head' >头像</button>
+                                                    <button class='btn btn-default btn-com' type='button' data-type='nickname' >昵称</button>
+                                                    <button class='btn btn-default btn-com' type='button' data-type='qr' >二维码</button>
+                                                    <button class='btn btn-default btn-com' type='button' data-type='img' >图片</button>
+
+                                                </div>
+                                            </div>
+                                            <div id='qrset' style='display:none'>
+                                                <div class="form-group">
+                                                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">二维码尺寸</label>
+                                                    <div class="col-sm-9 col-xs-12">
+                                                        <select id='qrsize' class='form-control'>
+                                                            <option value='1'>1</option>
+                                                            <option value='2'>2</option>
+                                                            <option value='3'>3</option>
+                                                            <option value='4'>4</option>
+                                                            <option value='5'>5</option>
+                                                            <option value='6'>6</option>
+                                                        </select>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+
+                                            <div id='nameset' style='display:none'>
+                                                <div class="form-group">
+                                                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">昵称颜色</label>
+                                                    <div class="col-sm-9 col-xs-12">
+                                                        {php echo tpl_form_field_color('color')}
+                                                    </div>
+
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">昵称大小</label>
+                                                    <div class="col-sm-4">
+                                                        <div class='input-group'>
+                                                            <input type="text" id="namesize" class="form-control namesize" placeholder="例如: 14,16"  />
+                                                            <div class='input-group-addon'>px</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group" id="imgset" style="display:none">
+                                                <label class="col-xs-12 col-sm-3 col-md-2 control-label">图片设置</label>
+                                                <div class="col-sm-9 col-xs-12">
+                                                    {php echo tpl_form_field_image('img')}
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="form-group"style="">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">备注</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <div class="help-block">
+                            昵称，需要下载一个字体文件.这样生成海报会比较慢， msyhbd.ttf放在 /web/resource/fonts/  目录。
+                            <a href="http://pan.baidu.com/s/1boizGUr" target="_blank">点我下载</a>
+                        </div>
+                    </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">等待文字</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <input type="text" name="waittext" class="form-control" value="{$poster['waittext']}" />
+                        <span class="help-block">例如：您的专属推广图片正在拼命生成中，请等待片刻...</span>
+                        <div class='form-control-static'>{if empty($poster['waittext'])}您的专属推广图片正在拼命生成中，请等待片刻..{else}{$poster['waittext']}{/if}</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">生成成功文字</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <input type="text" name="oktext" class="form-control" value="{$poster['oktext']}" />
+                        <span class="help-block">例如：您的专属推广图片已大功告成!</span>
+                    </div>
+                </div>
+
+                <div class="form-group col-sm-12">
+                    <input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1"/>
+                    <input type="hidden" name="token" value="{$_W['token']}"/>
+                    <input type="hidden" name="data" value="" />
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<script>
+    $('form').submit(function(){
+        var data = [];
+        $('.drag').each(function(){
+            var obj = $(this);
+            var type = obj.attr('type');
+            var left = obj.css('left'),top = obj.css('top');
+            var d= {left:left,top:top,type:obj.attr('type'),width:obj.css('width'),height:obj.css('height')};
+            if(type=='nickname' ||type=='title'){
+                d.size = obj.attr('size');
+                d.color = obj.attr('color');
+            } else if(type=='qr'){
+                d.size = obj.attr('size');
+            } else if(type=='img'){
+                d.src = obj.attr('src');
+            }
+            data.push(d);
+        });
+        $(':input[name=data]').val( JSON.stringify(data));
+        return true;
+    });
+
+    function bindEvents(obj){
+
+        var index = obj.attr('index');
+
+        var rs = new Resize(obj, { Max: true, mxContainer: "#poster" });
+        rs.Set($(".rRightDown",obj), "right-down");
+        rs.Set($(".rLeftDown",obj), "left-down");
+        rs.Set($(".rRightUp",obj), "right-up");
+        rs.Set($(".rLeftUp",obj), "left-up");
+        rs.Set($(".rRight",obj), "right");
+        rs.Set($(".rLeft",obj), "left");
+        rs.Set($(".rUp",obj), "up");
+        rs.Set($(".rDown",obj), "down");
+        rs.Scale = true;
+        var type = obj.attr('type');
+        if(type=='nickname' || type=='img' || type=='title' || type=='marketprice' || type=='productprice'){
+            rs.Scale = false;
+        }
+        new Drag(obj, { Limit: true, mxContainer: "#poster" });
+        $('.drag .remove').unbind('click').click(function(){
+            $(this).parent().remove();
+        })
+
+        $.contextMenu({
+            selector: '.drag[index=' + index + ']',
+            callback: function(key, options) {
+                var index = parseInt($(this).attr('zindex'));
+
+                if(key=='next'){
+                    var nextdiv = $(this).next('.drag');
+                    if(nextdiv.length>0 ){
+                        nextdiv.insertBefore($(this));
+                    }
+                } else if(key=='prev'){
+                    var prevdiv = $(this).prev('.drag');
+                    if(prevdiv.length>0 ){
+                        $(this).insertBefore(prevdiv);
+                    }
+                } else if(key=='last'){
+                    var len = $('.drag').length;
+                    if(index >=len-1){
+                        return;
+                    }
+                    var last = $('#poster .drag:last');
+                    if(last.length>0){
+                        $(this).insertAfter(last);
+                    }
+                }else if(key=='first'){
+                    var index = $(this).index();
+                    if(index<=1){
+                        return;
+                    }
+                    var first = $('#poster .drag:first');
+                    if(first.length>0){
+                        $(this).insertBefore(first);
+                    }
+                }else if(key=='delete'){
+                    $(this).remove();
+                }
+                var n =1 ;
+                $('.drag').each(function(){
+                    $(this).css("z-index",n);
+                    n++;
+                })
+            },
+            items: {
+                "next": {name: "调整到上层"},
+                "prev": {name: "调整到下层"},
+                "last": {name: "调整到最顶层"},
+                "first": {name: "调整到最低层"},
+                "delete": {name: "删除元素"}
+            }
+        });
+        obj.unbind('click').click(function(){
+            bind($(this));
+        })
+
+
+
+    }
+
+    var imgsettimer = 0 ;
+    var nametimer = 0;
+    var bgtimer = 0 ;
+
+    function bindType(type){
+        $("#goodsparams").hide();
+        $(".type4").hide();
+        if(type=='4'){
+            $(".type4").show();
+        } else if(type=='3'){
+            $("#goodsparams").show();
+        }
+    }
+
+    function clearTimers(){
+        clearInterval(imgsettimer);
+        clearInterval(nametimer);
+        clearInterval(bgtimer);
+    }
+    function getImgUrl(val){
+        if(val.indexOf('http://')==-1){
+            val = "{$_W['attachurl']}" + val;
+        }
+        return val;
+    }
+    function bind(obj){
+        var imgset = $('#imgset'), nameset = $("#nameset"),qrset = $('#qrset');
+        imgset.hide(),nameset.hide(),qrset.hide();
+        clearTimers();
+        var type = obj.attr('type');
+        if(type=='img'){
+            imgset.show();
+            var src = obj.attr('src');
+            var input = imgset.find('input');
+            var img = imgset.find('img');
+            if(typeof(src)!='undefined' && src!=''){
+                input.val(src);
+                img.attr('src',getImgUrl(src));
+            }
+
+            imgsettimer = setInterval(function(){
+                if(input.val()!=src && input.val()!=''){
+                    var url = getImgUrl(input.val());
+
+                    obj.attr('src',input.val()).find('img').attr('src',url);
+                }
+            },10);
+
+        } else if(type=='nickname' || type=='title' || type=='marketprice' || type=='productprice'){
+
+            nameset.show();
+            var color = obj.attr('color') || "#000";
+            var size = obj.attr('size') || "16";
+            var input = nameset.find('input:first');
+            var namesize = nameset.find('#namesize');
+            var picker = nameset.find('.sp-preview-inner');
+            input.val(color); namesize.val(size.replace("px",""));
+            picker.css( {'background-color':color,'font-size':size});
+
+            nametimer = setInterval(function(){
+                obj.attr('color',input.val()).find('.text').css('color',input.val());
+                obj.attr('size',namesize.val() +"px").find('.text').css('font-size',namesize.val() +"px");
+            },10);
+
+        } else if(type=='qr'){
+            qrset.show();
+            var size = obj.attr('size') || "3";
+            var sel = qrset.find('#qrsize');
+            sel.val(size);
+            sel.unbind('change').change(function(){
+                obj.attr('size',sel.val())
+            });
+        }
+    }
+
+    $(function(){
+        {if !empty($poster['id'])}
+        {if $poster}
+        $('.drag').each(function(){
+            bindEvents($(this));
+        })
+        {/if}
+        {/if}
+
+        $(':radio[name=type]').click(function(){
+            var type = $(this).val();
+            bindType(type);
+        })
+        //改变背景
+        $('#bgset').find('button:first').click(function(){
+            var oldbg = $(':input[name=bg]').val();
+            bgtimer = setInterval(function(){
+                var bg = $(':input[name=bg]').val();
+                if(oldbg!=bg){
+                    if(bg.indexOf('http://')==-1){
+                        bg = "{$_W['attachurl']}" + bg;
+                    }
+                    $('#poster .bg').remove();
+                    var bgh = $("<img src='" + bg + "' class='bg' />");
+                    var first = $('#poster .drag:first');
+                    if(first.length>0){
+                        bgh.insertBefore(first);
+                    } else{
+                        $('#poster').append(bgh);
+                    }
+                    oldbg = bg;
+                }
+            },10);
+        })
+
+        $('.btn-com').click(function(){
+
+            var imgset = $('#imgset'), nameset = $("#nameset"),qrset = $('#qrset');
+            imgset.hide(),nameset.hide(),qrset.hide();
+            clearTimers();
+
+            if($('#poster img').length<=0){
+                //alert('请选择背景图片!');
+                //return;
+            }
+            var type = $(this).data('type');
+            var img = "";
+            if(type=='qr'){
+                img = '<img src="../addons/amouse_hufen/style/images/qr.jpg" />';
+            }
+            else if(type=='head'){
+                img = '<img src="../addons/amouse_hufen/style/images/head.jpg" />';
+            }else  if(type=='img' || type=='thumb'){
+                img = '<img src="../addons/amouse_hufen/style/images/img.jpg" />';
+            }else if(type=='nickname'){
+                img = '<div class=text>昵称</div>';
+            }
+            var index = $('#poster .drag').length+1;
+            var obj = $('<div class="drag" type="' + type +'" index="' + index +'" style="z-index:' + index+'">' + img+'<div class="rRightDown"> </div><div class="rLeftDown"> </div><div class="rRightUp"> </div><div class="rLeftUp"> </div><div class="rRight"> </div><div class="rLeft"> </div><div class="rUp"> </div><div class="rDown"></div></div>');
+
+            $('#poster').append(obj);
+
+            bindEvents(obj);
+
+        });
+
+        $('.drag').click(function(){
+            bind($(this));
+        })
+
+    })
+
+</script>
+

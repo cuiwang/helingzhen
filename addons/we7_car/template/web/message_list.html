@@ -1,0 +1,116 @@
+{template 'common/header'}
+
+<ul class="nav nav-tabs">
+    <li ><a href="{php echo $this->createWebUrl('message', array('op'=>'set','weid'=>$weid));}">意见回馈设置</a></li>
+    <li class="active"><a href="{php echo $this->createWebUrl('message', array('weid'=>$weid));}">意见回馈列表</a></li>
+</ul>
+
+<div class="main">
+    <div class="panel panel-info">
+		<div class="panel-heading">审核内容</div>
+		<div class="panel-body table-responsive">
+			<ul class="nav nav-tabs">
+    			<li {if $isshow == '2'} class="active" {/if}><a href="{php echo $this->createWebUrl('message', array('op'=>'list','weid'=>$weid,'isshow'=>2));}">全部</a></li>
+        		<li {if $isshow == 0} class="active" {/if}><a href="{php echo $this->createWebUrl('message', array('op'=>'list','weid'=>$weid,'isshow'=>0));}">待审核</a></li>
+        		<li {if $isshow == 1} class="active" {/if}><a href="{php echo $this->createWebUrl('message', array('op'=>'list','weid'=>$weid,'isshow'=>1));}">已审核</a></li>
+			</ul>
+			<form action="" method="post">
+				<div class="sub-content">
+					<table class="table table-hover">
+						<thead class="navbar-inner">
+						<tr>
+							<th style="width:5%;" class="row-first row-hover">选择</th>
+							<th style="width:10%;" class="row-hover">用户</th>
+							<th style="width:20%;">消息</th>
+							<th style="width:5%;">审核状态</th>
+							<th style="width:150px;" class="row-hover">时间</th>
+						</tr>
+						</thead>
+						<tbody>
+						{loop $list $row}
+						<tr>
+							<td class="row-first"><input class="parbox" type="checkbox" name="select[]" value="{$row['id']}" /></td>
+							<td class="row-hover">
+								<div class="mainContent">
+									<div class="nickname">{$row['nickname']}</div>
+								</div>
+							</td>
+							<td >{$row[info]}</td>
+							<td>
+								{if $row['isshow']=='1'}
+								<span class="label label-success">通过审核</span>
+								{else}
+								<span class="label label-default">未通过审核</span>
+								{/if}
+							</td>
+							<td>
+								{php echo date('Y-m-d H:i:s', $row[create_time]);}
+							</td>
+						</tr>
+
+						{if $row['reply']}
+						{loop $row['reply'] $val}
+						<tr>
+							<td class="row-first">
+								<input class="child_{$row['id']}"type="checkbox" name="select1[]" value="{$val['id']}" />
+							</td>
+							<td class="row-hover" style="text-indent:20%">
+								<div class="mainContent">
+									<div style="height:30px;line-height:30px;background:url('./resource/images/bg_repno.gif') no-repeat -245px -545px;">
+										{php echo cutstr($val['nickname'], 10, true);}
+									</div>
+								</div>
+							</td>
+							<td style="text-indent:10%">
+								<div style="height:30px;line-height:30px;background:url('./resource/images/bg_repno.gif') no-repeat -245px -545px;">
+									回复 <span class="label label-warning">{$row['nickname']}</span> : {php echo cutstr($val[info], 20, true);}
+								</div>
+							</td>
+							<td>
+								{if $val['isshow']=='1'}
+								<span class="label label-success">通过审核</span>
+								{else}
+								<span class="label label-default">未通过审核</span>
+								{/if}
+							</td>
+							<td style="font-size:12px; color:#666;">
+								{php echo date('Y-m-d H:i:s', $val[create_time]);}
+							</td>
+						</tr>
+						{/loop}
+						{/if}
+						{/loop}
+						</tbody>
+					</table>
+					<table class="table">
+						<tr>
+							<td style="width:40px;" class="row-first"><input type="checkbox" onclick="selectAll(this);" /></td>
+							<td colspan="4">
+								{if $_GPC['isshow'] == 0}<input type="hidden" name="isshow" value="1"> <input type="submit" name="verify" value="审核通过" class="btn btn-primary" />{/if}
+								{if $_GPC['isshow'] == 1} <input type="hidden" name="isshow" value="0"><input type="submit" name="verify" value="审核未通过" class="btn btn-primary" />{/if}
+								<input type="submit" name="delete" value="删除" class="btn btn-primary" />
+								<input type="hidden" name="token" value="{$_W['token']}" />
+							</td>
+						</tr>
+					</table>
+				</div>
+			</form>
+			{$pager}
+    	</div>
+    </div>
+</div>
+<script type="text/javascript">
+    $(".parbox").click(function() {
+        var status = $(this).attr('checked');
+        if (typeof status == 'undefined')
+            status = false;
+        var val = $(this).val();
+        $(".child_" + val).attr('checked', status);
+    })
+    function selectAll(obj) {
+        var status = $(obj).prop('checked');
+        $(":checkbox").prop('checked', status);
+    }
+</script>
+
+{template 'common/footer'}

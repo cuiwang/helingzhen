@@ -1,0 +1,184 @@
+<html>
+<head>
+	<title>邀请好友参与</title>
+	{php echo register_jssdk();}
+	<meta name="viewport" content="width=device-width, initial-scale=1.0,maximum-scale=1.0, user-scalable=no">
+	<meta name="format-detection" content="telephone=no" />
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<link href="../addons/zofui_hby/public/font-awesome-4.4.0/css/font-awesome.min.css" rel="stylesheet">	
+	<link rel="stylesheet" type="text/css" href="../addons/zofui_hby/public/css/weui.min.css" />		
+	<link rel="stylesheet" type="text/css" href="../addons/zofui_hby/public/css/rain.css" />
+	<script type="text/javascript" src="../addons/zofui_hby/public/js/jquery.min.js" ></script>
+	<script type="text/javascript" src="../addons/zofui_hby/public/js/zepto.min.js" ></script>	
+</head>
+
+<body>
+<div class="bg">
+	<div class="erweima">
+		<img src="{php echo $this->createMobileUrl('img',array('uid'=>$uid))}">
+	</div>
+	<div class="font">
+		<p class="fonta">一大波红包雨来袭，您的朋友{$userinfo['nickname']}邀请您来围观。长按以上二维码，订阅我们后即可参与。</p>	
+	</div>
+	<div class="btnboot">
+	<button class="btn left">中奖名单</button>
+	<button class="btn right">活动规则</button>
+	</div>
+	<!-- 活动时间 -->	
+    <div class="ttime">
+        <div>活动剩余时间</div>
+        <div class="time">
+			<span id="t_d">00天</span>
+			<span id="t_h">00时</span>
+			<span id="t_m">00分</span>
+			<span id="t_s">00秒</span>
+        </div>
+    </div>		
+</div>
+	<!-- 活动规则 -->
+	<div class="rule" style="display:none;">
+		<div class="rule-body">
+			{php echo htmlspecialchars_decode($this->module['config']['actrule'])}
+		<div class="ruleclose close"><span class="fa fa-close"></span></div>			
+		</div>
+	</div>
+	
+	<!-- 中奖名单 -->
+	<div class="prize rule" style="display:none;">
+		<div class="rule-body">
+			{loop $prizeinfo $item}
+			<div class="list">
+				<div class="headimg plist"><img src="{$item['headimg']}"></div>
+				<div class="nickname plistnick"><font class="pfont">{$item['nickname']}</font></div>				
+				<div class="prizep plist"><font class="pfont">{$item['money']}元</font></div>
+				<div class="time plist"><font class="pfont">{php echo $this->timeFormat($item['time'])}</font></div>
+			</div>			
+			{/loop}
+		<div class="ruleclose close"><span class="fa fa-close"></span></div>			
+		</div>
+	</div>
+
+	<!-- 分享图片1 -->
+	<div class="shareimg invshare" style="display:block">
+		<img src="../addons/zofui_hby/public/images/share1.png"/>
+	</div>		
+
+	
+<script>
+	$('.right').click(function(){
+		$('.bg').fadeOut();		
+		$('.rule').fadeIn();
+	});
+	$('.close').click(function(){
+		$('.rule').fadeOut();
+		$('.bg').fadeIn();			
+	});	
+	$('.left').click(function(){
+		$('.bg').fadeOut();		
+		$('.prize').fadeIn();
+	});	
+
+	{if $_COOKIE['flag'] == '999'}
+		$('.shareimg').fadeIn();
+	{else}
+		$('.shareimg').hide();	
+	{/if}
+	$('.shareimg').click(function(){
+		$('.shareimg').fadeOut();		
+	});
+	
+   setInterval(GetRTime,1000);	
+   function GetRTime(){
+       var EndTime= new Date("{php echo date('Y/m/d H:i:s',strtotime($this->module['config']['endtime']))}");
+       var NowTime = new Date();
+       var t =EndTime.getTime() - NowTime.getTime();
+       var d=Math.floor(t/1000/60/60/24);
+       var h=Math.floor(t/1000/60/60%24);
+       var m=Math.floor(t/1000/60%60);
+       var s=Math.floor(t/1000%60);
+
+       document.getElementById("t_d").innerHTML = d + "天";
+       document.getElementById("t_h").innerHTML = h + "时";
+       document.getElementById("t_m").innerHTML = m + "分";
+       document.getElementById("t_s").innerHTML = s + "秒";
+   }
+
+	wx.ready(function (){
+	var shareData = {
+		title: "{php echo '一大波红包雨来袭，您的朋友' . $userinfo['nickname'] . '邀请您来围观'}",
+		desc: "{php echo '一大波红包雨来袭，您的朋友' . $userinfo['nickname'] . '邀请您来围观'}",
+		link: "",
+		imgUrl: "{php echo $userinfo['headimgurl']}",
+	};
+//分享朋友
+	wx.onMenuShareAppMessage({
+	    title: shareData.title,
+	  	desc: shareData.desc,
+	  	link: shareData.link,
+	  	imgUrl:shareData.imgUrl,
+	  	trigger: function (res) {
+	  	},
+	  	success: function (res) {
+	    	window.location.href =adurl;
+	  	},
+	  	cancel: function (res) {
+	  	},
+	  	fail: function (res) {
+	    	alert(JSON.stringify(res));
+	  	}
+	});
+//分享QQ
+	wx.onMenuShareQQ({
+	    title: shareData.title,
+	  	desc: shareData.desc,
+	  	link: shareData.link,
+	  	imgUrl:shareData.imgUrl,
+	  	trigger: function (res) {
+	  	},
+	  	success: function (res) {
+	    	window.location.href =adurl;
+	  	},
+	  	cancel: function (res) {
+	  	},
+	  	fail: function (res) {
+	    	alert(JSON.stringify(res));
+	  	}
+	});
+//分享QQ空间
+	wx.onMenuShareQZone({
+	    title: shareData.title,
+	  	desc: shareData.desc,
+	  	link: shareData.link,
+	  	imgUrl:shareData.imgUrl,
+	  	trigger: function (res) {
+	  	},
+	  	success: function (res) {
+	    	window.location.href =adurl;
+	  	},
+	  	cancel: function (res) {
+	  	},
+	  	fail: function (res) {
+	    	alert(JSON.stringify(res));
+	  	}
+	});	
+//朋友圈
+	wx.onMenuShareTimeline({
+	  	title: shareData.title,
+	  	link: shareData.link,
+	  	imgUrl:shareData.imgUrl,
+	  	trigger: function (res) {
+	  	},
+	  	success: function (res) {
+	    	window.location.href =adurl;
+	  	},
+	  	cancel: function (res) {
+	  	},
+	  	fail: function (res) {
+	    	alert(JSON.stringify(res));
+	  	}
+	});
+});
+   
+</script>
+</body>
+</html>

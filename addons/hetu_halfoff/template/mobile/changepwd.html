@@ -1,0 +1,103 @@
+{template 'header'}
+	<head>
+		<link rel="stylesheet" type="text/css" href="{php echo HT}css/weui.css" />
+		<link rel="stylesheet" type="text/css" href="{php echo HT}css/Conn.css"/>
+		<link rel="stylesheet" href="{HT}css/EnterPage.css" />
+	</head>
+	<body>
+		<header>
+			<div class="SellerImg">
+				<img src="{php echo tomedia($item['img']);}" />
+			</div>
+			<p>{$item['name']}</p>
+		</header>
+		<div class="SellerLogin">
+			<form action="" method="post">
+				<div class="SellerPwd">
+					<lable class="SPwdlable" for="inputPws" >新密码：</lable><input type="password" id="pwd" placeholder="请输入密码"/>
+				</div>
+				<div class="SellerPwd">
+					<lable class="SPwdlable" for="inputPws" >确认密码：</lable><input type="password" id="repwd" placeholder="请输入确认密码"/>
+					<input type="hidden" id="bus_id" value="{$bus_id}"/>
+				</div>
+			</form>
+		</div>
+		<!-- <div class="NotEnter" style="color:red;">密码长度应大于6位</div> -->
+		<div class="LoginA">
+			<a href="#" id="changepwd">确认修改</a>
+		</div>
+		<div class="weui_dialog_alert" id="dialog2" style="display: none;">
+		    <div class="weui_mask"></div>
+		    <div class="weui_dialog">
+		        <div class="weui_dialog_hd"><strong class="weui_dialog_title"><i class="iconfont tijiao">&#xe610;</i></strong></div>
+		        <div class="weui_dialog_bd"></div>
+		        <div class="weui_dialog_ft">
+		            <a href="javascript:;" class="weui_btn_dialog primary">确认</a>
+		        </div>
+		    </div>
+		</div>
+		{template 'banquan'}
+		<script type="text/javascript" src="{php echo HT}js/jquery-1.8.2.min.js" ></script>
+		<script type="text/javascript">
+			$(function(){
+				$("#changepwd").click(function(){
+					if($('#pwd').val()=='')
+					{
+						$(".tijiao").html("&#xe610;");
+						$(".weui_dialog_bd").html('密码不能为空');
+						$("#dialog2").show();
+						return false;
+					}
+					if($('#repwd').val()=='')
+					{
+						$(".tijiao").html("&#xe610;");
+						$(".weui_dialog_bd").html('确认密码不能为空');
+						$("#dialog2").show();
+						return false;
+					}
+					if($('#pwd').val().length<6)
+					{
+						$(".tijiao").html("&#xe610;");
+						$(".weui_dialog_bd").html('密码长度不能小于6位字符');
+						$("#dialog2").show();
+						return false;
+					}
+					if($('#pwd').val()!=$('#repwd').val())
+					{
+						$(".tijiao").html("&#xe610;");
+						$(".weui_dialog_bd").html('两次输入密码不相同');
+						$("#dialog2").show();
+						return false;
+					}
+					$.ajax({
+						type: 'POST',
+						url: "{php echo $this->createMobileUrl('halfbusshop', array('op'=>'changepwd'));}",
+						data:{pwd:$('#pwd').val(), bus_id:$('#bus_id').val()},
+						dataType: 'text',
+						success: function(res){
+						  if(res == '3'){
+								$(".weui_dialog_bd").html("修改后密码不能与原密码相同");
+								$("#dialog2").show();
+						  }else if(res == '1'){
+								$(".weui_dialog_bd").html('修改成功');
+								$("#dialog2").show();
+								var url = "{php echo $this->createMobileUrl('halfbusshop')}";
+								setTimeout("location.href='" + url + "&op=display&bus_id="+$('#bus_id').val()+"'", 500);
+						  }else {
+								$(".weui_dialog_bd").html("修改密码失败，请重新修改");
+								$("#dialog2").show();
+						  }
+						},
+						error: function(xhr, type){
+							alert('出错了!');
+						}
+					});
+				});
+				$(".weui_dialog_ft").click(function(){
+					$("#dialog2").fadeOut();
+				});
+
+				
+			});
+		</script>
+	</body>

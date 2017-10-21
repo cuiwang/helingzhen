@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<title>商品详情- {php echo $this->module['config']['sname']}</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, user-scalable=no, maximum-scale=1.0">
+		<meta content="yes" name="apple-mobile-web-app-capable">
+		<meta content="black" name="apple-mobile-web-app-status-bar-style">
+		<meta content="telephone=no" name="format-detection">
+		<link href="../addons/weliam_indiana/secondstatic/css/newcomm.css" rel="stylesheet" type="text/css">
+		<link href="../addons/weliam_indiana/secondstatic/css/newgoods.css" rel="stylesheet" type="text/css">
+		<link href="../addons/weliam_indiana/secondstatic/css/newlottery.css" rel="stylesheet" type="text/css">
+		<script language="javascript" src="../addons/weliam_indiana/secondstatic/js/jquery.js"></script>
+	</head>
+	<script>
+	function sele(){
+		//检测是否已经成功揭晓
+		var status = {$period['status']};
+		var weijiexiao1 = document.getElementById('banner_box');
+		var weijiexiao2 = document.getElementById('pro_info');
+		var jiexiao1 = document.getElementById('bgColor');
+		var jiexiao2 = document.getElementById('clearfix');
+		var jsresult = document.getElementById('jsresult');
+		if(status>2){
+			jiexiao1.style.display = 'block';
+			jiexiao2.style.display = 'block'; 
+			jsresult.style.display = 'block';
+		}else{
+			weijiexiao1.style.display = 'block';
+			weijiexiao2.style.display = 'block';
+		}
+	}
+	</script>
+	<style>
+		.w-miniCart{position:fixed;bottom:10px;left:10px;z-index:2;font-size:12px;color:#fff;text-align:center;display:inline-block;width:48px;height:48px;border-radius:50%;background:#db3652;-webkit-transition:bottom .2s ease-in;transition:bottom .2s ease-in;}
+		.w-miniCart-count{position:absolute;top:-2px;left:30px;display:inline-block;padding:1px 4px;line-height:14px;font-size:12px;font-weight:normal;color:#fff;background:#000;border-radius:14px;}
+		.w-miniCart-text{line-height:48px;}
+		.w-miniCart .ico-miniCart{position:absolute;top:10px;left:9px;}
+		.w-miniCart.jump{-webkit-animation:jump .8s ease-in;animation:jump .8s ease-in;}
+		@-webkit-keyframes jump{0%{bottom:5px;}
+		40%{bottom:10px;}
+		50%{bottom:5px;}
+		70%{bottom:9px;}
+		80%{bottom:5px;}
+		90%{bottom:7px;}
+		100%{bottom:5px;}}@keyframes jump{0%{bottom:5px;}
+		40%{bottom:10px;}
+		50%{bottom:5px;}
+		70%{bottom:9px;}
+		80%{bottom:5px;}
+		90%{bottom:7px;}
+		100%{bottom:5px;}}.w-miniCart-gray{padding:0 10px;line-height:38px;width:25px;height:38px;background:none;border-radius:0;}
+		.w-miniCart-gray .w-miniCart-count{top:1px;padding:0 3px;background:#db3625;color:#fff;}
+		.w-miniCart-gray .w-miniCart-text{display:none;}
+		.w-miniCart-gray .ico-miniCart{top:7px;left:9px;}
+		.box_swipe {overflow: hidden; position: relative; margin-bottom: 10px;}
+		.box_swipe ul {overflow: hidden; position: relative;margin:0;padding:0;}
+		.box_swipe ul > li {float:left; width:100%; position: relative; text-align:center;}
+		.box_swipe ul > li a{color:#FFF; text-decoration:none;}
+		.box_swipe ul > li .title{position: absolute; bottom: 0px; display: block; width: 100%; height:20px; padding:0 10px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; color:#FFF; z-index:100;}
+		.box_swipe>ol{height:20px; position: relative; z-index:10; margin-top:-20px; text-align:center; padding-right:15px;}
+		.box_swipe>ol>li{display:inline-block; margin-bottom:1px; width:8px; height:8px; background-color:#757575; border-radius: 8px;}
+		.box_swipe>ol>li.on{background-color:#db3652;}
+	</style>
+
+	<body fnav="2" class="g-acc-bg" style="zoom: 1;" onload="sele();">
+			<!--期数列表-->
+			<div class="issue">
+				<ul>
+					<li><a class="hover">第{$period['periods']}期</a></li>
+					{if $period['periods']-1>0}
+					<li><a href="{php echo $this->createMobileUrl('detail', array('periodid' => $lastone['id']))}">第{php echo $period['periods']-1}期</a></li>
+					{/if}
+					{if $period['periods']-2>0}
+					<li><a href="{php echo $this->createMobileUrl('detail', array('periodid' => $lasttwo['id']))}">第{php echo $period['periods']-2}期</a></li>
+					{/if}
+					<li class="z-more"><a href="{php echo $this->createMobileUrl('winner')}&goodsid={$period['goodsid']}"><s class="fl"></s><em class="z-set"></em></a></li>
+				</ul>
+			</div>
+			
+			<!--揭晓倒计时-->
+			{if $period['status'] == 2}			 
+	        <div id="divLotteryTime" class="Countdown-con">
+	            <div class="g-Countdown">
+	                <p class="orange">已满员，揭晓结果即将公布</p>
+	                <div>
+	                    <cite>
+	                        <span id='ii'></span>
+	                        <em>:</em>
+	                        <span id='ss'></span>
+	                        <em>:</em>
+	                        <span id='aa'></span>
+	                    </cite>
+	                </div>
+	            </div>
+	        </div>
+	        <script>
+						$(document).ready(function(){
+						    function FreshTime(){
+						        var str ='{php echo date('Y-m-d H:i:s',$period['endtime'])}';
+						        str = str.replace(/-/g,"/");
+						        var starttime= new Date(str);//开始时间
+						        var nowtime = new Date();//当前时间
+						        var now_time = parseInt(nowtime.getTime());
+						        var start_time = parseInt(starttime.getTime());
+						        var jiexiao_time = start_time;
+						        var lefttime = (jiexiao_time-now_time)/1000;
+						       if (lefttime > 0) {
+						            mm=parseInt((lefttime/60)%60);
+						            if(10>mm>0){
+						            	mm="0"+mm;
+						            }
+						            ss=parseInt(lefttime%60);
+						            if(10>parseInt(ss)>0){
+						            	ss="0"+ss;
+						            }
+						            aa=parseInt((lefttime*100)%100);
+						            if(10>parseInt(aa)>0){
+						            	aa="0"+aa;
+						            }
+						            $("#ii").html(mm);
+						            $("#ss").html(ss);
+						            $("#aa").html(aa);
+						       }else{
+									var weijiexiao1 = document.getElementById('banner_box');
+									var weijiexiao2 = document.getElementById('pro_info');
+									var jiexiao1 = document.getElementById('bgColor');
+									var jiexiao2 = document.getElementById('clearfix');
+									var jsresult = document.getElementById('jsresult');
+									var daojishi = document.getElementById('divLotteryTime');
+						            jiexiao1.style.display = 'block';
+									jiexiao2.style.display = 'block'; 
+									jsresult.style.display = 'block';
+									
+									weijiexiao1.style.display = 'none';
+									weijiexiao2.style.display = 'none';
+									daojishi.style.display = 'none';
+						            return false;
+						        }
+						  	}
+						    FreshTime();
+						    var sh;
+						    sh=setInterval(FreshTime,10);
+						});
+						</script>
+			{/if}
+			<!-- 商品已经揭晓 -->
+			        <!--获得者信息-->
+		        <div class="bgColor-white clearfix" style="display: none;" id="bgColor">
+		            <div class="g-winn-con clearfix">
+		                <div class="winn-info clearfix">
+		                    <p class="fl">
+		                        <a href="{php echo $this->createMobileUrl('otherpersonal')}&openid={$period['openid']}"><img src="{$prizemember['avatar']}"></a>
+		                    </p>
+		                    <dl class="gray9">
+		                        <dt>
+		                            <a href="{php echo $this->createMobileUrl('otherpersonal')}&openid={$period['openid']}" class="blue">{$period['nickname']}</a></dt>
+		                        <dd>
+		                            本云参与： <i class="orange">
+		                                {$period['partakes']}</i>人次
+		                        </dd>
+		                        <dd>
+		                            幸运云购码： <i class="orange">
+		                                {$period['code']}</i>
+		                        </dd>
+		                        <dd class="ann-time">
+		                            揭晓时间：
+		                        {php echo date('Y-m-d H:i:s',$period['endtime'])}
+		                        </dd>
+		                    </dl>
+		                    <div class="rNowTitle">获得者</div>
+		                    <!--分享-->
+		                    <div class="z-share-right">
+		                        <a id="btnShare" class="colorbbb" href="javascript:;">
+		                            <i class="z-set"></i>
+		                            分享</a>
+		                    </div>
+		                </div>
+		    
+		                    <cite onclick="location.href=&#39;BuyDetail-3047004.do?rno=10010284&amp;buynum=5&#39;"><a href="javascript:;" class="gray9">获得者本云所有云购码<s class="z-set"></s></a></cite>
+		            </div>
+		        </div>
+		        <!--商品信息-->
+		        <div class="announced-detail clearfix" style="display: none;" id="clearfix">
+		            <ul>
+		                <li class="fl ann-pic">
+		                    <a href="http://weixin.1yyg.com/products/22817.do"><img src="{$oneimg}"></a>
+		                </li>
+		                <li class="ann-con gray9">
+		                    <p class="gray6"> (第{$period['periods']}期)
+                {$goods['title']}</p>价值：￥{$period['zong_codes']}.00
+		                </li>
+		            </ul>
+		        </div>
+			
+			
+			<!-- 商品进行中 -->
+			<!-- 产品图 -->
+			<div id="banner_box" class="box_swipe" style="display: none;">
+				<ul>
+					{loop $advs $adv}
+					<li>
+						<a>
+							<img src="{php echo tomedia($adv['thumb']);}" style='width:100%;max-height: 240px;' />
+						</a>
+
+					</li>
+					{/loop}
+				</ul>
+				<ol>
+					{php $slideNum = 1;} {loop $advs $adv}
+					<li{if $slideNum==1 } class="on" {/if}></li>
+						{php $slideNum++;} {/loop}
+				</ol>
+			</div>
+			<script>
+				$(function() {
+					new Swipe($('#banner_box')[0], {
+						speed: 500,
+						auto: 3000,
+						callback: function() {
+							var lis = $(this.element).next("ol").children();
+							lis.removeClass("on").eq(this.index).addClass("on");
+						}
+					});
+				});
+			</script>
+			<!-- 产品信息 -->
+			<div class="pro_info" id="pro_info" style="display: none;">
+				<h2 class="gray6">
+                
+                (第{$period['periods']}期)
+                {$goods['title']}
+            </h2>
+				<div class="purchase-txt gray9 clearfix">
+					价值：￥{$period['zong_codes']}.00
+				</div>
+				<div class="clearfix">
+					<div class="gRate">
+						<div class="Progress-bar">
+							<p class="u-progress">
+								<span class="pgbar" style="width:{$period['scale']}%;">
+									<span class="pging"></span>
+								</span>
+							</p>
+							<ul class="Pro-bar-li">
+								<li class="P-bar01"><em>{$period['canyurenshu']}</em>已参与</li>
+								<li class="P-bar02"><em>{$period['zong_codes']}</em>总需人次</li>
+								<li class="P-bar03"><em>{$period['shengyu_codes']}</em>剩余</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+				<!--本商品已结束-->
+
+			</div>
+
+			<div class="ann_btn">
+				<a href="{php echo $this->createMobileUrl('result', array('id' => $period['id']))}" style="display: none;" id="jsresult">计算结果<s class="fr"></s></a>
+				<!--所有参与记录-->
+				<a href="{php echo $this->createMobileUrl('participate_record')}&period_number={$period['period_number']}">参与记录<s class="fr"></s></a>
+				<!--商品详情-->
+				<a href="{php echo $this->createMobileUrl('detail', array('id' => $goods['id'],'op' => 'detail'))}">图文详情<em>（建议WIFI下使用）</em><s class="fr"></s></a>
+				<!--商品晒单-->
+				<a href="{php echo $this->createMobileUrl('goodsshare', array('goodsid' => $goods['id']))}">商品晒单<s class="fr"></s></a>
+			</div>
+
+			<div class="pro_foot">
+				<a href="javascript:;" id="a_sc" class="z-set z-foot-fans fl"></a>
+				<a href="{php echo $this->createMobileUrl('cart',array('op'=>'cart_detail'));}" id="btnCart"><i class="fr" id="count">{if $myCart_num!=0}<b>{$myCart_num}</b>{/if}</i></a>
+				<div class="btn">
+					<ul>
+						{if $period['status']==1}
+						<li><a href="{php echo $this->createMobileUrl('cart', array('op' => 'cart_detail','opp'=>'rightnow','periodnumber'=>$period['period_number'],'title'=>$goods['title']))}" class="orangeBtn">立即购买</a></li>
+						<li><a href="javascript:addToCart(this,'{$period['period_number']}','{$period['title']}');" class="blueBtn">加入购物车</a></li>
+						{elseif $goods['status'] == 2}
+						<li class="conductBtn"><a href="{php echo $this->createMobileUrl('detail', array('id'=>$goods['id']))}" >火速前往最新一期...</a></li>
+						{else}
+						<li class="conductBtn"><a>商品已经下架!!!</a></li>
+						{/if}
+					</ul>
+				</div>
+			</div>
+		{template 'menu'}
+		{template 'common_message'}
+	</body>
+<script>
+	//添加购物车
+	function addToCart(obj,periodnumber,title){
+		$.post("{php echo $this->createMobileUrl('cart',array('op'=>'tocart'))}"
+			,{periodnumber:periodnumber,title:title}
+			,function(d){
+				if(d.result==1){
+					tip('添加到购物车成功',true);
+					$('#count').html("<b>"+d.num+"</b>");
+				}
+			}
+			,"json"
+		);
+	}	
+</script>
+</html>

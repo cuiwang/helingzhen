@@ -1,0 +1,106 @@
+{template 'common/header'}
+
+<div class="main" style="padding-top:5px;">
+    <div class="panel panel-info">
+        <div class="panel-heading">筛选</div>
+        <div class="panel-body">
+            <form action="{php echo $this->createWebUrl('finance',array('issucc' => $_GPC['status']))}" method="get" class="form-horizontal" role="form">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">处理状态</label>
+                    <div class="col-sm-6 col-lg-8">
+                        <input type="hidden" name="c" value="site">
+                        <input type="hidden" name="a" value="entry">
+                        <input type="hidden" name="do" value="sfinance">
+                        <input type="hidden" name="m" value="dg_articlemanage">
+                        <select name="status" class="form-control">
+                            <option value="" selected="selected">不限</option>
+                            <option value="1"{if 1 == $_GPC['status']} selected="selected"{/if}>处理中</option>
+                            <option value="2"{if 2 == $_GPC['status']} selected="selected"{/if}>完结</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">申请时间范围</label>
+                    <div class="col-sm-6 col-lg-8">
+                        {php echo tpl_form_field_daterange('time', array('starttime'=>date('Y-m-d', $starttime),'endtime'=>date('Y-m-d', $endtime)));}
+                    </div>
+                    <div class="pull-right col-xs-12 col-sm-3 col-lg-2">
+                        <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!--<div class="panel-heading" style="display:none;">-->
+    <!--<div class="row-fluid">-->
+    <!--<div class="span8 control-group">-->
+    <!--<a class="btn btn-primary" href="">-->
+    <!--<i class="fa fa-usd"></i> 全部结算</a>-->
+    <!--</div>-->
+    <!--</div>-->
+    <!--</div>-->
+
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <div class="row-fluid">
+                <div class="span8 control-group">
+                    <span>共计 {$total} 条数据  </span>
+
+                </div>
+            </div>
+        </div>
+        <div class="table-responsive panel-body">
+            <table class="table table-hover">
+                <thead class="navbar-inner">
+                <tr>
+                    <th style="width:65px;" align="center">头像</th>
+                    <th style="width:80px;">昵称</th>
+                    <th>提现金额(实际)</th>
+                    <th>申请时间</th>
+                    <th>结算时间</th>
+                    <th>当前状态</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody id="level-list">
+                {loop $income $row}
+                <tr>
+                    <td><img alt="" src="{$row['avatar']}" width='auto' style="max-width:50px; max-height:50px;" height='auto'></td>
+                    <td><div class="type-parent">{$row['nickname']}</div></td>
+                    <td><div class="type-parent">{$row['share_money']}</div></td>
+                    <td><div class="type-parent">{php echo date('Y/m/d H:i', $row['createtime']);}&nbsp;&nbsp;</div></td>
+                    <td><div class="type-parent">{php echo date('Y/m/d H:i', $row['share_time']);}&nbsp;&nbsp;</div></td>
+                    <td id="row_status_{$row['id']}"><div class="type-parent">{$row['share_status']}&nbsp;&nbsp;</div></td>
+                    <td id="row_last_{$row['id']}">{if $row['share_status']=='处理中'}<a style="color:red;" href="javascript:sendred({$row['id']})">发放</a>{/if}</td>
+                </tr>
+                {/loop}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {$pager}
+    <script type="text/javascript">
+        var url=location.href;
+        function sendred(id){
+            var result=confirm("确认要发放吗？");
+            if(result){
+                $.post(url, { id: id },
+                        function(data){
+                            if(data.success==0){
+                                $("#row_status_"+id).children('.type-parent').text('完结');
+                                $("#row_last_"+id).text('');
+                                location.href=location.href;
+                            }else{
+                                alert(data.msg);
+                            }
+                        },"json");
+                return false;
+            }
+        }
+    </script>
+</div>
+{template 'common/footer'}

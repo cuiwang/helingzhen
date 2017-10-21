@@ -1,0 +1,187 @@
+{template 'common/header'}
+{if IMS_VERSION<1}
+<link href="{MODULE_URL}/template/static/css/wq1.0.css" rel="stylesheet">
+{/if}
+<style>
+.setuserstatus{cursor:pointer;}
+.table>thead>tr>td, .table>tbody>tr>td, .table>tfoot>tr>td{
+white-space: normal;
+word-wrap: break-word;
+word-break: normal;
+}
+</style>
+<div class="we7-page-title">红包管理</div>
+ <ul class="we7-page-tab">
+        <li><a href="{php echo $this->createWebUrl('votelist',array('rid'=>$_GPC['rid']));}" >参与用户</a></li>
+		<li{if $_GPC['do'] == 'lottery' || $_GPC['do'] == '' } class="active"{/if}><a href="#" onclick="window.location.reload();">红包数据</a></li>
+        <li{if $_GPC['do'] == 'manage' || $_GPC['do'] == '' } class="active"{/if}><a href="{php echo $this->createWebUrl('manage');}">活动管理</a></li>
+</ul>
+
+<div class="main1">
+
+
+<div class="we7-padding-bottom clearfix">
+        <form action="./index.php" method="get" role="form" >
+            <div class="input-group pull-left col-sm-4">
+			<input type="hidden" name="c" value="site" />
+			<input type="hidden" name="a" value="entry" />
+        	<input type="hidden" name="m" value="tyzm_followtask" />
+        	<input type="hidden" name="do" value="user" />
+			<input type="hidden" name="rid" value="{$_GPC['rid']}" /> 
+            <input class="form-control" name="keyword" id="" placeholder="输入ID，ip，昵称" type="text" value="{$_GPC['keyword']}">
+            <span class="input-group-btn"><button class="btn btn-default"><i class="fa fa-search"></i></button></span>
+            </div>
+        </form>
+        <div class="pull-right">
+             <span class="alert alert-success">已发红包：{$redpacktotal}个</span>
+            
+        </div>
+    </div>
+
+
+
+        <table class="table we7-table table-hover">
+            <thead class="navbar-inner">
+                <tr><th  width="50">ID</th>	
+					<th   width="60">头像</th>	
+                    <th>用户openid</th>	
+					<th>unionid</th>	
+					<th>来源</th>
+					<th>ip</th>
+					<th>抽奖时间</th>
+					<th>金额</th>	
+                    <th>红包订单</th>					
+					<th>红包状态</th>
+					<th width="70">操作</th>
+                </tr>
+            </thead> 
+            <tbody>
+                {loop $list $row}
+                <tr>
+                    <td>{$row['id']}</td>
+					<td style="text-align:center"><img src="{$row['avatar']}" width="48"><br />{$row['nickname']}</td>
+					<td><div class="alert alert-success">{$row['openid']}</div></td>	
+					<td><div class="alert alert-danger">{$row['unionid']}</div></td>
+					<td><span class="label label-info">{$row['tid']}</span></td>					
+					<td>{$row['user_ip']}
+					<td>{php echo date('Y-m-d H:i:s',$row['createtime'])}</td>
+			
+					<td>
+					{if $row['return_msg']==""}
+							  --
+							{else}
+							  <span class="label label-info">￥{php echo $row['total_amount']/100}</span>
+					{/if}
+					</td>
+		            <td>{$row['mch_billno']}</td>			    
+                   <td>
+				       {if $row['result_code']=="SUCCESS"}
+						<div class="alert alert-success">{$row['return_msg']}</div>
+						{else}
+						<div class="alert alert-danger">
+							{if $row['return_msg']==""}
+							  未发
+							{else}
+							   {$row['return_msg']}
+							{/if}
+						</div>
+ 
+						{/if}
+						{if $row['result_code']!="SUCCESS" && $row['return_msg']!=""}
+						<a class="btn   btn-info" title="重发" href="#" onclick="drop_confirm('重新给用户发红包!', '{php echo $this->createWebUrl('otherset',array('ty'=>'repeatredpack','rid'=>$row['rid'],'redpackid'=>$row['id']))}');"><i class="fa fa-send"></i>重发</a>
+						{/if}
+				   </td>
+				   <td>
+				   <a class="btn   btn-danger" title="删除用户" href="#" onclick="drop_confirm('您确定要删除用户吗!', '{php echo $this->createWebUrl('otherset',array('ty'=>'deleteredpack','rid'=>$row['rid'],'id'=>$row['id']))}');"><i class="fa fa-times"></i></a>
+				   </td>
+                </tr>
+                {/loop}
+            </tbody>
+        </table>
+            <div class="pull-right">
+        {$pager}
+    </div>
+
+</div>
+<script>
+$(function(){
+
+            $(".check_all").click(function(){
+            var checked = $(this).get(0).checked;
+                    $("input[type=checkbox]").attr("checked", checked);
+            });
+                    $("input[name=deleteall]").click(function(){
+
+            var check = $("input:checked");
+                    if (check.length < 1){
+            err('请选择要删除的记录!');
+                    return false;
+            }
+            if (confirm("确认要删除选择的记录?")){
+            var id = new Array();
+                    check.each(function(i){
+                    id[i] = $(this).val();
+                    });
+                    $.post('{php echo create_url('site/module', array('do' => 'deleteAll', 'name' => 'tyzm_pintu'))}', {idArr:id}, function(data){
+                    if (data.errno == 0)
+                    {
+                    location.reload();
+                    } else {
+                    alert(data.error);
+                    }
+
+
+                    }, 'json');
+            }
+
+            });
+			
+			
+
+$(".setuserstatus").click(function(){
+    var clickthis=$(this);
+    var vid=clickthis.attr('data-id');
+	var status=clickthis.attr('data-s');
+	$.ajax({
+		type : "post",
+		url : "{php echo $this->createWebUrl('otherset',array('rid'=>$_GPC['rid'],'ty'=>'setuserstatus'))}",
+		data : {
+			vid : vid,
+			status : status,
+		},
+		dataType : "json",
+		success : function(res) {
+			if (res.status == 200) {
+			    clickthis.attr('data-s',(1-status));
+				if(clickthis.hasClass('label-success')){
+				    clickthis.removeClass("label-success");
+                    clickthis.addClass('label-danger');
+					clickthis.html('无效');
+                }else{
+				    clickthis.removeClass("label-danger");
+				    clickthis.addClass('label-success');
+					clickthis.html('有效');
+				}
+			}
+		}
+
+	});
+});		
+			
+			
+			
+			
+			
+			
+			
+			
+                    });</script>
+<script>
+            function drop_confirm(msg, url){
+            if (confirm(msg)){
+            window.location = url;
+            }
+            }
+</script>
+
+{template 'common/footer'}

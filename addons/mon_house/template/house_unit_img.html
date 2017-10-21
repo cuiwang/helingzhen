@@ -1,0 +1,299 @@
+{template 'common/header'}
+
+<ul class="nav nav-tabs">
+	<li {if $operation== 'post'}class="active"{/if}><a
+		href="{php echo create_url('site/module/unitImgSetting', array('name' => 'mon_house', 'op' => 'post'));}">户型图片添加</a></li>
+	<li {if $operation== 'display'}class="active"{/if}><a
+		href="{php echo create_url('site/module/unitImgSetting', array('name' => 'mon_house', 'op' => 'display'));}">户型图片管理</a></li>
+
+	<li ><a
+		href="{php echo create_url('site/module/unitSetting', array('name' => 'mon_house', 'op' => 'display'));}">户型管理</a></li>
+
+</ul>
+{if $operation == 'post'}
+<div class="main">
+	<form action="" method="post" class="form-horizontal form"
+		enctype="multipart/form-data">
+		<input type="hidden" name="id" value="{$item['id']}" />
+		<p/>
+		<table class="tb">
+		
+		<tr>
+		<th><label for="">户型设置</label></th>
+		<td>
+		<div class="alert alert-block alert-new" >
+		<table class="tb">
+
+
+			
+			<tr>
+				<th><label for="">楼盘</label></th>
+				<td>
+				
+					<select name="hid" id="hid">
+						{loop $houses $house}
+								<option value="{$house['id']}" {if $house['id']==$item['hid'] }selected="selected"{/if}>{$house['title']}</option>
+						{/loop}
+					</select>
+				</td>
+			</tr>
+
+
+			<tr>
+				<th><label for="">户型</label></th>
+				<td>
+
+					<select name="tid" id="tid">
+						{loop $house_types $house_type}
+							<option value="{$house_type['id']}" {if $house_type['id']==$item['tid'] }selected="selected"{/if}>{$house_type['tname']}</option>
+						{/loop}
+					</select>
+				</td>
+			</tr>
+
+			<tr>
+				<th><label for="">预览图片</label></th>
+				<td>{php echo tpl_form_field_image('pre_img', $item['pre_img']);}<span><font color="red">建议大小(320*240)</font></span></td>
+			</tr>
+
+
+			<tr>
+				<th><label for="">大图片</label></th>
+				<td>{php echo tpl_form_field_image('img', $item['img']);}<span><font color="red">建议大小(750*750)</font></span></td>
+			</tr>
+
+			
+		</table>
+		
+		</div>
+		</td>
+		</tr>
+		
+		
+		
+		
+			<tr>
+				<th></th>
+				<td><input name="submit" type="submit" value="提交"
+					class="btn btn-primary span3"> <input type="hidden"
+					name="token" value="{$_W['token']}" /></td>
+			</tr>
+		</table>
+	</form>
+</div>
+<script type="text/javascript">
+<!--
+	//kindeditor($('.richtext-clone'));
+//-->
+
+
+$(function () {
+
+
+	$("#btn_search").click(function(){
+
+		$("#search_form").submit();
+
+	});
+
+	$("#hid").change(function(){
+
+		getTypes($(this).val());
+
+	});
+
+
+
+	function getTypes(hid){
+
+		var checkTid="{$tid}";
+
+
+		$.get('{php echo create_url('site/module/QueryTypes', array('name' => 'mon_house'));}',{"hid":hid},function(res){
+
+			var opHtml="";
+			for(var i=0;i<res.length;i++){
+
+				var houseType=res[i];
+
+				if(houseType['id']==checkTid){
+					opHtml+="<option value="+houseType['id']+" selected='selected' >"+houseType['tname']+"</option>";
+				}else{
+					opHtml+="<option value="+houseType['id']+">"+houseType['tname']+"</option>";
+				}
+
+
+
+			}
+
+			$("#tid").html(opHtml);
+
+
+		},'json');
+
+	}
+
+
+
+});
+
+
+
+</script>
+
+
+
+
+{elseif $operation == 'display'}
+<div class="main">
+
+	<div class="search">
+		<form id="search_form" action="site.php">
+
+			<input type="hidden" name="act" value="module" />
+			<input type="hidden" name="name" value="mon_house" />
+			<input type="hidden" name="do" value="unitImgSetting" />
+			<table class="table table-bordered tb">
+				<tbody>
+				<tr>
+					<td>楼盘选择</td>
+					<td>
+
+						<select name="hid" id="hid">
+							{loop $houses $house}
+							<option value="{$house['id']}" {if $house['id']==$hid}selected="selected"{/if}>{$house['title']}</option>
+							{/loop}
+						</select>
+
+
+					</td>
+
+					<td>户型选择</td>
+					<td>
+
+						<select name="tid" id="tid">
+							{loop $house_types $house_type}
+									<option value="{$house_type['id']}" {if $house_type['id']==$tid}selected="selected"{/if}>{$house_type['tname']}</option>
+							{/loop}
+						</select>
+
+
+					</td>
+
+					<td>  <button id="btn_search" class="btn btn-primary pull-left span2" style=''><i class="icon-search icon-large"></i> 搜索</button></td>
+
+
+				</tr>
+
+
+				</tbody>
+			</table>
+		</form>
+	</div>
+
+
+
+
+
+	<div style="padding: 15px;">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+
+					<th style="width: 180px;">图片</th>
+
+
+					<th style="text-align: right; min-width: 300px;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $item}
+				<tr>
+
+				
+					<td ><img src="{php echo $this->img()}{$item['pre_img']}" height="100px" width="100px"></td>
+				
+				
+
+
+					<td style="text-align: right; width: 400px">
+				
+						<a
+						href="{php echo create_url('site/module/unitImgSetting', array('name' => 'mon_house', 'id' => $item['id'], 'op' => 'post'))}"
+						title="编辑" class="btn btn-small"><i class="icon-edit"></i></a> <a
+						href="{php echo create_url('site/module/unitImgSetting', array('name' => 'mon_house', 'id' => $item['id'], 'op' => 'delete'))}"
+						onclick="return confirm('此操作不可恢复，确认删除？');return false;" title="删除"
+						class="btn btn-small"><i class="icon-remove"></i></a></td>
+				</tr>
+				{/loop}
+			</tbody>
+
+		</table>
+		{$pager}
+	</div>
+</div>
+
+<script>
+	$("#hid").change(function(){
+		
+		$("#house_form").submit();
+	});
+
+	$(function () {
+
+
+		$("#btn_search").click(function(){
+
+			$("#search_form").submit();
+
+		});
+
+		$("#hid").change(function(){
+
+			getTypes($(this).val());
+
+		});
+
+
+
+		function getTypes(hid){
+
+			var checkTid="{$tid}";
+
+
+			$.get('{php echo create_url('site/module/QueryTypes', array('name' => 'mon_house'));}',{"hid":hid},function(res){
+
+				var opHtml="";
+				for(var i=0;i<res.length;i++){
+
+					var houseType=res[i];
+
+					if(houseType['id']==checkTid){
+						opHtml+="<option value="+houseType['id']+" selected='selected' >"+houseType['tname']+"</option>";
+					}else{
+						opHtml+="<option value="+houseType['id']+">"+houseType['tname']+"</option>";
+					}
+
+
+
+				}
+
+				$("#tid").html(opHtml);
+
+
+			},'json');
+
+		}
+
+
+
+	});
+
+
+
+
+
+
+
+</script>
+{/if} {template 'common/footer'}

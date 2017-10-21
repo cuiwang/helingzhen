@@ -1,0 +1,80 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li {if $act == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('navigation')}">导航管理</a></li>
+</ul>
+
+{if $act == 'display'}
+<div class="alert alert-info">
+	<strong>设置说明：</strong>
+	<ol>
+		<li>名称必须填写，推荐字数2-4个中文；</li>
+		<li>链接必须填写，支持带域名绝对路径(http[s]://)和相对路径；</li>
+		<li>图标可自定义，如果系统图标不满足需要，可以自行修改css代码，在这里只需填写class name即可；</li>
+		<li>排序由大到小；</li>
+		<li>导航支持个数最多4个，最少1个，不支持添加、删除；</li>
+	</ol>
+</div>
+<form action="" method="post">
+	<div class="panel panel-default">
+		<div class="table-responsive panel-body">
+			<table class="table">
+				<thead>
+					<tr>
+						<th width="80">排序</th>
+						<th width="320">图标</th>
+						<th>名称</th>
+						<th>链接</th>
+						<th width="120">是否显示</th>
+					</tr>
+				</thead>
+				<tbody>
+                    {loop $list $k $item}
+					<tr>
+						<td>
+							<input type="hidden" class="form-control text-center" name="id[]" value="{$item['id']}">
+							<input type="text" class="form-control text-center" name="displayorder[{$k}]" value="{$item['displayorder']}">
+						</td>
+						<td>
+							{php echo tpl_form_field_icon('icon['.$k.']', $item['icon'])}
+						</td>
+						<td>
+							<input type="text" class="form-control" name="title[{$k}]" value="{$item['title']}">
+						</td>
+						<td>
+							<input type="text" class="form-control" name="url[{$k}]" value="{$item['url']}">
+						</td>
+						<td>
+							{if !$item['id']}
+							<input type="checkbox" class="form-control" name="isshow[{$k}]" {if $item['isshow']}checked{/if}>
+							{else}
+							<input type="checkbox" class="form-control isshow" data-id="{$item['id']}" data-field="isshow" name="isshow[{$k}]" {if $item['isshow']}checked{/if}>
+							{/if}
+						</td>
+					</tr>
+                    {/loop}
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<input name="submit" type="submit" value="提交" class="btn btn-primary col-lg-1">
+    <input type="hidden" name="token" value="{$_W['token']}" />
+</form>
+<script type="text/javascript">
+	require(['bootstrap.switch', 'util'], function($, u){
+		$(function(){
+			$(':checkbox').bootstrapSwitch();
+			$('.isshow').on('switchChange.bootstrapSwitch', function(){
+				var id = $(this).attr('data-id');
+				var field = $(this).attr('data-field');
+				var value = this.checked ? 1 : 0;
+				$.post(location.href, {setattr: 1, id: id, field: field, value: value}, function(resp){
+					if (resp != 'success') {
+						util.message('操作失败, 请稍后重试', '', 'error');
+					}
+				});
+			});
+		});
+	});
+</script>
+{/if}
+{template 'common/footer'}

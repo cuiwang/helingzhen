@@ -1,0 +1,127 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+    <li class="active"><a href="#">用户管理</a></li>
+    <li class=""><a href="{php echo $this->createWebUrl("usersset", array("id" => 0));}">新增用户</a></li>
+</ul>
+<div class="panel panel-info">
+    <div class="panel-heading">筛选</div>
+    <div class="panel-body">
+        <form action="" method="post" class="form-horizontal" role="form">
+            <input type="hidden" name="c" value="site" />
+            <input type="hidden" name="a" value="entry" />
+            <input type="hidden" name="m" value="q_3354988381_notify" />
+            <input type="hidden" name="do" value="users" />
+            {if $_GET['id'] != ''}
+            <input type="hidden" name="id" value="{$_GET['id']}" />
+            {else}
+            <input type="hidden" name="id" value="{$_GET['rid']}" />
+            {/if}
+              
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label" >openid</label>
+                <div class="col-sm-8 col-lg-9">
+                    <input class="form-control" name="openid" id="" type="text" value="{$_GPC['openid']}">
+                </div>
+                <div class=" col-xs-12 col-sm-2 col-lg-2">
+                    <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+                </div>
+            </div>
+            <div class="form-group">
+            </div>
+        </form>
+    </div>
+  </div>
+  
+    <div style="padding:15px;">
+        <table class="table table-hover">
+            <thead class="navbar-inner">
+                <tr>
+                    <th style="width:50px;">ID</th>
+                    <th style="width:90px;">openid</th>
+
+					<th style="width:90px;">头像</th>
+					<th style="width:100px;">昵称</th>
+					<th style="width:180px;">对应用户</th>
+					<th style="width:80px;">是否关注</th>
+                                        
+                    <th>有效日期</th>
+                    <th>审核状态</th>
+
+                    <th>操作</th>
+                </tr>
+            </thead>
+  
+            <tbody>
+                {loop $list $row}
+                <tr>
+                    <td><small>{$row['id']}</small></small></td>
+                    <td><small>{$row['openid']}</small></small></td>
+                    
+					<td><img src="{if !empty($row['avatar'])}{$row['avatar']}{else}resource/images/noavatar_middle.gif{/if}" width="48"></td>
+					<td>{$row['nickname']}</td>
+					<td>
+						{if empty($row['uid'])}
+						<a href="{php echo url('mc/member/post', array('uid' => $row['uid'],'openid' => $row['openid'], 'fanid' => $row['fanid']));}" class="text-danger" title="该用户尚未注册会员，请为其手动注册！">[ 注册为会员 ]</a>
+						{else}
+						<a href="{php echo url('mc/member/post', array('uid'=>$row['uid']));}"><span>{if $row['nickname']}{$row['nickname']}{else}{$row['uid']}{/if}</span></a>
+						{/if}
+					</td>
+					<td>
+					{if $row['follow'] == '1'}
+						<span class="label label-success">已关注 </span> 
+					{elseif $row['unfollowtime'] <> '0'}
+						<span class="label label-warning" >取消关注 </span>
+					{else}
+						<span class="label label-danger">未关注 </span>
+					{/if}
+					</td>
+                                        
+                    <td><small>{$row['begin_time']}<br />{$row['end_time']}</small></small></td>
+                    
+                    <td><small>
+                        {if $row['status'] == 0}
+                        <a class="btn btn-warning btn-sm" href="javascript:void(0);" onclick="change_user_status({$row['id']}, 1)">通过</a>
+                        <a class="btn btn-warning btn-sm" href="javascript:void(0);" onclick="change_user_status({$row['id']}, -1)">拒绝</a>
+                        {elseif $row['status'] == 1}
+                        <a class="btn btn-success btn-sm" href="javascript:void(0);" onclick="change_user_status({$row['id']}, -1)">通过</a>
+                        {elseif $row['status'] == -1}
+                        <a class="btn btn-danger btn-sm" href="javascript:void(0);" onclick="change_user_status({$row['id']}, 1)">拒绝</a>
+                        {/if}
+                    </small></td>
+                    <td>
+                    	<a href="{$send_notify_url}{$row['uid']}" id="{$row['fanid']}" class="btn btn-success btn-sm sms">发送通知</a>
+                        <a href='{php echo $this->createWebUrl("UsersSet", array("id" => $row[id]));}' title="编辑" class="btn btn-primary btn-sm">查看</a>
+                        <a href="javascript:void(0);" onclick="delete_user({$row['id']})" title="删除" class="btn btn-danger btn-sm">删除</a>
+                    </td>
+                </tr>
+                {/loop}
+            </tbody>
+        </table>
+        {$pager}
+    </div>
+    
+	<script>
+		//审核
+	    function change_user_status(user_id, change_to){
+	    	$.post(
+	    			'{php echo $this->createWebUrl("UserStatusAjax")}',
+	    	        {"user_id":user_id, "change_to":change_to},
+	    	        function (data){
+	    	        	location.reload();
+	    	        }
+	    	);
+	    }
+	    //删除
+	    function delete_user(user_id){
+	    	if(confirm('确定删除')){
+		    	$.post(
+		    			'{php echo $this->createWebUrl("DeleteUserAjax")}',
+		    	        {"user_id":user_id},
+		    	        function (data){
+		    	        	location.reload();
+		    	        }
+		    	);
+	    	}	
+	    }
+	</script>
+{template 'common/footer'}

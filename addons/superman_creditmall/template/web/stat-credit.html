@@ -1,0 +1,106 @@
+<div class="panel panel-default">
+	<div class="panel-heading">
+		数据统计
+	</div>
+	<div class="panel-body" id="scroll">
+		<div class="pull-left">
+			<form action="" id="form1">
+				<input name="c" value="site" type="hidden" />
+				<input name="a" value="entry" type="hidden" />
+				<input name="eid" value="{$_GPC['eid']}" type="hidden" />
+				<input name="type" value="{$type}" type="hidden" />
+				{php echo tpl_form_field_daterange('datelimit', array('start' => date('Y-m-d', $starttime),'end' => date('Y-m-d', $endtime)), '')}
+				<input type="hidden" value="" name="scroll">
+			</form>
+		</div>
+		<div class="pull-right">
+			<div class="checkbox">
+				{loop $arr $item}
+				<label style="color:rgba({$item['color']},1);"><input checked type="checkbox">{$item['name']}</label>&nbsp;
+				{/loop}
+				{php unset($item)}
+			</div>
+		</div>
+		<div style="margin-top:20px">
+			<canvas id="myChart" width="1200" height="300"></canvas>
+		</div>
+	</div>
+</div>
+<script>
+	require(['jquery','../lib/chart.min', 'daterangepicker'], function(c) {
+		$('.daterange').on('apply.daterangepicker', function(ev, picker) {
+			$('input[name="scroll"]').val($(document).scrollTop());
+			$('#form1')[0].submit();
+		});
+		{if $scroll}
+		var scroll = "{$scroll}";
+		$("html,body").animate({scrollTop: scroll}, 300);
+		{/if}
+		var chart = null;
+		var chartDatasets = null;
+		var templates = {
+			{loop $arr $key $item}
+			{$key}: {
+				label: '{$item['name']}',
+						fillColor : "rgba({$item['color']},0.1)",
+						strokeColor : "rgba({$item['color']},1)",
+						pointColor : "rgba({$item['color']},1)",
+						pointStrokeColor : "#fff",
+						pointHighlightFill : "#fff",
+						pointHighlightStroke : "rgba({$item['color']},1)"
+			},
+			{/loop}
+		};
+
+		function refreshData() {
+			if(!chart || !chartDatasets) {
+				return;
+			}
+			var visables = [];
+			var i = 0;
+			$('.checkbox input[type="checkbox"]').each(function(){
+				if($(this).attr('checked')) {
+					visables.push(i);
+				}
+				i++;
+			});
+			var ds = [];
+			$.each(visables, function(){
+				var o = chartDatasets[this];
+				ds.push(o);
+			});
+			chart.datasets = ds;
+			chart.update();
+		}
+
+		var url = location.href + '&#aaaa';
+		$.post(url, function(data){
+			var data = $.parseJSON(data);
+			if (data) {
+				var datasets = data.datasets;
+				if(!chart) {
+					var label = data.label;
+					var ds = $.extend(true, {}, templates);
+					{loop $arr $key $item}
+					ds.{$key}.data = datasets.{$key};
+					{/loop}
+					var lineChartData = {
+						labels : label,
+						datasets : [{$datasets}]
+					};
+					var ctx = document.getElementById("myChart").getContext("2d");
+					chart = new Chart(ctx).Line(lineChartData, {
+						responsive: true
+					});
+					chartDatasets = $.extend(true, {}, chart.datasets);
+				}
+			}
+			refreshData();
+		});
+
+		$('.checkbox input[type="checkbox"]').on('click', function(){
+			$(this).attr('checked', !$(this).attr('checked'))
+			refreshData();
+		});
+	});
+</script>

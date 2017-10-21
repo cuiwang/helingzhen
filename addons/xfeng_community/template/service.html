@@ -1,0 +1,265 @@
+
+{template 'common/header'}
+{template 'nav'}
+<div class="main">
+{if $operation == 'post'}
+	<ul class="nav nav-tabs">
+		<li><a href="{php echo $this->createWebUrl('service', array('op' => 'display','regionid'=>$_GPC['regionid']));}">管理</a></li>
+		<li class="active"><a href="{php echo $this->createWebUrl('service', array('op' => 'post','regionid'=>$_GPC['regionid'], 'id'=>$item['id']));}">编辑</a></li>
+	</ul>
+	<form action="" class="form-horizontal form" method="post">
+		<input type="hidden" name="id" value="{$item['id']}">
+		<input type="hidden" name="act" value="module" />
+		<input type="hidden" name="op" value="post" />
+		<input type="hidden" name="do" value="service">
+		<input type="hidden" name="name" value="community" />
+		<input type="hidden" name="openid" value="{$item['openid']}" />
+		<input type="hidden" name="regionid" value="{$item['regionid']}" />
+		<h4>保洁信息</h4>
+		<table class="tb">
+			<tr>
+				<th>状态</th>
+				<td>
+					<select name="status" class="span5">
+						<option value="0" {if $item['status'] == 0}selected{/if}>未解决</option>
+						<option value="1" {if $item['status'] == 1}selected{/if}>已解决</option>
+						<option value="2" {if $item['status'] == 2}selected{/if}>已撤销</option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th>分类</th>
+				<td>
+					<select class="span3" style="margin-right:15px;" name=servicecategory onchange="fetchChildCategory(this.options[this.selectedIndex].value)"  autocomplete="off">
+						<option value="0">请选择一级分类</option>
+						{loop $category $row}
+						{if $row['parentid'] == 0}
+						<option value="{$row['id']}" {if $row['id'] == $item['servicecategory']} selected="selected"{/if}>{$row['name']}</option>
+						{/if}
+						{/loop}
+					</select>
+					<select class="span3" id="cate_2" name="servicesmallcategory" autocomplete="off">
+						<option value="0">请选择二级分类</option>
+				{if !empty($item['servicecategory']) && !empty($category[$item['servicesmallcategory']])}
+					{loop $children[$item['servicecategory']] $row}
+						<option value="{$row[0]}" {if $row[0] == $item['servicesmallcategory']} selected="selected"{/if}>{$row[1]}</option>
+					{/loop}
+				{/if}
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th>发布人</th>
+				<td><input type="text" value="{$member['realname']}" class="span5" readonly="readonly"/></td>
+			</tr>
+			<tr>
+				<th>发布时间</th>
+				<td>
+					<input type="text" value="{php echo date('Y-m-d h:i:s', $item['createtime'])}" class="span5"/>
+				</td>
+			</tr>
+			<tr>
+				<th>联系方式</th>
+				<td>
+					<label for="contacttype1" class="radio radio-inline">
+						<input type="radio" name="contacttype" id="contacttype1" value="1" {if $item['contacttype']==1}checked='checked'{/if}/>随时联系
+						<input type="hidden" name="contactdesc[1]" value="随时联系"/>
+					</label>
+					<label for="contacttype2" class="radio radio-inline">
+						<input type="radio" name="contacttype" id="contacttype2" value="2" {if $item['contacttype']==2}checked='checked'{/if}/>白天联系
+						<input type="hidden" name="contactdesc[2]" value="白天联系"/>
+					</label>
+					<label for="contacttype3" class="radio radio-inline">
+						<input type="radio" name="contacttype" id="contacttype3" value="3" {if $item['contacttype']==3}checked='checked'{/if}/>晚上联系
+						<input type="hidden" name="contactdesc[3]" value="晚上联系"/>
+					</label>
+					<label for="contacttype4" class="radio radio-inline" onclick="document.getElementById('contactdesc').focus();">
+						<input type="radio" name="contacttype" id="contacttype4" value="4" {if $item['contacttype']==4}checked='checked'{/if} />自定义时间:
+						<input type="text" id="contactdesc" name="contactdesc[4]" value="{if $_GPC['contacttype']==4}{$item['contactdesc']}{/if}"/>
+					</label>
+				</td>
+			</tr>
+			<tr>
+				<th>要求</th>
+				<td>
+					<textarea style="height:150px;" class="span7" name="requirement" cols="70">{$item['requirement']}</textarea>
+				</td>
+			</tr>
+			<tr>
+				<th>备注</th>
+				<td>
+					<textarea style="height:100px;" class="span7" name="remark" cols="70" id="remark" >{$item['remark']}</textarea>
+				</td>
+			</tr>
+		</table>
+		<h4>个人信息</h4>
+		<table class="tb">
+			<tr>
+				<th>手机</th>
+				<td>
+					<input type="text" class="span5" value="{$member['mobile']}" readonly="readonly" />
+				</td>
+			</tr>
+			<tr>
+				<th>住户身份</th>
+				<td>
+					<input type="text" class="span5"  value="{if intval($member['type'])==1}业主{elseif intval($member['type'])==2}租户{/if}" readonly="readonly"/>
+				</td>
+			</tr>
+			<tr>
+				<th>地址</th>
+				<td>
+					<input type="text" class="span5" value="{$member['address']}" readonly="readonly"/>
+				</td>
+			</tr>
+			<tr>
+				<th></th>
+				<td>
+					<button type="submit" class="btn btn-primary span3" name="submit" value="提交">提交</button>
+					<input type="hidden" name="token" value="{$_W['token']}" />
+				</td>
+			</tr>
+		</table>
+		<script type="text/javascript">
+		<!--
+			var category = {php echo json_encode($children)};
+		//-->
+		</script>
+	</form>
+{elseif $operation == 'display'}
+	<ul class="nav nav-tabs">
+		<li class="active"><a href="{php echo $this->createWebUrl('service', array('op' => 'display','regionid'=>$_GPC['regionid']));}">管理</a></li>
+	</ul>
+	<div class="search">
+		<form action="site.php" method="get">
+		<input type="hidden" name="act" value="module" />
+		<input type="hidden" name="op" value="display" />
+		<input type="hidden" name="do" value="service">
+		<input type="hidden" name="name" value="xfcommunity" />
+		<input type="hidden" name="regionid" value="{$_GPC['regionid']}" />
+		<table class="table table-bordered tb">
+			<tbody>
+				<tr>
+					<th>服务分类</th>
+					<td>
+						<select class="span3" style="margin-right:15px;" name="servicecategory" onchange="fetchChildCategory(this.options[this.selectedIndex].value)">
+							<option value="0">请选择一级分类</option>
+							{loop $category $row}
+							{if $row['parentid'] == 0}
+							<option value="{$row['id']}" {if $row['id'] == $_GPC['servicecategory']} selected="selected"{/if}>{$row['name']}</option>
+							{/if}
+							{/loop}
+						</select>
+						<select class="span3" id="cate_2" name="servicesmallcategory">
+							<option value="0">请选择二级分类</option>
+					{if !empty($_GPC['servicecategory'])}
+						{loop $children[$_GPC['servicecategory']] $row}
+							<option value="{$row[0]}" {if $row[0] == $_GPC['servicesmallcategory']} selected="selected"{/if}>{$row[1]}</option>
+						{/loop}
+					{/if}
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<th>发布日期</th>
+					<td>
+						<button style="margin:0;" class="btn span5" id="date-range" type="button"><span class="date-title">{php echo date('Y-m-d', $starttime)} 至 {php echo date('Y-m-d', $endtime)}</span> <i class="icon-caret-down"></i></button>
+						<input name="starttime" type="hidden" value="{php echo date('Y-m-d', $starttime)}" />
+						<input name="endtime" type="hidden" value="{php echo date('Y-m-d', $endtime)}" />
+					</td>
+				</tr>
+				<tr>
+					<th style="vertical-align:top;">状态</th>
+					<td>
+						<label for="ipt_status1" class="checkbox">
+							<input name="status[]" id="ipt_status1" type="checkbox" value="0" {if in_array(0, $status)}checked='checked'{/if} />未完成
+						</label>
+						<label for="ipt_status2" class="checkbox">
+							<input name="status[]" id="ipt_status2" type="checkbox" value="1" {if in_array(1, $status)}checked='checked'{/if} />已完成
+						</label>
+						<label for="ipt_status3" class="checkbox">
+							<input name="status[]" id="ipt_status3" type="checkbox" value="2" {if in_array(2, $status)}checked='checked'{/if} />已撤销
+						</label>
+					</td>
+				</tr>
+				<tr class="search-submit">
+					<td colspan="2"><button class="btn pull-right span2"><i class="icon-search icon-large"></i> 搜索</button></td>
+				 </tr>
+			</tbody>
+		</table>
+		</form>
+	</div>
+	<div style="padding:15px;">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<th style="width:10%;">一级服务类型</th>
+					<th style="width:10%;">二级服务类型</th>
+					<th style="width:10%;">发布人</th>
+					<th style="width:10%;">发布人手机</th>
+					<th style="width:10%;">发布时间</th>
+					<th style="width:10%;">要求</th>
+					<th style="width:10%;">联系方式</th>
+					<th style="width:10%;">备注</th>
+					<th style="width:8%;">状态</th>
+					<th style="min-width:60px; width:8%;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $item}
+				<tr>
+					<td>{$category[$item['servicecategory']]['name']}</td>
+					<td>{$category[$item['servicesmallcategory']]['name']}</td>
+					<td>{$members[$item['openid']]['realname']}</td>
+					<td>{$members[$item['openid']]['mobile']}</td>
+					<td>{php echo date('Y-m-d', $item[createtime]);}</td>
+					<td>{php echo cutstr(htmlspecialchars_decode($item['requirement']), 35, true)}</td>
+					<td>{if $item['contacttype']==1}随时联系{elseif $item['contacttype']==2}白天联系{elseif $item['contacttype']==3}晚上联系{elseif $item['contacttype']==4}{$item['contactdesc']}{/if}</td>
+					<td>{php echo cutstr(htmlspecialchars_decode($item['remark']), 35, true)}</td>
+					<td>{if $item['status'] ==1 }<span class="label label-success">已完成</span>{/if}{if $item['status'] == 0 }<span class="label label-info">未完成</span>{/if}{if $item['status'] == 2 }<span class="label label-error">已取消</span>{/if}</td>
+					<td>
+						<span>
+							<a href="{php echo $this->createWebUrl('service',array('op'=>'post','id'=>$item['id'], 'regionid' => $regionid));}">查看</a>
+						</span>
+						<span>
+							<a onclick="return confirm('删除操作不可恢复，确认吗？')" href="{php echo $this->createWebUrl('service',array('op'=>'delete','id'=>$item['id'], 'regionid' => $regionid));}">删除</a>
+						</span>
+					</td>
+				</tr>
+				{/loop}
+			</tbody>
+		</table>
+		{$pager}
+	</div>
+	<link type="text/css" rel="stylesheet" href="./resource/style/daterangepicker.css" />
+	<script type="text/javascript" src="./resource/script/daterangepicker.js"></script>
+	<script type="text/javascript">
+	<!--
+		var category = {php echo json_encode($children)};
+	//-->
+	</script>
+	<script type="text/javascript">
+		$('#date-range').daterangepicker({
+			format: 'YYYY-MM-DD',
+			startDate: $(':hidden[name=starttime]').val(),
+			endDate: $(':hidden[name=endtime]').val(),
+			locale: {
+				applyLabel: '确定',
+				cancelLabel: '取消',
+				fromLabel: '从',
+				toLabel: '至',
+				weekLabel: '周',
+				customRangeLabel: '日期范围',
+				daysOfWeek: moment()._lang._weekdaysMin.slice(),
+				monthNames: moment()._lang._monthsShort.slice(),
+				firstDay: 0
+			}
+		}, function(start, end){
+			$('#date-range .date-title').html(start.format('YYYY-MM-DD') + ' 至 ' + end.format('YYYY-MM-DD'));
+			$(':hidden[name=starttime]').val(start.format('YYYY-MM-DD'));
+			$(':hidden[name=endtime]').val(end.format('YYYY-MM-DD'));
+		});
+	</script>
+{/if}
+</div>
+{template 'common/footer'}

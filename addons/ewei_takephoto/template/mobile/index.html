@@ -1,0 +1,206 @@
+<!doctype html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta http-equiv="Pragma" content="no-cache" />
+        <meta http-equiv="Expires" content="-1" />
+        <meta http-equiv="Cache-Control" content="no-cache" />
+        <meta charset="utf-8">
+        <title>{$reply['title']}</title>
+        <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=0" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-touch-fullscreen" content="yes" />
+        <meta name="full-screen" content="yes"/>
+        <meta name="screen-orientation" content="portrait"/>
+        <meta name="x5-fullscreen" content="true"/>
+        <meta name="360-fullscreen" content="true"/>
+            <script src="../addons/ewei_takephoto/style/jquery.js"></script>
+        <link rel="stylesheet" href="../addons/ewei_takephoto/style/style.css">
+        <style type="text/css">
+            body { height:100%;}
+            #container  {
+                  background-image: url({php echo tomedia($reply['bgimg'])});
+            }
+        </style>
+        
+    </head>
+    <body>
+        <div id="container" class="splash">
+            <canvas id="canvas"><span>Browser does not support the canvas.</span></canvas>
+            <div id="info"></div>
+        </div>
+      
+        <div id="preload"></div>
+
+        <script language=javascript>
+           
+            window.shareData = {
+                 "title": '{$reply['title']}',
+                 "desc": '{$reply['description']}',
+                 "imgUrl": '{php echo tomedia($reply['share_icon'])}',
+                 "link": '{$_W['siteroot']}app/{php echo str_replace('./','', $this->createMobileUrl('index',array('rid'=>$rid)))}',
+                  success:function(){
+                     {if !empty($reply['share_url'])}
+                       location.href = "{$reply['share_url']}";
+                     {/if}
+                 }
+            };
+            function dp_share() {
+                document.getElementById("share").style.display = "";
+
+            }
+            function dp_Ranking() {
+                window.location = mebtnopenurl;
+            }
+
+            function showAd() {
+            }
+            function hideAd() {
+            }
+           
+        </script>
+        <div id=share style="display: none">
+            <img width=100% src="{php echo tomedia($reply['bgimg'])}"
+                 style="position: fixed; z-index: 9999; top: 0; left: 0; display: "
+                 ontouchstart="document.getElementById('share').style.display='none';" />
+        </div>
+
+        <div style="display: none;">
+            <script type="text/javascript">
+                var myData = {gameid: "ksiphone6"};
+                var photo = null;
+                function dp_submitScore(s) {
+                       score = s;
+                    if(!photo){
+                     
+                       photo =  document.getElementById("canvas").toDataURL("image/png");   
+                       $.post("{php echo $this->createMobileUrl('take')}",{data:photo,rid:{$rid},score:score},function(data){ });
+                    }
+                
+                   document.title = '{$reply['share_title']}';
+                   window.shareData = {
+                         "title": '{$reply['share_title']}',
+                         "desc": '{$reply['share_desc']}',
+                         "imgUrl": '{php echo tomedia($reply['share_icon'])}',
+                         "link": '{$_W['siteroot']}app/{php echo str_replace('./','', $this->createMobileUrl('index',array('rid'=>$rid)))}',
+                         success:function(){
+                                {if !empty($reply['share_url'])}
+                                  location.href = "{$reply['share_url']}";
+                                {/if}
+                          }
+                    };
+                    wx.ready(function () {
+		 
+		wx.onMenuShareAppMessage( window.shareData);
+		wx.onMenuShareTimeline( window.shareData);
+		wx.onMenuShareQQ( window.shareData);
+		wx.onMenuShareWeibo( window.shareData);
+	  });
+                }
+
+                function onShareComplete(res) {
+                    if (localStorage.myuid && myData.score != undefined) {
+                        setTimeout(function() {
+                            if (confirm("？")) {
+                                window.location = mebtnopenurl;
+                            }
+                            else {
+                                document.location.href = mebtnopenurl;
+                            }
+                        }, 500);
+                    }
+                    else {
+                        document.location.href = guanzhuurl;
+                    }
+                }
+            </script>
+            <script language="javascript">
+                var p = [
+        {
+            id: "bg",
+            src: "{php echo tomedia($reply['bgimg'])}"
+        },
+        {
+            id: "title",
+            src: "{php echo tomedia($reply['titleimg'])}"
+        },
+        {
+            id: "help",
+             src: "{php echo tomedia($reply['helpimg'])}"
+        },
+        {
+            id: "number",
+                src: "{php echo tomedia($reply['numberimg'])}"
+        },
+        {loop $items $key $item}
+        {
+            id: "phone-{$item['id']}",
+         
+            src: "{php echo tomedia($item['thumb'])}"
+        },
+        {/loop}
+        {
+            id: "camera",
+           src: "{php echo tomedia($reply['cameraimg'])}"
+        },
+        {
+            id: "share-tip",
+            src: "{php echo tomedia($reply['shareimg'])}"
+        },
+        {
+            id: "share-icon",
+            src: "res\/share-icon.jpg"
+        }
+    ];
+    var rankurl = "{php echo $this->createMobileUrl('rank',array('rid'=>$rid))}";
+    var followurl = "{$reply['follow_url']}";
+    var photo_items =  [{loop $items $key $item}
+        {id: "{$item['id']}",rate: "{$item['rate']}",score: "{$item['score']}"}{if count($items)!=$key+1},{/if}
+        {/loop}];
+            var followbutton = "{php echo empty($reply['follow_button'])?'关注我们':$reply['follow_button'];}";
+                </script>
+                <script src="../addons/ewei_takephoto/style/main.js"></script>
+                
+                
+ <script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+ <script>
+	// jssdk config 对象
+	jssdkconfig = {php echo json_encode($_W['account']['jssdkconfig']);} || { jsApiList:[] };
+	
+	// 是否启用调试
+	// jssdkconfig.debug = true;
+	
+	// 已经注册了 jssdk 文档中所有的接口
+	jssdkconfig.jsApiList = [
+		'checkJsApi',
+		'onMenuShareTimeline',
+		'onMenuShareAppMessage',
+		'onMenuShareQQ',
+		'onMenuShareWeibo',
+		'showOptionMenu',		
+	];
+	
+	wx.config(jssdkconfig);
+                  var sharedata = {
+                        "title": '{$reply['title']}',
+                        "desc": '{$reply['description']}',
+                        "imgUrl": '{php echo tomedia($reply['share_icon'])}',
+                        "link": '{$_W['siteroot']}app/{php echo str_replace('./','', $this->createMobileUrl('index',array('rid'=>$rid)))}',
+                          success:function(){
+                                {if !empty($reply['share_url'])}
+                                  location.href = "{$reply['share_url']}";
+                                {/if}
+                          }
+                  };
+                   wx.ready(function () {
+		wx.showOptionMenu();
+		wx.onMenuShareAppMessage( window.shareData);
+		wx.onMenuShareTimeline( window.shareData);
+		wx.onMenuShareQQ( window.shareData);
+		wx.onMenuShareWeibo( window.shareData);
+	});
+</script>
+
+
+    </body>
+</html>

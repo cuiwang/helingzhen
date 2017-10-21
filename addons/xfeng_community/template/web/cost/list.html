@@ -1,0 +1,96 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+    <li {if $op == 'list'}class="active"{/if}><a href="{php echo $this->createWebUrl('cost', array('op' => 'list'))}">费用列表</a></li>
+    <li><a href="{php echo $this->createWebUrl('cost', array('op' => 'add'))}">费用导入</a></li>
+    <li><a href="{php echo $this->createWebUrl('cost', array('op' => 'category'))}">费用类型</a></li>
+</ul>
+    <div class="alert alert-danger" role="alert">
+        <p>《物业费》：
+            <p style="color: red">1.开启是否显示，开启后，微信端才会显示</p>
+            <p style="color: black"> 2.注意：是在关闭缴费订单的时候才能生效，开启是否已支付显示，为了方便一次性导入费用。已缴费过的用户，可查看之前缴费的记录。因为已过期的缴费订单，一般都是关闭的。</p>
+        </p>
+       <P style="color: blue">《注意》：2条不适和按月和按季度导入 </P>
+    </div>
+    <div class="panel panel-default" style="margin-top: 10px;">
+        <div class="panel-body table-responsive">
+            <table class="table table-hover" style="width:100%;z-index:-10;" cellspacing="0" cellpadding="0">
+                <thead class="navbar-inner">
+                <tr>
+                    <th class="col-lg-2">小区名称</th>
+                    <th class="col-lg-2">费用时间</th>
+                    <th class="col-lg-2">导入时间</th>
+                    <th class="col-lg-3">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {loop $list $item}
+                <tr>
+                    <td>{$item['city']}{$item['dist']}{$item['title']}</td>
+                    <td>{$item['costtime']}</td>
+                    <td>{php echo date('Y-m-d',$item['createtime'])}</td>
+                    <td>
+                        <a href="{php echo $this->createWebUrl('cost',array('op' => 'detail','id' => $item['id'],'regionid' => $item['regionid']))}" title="详情" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm"><i class="glyphicon glyphicon-search"></i>查看</a>
+                        <a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('cost',array('op' => 'delete','id' => $item['id']))}" title="删除" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-times"></i>删除</a>
+                        <a href="{php echo $this->createWebUrl('cost',array('op' => 'order','id' => $item['id']))}" title="订单管理" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm"><i class="glyphicon glyphicon-th-list"></i>订单管理</a>
+                        <input type="checkbox" value="1"{if intval($item[enable])==1} checked="checked"{/if} data="{$item[id]}"/>
+                        <label data="{$item['status']}" class="btn btn-success {if $item['status']==1}btn-info{/if}" onclick="verify(this,{$item['id']},'status')">{if $item['status']==1}开启已支付{else}关闭已支付{/if}</label>
+
+                    </td>
+                </tr>
+                {/loop}
+            </tbody>
+            </table>
+            {$pager}
+
+        </div>
+    </div>
+<script>
+     require(['bootstrap.switch', 'util'], function($, u){
+            $(function(){
+                $(':checkbox').bootstrapSwitch();
+                $(':checkbox').on('switchChange.bootstrapSwitch', function(e, state){
+                    $this = $(this);
+                    var id = $this.attr('data');
+                    var enable = this.checked ? 1 : 0;
+                    // alert(hid);return false;
+                    $.post(location.href, {enable: enable, id: id}, function(resp){
+                        if(resp != 'success') {
+                            u.message('操作失败, 请稍后重试.')
+                        }
+                        {if !empty($module)}
+                        else {
+                            u.message('操作成功！');
+                            window.setTimeout(function(){location.href = location.href;}, 800);
+                        }
+                        {/if}
+                    });
+                });
+                $('.btn').hover(function(){
+                    $(this).tooltip('show');
+                },function(){
+                    $(this).tooltip('hide');
+                });
+            });
+        });
+     function verify(obj, id, type) {
+         $(obj).html($(obj).html() + "...");
+         $.post("{php echo $this->createWebUrl('cost',array('op' => 'verify'))}", {
+             id: id,
+             type: type,
+             data: obj.getAttribute("data")
+         }, function(d) {
+             $(obj).html($(obj).html().replace("...", ""));
+             if (type == 'status') {
+                 $(obj).html(d.data == '1' ? '开启已支付' : '关闭已支付');
+             }
+             if (type == 'open_status') {
+                 $(obj).html(d.data == '1' ? '开启' : '关闭');
+             }
+             $(obj).attr("data", d.data);
+             if (d.result == 1) {
+                 $(obj).toggleClass("label-info");
+             }
+         }, "json");
+     }
+</script>
+{template 'common/footer'}

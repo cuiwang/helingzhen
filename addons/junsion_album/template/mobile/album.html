@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="UTF-8">
+<script src="../app/resource/js/lib/jquery-1.11.1.min.js" ></script>
+<link rel="stylesheet" type="text/css" href="../addons/junsion_album/template/mobile/css/buttons.css" media="all">
+<style>
+html,body{height: 100%;}
+.loadingWrap{
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  top:0px;
+  background: url("{php echo toimage($cfg['loading_bg'])}");
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  z-index: 99999;
+}
+.loadingFont{
+  background: url("{php echo toimage($cfg['loading_font'])}");
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  position: absolute;
+  bottom: 5%;
+  left: 50%;
+  width: 130px;
+  height: 60px;
+  margin-left: -65px;
+}
+#loadingPro{
+  width: 100px;
+  height: 30px;
+  position: absolute;
+  bottom: 30%;
+  left: 50%;
+  font: 18px 微软雅黑;
+  text-align: center;
+  margin-left: -50px;
+  color: white;
+}
+.loading {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  background: url("{php echo toimage($cfg['loading_logo'])}");
+  background-size: 100% 100%;
+  width: 130px;
+  height: 130px;
+  border-radius: 100%;
+  margin-top: -60%;
+  margin-left: -65px;
+}
+</style>
+<script>
+        var _speedMark = new Date();
+        function init_viewport()
+        {
+            if(/Android (\d+\.\d+)/.test(navigator.userAgent))
+            {
+                var version = parseFloat(RegExp.$1);
+                if(version>2.3)
+                {
+                    var width = window.outerWidth == 0 ? window.screen.width : window.outerWidth;
+                    var phoneScale = parseInt(width)/500;
+                        document.write('<meta name="viewport" content="width=500, minimum-scale = '+ phoneScale +', maximum-scale = '+ phoneScale +', target-densitydpi=device-dpi">');
+                }else
+                {
+                    document.write('<meta name="viewport" content="width=500, target-densitydpi=device-dpi">');    
+                }
+            }
+            else if(navigator.userAgent.indexOf('iPhone') != -1)
+            {
+                var phoneScale = parseInt(window.screen.width)/500;
+                document.write('<meta name="viewport" content="width=500; min-height=750;initial-scale=' + phoneScale +'; user-scalable=no;" /> ');
+            }
+            else 
+            {
+                document.write('<meta name="viewport" content="width=500, height=750, initial-scale=0.64" /> ');
+
+            }
+        }
+        init_viewport();
+        
+            document.ontouchmove = function(e)
+            {
+                e.preventDefault();
+            } 
+            
+            var process = 1;
+        </script>
+<title>{if $album['title']}{$album['title']}{else}{$_W['account']['name']}{/if}</title>
+<script type="text/javascript" src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js?v=20150120"></script>
+</head>
+<body onresize="bodyresize()" style="position: relative;">
+{if $cfg['loading_bg']}
+<div class="loadingWrap">{if $cfg['loading_logo']}<div class="loading"></div>{/if}{if $cfg['loading_font']}<div class="loadingFont"></div>{/if}<div id='loadingPro'>1%</div></div>
+{/if}
+{template '../../../'.$album['style']['path'].'/index'}
+<script type="text/javascript">
+var p = navigator.platform;
+var system = {};
+system.win = p.indexOf("Win") == 0;
+system.mac = p.indexOf("Mac") == 0;
+system.x11 = (p == "X11") || (p.indexOf("Linux") == 0);
+if(system.win||system.mac||system.xll){
+	bodyresize();
+}
+
+function bodyresize(){
+	if(system.win||system.mac||system.xll){
+		{if !$_W['openid']}
+		$('body').css('marginLeft',(document.body.clientWidth - $('#container').width())/2).css('width',$('#container').width());
+		{/if}
+	}
+}
+{if $cfg['loading_bg']}
+if($('canvas').length == 0){
+	setTimeout(function(){processNum(50)},50)
+}
+
+function processNum(num){
+	if(process <= num){
+		$('#loadingPro').text((process++)+'%');
+		setTimeout(function(){processNum(num)},1)
+	}
+}
+{/if}
+</script> 
+{template 'common'}
+{if $cfg['loading_bg']}
+<script type="text/javascript"> 
+if($('canvas').length == 0){
+	setTimeout(function(){processNum(80)},50) 
+    $(window).load(function() {
+    	setTimeout(function(){
+    		processNum(100)
+    		setTimeout(function(){$('.loadingWrap').remove();},200);
+    	},50) 
+	});
+}
+</script> 
+{/if}
+<script type="text/javascript">
+        var shareData = {
+        	      title: "{$stitle}",
+        	      link: "{$_W['siteroot']}app/index.php?i={$_W['uniacid']}&c=entry&aid={$_GPC['aid']}&do=album&m=junsion_album",
+        	      desc: "{$desc}",
+                  imgUrl: "{$thumb}",
+                  success:function(){
+                	  $.ajax({
+                			url:"{php echo $this->createMobileUrl('share',array('aid'=>$_GPC['aid']))}",
+                			type:'post',
+                		});
+					  {if $cfg['share_url']}
+                	  location.href = '{$cfg["share_url"]}';
+                	  {/if}
+                  }
+        	   };
+        jssdkconfig = {php echo json_encode($_W['account']['jssdkconfig']);} || { jsApiList:[] };
+        jssdkconfig.debug = false;
+        jssdkconfig.jsApiList = ['checkJsApi','onMenuShareTimeline','onMenuShareAppMessage','onMenuShareQQ','onMenuShareWeibo','showOptionMenu','chooseWXPay','chooseImage','uploadImage'];
+    	wx.config(jssdkconfig);
+        	wx.ready(function () {
+        	    wx.onMenuShareAppMessage(shareData);
+        	    wx.onMenuShareTimeline(shareData);
+        	    wx.onMenuShareQQ(shareData);
+        	    wx.onMenuShareWeibo(shareData);
+        	    
+        	});
+</script>
+{if $cfg['appid'] && $is_maker == 0}
+{template 'reward'}
+{/if}
+<script>
+function objid(id) {
+	return document.getElementById(id);
+}
+
+var music_url = "{php echo toimage($album['music'])}";
+var jun_music_player = new Audio();
+$(function(){
+	function play_music() {
+		if (music_url == '') {
+			return;
+		}
+		jun_music_player.src = music_url;
+		jun_music_player.loop = 'loop';
+		jun_music_player.play();
+		if($('#sound_image').length > 0) $('#sound_image')[0].style.webkitAnimation = "zhuan 1s linear infinite";
+		bplay = 1;
+	    document.addEventListener("WeixinJSBridgeReady", function () {
+	        jun_music_player.play();
+	    }, false);
+	}
+
+	function create_music() {
+		if (music_url == '') {
+			return;
+		}
+		play_music();
+		sound_div = document.createElement("div");
+		sound_div.setAttribute("ID", "cardsound");
+		sound_div.style.cssText = "position:absolute;right:20px;top:25px;z-index:50;visibility:visible;";
+		sound_div.onclick = switchsound;
+		bg_htm = "<img id='sound_image' src='{RES}img/music_note_big.png' style='-webkit-animation:zhuan 1s linear infinite'>";
+		txt_htm = "<div id='music_txt' style='color:white;position:absolute;left:-40px;top:30px;width:60px'></div>"
+		sound_div.innerHTML = bg_htm + txt_htm;
+		document.body.appendChild(sound_div);
+	}
+	var bplay = 0;
+
+	function switchsound() {
+		au = jun_music_player;
+		ai = objid('sound_image');
+		if (au.paused) {
+			bplay = 1;
+			au.play();
+			ai.style.webkitAnimation = "zhuan 1s linear infinite";
+			$('#music_txt').text("打开").show();
+			setTimeout(function() {
+				$('#music_txt').hide();
+			}, 2500);
+		} else {
+			bplay = 0;
+			au.pause();
+			ai.style.webkitAnimation = "";
+			$('#music_txt').text("关闭").show();
+			setTimeout(function() {
+				$('#music_txt').hide();
+			}, 2500);
+		}
+	}
+	
+	create_music();
+});
+</script>
+</body>
+</html>

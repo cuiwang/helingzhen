@@ -1,0 +1,437 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li {if $op == 'display'}class="active"{/if}><a href="{php echo $this->createWeburl('couponmarket', array('op' => 'display'));}">卡券活动列表</a></li>
+	<li {if $op == 'post' && !$id}class="active"{/if}><a href="{php echo $this->createWeburl('couponmarket', array('op' => 'post'));}">添加活动</a></li>
+	{if $op == 'post' && $id}<li class="active"><a href="{php echo $this->createWeburl('couponmarket', array('op' => 'post', 'id' => $id))}">查看活动</a></li>{/if}
+</ul>
+{if $op == 'display'}
+<div class="main">
+	<div class="panel panel-info">
+		<div class="panel-heading">筛选</div>
+		<div class="panel-body">
+			<form action="./index.php" method="get" class="form-horizontal" role="form">
+				<input type="hidden" name="c" value="site" />
+				<input type="hidden" name="a" value="entry" />
+				<input type="hidden" name="do" value="couponmarket" />
+				<input type="hidden" name="m" value="we7_coupon">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">活动名称</label>
+					<div class="col-sm-7 col-lg-8 col-xs-12">
+						<input class="form-control" name="title" type="text" value="{$_GPC['title']}">
+					</div>
+					<div class="pull-right col-lg-2">
+						<input type="submit" name="submit" class="btn btn-default" value="搜索">
+						<input type="hidden" name="token" value="{$_W['token']}">
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+	{if empty($list)}
+	<div class="alert alert-info">
+		您当前没有活动
+	</div>
+	{else}
+	<div class="panel panel-default">
+		<div class="table-responsive panel-body">
+			<table class="table table-hover">
+				<thead class="navbar-inner">
+				<tr>
+					<th style="width:60px;">缩略图</th>
+					<th style="width:100px;">活动名</th>
+					<th style="width:100px;">发放用户</th>
+					<th style="width:300px;">操作</th>
+				</tr>
+				</thead>
+				<tbody>
+				{loop $list $item}
+				<tr>
+					<td><img src="{php echo tomedia($item['thumb'])}" width="40"></td>
+					<td>{$item['title']}</td>
+					<td>
+						{if in_array('new_member', $item['members'])}
+						新会员
+						{elseif in_array('old_member', $item['members'])}
+						老会员
+						{elseif in_array('activity_member', $item['members'])}
+						活跃会员
+						{elseif in_array('quiet_member', $item['members'])}
+						沉寂会员
+						{elseif in_array('group_member', $item['members'])}
+						{$item['members']['group_name']}组会员
+						{elseif in_array('cash_time', $item['members'])}
+						{$item['members']['cash_time']['start']}-{$item['members']['cash_time']['end']}<br/>期间消费用户
+						{elseif in_array('openids', $item['members'])}
+						指定会员
+						{/if}
+					</td>
+					<td>
+						<a href="{php echo $this->createWeburl('couponmarket', array('op' => 'post', 'id' => $item['id']))}">查看详情</a>
+						<a href="{php echo $this->createWeburl('couponmarket', array('op' => 'delete', 'id' => $item['id']))}" onclick="return confirm('确定删除活动吗？');return false;">删除</a>
+					</td>
+				</tr>
+				{/loop}
+				</tbody>
+			</table>
+		</div>
+	</div>
+	{$pager}
+</div>
+{/if}
+{elseif $op == 'post'}
+<div class="clearfix">
+	<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" id="form1" style="display: block">
+		<div class="panel panel-default" id="step1">
+			<div class="panel-heading">
+				{if $id}活动详情{else}添加活动{/if}
+			</div>
+			<div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger">*</span> 活动名称</label>
+					<div class="col-sm-8 col-xs-12">
+						{if !$id}
+						<input type="text" class="form-control" name="title" value=""/>
+						{else}
+						<label class="radio-inline">{$item['title']}</label>
+						{/if}
+					</div>
+				</div>
+				{if COUPON_TYPE == SYSTEM_COUPON}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"> 活动状态</label>
+					<div class="col-sm-8 col-xs-12">
+						{if !$id}
+						<label class="radio-inline"><input type="radio" name="status" {if empty($id) || $item['status'] == 1}checked{/if} value="1">开启</label>
+						<label class="radio-inline" style="margin-left: 20px;"><input type="radio" name="status" value="0" {if $item['status'] == 0 && !empty($id)}checked{/if}>关闭</label>
+						{else}
+						<label class="radio-inline">{if $item['status'] == 1}开启{else}关闭{/if}</label>
+						{/if}
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger">*</span> 活动缩略图</label>
+					<div class="col-sm-8 col-xs-12">
+						{if !$id}
+						{php echo tpl_form_field_image('thumb', $item['thumb'])}
+						{else}
+						<img src="{php echo tomedia($item['thumb'])}"/>
+						{/if}
+					</div>
+				</div>
+				{/if}
+				<div class="form-group" {if $id}style="display: none;"{/if}>
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger">*</span> 选择卡券</label>
+				<div class="col-sm-8 col-xs-12">
+					{if !$id}
+					<button type="button" class="btn btn-default" data-toggle="modal" data-target="#myModal" id="add_coupon">添加卡券</button>
+					{/if}
+				</div>
+				<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+					<div class="modal-dialog">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h4 class="modal-title">选择卡券</h4>
+							</div>
+							<div class="modal-body">
+								<table class="table">
+									<tr>
+										<th style="width: 50px">选择</th>
+										<th style="width: 120px">卡券名称</th>
+										<th style="width: 180px">类型</th>
+										<th>折扣</th>
+									</tr>
+									{loop $coupons $coupon}
+									<tr>
+										<td><input type="radio" name="coupons" id="coupon" class="coupon check" value="{$coupon['id']}" {if is_array($item['coupons']) && in_array($coupon['id'], array_keys($item['coupons']))}checked{/if} data-title="{$coupon['title']}" data-type="{$coupon['type']}"></td>
+										<td>{$coupon['title']}</td>
+										<td>{if $coupon['type'] == 1}折扣券
+											{elseif $coupon['type'] == 2}代金券
+											{elseif $coupon['type'] == 3}礼品券
+											{elseif $coupon['type'] == 4}团购券
+											{elseif $coupon['type'] == 5}优惠券
+											{/if}
+										</td>
+										<td>{if $coupon['type'] == 1}打{php echo $coupon['extra']['discount']*0.1}折
+											{elseif $coupon['type'] == 2}满{php echo $coupon['extra']['least_cost']*0.01}元 减 {php echo $coupon['extra']['reduce_cost']*0.01}元
+											{elseif $coupon['type'] == 3}{$coupon['extra']['deal_detail']}
+											{elseif $coupon['type'] == 4}{$coupon['extra']['gift']}
+											{elseif $coupon['type'] == 5}{$coupon['extra']['default_detail']}
+											{/if}
+										</td>
+									</tr>
+									{/loop}
+								</table>
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-primary" id="save" data-dismiss="modal">保存</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="form-group" id="coupon_table">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span>{if $id}卡券列表{/if}</label>
+				<div class="col-sm-8 col-xs-12">
+					<table class="table" style="width: 380px">
+						{if !empty($item['coupons'])}
+						<tr>
+							<th style="width: 50px">名称</th>
+							<th style="width: 50px">类型</th>
+						</tr>
+						{/if}
+						<tbody id="coupon_list">
+						{loop $item['coupons'] $coup}
+						<tr>
+							<td style="width: 50px">{$coup['title']}</td>
+							<td style="width: 50px">{if $coup['type'] == 1}折扣券{else}代金券{/if}</td>
+						</tr>
+						{/loop}
+						</tbody>
+					</table>
+				</div>
+			</div>
+			{if !$id}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span></label>
+				<div class="col-sm-8 col-xs-12">
+					发放用户
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span>预定义</label>
+				<div class="col-sm-8 col-xs-12">
+					<div class="panel panel-default tab-content">
+						<div class="panel-heading">
+							<ul class="nav nav-pills">
+								<li class="give_member" data-member="new_member"><a href="javascript:;" style="color: gray;">发放给新用户</a></li>
+								<li class="give_member" data-member="old_member"><a href="javascript:;" style="color: gray;">发放给老用户</a></li>
+								<li class="give_member" data-member="activity_member"><a href="javascript:;" style="color: gray;">发放给活跃用户</a></li>
+								<li class="give_member" data-member="quiet_member"><a href="javascript:;" style="color: gray;">发放沉寂跃用户</a></li>
+							</ul>
+						</div>
+						<div class="panel-body">
+							<span class="help-block help" id="new_member">&nbsp;&nbsp;&nbsp;新用户:  &nbsp;&nbsp;成为会员不超过{$propertys['newmember']}个月，并且只消费过一次或没消费的用户。<br/></span>
+							<span class="help-block help" id="old_member">&nbsp;&nbsp;&nbsp;老用户:  &nbsp;&nbsp;成为会员{$propertys['oldmember']}个月以上的用户。<br/></span>
+							<span class="help-block help" id="activity_member">活跃用户: &nbsp;&nbsp;{$propertys['activitymember']}个月内消费超过2次的用户。<br/></span>
+							<span class="help-block help" id="quiet_member">沉寂用户: &nbsp;&nbsp;{$propertys['quietmember']}个月内没有消费的用户。<br/></span>
+							<span class="help-block help" id="num">用户人数 ：<span class="" id="member_num"></span></span>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span>自定义</label>
+				<div class="col-sm-8 col-xs-12">
+					<div class="panel panel-default tab-content">
+						<div class="panel-heading">
+							<ul class="nav nav-pills">
+								<li class="give_member" id="group" data-member="group_member"><a href="javascript:;" style="color: gray;">根据会员组</a></li>
+								<li class="give_member" id="cash_time" data-member="cash_time"><a href="javascript:;" style="color: gray;">根据消费时间</a></li>
+								<li class="give_member" id="openids" data-member="openids" data-toggle="modal" data-target="#myodal"><a href="javascript:;" style="color: gray;">发放给指定粉丝</a></li>
+							</ul>
+						</div>
+						<div class="panel-body" id="type">
+							<select name="groupid" class="form-control" id="group_list" {if !$item['members']['groupid']}style="display: none;"{/if}>
+							{loop $groups $group}
+							<option value="{$group['groupid']}">{if COUPON_TYPE == SYSTEM_COUPON}{$group['title']}{else}{$group['name']}{/if}</option>
+							{/loop}
+							</select>
+							<div id="date" {if !$item['members']['cash_time']['start']}style="display: none;"{/if}>{php echo tpl_form_field_daterange('daterange', array('start' => date('Y-m-d', strtotime('-1 month', time())), 'end' => date('Y-m-d', time())))}</div>
+						<div id="custom_help" class="help-block help" style="display: none">用户人数: <span id="custom_person"></span></div>
+					</div>
+				</div>
+				<input type="hidden" name="members[]" value="" id="members">
+			</div>
+			{else}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span> 发放用户</label>
+				<div class="col-sm-8 col-xs-12">
+					{if in_array('quiet_member', $item['members'])}
+					<label class="radio-inline label-success"><span class="label label-success">发放给沉寂用户</span></label>
+					{elseif in_array('old_member', $item['members'])}
+					<label class="radio-inline"><span class="label label-success">发放给老用户</span></label>
+					{elseif in_array('new_member', $item['members'])}
+					<label class="radio-inline"><span class="label label-success">发放给新用户</span></label>
+					{elseif in_array('activity_member', $item['members'])}
+					<label class="radio-inline"><span class="label label-success">发放给活跃用户</span></label>
+					{elseif in_array('group_member', $item['members'])}
+					<label class="radio-inline"><span class="label label-success">发放给 “{$groups[$item['members']['groupid']]['title']}” 用户组的用户</span></label>
+					{elseif in_array('cash_time', $item['members'])}
+					<label class="radio-inline"><span class="label label-success">发放给在{$item['members']['cash_time']['start']} - {$item['members']['cash_time']['end']}期间消费的用户</span></label>
+					{elseif in_array('openids', $item['members'])}
+					<label class="radio-inline"><span class="label label-success">指定的粉丝</span></label>
+					{/if}
+				</div>
+			</div>
+			{/if}
+		</div>
+		{if COUPON_TYPE == SYSTEM_COUPON}
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="text-danger"></span> 活动描述</label>
+			<div class="col-sm-8 col-xs-12">
+				<textarea name="description"  class="form-control" cols="30" rows="3" >{$item['description']}</textarea>
+			</div>
+		</div>
+		{/if}
+</div>
+</div>
+<div class="form-group col-sm-12">
+	{if !empty($id)}
+	<a class="btn btn-primary" href="{php echo $this->createWeburl('couponmarket')}">返回列表</a>
+	{else}
+	<input name="submit" id="submit" type="submit" value="提交" class="btn btn-primary col-lg-1" data-dismiss="modal">
+	{/if}
+	<input type="hidden" name="token" value="{$_W['token']}" />
+</div>
+</form>
+</div>
+<script>
+	window.openidnum = $('#custom_person');
+	$('.help').hide();
+	$('.daterange-date').blur(function() {
+		$('#cash_time').trigger('click');
+	});
+	$('#group_list').change(function() {
+		$('#group').trigger('click');
+	});
+	$('.give_member').click(function() {
+		var type = $(this).data('member');
+		var param = '';
+		if (type == 'group_member' || type == 'openids' || type == 'cash_time') {
+			var param = {};
+			if (type == 'group_member') {
+				var groupid = $('[name="groupid"]').val();
+				var groupid = $('#group_list').val();
+				param = {'groupid' : groupid};
+			}
+			if (type == 'cash_time') {
+				var start = $('[name="daterange[start]"]').val();
+				var end = $('[name="daterange[end]"]').val();
+				param = {
+					'start' : start,
+					'end' : end
+				}
+			}
+		}
+		$.post("{php echo $this->createWeburl('couponmarket', array('op' => 'get_member_num'))}", {'type' : type, 'param' : param}, function(data) {
+			var data = $.parseJSON(data);
+			$('.help').hide();
+			if (param == '') {
+				$('#'+type).show();
+				$('#num').show();
+				$('#member_num').html(data.message.message);
+			} else {
+				$('#custom_help').show();
+				$('#custom_person').html(data.message.message);
+			}
+		});
+		$('.give_member').attr('class', 'give_member');
+		$('.give_member').children().css('color', 'gray');
+		$(this).attr('class', 'give_member active');
+		$(this).children().css('color', 'white');
+		$('#members').val($(this).data('member'));
+		var type = $(this).data('member');
+		$('#date').hide();
+		$('#group_list').hide();
+		if (type == 'group_member') {
+			$('#group_list').show();
+		}
+		if (type == 'cash_time') {
+			$('#date').show();
+		}
+		if (type == 'openids') {
+		}
+	});
+
+	$('#save').click(function() {
+		{if COUPON_TYPE == WECHAT_COUPON}
+			var coupon = $('#coupon:checked').val();
+			$.post("{php echo $this->createWeburl('couponmarket', array('op' => 'checkcoupon'))}", {'coupon' : coupon}, function (data) {
+				var data = $.parseJSON(data);
+				if (data.message.errno != 0) {
+					$('#coupon_list').html('');
+					util.message(data.message.message+'不可用', '', 'info');
+				}
+			});
+		{/if}
+	});
+	var page = 1;
+	window.openids = new Array();
+	{if !empty($item['members']['openids'])}
+	{loop $item['members']['openids'] $opid}
+		{if !empty($opid)}
+			openids.push('{$opid}');
+		{/if}
+	{/loop}
+	{/if}
+	window.showFans= function(page, keyword) {
+		keyword = keyword == undefined ? '' : keyword;
+		var footer = '<button type="button" class="btn btn-primary" id="save" data-dismiss="modal">添加</button>';
+		var modalobj = util.dialog('粉丝列表', ['./index.php?c=site&a=entry&do=couponmarket&op=fans&m=we7_coupon&page='+ page+'&keyword='+keyword], footer, {containerName:'link-container'})
+		modalobj.find('.modal-body').css({'overflow-y':'auto' });
+		modalobj.modal('show');
+	};
+	$('#openids').click(function() {
+		showFans(page);
+	});
+	var coupons = new Array();
+	$('.member').click(function () {
+		if ($(this).val() != 'group_member') {
+			$('#group_list').hide();
+		}
+		if ($(this).val() != 'cash_time') {
+			$('#date').hide();
+		}
+	});
+	{if !empty($item['coupons']) && is_array($item['coupons'])}
+	{loop $item['coupons']  $cou}
+	var cid = {$cou['id']};
+	var title = '{$cou['title']}';
+	var type = {$cou['type']};
+	coupons[cid] = [{'title' : title,'type': type}];
+	{/loop}
+	{/if}
+	$('.check').click(function() {
+		var check = $(this).prop('checked');
+		if (check) {
+			coupons = new Array();
+			coupons = [{'couponid' : $(this).val(), 'title' : $(this).data('title'), 'type' : $(this).data('type')}];
+		} else {
+			delete coupons[$(this).val()];
+		}
+	});
+	$('#save').click(function() {
+		$('#coupon_list').html('');
+		var types = {php echo json_encode($type_names)};
+		var type_num = coupons[0].type;
+		var type = types[type_num].title;
+		var title = coupons[0].title;
+		$('#coupon_list').append(
+			'<tr>' +
+			'<td style="width: 50px">' + title + '</td>' +
+			'<td style="width: 50px">' + type + '</td>' +
+			'</tr>'
+		);
+	});
+	$('form').submit(function() {
+		if ($('[name="title"]').val() == '') {
+			util.message('请填写活动名称', '', 'info');
+			return false;
+		}
+		if ($('#members').val() == '') {
+			util.message('请选择发放用户', '', 'info');
+			return false;
+		}
+		if ($('.member:checked').val() == 'openids' && openids.length == 0) {
+			util.message('请选择发放粉丝', '', 'info');
+			return false;
+		}
+		if ($('.coupon:checked').val() == undefined) {
+			util.message('请选择卡券', '', 'info');
+			return false;
+		}
+	});
+</script>
+{/if}
+
+{template 'common/footer'}

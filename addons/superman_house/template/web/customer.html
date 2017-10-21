@@ -1,0 +1,392 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li {if $act == 'status'}class="active"{/if}><a href="{php echo $this->createWebUrl('customer', array('act' => 'status'));}">客户状态</a></li>
+	<li {if $act == 'display' && !$_GPC['statusid'] && $display_partner_name == ''}class="active"{/if}><a href="{php echo $this->createWebUrl('customer', array('act' => 'display'));}">全部</a></li>
+	{if $act == 'display' && !$_GPC['statusid'] && $display_partner_name != ''}<li class="active"><a href="{php echo $this->createWebUrl('customer', array('act' => 'display', 'display_partner_name' => $display_partner_name));}">{php echo $display_partner_name}的客户</a></li>{/if}
+	{loop $customer_status $v}
+	<li {if $_GPC['statusid'] == $v['id']}class="active"{/if}><a href="{php echo $this->createWebUrl('customer', array('act' => 'display', 'statusid' => $v['id']));}">{$v['title']}</a></li>
+	{/loop}
+	{if $act == 'distribution'}<li class="active"><a href="{php echo $this->createWebUrl('customer', array('act' => 'distribution', 'id' => $_GPC['id']));}">分配</a></li>{/if}
+	{if $act == 'setup'}<li class="active"><a href="{php echo $this->createWebUrl('customer', array('act' => 'setup', 'id' => $id));}">设置</a></li>{/if}
+</ul>
+{if $act == 'status'}
+<div class="alert alert-danger">客户状态数据请勿随意删除，尤其是存在客户信息和客户状态时，可能会产生客户状态错误。</div>
+<form action="" method="post">
+	<div class="panel panel-default">
+		<div class="table-responsive panel-body">
+			<table class="table">
+				<thead>
+				<tr>
+					<th style="width:80px">排序</th>
+					<th>名称</th>
+					<th class="text-right">操作</th>
+				</tr>
+				</thead>
+				<tbody id="list_layout_wrap">
+				{loop $customer_status $v}
+					<tr>
+						<input type="hidden" class="form-control text-center" name="id[]" value="{$v['id']}">
+						<td><input type="text" class="form-control text-center" name="displayorder[]" value="{$v['displayorder']}"></td>
+						<td class="text-center" style="width:150px;">
+							<input type="text" class="form-control input-sm" name="title[]" value="{$v['title']}">
+						</td>
+						<td class="text-right">
+						    <a href="javascript:;" onclick="delItemLayout(this)" title="删除" data-toggle="tooltip" data-placement="top" class="btn btn-danger btn-sm" data-id="{$v['id']}">
+								<i class="fa fa-times"></i> 删除
+							</a>
+						</td>
+					</tr>
+				{/loop}
+				</tbody>
+				<tbody>
+					<tr>
+						<td>
+							<button type="button" class="btn btn-warning" id="add_layout" title="添加">
+								<span class="glyphicon glyphicon-plus" aria-hidden="true"></span> 添加
+							</button>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<script>
+				require(['jquery', 'util'], function($, u){
+					$('#add_layout').click(function(){
+						var html = '<tr>';
+						html += '<input name="id[]" type="hidden" class="form-control"/>';
+						html += '<td><input type="text" class="form-control text-center" name="displayorder[]" value="">';
+						html += '</td>';
+						html += '<td class="text-center" style="width:150px;">';
+						html += '<input type="text" class="form-control input-sm" name="title[]" value="">';
+						html += '</td>';
+						html += '<td class="text-right">';
+						html += '<a href="javascript:;" onclick="delItemLayout(this)" title="删除" data-toggle="tooltip" data-placement="top" class="btn btn-danger btn-sm" data-id="">';
+						html += '<i class="fa fa-times">';
+						html += '</i>';
+						html += '删除';
+						html += '</a>';
+						html += '</td>';
+						html += '</tr>';
+						$('#list_layout_wrap').append(html);
+					});
+
+					window.delItemLayout = function(obj) {
+						var id = $(obj).attr('data-id');
+						if (!id) {	//new
+							$(obj).parent().parent().remove();
+							return;
+						}
+						$.ajax({
+							'url': "{php echo $this->createWebUrl('customer', array('act' => 'deletestatus'));}"+'&_id='+id,
+							success:function(response) {
+								if (response == 'success') {
+									$(obj).parent().parent().remove();
+								} else {
+									u.message(response, '', 'error');
+								}
+							}
+						});
+					}
+
+				});
+			</script>
+		</div>
+	</div>
+	<div>
+		<input name="submit" type="submit" value="提交" class="btn btn-primary col-lg-1">
+		<input type="hidden" name="token" value="{$_W['token']}" />
+	</div>
+</form>
+{elseif $act == 'display'}
+<div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+		<form action="./index.php" method="get" class="form-horizontal" role="form">
+			<input type="hidden" name="c" value="site">
+			<input type="hidden" name="a" value="entry">
+			<input type="hidden" name="do" value="customer">
+			<input type="hidden" name="m" value="superman_house">
+			<input type="hidden" name="statusid" value="{$_GPC['statusid']}">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">姓名</label>
+				<div class="col-sm-6 col-md-8 col-lg-8 col-xs-12">
+					<input type="text" class="form-control" name="realname" value="{$realname}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">手机</label>
+				<div class="col-sm-6 col-md-8 col-lg-8 col-xs-12">
+					<input type="text" class="form-control" name="mobile" value="{$mobile}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">提交时间</label>
+				<div class="col-sm-6 col-md-8 col-lg-8 col-xs-12">
+					{php echo tpl_form_field_daterange('dateline', $dateline)}
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">楼盘名称</label>
+				<div class="col-sm-6 col-md-8 col-lg-8 col-xs-12">
+					<input type="text" class="form-control" name="housename" value="{$housename}">
+				</div>
+				<button class="btn btn-default" style="margin-left: 10px;">
+					<i class="fa fa-search"></i> 搜索
+				</button>
+			</div>
+		</form>
+	</div>
+</div>
+<div class="panel panel-default">
+	<div class="table-responsive panel-body">
+		<table class="table">
+			<thead>
+			<tr>
+				<th style="width:110px;">姓名</th>
+				<th>意向楼盘</th>
+				<th style="width:110px;">手机</th>
+				<th style="width:150px;">经纪人</th>
+				<th style="width:110px;">项目经理</th>
+				<th style="width:110px;">推荐人</th>
+				<th style="width:80px;">状态</th>
+                <th style="width:150px;">提交时间</th>
+				<th style="width:180px; text-align: right;">操作</th>
+			</tr>
+			</thead>
+			<tbody>
+                {loop $list $item}
+				<tr>
+					<td>{$item['realname']}</td>
+					<td>{$item['housename']}</td>
+					<td>{$item['mobile']}</td>
+					<td>{if $item['partner']['realname']!=''}<a href="{php echo $this->createWebUrl('customer', array('act' => 'display', 'partnerid' => $item['partnerid'], 'display_partner_name' => $item['partner']['realname']));}">{$item['partner']['realname']}  {if $item['partner']['role']['title']!=''}({$item['partner']['role']['title']}){/if}</a>{/if}</td>
+					<td>{$item['parent_partner']['realname']}</td>
+					<td>{$item['recommend_partner']['realname']}</td>
+                    <td>
+                        <span class="label label-success">{$item['status']}</span>
+                    </td>
+					<td>{$item['dateline']}</td>
+					<td style="text-align: right;">
+						<a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('customer', array('act' => 'distribution', 'id' => $item['id']));}" role="button" title="{if $item['partnerid']}重新分配{else}分配{/if}" data-toggle="tooltip" data-placement="top">{if $item['partnerid']}重新分配{else}分配{/if}</a>
+						<a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('customer', array('act' => 'setup', 'id' => $item['id']));}" role="button" title="设置" data-toggle="tooltip" data-placement="top">设置</a>
+						<a onclick="return confirm('此操作不可恢复，确认吗？');" href="{php echo $this->createWebUrl('customer', array('act' => 'deletecustom', 'id' => $item['id']));}" title="删除" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm" data-original-title="删除"><i class="fa fa-times"></i></a>
+					</td>
+				</tr>
+                {/loop}
+			</tbody>
+		</table>
+	</div>
+	<div class="panel-footer">
+		总共 <strong>{$total}</strong> 条
+	</div>
+</div>
+<form action="{php echo $this->createWebUrl('customer', array('act' => 'display', 'export' => 'yes'));}" method="post" class="form-horizontal" role="form1" target="_blank" style="margin-bottom: 10px;">
+	<input type="hidden" name="statusid" value="{$statusid}" />
+	<input type="hidden" name="realname" value="{$realname}" />
+	<input type="hidden" name="mobile" value="{$mobile}" />
+	<input type="hidden" name="housename" value="{$housename}" />
+	<input type="hidden" name="dateline[start]" value="{$dateline['start']}" />
+	<input type="hidden" name="dateline[end]" value="{$dateline['end']}" />
+	<input type="submit" name="submit" class="btn btn-primary" value="导出到EXCEL"/>
+</form>
+{$pager}
+{elseif $act == 'distribution'}
+<div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+		<form action="./index.php" method="get" class="form-horizontal" role="form">
+			<input type="hidden" name="c" value="site">
+			<input type="hidden" name="a" value="entry">
+			<input type="hidden" name="id" value="{$_GPC['id']}">
+			<input type="hidden" name="do" value="customer">
+			<input type="hidden" name="m" value="superman_house">
+			<input type="hidden" name="page" value="{$_GPC['page']}">
+			{if !empty($roles)}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">身份类型</label>
+				<div class="col-sm-6 col-md-8 col-lg-8 col-xs-12">
+					<select class="form-control" name="roleid">
+						<option value="0">全部</option>
+						{loop $roles $role}
+						<option {if $roleid == $role['id']}selected{/if} {if $role['isadmin']==0&&$role['issubadmin']==0}disabled{/if} value="{$role['id']}">{$role['title']}</option>
+						{/loop}
+					</select>
+				</div>
+			</div>
+			{/if}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">姓名</label>
+				<div class="col-sm-6 col-md-8 col-lg-8 col-xs-12">
+					<input type="text" class="form-control" name="realname" value="{$realname}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">手机</label>
+				<div class="col-sm-6 col-md-8 col-lg-8 col-xs-12">
+					<input type="text" class="form-control" name="mobile" value="{$mobile}">
+				</div>
+				<button class="btn btn-default" style="margin-left: 10px;">
+					<i class="fa fa-search"></i> 搜索
+				</button>
+			</div>
+		</form>
+	</div>
+</div>
+<div class="panel panel-default">
+	<div class="panel-heading">
+		客户
+	</div>
+	<div class="panel-body">
+		<div class="row" style="height: 40px">
+			<label class="col-xs-2 col-sm-2 col-md-2 control-label text-right">姓名</label>
+			<div class="col-xs-10">{$customer['realname']}</div>
+		</div>
+		<div class="row" style="height: 40px">
+			<label class="col-xs-2 col-sm-2 col-md-2 control-label text-right">手机</label>
+			<div class="col-xs-10">{$customer['mobile']}</div>
+		</div>
+		<div class="row" style="height: 40px">
+			<label class="col-xs-2 col-sm-2 col-md-2 control-label text-right">意向楼盘</label>
+			<div class="col-xs-10">{$customer['housename']}</div>
+		</div>
+		<div class="row" style="height: 40px">
+			<label class="col-xs-2 col-sm-2 col-md-2 control-label text-right">经纪人</label>
+			<div class="col-xs-10">{$partner['realname']}</div>
+		</div>
+	</div>
+</div>
+<div class="panel panel-default">
+	<div class="panel-heading">
+		经纪人
+	</div>
+	<div class="panel-body">
+		<table class="table">
+			<thead>
+			<tr>
+				<th style="width:100px;">姓名</th>
+				<th>手机</th>
+				<th>身份类型</th>
+				<th>客户数</th>
+				<th style="width: 220px;">操作</th>
+			</tr>
+			</thead>
+			<tbody>
+            {loop $list $item}
+			<tr>
+				<td>{$item['realname']}</td>
+				<td>{$item['phone']}</td>
+				<td>{$roles[$item['roleid']]['title']}</td>
+				<!--td>{php echo isset($cuscounts[$item['id']]['count']) ? $cuscounts[$item['id']]['count'] : 0}</td-->
+				<td>{$item['customer_total']}</td>
+				<td>
+					<a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('customer', array('act' => 'changepartner', 'customerid' => $customer['id'], 'partnerid' => $item['id']));}" role="button" title="">选择</a>
+				</td>
+			</tr>
+            {/loop}
+			</tbody>
+		</table>
+	</div>
+</div>
+{$pager}
+{elseif $act == 'setup'}
+<div class="panel panel-default">
+	<div class="panel-heading">
+		客户信息
+	</div>
+	<div class="panel-body">
+		<div class="row" style="height: 40px">
+			<label class="col-xs-2 col-sm-2 col-md-2 control-label text-right">姓名</label>
+			<div class="col-xs-10">{$customer['realname']}</div>
+		</div>
+		<div class="row" style="height: 40px">
+			<label class="col-xs-2 col-sm-2 col-md-2 control-label text-right">手机</label>
+			<div class="col-xs-10">{$customer['mobile']}</div>
+		</div>
+		<div class="row" style="height: 40px">
+			<label class="col-xs-2 col-sm-2 col-md-2 control-label text-right">意向楼盘</label>
+			<div class="col-xs-10">{$customer['housename']}</div>
+		</div>
+		<div class="row" style="height: 40px">
+			<label class="col-xs-2 col-sm-2 col-md-2 control-label text-right">经纪人</label>
+			<div class="col-xs-10">{$customer['partner']['realname']}</div>
+		</div>
+		<div class="row" style="height: 40px">
+			<label class="col-xs-2 col-sm-2 col-md-2 control-label text-right">推荐人</label>
+			<div class="col-xs-10">{$customer['recommend_partner']['realname']}</div>
+		</div>
+		<div class="row" style="height: 40px">
+			<label class="col-xs-2 col-sm-2 col-md-2 control-label text-right">状态</label>
+			<div class="col-xs-10">
+				<span class="label label-success">{$customer['status_title']}</span>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="alert alert-info">
+客户状态可以多次设置，每次设置提交时，佣金记录将累加，如果操作失误，需要删除佣金记录，请移步到 <strong>经纪人=》佣金流水</strong> 页面删除对应记录
+</div>
+<div class="alert alert-danger">
+当参数设置填写了经纪人参数中的模板消息配置时，设置客户状态将触发发送模板消息，模板消息接收人为推荐客户的经纪人
+</div>
+<div class="list-group">
+	<a href="#" class="list-group-item disabled">
+		客户状态
+	</a>
+    {loop $list $item}
+	<div class="list-group-item" style="line-height: 30px;">
+		<span style="display: block; font-size: 24px; padding: 10px 0;">
+			{$item['title']}{if $item['partnerid']} <i class="fa fa-check"></i>{/if}
+		</span>
+		<span style="display: block">操作人：{if $item['partnerid'] == '-1'}管理员{else}{$item['partner']['realname']}{/if}</span>
+		<span style="display: block">备注：{$item['remark']}</span>
+		<span style="display: block">{if $item['money']>0}佣金：{$item['money']}元{/if}</span>
+		<span style="display: block">{if $item['dateline']}{php echo date('Y-m-d H:i:s', $item['dateline'])}{/if}</span>
+		<button type="button" class="btn btn-default btn-sm settingstate">设置状态</button>
+		<div class="row" style="margin-top: 10px; display: none">
+			<div class="col-xs-6" style="padding-left: 0">
+				<form class="form-horizontal">
+					<input type="hidden" name="c" value="site">
+					<input type="hidden" name="a" value="entry">
+					<input type="hidden" name="do" value="customer">
+					<input type="hidden" name="m" value="superman_house">
+					<input type="hidden" name="act" value="setremark">
+					<input type="hidden" name="id" value="{$item['id']}">
+					<input type="hidden" name="customerid" value="{$customer['id']}">
+					<input type="hidden" name="statusid" value="{$item['statusid']}">
+					<input type="hidden" name="partnerid" value="{php echo $item['partnerid']>0 ? $item['partnerid'] : $customer['partner']['id']}">
+					<textarea name="remark" placeholder="客户状态备注信息" class="form-control">{$item['remark']}</textarea>
+					<div class="form-group" style="margin:10px 0 0 0;">
+						<div class="input-group">
+							<input type="text" value="{$item['money']}" class="form-control" placeholder="佣金奖励" name="money">
+							<div class="input-group-addon">元</div>
+						</div>
+					</div>
+					<button type="submit" class="btn btn-default" name="" style="margin-top: 10px;">提交</button>
+				</form>
+			</div>
+		</div>
+	</div>
+    {/loop}
+</div>
+<div class="form-group">
+	<div class="col-sm-12" style="padding: 0;margin-bottom: 20px;">
+		<input onclick="history.go(-1)" type="button" value="返回" class="btn btn-primary col-lg-1">
+	</div>
+</div>
+<script>
+	require(['jquery', 'util'], function($, u){
+		$('.settingstate').click(function(){
+			$(this).next().show();
+			$(this).hide();
+		});
+	});
+</script>
+{/if}
+<script>
+    $('.btn').hover(function(){
+        $(this).tooltip('show');
+    },function(){
+        $(this).tooltip('hide');
+    });
+
+</script>
+{template 'common/footer'}

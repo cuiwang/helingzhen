@@ -1,0 +1,1143 @@
+{template 'common/header'}
+
+<div class="main">
+	<div class="panel panel-info">
+		<div class="panel-heading">筛选</div>
+
+		<div class="panel-body">
+
+			<form action="./index.php" method="get" class="form-horizontal" role="form">
+
+				<input type="hidden" name="c" value="site" />
+				<input type="hidden" name="a" value="entry" />
+	        	<input type="hidden" name="m" value="cgc_ad" />
+	        	<input type="hidden" name="do" value="stat" />
+	        	<input type="hidden" name="op" value="{$op}" />
+
+	        	<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">广告平台筛选</label>
+					<div class="col-xs-6 col-sm-4 col-lg-4">
+						<select name="quan_id" class="form-control">
+							<option value="0">请选择所属广告平台</option>
+							{loop $quan $q}
+								{if $_GPC['quan_id']==$q['id']}
+								{php $quan_name=$q['aname'];}
+								<option value="{$q['id']}" selected>{$q['aname']}</option>
+								{else}
+								<option value="{$q['id']}" >{$q['aname']}</option>
+								{/if}
+							{/loop}
+						</select>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">时间筛选</label>
+					<div class="col-xs-12 col-sm-8 col-lg-9">
+						{php echo tpl_form_field_daterange('time', $time);}
+					</div>
+				</div>
+
+				<div class="form-group">
+				 	<div class=" col-xs-12 col-sm-2 col-lg-2">
+
+						<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+
+					</div>
+				</div>
+			</form>
+		</div>
+    </div>
+
+    	<div id="main" style="height:400px;width:98%;margin-left:1%;padding-top:50px"></div>
+    	<script src="http://echarts.baidu.com/build/dist/echarts.js"></script>
+    	<script type="text/javascript">
+        // 路径配置
+        require.config({
+            paths: {
+                echarts: 'http://echarts.baidu.com/build/dist'
+            }
+        });
+
+        // 使用
+        require(
+            [
+                'echarts',
+                'echarts/chart/bar', //
+                'echarts/chart/line'
+            ],
+            function (ec) {
+                // 基于准备好的dom，初始化echarts图表
+                var myChart = ec.init(document.getElementById('main'),'macarons');
+
+                option = {
+				    title : {
+				        text: '统计报表',
+				        subtext: '{php echo date("Y-m-d",$starttime)}-{php echo date("Y-m-d",$endtime)}'
+				    },
+				    tooltip : {
+				        trigger: 'axis'
+				    },
+				    legend: {
+				        data:[
+				        	{if empty($op) || $op=='all'}
+				        	'用户总数',
+				        	{/if}
+				        	{if empty($op) || $op=='geren'}
+				        	'个人用户总数',
+				        	{/if}
+				        	{if empty($op) || $op=='xuni'}
+				        	'机器人用户总数',
+				        	{/if}
+				        	{if empty($op) || $op=='dy'}
+				        	'商家用户总数',
+				        	{/if}
+				        	{if empty($op) || $op=='pay'}
+				        	'收入总数',
+				        	{/if}
+				        	{if empty($op) || $op=='admin'}
+				        	'管理员发信总数',
+				        	{/if}
+				        	{if empty($op) || $op=='kefu'}
+				        	'客服消息总数',
+				        	{/if}
+				        	{if empty($op) || $op=='chat'}
+				        	'聊天信息总数',
+				        	{/if}
+				        	{if empty($op) || $op=='xinxi'}
+				        	'消息总数',
+				        	{/if}
+				        	{if empty($op) || $op=='fk'}
+				        	'客户反馈数'
+				        	{/if}
+				        	]
+				    },
+				    toolbox: {
+				        show : true,
+				        feature : {
+				            mark : {show: false},
+				            dataView : {show: false, readOnly: false},
+				            magicType : {show: true, type: ['line', 'bar']},
+				            restore : {show: false},
+				            saveAsImage : {show: true}
+				        }
+				    },
+				    calculable : true,
+				    xAxis : [
+				        {
+				            type : 'category',
+				            data : [
+				            	{loop $riqi $row}
+				            		'{$row}',
+				            	{/loop}
+				            	]
+				        }
+				    ],
+				    yAxis : [
+				        {
+				            type : 'value'
+				        }
+				    ],
+				    series : [
+				    	{if empty($op) || $op=='all'}
+				        {
+				            name:'用户总数',
+				            type:'bar',
+				            data:[
+				            	{loop $riqi $row}
+				            		{$all_tu[$row]},
+				            	{/loop}
+				            ],
+				            markPoint : {
+				                data : [
+				                    {type : 'max', name: '最大值'},
+				                    {type : 'min', name: '最小值'}
+				                ]
+				            },
+				            markLine : {
+				                data : [
+				                    {type : 'average', name: '平均值'}
+				                ]
+				            }
+				        },
+				        {/if}
+				        {if empty($op) || $op=='geren'}
+				        {
+				            name:'个人用户总数',
+				            type:'bar',
+				            data:[
+				            	{loop $riqi $row}
+				            		{$geren_tu[$row]},
+				            	{/loop}
+				            ],
+				            markPoint : {
+				                data : [
+				                    {type : 'max', name: '最大值'},
+				                    {type : 'min', name: '最小值'}
+				                ]
+				            },
+				            markLine : {
+				                data : [
+				                    {type : 'average', name: '平均值'}
+				                ]
+				            }
+				        },
+				        {/if}
+				        {if empty($op) ||$op=='xuni'}
+				        {
+				            name:'机器人用户总数',
+				            type:'bar',
+				            data:[
+				            	{loop $riqi $row}
+				            		{$qiye_tu[$row]},
+				            	{/loop}
+				            ],
+				            markPoint : {
+				                data : [
+				                    {type : 'max', name: '最大值'},
+				                    {type : 'min', name: '最小值'}
+				                ]
+				            },
+				            markLine : {
+				                data : [
+				                    {type : 'average', name: '平均值'}
+				                ]
+				            }
+				        },
+				        {/if}
+				        {if empty($op) || $op=='dy'}
+				        {
+				            name:'商家用户总数',
+				            type:'bar',
+				            data:[
+				            	{loop $riqi $row}
+				            		{$dy_tu[$row]},
+				            	{/loop}
+				            ],
+				            markPoint : {
+				                data : [
+				                    {type : 'max', name: '最大值'},
+				                    {type : 'min', name: '最小值'}
+				                ]
+				            },
+				            markLine : {
+				                data : [
+				                    {type : 'average', name: '平均值'}
+				                ]
+				            }
+				        },
+				        {/if}
+				        {if empty($op) || $op=='pay'}
+				        {
+				            name:'收入总数',
+				            type:'bar',
+				            data:[
+				            	{loop $riqi $row}
+				            		{$pay_tu[$row]},
+				            	{/loop}
+				            ],
+				            markPoint : {
+				                data : [
+				                    {type : 'max', name: '最大值'},
+				                    {type : 'min', name: '最小值'}
+				                ]
+				            },
+				            markLine : {
+				                data : [
+				                    {type : 'average', name: '平均值'}
+				                ]
+				            }
+				        },
+				        {/if}
+				        {if empty($op) || $op=='admin'}
+				        {
+				            name:'管理员发信总数',
+				            type:'bar',
+				            data:[
+				            	{loop $riqi $row}
+				            		{$admin_tu[$row]},
+				            	{/loop}
+				            ],
+				            markPoint : {
+				                data : [
+				                    {type : 'max', name: '最大值'},
+				                    {type : 'min', name: '最小值'}
+				                ]
+				            },
+				            markLine : {
+				                data : [
+				                    {type : 'average', name: '平均值'}
+				                ]
+				            }
+				        },
+				        {/if}
+				        {if empty($op) || $op=='kefu'}
+				        {
+				            name:'客服消息总数',
+				            type:'bar',
+				            data:[
+				            	{loop $riqi $row}
+				            		{$kefu_tu[$row]},
+				            	{/loop}
+				            ],
+				            markPoint : {
+				                data : [
+				                    {type : 'max', name: '最大值'},
+				                    {type : 'min', name: '最小值'}
+				                ]
+				            },
+				            markLine : {
+				                data : [
+				                    {type : 'average', name: '平均值'}
+				                ]
+				            }
+				        },
+				        {/if}
+				        {if empty($op) || $op=='chat'}
+				        {
+				            name:'聊天信息总数',
+				            type:'bar',
+				            data:[
+				            	{loop $riqi $row}
+				            		{$chat_tu[$row]},
+				            	{/loop}
+				            ],
+				            markPoint : {
+				                data : [
+				                    {type : 'max', name: '最大值'},
+				                    {type : 'min', name: '最小值'}
+				                ]
+				            },
+				            markLine : {
+				                data : [
+				                    {type : 'average', name: '平均值'}
+				                ]
+				            }
+				        },
+				        {/if}
+				        {if empty($op) || $op=='xinxi'}
+				        {
+				            name:'消息总数',
+				            type:'bar',
+				            data:[
+				            	{loop $riqi $row}
+				            		{$xinxi_tu[$row]},
+				            	{/loop}
+				            ],
+				            markPoint : {
+				                data : [
+				                    {type : 'max', name: '最大值'},
+				                    {type : 'min', name: '最小值'}
+				                ]
+				            },
+				            markLine : {
+				                data : [
+				                    {type : 'average', name: '平均值'}
+				                ]
+				            }
+				        },
+				        {/if}
+				        {if empty($op) || $op=='fk'}
+				        {
+				            name:'客户反馈数',
+				            type:'bar',
+				            data:[
+				            	{loop $riqi $row}
+				            		{$fk_tu[$row]},
+				            	{/loop}
+				            ],
+				            markPoint : {
+				                data : [
+				                    {type : 'max', name: '最大值'},
+				                    {type : 'min', name: '最小值'}
+				                ]
+				            },
+				            markLine : {
+				                data : [
+				                    {type : 'average', name: '平均值'}
+				                ]
+				            }
+				        },
+				        {/if}
+				    ]
+				};
+
+
+                // 为echarts对象加载数据
+                myChart.setOption(option);
+            }
+        );
+    </script>
+
+    <form action="" method="post" class="form-horizontal form"
+		enctype="multipart/form-data">
+    <div class="panel panel-default">
+		<div class="panel-heading">
+			统计报表
+		</div>
+		<div class="panel-body">
+
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">{if empty($time)}用户总数{else}新增用户{/if}</label>
+				<div class="col-sm-9 col-xs-12">
+					{php echo $geren+$xuni;} 人
+					<a href="{php echo $this->createWebUrl('stat',array('op'=>'all','time'=>$_GPC['time']));}" style="margin-left:100px"><div class="btn btn-info">详情</div></a>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">{if empty($time)}个人用户总数{else}新增个人用户{/if}</label>
+				<div class="col-sm-9 col-xs-12">
+					{$geren} 人
+					<a href="{php echo $this->createWebUrl('stat',array('op'=>'geren','time'=>$_GPC['time']));}" style="margin-left:100px"><div class="btn btn-info">详情</div></a>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">{if empty($time)}机器人用户总数{else}新增机器人用户{/if}</label>
+				<div class="col-sm-9 col-xs-12">
+					{$xuni} 人
+					<a href="{php echo $this->createWebUrl('stat',array('op'=>'xuni','time'=>$_GPC['time']));}" style="margin-left:100px"><div class="btn btn-info">详情</div></a>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">{if empty($time)}商家用户总数{else}新增商家用户{/if}</label>
+				<div class="col-sm-9 col-xs-12">
+					{$dy} 人
+					<a href="{php echo $this->createWebUrl('stat',array('op'=>'dy','time'=>$_GPC['time']));}" style="margin-left:100px"><div class="btn btn-info">详情</div></a>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">{if empty($time)}收入总数{else}新增收入{/if}</label>
+				<div class="col-sm-9 col-xs-12">
+					{$pay} 元
+					<a href="{php echo $this->createWebUrl('stat',array('op'=>'pay','time'=>$_GPC['time']));}" style="margin-left:100px"><div class="btn btn-info">详情</div></a>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">{if empty($time)}管理员发信总数{else}新增管理员发信数{/if}</label>
+				<div class="col-sm-9 col-xs-12">
+					{$admin} 次
+					<a href="{php echo $this->createWebUrl('stat',array('op'=>'admin','time'=>$_GPC['time']));}" style="margin-left:100px"><div class="btn btn-info">详情</div></a>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">{if empty($time)}客服消息总数{else}新增客服消息数{/if}</label>
+				<div class="col-sm-9 col-xs-12">
+					{$kefu} 次
+					<a href="{php echo $this->createWebUrl('stat',array('op'=>'kefu','time'=>$_GPC['time']));}" style="margin-left:100px"><div class="btn btn-info">详情</div></a>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">{if empty($time)}聊天信息总数{else}新增聊天信息数{/if}</label>
+				<div class="col-sm-9 col-xs-12">
+					{$chat} 次
+					<a href="{php echo $this->createWebUrl('stat',array('op'=>'chat','time'=>$_GPC['time']));}" style="margin-left:100px"><div class="btn btn-info">详情</div></a>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">{if empty($time)}消息总数{else}新增消息数{/if}</label>
+				<div class="col-sm-9 col-xs-12">
+					{$xinxi} 次
+					<a href="{php echo $this->createWebUrl('stat',array('op'=>'xinxi','time'=>$_GPC['time']));}" style="margin-left:100px"><div class="btn btn-info">详情</div></a>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">{if empty($time)}客户反馈总数{else}新增客户反馈数{/if}</label>
+				<div class="col-sm-9 col-xs-12">
+					{$fk} 次
+					<a href="{php echo $this->createWebUrl('stat',array('op'=>'fk','time'=>$_GPC['time']));}" style="margin-left:100px"><div class="btn btn-info">详情</div></a>
+				</div>
+			</div>
+
+
+		</div>
+	</div>
+	</form>
+	{if empty($sitem['doubi'])}{php $sitem['doubi']='豆币'}{/if}
+
+	{if $op=='all'}
+	<div class="panel panel-default">
+		<div class="panel-heading">用户详细数据  |  总数:{$all_total}</div>
+		<div class="panel-body table-responsive">
+
+		    <form action="" method="post" onsubmit="">
+
+			<table class="table table-hover">
+
+				<thead class="navbar-inner">
+
+					<tr>
+
+						<th style="width:5%;" class="row-first">选择</td>
+
+						<th style="width:5%;">会员ID</th>
+
+						<th style="width:8%;">会员昵称</th>
+
+						<th style="width:7%;">性别 </th>
+
+						<th style="width:7%;">手机账号 </th>
+
+						<th style="width:7%;">{$sitem['doubi']}</th>
+
+						<th style="width:8%;">包月到期</th>
+
+						<th style="width:8%;">区域</th>
+
+						<th style="width:8%;">类型</th>
+
+						<th style="width:10%;">注册时间</th>
+
+						<th style="width:20%;">操作</th>
+
+					</tr>
+
+				</thead>
+
+				<tbody id="main">
+
+					{loop $all_list $row}
+
+					<tr>
+
+					    <td><input type="checkbox" name="select[]" value="{$row['id']}" /></td>
+
+					    <td>{$row['id']}</td>
+
+						<td  style="white-space:normal;word-break:break-all">{$row['nicheng']}</td>
+
+						<td>{if $row['sex']==1}男{else}女{/if}</td>
+
+						<td  style="white-space:normal;word-break:break-all">{$row['mobile']}</td>
+
+						<td  style="white-space:normal;word-break:break-all">{$row['credit']} {$sitem['unit']}</td>
+
+						<td  style="white-space:normal;word-break:break-all">{if $row['baoyue']>$time}{php echo date('Y年n月j日 G:i', $row['baoyue']);}{/if}</td>
+
+						<td  style="white-space:normal;word-break:break-all">{$province[$row['province']]}</td>
+						<td  style="white-space:normal;word-break:break-all">{if $row['type']==0}<span style="color:#FF1493">账户</span>{/if}{if $row['type']==1}<span style="color:#008B00">微信</span>{/if}{if $row['type']==3}<span style="color:#666666">虚拟</span>{/if}</td>
+
+						<td  style="white-space:normal;word-break:break-all">{php echo date('n月j日 G:i', $row['createtime']);}</td>
+
+						<td style="white-space:normal;word-break:break-all">
+
+
+						<a href="{php echo $this->CreateWebUrl('member',array('op'=>'mingxi','id'=>$row['id']))}"><div class="btn btn-success">用户详情</div></a>
+
+						{if $row['status']==1}
+						<a href="{php echo $this->CreateWebUrl('member',array('op'=>'del','id'=>$row['id']))}"><div class="btn btn-primary">封号</div></a>
+						{else}
+						<a href="{php echo $this->CreateWebUrl('member',array('op'=>'huifu','id'=>$row['id']))}"><div class="btn btn-default">解封</div></a>
+						{/if}
+
+						<a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->CreateWebUrl('member',array('op'=>'del2','id'=>$row['id']))}"><div class="btn btn-danger">删除</div></a>
+
+
+						</td>
+
+
+					</tr>
+
+					{/loop}
+
+				</tbody>
+			</table>
+			{$pager}
+			</form>
+	    </div>
+
+	</div>
+	{/if}
+
+	{if $op=='geren'}
+	<div class="panel panel-default">
+		<div class="panel-heading">个人用户详细数据  |  总数:{$geren_total}</div>
+		<div class="panel-body table-responsive">
+
+		    <form action="" method="post" onsubmit="">
+
+			<table class="table table-hover">
+
+				<thead class="navbar-inner">
+
+					<tr>
+
+						<th style="width:5%;" class="row-first">选择</td>
+
+						<th style="width:5%;">会员ID</th>
+
+						<th style="width:8%;">会员昵称</th>
+
+						<th style="width:7%;">性别 </th>
+
+						<th style="width:7%;">手机账号 </th>
+
+						<th style="width:7%;">{$sitem['doubi']}</th>
+
+						<th style="width:8%;">包月到期</th>
+
+						<th style="width:8%;">区域</th>
+
+						<th style="width:8%;">类型</th>
+
+						<th style="width:10%;">注册时间</th>
+
+						<th style="width:20%;">操作</th>
+
+					</tr>
+
+				</thead>
+
+				<tbody id="main">
+					{php $time = time();}
+
+					{loop $geren_list $row}
+
+					<tr>
+
+					    <td><input type="checkbox" name="select[]" value="{$row['id']}" /></td>
+
+					    <td>{$row['id']}</td>
+
+						<td  style="white-space:normal;word-break:break-all">{$row['nicheng']}</td>
+
+						<td>{if $row['sex']==1}男{else}女{/if}</td>
+
+						<td  style="white-space:normal;word-break:break-all">{$row['mobile']}</td>
+
+						<td  style="white-space:normal;word-break:break-all">{$row['credit']} {$sitem['unit']}</td>
+
+						<td  style="white-space:normal;word-break:break-all">{if $row['baoyue']>$time}{php echo date('Y年n月j日 G:i', $row['baoyue']);}{/if}</td>
+
+						<td  style="white-space:normal;word-break:break-all">{$province[$row['province']]}</td>
+						<td  style="white-space:normal;word-break:break-all">{if $row['type']==0}<span style="color:#FF1493">账户</span>{/if}{if $row['type']==1}<span style="color:#008B00">微信</span>{/if}{if $row['type']==3}<span style="color:#666666">虚拟</span>{/if}</td>
+
+						<td  style="white-space:normal;word-break:break-all">{php echo date('n月j日 G:i', $row['createtime']);}</td>
+
+						<td style="white-space:normal;word-break:break-all">
+
+						<a href="{php echo $this->CreateWebUrl('member',array('op'=>'mingxi','id'=>$row['id']))}"><div class="btn btn-success">用户详情</div></a>
+
+						{if $row['status']==1}
+						<a href="{php echo $this->CreateWebUrl('member',array('op'=>'del','id'=>$row['id']))}"><div class="btn btn-primary">封号</div></a>
+						{else}
+						<a href="{php echo $this->CreateWebUrl('member',array('op'=>'huifu','id'=>$row['id']))}"><div class="btn btn-default">解封</div></a>
+						{/if}
+
+						<a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->CreateWebUrl('member',array('op'=>'del2','id'=>$row['id']))}"><div class="btn btn-danger">删除</div></a>
+
+
+						</td>
+
+					</tr>
+
+					{/loop}
+
+				</tbody>
+			</table>
+			{$pager}
+			</form>
+	    </div>
+
+	</div>
+	
+	{if $op=='dy'}
+	<div class="panel panel-default">
+		<div class="panel-heading">工作人员详细数据  |  总数:{$dy_total}</div>
+		<div class="panel-body table-responsive">
+
+		    <form action="" method="post" onsubmit="">
+
+			<table class="table table-hover">
+
+				<thead class="navbar-inner">
+
+					<tr>
+						<th style="width:5%" >编号</th>
+						<th style="width:15%">用户名</th>
+						<th style="width:10%">微信昵称</th>
+						<th style="width:15%">微信头像</th>
+						<th style="width:10%">拥有用户</th>
+						<th style="width:15%">手机</th>
+						<th style="width:25%">操作</th>
+					</tr>
+
+				</thead>
+				<tbody id="main">
+					{loop $dy_list $item}
+
+					<tr>
+					    <td>
+							<p>{$item['id']}</p>
+						</td>
+	                	<td>
+							<p>{$item['username']}</p>
+	                	</td>
+	                	<td>
+							<p>{$item['nickname']}</p>
+	                	</td>
+	                	<td>
+							<img style="width:70px" src="{php echo tomedia($item['headimgurl'])}"/>
+	                	</td>
+	                	<td>
+							<p>{$item['num']}</p>
+						</td>
+						<td>
+							<p>{$item['mobile']}</p>
+						</td>
+						<td>
+								{if empty($item['uid'])}<div class="btn btn-warning" onclick="qrcode({$item['id']})">绑定</div>{else}<a href="{php echo $this->createWebUrl('unbind', array('id'=>$item['id']))}"><div class="btn btn-danger">解绑</div></a>{/if}&nbsp;<a href="{php echo $this->createWebUrl('dianyuan', array('op' => 'edit','id'=> $item['id']))}"><div class="btn btn-info">编辑店员</div></a>&nbsp;<a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('dianyuan', array('op' => 'del','id' => $item['id']))}"><div class="btn btn-danger">删除</div></a>
+						</td>
+					</tr>
+					{/loop}
+				</tbody>
+			</table>
+			{$pager}
+			</form>
+	    </div>
+
+	</div>
+	{/if}
+
+
+	{if $op=='pay'}
+	<div class="panel panel-default">
+		<div class="panel-heading">收入详细数据  |  总数:{$pay_total}</div>
+		<div class="panel-body table-responsive">
+
+		    <form action="" method="post" onsubmit="">
+
+			<table class="table table-hover">
+
+				<thead class="navbar-inner">
+
+					<tr>
+						<th style="width:5%;" class="row-first">ID</td>
+
+						<th style="width:10%;">昵称</th>
+
+						<th style="width:10%;">账户</th>
+
+						<th style="width:15%;">绑定微信</th>
+
+						<th style="width:10%;">收入金额</th>
+
+						<th style="width:10%;">收入类型</th>
+
+						<th style="width:10%;">提交时间</th>
+
+						<th style="width:10%;">支付时间</th>
+
+					</tr>
+
+				</thead>
+				<tbody id="main">
+					{loop $pay_list $row}
+
+					<tr>
+						<td>{$row['id']}</td>
+
+					    <td>{$row['nicheng']}</td>
+
+					    <td>{$row['mobile2']}{if !empty($row['mobile_auth'])}<span style="color:red">(认证)</span>{/if}</td>
+
+						<td><img style="width:70px" src="{php ehco tomedia($row['headimgurl'])}">{$row['nickname']}</td>
+
+						<td>{$row['fee']} 元</td>
+
+						<td>{if $row['log']==1}购买虚拟货币{/if}{if $row['log']==2}购买包月服务{/if}{if $row['log']==3}购买收信宝{/if}</td>
+
+						<td>{php echo date('Y年n月j日 G:i', $row['createtime']);}</td>
+
+						<td>{php echo date('Y年n月j日 G:i', $row['paytime']);}</td>
+					</tr>
+					{/loop}
+				</tbody>
+			</table>
+			{$pager}
+			</form>
+	    </div>
+
+	</div>
+	{/if}
+
+	{if $op=='admin'}
+	<div class="panel panel-default">
+		<div class="panel-heading">管理员发信详细数据  |  总数:{$admin}</div>
+		<div class="panel-body table-responsive">
+
+		    <form action="" method="post" onsubmit="">
+
+			<table class="table table-hover">
+
+				<thead class="navbar-inner">
+
+					<tr>
+						<th style="width:5%;" class="row-first">ID</td>
+
+						<th style="width:10%;">昵称</th>
+
+						<th style="width:10%;">账户</th>
+
+						<th style="width:15%;">绑定微信</th>
+
+						<th style="width:20%;">信件内容</th>
+
+						<th style="width:10%;">阅读状态</th>
+
+						<th style="width:10%;">发信时间</th>
+
+						<th style="width:10%;">阅读时间</th>
+					</tr>
+
+				</thead>
+				<tbody id="main">
+					{loop $admin_list $row}
+
+					<tr>
+						<td>{$row['id']}</td>
+
+					    <td>{$row['nicheng']}</td>
+
+					    <td>{$row['mobile2']}{if !empty($row['mobile_auth'])}<span style="color:red">(认证)</span>{/if}</td>
+
+						<td><img style="width:70px" src="{php echo tomedia($row['headimgurl'])}">{$row['nickname']}</td>
+
+						<td style="white-space:normal;word-break:break-all">{$row['content']}</td>
+
+						<td>{if $row['yuedu']==1}已阅读{/if}{if $row['yuedu']==0}未阅读{/if}</td>
+
+						<td>{php echo date('Y年n月j日 G:i', $row['createtime']);}</td>
+
+						<td>{if !empty($row['yuedutime'])}{php echo date('Y年n月j日 G:i', $row['yuedutime']);}{/if}</td>
+					</tr>
+					{/loop}
+				</tbody>
+			</table>
+			{$pager}
+			</form>
+	    </div>
+
+	</div>
+	{/if}
+
+	{if $op=='kefu'}
+	<div class="panel panel-default">
+		<div class="panel-heading">客服消息详细数据  |  总数:{$kefu}</div>
+		<div class="panel-body table-responsive">
+
+		    <form action="" method="post" onsubmit="">
+
+			<table class="table table-hover">
+
+				<thead class="navbar-inner">
+
+					<tr>
+						<th style="width:5%;" class="row-first">ID</td>
+
+						<th style="width:10%;">昵称</th>
+
+						<th style="width:10%;">账户</th>
+
+						<th style="width:15%;">绑定微信</th>
+
+						<th style="width:20%;">消息内容</th>
+
+						<th style="width:10%;">消息类型</th>
+
+						<th style="width:10%;">发送状态</th>
+
+						<th style="width:10%;">发信时间</th>
+
+					</tr>
+
+				</thead>
+				<tbody id="main">
+					{loop $kefu_list $row}
+
+					<tr>
+						<td>{$row['id']}</td>
+
+					    <td>{$row['nicheng']}</td>
+
+					    <td>{$row['mobile2']}{if !empty($row['mobile_auth'])}<span style="color:red">(认证)</span>{/if}</td>
+
+						<td><img style="width:70px" src="{php echo tomedia($row['headimgurl'])}">{$row['nickname']}</td>
+
+						<td style="white-space:normal;word-break:break-all">{$row['content']}</td>
+
+						<td>{if $row['type']=='text'}文本{/if}{if $row['type']=='image'}图片{/if}{if $row['type']=='voice'}语音{/if}{if $row['type']=='video'}视频{/if}{if $row['type']=='music'}音乐{/if}{if $row['type']=='news'}图文{/if}{if $row['type']=='mpnews'}图文{/if}</td>
+
+						<td>{if $row['status']==0}发送成功{/if}{if $row['status']!=0}发送失败{/if}</td>
+
+						<td>{php echo date('Y年n月j日 G:i', $row['createtime']);}</td>
+
+					</tr>
+					{/loop}
+				</tbody>
+			</table>
+			{$pager}
+			</form>
+	    </div>
+
+	</div>
+	{/if}
+
+	{if $op=='chat'}
+	<div class="panel panel-default">
+		<div class="panel-heading">聊天消息细数据  |  总数:{$chat}</div>
+		<div class="panel-body table-responsive">
+
+		    <form action="" method="post" onsubmit="">
+
+			<table class="table table-hover">
+
+				<thead class="navbar-inner">
+
+					<tr>
+						<th style="width:5%;" class="row-first">ID</td>
+
+						<th style="width:10%;">收信账户</th>
+
+						<th style="width:15%;">收信微信</th>
+
+						<th style="width:10%;">发信账户</th>
+
+						<th style="width:15%;">发信微信</th>
+
+						<th style="width:20%;">信件内容</th>
+
+						<th style="width:10%;">阅读状态</th>
+
+						<th style="width:10%;">发信时间</th>
+
+						<th style="width:10%;">阅读时间</th>
+					</tr>
+
+				</thead>
+				<tbody id="main">
+					{loop $chat_list $row}
+
+					<tr>
+						<td>{$row['id']}</td>
+
+					    <td style="white-space:normal;word-break:break-all">{$row['mobile2']}{if !empty($row['mobile_auth'])}<span style="color:red">(认证)</span>{/if}</td>
+
+						<td style="white-space:normal;word-break:break-all"><img style="width:70px" src="{php echo tomedia($row['headimgurl'])}">{$row['nickname']}</td>
+
+						<td style="white-space:normal;word-break:break-all">{$row['mobile3']}{if !empty($row['mobile_auth2'])}<span style="color:red">(认证)</span>{/if}</td>
+
+						<td style="white-space:normal;word-break:break-all"><img style="width:70px" src="{$row['avatar2']}">{$row['nickname2']}</td>
+
+						<td style="white-space:normal;word-break:break-all" class="chat_list">{$row['content']}</td>
+
+						<td style="white-space:normal;word-break:break-all">{if $row['yuedu']==1}已阅读{/if}{if $row['yuedu']==0}未阅读{/if}</td>
+
+						<td style="white-space:normal;word-break:break-all">{php echo date('Y年n月j日 G:i', $row['createtime']);}</td>
+
+						<td style="white-space:normal;word-break:break-all">{if !empty($row['yuedutime'])}{php echo date('Y年n月j日 G:i', $row['yuedutime']);}{/if}</td>
+					</tr>
+					{/loop}
+				</tbody>
+			</table>
+			{$pager}
+			</form>
+	    </div>
+
+	</div>
+	<link href="../addons/jy_ppp/css/face.css" rel="stylesheet" type="text/css"/>
+	<script src="../addons/jy_ppp/js/expression.js"></script>
+	<script type="text/javascript">
+		$(function () {
+			for(var i=0;i<$(".chat_list").length;++i){
+				Expression.replaceHtml($('.chat_list').eq(i));
+		    }
+		});
+	</script>
+	{/if}
+
+	{if $op=='xinxi'}
+	<div class="panel panel-default">
+		<div class="panel-heading">消息详细数据  |  总数:{$xinxi}</div>
+		<div class="panel-body table-responsive">
+
+		    <form action="" method="post" onsubmit="">
+
+			<table class="table table-hover">
+
+				<thead class="navbar-inner">
+
+					<tr>
+
+						<th style="width:5%;" class="row-first">ID</td>
+
+						<th style="width:10%;">收信账户</th>
+
+						<th style="width:15%;">收信微信</th>
+
+						<th style="width:10%;">发信账户</th>
+
+						<th style="width:15%;">发信微信</th>
+
+						<th style="width:20%;">信件内容</th>
+
+						<th style="width:10%;">信件内容</th>
+
+						<th style="width:8%;">消息类型</th>
+
+						<th style="width:8%;">发信时间</th>
+
+						<th style="width:8%;">阅读时间</th>
+
+					</tr>
+
+				</thead>
+
+				<tbody id="main">
+
+					{loop $xinxi_list $row}
+
+					<tr>
+
+					    <td>{$row['id']}</td>
+
+					    <td style="white-space:normal;word-break:break-all">{$row['mobile2']}{if !empty($row['mobile_auth'])}<span style="color:red">(认证)</span>{/if}</td>
+
+						<td style="white-space:normal;word-break:break-all"><img style="width:70px" src="{php echo$row['avatar']}">{$row['nickname']}</td>
+
+						<td style="white-space:normal;word-break:break-all">{if $row['type']!=3}{$row['mobile3']}{if !empty($row['mobile_auth2'])}<span style="color:red">(认证)</span>{/if}{else}管理员{/if}</td>
+
+						<td style="white-space:normal;word-break:break-all">
+							{if $row['type']!=3}
+								<img style="width:70px" src="{$row['avatar2']}">{$row['nickname2']}
+							{else}
+								{if !empty($sitem['adminthumb'])}
+									<img style="width:70px" src="{$sitem['adminthumb']}">
+								{else}
+									<img style="width:70px" src="../addons/jy_ppp/images/adminthumb.png">
+								{/if}
+							{/if}
+						</td>
+
+						<td style="white-space:normal;word-break:break-all" class="chat_list">{$row['content']}</td>
+
+						<td style="white-space:normal;word-break:break-all">{if $row['yuedu']==1}已阅读{/if}{if $row['yuedu']==0}未阅读{/if}</td>
+
+						<td style="white-space:normal;word-break:break-all">{if $row['type']==3}管理员{/if}{if $row['type']==2}最新回信{/if}{if $row['type']==1}会员推荐{/if}{if $row['type']==0}打招呼{/if}</td>
+
+						<td style="white-space:normal;word-break:break-all">{php echo date('Y年n月j日 G:i', $row['createtime']);}</td>
+
+						<td style="white-space:normal;word-break:break-all">{if !empty($row['yuedutime'])}{php echo date('Y年n月j日 G:i', $row['yuedutime']);}{/if}</td>
+
+					</tr>
+
+					{/loop}
+
+				</tbody>
+			</table>
+			{$pager}
+			</form>
+	    </div>
+
+	</div>
+	<link href="../addons/jy_ppp/css/face.css" rel="stylesheet" type="text/css"/>
+	<script src="../addons/jy_ppp/js/expression.js"></script>
+	<script type="text/javascript">
+		$(function () {
+			for(var i=0;i<$(".chat_list").length;++i){
+				Expression.replaceHtml($('.chat_list').eq(i));
+		    }
+		});
+	</script>
+	{/if}
+
+	{if $op=='fk'}
+	<div class="panel panel-default">
+		<div class="panel-heading">用户反馈详细数据  |  总数:{$fk_total}</div>
+		<div class="panel-body table-responsive">
+
+		    <form action="" method="post" onsubmit="">
+
+			<table class="table table-hover">
+
+				<thead class="navbar-inner">
+
+					<tr>
+
+						<th style="width:5%;" class="row-first">ID</td>
+
+						<th style="width:10%;">昵称</th>
+
+						<th style="width:10%;">账户</th>
+
+						<th style="width:15%;">绑定微信</th>
+
+						<th style="width:10%;">联系手机</th>
+
+						<th style="width:20%">问题内容</th>
+
+						<th style="width:10%;">提交时间</th>
+
+						<th style="width:15%;">操作</th>
+
+					</tr>
+
+				</thead>
+
+				<tbody id="main">
+
+					{loop $fk_list $row}
+
+					<tr>
+
+					    <td>{$row['id']}</td>
+
+					    <td>{$row['nicheng']}</td>
+
+					    <td>{$row['mobile2']}{if !empty($row['mobile_auth'])}<span style="color:red">(认证)</span>{/if}</td>
+
+						<td><img style="width:70px" src="{$_W['attach_url']}{$row['avatar']}">{$row['nickname']}</td>
+
+						<td>{$row['mobile']}</td>
+
+						<td style="white-space:normal;word-break:break-all">{$row['feedback']}</td>
+
+						<td>{php echo date('n月j日 G:i:s', $row['createtime']);}</td>
+
+						<td>
+						<!-- {if $row['status']==0}
+							<a href="{php echo $this->CreateWebUrl('xinxi',array('op'=>'feedback','id'=>$row['id'],'mid'=>$row['mid']))}"><div class="btn btn-info">通知Ta</div></a>
+						{/if} -->
+							<a href="{php echo $this->CreateWebUrl('member',array('id'=>$row['mid']))}"><div class="btn btn-primary">用户详情</div></a>
+							<a href="{php echo $this->CreateWebUrl('feedback',array('op'=>'del','id'=>$row['id']))}"><div class="btn btn-danger">删除</div></a>
+
+						</td>
+
+					</tr>
+
+					{/loop}
+
+				</tbody>
+			</table>
+			{$pager}
+			</form>
+	    </div>
+
+	</div>
+	{/if}
+
+
+
+</div>
+
+
+
+{template 'common/footer'}

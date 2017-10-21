@@ -1,0 +1,132 @@
+{template 'common/header'}
+
+<script type="text/javascript" src="./resource/js/lib/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="./resource/js/lib/jquery-ui-1.10.3.min.js"></script>
+
+<ul class="nav nav-tabs">
+	<li><a href="{php echo $this->createWebUrl('Datamanage',array('op'=>'display'));}">红包记录</a></li>
+	<li><a href="{php echo $this->createWebUrl('gzredbag_money',array('op'=>'display'));}">红包总金额</a></li>
+	<li {if $op=='display'}class="active"{/if}><a href="{php echo $this->createWebUrl('gzredbag_hx',array('op'=>'display'));}">线下核销管理</a></li>
+
+</ul>
+{if $op== 'display'}
+<div class="main">
+	<div class="panel panel-info">
+</div>
+<button  type="button" class="btn btn-default" onclick="loadexcel()"> 导入csv</button>
+<button  type="button" class="btn btn-default" onclick="add()"> 添加中奖码</button>
+<button  type="button" class="btn btn-default" onclick="download()"> 导入csv文件例子</button>
+	
+<style>
+.label{cursor:pointer;}
+</style>
+<div class="panel panel-default">
+	<form id="submit_form" method="post" action="./index.php" enctype="multipart/form-data">
+   <input type="hidden" name="m" value="cgc_gzredbag" >
+   <input type="hidden" name="do" value="import" >
+   <input type="hidden" name="c" value="site" />
+   <input type="hidden" name="a" value="entry" />
+    <input type="hidden" value="display" name="op">
+    <input  type="file" name="file" id="upfile" style="display:none" /> 
+</form>
+	<div class="panel-body table-responsive">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+                 	<th style="width:10%;">用户id</th>
+					<th style="width:10%;">中奖编码</th>
+					<th style="width:15%;">状态</th>
+					<th style="width:20%;">时间</th>
+                    <th style="width:20%;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $item}
+				<tr>	
+					<td>{$item['openid']}</td>	
+					<td>{$item['hxcode']}</td>
+					<td>{if $item['status']==0}未领取
+						{else}已领取{/if}</td>
+					<td>{php echo date('Y-m-d H:i:s', $item['createtime'])}</td>
+				<td>  <a href="{php echo $this->createWebUrl('gzredbag_hx', array('op' => 'delete', 'id' => $item['id']))}" onclick="return confirm('确认删除信息吗？');return false;">删除</a>
+					<a href="{php echo $this->createWebUrl('gzredbag_hx', array('op' => 'post', 'id' => $item['id']))}">修改</a>
+				</td>				
+				</tr>
+				{/loop}
+			</tbody>
+		
+		</table>
+		{$pager}
+	</div>
+	</div>
+</div>
+
+{elseif $op == 'post'}
+<div class="panel panel-default">
+    <div class="panel-heading">
+        红包修改
+    </div>
+    <div class="panel-body">
+	<form action="" method="post" class="form-horizontal" role="form" id="form1">
+        <input type="hidden" id="title" class="form-control span7"
+                       placeholder="" name="id" value="{$item['id']}">
+		<div style="display:" class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">用户id：</label>
+
+            <div class="col-sm-9 col-xs-12">
+                <input type="text" id="title" class="form-control span7"
+                       placeholder="" name="openid" value="{$item['openid']}">
+            </div>
+        </div>
+		<div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">中奖编码：</label>
+
+            <div class="col-sm-9 col-xs-12">
+                <input type="text" id="title" class="form-control span7"
+                       placeholder="" name="hxcode" value="{$item['hxcode']}">
+            </div>
+        </div>
+		
+
+		<div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">领取状态：</label>
+
+            <div class="col-sm-9 col-xs-12">
+                <select name="status">  
+ 				 	<option value="0">未领取</option>  
+  					<option value="1">已领取</option>  
+				</select>
+            </div>
+        </div>
+		
+		<div class="form-group">
+				<div class="col-sm-8">
+					<input type="submit" name="submit" value="提交" class="btn btn-primary">
+					<input type="hidden" name="token" value="{$_W['token']}" />
+				</div>		
+		</div>
+		</form>
+    </div>
+</div>
+{/if}
+<script type="text/javascript">
+
+function add(){
+location.href ="{php echo $this->createWebUrl('gzredbag_hx', array('op' => 'post'))}";
+}
+function download(){
+location.href ="../addons/cgc_gzredbag/template/example.csv";
+}
+
+$("#upfile").change(function(){
+	if($("#upfile").val() != ''){
+		$("#submit_form").submit();
+	}
+});
+
+function loadexcel(){
+	$("#upfile").click();
+}
+
+</script>
+{template 'common/footer'}

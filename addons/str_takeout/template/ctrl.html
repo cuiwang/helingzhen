@@ -1,0 +1,76 @@
+{template 'common/header'}
+{template 'nav'}
+<div class="alert alert-info">
+	<h4><i class="fa fa-info-circle"></i> 账号管理员说明</h4>
+	1). 添加微信账号管理员需要您的公众号号为: 认证订阅号 或 认证服务号<br>
+	2). 因为添加管理员是通过<a href="{php echo url('mc/fangroup')}" class="text-danger" target="_blank">粉丝分组</a>搜索相应管理员信息,所以添加管理员之前,需要 <a href="{php echo url('mc/fans');}" target="_blank">下载粉丝列表</a> & <a href="{php echo url('mc/fans');}" target="_blank">更新粉丝信息</a> & <a href="{php echo url('mc/fangroup');}" target="_blank">更新粉丝分组</a><br>
+	3). 当有新订单时,系统会通过该公众号给管理员和订餐人发送订单信息
+</div>
+<div class="clearfix">
+	<form class="form-horizontal form" id="form1" action="" method="post" enctype="multipart/form-data">
+		<div class="panel panel-default">
+			<div class="panel-heading">选择发送通知通知的公众号</div>
+			<div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="require"> </span>公众号</label>
+					<div class="col-sm-9 col-xs-12">
+						{if empty($accounts)}
+							<p class="form-control-static">没有认证的订阅号或服务号</p>
+						{else}
+							{loop $accounts $acc}
+								<label class="radio-inline">
+									<input type="radio" value="{$acc['acid']}" name="acid" {if $config['notice_acid'] == $acc['acid']}checked{/if}> {$acc['name']}
+								</label>
+							{/loop}
+						{/if}
+						<div class="help-block text-danger"><b>建议新建一个粉丝分组用来存放管理员账号。管理员账号不超过5人最佳</b></div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="require"> </span>管理员分组</label>
+					<div class="col-sm-9 col-xs-12" id="group-div">
+						{if !empty($groups)}
+							{loop $groups $grou}
+								<label class="radio-inline">
+									<input type="radio" value="{$grou['id']}" name="groupid" {if $config['groupid'] == $grou['id']}checked{/if}> {$grou['name']} 【{$grou['count']}】
+								</label>								
+							{/loop}
+						{/if}
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="form-group col-sm-12">
+			<input name="submit" id="submit" type="submit" value="提交" class="btn btn-primary col-lg-1">
+			<input type="hidden" name="token" value="{$_W['token']}" />
+		</div>
+	</form>
+</div>
+<script>
+	$(function(){
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+		$(':radio[name="acid"]').click(function(){
+			var acid = $(this).val();
+			if(acid) {
+				$.post('{php echo $this->createWebUrl('manage', array('op' => 'fangroup'));}', {'acid':acid}, function(data) {
+					var data = $.parseJSON(data);
+					if(!data.errcode) {
+						var html = '';
+						for(i in data.errmsg) {
+							html += '<label class="radio-inline"><input type="radio" value="'+ data.errmsg[i].id +'" name="groupid"> ' +  data.errmsg[i].name + '【' + data.errmsg[i].count +'】</label>';
+						}
+						$('#group-div').html(html);
+					} else {
+						u.message(data.errmsg, '', 'error');
+					}
+				});
+			}
+		});
+	});
+</script>
+{template 'common/footer'}

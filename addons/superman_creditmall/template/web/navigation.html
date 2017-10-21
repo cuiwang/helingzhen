@@ -1,0 +1,91 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li {if $act == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('navigation');}">导航管理</a></li>
+</ul>
+<div class="alert alert-info">
+	<strong>设置说明：</strong>
+	<ol>
+		<li>名称必须填写，推荐字数2-4个中文；</li>
+		<li>链接必须填写，支持带域名绝对路径(http[s]://)和相对路径；</li>
+		<li>图标可自定义，建议上传正方形PNG或者GIF背景透明图片，推荐尺寸：128x128像素；</li>
+		<li>排序由大到小；</li>
+		<li>导航支持个数最多4个，最少1个，不支持添加、删除；</li>
+	</ol>
+</div>
+<style>
+	.tac {
+		text-align: center;
+	}
+	.nav.nav-tabs {
+		margin-bottom: 20px;
+	}
+	.tac .we7-option {
+		padding: 0;
+		width: 34px;
+	}
+	.we7-checkbox-option {
+		display: none;
+	}
+</style>
+<form action="" method="post">
+	<div class="panel panel-default">
+		<div class="table-responsive panel-body">
+			<table class="table">
+				<thead>
+				<tr>
+					<th class="tac" width="50">排序</th>
+					<th width="320">图标</th>
+					<th width="150">名称</th>
+					<th>链接</th>
+					<th class="tac" width="150">是否显示</th>
+				</tr>
+				</thead>
+				<tbody>
+					{if $list}
+					{loop $list $li}
+					<tr>
+						<td style="vertical-align: top">
+							<input type="hidden" class="form-control text-center" name="id[]" value="{$li['id']}">
+							<input type="text" class="form-control text-center" name="displayorder[]" value="{$li['displayorder']}">
+						</td>
+						<td>
+							{php echo tpl_form_field_image('icon[]', $li['icon']);}
+							<span class="help-block">推荐尺寸：128x128像素</span>
+						</td>
+						<td style="vertical-align: top">
+							<input type="text" class="form-control" name="title[]" value="{$li['title']}">
+						</td>
+						<td style="vertical-align: top">
+							<input type="text" class="form-control" name="url[]" value="{$li['url']}">
+						</td>
+						<td style="vertical-align: top" class="tac">
+							<input type="checkbox" class="form-control isshow" data-id="{$li['id']}" data-field="isshow" name="isshow[]" {if $li['isshow']}checked{/if}>
+						</td>
+					</tr>
+					{/loop}
+					{/if}
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<input name="submit" type="submit" value="提交" class="btn btn-primary col-lg-1">
+	<input type="hidden" name="token" value="{$_W['token']}" />
+</form>
+<script type="text/javascript">
+	require(['jquery','bootstrap.switch', 'util'], function($, u){
+		$(function(){
+			$(':checkbox').bootstrapSwitch();
+			$('.isshow').on('switchChange.bootstrapSwitch', function(){
+				var id = $(this).attr('data-id');
+				var field = $(this).attr('data-field');
+				var value = this.checked ? 1 : 0;
+				$.post(location.href, {setattr: 1, id: id, field: field, value: value}, function(resp){
+					if (resp != 'success') {
+						util.message('操作失败, 请稍后重试', '', 'error');
+					}
+				});
+			});
+		});
+	});
+</script>
+{template 'common/footer'}

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html class=" js flexbox flexboxlegacy canvas canvastext webgl no-touch geolocation postmessage websqldatabase indexeddb hashchange history draganddrop websockets rgba hsla multiplebgs backgroundsize borderimage borderradius boxshadow textshadow opacity cssanimations csscolumns cssgradients cssreflections csstransforms csstransforms3d csstransitions fontface generatedcontent video audio localstorage sessionstorage webworkers applicationcache svg inlinesvg smil svgclippaths"
+      lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+    <meta name="format-detection" content="telephone=no">
+    <title>{if $set['copyright']}{$set['copyright']}{else}{$_W['account']['name']}{/if}</title>
+    <link rel="stylesheet" href="{AMOUSE_HUFEN_RES}css/foundation.css">
+    <link rel="stylesheet" href="{AMOUSE_HUFEN_RES}css/main.a85c39c492c5.css">
+    <link rel="stylesheet" href="{AMOUSE_HUFEN_RES}css/upload.ebe5da1f2569.css">
+    <script src="{AMOUSE_HUFEN_RES}js/modernizr.7710ac5fd1f2.js"></script>
+    <script src="{AMOUSE_HUFEN_RES}js/jquery.f5d547e5b88b.js?v2"></script>
+    <script src="{AMOUSE_HUFEN_RES}js/foundation.min.dea49fb77ce9.js"></script>
+    <script src="{AMOUSE_HUFEN_RES}js/main.04f12e56ea6a.js"></script>
+    <style>
+        label {
+            font-size: 14px;
+        }
+    </style>
+
+    <meta class="foundation-data-attribute-namespace">
+    <meta class="foundation-mq-xxlarge">
+    <meta class="foundation-mq-xlarge-only">
+    <meta class="foundation-mq-xlarge">
+    <meta class="foundation-mq-large-only">
+    <meta class="foundation-mq-large">
+    <meta class="foundation-mq-medium-only">
+    <meta class="foundation-mq-medium">
+    <meta class="foundation-mq-small-only">
+    <meta class="foundation-mq-small">
+    <meta class="foundation-mq-topbar">
+</head>
+<body>
+<div class="wrapper">
+
+    <div class="content">
+        <div class="dialog" id="tip" style="display: none;">
+            <div class="dialog-cnt">
+                <div class="dialog-bd">
+                    <p class="tip-title">提示</p>
+                    <p class="text">请输入正确的手机号码 。</p>
+                    <a class="button correct-btn btn-correct" id="alert_ok">确&nbsp;&nbsp;定</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="upload">
+            <form action="{php echo $this->createMobileUrl('bind',array('action'=>'reg'))}" method="post"  id="phone_form">
+                <div class="cnt-box">
+                    <p>完善信息，就可进行发布名片和红包活动啦！</p>
+                </div>
+
+                <div class="cnt-box second-type">
+                    <div class="row">
+                        <div class="small-12 medium-12 columns">
+                            <label>我的手机号
+                            </label>
+                        </div>
+                        <input id="id_telephone" inputmode="numeric" maxlength="11" name="mobile" pattern="[0-9]*" type="number">
+                    </div>
+                    <div class="row">
+                        <div class="small-12 medium-12 columns">
+                            <label>短信验证码
+                            </label>
+                        </div>
+                        <div class="small-4 columns">
+                            <input id="id_code" inputmode="numeric" maxlength="6" name="id_code" pattern="[0-9]*" type="number">
+                        </div>
+                        <div class="small-7 columns">
+                            <button class="btn button btn-correct" style="background: orange;" type="button" id="btnVerificode">获取验证码</button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <p style="color:orange;"></p>
+
+                        <p style="color:orange;"></p>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="small-12 columns publish btn-center">
+                        <button class="button btn btn-publish btn-correct" type="submit">开 始</button>
+                    </div>
+                </div>
+            </form>
+    </div>
+
+    {template 'footerbar'}
+
+</div>
+</div>
+
+<script>
+    $(document).foundation();
+    alert_ok = null;
+    function new_alert(msg, cb) {
+        alert_ok = cb;
+        $('#tip .text').html(msg);
+        $('#tip').show();
+    }
+    old_alert = window.alert;
+    window.alert = new_alert;
+    $('#alert_ok').click(function () {
+        if (alert_ok) {
+            alert_ok();
+        }
+        $('#tip').hide();
+    });
+</script>
+
+<script>
+    $("#btnVerificode").click(function(){
+        var tel = $('#id_telephone').val();
+        if (tel.length != 11 || tel[0] != '1') {
+            new_alert('请输入正确的手机号码 。');
+            return false;
+        }
+        $.ajax({
+            url: "{php echo $this->createMobileUrl('bind',array('action'=>'code'))}",
+            async : false,
+            type: 'POST',
+            data:{tel:tel},
+            dataType: 'json',
+            timeout: 5000,
+            error: function(){
+                $("#btnVerificode").removeClass("disabled").addClass("btn-warning");
+            },
+            success: function(result){
+                var json = eval(result);
+                var code = json.code;
+                console.log(code);
+                if (code == 1){
+                    new_alert('验证码已发送，请留意您的手机短信。');
+                    var $gvc = $("#btnVerificode");
+                    $gvc.removeClass("btn-warning").addClass("disabled");
+                    startdowncount($gvc.text(),json.lefttime);
+                } else if (code == 0) {
+                    new_alert(result.msg);
+                }
+            }
+        });
+    });
+
+
+
+function startdowncount(txt, nowcount) {
+    if (nowcount < 1){
+        $("#btnVerificode").text(txt).removeClass("disabled").addClass("btn-warning");
+    } else {
+        $("#btnVerificode").text(nowcount--+"秒后重试");
+        setTimeout("startdowncount('" + txt + "'," + nowcount + ")",1000);
+    }
+}
+
+$('#phone_form').submit(function () {
+    var tel = $('#id_telephone').val();
+    if (tel.length != 11 || tel[0] != '1') {
+        new_alert('请输入正确的手机号码。');
+        return false;
+    }
+    var code = $('#id_code').val();
+    if (code.length < 4) {
+        new_alert('请输入正确的验证码。');
+        return false;
+    }
+    return true;
+});
+</script>
+</body>
+</html>

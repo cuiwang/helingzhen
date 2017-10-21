@@ -1,0 +1,171 @@
+{template 'common/header'}
+    <div class="main">
+	<ul class="nav nav-tabs">
+			<li ><a href="{php echo $this->createWebUrl('Halfcity',array('op'=>'list'));}">城市列表</a></li>
+	       <li {if empty($item['id'])} class="active"{/if} ><a href="{php echo $this->createWebUrl('Halfcity',array('op'=>'post'));}">城市添加</a></li>
+            {if $item['id']}
+              <li  class="active" ><a href="{php echo $this->createWebUrl('Halfcity',array('op'=>'post','id' => $item['id']));}">城市编辑</a></li>
+            {/if}
+       
+		
+	</ul>
+    <div class="main">
+        	<form action="" class="form-horizontal form" method="post" enctype="multipart/form-data" onsubmit="return formcheck()">
+		      <input type="hidden" name="id" value="{$item['id']}">
+                <input  type="hidden" id="level" value="{$item['level']}"/>
+		          <div class="panel panel-default">
+			         <div class="panel-heading">城市信息</div>
+    			<div class="panel-body">
+                	
+    				<div class="form-group">
+    					<label class="col-xs-12 col-sm-3 col-md-2 control-label">城市名称：</label>
+    					<div class="col-sm-9 col-xs-12">
+    						<input type="text" name="name" id="name"  class="form-control" value="{$item['name']}">
+    					</div>
+    				</div> 
+                    
+                   <div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">城市类型</label>
+					<div class="col-sm-9 col-xs-12">
+						<label class="radio-inline">
+							<input type="radio" name="level" value="0" onclick="city(0);" {if $item['level'] == 0}checked{/if}/>省
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="level" value="1"   onclick="city(1);" {if $item['level'] == 1}checked{/if}/>市
+						</label>
+                        <label class="radio-inline">
+							<input type="radio" name="level" value="2"  onclick="city(2);" {if $item['level'] == 2}checked{/if}/>县/区
+						</label>
+						
+					</div>
+				</div>  
+                <div class="form-group" id="sheng" style="display: none;">
+    					<label class="col-xs-12 col-sm-3 col-md-2 control-label">所属省份：</label>
+    					<div class="col-sm-9 col-xs-12">
+    						<select name="sheng_id" class="form-control" id="sheng_id" onchange="shiji(this.value);">
+                                <option value="0">请选择省份</option>
+                               	{loop $sheng_list $sheng}
+                                <option value="{$sheng['id']}" {if $sheng['id'] == $item['sheng_id']} selected {/if}>{$sheng['name']}</option>
+                                
+                                {/loop}
+					        </select>
+    					</div>
+ 
+                </div>
+                <div class="form-group" id="shi" style="display: none;">
+    					<label class="col-xs-12 col-sm-3 col-md-2 control-label">所属市：</label>
+    					<div class="col-sm-9 col-xs-12" id="shiji">
+    						<select name="shi_id" class="form-control" id="shi_id">
+                                <option value="0">请选择市级城市</option>
+                               	{loop $shi_list $shi}
+                                    <option value="{$shi['id']}" {if $shi['id'] == $item['pid']} selected {/if} >{$shi['name']}</option>
+                                {/loop}
+					        </select>
+    					</div>
+ 
+                </div>
+                
+                <div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">状态</label>
+					<div class="col-sm-9 col-xs-12">
+						<label class="radio-inline">
+							<input type="radio" name="status" value="0" {if $item['status'] == 0}checked{/if}/>隐藏
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="status" value="1" {if $item['status'] == 1}checked{/if}/>显示
+						</label>
+                       
+						
+					</div>
+				</div>
+                    
+                </div> 
+                
+                 
+       	  	 	   
+		
+                
+		<div class="form-group col-sm-12">
+			<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+			
+		</div>
+	</form>
+    </div>
+    <script>
+
+    window.onload=function(){
+        var leval = $('#level').val();
+        if(leval == 1){
+              $('#sheng').show();
+        }
+        if(leval == 2){
+            $('#sheng').show();
+            $('#shi').show();            
+            
+        }
+    }
+    
+    function formcheck() {
+        if ($("#name").val().trim() == '') {
+		      util.message('请填写城市名称','','error');
+			return false;
+		}
+        var level = $("input[name='level']:checked").val();
+          var sheng_id =$("#sheng_id").val();
+          var shi_id =$("#shi_id").val();
+        if(level == 1){
+          if(sheng_id == 0){
+              util.message('请选择所属省份','','error');
+			return false;
+          }
+        }else if(level == 2){
+           if(sheng_id == 0){
+              util.message('请选择所属省份','','error');
+			return false;
+          }
+          if(shi_id == 0){
+              util.message('请选择所属城市','','error');
+			return false;
+          }
+          
+             
+        }
+    	return true;
+	}
+    function city(level){
+     
+        if(level == 1){
+            $('#sheng').show();
+            $('#shi').hide();
+        }else if(level == 2){
+            $('#sheng').show();
+             $('#shi').show(); 
+        }else{
+             $('#sheng').hide();
+            $('#shi').hide();
+        }  
+      
+    }
+   function shiji(id){
+    var data = {
+			'id':id
+		} 
+        	$.ajax({
+			url: "{php echo $this->createWebUrl('HalfcityshiAjax')}",
+			type: "POST",
+			data: data,
+			cache:false,
+			dataType: "JSON",
+			success: function (res) {
+				$("#shiji").html(res);
+			}
+		});  
+   } 
+    
+    
+    
+  
+    
+    </script>
+
+{template 'common/footer'}

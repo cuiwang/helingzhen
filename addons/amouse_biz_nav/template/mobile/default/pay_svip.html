@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html class=" js flexbox flexboxlegacy canvas canvastext webgl no-touch geolocation postmessage websqldatabase indexeddb hashchange history draganddrop websockets rgba hsla multiplebgs backgroundsize borderimage borderradius boxshadow textshadow opacity cssanimations csscolumns cssgradients cssreflections csstransforms csstransforms3d csstransitions fontface generatedcontent video audio localstorage sessionstorage webworkers applicationcache svg inlinesvg smil svgclippaths"
+      lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+    <meta name="format-detection" content="telephone=no">
+    <title>购买固定置顶</title>
+    <link rel="stylesheet" href="{AMOUSE_BIZ_NAV_RES}css/foundation.css">
+    <link rel="stylesheet" href="{AMOUSE_BIZ_NAV_RES}css/main.css">
+    <script src="{AMOUSE_BIZ_NAV_RES}js/modernizr.js"></script>
+    <link rel="stylesheet" href="{AMOUSE_BIZ_NAV_RES}css/meal.css">
+    {php echo register_jssdk(false);}
+    <meta class="foundation-mq-topbar">
+</head>
+<body>
+<div class="wrapper">
+
+    <div class="content">
+        <div class="dialog" id="tip">
+            <div class="dialog-cnt">
+                <div class="dialog-bd">
+                    <h3>提示</h3>
+                    <p class="text"></p>
+                    <a class="button correct-btn" id="alert_ok">确&nbsp;&nbsp;定</a>
+                </div>
+            </div>
+        </div>
+        <div>
+
+            <div class="banner">
+                <a href="{$set[sys]['bannerLink']}"><img src="{php echo strpos($set[sys]['banner'],'http://')===FALSE?(tomedia($set[sys]['banner'])):$set[sys]['banner']}" alt=""></a>
+            </div>
+
+            <div class="payment">
+                <div class="row order2">
+                    <p>置顶名片:&nbsp;&nbsp;&nbsp;&nbsp;<b>{$card['title']}</b></p>
+                    <p>购买产品:&nbsp;&nbsp;&nbsp;&nbsp;<b>VIP固定置顶</b></p>
+                    <p style="font-size:12px;">
+                        说明：购卖此产品后，系统自动安排置顶列表顶部。
+                    </p>
+
+                    <div class="line"></div>
+                    <form>
+                        <div class="meal" id="meal">
+                            {loop $list $k $meal}
+                            <input type="radio" name="top-meal" data-id="{$meal['id']}" value="{$meal['price']}" id="top{$meal['id']}" class="taocan" data-day="{$meal['day']}">
+                            <label for="top{$meal['id']}" id="meal{$meal['id']}" class="meal-label ">
+                                <img class="meal-img" src="{php echo strpos($meal['img'],'http://')===FALSE ? tomedia($meal['img']):$meal['img']}" alt="">
+                                置顶{php echo intval($meal['day'])}分钟 ， {$meal['price']} {$set['custom'][credit2txt]}
+                            </label>
+                            <div class="line"></div>
+                            {/loop}
+                        </div>
+                    </form>
+
+                    <p>支付总额:&nbsp;&nbsp;&nbsp;&nbsp;<span id="money">0</span>{$set['custom'][credit2txt]}</p>
+                    <div class="line"></div>
+                </div>
+                <div class="row">
+                    <div class="small-12 columns publish">
+                        <input type="hidden" id="totalCredit" value="{$info['credit2']}">
+                        <input type="hidden" id="cardid" value="{$card['id']}">
+                        <input type="hidden" id="pricex" name="pricex" value="">
+
+                        <p>
+                            <a class="button btn btn-correct" id="buy">立即开通</a>
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+            {template 'base/cnzz'}
+        </div>
+    </div>
+</body>
+<script src="{AMOUSE_BIZ_NAV_RES}pig/js/jquery.min.js?v2"></script>
+<script src="{AMOUSE_BIZ_NAV_RES}js/foundation.js"></script>
+<script src="{AMOUSE_BIZ_NAV_RES}js/main.js"></script>
+<script src="{AMOUSE_BIZ_NAV_RES}pig/js/show_ewm.js?1464937879"></script>
+<script>
+    var abcurl = "{php echo $_W['siteroot'] . 'app/' . substr($this->createMobileUrl('getAbcFuck'), 2)}";
+
+    alert_ok = null;
+    function new_alert(msg, cb) {
+        alert_ok = cb;
+        $('#tip .text').html(msg);
+        $('#tip').show();
+    }
+    old_alert = window.alert;
+    window.alert = new_alert;
+    $('#alert_ok').click(function () {
+        if (alert_ok) {
+            alert_ok();
+        }
+        $('#tip').hide();
+    });
+
+    var month = '';
+    var meal_id="";
+    $('.taocan').click(function () {
+        var value = $(this).val();
+        meal_id= $(this).attr('data-id');
+        month= $(this).attr('data-day');
+        $("#money").text(value);
+        $("#pricex").val(value);
+        $('.meal-label').removeClass('meal-selected');
+        $(this).next().addClass('meal-selected');
+    });
+    $('.taocan:first').click();
+
+
+    $('#buy').click(function () {
+        var credit2= $("#totalCredit").val();
+        var cardid  = $("#cardid").val();
+        var pricex=parseInt($("input[name='pricex']").val());
+
+        if(isNaN(pricex)){
+            new_alert('请选择一个套餐');
+            return;
+        }
+        if(pricex > credit2){
+            new_alert("{$set['custom'][credit2txt]}不足！请充值后通过{$set['custom'][credit2txt]}开通VIP!", function(){
+                window.location.href="{php echo $_W['siteroot'] . 'app/' . substr($this->createMobileUrl('pcenter'), 2)}&num="+ month ;
+            });
+            return false;
+        }
+        var iscard ="{$iscard}";
+        var submitData ={
+            'price':pricex,
+            'meal_id':meal_id,
+            'cardid':cardid
+        };
+        $.ajax({
+            type : "POST",
+            url :"{php echo $this->createMobileUrl('vip', array('op'=>'svip','iscard'=>$iscard), true)}",
+            data : submitData,
+            dataType : "json",
+            contentType: "application/x-www-form-urlencoded; charset=utf-8",
+            success : function(data){
+                if(data.status==200){
+                    new_alert("固定置顶成功!",function () {
+                        if(iscard==1){
+                            window.location.href="{php echo $this->createMobileUrl('board',array('op'=>'step1'),true)}";
+                        }else{
+                            window.location.href="{php echo $this->createMobileUrl('group',array('op'=>'step1'),true)}";
+                        }
+                    });
+                }else{
+                    new_alert(data.msg);
+                }
+            },
+            error : function(data){
+                new_alert('网络出错');
+            }
+        });
+    });
+</script>
+</html>

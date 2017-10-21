@@ -1,0 +1,279 @@
+{template 'common/header'}
+{template 'common_css'}
+{php load()->func('tpl')}
+<style>
+    .field label{float:left;margin:0 !important; width:140px;}
+	audio{width:48px;}
+</style>
+<ul class="nav nav-tabs">
+	<li><a href="{php echo $this->createWebUrl('display')}">返回表单列表</a></li>
+	<li {if $status == ''}class="active"{/if}>
+	<a href="{php echo $this->createWebUrl('manage', array('id' => $reid, 'time[start]' => $_GPC['time']['start'], 'time[end]' => $_GPC['time']['end'], 'keywords' => $_GPC['keywords']))}">所有记录</a>
+	</li>
+	<li {if $status == '0'} class="active"{/if}>
+	<a href="{php echo $this->createWebUrl('manage', array('status' => 0,  'id' => $reid, 'time[start]' => $_GPC['time']['start'], 'time[end]' => $_GPC['time']['end'], 'keywords' => $_GPC['keywords']))}">待确认</a>
+	</li>
+	<li {if $status == '1'}class="active"{/if}>
+	<a href="{php echo $this->createWebUrl('manage', array('status' => '1','id' => $reid, 'time[start]' => $_GPC['time']['start'], 'time[end]' => $_GPC['time']['end'], 'keywords' => $_GPC['keywords']))}">已确认</a>
+	</li>
+	<li {if $status == '2'}class="active"{/if}>
+	<a href="{php echo $this->createWebUrl('manage', array('status' => 2, 'id' => $reid, 'time[start]' => $_GPC['time']['start'], 'time[end]' => $_GPC['time']['end'], 'keywords' => $_GPC['keywords']))}">已取消</a>
+	</li>
+	<li {if $status == '3'}class="active"{/if}>
+	<a href="{php echo $this->createWebUrl('manage', array('status' => 3, 'id' => $reid, 'time[start]' => $_GPC['time']['start'], 'time[end]' => $_GPC['time']['end'], 'keywords' => $_GPC['keywords']))}">已完成</a>
+	</li>
+	</ul>
+<div class="main">
+    <div class="panel panel-info">
+        <div class="panel-heading">筛选</div>
+        <div class="panel-body">
+            <form action="./index.php" method="get" class="form-horizontal" role="form">
+                <input type="hidden" name="c" value="site" />
+                <input type="hidden" name="a" value="entry" />
+                <input type="hidden" name="m" value="dayu_form" />
+                <input type="hidden" name="do" value="manage" />
+                <input type="hidden" name="id" value="{$reid}" />
+                <input type="hidden" name="status" value="{$_GPC['status']}" />
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">导出字段内容</label>
+                    <div class="col-xs-12 col-sm-8 col-lg-9">
+                        <div style="font-weight:normal;">
+                            <label class="checkbox-inline" id="field-all"><input type="checkbox" onchange="selectall(this, 'select');"> 全选</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-lg-2 control-label"></label>
+                    <div class="col-xs-12 col-sm-8 col-lg-9">
+                        {loop $ds $field $comment}
+                        <label class="checkbox-inline"><input type="checkbox" name="select[]" value="{$field}" {if in_array($field, $select)} checked="checked"{/if} /> {$comment}</label>
+                        {/loop}
+                    </div>
+                </div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">受理客服</label>
+				<div class="col-sm-8 col-lg-8">
+				<select name="kf" id="kf" class="form-control">
+							<option value="" >全部</option>
+					{loop $staff $s}
+							<option value="{$s['openid']}" {if $s['openid']==$_GPC['kf']}selected="selected"{/if}>{$s['nickname']}</option>
+					{/loop}
+				</select>
+				</div>                  
+			</div>
+			{if $activity['paixu']!=2}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">{$activity['member']}/{$activity['phone']}</label>
+				<div class="col-sm-8 col-lg-8">
+					<input class="form-control" name="keywords" id="" type="text" value="{$_GPC['keywords']}" placeholder="可输入{$activity['member']}或{$activity['phone']}查询"> 
+				</div>                     
+			</div>
+			{/if}
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">提交时间</label>
+                    <div class="col-xs-12 col-sm-5 col-lg-4">
+                        {php echo tpl_form_field_daterange('time',array('starttime'=>date('Y-m-d', $starttime),'endtime'=>date('Y-m-d', $endtime)), true)}
+                    </div>
+                    <div class="col-xs-12 col-sm-5 col-lg-5">
+                        <div class='btn-group'>
+                        <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+                        <input type="submit" name="export" value="导出数据" class="btn btn-primary">
+                        </div>
+						<span class="btn btn-default">总记录数：{$total}</span>
+						<span class="btn btn-default">参与人数：{php echo count($allTotal);}</span>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+			<form method="post" class="form-horizontal" id="form1">
+    <div class="panel panel-info">
+        <div class="panel-heading">详细数据</div>
+        <div>
+                <table class="table table-responsive table-striped table-hover" style="width:100%;z-index:-10;" cellspacing="0" cellpadding="0">
+                    <thead class="navbar-inner">
+                        <tr class="warning">
+							<th style="width:30px;text-align:center;">删</th>
+                            <th class="text-center" style="width:60px;">粉丝</th>
+                            <th>{if $activity['paixu']!=2}{$activity['member']} / {$activity['phone']}{else}粉丝昵称{/if}</th>
+                            <th>内容</th>
+                            <th style="width:100px;" class="text-center">状态</th>
+                            <th style="width:100px;" class="text-center">受理客服</th>
+                            <th class="text-center" style="width:10%;">受理时间</th>
+                            <th class="text-center" style="width:10%;">提交时间<i></i></th>
+                            {if $activity['isvoice']==1}<th style="width:68px;">{$activity['voice']}</th>{/if}
+                            {if $activity['isrevoice']==1}<th style="width:60px;">答复</th>{/if}
+                            <th style="width:310px;" class="text-right">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {loop $list $row}
+                        <tr>
+							<td class="text-center"><input type="checkbox" name="recordid[]" value="{$row['rerid']}" class=""></td>
+							<td class="text-center">
+							{if !empty($row['openid'])}<span class="text-info" style="text-align:center;"><a href="{php echo url('mc/member/post', array('uid'=>$row['user']['uid']));}" target="_blank"><img src="{if !empty($row['user']['tag']['avatar'])}{$row['user']['tag']['avatar']}{else}resource/images/noavatar_middle.gif{/if}" width="48" data-toggle="tooltip" data-placement="bottom" class="btn btn-xs" title="{$row['user']['nickname']}"></a></span>{/if}
+							</td>
+                            <td class="row-hover">
+								{if $activity['paixu']!=2}{$row['member']} <small>{$row['mobile']}</small>{else}{$row['user']['nickname']}{/if}
+							</td>
+                            <td>
+								<small>
+								{loop $children[$row['rerid']] $d}
+									{if strstr($d['data'], 'images') || strstr($d['data'], 'attachment')}
+										有图,
+									{else}
+										{$d['data']},
+									{/if}
+								{/loop}
+								</small>
+							</td>
+							<td class="text-center">	
+								<span class="btn btn-sm status {$row['state']['css2']}">{$row['state']['name']}</span>
+							</td>
+							<td class="text-center">
+							{if !empty($row['kf'])}<span class="text-info" style="text-align:center;"><a href="{php echo url('mc/member/post', array('uid'=>$row['kf']['uid']));}" target="_blank"><img src="{if !empty($row['kf']['tag']['avatar'])}{$row['kf']['tag']['avatar']}{else}resource/images/noavatar_middle.gif{/if}" width="48" data-toggle="tooltip" data-placement="bottom" class="btn btn-xs" title="{$row['kf']['nickname']}"></a></span>{elseif  $row['status'] != 0}后台受理{/if}
+							</td>
+                            <td class="text-center" style="font-size:12px; color:#666;">
+                                {if !empty($row[yuyuetime])}{php echo date('Y-m-d H:i:s', $row[yuyuetime]);}{/if}
+                            </td>
+                            <td class="text-center" style="font-size:12px; color:#666;">
+								{if !empty($row['commentid'])}
+									<a data-toggle="tooltip" data-placement="bottom" title="{$row['comment']['content']}" class="badge" target="_blank" href="{php echo url('site/entry', array('do' => 'comment','m' => 'dayu_comment','cid' => $par['comment'],'id' => $row['commentid']), true, true)}" style="font-weight:300;">评论管理 <span class="ico_scored"><strong class="score_{$row['comment']['score']}"></strong></span></a><br>
+								{/if}
+                                {php echo date('Y-m-d H:i:s', $row[createtime]);}
+                            </td>
+                            {if $activity['isvoice']==1}
+							<td>
+								{if !empty($row['voice'])}
+								<a href="javascript:;" class="btn btn-warning btn-sm" onclick="audioplay('v{$row['rerid']}')"><i class="fa fa-volume-up"></i> 播放</a> 
+								<audio style="display:none;" id="v{$row['rerid']}" src="{$row['voices']}" preload="meta" controls></audio>
+								{/if}
+							{/if}
+                            {if $activity['isrevoice']==1}
+							<td>
+								{if !empty($row['revoice'])}
+								<a href="javascript:;" class="btn btn-warning btn-sm" onclick="audioplay('r{$row['rerid']}')"><i class="fa fa-volume-up"></i> 播放</a> 
+								<audio style="display:none;" id="r{$row['rerid']}" src="{$row['revoices']}" preload="meta" controls></audio>
+								{/if}
+							</td>
+							{/if}
+                            <td style="overflow:visible;" class="text-right">
+								{if $row['rethumb']}<span class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="有回复图片"><i class="fa fa-photo"></i></span>{/if}
+								<div class="btn-group">
+									<button type="button" class="btn {if $_W['account']['groups'][$row['groupid']['groupid']]['isdefault']==1}btn-default{else}btn-success{/if} btn-sm dropdown-toggle" style="padding:2px 5px;" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+									{$_W['account']['groups'][$row['groupid']['groupid']]['title']}
+									<span class="caret"></span>
+									</button>
+									<ul class="dropdown-menu">
+										{loop $_W['account']['groups'] $group}
+											{if $group ['groupid'] != $row['groupid']['groupid']}
+												<li class="user-group" data-id="{$group['groupid']}" data-uid="{$row['user']['uid']}"><a href="javascript:;" {if $group['isdefault']==0}style="color:#26a69a;"{/if}>{$group['title']}</a></li>
+											{/if}
+										{/loop}
+									</ul>
+								</div>
+								{if IMS_VERSION>=0.8}<span class="btn btn-primary btn-sm" style="padding:2px 5px;">{php echo mc_show_tag($row['user']['groupid'])}</span>{/if}
+								<a href="{php echo $this->createWebUrl('detail', array('id' => $row['rerid']))}" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="查看详情">查看详情</a>
+								<a href="{php echo $this->createWebUrl('dayu_formdelete', array('id' => $row['rerid']))}"  class="btn btn-default btn-sm" onclick="return confirm('删除绑定记录，此操作不可恢复，确认删除？');return false;" data-toggle="tooltip" data-placement="bottom" title="删除"><i class="fa fa-times"></i></a>
+							</td>
+                        </tr>
+                        {/loop}
+				<tr>
+					<td style="text-align:center;"><input type="checkbox" name="" onclick="var ck = this.checked;$(':checkbox').each(function(){this.checked = ck});"></td>
+					<td colspan="{if $activity['isvoice']==1 && $activity['isrevoice']==1}10{elseif $activity['isvoice']==1 || $activity['isrevoice']==1}9{else}8{/if}">
+						<a class="btn btn-danger" onclick="delarr(this,{$reid})">删除选中的记录</a>
+					</td>
+				</tr>
+                    </tbody>
+                </table>
+        </div>
+    </div>
+            </form>
+            {$pager}
+</div>
+<script language='javascript'>
+function audioplay(id){
+	var audio = document.getElementById(id);
+	!audio.paused?audio.pause():audio.play();    
+	document.addEventListener("WeixinJSBridgeReady", function () {
+		!audio.paused?audio.pause():audio.play();
+	}, false); 
+}
+//	audioplay('mp3');
+
+function selectall(obj, name){
+	$('input[name="'+name+'[]"]:checkbox').each(function() {
+		$(this).get(0).checked =  $(obj).get(0).checked;
+	});
+}
+require(['bootstrap'],function($){
+	$('.btn').hover(function(){
+		$(this).tooltip('show');
+	},function(){
+		$(this).tooltip('hide');
+	});
+	$('.badge').hover(function(){
+		$(this).tooltip('show');
+	},function(){
+		$(this).tooltip('hide');
+	});
+});
+require(['trade', 'bootstrap'], function(trade){
+	trade.init();
+	$('.user-group').click(function(){
+		if(!confirm('确定更改会员组吗')) return false;
+		var id = $(this).data('id');
+		var uid = $(this).data('uid');
+		$.post("{php echo url('mc/member/group');}", {uid: uid, id: id}, function(data){
+			if(data != 'success') {
+				util.message(data, '', 'error');
+			} else {
+				location.reload();
+			}
+		});
+	});
+});
+	function delarr(obj,reid) {
+		if($(":checkbox[name='recordid[]']:checked").size() > 0){
+			var check = $(":checkbox[name='recordid[]']:checked");
+			var rerid = new Array();
+			check.each(function(i){
+				rerid[i] = $(this).val();
+			});
+			if(confirm("确认要删除选择的记录?")){
+				$.post('{php echo $this->createWebUrl('batchrrcord')}', {idArr:rerid,reid:reid}, function(s) {
+					if(s.message.status == 1) {
+						util.message(s.message.msg, '', 'success');
+						setTimeout(function() {
+							location.reload();
+							return;
+						}, 1000)
+					} else {
+						util.message(s.message.msg, '', 'error');
+					}
+				},"json");
+			}
+		}else{
+			util.message('没有选择要删除记录', '', 'error');
+			return false;
+		}
+	}
+require(['jquery', 'util'], function($, u){
+	$('.groupedit').click(function(){
+		var groupid = $(this).attr('data-groupid');
+		var openid = $(this).attr('data-openid');
+		if(!openid) {
+			u.message('粉丝openid错误', '', 'error');
+		}
+		$.post('{php echo $this->createWebUrl('updategroup');}', {'openid' : openid, 'groupid': groupid}, function(data){
+			var data = $.parseJSON(data);
+			if(data.status == 'error') {
+				u.message(data.mess, '', 'error');
+			} else if(data.status == 'success'){
+				location.reload();
+			}
+		});
+	});	
+});
+</script>
+{template 'common/footer'}

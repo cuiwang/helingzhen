@@ -1,0 +1,716 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li {if $operation == 'kw'}class="active"{/if}><a href="{php echo $this->createWebUrl('collect', array('op' => 'kw'))}">关键字采集</a></li>
+	<li {if $operation == 'hot'}class="active"{/if}><a href="{php echo $this->createWebUrl('collect', array('op' => 'hot'))}">爆文采集</a></li>
+	<li {if $operation == 'hao'}class="active"{/if}><a href="{php echo $this->createWebUrl('collect', array('op' => 'hao'))}">公众号搜索</a></li>
+	<li {if $operation == 'haonei'}class="active"{/if}><a href="{php echo $this->createWebUrl('collect', array('op' => 'haonei'))}">号内采集</a></li>
+</ul>
+<script>
+	require(['bootstrap'],function($){
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+	});
+</script>
+<style type="text/css">
+.table-hover td {
+ vertical-align: middle!important;
+}
+</style>
+{if $operation == 'kw'}
+<div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+		<form action="./index.php" method="get" class="form-horizontal" role="form">
+			<input type="hidden" name="c" value="site" />
+			<input type="hidden" name="a" value="entry" />
+			<input type="hidden" name="m" value="tech_superarticle" />
+			<input type="hidden" name="do" value="collect" />
+			<input type="hidden" name="op" value="kw" />
+			<div class="form-group">
+				{if $settings['cjy'] == 1}
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">关键字</label>
+				<div class="col-xs-12 col-sm-6 col-lg-8">
+					<input class="form-control" name="q" id="" type="text" value="{$_GPC['q']}" placeholder="请输入文章相关关键字">
+				</div>
+				{else}
+				<label class="col-xs-12 col-sm-1 col-md-1 col-lg-1 control-label">关键字</label>
+				<div class="col-xs-12 col-sm-3 col-lg-3">
+					<input class="form-control" name="q" id="" type="text" value="{$_GPC['q']}" placeholder="请输入文章相关关键字">
+				</div>
+				<label class="col-xs-12 col-sm-1 col-md-1 col-lg-1 control-label">时间</label>
+				<div class="col-xs-12 col-sm-3 col-lg-3">
+					<select name="tsn" class='form-control' id="col">
+						<option value="0" selected> 全部时间</option>
+						<option value="1" {if $_GPC['tsn'] == 1}selected{/if}> 一天内</option>
+						<option value="2" {if $_GPC['tsn'] == 2}selected{/if}> 一周内</option>
+						<option value="3" {if $_GPC['tsn'] == 3}selected{/if}> 一月内</option>
+						<option value="4" {if $_GPC['tsn'] == 4}selected{/if}> 一年内</option>
+					</select>
+				</div>
+				{/if}
+				<div class="col-xs-12 col-sm-2 col-lg-2">
+					<button class="btn btn-danger"><i class="fa fa-search"></i> 搜索</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+<style>
+.label{cursor:pointer;}
+</style>
+	<div class="articles_info">
+		<form action="" method="post" onsubmit="return formcheck(this)">
+			<div class="panel panel-default">
+				<div class="panel-body table-responsive">
+					<table class="table table-hover">
+						<thead>
+							<tr>
+								<th style="width:20%;">文章封面</th>
+								<th style="width:60%;">文章标题（点击查看详情）</th>
+								<th style="width:5%;"></th>
+								<th style="width:15%;">操作</th>
+							</tr>
+						</thead>
+						<tbody>
+						{loop $articles_info $row}
+						<tr>
+							<td>
+								<a href="{$row['content_url']}" target="_blank">
+								{if $settings['cjy'] == 1}
+								<img src="{if strpos($row['cover'],'http://mmbiz') == 0}http://www.weizhishu.com/timthumb.php?w=160&h=100&q=100&src={$row['cover']}{else}{$row['cover']}{/if}" alt="..." class="img-thumbnail">
+								{else}
+								<img src="{php echo 'http://www.weizhishu.com/timthumb.php?w=160&h=100&q=100&src='.str_replace('http://img01.sogoucdn.com/net/a/04/link?appid=100520033&url=', '', $row['cover']);}" alt="..." class="img-thumbnail">
+								{/if}
+								</a>
+							</td>
+							<td>
+								<div>
+									<a href="{$row['content_url']}" target="_blank">
+									<h4 style="text-overflow:ellipsis; white-space:nowrap;overflow:hidden;color: #000;width: 520px;" class="title">
+										{$row['title']}
+									</h4>
+									<p style="color: #c0c0c0;text-overflow:ellipsis; white-space:nowrap;overflow:hidden;width: 520px;" class="digest">
+										{$row['digest']}
+									</p>
+									</a>
+									<div>
+										<div style="float: left;" class="label label-default">
+											{$row['name']}
+										</div>
+										<div style="float: left;margin-left: 30px;color: #c0c0c0;">
+											{if $settings['cjy'] == 1}{$row['pubtime']}{else}{php echo date('Y-m-d H:i:s', $row['pubtime']);}{/if}
+										</div>
+										{if $settings['cjy'] == 1}
+										<div style="float: right;color: #c0c0c0;">
+											<span class="glyphicon glyphicon-thumbs-up" style="color: #c0c0c0;"></span>&nbsp;{$row['like_num']}
+										</div>
+										<div style="float: right; margin-right: 30px;color: #c0c0c0;">
+											<span class="glyphicon glyphicon-eye-open" style="color: #c0c0c0;"></span>&nbsp;{$row['read_num']}
+										</div>
+										{/if}
+									</div>
+								</div>
+							</td>
+							<td></td>
+							<td>
+							<button type="button" class="btn btn-warning set_conf" a_title="{$row['title']}" a_link="{$row['content_url']}" a_desc="{$row['digest']}" a_img="{if $settings['cjy'] == 1}{if strpos($row['cover'],'http://mmbiz') == 0}http://www.weizhishu.com/timthumb.php?w=160&h=100&q=100&src={$row['cover']}{else}{$row['cover']}{/if}{else}{php echo 'http://www.weizhishu.com/timthumb.php?w=160&h=100&q=100&src='.str_replace('http://img01.sogoucdn.com/net/a/04/link?appid=100520033&url=', '', $row['cover']);}{/if}">导入</button>
+							</td>
+						</tr>
+						{/loop}	
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</form>
+	</div>
+	{$pager}
+{elseif $operation == 'hot'}
+<div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+		<form action="./index.php" method="get" class="form-horizontal" role="form">
+			<input type="hidden" name="c" value="site" />
+			<input type="hidden" name="a" value="entry" />
+			<input type="hidden" name="m" value="tech_superarticle" />
+			<input type="hidden" name="do" value="collect" />
+			<input type="hidden" name="op" value="hot" />
+			<div class="form-group">
+
+				{if $settings['cjy'] == 1}
+				<label class="col-xs-12 col-sm-1 col-md-1 col-lg-1 control-label">分类</label>
+				<div class="col-xs-12 col-sm-3 col-lg-3">
+					<select name="gid" class='form-control' id="col">
+						<option value="0"> --全部爆文--</option>
+						<option value="1" {if $_GPC['gid'] == 1}selected{/if}> --新闻--</option>
+						<option value="2" {if $_GPC['gid'] == 2}selected{/if}> --娱乐--</option>
+						<option value="3" {if $_GPC['gid'] == 3}selected{/if}> --搞笑--</option>
+						<option value="4" {if $_GPC['gid'] == 4}selected{/if}> --旅游--</option>
+						<option value="5" {if $_GPC['gid'] == 5}selected{/if}> --美食--</option>
+						<option value="6" {if $_GPC['gid'] == 6}selected{/if}> --财经--</option>
+						<option value="7" {if $_GPC['gid'] == 7}selected{/if}> --健康--</option>
+						<option value="8" {if $_GPC['gid'] == 8}selected{/if}> --管理--</option>
+						<option value="9" {if $_GPC['gid'] == 9}selected{/if}> --情感--</option>
+						<option value="10" {if $_GPC['gid'] == 10}selected{/if}> --政务--</option>
+						<option value="11" {if $_GPC['gid'] == 11}selected{/if}> --丽人--</option>
+						<option value="13" {if $_GPC['gid'] == 13}selected{/if}> --汽车--</option>
+						<option value="14" {if $_GPC['gid'] == 14}selected{/if}> --楼市--</option>
+						<option value="15" {if $_GPC['gid'] == 15}selected{/if}> --时尚--</option>
+						<option value="16" {if $_GPC['gid'] == 16}selected{/if}> --科技--</option>
+						<option value="17" {if $_GPC['gid'] == 17}selected{/if}> --游戏--</option>
+						<option value="17" {if $_GPC['gid'] == 19}selected{/if}> --文史--</option>
+						<option value="20" {if $_GPC['gid'] == 20}selected{/if}> --名人--</option>
+						<option value="23" {if $_GPC['gid'] == 23}selected{/if}> --影音--</option>
+						<option value="24" {if $_GPC['gid'] == 24}selected{/if}> --动漫--</option>
+						<option value="25" {if $_GPC['gid'] == 25}selected{/if}> --企业--</option>
+						<option value="29" {if $_GPC['gid'] == 29}selected{/if}> --本地--</option>
+						<option value="34" {if $_GPC['gid'] == 34}selected{/if}> --摄影--</option>
+						<option value="36" {if $_GPC['gid'] == 36}selected{/if}> --亲子--</option>
+						<option value="38" {if $_GPC['gid'] == 38}selected{/if}> --生活--</option>
+						<option value="40" {if $_GPC['gid'] == 40}selected{/if}> --两性--</option>
+						<option value="42" {if $_GPC['gid'] == 42}selected{/if}> --其他--</option>
+					</select>
+				</div>
+				<label class="col-xs-12 col-sm-1 col-md-1 col-lg-1 control-label">时间</label>
+				<div class="col-xs-12 col-sm-3 col-lg-3">
+					<select name="period" class='form-control' id="col">
+						<option value="7" selected> 最近一周</option>
+						<option value="3" {if $_GPC['period'] == 3}selected{/if}> 最近三天</option>
+						<option value="1" {if $_GPC['period'] == 1}selected{/if}> 最近一天</option>
+					</select>
+				</div>
+				{else}
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">分类</label>
+				<div class="col-xs-12 col-sm-6 col-lg-8">
+					<select name="pc" class='form-control' id="col">
+						<option value="pc_0"> --热门--</option>
+						<option value="pc_1" {if $_GPC['pc'] == "pc_1"}selected{/if}> --推荐--</option>
+						<option value="pc_2" {if $_GPC['pc'] == "pc_2"}selected{/if}> --段子手--</option>
+						<option value="pc_3" {if $_GPC['pc'] == "pc_3"}selected{/if}> --养生堂--</option>
+						<option value="pc_4" {if $_GPC['pc'] == "pc_4"}selected{/if}> --私房话--</option>
+						<option value="pc_5" {if $_GPC['pc'] == "pc_5"}selected{/if}> --八卦精--</option>
+						<option value="pc_6" {if $_GPC['pc'] == "pc_6"}selected{/if}> --爱生活--</option>
+						<option value="pc_7" {if $_GPC['pc'] == "pc_7"}selected{/if}> --财经迷--</option>
+						<option value="pc_8" {if $_GPC['pc'] == "pc_8"}selected{/if}> --汽车迷--</option>
+						<option value="pc_9" {if $_GPC['pc'] == "pc_9"}selected{/if}> --科技咖--</option>
+						<option value="pc_10" {if $_GPC['pc'] == "pc_10"}selected{/if}> --潮人帮--</option>
+						<option value="pc_11" {if $_GPC['pc'] == "pc_11"}selected{/if}> --辣妈帮--</option>
+						<option value="pc_12" {if $_GPC['pc'] == "pc_12"}selected{/if}> --点赞党--</option>
+						<option value="pc_13" {if $_GPC['pc'] == "pc_13"}selected{/if}> --旅行家--</option>
+						<option value="pc_14" {if $_GPC['pc'] == "pc_14"}selected{/if}> --职场人--</option>
+						<option value="pc_15" {if $_GPC['pc'] == "pc_15"}selected{/if}> --美食家--</option>
+						<option value="pc_16" {if $_GPC['pc'] == "pc_16"}selected{/if}> --古今通--</option>
+						<option value="pc_17" {if $_GPC['pc'] == "pc_17"}selected{/if}> --学霸族--</option>
+						<option value="pc_18" {if $_GPC['pc'] == "pc_18"}selected{/if}> --星座控--</option>
+						<option value="pc_19" {if $_GPC['pc'] == "pc_19"}selected{/if}> --体育迷--</option>
+					</select>
+				</div>
+				{/if}
+				<div class="col-xs-12 col-sm-2 col-lg-2">
+					<button class="btn btn-danger"><i class="fa fa-search"></i> 搜索</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+<style>
+.label{cursor:pointer;}
+</style>
+	<div class="articles_info">
+		<form action="" method="post" onsubmit="return formcheck(this)">
+			<div class="panel panel-default">
+				<div class="panel-body table-responsive">
+					<table class="table table-hover">
+						<thead>
+							<tr>
+								<th style="width:20%;">文章封面</th>
+								<th style="width:60%;">文章标题（点击查看详情）</th>
+								<th style="width:5%;"></th>
+								<th style="width:15%;">操作</th>
+							</tr>
+						</thead>
+						<tbody>
+						{loop $articles_info $row}
+						<tr>
+							<td>
+								<a href="{$row['content_url']}" target="_blank">
+								{if $settings['cjy'] == 1}
+								<img src="{if strpos($row['cover'],'http://mmbiz') == 0}http://www.weizhishu.com/timthumb.php?w=160&h=100&q=100&src={$row['cover']}{else}{$row['cover']}{/if}" alt="..." class="img-thumbnail">
+								{else}
+								<img src="{php echo 'http://www.weizhishu.com/timthumb.php?w=160&h=100&q=100&src='.substr($row['cover'],strpos($row['cover'],'&url=')+5);}" alt="..." class="img-thumbnail">
+								{/if}
+								</a>
+							</td>
+							<td>
+								<div>
+									<a href="{$row['content_url']}" target="_blank">
+									<h4 style="text-overflow:ellipsis; white-space:nowrap;overflow:hidden;color: #000;width: 520px;" class="title">
+										{$row['title']}
+									</h4>
+									<p style="color: #c0c0c0;text-overflow:ellipsis; white-space:nowrap;overflow:hidden;width: 520px;" class="digest">
+										{$row['digest']}
+									</p>
+									</a>
+									<div>
+										<div style="float: left;" class="label label-default">
+											{$row['name']}
+										</div>
+										<div style="float: left;margin-left: 30px;color: #c0c0c0;">
+											{if $settings['cjy'] == 1}{$row['pubtime']}{else}{php echo date('Y-m-d H:i:s', $row['pubtime']);}{/if}
+										</div>
+										{if $settings['cjy'] == 1}
+										<div style="float: right;color: #c0c0c0;">
+											<span class="glyphicon glyphicon-thumbs-up" style="color: #c0c0c0;"></span>&nbsp;{$row['like_num']}
+										</div>
+										<div style="float: right; margin-right: 30px;color: #c0c0c0;">
+											<span class="glyphicon glyphicon-eye-open" style="color: #c0c0c0;"></span>&nbsp;{$row['read_num']}
+										</div>
+										{/if}
+									</div>
+								</div>
+							</td>
+							<td></td>
+							<td>
+							<button type="button" class="btn btn-warning set_conf" a_title="{$row['title']}" a_link="{$row['content_url']}" a_desc="{$row['digest']}" a_img="{if $settings['cjy'] == 1}{if strpos($row['cover'],'http://mmbiz') == 0}http://www.weizhishu.com/timthumb.php?w=160&h=100&q=100&src={$row['cover']}{else}{$row['cover']}{/if}{else}{php echo 'http://www.weizhishu.com/timthumb.php?w=160&h=100&q=100&src='.substr($row['cover'],strpos($row['cover'],'&url=')+5);}{/if}">导入</button>
+							</td>
+						</tr>
+						{/loop}	
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</form>
+	</div>
+	{$pager}
+{elseif $operation == 'hao'}
+<div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+		<form action="./index.php" method="get" class="form-horizontal" role="form">
+			<input type="hidden" name="c" value="site" />
+			<input type="hidden" name="a" value="entry" />
+			<input type="hidden" name="m" value="tech_superarticle" />
+			<input type="hidden" name="do" value="collect" />
+			<input type="hidden" name="op" value="hao" />
+			<div class="form-group">
+			{if $settings['cyj'] == 1}
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">分类</label>
+				<div class="col-xs-12 col-sm-6 col-lg-8">
+					<select name="gid" class='form-control' id="col">
+						<option value="0"> --全部分类--</option>
+						<option value="1" {if $_GPC['gid'] == 1}selected{/if}> --新闻--</option>
+						<option value="2" {if $_GPC['gid'] == 2}selected{/if}> --娱乐--</option>
+						<option value="3" {if $_GPC['gid'] == 3}selected{/if}> --搞笑--</option>
+						<option value="4" {if $_GPC['gid'] == 4}selected{/if}> --旅游--</option>
+						<option value="5" {if $_GPC['gid'] == 5}selected{/if}> --美食--</option>
+						<option value="6" {if $_GPC['gid'] == 6}selected{/if}> --财经--</option>
+						<option value="7" {if $_GPC['gid'] == 7}selected{/if}> --健康--</option>
+						<option value="8" {if $_GPC['gid'] == 8}selected{/if}> --管理--</option>
+						<option value="9" {if $_GPC['gid'] == 9}selected{/if}> --情感--</option>
+						<option value="10" {if $_GPC['gid'] == 10}selected{/if}> --政务--</option>
+						<option value="11" {if $_GPC['gid'] == 11}selected{/if}> --丽人--</option>
+						<option value="13" {if $_GPC['gid'] == 13}selected{/if}> --汽车--</option>
+						<option value="14" {if $_GPC['gid'] == 14}selected{/if}> --楼市--</option>
+						<option value="15" {if $_GPC['gid'] == 15}selected{/if}> --时尚--</option>
+						<option value="16" {if $_GPC['gid'] == 16}selected{/if}> --科技--</option>
+						<option value="17" {if $_GPC['gid'] == 17}selected{/if}> --游戏--</option>
+						<option value="17" {if $_GPC['gid'] == 19}selected{/if}> --文史--</option>
+						<option value="20" {if $_GPC['gid'] == 20}selected{/if}> --名人--</option>
+						<option value="23" {if $_GPC['gid'] == 23}selected{/if}> --影音--</option>
+						<option value="24" {if $_GPC['gid'] == 24}selected{/if}> --动漫--</option>
+						<option value="25" {if $_GPC['gid'] == 25}selected{/if}> --企业--</option>
+						<option value="29" {if $_GPC['gid'] == 29}selected{/if}> --本地--</option>
+						<option value="34" {if $_GPC['gid'] == 34}selected{/if}> --摄影--</option>
+						<option value="36" {if $_GPC['gid'] == 36}selected{/if}> --亲子--</option>
+						<option value="38" {if $_GPC['gid'] == 38}selected{/if}> --生活--</option>
+						<option value="40" {if $_GPC['gid'] == 40}selected{/if}> --两性--</option>
+						<option value="42" {if $_GPC['gid'] == 42}selected{/if}> --其他--</option>
+					</select>
+				{else}
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">关键字</label>
+				<div class="col-xs-12 col-sm-6 col-lg-8">
+					<input class="form-control" name="query" id="" type="text" value="{$_GPC['query']}" placeholder="请输入文章相关关键字">
+				</div>
+				{/if}
+				<div class="col-xs-12 col-sm-2 col-lg-2">
+					<button class="btn btn-danger"><i class="fa fa-search"></i> 搜索</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+<style>
+.label{cursor:pointer;}
+</style>
+	<div class="articles_info">
+		<form action="" method="post" onsubmit="return formcheck(this)">
+			<div class="panel panel-default">
+				<div class="panel-body table-responsive">
+				{if $settings['cjy'] == 0}
+					<table class="table table-hover">
+						<thead>
+							<tr>
+								<th style="width:80%">公众号介绍</th>
+								<th style="width:5%;"></th>
+								<th style="width:15%;">操作</th>
+							</tr>
+						</thead>
+						<tbody>
+						{loop $haos_info $row}
+						<tr>
+							<td>
+								<div>
+									<a href="{$row['content_url']}" target="_blank">
+									<h4 style="text-overflow:ellipsis; white-space:nowrap;overflow:hidden;color: #000;width: 700px;" class="title">
+										{$row['title']}
+									</h4>
+									<p style="color: #c0c0c0;text-overflow:ellipsis; white-space:nowrap;overflow:hidden;width: 700px;" class="digest">
+										{$row['digest']}
+									</p>
+									</a>
+									<div>
+										<div style="float: left;" class="label label-default">
+											{$row['name']}
+										</div>
+									</div>
+								</div>
+							</td>
+							<td></td>
+							<td>
+							<a href="{php echo $this->createWebUrl('collect', array('op' => 'haonei', 'wid' => $row['content_url'], 'name' => $row['name']))}"><button type="button" class="btn btn-warning">查看</button></a>
+							</td>
+						</tr>
+						{/loop}	
+						</tbody>
+					</table>
+				{else}
+					<table class="table table-hover">
+						<thead>
+							<tr>
+								<th style="width:10px;"></th>
+								<th style="width:40px;">排名</th>
+								<th style="width:60px;">&nbsp;&nbsp;&nbsp;头像</th>
+								<th style="width:80px;">公众号</th>
+								<th style="width:80px;">平均阅读量</th>
+								<th style="width:80px;">平均点赞量</th>
+								<th style="width:80px;">平均点赞率</th>
+								<th style="width:80px;">操作</th>
+							</tr>
+						</thead>
+						<tbody>
+						{loop $haos_info $row}
+						<tr>
+							<td></td>
+							<td>&nbsp;&nbsp;{$row['order']}</td>
+							<td>
+								<a href="{php echo $this->createWebUrl('collect', array('op' => 'haonei', 'wid' => str_replace('.html','',str_replace('/account/','',$row['url']))))}" target="_blank">
+								<img style="width: 60px;" src="{$row['img']}" alt="..." class="img-circle">
+								</a>
+							</td>
+							<td>
+								<div>
+									<a href="{php echo $this->createWebUrl('collect', array('op' => 'haonei', 'wid' => str_replace('.html','',str_replace('/account/','',$row['url']))))}" target="_blank">
+									<h4 style="text-overflow:ellipsis; white-space:nowrap;overflow:hidden;color: #000;" class="title">
+										{php echo str_replace($row['id'],'',$row['name'])}
+									</h4>
+									<p style="color: #c0c0c0;text-overflow:ellipsis; white-space:nowrap;overflow:hidden;" class="digest">
+										{$row['id']}
+									</p>
+									</a>
+								</div>
+							</td>
+							<td>&nbsp;&nbsp;&nbsp;&nbsp;{$row['view']}</td>
+							<td>&nbsp;&nbsp;&nbsp;&nbsp;{$row['like_num']}</td>
+							<td>&nbsp;&nbsp;&nbsp;&nbsp;{$row['like_ratio']}</td>
+							<td>
+							<a href="{php echo $this->createWebUrl('collect', array('op' => 'haonei', 'wid' => str_replace('.html','',str_replace('/account/','',$row['url']))))}"><button type="button" class="btn btn-warning">查看</button></a>
+							</td>
+						</tr>
+						{/loop}
+						</tbody>
+					</table>
+				{/if}
+				</div>
+			</div>
+		</form>
+	</div>
+	{$pager}
+{elseif $operation == 'haonei'}
+<div class="panel panel-info">
+	<div class="panel-heading">【{$name}】号内筛选</div>
+	<div class="panel-body">
+		<form action="./index.php" method="get" class="form-horizontal" role="form">
+			<input type="hidden" name="c" value="site" />
+			<input type="hidden" name="a" value="entry" />
+			<input type="hidden" name="m" value="tech_superarticle" />
+			<input type="hidden" name="do" value="collect" />
+			<input type="hidden" name="op" value="haonei" />
+			<input type="hidden" name="wid" value="{$_GPC['wid']}" />
+			
+		</form>
+	</div>
+</div>
+<style>
+.label{cursor:pointer;}
+</style>
+	<div class="articles_info">
+		<form action="" method="post" onsubmit="return formcheck(this)">
+			<div class="panel panel-default">
+				<div class="panel-body table-responsive">
+					<table class="table table-hover">
+						<thead>
+							<tr>
+								<th style="width:20%;">文章封面</th>
+								<th style="width:60%;">文章标题（点击查看详情）</th>
+								<th style="width:5%;"></th>
+								<th style="width:15%;">操作</th>
+							</tr>
+						</thead>
+						<tbody>
+						{loop $articles_info $row}
+						<tr>
+							<td>
+								<a href="{$row['content_url']}" target="_blank">
+								{if $settings['cjy'] == 1}
+								<img src="{if strpos($row['cover'],'http://mmbiz') == 0}http://www.weizhishu.com/timthumb.php?w=160&h=100&q=100&src={$row['cover']}{else}{$row['cover']}{/if}" alt="..." class="img-thumbnail">
+								{else}
+								<img src="{php echo 'http://www.weizhishu.com/timthumb.php?w=160&h=100&q=100&src='.$row['cover'];}" alt="..." class="img-thumbnail">
+								{/if}
+								</a>
+							</td>
+							<td>
+								<div>
+									<a href="{$row['content_url']}" target="_blank">
+									<h4 style="text-overflow:ellipsis; white-space:nowrap;overflow:hidden;color: #000;width: 520px;" class="title">
+										{$row['title']}
+									</h4>
+									<p style="color: #c0c0c0;text-overflow:ellipsis; white-space:nowrap;overflow:hidden;width: 520px;" class="digest">
+										{$row['digest']}
+									</p>
+									</a>
+									<div>
+										<div style="float: left;" class="label label-default">
+											{$row['name']}
+										</div>
+										<div style="float: left;margin-left: 30px;color: #c0c0c0;">
+											{if $settings['cjy'] == 1}{$row['pubtime']}{else}{php echo date('Y-m-d H:i:s', $row['pubtime']);}{/if}
+										</div>
+										{if $settings['cjy'] == 1}
+										<div style="float: right;color: #c0c0c0;">
+											<span class="glyphicon glyphicon-thumbs-up" style="color: #c0c0c0;"></span>&nbsp;{$row['like_num']}
+										</div>
+										<div style="float: right; margin-right: 30px;color: #c0c0c0;">
+											<span class="glyphicon glyphicon-eye-open" style="color: #c0c0c0;"></span>&nbsp;{$row['read_num']}
+										</div>
+										{/if}
+									</div>
+								</div>
+							</td>
+							<td></td>
+							<td>
+							<button type="button" class="btn btn-warning set_conf" a_title="{$row['title']}" a_link="{$row['content_url']}" a_desc="{$row['digest']}" a_img="{if $settings['cjy'] == 1}{if strpos($row['cover'],'http://mmbiz') == 0}http://www.weizhishu.com/timthumb.php?w=160&h=100&q=100&src={$row['cover']}{else}{$row['cover']}{/if}{else}{php echo 'http://www.weizhishu.com/timthumb.php?w=160&h=100&q=100&src='.$row['cover'];}{/if}">导入</button>
+							</td>
+						</tr>
+						{/loop}	
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</form>
+	</div>
+	{$pager}
+{else}
+参数错误
+{/if}
+<div id="setting" class="modal fade" tabindex="9999" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">文章参数设置</h4>   
+            </div>
+            <div class="modal-body">
+                <form id="form_set" action="admin/tbmsg.php?do=tongbu" enctype="multipart/form-data" method="post">
+                	<div class="col-xs-6">
+	                    <div class="input-group" style="margin-top:10px;">
+	                        <span class="input-group-addon" id="basic-addon1">分享标题:</span>
+	                        <input type="text" class="form-control" id="fx_title" name="fx_title" value="">
+	                    </div>
+
+	                    <div class="input-group" style="margin-top:10px;">
+	                        <span class="input-group-addon" id="basic-addon1">分享图片:</span>
+	                        <input type="text" class="form-control" id="fx_img" name="fx_img" placeholder="请填写图片的URL地址" value="">
+	                    </div>
+
+						<div class="input-group" style="margin-top:10px;">
+	                        <span class="input-group-addon" id="basic-addon1">分享描述</span>
+	                        <input type="text" class="form-control" id="fx_desc" name="fx_desc" placeholder="" value="">
+	                    </div>
+
+	                    <div class="input-group" style="margin-top:10px;">
+	                        <span class="input-group-addon" id="basic-addon1">自定义阅读量:</span>
+	                        <input type="text" class="form-control" id="xn_ydl" name="xn_ydl" value="{php echo rand($settings['mr_ymin'], $settings['mr_ymax'])}">
+	                    </div>
+	                    <div class="input-group" style="margin-top:10px;">
+	                        <span class="input-group-addon" id="basic-addon1">自定义点赞量:</span>
+	                        <input type="text" class="form-control" id="xn_dzl" name="xn_dzl" value="{php echo rand($settings['mr_zmin'], $settings['mr_zmax'])}">
+	                    </div>
+	                    <div class="input-group" style="margin-top:10px;">
+	                        <span class="input-group-addon" id="basic-addon1">是否原创</span>
+	                        <select name="tbzhselect" id="yc_yw" name="yc_yw" class="form-control">
+	                            <option value="1" {if $settings['mr_yc'] == 0}selected="selected"{/if}>是</option>
+	                            <option value="0" {if $settings['mr_yc'] == 1}selected="selected"{/if}>否</option>
+	                        </select>
+	                    </div>
+	                    <div class="input-group" style="margin-top:10px;">
+	                        <span class="input-group-addon" id="basic-addon1">虚拟发布时间:</span>
+	                        <input type="text" class="form-control" id="z_time" name="z_time" placeholder="时间格式：2017-03-24" value="{php echo date('Y-m-d');}">
+	                    </div>
+	                    <div class="input-group" style="margin-top:10px;">
+	                        <span class="input-group-addon" id="basic-addon1">触发关键字</span>
+	                        <input type="text" class="form-control" id="ds_keyword" name="ds_keyword" placeholder="回复消息用" value="">
+	                    </div>
+	                    <div class="input-group" style="margin-top:10px;">
+	                        <span class="input-group-addon" id="basic-addon1">直接URL:</span>
+	                        <input type="text" class="form-control" id="y_url" name="y_url" value="">
+	                    </div>
+                    </div>
+                    <div class="col-xs-6">
+	                    <div class="input-group" style="margin-top:10px;">
+	                        <span class="input-group-addon" id="basic-addon1">分类</span>
+	                        <select name="tbzhselect" id="fl_id" name="fl_id" class="form-control">
+	                        	<option value="0">请选择分类</option>
+	                        	{loop $categorys $key $item}
+		                        	{if $key == 0}
+		                        	<option value="{$item['id']}" selected="selected">{$item['name']}</option>
+		                        	{else}
+		                        	<option value="{$item['id']}">{$item['name']}</option>
+		                        	{/if}
+	                        	{/loop}
+	                        </select>
+	                    </div>
+	                    <div class="input-group" style="margin-top:10px;">
+	                        <span class="input-group-addon" id="basic-addon1">标题:</span>
+	                        <input type="text" class="form-control" id="bt_title" name="bt_title" value="">
+	                        <input type="hidden" class="form-control" id="bt_link"  name="bt_title" value="">
+	                    </div>
+	                    <div class="input-group" style="margin-top:10px;">
+	                        <span class="input-group-addon" id="basic-addon1">作者:</span>
+	                        <input type="text" class="form-control" id="bt_au" name="bt_au" value="{$settings['mr_author']}">
+	                    </div>
+	                    <div class="input-group" style="margin-top:10px;">
+	                        <span class="input-group-addon" id="basic-addon1">简介:</span>
+	                        <input type="text" class="form-control" id="bt_desc" name="bt_au" value="">
+	                    </div>
+	                    <div class="input-group" style="margin-top:10px;">
+	                        <span class="input-group-addon" id="basic-addon1">封面URL:</span>
+	                        <input type="text" class="form-control" id="bt_img" name="bt_au" value="">
+	                    </div>
+	                    <div class="input-group" style="margin-top:10px;">
+	                        <span class="input-group-addon" id="basic-addon1">开启打赏</span>
+	                        <select name="tbzhselect" id="ds_ds" name="ds_ds" class="form-control">
+	                            <option value="1" {if $settings['mr_ds'] == 0}selected="selected"{/if}>开启</option>
+	                            <option value="0" {if $settings['mr_ds'] == 1}selected="selected"{/if}>关闭</option>
+	                        </select>
+	                    </div>
+	                    <div class="input-group" style="margin-top:10px;">
+	                        <span class="input-group-addon" id="basic-addon1">打赏金额:</span>
+	                        <input type="text" class="form-control" id="ds_je" name="ds_je" placeholder="英文逗号如：1,2,3" value="{$settings['mr_dsm']}">
+	                    </div>
+	                    <div class="input-group" style="margin-top:10px;">
+	                        <span class="input-group-addon" id="basic-addon1">自定义金额</span>
+	                        <select name="tbzhselect" id="ds_own" name="ds_own" class="form-control">
+	                            <option value="1" {if $settings['mr_dsz'] == 0}selected="selected"{/if}>开启</option>
+	                            <option value="0" {if $settings['mr_dsz'] == 1}selected="selected"{/if}>关闭</option>
+	                        </select>
+	                    </div>
+	                    <div class="input-group" style="margin-top:10px;">
+	                        <span class="input-group-addon" id="basic-addon1">开启评论</span>
+	                        <select name="tbzhselect" id="pl_pl" name="pl_pl" class="form-control">
+	                            <option value="1" {if $settings['mr_pl'] == 0}selected="selected"{/if}>开启</option>
+	                            <option value="0" {if $settings['mr_pl'] == 1}selected="selected"{/if}>关闭</option>
+	                        </select>
+	                    </div>
+                    </div>
+                </form>
+            </div>
+            <div style="clear: both;height: 30px;"></div>
+            <div class="modal-footer">
+              	<button type="button" class="btn btn-success" id="save_ds" a_link="" style="height:40px;">导入</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal" style="height:40px;">关闭</button>        
+            </div>
+        </div>
+    </div>
+</div>
+<div id="message" class="modal fade" tabindex="9999" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">消息提醒</h4>   
+            </div>
+            <div class="modal-body">
+                正在本地化文章中的图片，请稍后...
+            </div>
+            <div style="clear: both;height: 30px;"></div>
+        </div>
+    </div>
+</div>
+<script>
+    $(".set_conf").click(function(){
+    	$("#fx_title").val($(this).attr('a_title').replace(/<[^>].*?>/g,""));
+    	$("#bt_title").val($(this).attr('a_title').replace(/<[^>].*?>/g,""));
+    	$("#fx_desc").val($(this).attr('a_desc').replace(/<[^>].*?>/g,""));
+    	$("#fx_img").val($(this).attr('a_img').replace(/<[^>].*?>/g,""));
+    	$("#bt_desc").val($(this).attr('a_desc').replace(/<[^>].*?>/g,""));
+    	$("#bt_img").val($(this).attr('a_img').replace(/<[^>].*?>/g,""));
+    	$("#bt_link").val($(this).attr('a_link'));
+    	{if $settings['mr_yurl'] == 1}
+    	$("#y_url").val($(this).attr('a_link'));
+    	{/if}
+    	$("#setting").modal('show');
+    });
+    $("#save_ds").click(function(){
+		$("#setting").modal("hide");
+		$("#message").modal('show');
+	    $.ajax({
+				url:"{php echo $this->createWebUrl('collect', array('op' => 'caiji'))}",
+				type : "post",
+				dataType:"json",  
+				data : {
+					fx_title:$("#fx_title").val(),
+					fx_desc:$("#fx_desc").val(),
+					fx_img:$("#fx_img").val(),
+					fx_url:$("#fx_url").val(),
+					y_url:$("#y_url").val(),
+					yueduliang:$("#xn_ydl").val(),
+					dianzanliang:$("#xn_dzl").val(),
+					yuanwen:$("#yc_yw").val(),
+					z_time:$("#z_time").val(),
+					dashang:$("#ds_ds").val(),
+					gratuity_money:$("#ds_je").val(),
+					is_own:$("#ds_own").val(),
+					comment:$("#pl_pl").val(),
+					keyword:$("#ds_keyword").val(),
+					title:$("#bt_title").val(),
+					desc:$("#bt_desc").val(),
+					thumb:$("#bt_img").val(),
+					author:$("#bt_au").val(),
+					category_id:$("#fl_id").val(),
+					content_url:$("#bt_link").val()
+				},
+				success : function(data){
+					console.log();
+					$("#message").modal("hide");
+					alert(data.message);	
+				},
+				error:function(){
+					console.log();
+					alert("ajax请求出错，请联系相关技术人员解决");
+				}
+		});	
+    });
+</script>
+{template 'common/footer'}

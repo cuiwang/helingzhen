@@ -1,0 +1,128 @@
+<script type="text/javascript">
+			$(function(){	
+			
+
+
+		
+
+				function showPosition(position)
+				{
+					var res=position;				
+					var url="{php echo $_W['siteroot'] . 'app/' . substr($this->createMobileUrl('foo',array('op'=>'location','quan_id'=>$quan_id,'id'=>$id)), 2)}";				
+					$.post(url,{
+						latitude:res.latitude,
+						longitude:res.longitude
+					},function(data) {					
+				
+						if(data.status==0){
+							swal({
+								title:'定位失败',
+								text: data.info,
+								type: "warning",
+								showCancelButton: true,
+								confirmButtonText: "重新定位",
+								cancelButtonText: "关闭"
+							}, function(isConfirm){
+								
+								 wx.closeWindow();
+								if(isConfirm){
+									mineLocation();
+								}else{
+									
+								}
+							});
+						}else{
+		
+							if(data.data!=1){										
+								if(data.data<0){//广告圈
+									{if !empty($quan['addr_forward'])}
+									  {if !empty($quan['addr_forward_url'])}
+									  	window.location.href="{$quan['addr_forward_url']}";
+									  {else}
+									  	window.location.href="http://qq.com";
+									  {/if}
+									{/if}
+								}
+								
+								
+							}else{
+								sessionStorage["location"]="1";
+								
+							}
+						}
+					});	
+				}
+				
+			
+					var mineLocation=function(){
+					
+					
+						// 定位
+						wx.getLocation({
+							success: function (res) {	
+								showPosition(res);							
+							},
+							fail: function(){
+								
+								swal({
+									title:'定位失败',
+									text: '请开启手机定位功能后重试',
+									type: "warning",
+									showCancelButton: true,
+									confirmButtonText: "重新定位",
+									cancelButtonText: "关闭"
+								}, function(isConfirm){
+									if(isConfirm){
+										mineLocation();
+									}else{
+										notice_location.show();
+									}
+								});
+							},
+							cancel: function(){
+						    
+								swal({
+									title:'确定放弃定位？',
+									text: '只有{$quan["city"]}范围的人才能玩哦~',
+									type: "warning",
+									showCancelButton: true,
+									confirmButtonText: "重新定位",
+									cancelButtonText: "关闭"
+								}, function(isConfirm){								
+									if(isConfirm){
+										mineLocation();
+									}else{
+										{if !empty($quan['addr_forward'])}
+										  {if !empty($quan['addr_forward_url'])}
+										  	window.location.href="{$quan['addr_forward_url']}";
+										  {else}
+										  	window.location.href="http://qq.com";
+										  {/if}
+										{/if}										
+										
+									}
+								});
+						    	
+							}
+						});
+					};
+					
+				
+					   {if (!empty($adv['city']) &&  strexists($member['last_city'],$adv['city']))}
+					     return;
+					   {/if}
+						 
+
+				 	// 如果当前活动限制区域且我上次定位的区域不等于活动区域时，需触发自动定位	
+				     {if (($quan['city'] || $quan['is_page_addr'])  && (empty($member['last_city']) || empty($member['location_info'])))}											  
+						   wx.ready(function () {					        
+					         mineLocation();	
+						   });
+					 {/if}
+					
+					
+
+					
+		
+			});
+		</script>

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>{$setting['game_title']}</title>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="full-screen" content="yes"/>
+<meta name="screen-orientation" content="portrait"/>
+<meta name="x5-fullscreen" content="true"/>
+<meta name="360-fullscreen" content="true"/>
+<style>
+    body, canvas, div {
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+        -khtml-user-select: none;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    }
+</style>
+
+<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+<script src="../addons/pick_gold/template/js/md5.min.js"></script>
+</head>
+<body style="padding:0; margin: 0; background: #000;">
+
+<script>
+
+var share_desc="{$setting['share_desc']}";
+
+var g_secret={
+    secret:0
+}
+doStaff();
+function doStaff() {
+    
+    getLabelsGet("index.php?i={$_W['uniacid']}&c=entry&do=secret&m=pick_gold");
+    
+}
+
+
+
+function scoreSubmit(score){
+    var ret=fencode(score+':'+g_secret.secret);
+    wxshare(score);
+    getLabelsGet("index.php?i={$_W['uniacid']}&c=entry&do=submitscore&m=pick_gold&data="+ret);
+}
+
+function rankgo(){
+    window.location.href="index.php?i={$_W['uniacid']}&c=entry&do=rank&m=pick_gold";
+}
+
+function sharego(){
+    window.location.href="index.php?i={$_W['uniacid']}&c=entry&do=share&m=pick_gold";
+}
+
+function gameGo(){
+    return true;
+}
+function helpgo(){
+    document.getElementById("help").style.display="";
+}
+function getConfig(){
+    var conf={};
+    conf.gameTime={$setting['game_time']}*10;
+    conf.propType=[
+        {
+            value:{$prop_value[0]}
+        },
+        {
+            value:{$prop_value[1]}
+        },
+        {
+            value:{$prop_value[2]}
+        },
+        {
+            value:{$prop_value[3]}
+        }
+    ];
+    return conf;
+}
+
+
+function fencode(s){
+    var es = [],c='',ec='';
+    s = s.split('');
+    for(var i=0,length=s.length;i<length;i++){
+        c = s[i];
+        ec = encodeURIComponent(c);
+        if(ec==c){
+            ec = c.charCodeAt().toString(16);
+            ec = ('00' + ec).slice(-2);
+        }
+        es.push(ec);
+    }
+    return es.join('').replace(/%/g,'').toUpperCase();
+}
+
+function getCookie(sName) {
+    var sRE = "(?:; )?" + sName + "=([^;]*);?";
+    var oRE = new RegExp(sRE);
+    if (oRE.test(document.cookie)) {
+        return decodeURIComponent(RegExp["$1"]);
+    } else {
+        return null;
+    }
+}
+
+var xmlHttp;
+function GetXmlHttpObject(){
+    if (window.XMLHttpRequest){
+      xmlhttp=new XMLHttpRequest();
+    }else{
+      xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+    }
+    return xmlhttp;
+}
+function getLabelsGet(url){
+    xmlHttp=GetXmlHttpObject();
+    if (xmlHttp==null){
+        alert('error ajax！');
+        return;
+    }
+    url=url+"&t/"+Math.random();
+    xmlHttp.open("GET",url,true);
+    xmlHttp.onreadystatechange=getOkGet;
+    xmlHttp.send();
+}
+
+                   
+function getOkGet(){
+    if(xmlHttp.readyState==1||xmlHttp.readyState==2||xmlHttp.readyState==3){}
+    if (xmlHttp.readyState==4 && xmlHttp.status==200){
+        var data= JSON.parse(xmlHttp.responseText);
+        if(data.type=='score'){
+            if(data.msg!=''){
+                alert(data.msg);
+            }
+        }else if(data.type=='secret'){
+            g_secret.secret = md5( data.secret );
+        }
+    }
+}
+
+wx.config({
+    debug: false, 
+    appId: "{$wxConfig['appId']}",
+    timestamp: "{$wxConfig['timestamp']}",
+    nonceStr: "{$wxConfig['nonceStr']}",
+    signature: "{$wxConfig['signature']}",
+    jsApiList: ['showOptionMenu','onMenuShareTimeline', 'onMenuShareAppMessage']
+});
+
+wx.ready(function () {
+    wx.showOptionMenu();
+    wx.onMenuShareTimeline({
+        title: "{$setting['share_title']}",
+        link:"{$_W['siteroot']}app/index.php?i={$_W['uniacid']}&c=entry&do=gstart&m=pick_gold&invid={$uid}",
+        imgUrl: "{$_W['attachurl']}{$setting['share_img']}"
+    });
+    wx.onMenuShareAppMessage({
+        title: "{$setting['share_title']}",
+        desc: share_desc,
+        link:"{$_W['siteroot']}app/index.php?i={$_W['uniacid']}&c=entry&do=gstart&m=pick_gold&invid={$uid}",
+        imgUrl: "{$_W['attachurl']}{$setting['share_img']}"
+    });
+
+    
+});
+
+wxshare(0);
+
+function wxshare(score){
+    share_desc=share_desc.replace("{1}",score);
+    //share_desc=share_desc.replace("{2}","{$user['nickname']}");
+}
+
+
+
+</script>
+
+<div id="help" style="display: none;width:100%;position: absolute; z-index: 8888; top: 0; left 0;" onclick="document.getElementById('help').style.display='none';">
+    <div style="width:100%;position: relative;">
+        <img src="../addons/pick_gold/template/img/help.png" style="width:100%;position: absolute;left:0px;top:0px;z-index:10" />
+        <div style="position: absolute;width:280px;top:70px;left:50%;margin-left:-140px;z-index:20;text-align:left;line-height:160%;font-size:16px;color:#fff">
+            {php echo  str_replace("\n","<br />",$setting['help']);}
+            <div style="font-size:18px;font-weight:400;padding:20px 0 10px 0">奖品设置：</div>
+            {php echo  str_replace("\n","<br />",$setting['award']);}
+        </div>
+    </div>
+</div>
+
+<div style="width:100%;position: fixed; z-index: 7777; bottom: 10px;font-size:18px;font-weight:400;left 0;text-align:center;color:#000;text-shadow:1px 1px 1px #fff;">{$_W['account']['name']} 提供</div>
+<canvas id="gameCanvas" width="800" height="450"></canvas>
+<script cocos src="../addons/pick_gold/template/mobile/game3/game.min.js"></script>
+<div style="overflow:hidden;height:0;font-size:0">
+<audio src="../addons/pick_gold/template/mobile/game3/res/bg1.mp3" hidden="true" autoplay="true" loop="true"></audio>
+</div>
+</body>
+</html>

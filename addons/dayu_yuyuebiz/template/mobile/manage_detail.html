@@ -1,0 +1,167 @@
+{template 'headers'}
+	<script type="text/javascript" src="{$_W['siteroot']}app/resource/js/lib/jquery-1.11.1.min.js"></script>
+    <script src="{TEMPLATE_PATH}time/js/mobiscroll_002.js" type="text/javascript"></script>
+	<script src="{TEMPLATE_PATH}time/js/mobiscroll_004.js" type="text/javascript"></script>
+	<link href="{TEMPLATE_PATH}time/css/mobiscroll_002.css" rel="stylesheet" type="text/css">
+	<script src="{TEMPLATE_PATH}time/js/mobiscroll.js" type="text/javascript"></script>
+	<script src="{TEMPLATE_PATH}time/js/mobiscroll_003.js" type="text/javascript"></script>
+	<script src="{TEMPLATE_PATH}time/js/mobiscroll_005.js" type="text/javascript"></script>
+	<link href="{TEMPLATE_PATH}time/css/mobiscroll_003.css" rel="stylesheet" type="text/css">
+<style>
+body{background-color:#f0f0f0;font-weight:300;}
+.am-topbar-inverse { background-color: #005b89; border-color: #0b6fa2; color: #eeeeee;}
+.am-text-ir {color:#333;float:left;margin:0.8rem 0.5rem 0 0;height:35px;width:35px;background: url({if !empty($fans['tag']['avatar'])}{$fans['tag']['avatar']}{else}resource/images/noavatar_middle.gif{/if}) no-repeat left center;-webkit-background-size: 35px auto;background-size: 35px auto;}
+hr{padding:0;line-height:0.5rem;margin:1rem 0;}
+.am-panel-hd{height:3.5rem;line-height:2.5rem;}
+.am-panel-footer{height:4.5rem;line-height:3.5rem;}
+
+.am-u-sm-3{padding:0;width:25%;height:3.8rem;font-size:1.5rem;line-height:1.8rem;}
+.am-g .am-u-sm-12 .am-form-group{padding:0;margin:10px 0 0;}
+.am-g .am-u-sm-12 .am-form-group:last-child{border-bottom:0px solid #ddd;}
+.am-btn-group{float:left;width:100%;background-color:#fff;padding:10px 0;}
+.am-input-group-label{padding:0 0.5rem}
+
+
+.am-g .am-u-sm-12 p{padding:0;margin:0;line-height:2.2rem}
+</style>
+		<header data-am-widget="header" id="header" class="am-header am-topbar-inverse am-header-fixed" {if $setting['listsbg']}style="background-color:{$setting['listsbg']};"{/if}>
+            <div class="am-header-left am-header-nav">
+              <a href="#" class="am-text-ir am-circle"></a>{$fans['nickname']}
+            </div>
+            <div class="am-header-right lbs am-header-nav">
+              <a href="javascript:void(0);"><span class="am-header-icon iconfont">&#xe618;</span>
+              </a>
+            </div>
+            <div class="am-header-right am-header-nav">
+            {if $row['status'] == 0}<span class="am-badge am-badge-success am-radius am-text-default">待受理</span>
+                {elseif $row['status'] == 1}<span class="am-badge am-badge-warning am-radius am-text-default">已受理</span>
+                {elseif $row['status'] == 2}<span class="am-badge am-radius am-text-default">已拒绝</span>
+                {elseif $row['status'] == 3}<span class="am-badge am-badge-success am-radius am-text-default">已完成</span>
+                {elseif $row['status'] == -1}<span class="am-badge am-radius am-text-default">用户取消</span>
+            {/if}
+            </div>
+		</header>
+		
+<div class="am-g">
+	<div class="am-u-sm-12 am-text-xs">
+		<p>提交时间：{$row['createtime']}</p>
+		<p>预约时间：{$row[restime]}</p>
+		<p>受理时间：{$row['yuyuetime']}</p>
+	</div>
+</div>
+
+<div class="am-g" style="background-color:#fff7ea;padding-bottom:1rem;border:1px solid #ccc;">
+	<form action="" class="am-form" enctype="multipart/form-data" method="POST" id="form1" data-am-validator>
+    <input type="hidden" name="id" value="{$id}" />
+    <input type="hidden" name="token" value="{$_W['token']}" />
+	<div class="am-u-sm-12">
+		<div class="am-form-group">
+			<select id="status" name="status" class="am-input-sm">
+				{if $row['status'] != 0}<option value="0" {if $row['status'] == 0}selected="selected"{/if}>待确认</option>{/if}
+				<option value="1" {if $row['status'] == 0 or $row['status'] == 1}selected="selected"{/if}>接受此订单</option>
+				<option value="2" {if $row['status'] == 2}selected="selected"{/if}>拒绝此订单</option>
+				<option value="3" {if $row['status'] == 3}selected="selected"{/if}>订单已完成</option>
+			</select>
+		</div>
+		<div class="am-form-group">
+			<select id="paystatus" name="paystatus" class="am-input-sm" {if $activity['pay'] != 1}disabled{/if}>
+				<option value="1" {if $row['paystatus'] == 1}selected="selected"{/if}>未支付</option>
+				<option value="2"  {if $row['paystatus'] == 2}selected="selected"{/if}>已支付</option>
+			</select>{if $activity['pay'] != 1}<span class="am-text-sm am-text-danger">只支持”在线支付“时付款状态不能更改</span>{/if}
+		</div>
+		<div class="am-form-group am-input-group" style="margin: 1rem 0;">
+		<span class="am-input-group-label am-text-sm">受理时间</span>
+			<input type="text" class="am-input-sm" name="yuyuetime" id="appDateTime" value="{php echo date('Y-m-d H:i', time())}" readonly>
+		</div>
+		<div class="am-form-group">
+			<textarea name="kfinfo" class="am-input-sm" name="kfinfo" rows="2" placeholder="请输入答复内容">{$row['kfinfo']}</textarea>
+		</div>
+	<div class="am-form-group">
+		<input type="submit" class="am-btn am-btn-success am-btn-block" value="更新订单" name="submit" {if $row['status'] ==2}disabled{/if}>
+	</div>
+	</div>
+	</form>
+	<script type="text/javascript">
+        $(function () {
+			var currYear = (new Date()).getFullYear();	
+			var opt={};
+			opt.date = {preset : 'date'};
+			opt.datetime = {preset : 'datetime'};
+			opt.time = {preset : 'time'};
+	var nowData=new Date();
+			opt.default = {
+				theme: 'wp', //皮肤样式
+		        display: 'bottom', //显示方式 
+		        mode: 'scroller', //日期选择模式
+				dateFormat: 'yyyy-mm-dd',
+				lang: 'zh',
+				showNow: true,
+				nowText: "今天",
+        cancelText: '取消',
+        setText: '确定',
+		    //    startYear: currYear - 0, //开始年份
+		    //    endYear: currYear + 0 //结束年份
+		minDate: new Date(nowData.getFullYear(),nowData.getMonth(),nowData.getDate(),nowData.getHours()+{$activity['kaishi']},00), 
+		maxDate: new Date(nowData.getFullYear(),nowData.getMonth(),nowData.getDate()+{$activity['tianshu']},{$activity['jieshu']},00), 
+			};
+
+		  	var optDateTime = $.extend(opt['datetime'], opt['default']);
+		    $("#appDateTime").mobiscroll(optDateTime).datetime(optDateTime);
+        });
+    </script>
+</div>
+	
+	
+<div class="am-g">
+
+<table class="am-table am-table-striped am-table-bordered am-text-sm">
+    <thead>
+        <tr class="am-text-danger">
+            <th style="width:30%;">订单编号</th>
+            <th>{$row['ordersn']}</th>
+        </tr>
+        {if $row['transid']}<tr class="am-text-danger">
+            <th style="width:30%;">支付单号</th>
+            <th>{$row['transid']}</th>
+        </tr>{/if}
+    </thead>
+    <tbody>
+        <tr>
+            <td>姓名</td>
+            <td>{$row['member']}</td>
+        </tr>
+        <tr>
+            <td>手机</td>
+            <td><a href="tel:{$row['mobile']}"><i class="am-icon iconfont">&#xe601;</i> {$row['mobile']}</a></td>
+        </tr>
+        <tr>
+            <td>{$activity['xmname']}</td>
+            <td>{$xiangmu['title']} <span class="am-text-danger am-fr"><i class="am-icon iconfont">&#xe61a;</i> {$xiangmu['price']}</span></td>
+        </tr>
+        <tr>
+            <td style="border-bottom: 5px solid #ddd;">付款状态</td>
+            <td style="border-bottom: 5px solid #ddd;">				
+				{if $row['paystatus'] == 1}<span class="am-badge am-badge-danger am-radius am-text-sm">未支付</span>
+                {elseif $row['paystatus'] == 2}<span class="am-badge am-badge-warning am-radius am-text-sm">已支付</span>
+				{/if}
+				<span class="am-fr am-radius am-badge am-badge-{$row['css']}">{$row['paytype']}</span>
+			</td>
+        </tr>
+			{loop $activity['fields'] $fields}
+        <tr>
+            <td>{$fields['title']}</td>
+            <td>
+                {if $fields['type'] == 'image'}
+				<figure data-am-widget="figure" class="am am-figure am-figure-default "   data-am-figure="{  pureview: 'true' }">
+				<img src="{php echo tomedia($fields['data']);}" data-rel="{php echo tomedia($fields['data']);}" height="3rem" alt="{$fields['title']}"/>
+				</figure>
+                 {else}
+                {if !empty($fields['data'])}{$fields['data']}{else}用户未填{/if}
+                {/if}
+			</td>
+        </tr>
+                {/loop}
+    </tbody>
+</table>
+  </div>
+{template 'footers'}

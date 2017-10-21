@@ -1,0 +1,196 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li class="active"><a href="{php echo $this->createWebUrl('seckill_order')}">订单管理</a></li>
+</ul>
+
+<div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body table-responsive">
+		<form action="" class="form-horizontal form" method="GET" enctype="multipart/form-data">
+                <input type="hidden" name="c" value="site" />
+                <input type="hidden" name="a" value="entry" />
+                <input type="hidden" name="m" value="hetu_seckill" />
+                <input type="hidden" name="do" value="seckill_order" />
+			<div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 control-label">场次日期</label>
+					<div class="col-xs-12 col-sm-8 col-lg-9">
+						{php echo tpl_form_field_date('seckilldate', $_GPC['seckilldate']);}
+					</div>
+				</div>
+                <div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 control-label">商品</label>
+					<div class="col-xs-12 col-sm-8 col-lg-9">
+						<select class="form-control" id="goods_id" name="goods_id">
+							<option value="0" {if $goods_id == ''} selected {/if}>全部</option>
+							{loop $goods_list $g}
+								<option value="{$g['id']}" {if $goods_id == $g['id']} selected {/if}>{$g['name']}</option>
+							{/loop}
+						</select>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 control-label">场次</label>
+					<div class="col-xs-12 col-sm-8 col-lg-9">
+						<select class="form-control" id="stageid" name="stage_id">
+							<option value="0" {if $_GPC['stage_id'] == ''} selected {/if}>全部场次</option>
+							{loop $stage_list $s}
+								<option value="{$s['id']}" {if $_GPC['stage_id'] == $s['id']} selected {/if}>{$s['timestart']} 至 {$s['timeend']}</option>
+							{/loop}
+						</select>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 control-label">订单状态</label>
+					<div class="col-xs-12 col-sm-8 col-lg-9"><!-- 1 未支付 2 已支付 3已发货 4已签收 -->
+						<select class="form-control" id="order_status" name="order_status">
+							<option value="0" {if $_GPC['order_status'] == '0' || $_GPC['order_status'] == ''} selected {/if}>全部状态</option>
+							<option value="1" {if $_GPC['order_status'] == '1'} selected {/if}>未支付</option>
+							<option value="2" {if $_GPC['order_status'] == '2'} selected {/if}>已支付</option>
+							<option value="3" {if $_GPC['order_status'] == '3'} selected {/if}>已发货</option>
+							<option value="4" {if $_GPC['order_status'] == '4'} selected {/if}>已签收</option>
+						</select>
+					</div>
+				</div
+                >
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 control-label">订单号</label>
+					<div class="col-xs-12 col-sm-8 col-lg-8">
+						<input type="text" name="order_no" id="order_no" placeholder="支持模糊搜索" class="form-control" value="{$_GPC['order_no']}">
+					</div>
+					<div class="col-sm-4 col-xs-12 col-md-1">
+						<input type="hidden" name="member" id="member" class="form-control" value="">
+						<input type="submit" name="submit" value="搜索" class="btn btn-primary col-lg-7" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 control-label">当前会员订单</label>
+					<div class="col-sm-4 col-xs-12 col-md-3">
+						{if empty($member)}
+							<span class='btn btn-success'>全部会员订单</span>
+						{else}
+							<span class='btn btn-success'>{php echo $this->get_member_info($member, 'id')['nickname']}</span>
+						{/if}
+						<span class='btn btn-success' onclick="exportinfo()">导出订单</span>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+
+<div class="main">
+<p class="bg-danger" style="padding: 15px;">默认显示当天场次所有订单</p>
+<div class="panel panel-default">
+	<div class="panel-heading">订单管理</div>
+	<div class="panel-body table-responsive">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<th style="width:5%;">ID</th>
+					<th style="width:21%;">订单号</th>
+					<th style="width:10%;">客户头像</th>
+					<th style="width:10%;">客户昵称</th>
+					<th style="width:15%;">客户联系方式</th>
+					<th style="width:20%;">订购商品</th>
+					<th style="width:20%;">商品数量/规格</th>
+					<th style="width:10%;">订单状态</th>
+					<th style="width:21%;">下单/发货/签收/取消时间</th>
+					<th style="width:15%;text-align:right;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $item}
+				<tr>
+					<td>{$item['order_id']}</td>
+					<td>{$item['order_no']}</td>
+					<td>
+						<img src="{php echo tomedia($item['member_info']['avatar']);}" width="50" height="50" alt="会员头像">
+					</td>
+					<td>
+						{$item['member_info']['nickname']}
+					</td>
+					<td>
+						{$item['member_info']['phone']}
+					</td>
+					<td>
+						{php echo $this->get_goods_name($item['goods_id'])}
+					</td>
+					<td>
+						{$item['goods_number']}件 /{$item['goods_nature']}
+					</td>
+					
+					<td> <!--  订单状态 1 未支付 2 已支付 3已发货 4已签收 5 已取消 -->
+						{if $item['status'] == 1}
+							<span class='label label-default'>未支付</span>
+						{else if $item['status'] == 2}
+							<span class='label label-primary'>已支付</span>
+						{else if $item['status'] == 3}
+							<span class='label label-success'>已发货</span>
+						{else if $item['status'] == 4}
+							<span class='label label-info'>已签收</span>
+						{else if $item['status'] == 5}
+							<span class='label label-info'>已取消</span>
+						{/if}
+					</td>
+					<td>
+						下单 {php echo date("Y-m-d H:i:s", $item['order_time'])}<br/>
+						{if !empty($item['delivery_time'])}
+							发货 {php echo date("Y-m-d H:i:s", $item['delivery_time'])}<br/>
+						{/if}
+						{if !empty($item['sign_ttime'])}
+							签收 {php echo date("Y-m-d H:i:s", $item['sign_ttime'])}
+						{/if}
+                        {if !empty($item['qx_ttime'])}
+							取消 {php echo date("Y-m-d H:i:s", $item['qx_ttime'])}
+						{/if}
+					</td>
+					<td style="text-align:right;">
+                    
+					{if $item['status'] == 2}
+						<a  title="已付款" class="btn btn-default" href="{php echo $this->createWebUrl('seckill_order',array('op'=>'order_fahuo','order_id'=>$item['order_id']));}" data-toggle="tooltip" data-placement="bottom">去发货</a>
+					{/if}
+                    <a href="{php echo $this->createWebUrl('seckill_order', array('order_id' => $item['order_id'], 'op' => 'post'))}"class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" title="详情"><i class="hicon glyphicon-th-list"></i></a>
+						<a class="btn btn-default" href="#" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('seckill_order',array('op'=>'del', 'order_id'=>$item['order_id']))}');" title="删除" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-times"></i></a>
+					</td>
+				</tr>
+				{/loop}
+			</tbody>
+		</table>
+	</div>
+	</div>
+	{$pager}
+</div>
+<script type="text/javascript">
+	function drop_confirm(msg, url){
+		if(confirm(msg)){
+			window.location = url;
+		}
+	}
+	$("input[name='seckilldate']").bind("blur",function(){
+		var seckilldate = $("input[name='seckilldate']").val(); //2016-11-27
+		var data = {
+                seckilldate:seckilldate,
+            };
+       	$.ajax({
+    		url: "{php echo $this->createWebUrl('Seckill_order', array('op'=>'date_ajax'))}",
+    		type: "POST",
+    		data: data,
+    		cache:false,
+    		dataType: "JSON",
+    		success: function (res) {
+    		    $('#stageid').html(res);
+    		}
+    	});
+	});
+	function exportinfo(){
+		var seckilldate = $("input[name='seckilldate']").val(); //2016-11-27
+		var stageid = $("#stageid").val();
+		var order_status = $("#order_status").val();
+		var order_no = $("#order_no").val();
+
+		var url = "{php echo $this->createWebUrl('Seckill_order', array('op'=>'exportinfo','goods_id'=>$goods_id ));}";
+		window.location.href = url + '&seckilldate=' + seckilldate + '&stageid=' + stageid + '&order_status=' + order_status + '&order_no=' + order_no;
+	}
+</script>
+{template 'common/footer'}

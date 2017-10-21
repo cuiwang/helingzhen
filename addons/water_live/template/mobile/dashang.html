@@ -1,0 +1,217 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
+    <meta content="yes" name="apple-mobile-web-app-capable">
+    <meta content="telephone=no" name="format-detection" />
+    <meta content="black" name="apple-mobile-web-app-status-bar-style">
+    <meta content="yes" name="apple-touch-fullscreen">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+    <title>打赏{$thefans['nickname']}</title>
+	<link href="../addons/water_live/template/css/pay.css" rel="stylesheet" />
+	<script type="text/javascript" src="../addons/water_live/template/js/jquery.min.js"></script>
+</head>
+<body>
+<div class="sldiv">
+    <img class="top" src="../addons/water_live/template/img/paytop.png" />
+    <div class="img">
+        <img src="{$thefans['headimgurl']}" alt="头像" />
+    </div>
+    <div class="info">
+        <span class="name">{$thefans['nickname']}</span><br />
+        <span class="good">赏一个！</span>
+    </div>
+    <div class="slid"></div>
+    <div id="ermimg" style="display: none;margin-top: 30px;">
+     <div style="text-align:center"><span class="info good">长按二维码即可打赏支付</span></div>
+    <div style="text-align:center"><img id="payewm" style="margin:auto;width: 50%;" alt="二维码" /></div>
+    </div>
+    <div class="select" id="jsapi">
+        <div>
+            <a fee="{$system['reward0']}"><span>{$system['reward0']}</span>元</a>
+            <a fee="{$system['reward1']}"><span>{$system['reward1']}</span>元</a>
+            <a fee="{$system['reward2']}"><span>{$system['reward2']}</span>元</a>
+        </div>
+        <div>
+            <a fee="{$system['reward3']}"><span>{$system['reward3']}</span>元</a>
+            <a fee="{$system['reward4']}"><span>{$system['reward4']}</span>元</a>
+            <a fee="{$system['reward5']}"><span>{$system['reward5']}</span>元</a>
+        </div>
+    </div>
+    <form id = "dashang" action="{php echo $this->createMobileUrl("dodashang");}" method="post">
+    <input type="hidden" name="sectionid" id="sectionid" value="{$sectionid}">
+    <input type="hidden" name="thefansid" id="thefansid" value="{$thefansid}">
+    <input type="hidden" name="fee" id="fee">
+    <input type="hidden" name="orderno" id="orderno">
+    <input type="hidden" name="orderid" id="orderid">
+    </form>
+</div>
+<style>
+	.mod_tips_popup {
+	opacity: 0;
+	-webkit-transition: all linear 0.2s;
+	z-index: -1;
+	position: fixed;
+	left: 28%;
+	top: 20%;
+	box-sizing: border-box;
+	width: auto;
+	padding: 15px;
+	margin-left: auto;
+	border-radius: 10px;
+	background-color: rgba(0,0,0,0.83)
+}
+	.mod_tips_popup.mod_tips_popup_show {
+	opacity: 1;
+	z-index: 10000
+	}
+	
+	</style>
+ 	  <div id="Mpopup14618046251102">
+      <div id="pup" class="mod_tips_popup">
+        <div class="mod_tips_cnt">
+          <div class="J_tips_content" style="color: #fff;" id="info"></div>
+        </div>
+        <div class="mod_tips_ft">
+        </div>
+      </div>
+    </div>
+<script>
+
+/* $(function() {
+	$(".select div a").click(function() {
+		$(".select div a").removeClass("red");
+		$(this).addClass("red");
+		var fee = $(this).attr("fee");
+		$('#fee').val(fee); 
+		$('#dashang').submit();
+
+	})
+}); */
+function tips(content){
+	$("#info").html(content);
+	$("#pup").addClass("mod_tips_popup_show");
+	setTimeout('$("#pup").removeClass("mod_tips_popup_show")',2000); 
+	
+}
+
+function alertToUrl(info,url) {
+	tips(info);
+    setTimeout("window.location.href='" + url + "'", 2000);
+  }
+</script>
+ <script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js" type="text/javascript"></script>
+    <script>
+        var appid = '{$_W['account']['jssdkconfig']['appId']}';
+        var timestamp = '{$_W['account']['jssdkconfig']['timestamp']}';
+        var nonceStr = '{$_W['account']['jssdkconfig']['nonceStr']}';
+        var signature = '{$_W['account']['jssdkconfig']['signature']}';
+
+        wx.config({
+            debug: false,
+            appId: appid,
+            timestamp: timestamp,
+            nonceStr: nonceStr,
+            signature: signature,
+            jsApiList: [
+                'checkJsApi',
+                'chooseWXPay',
+                'hideOptionMenu',
+                
+            ]
+        });
+
+
+        wx.ready(function () {
+        	wx.hideOptionMenu();
+        	// 提交金额
+        	$(".select div a").click(function() {
+        		
+        		$(".select div a").removeClass("red");
+        		$(this).addClass("red");
+        		var fee = $(this).attr("fee");
+        		var sectionid = $("#sectionid").val();
+        		var thefansid = $("#thefansid").val();
+       		   	$.ajax({
+       				 type:'POST',
+       				 data:{fee : fee,sectionid:sectionid,thefansid:thefansid},
+       				 url:'{php echo $this->createMobileUrl("GetPrepayid");}',
+       				 success:function(data){
+       					  var json = eval("("+data+")");
+       					  //alert(json.errcode);
+       					  if(json.errcode == 0){
+       						  $("#orderno").val(json.orderno);
+       						  $("#orderid").val(json.orderid);
+       						  if(json.auth == 0){
+	       						  wx.chooseWXPay({
+	       							    timestamp: json.timeStamp, 
+	       							    nonceStr: json.nonceStr, 
+	       							    package: json.package, 
+	       							    signType: json.signType, 
+	       							    paySign: json.paySign,
+	       							    success: function (res) {
+	       							        // 支付成功后的回调函数
+	       							    	var str = JSON.stringify(res);
+	       							    	checkorder();
+	       							    }
+	       							});
+       						  }else{
+       							    tips('长按二维码即可打赏啦');
+       							    $("#jsapi").css('display','none');
+       							    $("#ermimg").css('display','block');
+									$("#payewm").attr('src',json.code_url);
+									checkorder();
+
+       							 // alert(json.code_url);
+       						  }
+       						  
+       					  }else{	 
+       						alert(json.errmsg);
+       					  }
+       				 }
+       			 });
+      
+        	});
+        	
+        });
+
+        wx.error(function (res) {
+        });
+		
+		var run =0;
+		
+		function runcheck(){
+			run = setInterval("checkorder()",2000)
+		}
+        
+		function checkorder(){
+			var orderno =  $("#orderno").val();
+			var orderid =  $("#orderid").val();
+			if(orderno.length == 0){
+				alert('订单号为空');
+			}
+		   	$.ajax({
+				 type:'POST',
+				 data:{orderid:orderid},
+				 url:'{php echo $this->createMobileUrl("CheckJsPayResult");}',
+				 success:function(data){
+					  var json = eval("("+data+")");
+					  if(json.errcode == 0){
+						  alertToUrl(json.msg,json.url);
+					  }else{	 
+						  //alert(json.errmsg);
+						  //clearInterval(run)
+						  checkorder();
+					  }
+				 }
+			 });
+		}
+		
+
+
+    </script>
+</body>
+
+</html>

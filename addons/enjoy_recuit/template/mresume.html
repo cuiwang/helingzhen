@@ -1,0 +1,96 @@
+{template 'common/header'}
+{template 'common'}
+<script type="text/javascript" src="resource/js/lib/jquery-ui-1.10.3.min.js"></script>
+<ul class="nav nav-tabs">
+	<li {if $op== ''} class="active" {/if}><a href="{php echo $this->createWebUrl('Mresume')}">简历浏览</a></li>
+	<li{if $op== 'italy'} class="active" {/if}><a href="{php echo $this->createWebUrl('Mresume',array('op' =>'italy'))}">意向简历</a></li>
+</ul>
+<div class="main panel panel-default">
+	<div class="panel-body table-responsive">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<th style="width:50px;">头像</th>
+					<th style="width:50px;">姓名</th>
+					<th style="width:50px;">性别</th>
+					<th style="width:50px;">年龄</th>
+					<th style="width:80px;">学历</th>
+					<th style="width:100px;">手机</th>
+					<th style="width:100px;">email</th>
+					<th style="width:80px;">更新时间</th>
+					<th style="width:120px;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $userlist $item}
+				<tr>
+					<td><img width='50' src="{if !empty($item['avatar'])}{php echo tomedia($item['avatar'])}{else}{$item['weavatar']}{/if}"/></td>
+					<td>{$item['uname']}</td>
+					<td>{if $item['sex']==1}男{else if $item['sex']==2}女{else}不限{/if}</td>
+					<td>{$item['age']}</td>
+					<td>{if $item['ed']==1}初中及以上{else if $item['ed']==2}高中及以上{else if $item['ed']==3}中技及以上
+					{else if $item['ed']==4}中专及以上{else if $item['ed']==5}大专及以上{else if $item['ed']==6}本科及以上
+					{else if $item['ed']==7}硕士及以上{else if $item['ed']==8}博士
+					{else}不限{/if}</td>
+					<td>{$item['mobile']}</td>
+					<td>{$item['email']}</td>
+					<td>{php echo date('Y-m-d',$item['createtime'])}</td>
+					
+					<td style="text-align:left;">
+						<a href="{php echo $this->createWebUrl('rdetail', array('openid' => $item['openid']))}" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="详情"><i class="fa fa-th-large"></i></a>
+					<a href="javascript:void(0);" id="{$item[openid]}" onclick="italy('{$item[openid]}',this)" class="btn btn-default btn-sm" title="标记">
+					<input type="hidden" id="italy" value="{$item[italy]}"/>
+					<i id="staly_{$item[id]}" class="{if $item[italy]==1}fa fa-heart{else}fa fa-heart-o{/if}"></i></a>
+					<a onclick="return confirm('确认删除吗？');return false;" href="{php echo $this->createWebUrl('mresume', array('op' => 'del','openid' => $item['openid']))}" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="删除简历"><i class="fa fa-times"></i></a>
+					</td>
+				</tr>
+				{/loop}
+			</tbody>
+		</table>
+		{$pager}
+	</div>
+</div>
+<script type="text/javascript">
+
+function italy(openid,obj){
+	//obj=$(this);
+	var italy=$(obj).find("input").val();
+	//alert(italy);
+	$.ajax({
+		type:'post',
+		url:"{php echo $this->createWebUrl('italy')}",
+		data:{openid:openid,italy:italy},//可以直接加一个函数名。
+		dataType:'json',
+		success: function (data) { 
+			//alert(data.res);
+			if(data.res==1){
+				//标记或者取消标记成功
+				if(data.italy==1){
+					//alert(openid);
+					$(obj).find("i").removeClass().addClass("fa fa-heart");
+					
+				}else{
+					$(obj).find("i").removeClass().addClass("fa fa-heart-o");
+				}
+				$(obj).find("input").val(data.italy);
+			}
+		
+		
+		}
+		
+		}); 
+}
+
+
+</script>
+
+
+
+
+
+
+
+
+
+
+{template 'common/footer'}

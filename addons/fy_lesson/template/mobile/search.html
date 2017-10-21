@@ -1,0 +1,161 @@
+<!-- 
+ * 微课堂首页
+ * ============================================================================
+-->
+{php include $this->template('_header');}
+<link href="{MODULE_URL}template/mobile/style/search.css?v=20170302" rel="stylesheet" />
+
+<!-- Start head -->
+<header class="head cbox">
+    {if !empty($setting['logo'])}
+    <a href="{php echo $this->createMobileUrl('index');}" style="background-image:url({$_W['attachurl']}{$setting['logo']});" class="ico ico-logo"></a>
+	{/if}
+    <div class="flex head-search">
+        <form action="javascript:return true;">
+        <input type="search" class="input-text" id="head_searchKeywords" placeholder="搜索课程名称或讲师名称" value="{$_GPC['keyword']}">
+        </form>
+    </div>
+    <!-- <a href="javascript:;" class="head-features cbox">
+        <i class="ico ico-features"></i>
+    </a> -->
+</header>
+{if $op=='display'}
+<style type="text/css">
+.category-name{padding-left:3%; display:inline;}
+.category-ico{border-radius:50%; width:.25rem;}
+</style>
+<div id="mask_filter" style="position: fixed; cursor: default; top: 0px; left: 0px; right: 0px; bottom: 0px; z-index: 11; opacity: 0.5; background: rgb(0, 0, 0); display:none;"></div>
+
+<!-- Start 内容 -->
+<div class="filter_wrap" id="nav" style="position: relative;">
+	<div class="filter_item" onclick="location.href='{php echo $this->createMobileUrl('search', array('op'=>'allcategory'));}'"><span class="filter_text">{$catname}</span></div>
+	<div id="soft" class="filter_item"><span class="filter_text">{$softname}</span></div>
+</div>
+<div id="softcontent" class="pop">
+	<a href="{$_W['siteurl']}&soft=" class="type_item single {if empty($_GPC['soft'])}type_item_on{/if}"><img src="{MODULE_URL}template/mobile/images/ico-default.png" class="category-ico"><p class="category-name">默认排序</p></a>
+	<a href="{$_W['siteurl']}&soft=free" class="type_item single {if $_GPC['soft']=='free'}type_item_on{/if}"><img src="{MODULE_URL}template/mobile/images/ico-free.png" class="category-ico"><p class="category-name">免费课程</p></a>
+	<a href="{$_W['siteurl']}&soft=price" class="type_item single {if $_GPC['soft']=='price'}type_item_on{/if}"><img src="{MODULE_URL}template/mobile/images/ico-price.png" class="category-ico"><p class="category-name">价格优先</p></a>
+	<a href="{$_W['siteurl']}&soft=hot" class="type_item single {if $_GPC['soft']=='hot'}type_item_on{/if}"><img src="{MODULE_URL}template/mobile/images/ico-hot.png" class="category-ico"><p class="category-name">销量优先</p></a>
+	<a href="{$_W['siteurl']}&soft=score" class="type_item single {if $_GPC['soft']=='score'}type_item_on{/if}"><img src="{MODULE_URL}template/mobile/images/ico-score.png" class="category-ico"><p class="category-name">好评优先</p></a>
+</div>
+<div id="content" class="content">
+	<p class="c_count">共找到<em>{$total}</em>节课程</p>
+	<div class="c_part cf">
+		<div class="con">
+			{loop $list $item}
+			<a href="{php echo $this->createMobileUrl('lesson', array('op'=>'display', 'id'=>$item['id']));}" class="pic">
+				<dl class="list">
+					<dt><img src="{$_W['attachurl']}{$item['images']}"></dt>
+					<dd>
+						<p class="s_tit">{$item['bookname']}</p>
+						<div class="s_ext">
+							<span>共<em class="n">{$item['soncount']}</em>节课</span>&nbsp;&nbsp;
+							<span class="ml20"><em style="color:#3BC0B6;">{php echo $item['price']>0?$item['price'].'元':'免费';}</em></span>&nbsp;&nbsp;
+							<span style="float:right;"><em style="color:#4A45FB;">{if $item['price']>0}{php echo $item['buynum']+$item['virtual_buynum'];}{else}{php echo $item['buynum']+$item['virtual_buynum']+$item['visit'];}{/if}</em>人已学习</span>
+						</div>
+						<div style="padding-top:.1rem;">
+							{if $setting['stock_config']==1}
+							剩余:<span class="evaluate">{php echo $item['stock']?$item['stock']:'已售罄';}</span>
+							{/if}
+							共<span class="evaluate">{$item['evaluate']}</span>条评论&nbsp;&nbsp;{if $item['price']>0 && $item['vipview']==1}<span style="float:right;color:#62CC45;">VIP免费</span>{/if}
+						</div>
+					</dd>
+				</dl>
+			</a>
+			{/loop}
+		</div>
+	</div><!-- =E c_part -->
+	{$pager}
+</div>
+<script type="text/javascript">
+	var nav = document.getElementById("nav");
+	var _getHeight = nav.offsetTop;
+	window.onscroll = function(){
+		var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+		if(scrollTop < _getHeight){
+			nav.style.position = 'relative';
+		}else{
+			nav.style.position = 'fixed';
+		}
+	}
+
+	var soft  = document.getElementById("soft");
+	var softcontent  = document.getElementById("softcontent");
+	var mask_filter  = document.getElementById("mask_filter");
+	var content  = document.getElementById("content");
+	$("#serve").click(function(){
+		softcontent.style.display = 'none';
+		mask_filter.style.display = 'block';
+		content.style.display = 'none';
+	});
+	$("#soft").click(function(){
+		soft.style.display = 'block';
+		softcontent.style.display = 'block';
+		softcontent.style.top = '0px';
+		mask_filter.style.display = 'block';
+		content.style.display = 'none';
+	});
+
+	$("#mask_filter").click(function(){
+		soft.style.display = 'block';
+		softcontent.style.display = 'none';
+		mask_filter.style.display = 'none';
+		content.style.display = 'block';
+	});
+</script>
+
+{elseif $op='allcategory'}
+<link href="{MODULE_URL}template/mobile/style/index.css?v=1.1.9" rel="stylesheet" />
+<style type="text/css">
+.allcategory-wrap{width:99%;margin:10px auto;}
+.allcategory-wrap .allcategory{
+    font-size: 16px;
+    font-weight: 400;    display: block;
+    line-height: 40px;
+    text-align: center;
+    border-radius: 2px;
+    color: #666;
+    border: 1px solid #ccc;
+    background-color: #fff;}
+</style>
+<!-- 分类 START-->
+<div class="allcategory-wrap">
+	<a class="allcategory" href="{php echo $this->createMobileUrl('search');}">全部分类</a>
+</div>
+<div class="category-home-nav fixed-Width">
+	<ul>
+		{loop $categorylist $cat}
+		<li>
+			<a href="{php echo $this->createMobileUrl('search', array('cid'=>$cat['id']));}"><span><img src="{$_W['attachurl']}{$cat['ico']}"></span>
+				<p>{$cat['name']}</p>
+			</a>
+		</li>
+		{/loop}
+	</ul>
+</div>
+<!-- 分类 END-->
+{/if}
+
+{php echo register_jssdk(false);}
+<script type="text/javascript">
+wx.ready(function(){
+	var shareData = {
+		title: "{$sharelink['title']} - {$setting['sitename']} - {$_W['account']['name']}",
+		desc: "{$sharelink['desc']}",
+		link: "{php echo $shareurl;}",
+		imgUrl: "{php echo $_W['attachurl'];}{$sharelink['images']}",
+		trigger: function (res) {},
+		complete: function (res) {},
+		success: function (res) {},
+		cancel: function (res) {},
+		fail: function (res) {}
+	};
+	wx.onMenuShareTimeline(shareData);
+	wx.onMenuShareAppMessage(shareData);
+	wx.onMenuShareQQ(shareData);
+	wx.onMenuShareWeibo(shareData);
+	wx.onMenuShareQZone(shareData);
+	
+});
+</script>
+{php include $this->template('_footer');}

@@ -1,0 +1,97 @@
+<!-- 分享控制 -->
+<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+<script type="text/javascript">
+	wx.config(jssdkconfig);
+	var $_share = {php echo json_encode($_share);};
+	sharedata = $_share;
+
+	function tomedia(src) {
+		if (typeof src != 'string')
+			return '';
+		if (src.indexOf('http://') == 0 || src.indexOf('https://') == 0) {
+			return src;
+		} else if (src.indexOf('../addons') == 0 || src.indexOf('../attachment') == 0) {
+			src = src.substr(3);
+			return window.sysinfo.siteroot + src;
+		} else if (src.indexOf('./resource') == 0) {
+			src = src.substr(2);
+			return window.sysinfo.siteroot + 'app/' + src;
+		} else if (src.indexOf('images/') == 0) {
+			return window.sysinfo.attachurl + src;
+		}
+	}
+	if (sharedata.imgUrl == '') {
+		var _share_img = $('#meepo_share_content img:eq(0)').attr("src");
+		if (_share_img == "" || _share_img == undefined || _share_img == null || _share_img == '') {
+			sharedata.imgUrl = "{php echo tomedia($forum['logo']);}";
+		} else {
+			sharedata.imgUrl = tomedia(_share_img);
+		}
+	}
+	if (sharedata.desc == '') {
+		var _share_content = _removeHTMLTag($('body').html());
+		if (typeof _share_content == 'string') {
+			sharedata.desc = _share_content.replace($_share['title'], '')
+		}
+	}
+
+	function querystring(name) {
+		var result = location.search.match(new RegExp("[\?\&]" + name + "=([^\&]+)", "i"));
+		if (result == null || result.length < 1) {
+			return "";
+		}
+		return result[1];
+	}
+
+	function tomedia(src) {
+		if (src.indexOf('http://') == 0 || src.indexOf('https://') == 0) {
+			return src;
+		} else if (src.indexOf('../addons') == 0 || src.indexOf('../attachment') == 0) {
+			src = src.substr(3);
+			return window.sysinfo.siteroot + src;
+		} else if (src.indexOf('./resource') == 0) {
+			src = src.substr(2);
+			return window.sysinfo.siteroot + 'app/' + src;
+		} else if (src.indexOf('images/') == 0) {
+			return window.sysinfo.attachurl + src;
+		}
+	}
+
+	function isNull(data) {
+		return (data == "" || data == undefined || data == null) ? null : data;
+	}
+
+	function ajaxFileUpload() {
+		$.ajaxFileUpload({
+			url: "{php echo url('utility/file',array('do'=>'upload','type'=>'image'),true)}",
+			secureuri: false,
+			fileElementId: 'file',
+			dataType: 'json',
+			success: function(dat, status) {
+				$li = $('<li class="up-pic up-over"><input type="hidden" name="thumb[]" value="' + dat.url + '"/><div class="clip "><img src="' + dat.url + '" style="width: 65px; height: 65px; display: block; margin-left: 0px;"></div> <div class="up-mask"></div> <div class="up-progress">  </div> <a class="btn-del" href="javascript:void(0)" onclick="$(this).parent().remove();" title="关闭">&nbsp;</a> </li>')
+				$('#pub-pics').append($li);
+			},
+			error: function(data, status, e) {
+				console.log(e);
+			}
+		})
+	}
+	wx.ready(function() {
+		wx.onMenuShareAppMessage(sharedata);
+		wx.onMenuShareTimeline(sharedata);
+		wx.onMenuShareQQ(sharedata);
+		wx.onMenuShareWeibo(sharedata);
+	});
+	<!--{if $_GPC['do'] == 'forum_topic'}-->
+	//分享
+	sharedata.success = function() {
+			var url = "{php echo $this->createMobileUrl('forum_share', array('id' => $_GPC['id']));}";
+			$.post(url, function(dat) {
+				window.location.href = "{php echo $this->createMobileUrl('forum_topic',array('id'=>$_GPC['id'],'uid'=>$_W['member']['uid']))}";
+			});
+		} 
+	<!--{/if}-->
+</script>
+</body>
+
+</html>

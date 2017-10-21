@@ -1,0 +1,130 @@
+{template 'common/header'}
+<style>
+.editable-click, a.editable-click {
+    color: #000 !important;
+    border-bottom:none !important;
+    text-decoration: none;
+}
+.editable-input.editable-has-buttons {
+    width: auto;
+    max-width: 100px;
+}
+.st-sort-ascent:before {
+    content: '\25B2';
+}
+</style>
+<!-- 项目管理 -->
+<div class="panel panel-default" ng-app="app" ng-controller="rootCtrl">
+	<div class="panel-heading">
+		项目管理
+	</div>
+	<div class="panel-body">
+		<table st-table="items" class="table table-striped">
+			<thead>
+				<tr>
+					<th style="width:50px;" st-sort="id">编号</th>
+					<th style="width:190px;" st-sort="tid">订单编号</th>
+          <th>
+            昵称
+          </th>
+          <th>
+            uid
+          </th>
+					<th style="width:80px;" st-sort="avatar">头像</th>
+					<th style="width:80px;" st-sort="fee">充值金额</th>
+					<th style="width:100px;" st-sort="status">状态</th>
+          <th>
+            时间
+          </th>
+					<th>操作</th>
+				</tr>
+				<tr>
+					<th></th>
+					<th>
+						<input st-search="tid" placeholder="请输入订单编号" class="input-sm form-control" type="search"/>
+					</th>
+					<th>
+            <input st-search="nickname" placeholder="昵称" class="input-sm form-control" type="search"/>
+          </th>
+					<th>
+            <input st-search="uid" placeholder="UID" class="input-sm form-control" type="search"/>
+          </th>
+					<th></th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="item in items">
+					<td>
+						{{item.id}}
+					</td>
+					<td>
+            {{item.tid}}
+					</td>
+          <td>
+            {{item.nickname}}
+          </td>
+          <td>
+            {{item.uid}}
+          </td>
+					<td>
+						<img ng-src="{{item.avatar || '../addons/meepo_voteplatform/icon.jpg'}}" style="width:50px;height:50px;"/>
+					</td>
+          <td>
+            {{item.fee}}
+          </td>
+          <td><label class="label label-{{item.status_label}}" ng-click="ispay(item)">{{item.status_title}}</label></td>
+					<td>
+						<a href="#" editable-text="item.end_time" onbeforesave="updateendtime(item,$data)">
+							{{ (item.time | date:"yyyy-MM-dd")}}
+						</a>
+					</td>
+          <td>
+						<a class="btn btn-default" ng-mouseenter="tooltip()" data-toggle="tooltip" data-placement="top" title="删除项目" href="#" ng-click="delete(item.id,$index)">
+							<i class="fa fa-times"></i>
+						</a>
+					</td>
+				</tr>
+			</tbody>
+			<tfoot>
+				<tr class="text-center">
+					<td colspan="9">
+						<div st-pagination="" st-items-by-page="itemsByPage" st-displayed-pages="7"></div>
+					</td>
+				</tr>
+			</tfoot>
+		</table>
+	</div>
+</div>
+
+<link rel="stylesheet" type="text/css" href="{MODULE_URL}/public/libs/angular-xeditable/dist/css/xeditable.css"/>
+<script src="{MODULE_URL}public/libs/angular.min.js"></script>
+<script type="text/javascript" src="{MODULE_URL}/public/libs/smart-table.js"></script>
+<script type="text/javascript" src="{MODULE_URL}/public/libs/angular-xeditable/dist/js/xeditable.js"></script>
+<script src="{MODULE_URL}/public/libs/ui-bootstrap-tpls.min.js"></script>
+<script>
+	var app = angular.module('app',['xeditable','smart-table',"ui.bootstrap"]);
+	app.run(function(editableOptions) {
+		editableOptions.theme = 'bs3';
+	});
+	app.controller('rootCtrl',function($scope,$http){
+		$scope.items = {php echo json_encode($list)};
+		var addurl = "{php echo $this->createWebUrl('state',array('act'=>'add'))}";
+		var deleteurl = "{php echo $this->createWebUrl('state',array('act'=>'delete'))}";
+
+		$scope.tooltip = function(){
+			$scope.tooltip = function(){
+				$('[data-toggle="tooltip"]').tooltip();
+			}
+		}
+
+		$scope.delete = function(id,start){
+			var truthBeTold = window.confirm("您确定要删除此项目么，单击“确定”继续。单击“取消”停止。");
+			if(truthBeTold){
+				$http.get(deleteurl+'&id='+id).success(function(data){
+					$scope.items.splice(start,1);
+				});
+			}
+		}
+	});
+</script>
+{template 'common/footer'}

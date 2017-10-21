@@ -1,0 +1,249 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>幸运大转盘</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0,user-scalable=no" />
+<meta name="format-detection" content="telephone=no" />
+<script src="{RES}style/js/jquery-1.10.2.min.js"> </script>
+<script src="{RES}style/js/jQueryRotate.2.2.js"></script>
+<style>
+	* {
+		-webkit-user-select: none;
+		-webkit-tap-highlight-color: transparent;
+		-webkit-touch-callout: none;
+	}
+	 body {
+		 margin: 0;
+	 }
+	.wheel {
+		position: relative;
+		overflow: hidden;
+	}
+
+	.wheel > * {
+		position: absolute;
+		left: 0;
+		top: 0;
+	}
+
+	.full {
+		width: 100%;
+	}
+
+	.deng {
+		background-repeat: no-repeat;
+		background-image: url({RES}style/images/img/lights.png);
+		background-size: 100% auto;
+	}
+	#btn {
+		background: url({RES}style/images/img/btn.png);
+		overflow: hidden;
+		background-size: 100% auto;
+		left: 50%;
+		z-index: 4;
+	}
+	#arrow {
+		height: 100%;
+		left: 50%;
+		z-index: 3;
+	}
+	#msg {
+		font-size: 45px;
+		letter-spacing: 6px;
+		background-color: rgba(0,0,0,.8);
+		height: 130px;
+		position: fixed;
+		width: 280px;
+		top: 50%;
+		left: 50%;
+		margin: -65px 0 0 -140px;
+		border-radius: 5px;
+		color: white;
+		-webkit-box-align: center;
+		-webkit-box-orient: horizontal;
+		-webkit-box-pack: center;
+		display: none;
+		padding: 20px;
+		box-sizing: border-box;
+		z-index: 9999;
+	}
+</style>
+		<script>
+			var isWebkit = false;
+			var iPhone = false;
+			var timer;
+			var btn;
+			var wheel;
+			var isTouchDev;
+			var touchstart;
+			var touchend;
+			document.addEventListener('WeixinJSBridgeReady', function onBridgeReady() {
+				WeixinJSBridge.call('hideToolbar');
+			});
+			var playInterval;
+			var fingerKeepOnSpeed = 0.5; //单位 度/ms
+			var fingerKeepOnDuration = 20; //单位 ms
+			var angle = 0;
+
+			var resultData = [
+				"倒酒",
+				"喝光",
+				"过关",
+				"倒酒",
+				"Kiss下家",
+				"喝光",
+				"倒酒",
+				"回头",
+				"喝光",
+				"倒酒",
+				"Kiss上家",
+				"指定人喝"
+			];
+
+			function OnTouchStart() {
+				btn.bind(touchend, OnTouchEnd).unbind(touchstart,OnTouchStart);
+				fingerKeepOnSpeed = 0.5 + 0.1 * Math.random(); //随机速度
+				btn.css({ backgroundPositionY: '100%' });
+				playInterval = setInterval(function () {
+					angle += fingerKeepOnDuration * fingerKeepOnSpeed;
+					wheel.rotate(angle);
+				}, fingerKeepOnDuration);
+			}
+
+			function OnTouchEnd() {
+				btn.unbind(touchend,OnTouchEnd);
+				var downLv = 1.5;
+				setTimeout(function () {
+					fingerKeepOnSpeed /= downLv;
+					setTimeout(function () {
+						fingerKeepOnSpeed /= downLv;
+						setTimeout(function () {
+							fingerKeepOnSpeed /= downLv;
+							setTimeout(function() {
+								if (playInterval) {
+									clearInterval(playInterval);
+									playInterval = null;
+								} else {
+									return;
+								}
+								fingerKeepOnSpeed /= downLv;
+								slowDown();
+							}, 500);
+						}, 500);
+					}, 500);
+				}, 500);
+			}
+
+			function slowDown() {
+				var angleFrom = parseInt(wheel.getRotateAngle());
+				var r = Math.random();
+				var randomTime = parseInt(9000 + 3000 * r); //随机时间
+				var angleTo = angleFrom + getJifen(fingerKeepOnSpeed, randomTime, randomTime);
+				wheel.rotate({
+					angle: angleFrom,
+					animateTo: angleTo,
+					duration: randomTime,
+					callback: function () {
+						angle = angleTo % 360;
+						wheel.rotate(angle);
+						var resultIndex = Math.ceil(angle / 30);
+						if (resultIndex == 0)
+							resultIndex = 12;
+						showResult(resultData[resultIndex - 1]);
+						btn.css({ backgroundPositionY: 0 });
+						if(iPhone)
+						btn.bind(touchstart, OnTouchStart);
+						else {
+							btn.bind("click", btnClick);
+						}
+					},
+					easing: function (x, t, b, c, d) {
+						return b + getJifen(fingerKeepOnSpeed, randomTime, t);
+					}
+				});
+			}
+
+			function loaded(img) {
+				var ua = navigator.userAgent.toLowerCase();
+				isWebkit = /webkit/i.test(ua);
+				iPhone = /iphone/i.test(ua);
+				var w = img.width;
+				var h = img.height;
+
+				var deng = document.querySelector(".deng");
+				deng.style.height = h + "px";
+
+				var index = 0;
+
+				if (timer) {
+					clearInterval(timer);
+				}
+
+				timer = setInterval(function() {
+					var pos = index % 2 == 0 ? "-" + h : "0";
+					deng.style.backgroundPositionY = pos + "px";
+					index++;
+				}, 1000);
+
+				wheel = $("#wheel");
+				btn = $("#btn");
+				isTouchDev = ('ontouchstart' in window);
+				touchstart = isTouchDev ? 'touchstart' : 'mousedown';
+				touchend  = isTouchDev ? 'touchend' : 'mouseup';
+				var btnWidth = w * 0.26875;
+				$("#container").css("height",w+"px");
+				btn.css({ width: btnWidth, height: btnWidth, marginLeft: -btnWidth / 2, top: (w - btnWidth) / 2 });
+				$("#arrow").css({ height: w, marginLeft: -btnWidth / 2 });
+				if(iPhone)
+					btn.bind(touchstart, OnTouchStart);
+				else {
+					btn.bind("click", btnClick);
+				}
+				$("#msg").bind(touchstart, null, function () {
+					this.style.display = "none";
+				});
+				
+			}
+
+			function btnClick() {
+				btn.unbind("click", btnClick);
+				fingerKeepOnSpeed = 0.4 + 0.1 * Math.random(); //随机速度
+				btn.css({ backgroundPositionY: '100%' });
+				wheel.rotate(angle);
+				slowDown();
+			}
+
+			function getTotal(v0, t0) {
+				var r = (Math.pow(v0, 2) + Math.pow(t0, 2)) / (2 * v0);
+				return (r + v0) * t0 / 2 - (r * r / 2) * Math.asin(t0 / r);
+			}
+
+			function getJifen(v0, t0, x) {
+				var r = (Math.pow(v0, 2) + Math.pow(t0, 2)) / (2 * v0);
+				return getTotal(v0, t0) - ((2 * r - Math.sqrt(r * r - (t0 - x) * (t0 - x))) * (t0 - x) / 2 - (r * r / 2) * Math.asin((t0 - x) / r));
+			}
+
+			function bgImgLoad(img) {
+				img.style.top = (img.width * 1008 / 640 - img.height) + "px";
+			}
+
+			function showResult(str) {
+				$("#msg").html(str);
+				$("#msg").css("display", isWebkit?"-webkit-box":"block");
+			}
+		</script>
+	</head>
+
+	<body>
+		<img class="full" src="{RES}style/images/pw.png" />
+		<div id="container" class="wheel">
+			<img onload="loaded(this)" id="wheel" class="full" src='{RES}style/images/wheel.png' />
+			<div class="deng full"></div>
+			<img id="arrow" src="{RES}style/images/arrow.png" />
+			<div id="btn"></div>
+		</div>
+		<img onload="bgImgLoad(this)" class="full" style="position: absolute;left:0;top:0;z-index: -1;" src="{RES}style/images/bg.jpg"/>
+		<div id="msg"></div>
+	</body>
+</html>

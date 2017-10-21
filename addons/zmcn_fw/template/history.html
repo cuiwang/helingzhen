@@ -1,0 +1,175 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li {if $foo == 'post'}class="active"{/if}><a href="javascript:;" title="显示详情页面,请从《查询管理》进入" >查询明细</a></li>
+	<li {if $foo == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('zmfwcaa', array('foo' => 'display'))}">查询管理</a></li>
+	<li {if $foo == 'cw' && $cred == '1'}class="active"{/if}><a href="{php echo $this->createWebUrl('zmfwcaa', array('foo' => 'cw' , 'cred'=> '1'))}">{$unicredi['credit1']['title']}明细</a></li>
+	<li {if $foo == 'cw' && $cred == '2'}class="active"{/if}><a href="{php echo $this->createWebUrl('zmfwcaa', array('foo' => 'cw' , 'cred'=> '2'))}">{$unicredi['credit2']['title']}明细</a></li>
+	{if !empty($unicredi['credit3']['title'])}<li {if $foo == 'cw' && $cred == '3'}class="active"{/if}><a href="{php echo $this->createWebUrl('zmfwcaa', array('foo' => 'cw' , 'cred'=> '3'))}">{$unicredi['credit3']['title']}明细</a></li>{/if}
+	{if !empty($unicredi['credit4']['title'])}<li {if $foo == 'cw' && $cred == '4'}class="active"{/if}><a href="{php echo $this->createWebUrl('zmfwcaa', array('foo' => 'cw' , 'cred'=> '4'))}">{$unicredi['credit4']['title']}明细</a></li>{/if}
+	{if !empty($unicredi['credit5']['title'])}<li {if $foo == 'cw' && $cred == '5'}class="active"{/if}><a href="{php echo $this->createWebUrl('zmfwcaa', array('foo' => 'cw' , 'cred'=> '5'))}">{$unicredi['credit5']['title']}明细</a></li>{/if}
+	<li {if $foo == 'cw' && $cred == '9'}class="active"{/if}><a href="{php echo $this->createWebUrl('zmfwcaa', array('foo' => 'cw' , 'cred'=> '9'))}">红包明细</a></li>
+	<li {if $foo == 'cw' && $cred == '8'}class="active"{/if}><a href="{php echo $this->createWebUrl('zmfwcaa', array('foo' => 'cw' , 'cred'=> '8'))}">卡劵明细</a></li>
+</ul>
+{if $foo == 'display'}
+<style>
+.label{cursor:pointer;}
+</style>
+<div class="main">
+  <div class="panel panel-default">
+	<div class="panel-body table-responsive">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<th style="text-align:center; width:50px;">ID</th>
+					<th style="text-align:center; width:190px;">防伪码/商品名称</th>
+					<th style="text-align:center; width:100px;">查询/奖励</th>
+					<th style="text-align:center; width:40px;"></th>
+					<th style="text-align:center; width:110px;">会员</th>
+					<th style="text-align:center; width:110px;">地区</th>
+					<th style="text-align:center; width:100px;">时间</th>	
+					<th style="text-align:center; width:130px;">IP/终端</th>	
+					<th style="text-align:center; width:180px;">属性</th>					
+					<th style="text-align:center; width:180px;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $row}
+				<tr style="text-align:center;">				
+					<td style="text-align:center;">{$row['id']}</td>
+					<td style="text-align:left;">{$row['code']}<br>
+					{$row['product']}
+					</td>
+					<td style="text-align:left;">{php echo zm_get_caitype($row['type'])} {$row['num']}次<br>{php echo zmcn_get_intl(substr($row['credittype'] ,-1),str_replace(".00","", $row['fnum']),$row['isy'])}</td>
+					<td style="width:40px;"><img src='{$row['avatar']}'  width='32' height='32'  onerror="this.src='resource/images/noavatar_middle.gif'"/></td>
+					<td style="text-align:left;"><a href='./index.php?c=mc&a=member&do=post&uid={$row['uid']}' title='查看详细信息' target='_blank'>{$row['nickname']}</a><br>{if $row['gender'] == 1}<span class="label label-info">男</span>{elseif $row['gender'] == 2}<span class="label label-danger">女</span>{else}<span class="label label-default">未知</span>{/if}</td>
+					<td style="text-align:center;">{$row['province']}<br>{$row['city']}</td>
+					<td style="text-align:center;">{php echo date('Y-m-d', $row['addtime'])}<br>{php echo date('H:i:s', $row['addtime'])}</td>
+					<td style="text-align:center;">{php echo zmcn_iswxip($row['ip'], "<br>" . $row['os'] . " " . $row['container'])}</td>
+					
+					
+					
+					
+					<td style="text-align:left;word-break: break-all; word-wrap:break-word;">
+					{if $row['num'] == 1}<span class="label label-success" title="该防伪码首将被查询">首次</span>{elseif  (int)$settings['upperlimit'] !=0 && (int)$row['num'] > (int)$settings['upperlimit']}<span class="label label-warning" title="该防伪码查询的次数超过设定的数值">超限</span>{else}<span class="label label-info" title="该防伪码被多次查询">多次</span>{/if}
+					{if $row['isvalid'] == 1}<span class="label label-default" title="该防伪码被内部锁定">失效</span>{else}<span class="label label-success">有效</span>{/if}
+					{if $row['iserr'] == 1}<span class="label label-warning" title="商品的授权销售区域和扫码查询地区可能不同">跨区</span>{else}<span class="label label-success">本区</span>{/if}
+					{if $row['isgz'] == 1}<span class="label label-info" title="该用户通过这个环节关注了我们公众号">关注</span>{/if}<br>
+					{if $row['isy'] == 1}<span class="label {$_W['label'][1]}" title="{$row['tx']}">已发放</span>{else}<span class="label {$_W['label'][0]}" title="请点击再次补发；
+{$row['tx']}" id="bufa{$row['id']}" onclick="QIYUE.bufa(this, {$row['id']});">发放失败</span>{/if}
+					</td>		
+					<td>
+					<a rel="tooltip" href="{php echo $this->createWebUrl('zmfwuser', array('uid' => $row['userid'], 'foo' => 'buy'))}" title="查看该用户的查询记录明细,即他的购买记录" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" title="查看该用户的查询记录明细,即他的购买记录"><i class="fa fa-history"></i></a>
+					<a rel="tooltip" href="{php echo $this->createWebUrl('zmfwcaa', array('id' => $row['id'], 'foo' => 'post'))}" title="查看该防伪码的查询记录明细" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" title="查看该防伪码的查询记录明细"><i class="fa fa-calendar"></i></a> 
+					<a rel="tooltip" href="{php echo $this->createWebUrl('zmfwcaa', array('id' => $row['id'], 'foo' => 'close'))}" title="禁用：将该防伪码设为无效" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" title="禁用：将该防伪码设为无效"><i class="fa fa-lock"></i></a> 
+					<a href="{php echo $this->createWebUrl('zmfwcaa', array('id' => $row['id'], 'foo' => 'delete'))}" onclick="return confirm('删除后该密码将作为新密码重新可被查询，此操作不可恢复，确认删除？');return false;" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" title="删除后该密码将作为新密码重新可被查询"><i class="fa fa-times"></i></a>
+					</td>
+				</tr>
+				{/loop}	
+			</tbody>
+		</table>
+		{$pager}
+	</div>
+  </div>
+</div>
+
+<script type="text/javascript">
+    var QIYUE = {
+        jsonUrl: "{php echo $this->createWebUrl('Zmfwcaa')}",
+        bufa: function(_this, id){
+			$(_this).onclick=null;
+            $.post(this.jsonUrl, {"foo":"bufa","id":id}, function(msg){
+                $(_this).html('正在补发…');
+                var _obj = JSON.parse(msg);
+                if(_obj.state==1){
+					//alert(_obj.message);
+					$(_this).html('补发功功');
+					$(_this).addClass("label label-success");
+                }else{
+					//alert(_obj.message);
+					$(_this).html(_obj.message);
+					$(_this).onclick="QIYUE.bufa(this, " + id + ");";
+				}
+            });
+        }
+    }
+</script>
+{elseif $foo == 'cw'}
+<style>
+.label{cursor:pointer;}
+</style>
+<div class="main">
+  <div class="panel panel-default">
+	<div class="panel-body table-responsive">
+		<table class="table table-hover">
+				<tr>
+					<th style="text-align:center; width:50px;">ID</th>
+					<th style="text-align:center; width:180px;">时间</th>
+					<th style="text-align:center; width:60px;">类型</th>
+					<th style="text-align:center; width:100px;">金额/点数</th>
+					<th style="text-align:center; width:250px;">会员</th>
+					<th style="text-align:center; width:400px;">摘要</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $row}
+				<tr style="text-align:center;">
+					<td style="text-align:center;">{$row['id']}</td>
+					<td style="text-align:center;">{php echo date('Y-m-d H:i:s', $row['createtime'])}</td>
+					<td style="text-align:center;">{php echo zm_get_credit(substr($row['credittype'] ,-1))}</td>
+					<td style="text-align:center;">{php echo get_cdr($row['num'])}</td>
+					<td style="text-align:left;">{$row['nickname']}</td>
+					<td style="text-align:left;">{$row['remark']}</td>
+				</tr>
+				{/loop}	
+			</tbody>
+		</table>
+		{$pager}
+	</div>
+  </div>
+</div>
+{elseif $foo == 'post'}
+<style>
+.label{cursor:pointer;}
+</style>
+<div class="main">
+  <div class="panel panel-default">
+	<div class="panel-body table-responsive">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<th style="text-align:center; width:50px;">ID</th>
+					<th style="text-align:center; width:200px;">操作人员</th>
+					<th style="text-align:center; width:150px;">操作时间</th>
+					<th style="text-align:center; width:360px;">内容摘要</th>
+					<th style="text-align:center; width:120px;">IP</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $row}
+				<tr>				
+				   <td style="text-align:center;">{$row['id']}</td>
+				   {if  $row['type'] == 0}
+						<td>{php echo zm_get_username($row['uid'])}</td>
+				   {else}
+					    <td style="text-align:center;">{php echo zm_get_webusername($row['uid'])}</td>			   
+				   {/if}
+					<td style="text-align:center;">{php echo date('Y-m-d H:i:s', $row['addtime'])}</td>
+				   <td style="text-align:center;">{$row['remark']} </td>
+					<td style="text-align:center;">{php echo zmcn_iswxip($row['ip'])}</td>
+				</tr>
+				{/loop}	
+			</tbody>
+		</table>
+		{$pager}
+	</div>
+  </div>
+</div>
+
+{/if}
+
+<script type="text/javascript">
+ 	require(['bootstrap'],function($){
+		$('[data-toggle="tooltip"]').tooltip();
+	});
+</script>
+{template 'common/footer'}

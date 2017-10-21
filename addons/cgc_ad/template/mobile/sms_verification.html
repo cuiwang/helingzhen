@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+<title>绑定手机号码</title>
+<link href="{MODULE_URL}/css/seller/global.css" rel="stylesheet">
+<link href="{MODULE_URL}/css/seller/style.css" rel="stylesheet">
+<script language="javascript" src="{MODULE_URL}/js/seller/zepto.min.js"></script>
+<script type="text/javascript" src="{MODULE_URL}/js/jquery-1.7.2.min.js"></script>
+<script type="text/javascript" src="{MODULE_URL}/js/jquery.blockUI.js"></script>
+<script type="text/javascript" src="{MODULE_URL}/js/jquery.cookie.js"></script>
+<script src="{MODULE_URL}/js/seller/global.js"></script>
+    <style>
+        .verificat{ width:88%; margin:5px auto;}
+        .verificat p{ line-height:2.2em; margin-top: 15px;}
+        .verificat p span{ width:48%; display:inline-block;}
+        .verificat p span:last-child{ margin-left:4%;}
+        yzm-btn{ width:100%;
+            font-size: 14px;
+            line-height:30px;
+            color:#FFFFFF;
+            background-color: #0873c0;
+            border: 1px solid #a0a0a0;
+            display: block;
+            border-radius: 4px;}
+        .yzm-cs-btn{ width:100%;
+            font-size: 14px;
+            line-height:30px;
+            color:#bbb;
+            background-color: #666;
+            border: 1px solid #a0a0a0;
+            display: block;
+            border-radius: 4px;}
+    </style>
+</head>
+<body>
+<!-- header -->
+<header class="page-header zindex3 pro_header"> 
+    <a class="arrow-wrap huise" href="javascript:window.history.back(-1);"> <span class="arrow-left  huise"></span> <i class="fanhuib">返回</i> </a>
+  <div class="page-headertext">绑定手机号码</div>
+</header>
+<!--绑定手机-->
+<div id="binding">
+  <form class="binding" action="{php echo $this->createMobileUrl('sms_verification',array('op'=>'post','quan_id'=>$quan_id,'id'=>$_GPC['id']))}"  method="post">
+    <div class="binding001">
+      <div class="binding0011"><em>手机号</em><i style="margin-left:7px;"></i>
+        <input type="tel" value="{$member['telphone']}" placeholder="请输入手机号" pattern="[0-9]*" maxlength="11" name="phone-ipt" id="phone-ipt">
+      </div>
+        <div style="width:100%;border:1px solid #f2f2f2;position: relative;  float: left;"></div>
+      <div class="binding0012"><em>验证码</em><i style="margin-left:7px;"></i>
+        <input type="tel" id="code-ipt" pattern="[0-9]*" name="code-ipt" maxlength="4" autocomplete="off" placeholder="请输入4位验证码">
+        <button id="v_btn" class="cookie">获取验证码</button>
+      </div>
+    </div>
+    <p class="zusm">一个手机只能绑定一个账号，绑定手机不收取任何费用</p>
+    <div class="binding002">
+      <input type="submit" id="sub_btn" value="提交">
+    </div>
+  </form>
+</div>
+<div class="wptConfirm">
+  <div class="wptMask"></div>
+  <div class="dialog">
+    <div class="tip">
+      <div class="msg"></div>
+    </div>
+    <div class="btns">
+      <div class="btn-confirm sure btn-green">确定</div>
+      <div class="btn-cancel">取消</div>
+    </div>
+  </div>
+</div>
+
+<div class="wptMultiConfirm">
+    <div class="wptMask"></div>
+    <div class="dialog">
+        <div class="tip">
+            <div class="msg"></div>
+        </div>
+        <div class="btns">
+            <div class="btn-cancel">取消</div>
+        </div>
+    </div>
+</div>
+<div class="wptAlert">
+    <div class="wptMask"></div>
+    <div class="dialog">
+        <div class="tip">
+            <div class="msg"></div>
+        </div>
+        <div class="btns">
+            <div class="btn-confirm">朕知道了</div>
+        </div>
+    </div>
+</div>
+<div style="display:none;"></div>
+<input type="hidden" id="webstationid" value="1">
+<div style="display:none;">
+
+</body></html>
+<script>
+	var doing = false;	
+    $(function() {
+        
+        $(".cookie").click(function (event) {
+            event.preventDefault();
+            if (doing == true) {
+                return;
+            }
+
+            var tel = $("#phone-ipt").val();
+            if (tel == "" || tel.length != 11) {
+                alert("请正确填写手机号码！");
+                $("#phone-ipt").focus();
+                return;
+            }
+
+            //手机验证
+            var RegMobile = /^1[34578]\d{9}$/;
+            if (!RegMobile.test(tel)) {
+                alert("请正确填写手机号码！");
+                return;
+            }
+
+
+            $.blockUI({message: "获取验证码中"});
+            $.ajax({
+                type: "POST",
+                dataType: "json",
+                url: "{php echo $this->createMobileUrl('yzm')}",
+                data: {tel: tel},
+                success: function (json) {
+                    $.unblockUI();
+                    if (json.code == "1") {
+                        $.cookie("time", 60);
+                        Round();
+                        doing = true;
+                    } else {
+                        alert(json.msg);
+                    }
+                },
+                error: function (json) {
+                    alert("网络繁忙");
+                    $.unblockUI();
+                    doing = false;
+                }
+            });
+        });
+    })
+
+    function Round() {
+        var ss = $.cookie("time");
+        if (ss <= 0) {
+            $.cookie("time", null);
+            $(".cookie").addClass("yzm-btn").removeClass("yzm-cs-btn").text("获取验证码");
+        } else {
+            var ss = $.cookie("time") - 1;
+            $.cookie("time", ss);
+            $(".cookie").addClass("yzm-cs-btn").removeClass("yzm-btn").text("重新发送"+ss);
+            doing=false;
+            setTimeout("Round()", 1000);
+        }
+    }
+</script>

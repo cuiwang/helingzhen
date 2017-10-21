@@ -1,0 +1,262 @@
+{template 'common/header'}
+{php load()->func('tpl')}
+{template 'common'}
+<ul class="nav nav-tabs">
+	<li class="active"><a href="{php echo $this->createWebUrl('hotelset')}">基本设置</a></li>
+</ul>
+<div class="main">
+	<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" onsubmit='return check()'>
+		<input type="hidden" name="id" value="{$set['id']}" />
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				基本设置
+			</div>
+			<div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">版本设置</label>
+					<div class="col-sm-9 col-xs-12">
+						<label class="radio-inline">
+							<input type="radio" value="0" name="version" class="version" {if $set['version']==0 || empty($set['version'])}checked{/if}/> 独立店铺版本
+						</label>
+						<label class="radio-inline">
+							<input type="radio" value="1" name="version" class="version" {if $set['version']==1}checked{/if}/> 多个店铺版本
+						</label>
+						<span class="help-block">请根据您店铺的实际情况选择，不要随意修改(单店版按店铺排序大小显示第一个店铺)</span>
+					</div>
+				</div>
+				<div  id="de_city" class="form-group" {if $set['version'] != 1}style="display:none"{/if}>
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">默认城市</label>
+					<div class="col-sm-9 col-xs-12">
+						{php echo tpl_form_field_district('district',array('province'=>$set['location_p'],'city'=>$set['location_c'],'district'=>$set['location_a']))}
+					</div>
+				</div>
+				<!-- 先不要默认是微信粉丝用户
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">用户设置</label>
+					<div class="col-sm-9 col-xs-12">
+						<label class="radio-inline">
+							<input type="radio" value="1" name="user" class="user" {if $set['user']==1 || empty($set['user'])}checked{/if}/> 微信粉丝
+						</label>
+						<label class="radio-inline">
+							<input type="radio" value="2" name="user" class="user" {if $set['user']==2}checked{/if}/> 独立用户
+						</label>
+						<span class="help-block">用户是微信粉丝还是独立的用户, 独立用户需要注册</span>
+					</div>
+				</div>
+				 -->
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">申请退款</label>
+					<div class="col-sm-9 col-xs-12">
+						<label class="radio-inline">
+							<input type="radio" value="0" name="refund" class="user" {if empty($set['refund'])}checked{/if}/> 可以
+						</label>
+						<label class="radio-inline">
+							<input type="radio" value="1" name="refund" class="user" {if $set['refund']==1}checked{/if}/> 不可以
+						</label>
+						<span class="help-block">用户没有入住前或者没有发货时是否可以申请退款</span>
+					</div>
+				</div>
+				<div class="form-group" id='trbind' {if $set['user']!=2}style="display:none"{/if}>
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">绑定设置</label>
+					<div class="col-sm-9 col-xs-12">
+						<label class="radio-inline">
+							<input type="radio" value="1" name="bind" class="bind" {if $set['bind']==1 || empty($set['bind'])}checked{/if}/> 不绑定
+						</label>
+						<label class="radio-inline">
+							<input type="radio" value="2" name="bind" class="bind" {if $set['bind']==2}checked{/if}/> 绑定
+						</label>
+						<label class="radio-inline">
+							<input type="radio" value="3" name="bind" class="bind" {if $set['bind']==3}checked{/if}/> 针对用户设置
+						</label>
+						<span class="help-block">如果选择绑定，用户第一次登录后自动与微信号绑定，其他微信用户无法使用此绑定帐号登录</span>
+					</div>
+				</div>
+				<div class="form-group" id='trreg' {if $set['user']!=2}style="display:none"{/if}>
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">注册设置</label>
+					<div class="col-sm-9 col-xs-12">
+						<label class="radio-inline">
+							<input type="radio" value="1" name="reg" class='reg' {if $set['reg']==1 || empty($set['reg'])}checked{/if}/> 开启注册
+						</label>
+						<label class="radio-inline">
+							<input type="radio" value="2" name="reg" class='reg' {if $set['reg']==2}checked{/if}/> 禁止注册
+						</label>
+					</div>
+				</div>
+				<div class="form-group" id='trregcontent' {if $set['user']!=2}style="display:none"{/if}>
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">注册说明</label>
+					<div class="col-sm-9 col-xs-12">
+						<textarea name="regcontent" class="form-control" cols="70">{$set['regcontent']}</textarea>
+						<span class="help-block">在禁止注册的时候对用户注册的说明</span>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">预定类型</label>
+					<div class="col-sm-9 col-xs-12">
+						<label class='radio-inline'><input type="radio" name="ordertype" value="0" {if $set['ordertype'] == 0} checked="true" {/if}>电话预定</label>
+						<label class='radio-inline'><input type="radio" name="ordertype" value="1"  {if $set['ordertype'] == 1} checked="true" {/if}> 电话预定和网络预定</label>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">预定电话</label>
+					<div class="col-sm-9 col-xs-12">
+						<label class='radio-inline'><input type="radio" name="is_unify" class="is_unify" value="0" {if $set['is_unify'] == 0} checked="true" {/if}>使用各店铺电话</label>
+						<label class='radio-inline'><input type="radio" name="is_unify" class="is_unify" value="1"  {if $set['is_unify'] == 1} checked="true" {/if}> 使用统一电话</label>
+					</div>
+				</div>
+				<div class="form-group" {if $set['is_unify'] == 0}style="display:none"{/if} id='trtel'>
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">统一电话号码</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" name="tel" id="tel" value="{$set['tel']}" class="form-control">
+					</div>
+				</div>
+				<!-- 
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">余额支付</label>
+					<div class="col-sm-9 col-xs-12">
+						<label class='radio-inline'><input type="radio" name="paytype1" value="1"  {if $set['paytype1'] == 1} checked="true" {/if}> 开启</label>
+						<label class='radio-inline'><input type="radio" name="paytype1" value="0" {if $set['paytype1'] == 0} checked="true" {/if}>关闭</label>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">在线支付</label>
+					<div class="col-sm-9 col-xs-12">
+						<label class='radio-inline'><input type="radio" name="paytype2" value="0" {if $set['paytype2'] == 0} checked="true" {/if}>关闭</label>
+						<label class='radio-inline'><input type="radio" name="paytype2" value="21" {if $set['paytype2'] == 21} checked="true" {/if}> 微支付</label>
+						<label class='radio-inline'><input type="radio" name="paytype2" value="22" {if $set['paytype2'] == 22} checked="true" {/if}> 支付宝</label>
+						<label class='radio-inline'><input type="radio" name="paytype2" value="23" {if $set['paytype2'] == 23} checked="true" {/if}> 微支付+支付宝</label>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">到店付款</label>
+					<div class="col-sm-9 col-xs-12">
+						<label class='radio-inline'><input type="radio" name="paytype3" value="1"  {if $set['paytype3'] == 1} checked="true" {/if}> 开启</label>
+						<label class='radio-inline'><input type="radio" name="paytype3" value="0" {if $set['paytype3'] == 0} checked="true" {/if}>关闭</label>
+					</div>
+				</div>
+				 -->
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">短信验证</label>
+					<div class="col-sm-9 col-xs-12">
+						<label class='radio-inline'><input type="radio" name="smscode" value="1"  {if $set['smscode'] == 1} checked="true" {/if}> 开启</label>
+						<label class='radio-inline'><input type="radio" name="smscode" value="2" {if $set['smscode'] == 2 || empty($set['smscode'])} checked="true" {/if}>关闭</label>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">模板消息</label>
+					<div class="col-sm-9 col-xs-12">
+						<label class='radio-inline'><input type="radio" name="template" value="1"  {if $set['template'] == 1} checked="true" {/if} onclick="$('.templateid').show();"> 开启</label>
+						<label class='radio-inline'><input type="radio" name="template" value="0" {if $set['template'] == 0} checked="true" {/if} onclick="$('.templateid').hide();">关闭</label>
+					</div>
+				</div>
+				<div class="form-group templateid" {if !$set['template']}style="display: none;"{/if}>
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">订单拒绝模板ID</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" name="refuse_templateid" class="form-control" value="{$set['refuse_templateid']}" />
+						<span class="help-block">请在“微信公众平台”选择行业为：“酒店旅游 - 酒店”，添加标题为：”预订拒绝通知“，编号为：“OPENTM401039125”的模板</span>
+					</div>
+				</div>
+				<div class="form-group templateid" {if !$set['template']}style="display: none;"{/if}>
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">订单提交成功通知模板id</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" name="confirm_templateid" class="form-control" value="{$set['confirm_templateid']}" />
+						<span class="help-block">请在“微信公众平台”选择行业为：“酒店旅游 - 酒店”，添加标题为：”订单提交成功通知“，编号为：“OPENTM207498738”的模板</span>
+					</div>
+				</div>
+				<div class="form-group templateid" {if !$set['template']}style="display: none;"{/if}>
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">酒店订单确认模板id</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" name="templateid" class="form-control" value="{$set['templateid']}" />
+						<span class="help-block">请在“微信公众平台”选择行业为：“酒店旅游 - 酒店”，添加标题为：”酒店预订确认通知“，编号为：“TM00217”的模板</span>
+					</div>
+				</div>
+			
+				<div class="form-group templateid" {if !$set['template']}style="display: none;"{/if}>
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">酒店已入住通知模板id</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" name="check_in_templateid" class="form-control" value="{$set['check_in_templateid']}" />
+						<span class="help-block">请在“微信公众平台”选择行业为：“酒店旅游 - 酒店”，添加标题为：”入住提醒“，编号为“TM00058”的模板</span>
+					</div>
+				</div>
+	
+				<div class="form-group templateid" {if !$set['template']}style="display: none;"{/if}>
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">酒店订单完成通知模板id</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" name="finish_templateid" class="form-control" value="{$set['finish_templateid']}" />
+						<span class="help-block">请在“微信公众平台”选择行业为：“酒店旅游 - 酒店”，添加标题为：”离店通知“，编号为：“OPENTM203173461”的模板</span>
+					</div>
+				</div>
+	
+	
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">提醒接收邮箱</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" name="email" class="form-control" value="{$set['email']}" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">提醒接收手机</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" name="mobile" class="form-control" value="{$set['mobile']}" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">提醒接收微信</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" name="nickname" class="form-control" value="{$set['nickname']}" />
+						<span class="help-block">请先关注该公众号，然后填写微信昵称，可以不填</span>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="form-group col-sm-12">
+			<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+			<input type="hidden" name="token" value="{$_W['token']}" />
+		</div>
+	</form>
+</div>
+<script language='javascript'>
+	function check(){
+	}
+	$(function(){
+
+		$(".version").click(function(){
+			var obj = $(this);
+			if(obj.val()=='1'){
+				$("#de_city").show();
+			}
+			else{
+				$("#de_city").hide();
+			}
+		});
+
+		$(".user").click(function(){
+			var obj = $(this);
+			if(obj.val()=='2'){
+				$("#trreg").show();$("#trbind").show();
+			}
+			else{
+				$("#trreg").hide();$("#trbind").hide();
+			}
+		});
+
+		$(".reg").click(function(){
+			var obj = $(this);
+			if(obj.val()=='1'){
+				$("#trregcontent").hide();
+			}
+			else{
+				$("#trregcontent").show();
+			}
+		});
+		$(".is_unify").click(function(){
+			var obj = $(this);
+			if(obj.val()=='1'){
+				$("#trtel").show();;
+			}
+			else{
+				$("#trtel").hide();;
+			}
+		});
+	});
+</script>
+{template 'common/footer'}

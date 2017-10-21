@@ -1,0 +1,77 @@
+{template 'head'}
+<div class="swiper-container">
+<div class="swiper-wrapper">
+{loop $flash $item} 
+<div class="swiper-slide"><img src="{$_W['attachurl']}{$item['attachment']}" /></div>
+{/loop}
+</div>
+</div>
+<div class="public-module-title"> 
+<p><span class="base-bgcolor public-title-icon" style="background:{$set['color']}"></span>专题列表</p>
+</div>
+<div class="weui_panel margin1">
+<div class="weui_panel_bd" id="lists">
+</div>
+</div>
+<div class="weui-infinite-scroll"></div>
+<script type="text/javascript">
+$(function() {
+i = 1;
+var totalpage = 100; //总页数，防止超过总页数继续滚动
+var winH = $(window).height(); //页面可视区域高度 
+$(window).scroll(function() {
+if (i < totalpage) { // 当滚动的页数小于总页数的时候，继续加载
+var pageH = $(document.body).height();
+var scrollT = $(window).scrollTop(); //滚动条top 
+var aa = (pageH - winH - scrollT) / winH;
+if (aa < 0.01) {
+getJson(i)
+}
+} else { //否则显示无数据
+showEmpty();
+}
+});
+getJson(0); //加载第一页
+});
+function getJson(page) {
+$(".weui-infinite-scroll").show().html("<div class=infinite-preloader></div>正在加载");
+$.getJSON("{php echo $this->createMobileUrl('news', array('act' => 'ztajax'))}", {page: i}, function(json) {
+if (json) {
+var str = "";
+$.each(json, function(index, array) {
+var str = "<a href='" + array['url'] + "'><div class='weui_media_box weui_media_text'><h4 class='weui_media_titlett f-black'>" + array['title'] + "</h4><img class='pic100' src='" + array['thumb'] + "'><ul class='weui_media_infott'><li class='weui_media_info_metatt'><span class='yuedu'>" + array['yuedu'] + "</span><span class='right time'>" + array['time'] + "</span></li></ul></div></a>";
+$("#lists").append(str);
+});
+$(".weui-infinite-scroll").hide()
+} else {
+showEmpty();
+}
+});
+i++;
+}
+function showEmpty() {
+$(".weui-infinite-scroll").show().html("没有内容了...");
+}
+</script>
+{php echo register_jssdk(false);}
+<script type="text/javascript">
+wx.ready(function () {
+sharedata = {
+title: "{$set['name']}-{$set['ad']}",
+desc: "{$set['name']}-{$set['ad']}",
+link: window.location.href,
+imgUrl: "{$_W['attachurl']}{$set['logo']}",
+success: function (res) {},
+cancel: function(){
+}
+};
+wx.onMenuShareAppMessage(sharedata);
+wx.onMenuShareTimeline(sharedata);
+wx.onMenuShareQQ(sharedata);
+wx.onMenuShareWeibo(sharedata);
+wx.onMenuShareQZone(sharedata);
+});
+</script>
+{template 'end'}
+</body>
+</html>

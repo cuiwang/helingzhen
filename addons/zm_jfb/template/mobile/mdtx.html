@@ -1,0 +1,274 @@
+<!doctype html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8">
+
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<meta name="format-detection" content="telephone=no">
+
+<meta name="msapplication-tap-highlight" content="no">
+
+
+<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+
+<script src="../addons/zm_jfb/js/jquery.1.7.1.min.js"></script>
+
+<link rel="stylesheet" href="../addons/zm_jfb/css/uindex.css">  
+
+<title>{$setting['title']}</title>
+
+
+</head>
+
+<body>
+
+<section class="main">
+	<div class="itemlist">
+			<ul class="item">
+				<li class="yhref"><a href="javascript:void(0);" onclick="changebuttype('0');">积分</a></li>
+				<li><a href="javascript:void(0);" onclick="changebuttype('1');">余额</a></li>
+			</ul>
+			<div class="clear"></div>
+			<input type="hidden" id="buttype" name="buttype" value="0" />
+	</div>
+	
+	<div class="czbody">
+		<div class="headimg"></div>
+		<div class="title">提现到</div>
+		
+		<ul class="tx-list">
+			<li class="tx-click" data-v="1">微信</li>
+			<li data-v="2">支付宝</li>
+			<li data-v="3">银行卡</li>
+		</ul>
+		<input type="hidden" id="txtype" name="txtype" value="1" />
+		<div class="clear"></div>
+		
+		<div class="pricediv zhifubao">
+			<span>支付宝账号</span><br/>
+			<input type="text" id="zhifubao" name="zhifubao" placeholder="" class="input" />
+		</div>
+		<div class="pricediv yinhangka">
+			<span>开户姓名</span><br/>
+			<input type="text" id="yinhangname" name="yinhangname" placeholder="" class="input" />
+		</div>
+		<div class="pricediv yinhangka">
+			<span>银行卡卡号</span><br/>
+			<input type="number" id="yinhangka" name="yinhangka" placeholder="" class="input" />
+		</div>
+		<div class="ss-yinhang yinhangka">
+			<select name="suoshu" id="suoshu">
+				<option value="0">所属银行</option>
+				{loop $yhlist $row}
+				<option value="{$row['cardname']}">{$row['cardname']}</option>
+				{/loop}
+			</select>
+		</div>
+		
+		<div class="pricediv">
+			<span>提现金额</span><br/>
+			￥<input type="number" id="cznum" name="cznum" placeholder="" class="input" maxlength="7"/>
+		</div>
+		<div class="beizhu1">
+			<span>手续费率:{php echo ($setting['tx_rate']*100)}%</span>
+			<span>可提现:<font>{$mdyue}</font><font>{$mdyue1}</font>(不少于￥{$mdlist['mintx']})</span>
+			<input type="hidden" name="mintx" id="mintx" value="{$mdlist['mintx']}" />
+			<span><a href="javascript:void(0);" onclick="return tixian_all({$mdyue})">全部提现</a></span>
+		</div>
+		<div class="clear"></div>
+		<div class="butdiv">
+			<button type="button" class="butcz" id="czbut" name="czbut" onclick="return mdtxfun()">提现</button>
+		</div>
+		<div class="history"><a href="javascript:void(0);" onclick="href_jilu()">历史记录</a></div>
+	</div>
+	
+	<div class="tx-shuoming">
+		<span>备注:</span>
+		<span>1元 = {$setting['jifen_ratio']}积分额度 </span>
+		<span>1元 = {$setting['yue_ratio']}余额额度 </span>
+		<span>当前积分额度:<font>{$mdsyjifen}</font></span>
+		<span>当前余额额度:<font>{$mdsyyue}</font></span>
+	</div>
+	
+	
+</section>
+
+<footer class="footerdiv">
+	<div class="footdiv">
+		<img src="../attachment/{php echo $setting['footerimg']}" style="width:50px;height:50px;padding-top:5px;" />
+		<p>{$setting['footerCopyright']}</p>
+	</div>
+</footer>
+
+<script>
+$(function(){
+	
+	$(".zhifubao").hide();
+	$(".yinhangka").hide();
+	$(".beizhu1 font:nth-child(2)").hide();
+});
+function changebuttype(obj){
+	$("#buttype").val(obj);
+	if(obj == 0){
+		$(".item li:nth-child(1)").addClass('yhref');
+		$(".item li:nth-child(2)").removeClass('yhref');
+		$(".beizhu1 font:nth-child(1)").show();
+		$(".beizhu1 font:nth-child(2)").hide();
+		
+	}else{
+		$(".item li:nth-child(1)").removeClass('yhref');
+		$(".item li:nth-child(2)").addClass('yhref');
+		$(".beizhu1 font:nth-child(1)").hide();
+		$(".beizhu1 font:nth-child(2)").show();
+	}
+}
+
+function tixian_all(obj){
+	if(obj<$("#mintx").val()){
+		alert('余额小于'+$("#mintx").val()+'，不能提现!');
+		return false;
+	}
+	$("#cznum").val(obj);
+	return true;
+}
+
+$(".tx-list").on("click","li",function(){
+	$(".tx-list li").removeClass("tx-click");
+	//$(".tx-list li").addClass("tx-click");
+	
+	$("#txtype").val($(this).attr("data-v"));
+	$(this).addClass("tx-click");
+	
+	if($(this).attr("data-v") == 1){
+		$(".zhifubao").hide();
+		$(".yinhangka").hide();
+	}
+	if($(this).attr("data-v") == 2){
+		$(".zhifubao").show();
+		$(".yinhangka").hide();
+	}
+	if($(this).attr("data-v") == 3){
+		$(".zhifubao").hide();
+		$(".yinhangka").show();
+	}
+});
+
+
+function mdtxfun(){
+	if($("#cznum").val() == ""){
+		alert("请输入提现金额!");
+		return false;
+	}
+	if(isNaN($("#cznum").val())||$("#cznum").val()<$("#mintx").val()){
+		alert("提现金额必须是数字且必须大于"+$("#mintx").val()+"!");
+		return false;
+	}
+	if($("#buttype").val() == 0){
+		$price = $(".beizhu1 font:nth-child(1)").html();
+		
+		if($("#cznum").val()>$price){
+			alert('提现金额不能大于'+$price);
+			$("#cznum").val($price);
+			return false;
+		}
+	}else{
+	    $price = $(".beizhu1 font:nth-child(2)").html();
+		
+		if($("#cznum").val()>$price){
+			alert('提现金额不能大于'+$price);
+			$("#cznum").val($price);
+			return false;
+		}
+	}
+	
+	if($("#txtype").val() == 2){
+		if($("#zhifubao").val() == ""){
+			alert("请输入支付宝号!");
+			return false;
+		}
+	}
+	
+	if($("#txtype").val() == 3){
+		if($("#yinhangname").val() == ""){
+			alert("请输入开户名!");
+			return false;
+		}
+		if($("#yinhangka").val() == ""){
+			alert("请输入银行卡号!");
+			return false;
+		}
+		if($("#yinhangka").val().length<16){
+			alert("请输入正确的银行卡号!");
+			return false;
+		}
+		if($("#suoshu option:selected").val() == 0){
+			alert("请选择所属银行!");
+			return false;
+		}
+		
+		
+	}
+	
+
+	
+	$.ajax({
+		url:"{php echo $this->createMobileUrl('mdtx')}",
+		dataType:'json',
+		type:'POST', 
+		async:false,
+		data:{
+			'opp':'tixian',
+			'price':$("#cznum").val(),
+			'type':$("#buttype").val(),
+			'mid':{php echo $_GPC['mid']},
+			'txtype':$("#txtype").val(),
+			'alipay':$("#zhifubao").val(),
+			'kaihu':$("#yinhangname").val(),
+			'card':$("#yinhangka").val(),
+			'suoshu':$('#suoshu option:selected').val()
+			},
+		
+		success:function(msg){
+	
+			$("#zhifubao").val('');
+			$("#yinhangname").val('');
+			$("#yinhangka").val('');
+			$('#suoshu').val(0);
+			
+	        if(msg.ret =='jifen'){
+	        	alert("积分提现成功，请等待审核！");
+	        	$("#cznum").val('');
+	        	$(".beizhu1 font:nth-child(1)").html(msg.num)
+	        	return true;
+	        }else if(msg.ret =='yue'){
+	        	alert("余额提现成功，请等待审核！");
+	        	$("#cznum").val('');
+	        	$(".beizhu1 font:nth-child(2)").html(msg.num)
+	        	return true;
+	        }else{
+	        	alert(msg.ret);
+	        	alert("提现失败!");
+	        	$("#cznum").val('');
+	        	return false;
+	        }
+		}
+	});
+	return true;
+}
+
+function href_jilu(){
+	window.location.href="./index.php?i="+{php echo $_GPC['i']}+"&mid="+{php echo $_GPC['mid']}+"&type="+$("#buttype").val()+"&c=entry&do=txjilu&m=zm_jfb";
+}
+</script>
+
+</body>
+
+</html>

@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="format-detection" content="telephone=no" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0" />
+<link rel="stylesheet" href="{STYLE_PATH}/css/qcode.css" />
+<script type="text/javascript" src="{STYLE_PATH}/js/jquery-1.7.2.min.js"></script>
+<script type="text/javascript" src="{STYLE_PATH}/js/jquery.cookie.js"></script>
+<link rel="stylesheet" type="text/css" href="{STYLE_PATH}/css/sweetalert.css?v=3" />
+<script type="text/javascript" src="{STYLE_PATH}/js/sweetalert.min.js"></script>
+<script type="text/javascript" src="{STYLE_PATH}/js/jquery.blockUI.js"></script>
+<title>{$activity['title']}</title>
+<style type="text/css">
+.getcode-area .newtitle {
+padding-top: 20px; font-size: 18px; line-height: 18px; color: #444; text-align: center;
+}
+</style>
+
+{if !empty($settings['debug_mode'])}
+  {php echo register_jssdk(true);}
+{else}
+  {php echo register_jssdk(false);}
+{/if}
+<script type="text/javascript"> 
+  wx.ready(function () {
+        shareMeta = {      		
+            imgUrl:"{php echo tomedia($activity['share_thumb'])}",
+            link: "{$activity['share_url']}",
+            desc : "{$activity['share_desc']}",
+            title : "{$activity['share_title']}",
+            success: function(){ 
+            
+            },
+            cancel: function(){
+                // alert("分享失败，可能是网络问题，一会儿再试试？");
+            }
+        };
+        wx.onMenuShareTimeline(shareMeta);     
+        wx.onMenuShareAppMessage(shareMeta);
+        //wx.showAllNonBaseMenuItem();
+         wx.onMenuShareWeibo(shareMeta);
+        wx.onMenuShareQQ(shareMeta);
+        wx.onMenuShareQZone(shareMeta); 
+        
+        {if !empty($activity["iplimit"]) && !empty($activity["locationtype"])}
+     
+	      wx.getLocation({
+	        type: 'wgs84', // 默认为wgs84的gps坐标，如果要返回直接给openLocation用的火星坐标，可传入'gcj02'
+	        success: function (res) {
+	            var latitude = res.latitude; // 纬度，浮点数，范围为90 ~ -90
+	            var longitude = res.longitude; // 经度，浮点数，范围为180 ~ -180。
+	            var speed = res.speed; // 速度，以米/每秒计
+	            var accuracy = res.accuracy; // 位置精度	
+	    
+	            showPosition(res);
+	         }
+	     });	
+	   
+	    {/if}
+	    
+	    
+	    
+	  
+	    
+        
+    });
+
+function showPosition(position)
+{
+
+ var location= position.latitude+"," + position.longitude;
+
+/* var point = new BMap.Point(116.331398,39.897445); */
+
+//百度接口
+var url="http://api.map.baidu.com/geocoder/v2/"+
+ "?ak=qen1OGw9ddzoDQrTX35gote2&callback=renderReverse&location="+location+"&output=json&pois=0";
+$.ajax({
+      type : "get",
+      async:false,
+      url : url,
+      dataType : "jsonp",
+      jsonp: "callback",//传递给请求处理程序或页面的，用以获得jsonp回调函数名的参数名(默认为:callback)
+      jsonpCallback:"renderReverse",//自定义的jsonp回调函数名称，默认为jQuery自动生成的随机函数名
+      success : function(json){    	
+          if (json.status=="0"){
+        	  var address=json.result.addressComponent;
+        	  var diqu="{$activity["iplimit"]}".split("|");
+        	  var str=address.province+","+address.city+","+address.district;
+        	  var dw=false;
+        	  $.each(diqu, function(i, item){ 
+        		     if (str.indexOf(item)>-1) {
+        		    	 dw=true;
+        		    	 sessionStorage.setItem("getLocation", "{$activity["iplimit"]}"); 
+                         return false;
+        		     }  
+        		 }); 
+        	  if (dw==false) {
+        		  window.location.href="{$activity["zdyurl"]}";
+        		  return;
+           		swal({title: "尊敬的粉丝",   
+        			  text: "很抱歉，你不在活动区域",  
+        		      type: "warning",    
+        		      confirmButtonColor: "#DD6B55",  
+        			  confirmButtonText: "确定",   closeOnConfirm: false }, 
+        			  function(){   
+        				window.location.href="{$activity["zdyurl"]}";
+        		});
+        		return;
+        	  } else {
+        		  sessionStorage.setItem("location", location);
+        		  location_ajax(location);
+        		  swal("", "点击确定开始活动", "success");
+        		 
+        	  }
+        	
+          } else {
+        	  alert("获取定位失败");
+        }
+      },
+      error:function(){
+          alert('fail');
+      }
+  });
+
+}
+
+function location_ajax(location){	
+	//百度接口
+	var url="{php echo $this->createMobileUrl('login',array('op'=>'ajax'))}&location="+location;
+	$.ajax({
+	      type : "post",
+	      async:false,
+	      url : url,
+	      dataType : "json",
+	
+	      success : function(json){ 
+	    	  if (json.code!=1){
+	             alert(json.msg);
+	           }
+	      },
+	      error:function(){
+	          //alert('上报地址异常');
+	      }
+	  });
+}
+
+
+</script>
+
+
+</head>
+<body>
+	<script>
+{if !empty($activity["iplimit"]) && !empty($activity["locationtype"])}
+  swal({title: "系统加载中",text: "请耐心等待",showConfirmButton: false});
+{/if}
+</script>
+
+	{if empty($settings['valid_sms'])}
+	<style type="text/css">
+.getcode-area {
+position: relative;
+}
+
+.getcode-area .mobile {
+display: block; font-size: 14px; height: 30px; background-color: #eee; border: 1px solid #a0a0a0; border-radius: 4px; width: 240px; margin: 25px auto 0; -webkit-appearance: none;
+}
+</style>
+	<div class="wrapper" style="display:">
+		<img src="{php echo tomedia($activity['logo'])}" style="width: 100%" />
+		<div class="getcode-area">
+
+
+
+
+			<p class="newtitle">{$activity['title']}</p>
+
+			{if $activity['realname_show']}
+			<input type="text" placeholder="姓名" style="" class="mobile" id="realname" />
+			{/if} {if $activity['tel_show']}
+			<input type="tel" placeholder="请输入手机号" class="mobile" style="" id="mobile" />
+			{/if} {if $activity['wechat_no_show']}
+			<input type="text" placeholder="请输入微信号" class="mobile" id="wechat_no" />
+			{/if} {if $activity['addr_show']}
+			<input type="text" placeholder="请输入地址" class="mobile" id="addr" />
+			{/if}
+			{if ($activity['pay_money'])>0}
+			<p class="desc">支付金额：{$activity['pay_money']}元</p>
+			{/if}
+			<p class="desc">中奖后，我们将通过以上资料联系您，请如实填写</p>
+			<a href="javascript:getcodeMethod();" class="btn">{if ($activity['activity_type'])==2}立即支付{else}立即参与{/if}</a>
+			<!-- <button onclick="token11();" class="btn">token</button> -->
+		</div>
+
+	</div>
+
+	<div class="bottom">&nbsp;{if $settings['copyright']}{$settings['copyright']}{else}活动{/if}&nbsp;</div>
+	{if $activity['bm_wxtx']}
+	<div class="bottom">
+		&nbsp; {php echo str_replace(array("\n", "\r\n") , "<BR />", $activity['bm_wxtx'])}&nbsp;
+	</div>
+	{/if} 
+	{else}
+	<div class="wrapper">
+		<img src="{php echo tomedia($activity['logo'])}" style="width: 100%" />
+		<div class="getcode-area">
+			<p class="newtitle">{$activity['title']}</p>
+			<div class="verificat">
+				{if $activity['realname_show']}
+				<p class="tc">
+					<input type="text" placeholder="姓名" style="" class="mobile" id="realname" />
+				</p>
+				{/if} {if $activity['wechat_no_show']}
+				<p class="tc">
+					<input type="text" placeholder="请输入微信号" class="mobile" id="wechat_no" />
+				</p>
+				{/if} {if $activity['addr_show']}
+				<p class="tc">
+					<input type="text" placeholder="请输入地址" class="mobile" id="addr" />
+				</p>
+				{/if}
+				<p class="tc">
+					<input type="tel" class="mobile" id="mobile" placeholder="请输入手机号" value="" />
+				</p>
+				<p>
+					<span><input type="tel" class="mobile" id="yzm" placeholder="请输入验证码" value="" /></span> <span style="width: 46%"><button class="yzm-btn tc cookie">获取验证码</button></span>
+				</p>
+			</div>
+			{if ($activity['pay_money'])>0}
+			<p class="desc">支付金额：{$activity['pay_money']}元</p>
+			{/if}
+			<p class="desc">中奖后，我们将通过手机号联系您，请如实填写</p>
+			<a href="javascript:doPostBack();" class="btn">{if ($activity['activity_type'])==2}立即支付{else}立即参与{/if}</a>
+		</div>
+
+
+	</div>
+	<div class="bottom">&nbsp;{if $settings['copyright']}{$settings['copyright']}{else}活动{/if}&nbsp;</div>
+	{if $activity['bm_wxtx']}
+	<div class="bottom">
+		&nbsp; {php echo str_replace(array("\n", "\r\n") , "<BR />", $activity['bm_wxtx'])}&nbsp;
+	</div>
+	{/if} {/if}
+
+
+
+	<script type="text/javascript">
+function getcodeMethod(){
+	
+    {if $activity['tel_show']}
+	var mobile = $('#mobile').val();
+	if(!mobile || mobile.length != 11){
+		alert('请填写正确的手机号');
+		return false;
+	}
+	{/if}
+	
+	
+		 {if $activity['realname_show']}
+			var realname = $('#realname').val();
+			if(!realname){
+				alert('请填写姓名');
+				return false;
+			}
+			{/if}
+			
+	 // alert("token:"+"{$token}"); 	
+	
+	   $.blockUI({ message:"提交中"});
+
+		  
+		  
+	   $.ajax({
+	       type: "POST",
+	       dataType: "json",
+	       url: "{php echo $this->createMobileUrl('login')}&op=post",
+	       data: {tel:$('#mobile').val(),realname:$('#realname').val(),wechat_no:$('#wechat_no').val(),addr:$('#addr').val(),id:{$_GPC['id']},curr_token:"{$curr_token}"},
+	       success: function (json) {
+	           $.unblockUI();
+	           {if ($activity['pay_money'])>0}
+				  var data = jQuery.parseJSON(json.data);
+				  window.location.href='{php echo $_W['siteroot'] . 'app/' . substr($this->createMobileUrl('payment',array('op'=>'display','title'=>$activity['title'])), 2)}&tid='+data.tid+'&activity_id='+data.activity_id;
+				  return;
+			   {/if}
+			   
+	           if (json.code>"0") {
+	               window.location.href=json.url;        
+	           }
+	           else {
+	         	  alert(json.msg);
+	           }
+	       },
+	       error: function (json) {   alert("网络繁忙"); $.unblockUI(); }
+	   });
+	   return false;
+
+}
+
+
+function doPostBack() { 
+	
+
+	
+	 if (!send_yzm){
+		 alert("请先获取验证码！");
+         $("#yzm").focus();
+         return;
+	 }
+	  
+	var tell = $("#mobile").val();
+    if (tell == "" || tell.length!=11) {
+    	alert("请正确填写手机号码！");
+        $("#mobile").focus();
+        return;
+    }
+
+    //手机验证
+    var RegMobile = /^1[34578]\d{9}$/;
+    if (!RegMobile.test(tell)) {
+        alert("请正确填写手机号码！");
+        return;
+    }
+
+
+    
+    var yzm = $("#yzm").val();
+    if (yzm == "" || yzm.length!= 4) {
+        alert("请正确填写验证码！");
+        $("#yzm").focus();
+        return;
+    }
+    
+    
+  
+    $.blockUI({ message:"提交中"});
+
+	  
+	  
+   $.ajax({
+       type: "POST",
+       dataType: "json",
+       url: "{php echo $this->createMobileUrl('login')}&op=post",
+       data: {tel:$('#mobile').val(),yzm:$('#yzm').val(),id:{$_GPC['id']},curr_token:"{$curr_token}"},
+       success: function (json) {
+           $.unblockUI();
+           {if ($activity['pay_money'])>0}
+			  var data = jQuery.parseJSON(json.data);
+			  window.location.href='{php echo $_W['siteroot'] . 'app/' . substr($this->createMobileUrl('payment',array('op'=>'display','title'=>$activity['title'])), 2)}&tid='+data.tid+'&activity_id='+data.activity_id;
+			  return;
+		   {/if}
+       	   //发送成功
+           if (json.code>"0") {
+               window.location.href=json.url;        
+           }  else {
+         	  alert(json.msg);
+           }
+       },
+       error: function (json) {   alert("网络繁忙"); $.unblockUI(); }
+   });
+
+}
+
+doing=false;
+send_yzm=false;
+get_yzm=false;
+
+function token11(){
+    $.ajax({
+        type: "POST",
+        dataType: "json",
+        url: "{php echo $this->createMobileUrl('login')}&op=token",
+        data: {id:{$_GPC['id']}},
+        success: function (json) {
+          alert("token:"+json.msg);
+        },
+        error: function (json) {
+        	alert("网络繁忙");$.unblockUI();doing=false;
+        	
+        }
+    });
+
+
+
+}
+
+ $(function () {
+	// alert("token:"+"{$curr_token}");    
+     $(".cookie").click(function (event) {
+        event.preventDefault();      
+        if (doing==true){
+     	  return; 
+        }
+        
+        if (get_yzm==true){
+    	 return;
+        }
+         
+         var tel = $("#mobile").val();
+         if (tel == "" || tel.length!=11) {
+        	 alert("请正确填写手机号码！");
+             $("#mobile").focus();
+             return;
+         }
+
+         //手机验证
+         var RegMobile = /^1[34578]\d{9}$/;
+         if (!RegMobile.test(tel)) {
+             alert("请正确填写手机号码！");
+             return;
+         }
+
+     
+       
+         
+         $.blockUI({ message:"获取验证码中"});
+         
+         doing=true;
+      
+         $.ajax({
+             type: "POST",
+             dataType: "json",
+             url: "{php echo $this->createMobileUrl('login')}&op=yzm",
+             data: {tel:$('#mobile').val(),id:{$_GPC['id']}},
+             success: function (json) {
+             	doing=false;
+             	$.unblockUI();                	
+             	//发送成功
+             	send_yzm=true;
+                 if (json.code == "1") {
+                	 
+                     $.cookie("time", 60);
+                     get_yzm=true;
+                     Round();
+                     
+                 }
+                 else {
+          
+                     alert(json.msg);
+                 }
+                 
+             },
+             error: function (json) {
+             	alert("网络繁忙");$.unblockUI();doing=false;
+             	
+             }
+         });
+
+     });
+
+ });
+ 
+ 
+ function Round() {
+     var ss = $.cookie("time");
+     if (ss <= 0) {
+         $.cookie("time", null);
+         $(".cookie").addClass("yzm-btn").removeClass("yzm-cs-btn").text("获取验证码");
+         get_yzm=false;
+     } else {
+         var ss = $.cookie("time") - 1;
+         $.cookie("time", ss);
+         $(".cookie").addClass("yzm-cs-btn").removeClass("yzm-btn").text("重新发送"+ss);         
+         setTimeout("Round()", 1000);
+     }
+ }
+
+</script>
+
+</body>
+</html>

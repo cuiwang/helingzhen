@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<link href="{STYLE_PATH}/css/index/main.css" rel="stylesheet">
+<link href="{STYLE_PATH}/css/index/form.css" rel="stylesheet">
+<link href="{STYLE_PATH}/css/index/screen-styles.css" rel="stylesheet">
+<title>活动页</title>
+<script type="text/javascript" src="{STYLE_PATH}/js/index/jquery-1.8.0.min.js"></script>
+<script type="text/javascript" src="{STYLE_PATH}/js/index/jquery.form.js"></script>
+<script type="text/javascript" src="{STYLE_PATH}/js/index/jweixin-1.0.0.js"></script>
+<script type="text/javascript" src="{STYLE_PATH}/js/index/product.js"></script>
+<link rel="stylesheet" type="text/css" href="{STYLE_PATH}/css/sweetalert.css?v=3" />
+<script type="text/javascript" src="{STYLE_PATH}/js/sweetalert.min.js"></script>
+{if !empty($settings['debug_mode'])}
+  {php echo register_jssdk(true);}
+{else}
+  {php echo register_jssdk(false);}
+{/if}
+<script type="text/javascript"> 
+  wx.ready(function () {
+        shareMeta = {      		
+            imgUrl:"{php echo tomedia($activity['share_thumb'])}",
+            link: "{$activity['share_url']}",
+            desc : "{$activity['share_desc']}",
+            title : "{$activity['share_title']}",
+            success: function(){ 
+            
+            },
+            cancel: function(){
+                // alert("分享失败，可能是网络问题，一会儿再试试？");
+            }
+        };
+        wx.onMenuShareTimeline(shareMeta);     
+        wx.onMenuShareAppMessage(shareMeta);
+        wx.onMenuShareWeibo(shareMeta);
+        wx.onMenuShareQQ(shareMeta);
+        wx.onMenuShareQZone(shareMeta);  
+    });
+</script>
+
+
+<script>
+	$(document).ready(function() {
+
+		/* Ajax progress */
+		var l = ($(window).width() - 32) / 2;
+		var t = ($(window).height() - 32) / 2;
+		var options = { left : l, top : t };
+		$("#loadingMessage").css(options);
+
+		$("#loadingMessage").ajaxStart(function() {
+			$(this).show();
+		});
+		$("#loadingMessage").ajaxStop(function() {
+			$(this).hide();
+		});
+		/* */
+
+	});
+
+	function showPopupBackground(bgDiv) {
+		var wh = $(document).height();
+		$('#' + bgDiv).css("height", wh);
+		$('#' + bgDiv).show();
+	}
+
+	function hidePopupBackground(bgDiv) {
+		$('#' + bgDiv).hide();
+	}
+
+	function getPopupPostion(divId) {
+
+		var ww = $(window).width();
+		var hh = $(window).height();
+		var w = $('#' + divId).width();
+		var h = $('#' + divId).height();
+		var left = (ww - w) / 2 + "px";
+		var top = (hh - h) / 2 + "px";
+		var options = { left : left, top : top };
+		return options;
+
+	}
+
+	function showPopupWindow(divId) {
+		$('#' + divId).css("width", $('#container').width() - 80);
+		var options = getPopupPostion(divId);
+		$('#' + divId).css(options);
+		$('#' + divId).show();
+	}
+
+	function hidePopupWindow(divId) {
+		$('#' + divId).hide();
+	}
+</script>
+</head>
+
+<body>
+
+	<div id="container">
+	
+		<div id="header">
+			<ul>
+				<li>
+					<a href="{php echo $this->createMobileUrl('index',array('actType'=>'1'))}">
+						<span>优惠券</span>
+					</a>
+				</li>
+				<li class="line">|</li>
+				<li>
+					<a href="{php echo $this->createMobileUrl('index',array('actType'=>'0'))}">
+						<span>抽奖券</span>
+					</a>
+				</li>
+				<li class="line">|</li>
+				<li class="line">
+					<a href="{php echo $this->createMobileUrl('index',array('actType'=>'2'))}">
+						<span>订单</span>
+					</a>
+				</li>
+			</ul>
+			<a href='{$settings['logo_url']}'>
+				<img src="{php echo tomedia($settings['index_logo'])}" width="100%">
+			</a>
+		</div>
+
+		<div id="content" style="padding-top: 40px;">
+
+			<div class="wrapper-img">
+				<img src="{php echo tomedia($activity['logo'])}">
+			</div>
+
+			<div class="wrapper-form">
+
+				<form id="orderForm" method="post" >
+
+					<table class="form">
+						<tbody>
+							<tr>
+								<td>
+									<h3>{$activity['title']}</h3> 
+									<span class="price">￥{$activity['pay_money']}</span> , 
+									{if !empty($activity['pay_num']) }限量<span class="color-red">{$activity['pay_num']}</span>份 ,{/if} 已销售<span class="quantity">{$activity['pay_numed']}</span>份
+								</td>
+							</tr>
+
+							<tr>
+							  <td>
+							  {if empty($user['is_pay']) || empty($user['share_status'])}
+								<a href="{php echo $this->createMobileUrl('login',array('id' =>$_GPC['id'],'sign'=>time(),'ticket'=>$_GPC['ticket'],'fromuser'=>$_GPC['fromuser']))}" >
+								<input type="button"  value="我要购买" class="form-button"></a>
+							  {else}	
+							    {if empty($user['hx_status'])}
+							  	<a href="javascript:hx();" >
+								<input type="button" id="sy_id" value="我要使用" class="form-button">
+								</a>
+								{else}
+								<a href="javascript:void();" >
+								<input type="button"   value="已经使用" class="form-button">
+								</a>
+								 {/if}	
+							  {/if}	
+								
+							  </td>
+							</tr>
+							
+							<tr>
+							  <td>
+								<p>日期：{php echo date('Y-m-d', $activity['start_time'])} ~ {php echo date('Y-m-d', $activity['end_time'])}</p>
+								{if !empty($activity['share_url'])}
+								  <p><a href="{$activity['share_url']}"><span>【点击查看】活动详情介绍&gt;&gt;&gt;</span></a></p>
+							    {/if}
+							  </td>
+							</tr>
+
+							<tr>
+								<td>
+									<div class="description">
+										<div>
+											{if empty($activity['top_desc'])}
+											<p>
+												<strong>共{$activity['pay_num']}份，每人限购1份</strong>
+											</p>
+											<p>●本券为电子券，凭电子券到漫滩边餐厅并支付36元即可消费；</p>
+											<p>●此券不找零，不兑现；</p>
+											<p>●一经出售，概不退换，过期作废；</p>
+											<p>●本券使用时间为1月4日~2月4日。仅用于“鲈鱼纸包鱼”；</p>
+											<p>●本券每桌限用1份，此优惠不与店内任何其他优惠同享。</p>
+											{else}
+											<p>
+											  <strong>共{$activity['pay_num']}份，每人限购1份</strong>
+											</p>
+												{php echo str_replace(array("\n", "\r\n") , "<BR />", $activity['top_desc'])}
+											{/if}
+										</div>
+									</div>
+								</td>
+							</tr>
+
+						</tbody>
+					</table>
+
+				</form>
+			</div>
+
+
+		</div>
+
+		<div id="popupFollow" class="popup-window">
+
+			<!--<h3>您未关注公众号</h3>
+			<img src="file:///E:%8B%E8%B5%84%E6%96%99/%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1/%E5%A4%9A%E5%85%AC%E4%BC%97%E5%8F%B7%E6%8A%A5%E5%90%8D%E6%B4%BB%E5%8A%A8/images/qrcode_wsh.gif">
+			<p>1.长按二维码关注公众号</p>
+			<p>2.进入公众号&gt;最新活动</p>
+			<p>3.参与活动</p>
+ 			-->
+		</div>
+
+		<div id="popupBackground" class="popup-background"></div>
+
+		<div id="tab">
+			<ul>
+				<li id="tab_home" class="current">
+					<a href="{php echo $this->createMobileUrl('index')}">
+						<b class="home"></b><span>最新活动</span>
+					</a>
+				</li>
+				<li id="tab_history">
+					<a href="{php echo $this->createMobileUrl('history')}">
+						<b class="history"></b><span>历史</span>
+					</a>
+				</li>
+				<li id="tab_my" >
+					<a href="{php echo $this->createMobileUrl('my')}">
+						<b class="my"></b><span>我的</span>
+					</a>
+				</li>
+			</ul>
+		</div>
+
+		<div id="loadingMessage">
+			<img src="{STYLE_PATH}/images/ajax-loader.gif" width="32" height="32" />
+		</div>
+
+	</div>
+</body>
+<script>
+{if empty($user['hx_status']) && !empty($user['zj_status'])}
+$(document).ready(function() {
+	hx();
+});
+{/if}
+
+function hx(){
+  
+	swal({
+		title:'输入核销密码',
+		type: "input", 
+		showCancelButton: true,
+		closeOnConfirm: false, 
+		animation: "slide-from-bottom",
+		confirmButtonText: "确定",
+		cancelButtonText: "取消",
+		inputPlaceholder: "输入"
+	}, function(hxValue){
+	   if (hxValue === false) return false;  
+	    if (hxValue=== ""){
+			swal.showInputError("核销密码不得为空!");
+			return false;
+		}
+	    
+	    $.ajax({
+	        type: "POST",
+	        dataType: "json",
+	        url: "{php echo $this->createMobileUrl('hx_pass')}&op=hx_pass",
+	        data: {hx_pass:hxValue,activity_id:{$_GPC['id']},id:{$user['id']}},
+	        success: function (json) {
+	      
+	            if (json.code==0) {
+	            	swal("核销成功", "核销成功", "success");  
+	            	$("#sy_id").val("已经使用");
+	            }  else {
+	            	swal("", json.msg, "success"); 
+	            }
+	        //   window.location.href=window.location.href;
+	        },
+	        error: function (json) {   alert("网络繁忙"); }
+	    });
+	    
+	    
+		
+	});
+	
+}
+
+</script>
+</html>

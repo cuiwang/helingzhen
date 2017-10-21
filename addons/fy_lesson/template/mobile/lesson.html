@@ -1,0 +1,397 @@
+<!-- 
+ * 微课堂首页
+ * ============================================================================
+-->
+{php include $this->template('_header');}
+<link href="{MODULE_URL}template/mobile/style/details.css?v=20170418" rel="stylesheet" />
+
+{if !empty($hisplayurl)}
+<div class="follow_topbar">
+	<div class="headimg"><img src="{$fansinfo['avatar']}"></div>
+	<div class="info" style="height:20px;width:60%;overflow: hidden;">
+		<div class="i">上次学习：</div>
+		<div class="i">《{$hissection['title']}》</div>
+	</div>
+	<div class="sub" style="background:#2691FC;" onclick="location.href='{php echo $hisplayurl;}'">立即跳转</div>
+</div>
+{/if}
+{if $setting['isfollow']==1 && !empty($lessonmember) && $lessonmember['follow']==0}
+<div class="follow_topbar" {if !empty($hisplayurl)}style="top:44px;"{/if}><div class="headimg"><img src="{$_W['attachurl']}{$setting['qrcode']}"></div><div class="info"><div class="i">{$_W['account']['name']}</div><div class="i">关注公众号，享海量课程</div></div><div class="sub" onclick="location.href='{php echo $this->createMobileUrl('follow');}'">立即关注</div></div>
+{/if}
+
+<div class="content-inner">
+	<div class="video-wrap clearfix">
+		<div id="videoarea" style="position:relative;">
+		{if $_GPC['sectionid']>0}
+			{if $section['savetype']==2}
+				{php echo htmlspecialchars_decode($section['videourl']);}
+			{else}
+			<video id="video" src="{$section['videourl']}" width="100%" height="auto" controls="controls" autobuffer="autobuffer" {if !empty($poster)}poster="{$_W['attachurl']}{$poster}"{/if}></video>
+			{/if}
+		{else}
+			<img src="{$_W['attachurl']}{$lesson['images']}" alt="{$lesson['bookname']}" width="100%">
+		{/if}
+		</div>
+	</div>
+	<ul class="course-tab">
+		<li {if empty($sectionid)}class="curr"{/if}>详情</li>
+		<li {if $sectionid>0}class="curr"{/if}>目录</li>
+		<li>评价({$total})</li>
+	</ul>
+	<div class="course-container">
+		<div class="js-tab"  style="transform-origin:0px 0px 0px;opacity:1;transform:scale(1,1); {if $sectionid>0}display:none;{/if}">
+			<ul class="course-intro">
+				<li>
+					<h2 class="chapter-title">课程信息</h2>
+					<p class="course-intro-title">课程名称：{$lesson['bookname']}</p>
+					{if $lesson['integral']>0}
+					<p class="course-intro-title">赠送积分：{$lesson['integral']}</p>
+					{/if}
+					<p class="course-intro-title">课程难度：{$lesson['difficulty']}</p>
+					{if $lesson['validity']>0}
+					<p class="course-intro-title">有效期：<span style="color:red;">自购买日起<strong>{$lesson['validity']}</strong>天内有效</span></p>
+					{/if}
+				</li>
+				<li>
+					<h2 class="chapter-title">课程介绍</h2>
+					<div class="lesson-content">
+						{php echo htmlspecialchars_decode($lesson['descript']);}
+					</div>
+				</li>
+				<li>
+					<h2 class="chapter-title">讲师</h2>
+					<p class="teacher-intro">
+						<span class="chapter-intro-user" onclick="location.href='{php echo $this->createMobileUrl('teacher', array('teacherid'=>$lesson['teacherid']));}'"><img src="{$_W['attachurl']}{$lesson['teacherphoto']}" width="50" height="50">{$lesson['teacher']}</span>
+						{php echo htmlspecialchars_decode($lesson['teacherdes']);}
+					</p>
+				</li>
+			</ul>
+		</div>
+		<div class="js-tab" style="transform-origin:0px 0px 0px;opacity:1;transform:scale(1,1); {if empty($sectionid)}display:none;{/if}">
+			<ul class="course-chapter">
+				<li>
+					<h2 class="chapter-title" onclick="location.href='{php echo $this->createMobileUrl('lesson', array('id'=>$lesson['id']));}'"><i></i>{$lesson['bookname']}[共{php echo count($section_list);}节课]</h2>
+					{if $setting['stock_config']==1 && empty($isbuy) && $lesson['price']>0 && $buybtn !='close'}
+					<div>
+						<div class="stock-info">
+						{if $lesson['stock'] > 0}
+						当前课程剩余名额{$lesson['stock']}，请尽快下单
+						{else}
+						当前课程已售罄，下次记得早点来哦~
+						{/if}
+						</div>
+					</div>
+					{/if}
+					<ul class="course-sections">
+					{if !empty($section_list)}
+						{loop $section_list $sec}
+						<li>
+							<i class="section-icon section-icon-video"></i>
+							<a href="{php echo $this->createMobileUrl('lesson', array('id'=>$lesson['id'],'sectionid'=>$sec['id']));}" {if $sectionid==$sec['id']}class="section-active"{/if}>{$sec['title']}{if $sec['is_free']==1}<span style="color:#128C62;">[免费试听]</span>{/if}</a>
+							<i class="section-state-icon">{$sec['videotime']}</i>
+						</li>
+						{/loop}
+					{else}
+						<li style="height:auto;padding:10%;">
+							<a style="text-align:center;">抱歉，该课程没有找到任何内容~</a>
+						</li>
+					{/if}
+					</ul>
+				</li>
+			<ul>
+		</div>
+		<div class="js-tab" style="transform-origin: 0px 0px 0px; opacity: 1; transform: scale(1, 1); display: none;">
+			<div class="swiper-slide swiper-slide-active" style="height:auto;">
+                <div class="details-con shadow" id="comments_box">
+					<ul class="comment" id="evaluate">
+						{if $allow_evaluate}
+						<li class="item" style="padding:.1rem .05rem;text-align:center;">
+							<div>
+								有什么想要说的呢？赶紧
+								<a class="btn btn-default btn-sm" href="{$evaluate_url}">去评价</a>
+								吧~
+							</div>
+						</li>
+						{/if}
+					</ul>
+				</div>
+			</div>
+			<div style="font-size:.14rem; text-align:center; {if empty($evaluate_list)}display:none{/if};">
+				<a href="javascript:void(0);" id="btn_Page">点击加载更多</a>
+			</div>
+		</div>
+	</div>
+	{if !empty($advs['img'])}
+	<div>
+		<a href="{$advs['link']}"><img src="{$_W['attachurl']}{$advs['img']}"></a>
+	</div>
+	{/if}
+</div>
+
+{if !empty($lesson['weixin_qrcode'])}
+<div id="cover" style="position: fixed; top: 0px; width: 100%; height: 100%; z-index: 99999999; display: none; background: rgba(0, 0, 0, 0.8);"><img src="{$_W['attachurl']}{$lesson['weixin_qrcode']}" style="width:50%;margin-left: 25%;margin-top: 25%;"></div>
+{/if}
+
+<div id="bottom-contact" class="hide">
+	<div class="contact-wrap">
+		<div class="contact-wrap-title">咨询交流</div>
+		{if !empty($lesson['weixin_qrcode'])}
+		<div class="border-top layer-list_item">
+			<a href="javascript:;" id="btn-qrcode">
+				<div class="layer-list_item-icon" style="border-radius:0;">
+					<img class="layer-list_item-img" src="{$_W['attachurl']}{$lesson['weixin_qrcode']}">
+				</div>
+				<p class="layer-list_item-name">微信咨询</p>
+				<p class="layer-list_item-info">点击弹出二维码并识别</p>
+				<div class="layer-list_item-go">
+					<i class="icon-font i-v-right">&gt;</i>
+				</div>
+			</a>
+		</div>
+		{/if}
+		{if !empty($lesson['qq'])}
+		<div class="border-top layer-list_item">
+			<a href="http://wpa.qq.com/msgrd?v=3&uin={$lesson['qq']}&site=qq&menu=yes">
+				<div class="layer-list_item-icon">
+					<img class="layer-list_item-img" src="{MODULE_URL}template/mobile/images/contact-1v1.png">
+				</div>
+				<p class="layer-list_item-name">QQ咨询</p>
+				<p class="layer-list_item-info">QQ:{$lesson['qq']}</p>
+				<div class="layer-list_item-go">
+					<i class="icon-font i-v-right">&gt;</i>
+				</div>
+			</a>
+		</div>
+		{/if}
+		{if !empty($lesson['qqgroup'])}
+		<div class="contact-wrap__qun border-top">
+			<div class="contact-wrap-qun-title">加群交流<span class="contact-wrap-qun-desc">(获取资料、学员交流)</span></div>
+			<ul>
+				<li class="layer-list_item">
+					<a {if !empty($lesson['qqgroupLink'])}href="{$lesson['qqgroupLink']}"{/if}>
+						<div class="layer-list_item-icon">
+							<img class="layer-list_item-img" src="{$_W['attachurl']}{$lesson['teacherphoto']}">
+						</div>
+						<p class="layer-list_item-name z-tail">{$lesson['teacher']}讲师交流群</p>
+						<p class="layer-list_item-info">QQ群:{$lesson['qqgroup']}</p>
+						<div class="layer-list_item-go">
+							<i class="icon-font i-v-right">&gt;</i>
+						</div>
+					</a>
+				</li>
+			</ul>
+		</div>
+		{/if}
+		{if empty($lesson['qq']) && empty($lesson['qqgroup']) && empty($lesson['weixin_qrcode'])}
+		<div class="contact-wrap__qun border-top" style="text-align:center;">
+			<div class="contact-wrap-qun-title">抱歉，未找到任何交流方式~</div>
+		</div>
+		{/if}
+	</div>
+	<div class="layer-close">关闭</div>
+</div>
+<div id="layer-bg" class="hide"></div>
+
+<ul class="d-buynow">
+	<li class="btn-qq"><a href="javascript:;" id="btn-qq"><i class="ico ico-lessonqq"></i>咨询</a></li>
+	<li class="btn-collect" id="btn-collect"><a href="javascript:;" {if !empty($collect)}class="cur"{/if}><i class="ico ico-collect"></i>收藏</a></li>
+	<li class="btn-phone" id="btn-lxb" style="display: none;"><a href="javascript:;"><i class="ico ico-phone"></i>咨询</a></li>
+	{if empty($section_list)}
+		<li class="btn-buy"><a href="javascript:;" class="buy buy_now gray"><p class="num" style="padding-top:22px;"><em class="money"></em>未完善</p></a></li>
+	{elseif !empty($isbuy)}
+		{if $isbuy['status']==1}	
+			<li class="btn-buy"><a href="{php echo $this->createMobileUrl('lesson', array('id'=>$lesson['id'],'sectionid'=>$section_list[0]['id']));}" class="buy buy_now green"><p class="num" style="padding-top:22px;"><em class="money"></em>开始学习</p></a></li>
+		{elseif $isbuy['status']==2}
+			<li class="btn-buy"><a href="{php echo $this->createMobileUrl('lesson', array('id'=>$lesson['id'],'sectionid'=>$section_list[0]['id']));}" class="buy buy_now green"><p class="num" style="padding-top:22px;"><em class="money"></em>开始学习</p></a></li>
+		{/if}
+	{else}
+		{if $lesson['price']==0}
+			<li class="btn-buy"><a href="{php echo $this->createMobileUrl('lesson', array('id'=>$lesson['id'],'sectionid'=>$section_list[0]['id']));}" class="buy buy_now green"><p class="num" style="padding-top:22px;"><em class="money"></em>开始学习</p></a></li>
+		{else}
+			{if $buybtn=='close'}
+				<li class="btn-buy"><a href="{php echo $this->createMobileUrl('lesson', array('id'=>$lesson['id'],'sectionid'=>$section_list[0]['id']));}" class="buy buy_now green"><p class="num" style="padding-top:22px;"><em class="money"></em>开始学习</p></a></li>
+			{else}
+				{if $setting['stock_config']==1 && $lesson['stock']==0}
+					<li class="btn-buy"><a href="javascript:;" class="buy buy_now gray" style="background-color:#7D7D7D;"><p class="num" style="padding-top:22px;"><em class="money"></em>已售罄</p></a></li>
+				{else}
+					{if $isdiscount==1}
+						<li class="btn-buy"><a href="{php echo $this->createMobileUrl('confirm', array('id'=>$id));}" class="buy buy_now red"><p class="num"><em class="money">¥</em>{$price}</p><del>{$lesson['price']}</del>{php echo $config['buynow_name']?$config['buynow_name']:'立即购买';}</a></li>
+					{else}
+						<li class="btn-buy"><a href="{php echo $this->createMobileUrl('confirm', array('id'=>$id));}" class="buy buy_now red"><p class="num"><em class="money">¥</em>{$lesson['price']}</p>{php echo $config['buynow_name']?$config['buynow_name']:'立即购买';}</a></li>
+					{/if}
+				{/if}
+			{/if}
+		{/if}
+	{/if}
+</ul>
+
+<script type="text/javascript">
+var i = 1; //设置当前页数，全局变量
+var ajaxurl = "{php echo $this->createMobileUrl('lesson', array('op'=>'ajaxgetlist','id'=>$id,'sectionid'=>$sectionid));}";
+
+$(function () {
+    //根据页数读取数据  
+    function getData(page) {  
+        i++; //页码自动增加，保证下次调用时为新的一页
+        $.get(ajaxurl, {page: page}, function (data) {  
+            if (data.length > 0) {
+                var jsonObj = JSON.parse(data);
+                insertDiv(jsonObj);  
+            }
+        });
+       
+    } 
+    //初始化加载第一页数据  
+    getData(1);
+
+    //生成数据html,append到div中  
+    function insertDiv(result) {  
+        var mainDiv =$("#evaluate");
+        var chtml = '';  
+        for (var j = 0; j < result.length; j++) {  
+            chtml += '<li class="item">';  
+			chtml += '	<div class="hbox">';
+			chtml += '		<div class="avatar">';
+			chtml += '			<img src="' + result[j].avatar + '">';
+			chtml += '			<h4 class="name te">' + result[j].nickname + '</h4>';
+			chtml += '		</div>';
+			chtml += '		<div class="right-box flex">';
+			chtml += '			<p class="praise"><i class="ico ico-credit ' + result[j].ico + '"></i> ' + result[j].grade + ' <span class="fr"> ' + result[j].addtime + ' </span></p>';
+			chtml += '			<p class="info"> ' + result[j].content + ' </p>';
+			if(result[j].reply !=null){
+			chtml += '			<p class="info reply"> <font>讲师回复：</font>' + result[j].reply + ' </p>';
+			}
+			chtml += '		</div>';
+			chtml += '	</div>';
+			chtml += '</li>'; 
+        }
+		mainDiv.append(chtml);
+		if(result.length==0){
+			document.getElementById("btn_Page").innerHTML="已全部加载完成";
+		}
+    }  
+  
+    //==============核心代码=============  
+    var winH = $(window).height(); //页面可视区域高度   
+  
+    var scrollHandler = function () {  
+        var pageH = $(document.body).height();  
+        var scrollT = $(window).scrollTop(); //滚动条top   
+        var aa = (pageH - winH - scrollT) / winH;  
+        if (aa < 0.02) { 
+            if (i % 1 === 0) {
+                getData(i);  
+                $(window).unbind('scroll');  
+                $("#btn_Page").show();
+            } else {  
+                getData(i);  
+                $("#btn_Page").hide();
+            }  
+        }  
+    }  
+    //定义鼠标滚动事件
+    $(window).scroll(scrollHandler);
+    //继续加载按钮事件
+    $("#btn_Page").click(function () {
+        getData(i);
+        $(window).scroll(scrollHandler);
+    });
+});
+
+</script>
+
+<script type="text/javascript">
+// “章节”、“课程详情”tab切换
+$(".course-tab").on("click", 'li', function() {
+	var $currItem = $(this),
+	index = $currItem.index();
+
+	$currItem.addClass('curr').siblings().removeClass('curr');
+	$(".js-tab").hide().eq(index).show();
+
+});
+
+//展开QQ咨询
+$("#btn-qq").click(function() {
+	$("#bottom-contact").removeClass("hide");
+	$("#layer-bg").removeClass("hide");
+});
+//关闭QQ咨询
+$(".layer-close").click(function() {
+	$("#bottom-contact").addClass("hide");
+	$("#layer-bg").addClass("hide");
+
+});
+function GetQueryString(name){
+	var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+	var r = window.location.search.substr(1).match(reg);
+	if(r!=null)return  unescape(r[2]); return null;
+}
+
+//微信二维码
+$('#btn-qrcode').click(function(){
+	$('#cover').fadeIn(200).unbind('click').click(function(){
+		$(this).fadeOut(100);
+	})
+});
+
+$("#btn-collect").click(function(){
+	var id = GetQueryString('id');
+	var ajaxurl = "{php echo $this->createMobileUrl('updatecollect', array('ctype'=>'lesson','openid'=>$openid));}";
+	$.ajax({
+        type:'post',
+        url:ajaxurl,
+        data:{id:id},
+        dataType:'json',     
+        success:function(data){
+            if(data=='1'){
+				$("#btn-collect a").addClass("cur");
+			}else if(data=='2'){
+				$("#btn-collect a").removeClass("cur");
+			}
+        }
+    });
+});
+
+<?php if($sectionid>0){ ?>
+	var video = document.getElementById("video");
+	var recordurl = "{php echo $this->createMobileUrl('record', array('lessonid'=>$_GPC['id'],'sectionid'=>$_GPC['sectionid'],'openid'=>$openid));}";
+
+	<?php if($section['savetype']==2){ ?>
+		$(document).ready(function(){  
+			$.get(recordurl, {}, function (data){});
+		});
+	<?php }else{ ?>
+		$(document).ready(function(){  
+			video.addEventListener("play",function(){
+				$.get(recordurl, {}, function (data){});
+			});
+		});
+	<?php } ?>
+<?php } ?>
+</script>
+
+{php echo register_jssdk(false);}
+<script type="text/javascript">
+wx.ready(function(){
+	var shareData = {
+		title: "{$sharelesson['title']}",
+		desc: "{$sharelesson['desc']}",
+		link: "{php echo $url;}&uid={php echo $lessonmember['uid'];}",
+		imgUrl: "{php echo $_W['attachurl'];}{php echo $sharelesson['images']?$sharelesson['images']:$lesson['images']}",
+		trigger: function (res) {},
+		complete: function (res) {},
+		success: function (res) {},
+		cancel: function (res) {},
+		fail: function (res) {}
+	};
+	wx.onMenuShareTimeline(shareData);
+	wx.onMenuShareAppMessage(shareData);
+	wx.onMenuShareQQ(shareData);
+	wx.onMenuShareWeibo(shareData);
+	wx.onMenuShareQZone(shareData);
+	
+});
+</script>
+
+{php include $this->template('_footer');}

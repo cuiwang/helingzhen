@@ -1,0 +1,142 @@
+{template 'public/header'}
+
+{if $operation == 'display'}
+<div class="main">
+    <div class="panel panel-info">
+        <div class="panel-heading">筛选</div>
+        <div class="panel-body">
+            <form action="./index.php" method="get" class="form-horizontal" role="form">
+                <input type="hidden" name="c" value="site" />
+                <input type="hidden" name="a" value="entry" />
+                <input type="hidden" name="m" value="weisrc_quickad" />
+                <input type="hidden" name="do" value="article" />
+                <input type="hidden" name="op" value="display" />
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label" style="width:80px;">会员id</label>
+                    <div class="col-sm-2 col-lg-3">
+                        <input class="form-control" name="fansid" id="fansid" type="text" value="{$_GPC['fansid']}">
+                    </div>
+                    <div class="col-sm-3 col-lg-3" style="width: 18%;">
+                        <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+                    </div></div>
+
+            </form>
+        </div>
+    </div>
+    <div class="panel panel-default">
+        <form action="" method="post" class="form-horizontal form" >
+            <input type="hidden" name="storeid" value="{$storeid}" />
+            <div class="table-responsive panel-body">
+                <table class="table table-hover">
+                    <thead class="navbar-inner">
+                    <tr>
+                        <th style="width:5%;">编号</th>
+                        <th style="width:10%;">会员信息</th>
+                        <th style="width:31%;">标题(点击访问)</th>
+                        <th style="width:12%;">阅读数</th>
+                        <th style="width:12%;">分享数</th>
+                        <th style="width:15%;">发布时间</th>
+                        <th style="width:15%;">操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {loop $list $item}
+                    <tr>
+                        <td>
+                            {$item['id']}
+                        </td>
+                        <td>
+                            <a href="{php echo $this->createWebUrl('fans', array('id' => $item['fansid'], 'op' => 'post'))}">
+                                <img width="50" style="border-radius: 3px;" src="{php echo tomedia($fans[$item['fansid']]['headimgurl']);}"/>
+                                <br/>
+                                <span class="label label-primary">会员ID:{$item['fansid']}</span>
+                            </a>
+                        </td>
+                        <td>
+                            <a href="{php echo $_W['siteroot'] . 'app/index.php?i=' . $item['uniacid'] . '&c=entry&id=' . $item['id'] .'&do=miaotie&m=weisrc_quickad'}" target="_blank">{$item['title']}</a>
+                            {if $item['status']==0}<br/><span class="label label-danger">待审核</span>{/if}
+                        </td>
+                        <td>
+                            {$item['readcount']}
+                        </td>
+                        <td>
+                            {$item['sharecount']}
+                        </td>
+                        <td>
+                            {php echo date("Y-m-d H:i:s", $item['dateline'])}
+                        </td>
+                        <td>
+                            <a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('article', array('id' => $item['id'], 'op' => 'post'))}"><i class="fa fa-pencil"></i> 修改</a>
+                            <a class="btn btn-danger btn-sm" onclick="return confirm('您确定要操作吗？');return false;"
+                               href="{php echo $this->createWebUrl('article', array('op' => 'delete','id' => $item['id']))}"
+                               title="VIP"><i class="fa fa-times"></i> 删除
+                            </a>
+                        </td>
+                    </tr>
+                    {/loop}
+                    </tbody>
+                </table>
+                {$pager}
+            </div>
+        </form>
+    </div>
+    </form>
+</div>
+{elseif $operation == 'post'}
+<div class="main">
+    <form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" id="invitative">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                文章信息
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">标题</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="title" value="{$item['title']}" id="title"
+                               class="form-control" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">网址</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="url" value="{$item['url']}" id="url"
+                               class="form-control" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">阅读数</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="readcount" value="{$item['readcount']}" id="readcount"
+                               class="form-control" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">分享数</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="sharecount" value="{$item['sharecount']}" id="sharecount"
+                               class="form-control" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">状态</label>
+                    <div class="col-sm-9">
+                        <label class="radio-inline">
+                            <input type="radio" name="status" value="1" {if $item['status']==1||empty($item)}checked{/if}>已审核
+                        </label>
+                        <label class="radio-inline">
+                            <input type="radio" name="status" value="0" {if $item['status']==0}checked{/if}>待审核
+                        </label>
+                        <div class="help-block"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="form-group col-sm-12">
+            <input type="submit" name="submit" value="保存设置" class="btn btn-primary col-lg-3"/>
+            <input type="hidden" name="token" value="{$_W['token']}" />
+        </div>
+    </form>
+</div>
+{/if}
+{template 'common/footer'}

@@ -1,0 +1,237 @@
+{php $bootstrap_type = 3;}
+{template 'header'}
+<script language="javascript" src="../addons/haoman_virtuamall/images/jquery-2.1.4.min.js"></script>
+<link type="text/css" rel="stylesheet" href="../addons/haoman_virtuamall/images/style.css?{TIMESTAMP}">
+<div class="head">
+	<a href="javascript:history.back();" class="bn pull-left"><i class="fa fa-angle-left"></i></a>
+	<span class="title">订单详情</span>
+	<!--<a href="{php echo $this->createMobileUrl('mycart')}" class="bn pull-right"><i class="fa fa-shopping-cart"></i></a>-->
+</div>
+
+<div class="myoder " style="margin-bottom: 60px;">
+	<div class="myoder-hd">
+		<span class="pull-left">订单编号：{$item['ordersn']}</span>
+		<span class="pull-right">{php echo date('Y-m-d H:i', $item['createtime'])}</span>
+	</div>
+	{loop $goods $g}
+	<div class="myoder-detail">
+		<!--<a href="{php echo $this->createMobileUrl('detail', array('id' => $g['id']))}">-->
+			<img src="{php echo tomedia($g['thumb']);}" width="160"  />
+		<!--</a>-->
+		<div class="pull-left">
+			<div class="name">{$g['title']}</div>
+			<div class="price">
+				<span>{$g['marketprice']} 元{if $g['unit']} / {$g['unit']}{/if}</span>
+				<span class="num">{$g['total']}  {if $g['unit']} {$g['unit']}{/if}</span>
+			</div>
+		</div>
+		{if $item['status'] == 3}
+		<div class="pull-right">
+			<a id="{$g['id']}" data-id="{$g['id']}" class="btn btn-warning pull-right btn-sm txcheck open_{$g['id']}" style="display: block" type="button">查看卡密</a>
+			<a data-id="{$g['id']}" class="btn btn-warning pull-right btn-sm txclose close_{$g['id']}" style="display: none" type="button">关闭</a>
+		</div>
+		{/if}
+	</div>
+			{loop $g['pw'] $row}
+			<div style="display: none;" class="shows show_{$g['id']}">
+				<div class="myoder-express">
+					<span class="express-company">卡号</span>
+					<span class="express-num">{$row['used_cardid']}</span>
+				</div>
+				<div class="myoder-express">
+					<span class="express-company">卡密</span>
+					{if $row['status']==2}
+					<span class="express-num">{$row['title']}</span>
+			        {else}
+					<span class="express-num">**********</span>
+					{/if}
+				</div>
+				{if $row['status']==1}
+				  {if $row['ishexiao']==0}
+					<div class="myoder-express">
+						<a href="{php echo $this->createMobileUrl('activation', array('id' => $row['id'], 'pici' => $row['pici']))}" data-id="{$row['id']}"  class="btn btn-danger pull-right btn-sm jhpassword" type="button" onclick="return confirm('点击确认激活前，请确认您需要激活次卡密。确定激活吗？'); ">激活</a>
+					</div>
+					{else}
+					<div class="myoder-express">
+						<a data-id="{$row['id']}" data-djtitle="{$row['used_cardid']}" class="btn btn-danger pull-right btn-sm hexiao" type="button">核销</a>
+					</div>
+					{/if}
+				{else}
+				{if $row['ishexiao']==0}
+				<div class="myoder-express">
+					<a id="" class="btn btn-info pull-right btn-sm" type="button">已激活</a>
+				</div>
+				{else}
+				<div class="myoder-express">
+					<a id="1" class="btn btn-info pull-right btn-sm" type="button">已核销</a>
+				</div>
+				{/if}
+				{/if}
+			</div>
+			{/loop}
+	{/loop}
+	<div class="myoder-express">
+		<span class="express-company">状态</span>
+		<span class="express-num">
+		{if $item['paytype'] == 3}
+			{if $item['status'] == -1}
+			<span class="text-muted">订单取消</span>
+			{elseif $item['status'] < 3}
+			<span class="text-danger">货到付款 / 未付款</span>
+			{else}
+			<span class="text-success">已完成</span>
+			{/if}
+		{else}
+			{if $item['status'] == -1}
+			<span class="text-muted">订单取消</span>
+			{elseif $item['status'] == 0}
+			<span class="text-danger">未付款</span>
+			{elseif $item['status'] == 1}
+			<span class="text-warning">已付款</span>
+			{elseif $item['status'] == 2}
+			<span class="text-warning">已发货</span>
+			{else}
+			<span class="text-success">已完成</span>
+			{/if}
+		{/if}
+		</span>
+	</div>
+
+	<div class="myoder-express">
+		<span class="express-company">金额</span>
+		<span class="express-num">
+			<span class="false">
+			{if $item['dispatchprice']<=0}
+				{$item['price']} 元
+			{else}
+				{$item['price']} 元 (含运费 {$item['dispatchprice']} 元)
+			{/if}
+			</span>
+		</span>
+	</div>
+
+	<div class="myoder-express">
+		<span class="express-company">配送方式</span>
+		<span class="express-num">即刻到账</span>
+	</div>
+	{if ($item['status'] == '2' || $item['status']==3) && !empty($item['expresssn'])}
+	<div class="myoder-express">
+		<span class="express-company">快递: {$item['expresscom']}</span>
+		<span class="express-num">
+			单号: {$item['expresssn']}
+		</span>
+	</div>
+	{/if}
+	{if !empty($item['remark'])}
+	<div class="myoder-express" style='margin-top:10px;'>
+		<span class="express-company">订单备注&nbsp;&nbsp;:&nbsp;&nbsp;{$item['remark']}</span>
+	</div>
+	{/if}
+	<div class="myoder-total">
+		{if !empty($item['paydetail'])}
+		<span>
+			<span class="false"><strong>支付详情：</strong></span>
+			{$item['paydetail']}
+		</span>
+		{/if}
+		<div class="form-group">
+		{if $item['status'] == '2' && !empty($item['expresssn'])}
+			<a href="http://m.kuaidi100.com/index_all.html?type={$item['express']}&postid={$item['expresssn']}#input" class="btn btn-success pull-right btn-sm" >查看快递</a>
+		{/if}
+		{if $item['paytype'] != 3 && $item['status'] == 0}
+			<a href="{php echo $this->createMobileUrl('pay', array('orderid' => $item['tandid']))}" class="btn btn-danger pull-right btn-sm">立即支付</a>
+		{else}
+			{if $item['status'] == 3}
+			<button class="btn btn-success pull-right btn-sm">已完成</button>
+			{elseif $item['status'] == 2}
+			<a href="{php echo $this->createMobileUrl('myorder', array('orderid' => $item['id'], 'op' => 'confirm'))}" class="btn btn-warning pull-right btn-sm" style="margin-right: 10px;" onclick="return confirm('点击确认收货前，请确认您的商品已经收到。确定收货吗？'); ">确认收货</a>
+			{else}
+			<button class="btn btn-danger pull-right btn-sm">等待发货</button>
+			{/if}
+		{/if}
+		</div>
+	</div>
+</div>
+<div class="mask" style="z-index: 999998;position: fixed;top: 0px;left: 0px;right: 0px;bottom: 0px;background: rgba(0,0,0,0.5);display: none;width: 100%;height: 100%">
+	<div style="z-index: 999999;width:80% ;margin-left:10%;margin-top: 25%;text-align: center;background: rgba(255, 255, 255, 0.6);display: block;border-radius: 3px;"class="point">
+		<img class="qrcode" src="../addons/haoman_xxx/images/qrcode_for_gh_cd501b79607f_258.jpg" style="width: 100%;display: block;margin-bottom: 5px;">
+		<span id="djtitle" style="line-height: 36px;font-size: 20px;color: #FFE504"></span>
+		<br>
+		<input type="button" id="btn2" value="关闭" style="margin-top: 20px;height:30px;width: 80px;border: none;border-radius: 3px;margin-right: 10px;color: #333;margin-bottom: 10px;">
+	</div>
+</div>
+<script>
+	document.addEventListener('WeixinJSBridgeReady', function onBridgeReady() {
+		WeixinJSBridge.call('hideOptionMenu');
+	});
+</script>
+<script>
+	$(".hexiao").bind("click", function () {
+
+		$num = $(this).data("id");
+		var djtitle = $(this).data("djtitle");
+		var submitDatas = {
+			id:$num,
+			djtitle:djtitle
+		};
+
+
+		$.post('{php echo $this->createMobileUrl('getShareImgUrl')}',submitDatas, function(data) {
+
+			if(data.success==1){
+
+				var url = data.msg;
+
+				$('.point .qrcode').attr('src', url);
+
+				$(".mask").show();
+				$(".point").show();
+
+				$("#djtitle").html("您的核销卡号<br>"+data.djtitle);
+			}
+			else {
+				alert(data.success);
+			}
+
+		}, "json");
+	});
+
+	$("#btn2").on("click", function () {
+		$(".mask").hide();
+		$(".point").hide();
+	})
+</script>
+<script>
+	$(".txcheck").click(function(){
+		$(this).hide();
+		$(".shows").hide();
+		var num = $(this).data("id");
+	//	alert(num);
+		$(".show_"+num).show();
+		$(".close_"+num).show();
+	})
+	$(".txclose").click(function(){
+		$(this).hide();
+		var num = $(this).data("id");
+		$(".open_"+num).show();
+		$(".shows").hide();
+	})
+</script>
+<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+<script>
+	// 微商城分享
+	wx.config({
+		debug:false,
+		appId: '{$package["appId"]}',
+		timestamp: '{$package["timestamp"]}',
+		nonceStr: '{$package["nonceStr"]}',
+		signature: '{$package["signature"]}',
+		jsApiList: [
+			'onMenuShareTimeline','onMenuShareQQ','onMenuShareQZone','onMenuShareAppMessage','onMenuShareWeibo'
+		]
+	});
+	wx.ready(function () {
+		wx.hideOptionMenu();
+	});
+</script>
+{template 'footerbar'}

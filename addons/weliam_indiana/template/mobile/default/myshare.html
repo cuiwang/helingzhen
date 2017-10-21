@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>我的晒单 - {php echo $this->module['config']['sname']} </title>
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, width=device-width">
+    <meta content="telephone=no" name="format-detection">
+    <link href="{WELIAM_INDIANA_STATIC}css/common.css" rel="stylesheet">
+    <script language="javascript" src="{WELIAM_INDIANA_STATIC}js/jquery.js"></script>
+ </head>
+{template wxshare}
+<script>
+	//自动刷新
+	var id={$id};
+	var flag=0;
+		//检测没有数据
+		
+	function refresh(){
+		var re = document.getElementById('more');
+		if({$id} == -1){
+			re.innerHTML='没有更多的信息了';
+		}
+	}
+	//判断div是否在可视区域
+	  $(document).ready(function () {
+            $(window).scroll(function () {
+                var a = document.getElementById("more").offsetTop;
+                if (a >= $(window).scrollTop() && a < ($(window).scrollTop()+$(window).height())&&id!='-1'&&flag=='0') {
+                   document.getElementById('more').innerHTML="努力加载中";
+					flag = 1;
+					/*down_load();*/	
+                }
+            });
+        });
+//回传数据
+	
+	function down_load(){
+		//传值验证返回	
+	    $.post("{php echo $this->createMobileUrl('myshare')}",
+	    {
+	    	id:id
+	    },
+	    function(m){
+				if(m==''){
+					document.getElementById('more').innerHTML="没有可加载项";
+				}else{
+					if(m.success=='-1'){
+						document.getElementById('more').innerHTML='没有更多的信息了';
+					}else{
+						
+						id = m.success;
+						for(var i=0;i<m.list.length;i++){
+							if(m.list[i].status==1){
+								m.list[i].status = '微信支付';
+							}else{
+								m.list[i].status = '未支付';
+							}
+							var addr = "{php echo $this->createMobileUrl('share_detail')}&id="+m.list[i].id;
+							var mess = "location.href='"+addr+"'";
+							var more ='<div class="w-shareItem" onclick="'+mess+'"><p class="title">'+m.list[i].title+'</p><p class="author"><a href="{php echo $this->createMobileUrl('otherpersonal')}&openid='+m.list[i].openid+'">'+m.list[i].nickname+'</a><span class="time">'+m.list[i].createtime+'</span></p><div class="abbr"><div class="pic"><img src="'+m.list[i].thumb+'"></div><div class="txt">'+m.list[i].detail+'</div></div></div>';
+							$("#morelist").append(more);
+							flag = 0;
+							document.getElementById('more').innerHTML="上拉加载更多";
+						}
+						
+					}
+				}
+
+             },"json");
+	}
+	
+</script>
+
+
+<body onload="refresh();">
+
+<div class="g-body" id="dvWrapper" style="padding-top: 44px;">
+	<div class="m-simpleHeader" id="dvHeader">
+    	<a href="javascript:history.back(-1);" data-pro="back" data-back="true" class="m-simpleHeader-back"><i class="ico ico-back"></i></a>
+        <h1>我的晒单</h1>
+    </div>
+    <div id="pro-view-0">
+    <div data-pro="loading"></div>
+
+    <div class="w-shareList" id='morelist'>
+    	{loop $result $result}
+        <div class="w-shareItem" onclick="location.href='{php echo $this->createMobileUrl('share_detail',array(id => $result['id']));}';" id="pro-view-4">
+       		 <p class="title"><a href="">{$result['title']}</a></p>
+       		 <p class="author"><a href="{php echo $this->createMobileUrl('otherpersonal',array(openid => $result['openid']));}">{$result['nickname']}</a>
+       		 	<span class="time">{php echo date("m-d H:i",$result['createtime'])}</span></p>
+        <div class="abbr">
+            <div class="pic"><a href="javascript:void(0);"><img src="{$result['thumbs'][0]}"></a></div>
+            <div class="txt"><a href="javascript:void(0);">{$result['detail']}</a></div>
+        </div>
+    </div>
+      {/loop}
+  </div>
+  	<div data-pro="more">
+        	<div class="w-more" id="pro-view-5">
+            	<div data-pro="link" id = "mores">仅显示最近20个晒单</div>
+        	</div>
+        </div>
+
+<button class="w-button w-button-round w-button-backToTop" style="display: none;" id="pro-view-2">返回顶部</button>
+</body></html>

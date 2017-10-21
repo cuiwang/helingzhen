@@ -1,0 +1,208 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li {if $act == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('house', array('act' => 'display'));}">楼盘列表</a></li>
+	<li {if $act == 'post' && !$_GPC['_id']}class="active"{/if}><a href="{php echo $this->createWebUrl('house', array('act' => 'post'));}">添加楼盘</a></li>
+	{if $_GPC['_id']}<li {if $act == 'post'}class="active"{/if}><a href="{php echo $this->createWebUrl('house', array('act' => 'post', '_id' => $id));}">编辑楼盘</a></li>{/if}
+	<li {if $act == 'type' && $type == 2}class="active"{/if}><a href="{php echo $this->createWebUrl('house', array('act' => 'type', 'type' => 2));}">楼盘类型</a></li>
+	<li {if $act == 'type' && $type == 1}class="active"{/if}><a href="{php echo $this->createWebUrl('house', array('act' => 'type', 'type' => 1));}">楼盘特色</a></li>
+</ul>
+
+<style>
+	.table td input{margin-bottom:0;}
+	.alreadypay {background-color: #5cb85c; color: #ffffff; padding: 0 2px; border-radius: 2px;}
+	.neverpay {background-color: #d9534f; color: #ffffff; padding: 0 2px; border-radius: 2px;}
+</style>
+{if $act == 'display'}
+{if $_W['isfounder']}
+<div class="alert alert-danger">系统管理员可管理所有公众号下楼盘数据（此提示信息仅管理员可见）</div>
+{/if}
+<div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+		<form action="./index.php" method="get" class="form-horizontal" role="form">
+			<input type="hidden" name="c" value="site" />
+			<input type="hidden" name="a" value="entry" />
+			<input type="hidden" name="do" value="house" />
+			<input type="hidden" name="m" value="superman_house" />
+			<input type="hidden" name="act" value="display" />
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 control-label">楼盘名称</label>
+				<div class="col-sm-8 col-md-8 col-lg-8 col-xs-12">
+					<input class="form-control" name="name" type="text" value="{$_GPC['name']}">
+				</div>
+			</div>
+			{if $_W['isfounder']}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">所属公众号</label>
+				<div class="col-sm-9 col-md-8 col-lg-8 col-xs-12">
+					<select class="form-control" name="_uniacid">
+						<option value="-1">所有公众号</option>
+						{loop $accounts $acc}
+						<option value="{$acc['uniacid']}"{if $acc['uniacid'] == $_GPC['_uniacid']} selected="selected"{/if}>{$acc['name']} ({$acc['house_total']})</option>
+						{/loop}
+					</select>
+				</div>
+			</div>
+			{/if}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+				<div class="col-sm-9 col-md-8 col-lg-8 col-xs-12">
+					<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+
+<form action="" method="post">
+<div class="panel panel-default">
+	<div class="table-responsive panel-body">
+		<table class="table">
+			<thead>
+			<tr>
+				<th style="width:80px">排序</th>
+				<th width="120">封面图</th>
+				<th>名称</th>
+				<th width="120">均价</th>
+				<th width="100">订金</th>
+				<th width="100">积分</th>
+				<th width="100">佣金</th>
+				<th width="120">添加时间</th>
+				<!--<th>分享数</th>-->
+				<th width="80">操作</th>
+			</tr>
+			</thead>
+			<tbody>
+			{loop $list $item}
+			<tr>
+				<td>
+					<input type="text" class="form-control text-center" name="displayorder[{$item['id']}]" value="{$item['displayorder']}">
+				</td>
+                <td>
+					{if $item['coverimg']}<img src="{$item['coverimg']}" height="100" width="100"/>{/if}
+				</td>
+				<td>{$item['name']}</td>
+				<td>{$item['format_price']}元/㎡</td>
+				<td>{$item['deposit']}</td>
+				<td>{$item['credit']}</td>
+				<td>{if $item['commission']}{$item['commission']}元{else}{$item['new_commission']}{/if}</td>
+				<td>{php echo str_replace(' ', '<br>', date('Y-m-d H:i:s', $item['createtime']))}</td>
+				<td>
+					<a href="{php echo $this->createWebUrl('house', array('act' => 'post', '_id' => $item['id']));}" title="编辑" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm">
+						<i class="fa fa-edit"></i>
+					</a>
+					<a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('house', array('act' => 'delete', '_id' => $item['id']));}" title="删除" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm">
+						<i class="fa fa-times"></i>
+					</a>
+				</td>
+			</tr>
+			{/loop}
+			</tbody>
+		</table>
+	</div>
+	<div class="panel-footer">
+		总共 <strong>{$total}</strong> 条
+	</div>
+</div>
+<input name="submit" type="submit" value="更新排序" class="btn btn-primary col-lg-1">
+<input type="hidden" name="token" value="{$_W['token']}" />
+</form>
+<script type="text/javascript">
+	require(['bootstrap'],function($){
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+	});
+</script>
+{$pager}
+{elseif $act == 'post'}
+<script type="text/javascript" src="resource/js/lib/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="resource/js/lib/jquery-ui-1.10.3.min.js"></script>
+<form class="form-horizontal form" action="" method="post" enctype="multipart/form-data">
+	<input type="hidden" name="_id" value="{$item[id]}">
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			{if empty($item['id'])}
+				添加楼盘
+			{else}
+				编辑楼盘
+			{/if}
+		</div>
+		<div class="panel-body" id="house_post_wrap">
+			<ul class="nav nav-tabs" id="house_tabs_wrap">
+				<li class="active tab1">
+					<a href="#base_wrap">基本信息</a>
+				</li>
+				<li class="tab1">
+					<a href="#image_wrap">楼盘图片</a>
+				</li>
+				<li class="tab1">
+					<a href="#sell_wrap">售楼处信息</a>
+				</li>
+				<li class="tab1">
+					<a href="#params_wrap">自定义属性</a>
+				</li>
+				<li class="tab1">
+					<a href="#nearby_wrap">周边数据</a>
+				</li>
+				<li class="tab1">
+					<a href="#other_wrap">其它设置</a>
+				</li>
+			</ul>
+			<div class="tab-content">
+				<div class="tab-pane active pane1" id="base_wrap">
+					{template 'web/house-base'}
+				</div>
+				<div class="tab-pane pane1" id="image_wrap">
+					{template 'web/house-image'}
+				</div>
+				<div class="tab-pane pane1" id="sell_wrap">
+					{template 'web/house-sell'}
+				</div>
+				<div class="tab-pane pane1" id="params_wrap">
+					{template 'web/house-params'}
+				</div>
+				<div class="tab-pane pane1" id="nearby_wrap">
+					{template 'web/house-nearby'}
+				</div>
+				<div class="tab-pane pane1" id="other_wrap">
+					{template 'web/house-other'}
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="form-group">
+		<div class="col-sm-12">
+			<input name="submit" type="submit" value="提交" class="btn btn-primary col-lg-1">
+			<input type="hidden" name="token" value="{$_W['token']}" />
+		</div>
+	</div>
+</form>
+<script>
+$(function () {
+		window.optionchanged = false;
+		$('#house_tabs_wrap a').click(function (e) {
+			e.preventDefault();//阻止a链接的跳转行为
+			$(this).tab('show');//显示当前选中的链接及关联的content
+		})
+});
+	require(['jquery', 'util'], function($, u){
+		//检查表单提交内容
+		$('form').submit(function(){
+			var name = $('input[name=name]');
+			if (name.val() == '') {
+				u.message('请输入楼盘名称', '', 'error');
+				return false;
+			}
+			return true;
+		});
+	});
+</script>
+{elseif $act == 'design'}
+	{template 'web/house-design'}
+{elseif $act == 'type'}
+	{template 'web/house-type'}
+{/if}
+{template 'common/footer'}

@@ -1,0 +1,110 @@
+{template 'common/header'}
+
+<script type="text/javascript">
+
+	$(function(){
+		if (window.DeviceMotionEvent) {
+			window.addEventListener('devicemotion', deviceMotionHandler, false);
+		} else {
+			alert('您使用的设备或是浏览器不支持摇一摇功能，如果您是Android手机，您可以用UCWeb、chrome等第三方浏览器。')
+		}
+	});
+
+	var SHAKE_THRESHOLD = {php echo empty($reply['speed']) ? 3000 : $reply['speed']};
+	var INTERVAL = {php echo empty($reply['interval']) ? 100 : $reply['interval']};
+	var MAXSHAKECOUNT = {php echo empty($reply['maxshake']) ? 100 : $reply['maxshake']};
+	var last_update = 0;
+	var x;
+	var y;
+	var z;
+	var last_x;
+	var last_y;
+	var last_z;
+	var lastupdate = 0;
+	var shakecount = 0;
+
+	function deviceMotionHandler(eventData) {
+		var acceleration = eventData.accelerationIncludingGravity;
+		var curTime = new Date().getTime();
+		var diffTime = curTime -last_update;
+		if (diffTime > INTERVAL) {
+			last_update = curTime;
+			x = acceleration.x;
+			y = acceleration.y;
+			z = acceleration.z;
+			var speed = Math.abs(x + y + z - last_x - last_y - last_z) / diffTime * 10000;
+			if (speed > SHAKE_THRESHOLD && shakecount < MAXSHAKECOUNT) {
+				if ($('#shake-animation').attr('class') == 'shake-pic') {
+					$('#shake-animation').attr('class', 'shake-pic opr-texiao-shake');
+				} else {
+					$('#shake-animation').attr('class', 'shake-pic');
+				}
+
+				{if !empty($member['status'])}
+					$.getJSON('{php echo $this->createMobileUrl('shake', array('rid' => $reply['rid']))}', function(s){
+						if (s.message.status == '2') {
+							location.href = '{php echo $this->createMobileUrl('detail', array('rid' => $reply['rid'], 'weid' => $_W['weid']))}';
+							return;
+						}
+						if (s.message.lastupdate > lastupdate) {
+							if (s.message.shakecount >= MAXSHAKECOUNT) {
+								return;
+							}
+							lastupdate = s.message.lastupdate;
+							shakecount = s.message.shakecount;
+							return;
+						}
+					});
+				{/if}
+
+			}
+
+			last_x = x;
+			last_y = y;
+			last_z = z;
+		}
+	}
+
+</script>
+
+<style>
+
+	body{background:#282c2d;}
+	.common-bg{filter:Alpha(opacity=70); background:#000; background:rgba(0, 0, 0, 0.7); -moz-border-radius:4px; border-radius:4px;}
+	.shake-main{}
+	.shake-nav-bottom{overflow:hidden; width:100%; position:absolute; left:0; bottom:15px;}
+	.shake-nav-bottom .col-xs-6{text-align:center;}
+	.shake-nav-bottom .col-xs-6 i{font-size:30px;}
+	.shake-nav-bottom .col-xs-6 a{color:#5f6364; text-decoration:none;}
+	.shake-pic{height:210px; background:url('../addons/we7_shake/template/mobile/shake.png') no-repeat center; margin-top:40%;}
+	@keyframes page_rotate{from{transform:rotate(0deg);-ms-transform:rotate(0deg);-moz-transform:rotate(0deg);-webkit-transform:rotate(0deg);-o-transform:rotate(0deg)}to{transform:rotate(360deg);-ms-transform:rotate(360deg);-moz-transform:rotate(360deg);-webkit-transform:rotate(360deg);-o-transform:rotate(360deg)}}
+	@-webkit-keyframes page_rotate{from{transform:rotate(0deg);-ms-transform:rotate(0deg);-moz-transform:rotate(0deg);-webkit-transform:rotate(0deg);-o-transform:rotate(0deg)}to{transform:rotate(360deg);-ms-transform:rotate(360deg);-moz-transform:rotate(360deg);-webkit-transform:rotate(360deg);-o-transform:rotate(360deg)}}
+	@keyframes page_rotateY{from{transform:rotateY(0deg);-ms-transform:rotateY(0deg);-moz-transform:rotateY(0deg);-webkit-transform:rotateY(0deg);-o-transform:rotateY(0deg)}29%,71%{transform:rotateY(180deg);-ms-transform:rotateY(180deg);-moz-transform:rotateY(180deg);-webkit-transform:rotateY(180deg);-o-transform:rotateY(180deg)}to{transform:rotateY(360deg);-ms-transform:rotateY(360deg);-moz-transform:rotateY(360deg);-webkit-transform:rotateY(360deg);-o-transform:rotateY(360deg)}}
+	@-webkit-keyframes page_rotateY{from{transform:rotateY(0deg);-ms-transform:rotateY(0deg);-moz-transform:rotateY(0deg);-webkit-transform:rotateY(0deg);-o-transform:rotateY(0deg)}29%,71%{transform:rotateY(180deg);-ms-transform:rotateY(180deg);-moz-transform:rotateY(180deg);-webkit-transform:rotateY(180deg);-o-transform:rotateY(180deg)}to{transform:rotateY(360deg);-ms-transform:rotateY(360deg);-moz-transform:rotateY(360deg);-webkit-transform:rotateY(360deg);-o-transform:rotateY(360deg)}}
+	@keyframes page_fadeIn{from{opacity:0}to{opacity:1}}
+	@-webkit-keyframes page_fadeIn{from{opacity:0}to{opacity:1}}
+	@keyframes page_blink{40%,from{opacity:1}45%,55%{opacity:0}60%,to{opacity:1}}
+	@-webkit-keyframes page_blink{40%,from{opacity:1}45%,55%{opacity:0}60%,to{opacity:1}}
+	@keyframes page_jump{from{transform:translateY(0);-ms-transform:translateY(0);-moz-transform:translateY(0);-webkit-transform:translateY(0);-o-transform:translateY(0)}17%{transform:translateY(-200px);-ms-transform:translateY(-200px);-moz-transform:translateY(-200px);-webkit-transform:translateY(-200px);-o-transform:translateY(-200px)}33%{transform:translateY(0);-ms-transform:translateY(0);-moz-transform:translateY(0);-webkit-transform:translateY(0);-o-transform:translateY(0)}49%{transform:translateY(-100px);-ms-transform:translateY(-100px);-moz-transform:translateY(-100px);-webkit-transform:translateY(-100px);-o-transform:translateY(-100px)}66%{transform:translateY(0);-ms-transform:translateY(0);-moz-transform:translateY(0);-webkit-transform:translateY(0);-o-transform:translateY(0)}83%{transform:translateY(-50px);-ms-transform:translateY(-50px);-moz-transform:translateY(-50px);-webkit-transform:translateY(-50px);-o-transform:translateY(-50px)}to{transform:translateY(0);-ms-transform:translateY(0);-moz-transform:translateY(0);-webkit-transform:translateY(0);-o-transform:translateY(0)}}
+	@-webkit-keyframes page_jump{from{transform:translateY(0);-ms-transform:translateY(0);-moz-transform:translateY(0);-webkit-transform:translateY(0);-o-transform:translateY(0)}17%{transform:translateY(-200px);-ms-transform:translateY(-200px);-moz-transform:translateY(-200px);-webkit-transform:translateY(-200px);-o-transform:translateY(-200px)}33%{transform:translateY(0);-ms-transform:translateY(0);-moz-transform:translateY(0);-webkit-transform:translateY(0);-o-transform:translateY(0)}49%{transform:translateY(-100px);-ms-transform:translateY(-100px);-moz-transform:translateY(-100px);-webkit-transform:translateY(-100px);-o-transform:translateY(-100px)}66%{transform:translateY(0);-ms-transform:translateY(0);-moz-transform:translateY(0);-webkit-transform:translateY(0);-o-transform:translateY(0)}83%{transform:translateY(-50px);-ms-transform:translateY(-50px);-moz-transform:translateY(-50px);-webkit-transform:translateY(-50px);-o-transform:translateY(-50px)}to{transform:translateY(0);-ms-transform:translateY(0);-moz-transform:translateY(0);-webkit-transform:translateY(0);-o-transform:translateY(0)}}
+	@keyframes page_shake{from{transform:rotate(0deg);-ms-transform:rotate(0deg);-moz-transform:rotate(0deg);-webkit-transform:rotate(0deg);-o-transform:rotate(0deg)}4%{transform:rotate(5deg);-ms-transform:rotate(5deg);-moz-transform:rotate(5deg);-webkit-transform:rotate(5deg);-o-transform:rotate(5deg)}12.5%{transform:rotate(-5deg);-ms-transform:rotate(-5deg);-moz-transform:rotate(-5deg);-webkit-transform:rotate(-5deg);-o-transform:rotate(-5deg)}21%{transform:rotate(5deg);-ms-transform:rotate(5deg);-moz-transform:rotate(5deg);-webkit-transform:rotate(5deg);-o-transform:rotate(5deg)}29%{transform:rotate(-5deg);-ms-transform:rotate(-5deg);-moz-transform:rotate(-5deg);-webkit-transform:rotate(-5deg);-o-transform:rotate(-5deg)}37.5%{transform:rotate(5deg);-ms-transform:rotate(5deg);-moz-transform:rotate(5deg);-webkit-transform:rotate(5deg);-o-transform:rotate(5deg)}46%{transform:rotate(-5deg);-ms-transform:rotate(-5deg);-moz-transform:rotate(-5deg);-webkit-transform:rotate(-5deg);-o-transform:rotate(-5deg)}50%,to{transform:rotate(0deg);-ms-transform:rotate(0deg);-moz-transform:rotate(0deg);-webkit-transform:rotate(0deg);-o-transform:rotate(0deg)}}
+	@-webkit-keyframes page_shake{from{transform:rotate(0deg);-ms-transform:rotate(0deg);-moz-transform:rotate(0deg);-webkit-transform:rotate(0deg);-o-transform:rotate(0deg)}4%{transform:rotate(5deg);-ms-transform:rotate(5deg);-moz-transform:rotate(5deg);-webkit-transform:rotate(5deg);-o-transform:rotate(5deg)}12.5%{transform:rotate(-5deg);-ms-transform:rotate(-5deg);-moz-transform:rotate(-5deg);-webkit-transform:rotate(-5deg);-o-transform:rotate(-5deg)}21%{transform:rotate(5deg);-ms-transform:rotate(5deg);-moz-transform:rotate(5deg);-webkit-transform:rotate(5deg);-o-transform:rotate(5deg)}29%{transform:rotate(-5deg);-ms-transform:rotate(-5deg);-moz-transform:rotate(-5deg);-webkit-transform:rotate(-5deg);-o-transform:rotate(-5deg)}37.5%{transform:rotate(5deg);-ms-transform:rotate(5deg);-moz-transform:rotate(5deg);-webkit-transform:rotate(5deg);-o-transform:rotate(5deg)}46%{transform:rotate(-5deg);-ms-transform:rotate(-5deg);-moz-transform:rotate(-5deg);-webkit-transform:rotate(-5deg);-o-transform:rotate(-5deg)}50%,to{transform:rotate(0deg);-ms-transform:rotate(0deg);-moz-transform:rotate(0deg);-webkit-transform:rotate(0deg);-o-transform:rotate(0deg)}}
+	.opr-texiao-rotate{animation:page_rotate 4s ease;-webkit-animation:page_rotate 4s ease}
+	.opr-texiao-rotateY{animation:page_rotateY 7s ease;-webkit-animation:page_rotateY 7s ease}
+	#wrapper_wrapper.opr-texiao-fadeIn{animation:page_fadeIn 4s ease;-webkit-animation:page_fadeIn 4s ease}
+	em.opr-texiao-blink{animation:page_blink 1.3s ease 0s 5;-webkit-animation:page_blink 1.3s ease 0s 5}
+	.opr-texiao-jump{animation:page_jump 2s ease;-webkit-animation:page_jump 2s ease}
+	.opr-texiao-shake{animation:page_shake 2s ease 0s 1;-webkit-animation:page_shake 2s ease 0s 1}
+
+</style>
+
+<div class="shake-main">
+	{if $reply['status'] == 2}
+	<div class="common-bg" style="padding:10px; color:#FFF;">活动结束，请查看大屏幕中奖情况。</div>
+	{/if}
+	<div class="shake-pic" id="shake-animation"></div>
+</div>
+
+{php $footer_off = 1;}
+
+{template 'common/footer'}

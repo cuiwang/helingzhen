@@ -1,0 +1,104 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="pragma" content="no-cache" >
+    <meta http-equiv="Cache-Control" content="no-store,must-revalidate" >
+    <meta http-equiv="expires" content="Web, 26 Feb 1997 08:21:57 GMT">
+    <meta http-equiv="expires" content="0">
+	<title>{$setting['title']}</title>
+	<meta name="keywords" content="微订水">
+	<meta name="description" content="微订水">
+	<meta author="kobe" contet="QQ:2779736086">
+	<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+	<script type="text/javascript" src="../addons/kobe_water/template/js/jquery.min.js" ></script>
+	<script type="text/javascript" src="../addons/kobe_water/template/js/jquery.lazyload.min.js"></script>
+	<script type="text/javascript" src="../addons/kobe_water/template/js/bootstrap.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="../addons/kobe_water/template/css/font-awesome.min.css">
+	<link rel="stylesheet" type="text/css" href="../addons/kobe_water/template/css/main.css">
+	<meta content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0" name="viewport">
+	<meta name="format-detection" content="telephone=no">
+	<script type="text/javascript" src="../addons/kobe_water/template/js/target-script-min.js"></script>
+	<script type="text/javascript">
+	// 对浏览器的UserAgent进行正则匹配，不含有微信独有标识的则为其他浏览器
+	var useragent = navigator.userAgent;
+	if (useragent.match(/MicroMessenger/i) != 'MicroMessenger') {
+	// 这里警告框会阻塞当前页面继续加载
+	var url = window.location.href;
+	window.location.href = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid={$_W['account']['key']}&redirect_uri='+url+'&response_type=code&scope=snsapi_base&state=YWN0PW1vZHVsZSZuYW1lPXNob3BwaW5nMiZkbz1saXN0JndlaWQ9Mg==&connect_redirect=1#wechat_redirect';
+	}
+	</script>
+</head>
+<body>
+    <div class="shopPage">
+        <div class="topFloatBar">
+            <div class="topMenu">
+	            <div class="topBack">
+	                <a href="javascript:history.go(-1)">
+	                    <img src="../addons/kobe_water/template/images/icon-back.png" style="-webkit-touch-callout:none;-webkit-user-select:none;">
+	                </a>
+	            </div>
+	            <div class="topMore">
+	                <a href="{php echo $this->createMobileUrl('index');}">
+	                    <img src="../addons/kobe_water/template/images/icon-cato.png" style="-webkit-touch-callout:none;-webkit-user-select:none;">
+	                </a>
+	            </div>
+	            <div class="topTitle">我的订单</div>
+            </div>
+        </div>
+    </div>
+    <div class="order-list">
+        {if !empty($orders)}
+        {loop $orders $id $order}
+	        <div class="deliverItem">
+	            <div class="top">
+	                <div class="order-item-title">
+	                    {php $status = pdo_fetch("SELECT * FROM ".tablename('hao_water_order_status')." WHERE ordersn = :ordersn AND uniacid = :uniacid ORDER BY id DESC LIMIT 1", array(':ordersn' => $order['ordersn'],':uniacid' => $_W['uniacid']));}
+	                    {if ($status['order_deliver_status'] == '2' ) }
+	                    <span class="status statusWait" style="color:green;">已完成</span>
+	                    {else if ($status['order_deliver_status'] == '1' ) }<span class="status statusWait" style="color:#FF9912;">配送中</span>
+	                    {else}<span class="status statusWait" style="color:red;">已支付</span>
+	                    {/if}
+	                    下单时间 {php echo date('Y-m-d H:i:s',$order['order_time']); }
+	                </div>
+	            </div>
+	            {php $count = count(explode(',',$order['goodsId']));  $goodids = explode(',',$order['goodsId']); $shopcount = explode(',',$order['order_count']);}
+	            <div class="mid">
+	                <a href="{php echo $this->createMobileUrl('orderdetail',array('id'=>$order['id']))}">
+	                    <div class="order-item-goods">
+	                        <ul>
+	                            <?php for($i=0;$i<$count;$i++) {?>
+	                            {php $shop_image = pdo_fetch("SELECT * FROM ".tablename('hao_water_goods')." WHERE id = :id LIMIT 1", array(':id' => $goodids[$i])); }
+	                            <li>
+	                               <span class="number">{php echo $shopcount[$i]; }</span>
+	                               <input type="hidden" value="{php echo $shopcount[$i]*$shop_image['goods_price']; }" />
+	                               <img src="{php echo tomedia($shop_image['goods_image']);}" style="-webkit-touch-callout:none;-webkit-user-select:none;">
+	                            </li>
+	                            <?php }?>
+	                        </ul>
+	                    </div>
+	                </a>
+	            </div>
+	            <div class="bottom">
+	                <div class="order-item-oprate">
+	                    <div class="left">
+	                       <a href="{php echo $this->createMobileUrl('orderdetail',array('id'=>$order['id']))}">查看详情</a>
+	                    </div>
+	                    <div class="right"></div>
+	                </div>
+	            </div>
+	        </div>
+        {/loop}
+        {else}
+        <div class="cart-list">
+            <div class="total">
+                暂无任何订单
+            </div>
+        </div>
+        <div class="btnBar">
+            <button class="bigBtn orangeBtn" name="submit" type="submit" style="width:100%;background-color:green;"><a href="{php echo $this->createMobileUrl('index');}" style="color:#fff;">去逛逛</a></button>
+        </div>
+        {/if}
+    </div>
+</body>
+</html>

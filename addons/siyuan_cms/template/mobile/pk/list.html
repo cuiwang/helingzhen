@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head> 
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+<meta name="format-detection" content="telephone=no" />
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+<title>话题列表</title>
+<link href="{$_W['siteroot']}addons/siyuan_cms/img/css.css" rel="stylesheet" />
+<script src="http://libs.baidu.com/jquery/1.7.2/jquery.min.js"></script>
+</head>
+<body onLoad="showPage();">
+<div id="divPageLoading">
+<img src="{$_W['siteroot']}addons/siyuan_cms/img/loading.gif" style="position:absolute;left:40%;top:250px;"/>
+</div>
+<div id="divPageBody" style="display:none;">
+{template 'top'}
+<div class="pogoSlider" id="js-main-slider">
+{loop $flash $item} 
+<a href="{$item['url']}">
+<div class="pogoSlider-slide" style="background-image:url({$_W['attachurl']}{$item['attachment']});">
+</div>
+</a>
+{/loop}
+<script>
+var myFlash = {
+height: "120",
+};
+</script>
+<script src="{$_W['siteroot']}addons/siyuan_cms/img/js/flash.js"></script> 
+</div>
+<div class="public-module-title"> 
+<p><span class="base-bgcolor public-title-icon" style="background:{$set['color']}"></span>话题列表</p>
+</div>
+<div class="card-news card-news-list"> 
+<ul id="lists"></ul>
+<div class="nodata"></div>
+</div>
+<script type="text/javascript">
+$(function() {
+i = 1;
+var totalpage = 100; //总页数，防止超过总页数继续滚动
+var winH = $(window).height(); //页面可视区域高度 
+$(window).scroll(function() {
+if (i < totalpage) { // 当滚动的页数小于总页数的时候，继续加载
+var pageH = $(document.body).height();
+var scrollT = $(window).scrollTop(); //滚动条top 
+var aa = (pageH - winH - scrollT) / winH;
+if (aa < 0.01) {
+getJson(i)
+}
+} else { //否则显示无数据
+showEmpty();
+}
+});
+getJson(0); //加载第一页
+});
+function getJson(page) {
+$(".nodata").show().html("<img style='position: absolute;left:40%;bottom:28%' src='{$_W['siteroot']}addons/siyuan_cms/img/loading.gif'/>");
+$.getJSON("{php echo $this->createMobileUrl('pk', array('act' => 'ajax'))}", {page: i}, function(json) {
+if (json) {
+var str = "";
+$.each(json, function(index, array) {
+var str = "<li><a href='" + array['url'] + "'><p class='pic1'><img src='" + array['thumb'] + "'></p><p class='list_title'>" + array['title'] + "</p><em><span class='time right'>" + array['time'] + "</span><span class='yuedu'>" + array['yuedu'] + "</span><span class='pinglunicon'>" + array['pinglun'] + "</span></em></a></li>";
+$("#lists").append(str);
+});
+$(".nodata").hide()
+} else {
+showEmpty();
+}
+});
+i++;
+}
+function showEmpty() {
+$(".nodata").show().html("所有内容已经加载完...");
+}
+</script>
+{php echo register_jssdk(false);}
+<script type="text/javascript">
+wx.ready(function () {
+sharedata = {
+title: "{$set['name']}-{$set['ad']}",
+desc: "{$set['name']}-{$set['ad']}",
+link: window.location.href,
+imgUrl: "{$_W['attachurl']}{$set['logo']}",
+success: function (res) {},
+cancel: function(){
+}
+};
+wx.onMenuShareAppMessage(sharedata);
+wx.onMenuShareTimeline(sharedata);
+wx.onMenuShareQQ(sharedata);
+wx.onMenuShareWeibo(sharedata);
+wx.onMenuShareQZone(sharedata);
+});
+</script>
+{template 'bottom'}
+</div>
+<script>
+setTimeout(function(){
+$('#divPageLoading').remove();
+$('#divPageBody').show();  
+ },100);
+</script>
+</body>
+</html>
+</body>
+</html>

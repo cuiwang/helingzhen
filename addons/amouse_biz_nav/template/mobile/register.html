@@ -1,0 +1,137 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>注册</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <link href="/Public/stylesheets/index/main.css?1464937879" rel="stylesheet">
+    <script src="{AMOUSE_BIZ_NAV_RES}pig/js/jquery.min.js?2016050101"></script>
+    <script src="/Public/javascripts/index/common_new.js?1464937879"></script>
+</head>
+<body >
+<div class="content p10" >
+    <div class="login_logo">
+        <img src="/Public/images/login/login_logo.png?1464937879"/>
+    </div>
+    <div class="login_form">
+        <div class="login_row">
+            <input type="tel" name="mobile" placeholder="手机号"/>
+        </div>
+        <div class="login_row">
+            <input type="password" name="password" placeholder="密码"/>
+        </div>
+        <div class="login_row">
+            <input type="password" name="repassword" placeholder="重复输入密码"/>
+        </div>
+        <div class="login_row">
+            <input type="text" name="user_name" placeholder="昵称，不能包含表情"/>
+        </div>
+        <div class="login_row">
+            <input type="tel" name="code" placeholder="短信验证码"/>
+            <div class="login_cold">获取验证码</div>
+        </div>
+        <div class="login_row" style="display: none;" id="tips">
+            <div class="red"  >若收不到短信，请查看是否手机号填写有误、网络延迟、安全软件拦截、欠费停机</div>
+        </div>
+    </div>
+    <div class="" style='margin-top:12px;' ><input type="checkbox" name='agreement' checked class="" ><a style='color:blue' href="/home/special/agreement.html">我同意“小猪导航”公众平台服务协议</a></div>
+    <div class="login_btn">注册</div>
+    <div class="login_bottom">
+        <a href="">
+            <img src="/Public/images/login/login_bottom.png?1464937879">
+        </a>
+    </div>
+    <input type="hidden" class="" name="referer" value="/ucenter/login/index.html">
+</div>
+<script>
+    //注册
+    $('.login_btn').bind('click',function(){
+        var data = {};
+        data.mobile = $('input[name=mobile]').val();
+        if(!check_mobile(data.mobile))
+        {
+            alert('手机号有误，请检查手机号！');
+            return;
+        }
+        data.user_name = $('input[name=user_name]').val();
+        data.password = $('input[name=password]').val();
+        data.repassword = $('input[name=repassword]').val();
+        data.code = $('input[name=code]').val();
+        if(data.password!==data.repassword)
+        {
+            alert('两次输入的密码不一致');
+            return;
+        }
+        if(data.password.lenth<6)
+        {
+            alert('密码的长度不低于6位');
+            return;
+        }
+        if ($('input[name=agreement]').attr('checked') != 'checked')
+        {
+            alert('不同意协议要求，不能注册！');
+            return;
+        }
+        $.post("/ucenter/register/normal.html",data,function(data){
+            if(data.status==1)
+            {
+                alert(data.info);
+                location.href=$('input[name=referer]').val();
+            }
+            else
+            {
+                alert(data.info);
+            }
+        });
+    });
+    //获取验证码
+    var get_code = true;
+    var countdown=60;
+    $('.login_cold').bind('click',function(){
+
+        if(!get_code)
+        {
+            return;
+        }
+
+        var mobile = $('input[name=mobile]').val();
+        if( !check_mobile( mobile ) )
+        {
+            alert('手机号错误！');
+            return;
+        }
+
+        $.get("/ucenter/register/messagecode.html",{mobile:mobile},function(data){
+            //提示短信被拦截
+            $('#tips').show();
+            //开始倒计时
+            $('.login_cold').html(countdown);
+            time();
+
+        });
+    });
+
+
+    function time()
+    {
+        if (countdown == 0)
+        {
+            get_code = true;
+            countdown = 60;
+            $('.login_cold').html('获取验证码');
+        }
+        else
+        {
+            get_code = false;
+            $('.login_cold').html('重新获取'+countdown);
+            countdown--;
+            setTimeout(function() {
+                        time()
+                    },
+                    1000);
+        }
+    }
+
+</script>
+</body>
+</html>

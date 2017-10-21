@@ -1,0 +1,230 @@
+﻿<!DOCTYPE HTML>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=100%, initial-scale=1.0, user-scalable=no"/>
+<title>{$_W[account]['name']}口令红包</title>
+<script type="text/javascript" src="../addons/han_hongbao/template/mobile/js/sweetalert.min.js"></script>
+<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+<script type="text/javascript" src="{$_W['siteroot']}app/resource/js/app/util.js"></script>
+<script src="{$_W['siteroot']}app/resource/js/require.js"></script>
+<script src="{$_W['siteroot']}app/resource/js/app/config.js"></script>
+<script type="text/javascript" src="{$_W['siteroot']}app/resource/js/lib/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="{$_W['siteroot']}app/resource/js/lib/mui.min.js"></script>
+<script type="text/javascript" src="{$_W['siteroot']}app/resource/js/app/common.js"></script>
+<script type="text/javascript" src="../addons/han_hongbao/template/mobile/js/jquery.js"></script>
+<script type="text/javascript" src="../addons/han_hongbao/template/mobile/js/jquery-1.7.2.min.js"></script>
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=5PESLgvMcSbSUbPjmDKgvGZ3"></script>
+<link type="text/css" rel="stylesheet" href="../addons/han_hongbao/template/mobile/css/weui.css" />
+<link type="text/css" rel="stylesheet" href="../addons/han_hongbao/template/mobile/css/weui.min.css" />
+<link type="text/css" rel="stylesheet" href="../addons/han_hongbao/template/mobile/css/style.css" />
+<link type="text/css" rel="stylesheet" href="../addons/han_hongbao/template/mobile/css/sweetalert.css" />
+
+
+
+<script type="text/javascript">
+	function onBridgeReady(){ WeixinJSBridge.call('hideOptionMenu'); } if (typeof WeixinJSBridge == "undefined"){ if( document.addEventListener ){ document.addEventListener('WeixinJSBridgeReady', onBridgeReady, false); }else if (document.attachEvent){ document.attachEvent('WeixinJSBridgeReady', onBridgeReady); document.attachEvent('onWeixinJSBridgeReady', onBridgeReady); } }else{ onBridgeReady(); }
+</script>
+<style type="text/css">
+		/*超链接*/
+		
+	.link
+	{
+      position: relative;
+      margin-right: 0;
+      font-size: 17px;
+     -webkit-appearance: none;
+	}
+		.text_box
+	{
+
+		position: relative;
+		color: <?php echo $color; ?>;
+		font-size: 20px;
+	}
+	.background
+	{
+	position:fixed;
+	padding-top:<?php echo $height.'%'; ?>;
+	width: 100%;
+	text-align: center;
+	}
+	.text{font-size:20px;} 
+	.btn{font-size:20px;}
+	
+.choose-img{background: #FFF;width:100px;height:100px;margin-left:auto;margin-right:auto;border:1px solid #CCC;text-align:center; color:#CCC;vertical-align:middle; line-height:100px;font-size:48px;filter: alpha(opacity=50); opacity: 0.5;}
+</style>
+</head>
+<body>
+ <div class="background" style="height:100%;background:url({$img});background-size:100%;display:none;">
+ <div class="input_box" style="margin-top:55%">
+ 	<input type="text" class="text" id="kouling" name="kouling"  placeholder="{$set['prompt']}" />
+ </div>
+ <br>
+ {if $set['up_img'] == '1'}
+ <div id="choose-img" class="choose-img" ><h1>+</h1></div>
+ <div style="color: #FFF;text-align: center; padding: -20px 0;font-size: 14px;">添加好评图片</div>
+ {/if}
+ <br>
+ <div class="button_box" style="display:">
+  <input type="button" class="weui_btn weui_btn_primary"  style="width:80%" value="确定" name="submit" id="submit"/>
+ </div>
+ <div class="weui_dialog_alert" id="dialog" style="display:none;">
+        <div class="weui_mask"></div>
+        <div class="weui_dialog">
+            <div class="weui_dialog_hd"><strong class="weui_dialog_title">活动规则</strong></div>
+            <div class="weui_dialog_bd" style="text-align:left;"><?php echo nl2br($set['rule']); ?></div>
+            <div class="weui_dialog_ft">
+                <a href="javascript:;" onclick="document.getElementById('dialog').style.display='none';" class="weui_btn_dialog primary">确定</a>
+            </div>
+        </div>
+    </div>
+    <br>
+    <div class="link" style="text-align:center;color:#FFF; margin-top:10%;width:100%;">
+     <a href="#" onclick="document.getElementById('dialog').style.display='block';"><span style="text-align:center;color:#FFF">查看活动规则></span></a>
+    </div>
+</div>
+
+<script>
+var images = {
+    localId: [],
+    serverId: []
+  };
+  
+var local=null;
+
+wx.config({
+	debug: false,   
+	appId: '<?php echo $signPackage["appId"];?>',
+	timestamp: '<?php echo $signPackage["timestamp"];?>',
+	nonceStr: '<?php echo $signPackage["nonceStr"];?>',
+	signature: '<?php echo $signPackage["signature"];?>',
+	jsApiList: ['chooseImage','previewImage','uploadImage','downloadImage','openLocation','getLocation','checkJsApi','onMenuShareTimeline','onMenuShareAppMessage','onMenuShareQQ','onMenuShareWeibo',]
+});
+
+var user_image="{$fromUserJson['user_image']}";
+var user_name="{$fromUserJson['user_name']}";
+var title="{$settings['sharetitle']}".replace("{fromuser}",user_name);
+var desc="{$settings['sharedescription']}".replace("{fromuser}",user_name);
+
+//wx.error(function (res) {
+    //alert(res.errMsg);
+//});
+
+wx.ready(function () {
+	
+  // 拍照、本地选图
+   document.querySelector('#choose-img').onclick = function () {
+    wx.chooseImage({
+	   count: 1, // 默认9
+       sizeType: ['original', 'compressed'], // 可以指定是原图还是压缩图，默认二者都有
+       sourceType: ['album','camera'], // 可以指定来源是相册还是相机，默认二者都有
+       success: function (res) {
+        images.localId = res.localIds; // 返回选定照片的本地ID列表，localId可以作为img标签的src属性显示图片
+		var _html="<img width='100px' height='100px' src='"+res.localIds[0]+"' />";
+        document.getElementById("choose-img").innerHTML=_html;
+		
+		var i = 0, length = images.localId.length;
+        images.serverId = [];
+	
+        function upload() {
+         wx.uploadImage({
+         localId: images.localId[i],
+         success: function (res) {
+           i++;
+           //alert('已上传：' + i + '/' + length);
+           images.serverId.push(res.serverId);
+           if (i < length) {
+            upload();
+           }
+         },
+         fail: function (res) {
+          alert(JSON.stringify(res));
+         }
+        });
+      }
+	
+      upload();
+	  
+     },
+     fail: function (res) {
+        alert('choosefail:' + res.errMsg);
+      }
+    });
+	
+  };
+  
+  var shareData = {
+		title: title,
+		desc: desc,
+		link: "{$settings['shareurl']}&wechatId={$fromUser}",
+		//imgUrl: '{$_W['attachurl']}{$settings['shareimage']}',
+		imgUrl: user_image,
+		trigger: function (res) {},
+		complete: function (res) {},
+		success: function (res) {
+		 //zzlog();
+		 },
+		cancel: function (res) {},
+		fail: function (res) {}
+	};
+	wx.onMenuShareAppMessage(shareData);
+	wx.onMenuShareQQ(shareData);
+	wx.onMenuShareWeibo(shareData);
+	wx.onMenuShareTimeline(shareData);
+  
+});
+$(document).ready(function(){
+	
+	var geolocation = new BMap.Geolocation();
+    geolocation.getCurrentPosition(function(r) {
+	  var address = r.address;
+	  
+	  $.post("{php echo $this->createMobileUrl('checkaddr');}",{pro:address['province'],city:address['city'],tablename:'han_hongbao_klset'},function(data){ 
+	   
+	   if (data.code=='no'){
+	     alert(data.msg);
+		 WeixinJSBridge.invoke('closeWindow',{},function(res){});
+		 return false;
+
+	   }else if(data.code=='yes'){
+		 
+		 $(".background").show();
+		   
+	   }
+	
+	 },"json");
+	 
+	}, {
+    enableHighAccuracy: true
+   });
+	
+	var loading = 'no';
+	var img ="<?php echo $set['up_img'];?>" 
+	
+	$("#submit").click(function(){
+	  if (img==1&&images.localId.length == 0) {
+        swal('请上传图片！');
+        return;
+      }
+	  var kouling= $("#kouling").val();
+	  $(".button_box").hide();
+	  $.ajax({
+	    type: "POST",
+		url: "{php echo $this->createMobileUrl('sendkouling')}",
+		data: {kouling:kouling,serverId:images.serverId[0]},
+		success: function(msg)
+		{
+		  alert(msg);
+		  WeixinJSBridge.call('closeWindow');
+		}
+	  });
+   
+	  		
+	});
+			
+ });
+</script>
+
+</body>
+</html>

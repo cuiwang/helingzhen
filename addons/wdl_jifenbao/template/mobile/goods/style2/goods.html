@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta content="telephone=no" name="format-detection"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"/>  
+<title>{if $cfg['hztype']<>''}{$cfg['hztype']}{else}积分{/if}兑换</title>
+<link rel="stylesheet" href="{$_W['siteroot']}addons/wdl_jifenbao/template/mobile/goods/css/normalize.min.css?t=20151026">
+
+{if $cfg['szcolor']<>''}
+<style>
+.theme-color{color: {$cfg['szcolor']};}
+.theme-bgcolor{background-color: {$cfg['szcolor']};}
+.theme-bordercolor{border-color: {$cfg['szcolor']};}
+/* radio */
+.radio-group.cur{border-color:{$cfg['szcolor']}; }
+.radio-group .cur-arrow{border-color: {$cfg['szcolor']} transparent transparent {$cfg['szcolor']};}
+.description a {color: {$cfg['szcolor']};}
+</style>
+{else}
+<style>
+.theme-color{color: #11c3bc;}
+.theme-bgcolor{background-color: #11c3bc;}
+.theme-bordercolor{border-color: #11c3bc;}
+/* radio */
+.radio-group.cur{border-color:#11c3bc; }
+.radio-group .cur-arrow{border-color: #11c3bc transparent transparent #11c3bc;}
+.description a {color: #11c3bc;}
+</style>
+{/if}
+	<script src="{$_W['siteroot']}addons/wdl_jifenbao/template/mobile/goods/css/zepto.min.js"></script>
+    <script src="{$_W['siteroot']}addons/wdl_jifenbao/template/mobile/goods/css/swipe.min.js?t=20151012"></script>
+</head>
+<body>
+{if $cfg['head']==1}
+{if $poster['mbstyle']=='style2'}
+{template 'style2/css'}
+{template 'style2/head'}
+{/if}
+{if $poster['mbstyle']=='style1'}
+<link rel="stylesheet" type="text/css" href="{$_W['siteroot']}addons/wdl_jifenbao/css/ui.css?v20151117">
+<link rel="stylesheet" type="text/css" href="{$_W['siteroot']}addons/wdl_jifenbao/css/style.css?v20151117">
+{template 'style1/head'}
+{/if}
+{/if}
+    <div id="db-content">
+		<link rel="stylesheet" href="{$_W['siteroot']}addons/wdl_jifenbao/template/mobile/goods/css/simple-v12.14.css">
+{if $ad}
+    <div class="banner">
+        <div class="banner-swipe">
+            <div>
+                {loop $ad $item}
+                <a href="{$item['url']}"><img alt="{$item['title']}" src="{php echo (strpos($item['pic'], 'http://') === FALSE) ? $_W['attachurl'].$item['pic'] : $item['pic']}"/></a>
+                {/loop}
+            </div>
+        </div>
+        <div class="banner-position"></div>
+    </div>
+<script>
+    $('.banner-swipe').children('div').height($('body').width()*280/640)
+</script>
+{/if}
+
+<div class="top">
+    <div class="credits">
+        <i></i><span>{if $cfg['hztype']<>''}{$cfg['hztype']}{else}积分{/if}</span><span class="theme-color" id="db-credits-num">{php echo number_format($credit)}</span>
+    </div>
+    <a href="{php echo $this->createMobileUrl('request')}" class="records">
+        <i class="note"></i><span>兑换记录</span><i id="db-new-record"></i>
+    </a>
+</div>
+
+<div class="items">
+     {loop $goods_list $item}
+      {if $item['type']==6}
+        <a href="{$item['wl_link']}">
+      {else}
+        <a href="{php echo $this->createMobileUrl('fillinfo', array('goods_id' => $item['goods_id'],'memberid'=>$member['id']))}">
+      {/if}
+            <img src="{$_W['siteroot']}addons/wdl_jifenbao/template/mobile/goods/css/blank.jpg" data-original="{php echo (strpos($item['logo'], 'http://') === FALSE) ? $_W['attachurl'].$item['logo'] : $item['logo']}">
+            <h2 style="font-size:14px;">{$item['title']}</h2>
+            <p style="font-size:14px;"><span class="theme-color">{$item['cost']}{if $cfg['hztype']<>''}{$cfg['hztype']}{else}积分{/if}</span>{if $item['hot']<>'' }<i class="tag new" style="border-color:{$item['hotcolor']};color:{$item['hotcolor']};">{$item['hot']}</i>{/if}</p>
+        </a>
+     {/loop}
+</div>
+<p class="apple">技术支持：{if $cfg['copyright']<>''}{$cfg['copyright']} {else}{$_W['account']['name']}{/if}</p>
+<script src="{$_W['siteroot']}addons/wdl_jifenbao/template/mobile/goods/css/zepto.lazyload.min.js?20140929"></script>
+<script>
+$(function(){
+    //banner
+    var $swipe=$('.banner-swipe'),
+        $swipeWrap=$swipe.children('div'),
+        $swipePosition=$('.banner-position'),
+        length=$swipeWrap.children('a').length;
+    if(length>1){
+        var swipePosition='';
+        $swipeWrap.children('a').wrap('<div></div>');
+        for(i=0;i<length;i++){
+            if(i==0){
+                swipePosition+='<li class="cur"></li>';
+            }else{
+                swipePosition+='<li></li>';
+            }
+        }
+        $swipePosition.append(swipePosition);
+        var bullets = $swipePosition.children('li');
+        window.bannerSlider =  Swipe(document.getElementsByClassName('banner-swipe').item(0), {
+                        auto: 3000,
+                        startSlide: 0,
+                        continuous: true,
+                        disableScroll:false,
+                        callback: function(index) {
+                            if((index+1)>bullets.length){
+                                index=index%2;
+                            }
+                            bullets.attr('class','').eq(index).attr('class','cur');
+                        }
+                    });
+    }
+    else{
+        $swipe.css('visibility','visible');
+    }
+    $(".items img").lazyload({ threshold : 500 });
+    //icon宽度自适应
+    if($('.icons a').length<4){
+        $('.icons a').css('width',(100/$('.icons a').length)+'%')
+    }
+    //item图片自适应高度
+    var imgWidth=($('.items').width()-41)/2;
+    $('.items img').css('height',imgWidth*225/225)
+})
+</script>
+
+		
+    </div>
+</body>
+
+<script>
+(function(){
+    $(function(){
+        if(navigator.userAgent.match(/(iphone|ipad|Android|ios)/ig)){
+            //app状态监控，用户10秒不触碰屏幕，即有可能离开了app，停止banner
+            var inApp=true;
+            function inAppTimerFn(){
+                window.inAppTimer=setTimeout(function(){
+                    inApp=false;
+                    if(window.bannerSlider){
+                        bannerSlider.stop();
+                    }
+                }, 12000);
+            }
+            inAppTimerFn();
+            document.addEventListener('touchend',function(e){
+                if(window.inAppTimer) clearTimeout(window.inAppTimer);
+                if(!inApp){
+                    inApp=true;
+                    if(window.bannerSlider){
+                        bannerSlider.begin();
+                    }
+                }
+                inAppTimerFn();
+            },false)
+        }
+    })
+})()
+
+</script>
+</html>

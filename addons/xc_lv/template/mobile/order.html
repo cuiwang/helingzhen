@@ -1,0 +1,239 @@
+{php $bootstrap_type = 3;}
+
+{template 'header'}
+
+<style type='text/css'>
+	.sel { background:#00AEFF; color:#fff;}
+	.nosel { background:#fff;color:#000}
+</style>
+<?php
+
+$set = $this->settings;
+
+?>
+<link type="text/css" rel="stylesheet" href="../addons/xc_lv/images/style.css?{TIMESTAMP}">
+{if $set['ispay']==1}
+<div class="head">
+	<a href="javascript:history.back();" class="bn pull-left"><i class="fa fa-angle-left"></i></a>
+	<span class="title">我的订单</span>
+	<!--<a href="{php echo $this->createMobileUrl('mycart')}" class="bn pull-right"><i class="fa fa-shopping-cart"></i></a>-->
+</div>
+ <div class="myoder" style='text-align:center;color:#aaa;padding:0;margin:10px;-webkit-box-shadow:0 0 0 0 rgba(0,0,0,0); box-shadow:0 0 0 0 rgba(0,0,0,0); overflow:hidden; background:none;border:none;'>
+	 <div style='float:left;width:100%;'>
+		<div {if $status == 0}class='sel'{else}class="nosel"{/if} style='border:1px solid #00AEFF;text-align: center;float:left;width:33.333333333333%;padding:5px 0;' onclick="location.href='{php echo $this->createMobileUrl('myorder',array('status'=>0))}'">
+			待支付
+		</div>
+		<div {if $status == 1 || $status == 5}class='sel'{else}class="nosel"{/if} style='border:1px solid #00AEFF;margin-left:-1px;float:left;width:33.333333333333%;padding:5px 0;;text-align: center;' onclick="location.href='{php echo $this->createMobileUrl('myorder',array('status'=>5))}'">
+			待审核
+		</div>
+		<div {if $status ==6 }class='sel'{else}class="nosel"{/if} style='margin-left:-1px;text-align: center;border:1px solid #00AEFF;float:left;width:33.333333333333%;padding:5px 0;' onclick="location.href='{php echo $this->createMobileUrl('myorder',array('status'=>6))}'">
+			已完成
+		</div>
+	</div>
+	 <!--<a style='float:right; display:inline-block; height:23px; line-height:23px;' href="{php echo $this->createMobileUrl('address',array('from'=>'confirm'))}">管理收货地址</a>-->
+</div>
+
+{if count($list)<=0}
+<div class="myoder" style='text-align:center;color:#aaa;padding:30px;'>
+	您暂时没有任何订单!
+</div>
+{/if}
+
+<div style='margin-bottom:40px;'>
+{loop $list $item}
+<div class="myoder">
+	<div class="myoder-hd">
+		<span class="pull-left">订单编号：{$item['ordersn']}</span>
+		<span class="pull-right">
+		{php echo date('Y-m-d H:i', $item['createtime'])}
+		{if $item['paytype'] == 3}
+			{if $item['status'] == -1}
+			<span class="text-muted">订单取消</span>
+			{elseif $item['status'] < 3}
+			<span class="text-danger">货到付款 / 未付款</span>
+			{else}
+			<span class="text-success">已完成</span>
+			{/if}
+		{else}
+			{if $item['status'] == -1}
+			<span class="text-muted">订单取消</span>
+			{elseif $item['status'] == 0}
+			<span class="text-danger">未付款</span>
+			{elseif $item['status'] == 1}
+			<span class="text-warning">已付款</span>
+			{elseif $item['status'] == 2}
+			<span class="text-warning">已发货</span>
+			{else}
+			<span class="text-success">已完成</span>
+			{/if}
+		{/if}
+		</span>
+	</div>
+	{if count($item['goods']) == 1}
+	{loop $item['goods'] $goods}
+	<div class="myoder-detail">
+		<a href="{php echo $this->createMobileUrl('detail', array('id' => $goods['id']))}">
+			<img src="{php echo tomedia($goods['thumb']);}" width="100%" />
+		</a>
+		<div class="pull-left">
+			<div><a href="{php echo $this->createMobileUrl('detail', array('id' => $goods['id']))}">{$goods['title']}</a></div>
+			<div class="price">
+				<span class="pull-left">成人（{$item['total'][$goods['id']]['total']}{if $goods['unit']} {$goods['unit']}{/if}）：￥{$goods['marketprice']}</span>
+               	<span class="pull-left">儿童（{$item['total'][$goods['id']]['ettotal']}{if $goods['unit']} {$goods['unit']}{/if}）：￥{$goods['productprice']} </span>
+
+			</div>
+		</div>
+	</div>
+	{/loop}
+	{else}
+	<div class="myoder-detail">
+		{loop $item['goods'] $goods}
+		<a href="{php echo $this->createMobileUrl('detail', array('id' => $goods['id']))}">
+			<img src="{php echo tomedia($goods['thumb']);}" width="100%" />
+		</a>
+		{/loop}
+	</div>
+	{/if}
+	<div class="myoder-total">
+		<span>
+			共计：
+			<span class="false">
+			{if $item['dispatchprice'] <= 0}
+			{$item['price']} 元
+			{else}
+			{$item['price']} 元 (运费 {$item['dispatchprice']} 元)
+			{/if}
+			</span>
+		</span>
+		<div style="height: 15px;margin-top: 15px;">
+			{if !empty($item['status']) && $item['status'] < 1}
+			<a href="{php echo $this->createMobileUrl('order', array('orderid' => $item['id'], 'op' => 'delete', 'curtstatus' => $status))}" class="btn btn-danger pull-right btn-sm" style="margin-left: 10px;">删除订单</a>
+			{/if}
+			{if $item['status'] < 1}
+			<a href="{php echo $this->createMobileUrl('order', array('orderid' => $item['id'], 'status' => '-1', 'curtstatus' => $status))}" class="btn btn-warning pull-right btn-sm" style="margin-left: 10px;">取消订单</a>
+			{/if}
+			<a href="{php echo $this->createMobileUrl('myorder', array('orderid' => $item['id'], 'op' => 'detail'))}" class="btn btn-success pull-right btn-sm" >订单详情</a>
+		</div>
+	</div>
+</div>
+{/loop}
+</div>
+<!--未支付-->
+{else}
+
+
+<div class="head">
+	<a href="javascript:history.back();" class="bn pull-left"><i class="fa fa-angle-left"></i></a>
+	<span class="title">我的订单</span>
+
+</div>
+ <div class="myoder" style='text-align:center;color:#aaa;padding:0;margin:10px;-webkit-box-shadow:0 0 0 0 rgba(0,0,0,0); box-shadow:0 0 0 0 rgba(0,0,0,0); overflow:hidden; background:none;border:none;'>
+	 <div style='float:left;width:100%;'>
+		<div {if $status == -1}class='sel'{else}class="nosel"{/if} style='border:1px solid #00AEFF;text-align: center;float:left;width:33.333333333333%;padding:5px 0;' onclick="location.href='{php echo $this->createMobileUrl('myorder',array('status'=>-1))}'">
+	取消订单
+		</div>
+		<div {if $status == 5}class='sel'{else}class="nosel"{/if} style='border:1px solid #00AEFF;margin-left:-1px;float:left;width:33.333333333333%;padding:5px 0;text-align: center;' onclick="location.href='{php echo $this->createMobileUrl('myorder',array('status'=>5))}'">
+			等待审核
+		</div>
+		<div {if $status ==6 }class='sel'{else}class="nosel"{/if} style='margin-left:-1px;text-align: center;border:1px solid #00AEFF;float:left;width:33.333333333333%;padding:5px 0;' onclick="location.href='{php echo $this->createMobileUrl('myorder',array('status'=>6))}'">
+			报名成功
+		</div>
+	</div>
+	 
+</div>
+
+{if count($list)<=0}
+<div class="myoder" style='text-align:center;color:#aaa;padding:30px;'>
+	您暂时没有任何订单!
+</div>
+{/if}
+
+<div style='margin-bottom:40px;'>
+{loop $list $item}
+<div class="myoder">
+	<div class="myoder-hd">
+		<span class="pull-left">订单编号：{$item['ordersn']}</span>
+		<span class="pull-right">
+		{php echo date('Y-m-d H:i', $item['createtime'])}
+		{if $item['paytype'] == 3}
+			{if $item['status'] == -1}
+			<span class="text-muted">订单取消</span>
+			{elseif $item['status'] < 3}
+			<span class="text-danger">货到付款 / 未付款</span>
+			{else}
+			<span class="text-success">已完成</span>
+			{/if}
+		{else}
+			{if $item['status'] == -1}
+			<span class="text-muted">订单取消</span>
+			{elseif $item['status'] == 0}
+			<span class="text-danger">未付款</span>
+			{elseif $item['status'] == 1}
+			<span class="text-warning">已付款</span>
+			{elseif $item['status'] == 2}
+			<span class="text-warning">已发货</span>
+			{else}
+			<span class="text-success">已完成</span>
+			{/if}
+		{/if}
+		</span>
+	</div>
+	{if count($item['goods']) == 1}
+	{loop $item['goods'] $goods}
+	<div class="myoder-detail">
+		<a href="{php echo $this->createMobileUrl('detail', array('id' => $goods['id']))}">
+			<img src="{php echo tomedia($goods['thumb']);}" width="100%" />
+		</a>
+		<div class="pull-left">
+			<div><a href="{php echo $this->createMobileUrl('detail', array('id' => $goods['id']))}">{$goods['title']}</a></div>
+			<div class="price">
+				<span class="pull-left">成人（{$item['total'][$goods['id']]['total']}{if $goods['unit']} {$goods['unit']}{/if}）：￥{$goods['marketprice']}</span>
+               	<span class="pull-left">儿童（{$item['total'][$goods['id']]['ettotal']}{if $goods['unit']} {$goods['unit']}{/if}）：￥{$goods['productprice']} </span>
+
+			</div>
+		</div>
+	</div>
+	{/loop}
+	{else}
+	<div class="myoder-detail">
+		{loop $item['goods'] $goods}
+		<a href="{php echo $this->createMobileUrl('detail', array('id' => $goods['id']))}">
+			<img src="{php echo tomedia($goods['thumb']);}" width="100%" />
+		</a>
+		{/loop}
+	</div>
+	{/if}
+	<div class="myoder-total">
+		<span>
+			共计：
+			<span class="false">
+			{if $item['dispatchprice'] <= 0}
+			￥{$item['price']} 元
+			{else}
+			￥{$item['price']} 元 (运费 {$item['dispatchprice']} 元)
+			{/if}
+			</span>
+		</span>
+		<div style="height: 15px;margin-top: 15px;">
+			{if !empty($item['status']) && $item['status'] < 1}
+			<a href="{php echo $this->createMobileUrl('order', array('orderid' => $item['id'], 'op' => 'delete', 'curtstatus' => $status))}" class="btn btn-danger pull-right btn-sm" style="margin-left: 10px;">删除订单</a>
+			{/if}
+			{if  $item['status']==5}
+			<a href="{php echo $this->createMobileUrl('order', array('orderid' => $item['id'], 'status' => '-1', 'curtstatus' => $status))}" class="btn btn-warning pull-right btn-sm" style="margin-left: 10px;">取消订单</a>
+			{/if}
+			{if  $item['status']==6}
+			<button class="btn btn-success pull-right btn-sm" style="margin-left: 10px;">报名成功</button>
+			{/if}
+			<!--<a href="{php echo $this->createMobileUrl('myorder', array('orderid' => $item['id'], 'op' => 'detail'))}" class="btn btn-success pull-right btn-sm" >订单详情</a>-->
+		</div>
+	</div>
+</div>
+{/loop}
+</div>
+
+
+{/if}
+
+{template 'footer'}
+
+{template 'footerbar'}

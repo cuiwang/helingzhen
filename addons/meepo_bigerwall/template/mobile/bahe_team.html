@@ -1,0 +1,224 @@
+<!doctype html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0,  user-scalable=0;" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+<meta name="format-detection" content="telephone=no" />
+<title>{$ridwall['bahe_title']}</title>
+<meta name="keywords" content="index" />
+<meta name="description" content="index" />
+<base target="_self" />
+<link href="{MEEPO}common/bahe/css/tug.css" rel="stylesheet" type="text/css" />
+<script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+</head>
+<body>
+
+<div class="index">
+    <img src="{MEEPO}common/bahe/images/tug-background.jpg" class="tug-background">
+    <div class="container">
+        <p class="tug-title"><span>{$ridwall['bahe_title']}</span></p>
+        <div class="cont-team">
+        	<img src="{MEEPO}common/bahe/images/team-bg.png" class="contbg-team">
+            <div class="teamline">
+                <span class="team-blue">
+                	<img src="{php echo tomedia($ridwall[$team_image])}">
+                    <p>{$ridwall[$team_name]}</p>
+                </span>
+            </div>
+            <div class="cont-txt">
+            	<p>请在倒计时结束后开始摇动手机，摇动次数越多，越有可能获得比赛胜利！</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="result" style='display:none;'>
+    <img src="{MEEPO}common/bahe/images/result-bg.jpg" class="result-background">
+    <a id="prize_link_a" href="javascript:;" ><img src="{MEEPO}common/bahe/images/view-prize.png" class="view-prize"></a>
+    <a href="javascript:;" id="prize_link" class="prizeImg">
+    	<img  id="prize_image" src="{MEEPO}common/bahe/images/prize-img-tug.jpg">
+    </a>
+    <div class="player-box">
+    	<img src="{MEEPO}common/bahe/images/result-box.png" class="rst-box-bg">
+        <div class="player-xinxi">
+        	<span class="pic-bg"><img src="{$member['avatar']}"></span>
+            <span class="play-name"><img src="{MEEPO}common/bahe/images/name-bg.png"><p>{$member['nickname']}</p></span>
+        </div>
+        <div class="rst-team"></div>
+    </div>
+    <div class="result-box">
+    	<ul class="clearfix">
+        	<li>
+            	<span class="rst-left">我的队伍</span>
+                <span class="rst-right">{$ridwall[$team_name]}</span>
+            </li>
+            <li>
+            	<span class="rst-left">名次</span>
+                <span class="rst-right" id='top'>0</span>
+            </li>
+            <li>
+            	<span class="rst-left">总出力</span>
+                <span class="rst-right"><i id='cnt' style="font-style:normal">0</i>kg</span>
+            </li>
+        </ul>
+        <div class="bottom-button" style="margin: 20px auto;">
+        	<a href="javascript:;" class="btn-share" id="share-button" style="margin:0 auto;float:none"><img src="{MEEPO}common/bahe/images/btn-share.png"></a>
+            <!--a href="{php echo $this->createMobileUrl('app_bahe',array('rid'=>$rid))}" class="btn-replay"><img src="{MEEPO}common/bahe/images/btn-replay.png"></a-->
+        </div>
+    </div>        
+</div>
+<style>
+/********** 网页分享 **********/
+.mask1 {width:100%; height:100%; display:none; position:fixed; top:0; left:0; z-index:999; background:rgba(0, 0, 0, 0.75);}
+.mask1 img { position:fixed; right:8%; top:0;}
+</style>
+<div class="mask1" style="display: none;"><img src="{MEEPO}common/bahe/images/weixin_share.png" width="241" height="208"></div>
+<input type="hidden" value="摇一摇拔河" id="weixin_desc">
+<script type="text/javascript">
+
+
+
+/* 控制排版尺寸 */
+window.onload=function(){
+var sw = $('.teamline span').width();
+$('.teamline span').height(sw);
+$('.teamline span img,.teamline span p').width(sw-12);
+$('.teamline span img').height(sw-12);
+}
+
+/* 摇动次数 */
+var cnt = 0;
+var infoAgent = navigator.userAgent;
+if(window.DeviceMotionEvent) {
+var speed = 5;
+var x = y = z = lastX = lastY = lastZ = 0;
+window.addEventListener('devicemotion', function(){
+var acceleration =event.accelerationIncludingGravity;
+x = acceleration.x;
+y = acceleration.y;
+if(Math.abs(x-lastX) > speed || Math.abs(y-lastY) > speed) {
+cnt++;            
+}		
+lastX = x;
+lastY = y;
+}, false);
+}
+
+top_interval = window.setInterval(function() {
+var one_cnt = cnt;
+
+    if (infoAgent.indexOf('Android')>0){
+        one_cnt = one_cnt*1.4;
+    }
+
+if(UI.cookie("{$openid}")==1)
+{
+one_cnt = one_cnt*0.6;
+}
+cnt = 0;
+$.post("{php echo $this->createMobileUrl('bahe_yyy',array('rid'=>$rid))}",{point:one_cnt,team:"{$team}"}, function(response){
+if(response.bahe_status=='2'){
+	clearTimeout(top_interval);
+	
+	$('#top').html(response.top_info.top);
+	//$("#weixin_desc").val("我在“摇一摇拔河”中获得了第“"+response.top_info.top+"”名，太刺激了，小伙伴们一起来玩吧！");
+	$('#cnt').html(response.top_info.point);
+	if(response.top_info.prize_image) {
+		$('#prize_image').attr('src',response.top_info.prize_image);				
+	}
+	if(response.top_info.prize_link) {
+		$('#prize_link').attr('href',response.top_info.prize_link);
+		$('#prize_link_a').attr('href',response.top_info.prize_link);
+		$('.view-prize').show();
+	}else{
+		$('.view-prize').hide();
+	}
+	$('.index').hide();
+	$('.result').show();
+	var pw = $('.pic-bg').width();
+	$('.pic-bg').height(pw);	
+	$('.pic-bg img').width(pw-12);
+	$('.pic-bg img').height(pw-12);
+	$('.prizeImg').height($('.prizeImg').width()/2);
+	var pt = ($('.play-name img').height()-24)/2;
+	$('.play-name p').css('padding-top',pt);
+	//如果前三名，记入本地
+	if(response.top_info.win_team == '{$team}')	{//胜利
+		$('.rst-team').addClass('win');
+	}else if(response.top_info.win_team == 3){//失败
+		$('.rst-team').addClass('draw');
+	}else{//平局
+		$('.rst-team').addClass('lose');
+	}
+	$('#prize_link_a').hide();
+	if(response.top_info.win_team == '{$team}' || response.top_info.win_team == 3){   
+		if(response.top_info.top<=3){
+			UI.cookie('tug_10648143', 1, 1);
+			if (response.top_info.win_team == '{$team}'){   
+				$('#prize_link_a').show();
+			}
+		}else{
+			$('#prize_link').attr('href', 'javascript:;');
+		}
+		if (response.top_info.win_team == 3){
+			$('#prize_link').attr('href', 'javascript:;');
+	    }
+	}else{
+		$('#prize_link').attr('href', 'javascript:;');
+	}
+}
+
+},'json')
+
+},2000);
+$(function(){
+	$("#share-button").click(function(){
+			$('.mask1').show();
+	});
+	$('.mask1').click(function(){
+		$(this).hide();
+	});
+});
+</script>
+
+
+
+<script>
+UI = window.UI || {
+    /********** 操作cookie ********/
+    cookie: function(a, b, c, e)
+    {
+        if (b == undefined)
+        {
+            a = a + '=';
+            b = document.cookie.split(';');
+            for (c = 0; c < b.length; c++)
+            {
+                for (e = b[c]; e.charAt(0) == ' '; )
+                    e = e.substring(1, e.length);
+                if (e.indexOf(a) == 0)
+                    return decodeURIComponent(e.substring(a.length, e.length));
+            }
+            ;
+            return null;
+        }
+        else
+        {
+            var f = '';
+            if (c)
+            {
+                f = new Date;
+                f.setTime(f.getTime() + c * 24 * 60 * 60 * 1E3);
+                f = '; expires=' + f.toGMTString();
+            }
+            ;
+            document.cookie = a + '=' + encodeURIComponent(b) + f + '; path=/' + (e ? ';domain=' + e : '');
+        }
+        ;
+    }
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,65 @@
+﻿{template 'header'}
+<div class="siyuan_top weui-row">
+<div class="weui-col-15"><a href="javascript:history.go(-1)"><i class="fa fa-angle-left f-32"></i></a></div>
+<div class="weui-col-70">{$set['name']}</div>
+<div class="weui-col-15"><a class="cd-bouncy-nav-trigger" href="#0"><img src="{$_W['siteroot']}addons/siyuan_cms/ui/img/daohang.png"></a></div>
+</div>
+<div class="cd-bouncy-nav-modal">
+<nav>
+<ul class="cd-bouncy-nav">
+{loop $menu $caidan}
+<li><a href="{$caidan['url']}"><img src="{$_W['attachurl']}{$caidan['thumb']}"><p>{$caidan['title']}</p></a></li>
+{/loop}
+</ul>
+</nav>
+<a href="#0" class="cd-close fa fa-power-off">返回</a>
+</div>
+<div style="height:40px;"></div>
+<style type="text/css">
+#map{width:100%;height:500px;}
+</style>
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak={$api['place_key']}"></script>
+<title>根据多关键字本地搜索</title>
+</head>
+<body>
+<div id="map"></div>
+
+<script type="text/javascript">
+// 百度地图API功能
+var map = new BMap.Map("map");         
+var mPoint = new BMap.Point({$news['longitude']}, {$news['latitude']});
+map.addControl(new BMap.NavigationControl({isOpen:false,anchor:BMAP_ANCHOR_TOP_LEFT}));
+map.enableScrollWheelZoom();
+map.centerAndZoom(mPoint,14);
+
+var circle = new BMap.Circle(mPoint,3000,{fillColor:"#ec6c53", strokeWeight: 1 ,fillOpacity: 0.2, strokeOpacity: 0.2});
+map.addOverlay(circle);
+var local =  new BMap.LocalSearch(map,{renderOptions: {map: map,autoViewport: false}});
+local.searchNearby("{if $mid ==''}'教育'{else}{$map['title']}{/if}",mPoint,3000);
+
+var point = new BMap.Point({$news['longitude']}, {$news['latitude']});
+var marker = new BMap.Marker(point);  // 创建标注
+	map.addOverlay(marker);              // 将标注添加到地图中
+
+	var opts = {
+	  width : 200,     // 信息窗口宽度
+	  height: 100,     // 信息窗口高度
+	  title : "<span class='cheng'>{$news['name']}</span>" , // 信息窗口标题
+	}
+	var infoWindow = new BMap.InfoWindow("电话：{$news['phone']}<br>地址：{$news['address']}", opts);  // 创建信息窗口对象 
+	marker.addEventListener("click", function(){          
+		map.openInfoWindow(infoWindow,point); //开启信息窗口
+	});
+</script>
+<div class="types_container">
+<div class="show_type">
+{loop $map_nav $row}
+{if $mid == $row['id']}
+<a href="{php echo $this->createMobileUrl('house', array('act' => 'house_map','id' => $news['id'],'mid' => $row['id']))}" class="on"><span class="type_icons" style="background-image: url('{$_W['attachurl']}{$row['icon_2']}');"></span>
+{else}
+<a href="{php echo $this->createMobileUrl('house', array('act' => 'house_map','id' => $news['id'],'mid' => $row['id']))}"><span class="type_icons" style="background-image: url('{$_W['attachurl']}{$row['icon_1']}');"></span>
+{/if}
+<p>{$row['title']}</p></a>
+{/loop}
+</div></div>
+{template 'footer1'}

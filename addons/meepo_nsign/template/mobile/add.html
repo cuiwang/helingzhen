@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" type="text/css" href="{TEMPLATE_PATH}css/main.css" media="all" />
+		<link rel="stylesheet" type="text/css" href="{TEMPLATE_PATH}css/dialog.css" media="all" />
+		<script type="text/javascript" src="{TEMPLATE_PATH}js/jquery_min.js"></script>
+		<script type="text/javascript" src="{TEMPLATE_PATH}js/dialog_min.js"></script>
+		<script type="text/javascript" src="{TEMPLATE_PATH}js/main.js"></script>
+		<script type="text/javascript" src="{TEMPLATE_PATH}js/mymain.js"></script>
+		<title>推荐优惠</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+		<meta content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
+		<!-- Mobile Devices Support @begin -->
+            <meta content="application/xhtml+xml;charset=UTF-8" http-equiv="Content-Type">
+            <meta content="no-cache,must-revalidate" http-equiv="Cache-Control">
+            <meta content="no-cache" http-equiv="pragma">
+            <meta content="0" http-equiv="expires">
+            <meta content="telephone=no, address=no" name="format-detection">
+            <meta name="apple-mobile-web-app-capable" content="yes" /> <!-- apple devices fullscreen -->
+            <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <!-- Mobile Devices Support @end -->
+
+    </head>
+    <body onselectstart="return true;" ondragstart="return false;">
+	
+		<script>
+			function choose() {
+
+				loading(true);
+				$.ajax({
+					url: "{php echo $this->createMobileUrl('seladd', array('rid' => $rid));}",
+					type:"POST",
+					data:$("#sel").serialize(),
+					dataType:"json",
+					success: function(res){
+						loading(false);
+						if(res.status == 1){
+                            var li = '';
+                            var items = '';
+                            for (var i in res.msg){
+                                li += $("#appendTpl").html().replace(/rtitle/gi, res.msg[i].title).replace(/rthumb/gi, res.msg[i].thumb).replace(/rdescription/gi, res.msg[i].description).replace(/rcontent/gi, res.msg[i].content); 
+                            }
+                            $(".list_coupon").html(li); 
+                            document.getElementById('old').style.display='none';
+						}else{
+							alert(res.msg, 1500);
+							loading(false);
+						}
+					}
+				});
+
+			}
+		</script>
+		
+		<div class="container coupon">
+			<header>
+				<nav id="nav_1" class="p_10">
+					<ul class="box" style="width:96px;">
+						<li data-card>
+							<dl>
+								<dd>
+
+									<div class="box select_box">
+										<div>
+											<select id="sel" name="sel" onchange='javascript:choose();' class="select" >
+												<option  value="all" >全部优惠</option>
+												{loop $type $tt}
+												<option  value="{$tt['type']}" >{$tt['type']}</option>
+												{/loop}
+											</select>
+										</div>
+									</div>
+
+								</dd>
+							</dl>
+						</li>
+					</ul>
+				</nav>
+			</header>
+			<div class="body">
+			
+			<div class="list_coupon" >{$aaa}</div>
+            
+                <script type="javascript/tpl" id="appendTpl">
+					<ol>
+					 	<li data-card>
+							<a href="javascript:;" onclick="this.classList.toggle('toggle');"  class="on"  >
+								<header>
+									<label>rtitle</label>
+									<label class="fr" style="font-size:12px;"></label>
+								</header>
+								<section>
+									<div>
+										<figure class="tbox" >
+											<div ><img src="{php echo $_W['attachurl'];}rthumb" /></div>
+										</figure>
+									</div>
+									<div class="des">
+										<dl>
+											<dt >rdescription</dt>
+											
+											<dd>rcontent</dd>
+											
+										</dl>
+									</div>
+								</section>
+							</a>
+						</li>
+					</ol>	
+                </script>
+
+                <ul id="old" class="list_coupon">
+                {loop $add $item}
+					<ol>
+					 	<li data-card>
+							<a href="javascript:;" onclick="this.classList.toggle('toggle');"  class="on"  >
+								<header>
+									<label>{$item['title']}</label>
+									<label class="fr" style="font-size:12px;"></label>
+								</header>
+								<section>
+									<div>
+										<figure class="tbox" >
+											<div >
+											{loop $item['thumb'] $image}
+											<img src="{php echo tomedia($image);}" />
+											{/loop}
+											</div>
+										</figure>
+									</div>
+									<div class="des">
+										<dl>
+											<dt >{$item['description']}</dt>
+											
+											<dd>{$item['content']}</dd>
+											
+										</dl>
+									</div>
+								</section>
+							</a>
+						</li>
+					</ol>
+                {/loop}
+				</ul>
+                
+
+			</div>
+			<footer>
+				<nav class="nav_add_addr">
+					<ul class="tbox">
+						<li>
+							<a href="javascript:history.go(-1)" class="icons icons_before">&nbsp;</a>
+						</li>
+					</ul>
+				</nav>
+			</footer>	
+
+</div>        		
+
+</body>
+
+
+<script type="text/javascript">
+document.addEventListener('WeixinJSBridgeReady', function onBridgeReady() {
+	WeixinJSBridge.call('hideToolbar');
+});
+
+   document.addEventListener('WeixinJSBridgeReady', function onBridgeReady() {
+        
+        // 发送给好友
+        WeixinJSBridge.on('menu:share:appmessage', function (argv) {
+            WeixinJSBridge.invoke('sendAppMessage', { 
+                "img_url": "{$Picurl}",
+                "img_width": "640",
+                "img_height": "640",
+                "link": "{php echo $_W['siteroot'].$this->createMobileUrl('index', array('rid' => $rid));}",
+                "desc":  "{$reply['description']}",
+                "title": "{$reply['title']}"
+            }, function (res) {
+                _report('send_msg', res.err_msg);
+            })
+        });
+
+        // 分享到朋友圈
+        WeixinJSBridge.on('menu:share:timeline', function (argv) {
+            WeixinJSBridge.invoke('shareTimeline', {
+                "img_url": "{$Picurl}",
+                "img_width": "640",
+                "img_height": "640",
+                "link": "{php echo $_W['siteroot'].$this->createMobileUrl('index', array('rid' => $rid));}",
+                "desc":  "{$reply['description']}",
+                "title": "{$reply['title']}"
+            }, function (res) {
+                _report('timeline', res.err_msg);
+            });
+        });
+
+        // 分享到微博
+        WeixinJSBridge.on('menu:share:weibo', function (argv) {
+            WeixinJSBridge.invoke('shareWeibo', {
+                "content": "{$reply['description']}",
+                "url": "{php echo $_W['siteroot'].$this->createMobileUrl('index', array('rid' => $rid));}"
+            }, function (res) {
+                _report('weibo', res.err_msg);
+            });
+        });
+        }, false)
+</script>
+
+</html>
+
+

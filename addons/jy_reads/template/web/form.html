@@ -1,0 +1,585 @@
+<style>
+.parentDiv{margin: 10px;padding: 5px;border: 1px solid #ccc}
+.subContent{margin-left: 30px;margin-top: 10px;margin-bottom: 10px;display: none}
+.province{cursor: pointer}
+.city{cursor: pointer;margin-right: 10px;margin-bottom: 10px;display: inline-block;margin-left: 5px}
+.cityAll{display: inline-block}
+.none{display: none}
+.areaSpan{cursor: pointer;margin-right: 25px;margin-left: 3px}
+.red{color: red}
+</style>
+<div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+	<input type="hidden" name="replyid" value="{$reply['id']}" />
+	<!-- 微信设置 -->
+	<div class="panel panel-info">
+		<div class="panel-heading" role="tab" id="headingShare">
+			<h4 class="panel-title">
+				<a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseShare" aria-expanded="true" aria-controls="collapseShare">功能设置</a>
+			</h4>
+		</div>
+		<div id="collapseShare" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingShare">
+			<div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-3 control-label">活动标题：</label>
+					<div class="col-xs-6">
+						<input class="form-control" type="text" value="{$reply['share_title']}" name="share_title">
+						<div class="help-block">＊活动图文信息、分享信息自定义标题</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-3 control-label">活动图片：</label>
+					<div class="col-xs-6">
+						{php echo tpl_form_field_image('share_thumb',$reply['share_thumb'],'',$options);}
+						<div class="help-block">＊活动图文信息、分享信息自定义图片</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-3 control-label">是否分享显示需集数：</label>
+					<div class="col-xs-6">
+						<label class="radio-inline">
+  							<input type="radio" name="rshare" value="0" {if $reply['share'] == 0 }checked{/if}> 否
+						</label>
+						<label class="radio-inline">
+  							<input type="radio" name="rshare" value="1" {if $reply['share'] == 1 }checked{/if}> 是
+						</label>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-3 control-label">活动详情：</label>
+					<div class="col-xs-6">
+						<input class="form-control" type="text" value="{$reply['share_description']}" name="share_description">
+						<div class="help-block">＊活动图文信息、分享信息自定义详情</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-3 control-label">关注链接：</label>
+					<div class="col-xs-6">
+						<input class="form-control" type="text" value="{$reply['link']}" name="link">
+						<div class="help-block">＊自定义微信关注链接</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-3 control-label">兑奖前需要关注：</label>
+					<div class="col-xs-6">
+						<label class="radio-inline">
+  							<input type="radio" name="follow" value="0" {if $reply['follow'] == 0 }checked{/if}> 否
+						</label>
+						<label class="radio-inline">
+  							<input type="radio" name="follow" value="1" {if $reply['follow'] == 1 }checked{/if}> 是
+						</label>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-3 control-label">限制：</label>
+					<div class="col-xs-6">
+						<label class="radio-inline">
+  							<input type="radio" name="mutual" value="0" {if $reply['mutual'] == 0 }checked{/if}> 不做限制
+						</label>
+						<label class="radio-inline">
+  							<input type="radio" name="mutual" value="1" {if $reply['mutual'] == 1 }checked{/if}> 1.限制不能互相采集
+						</label>
+						<label class="radio-inline">
+  							<input type="radio" name="mutual" value="2" {if $reply['mutual'] == 2 }checked{/if}> 2.限制每个人每次活动只能为一个人提供一个集
+						</label>
+						<label class="radio-inline">
+  							<input type="radio" name="mutual" value="3" {if $reply['mutual'] == 3 }checked{/if}> 同时限制1和2
+						</label>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-3 control-label">限制区域设置：</label>
+					<div class="col-xs-6">
+						<input type="radio" name="location" value="0" {if empty($reply['location'])}checked{/if} /><span class="areaSpan">全国</span>
+						<input type="radio" name="location" value="1" {if !empty($reply['location'])}checked{/if} /><span class="areaSpan">限制</span>
+					</div>
+					<input type="hidden" id="area" name="area" value="{$reply['area']}" />
+					<input type="hidden" id="area_title" name="area_title" value="{$reply['area_title']}" />
+					<div class="col-sm-7 col-xs-12 none" id="areaBox"></div>
+				</div>
+				
+				
+			
+	        	
+	        	   <div class="form-group">
+                  <label class="col-xs-3 control-label">地区定位类型</label>
+                    <div class="col-xs-12 col-sm-9">
+                        <label class="radio-inline"><input type="radio" name="locationtype" value="0"
+                         {if empty($reply['locationtype'])} checked="checked" {/if}>ip定位</label>
+	         			<label class="radio-inline"><input type="radio" name="locationtype" value="1" 
+	         			 {if $reply['locationtype']==1} checked="checked" {/if}>gps定位</label>	         		
+	         			  <span class="help-block">在非wifi网络下，利用ip地址定位地区的话，不准确，ip定位页面打开会卡。利用gps定位更准确，
+	         			      不过页面会弹出获取用户地理信息的提示，不排除少部分手机无法获取地址的问题。
+	         			  </span>
+                    </div>
+                </div>
+                
+				
+				<div class="form-group">
+					<label class="col-xs-3 control-label">地区不符跳转链接：</label>
+					<div class="col-xs-6">
+						<input class="form-control" type="zdy_url" value="{$reply['zdy_url']}" name="zdy_url">
+						<div class="help-block">不在本地区的粉丝的跳转链接，以http开头</div>
+					</div>
+				</div>
+
+			</div>
+		</div>
+	</div>
+	
+	<!-- 活动设置 -->
+	<div class="panel panel-info">
+		<div class="panel-heading" role="tab" id="headingSetting">
+			<h4 class="panel-title">
+				<a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseSetting" aria-expanded="true" aria-controls="collapseSetting">活动内容设置</a>
+			</h4>
+		</div>
+		<div id="collapseSetting" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingSetting">
+			<div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-3 control-label">活动名称：</label>
+					<div class="col-xs-6">
+						<input class="form-control" type="text" value="{$reply['name']}" name="activity">
+						<div class="help-block">＊活动名称</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-3 control-label">活动时间：</label>
+					<div class="col-xs-6">
+						{php echo tpl_form_field_daterange('time', array('start'=>date('Y-m-d H:i:s',$reply['starttime']),'end'=>date('Y-m-d H:i:s',$reply['endtime'])), true)}
+						<div class="help-block">输入活动的起止时间</div>
+					</div>
+				</div>
+				<div class="form-group">
+	          		<label class="col-xs-3 control-label">活动状态：</label>
+	          		<div class="col-xs-6" style="padding-top:6px;">
+	            		<label class="radio-inline"><input type="radio" value="0" name="status" {if $reply['status'] == 0 }checked{/if}>结束</label>
+	            		<label class="radio-inline"><input type="radio" value="1" name="status" {if $reply['status'] == 1 }checked{/if}>正常</label>
+	            		<label class="radio-inline"><input type="radio" value="2" name="status" {if $reply['status'] == 2 }checked{/if}>暂停</label>
+	          		</div>
+	        	</div>
+				<div class="form-group">
+					<label class="col-xs-3 control-label">加载时图片：</label>
+					<div class="col-xs-6">
+						{php echo tpl_form_field_image('loading',$reply['loading'],'',$options);}
+						<div class="help-block">＊进入活动时显示的图片，建议尺寸 640*1010</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-3 control-label">加载时箭头：</label>
+					<div class="col-xs-6">
+						{php echo tpl_form_field_image('arrow',$reply['arrow'],'',$options);}
+						<div class="help-block">＊进入活动时显示在加载时图片下方的箭头</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-3 control-label">阅读别名：</label>
+					<div class="col-xs-6">
+						<input class="form-control" type="text" value="{$reply['alias']}" name="alias">
+						<div class="help-block">＊例：设置为阅读（积分）则在奖品上显示：还剩xxx个集阅读（积分）</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-3 control-label">开始集阅读图片：</label>
+					<div class="col-xs-6">
+						{php echo tpl_form_field_image('start',$reply['start'],'',$options);}
+						<div class="help-block">＊进入活动时显示在文章下方的图片，原图尺寸261*36</div>
+					</div>
+				</div>
+				
+				<div class="form-group">
+					<label class="col-xs-3 control-label">活动页顶部图片：</label>
+					<div class="col-xs-6">
+						{php echo tpl_form_field_image('top',$reply['top'],'',$options);}
+						<div class="help-block">＊活动内页（内容）自定义banner图片，建议与活动页面主题色背景色色调一致</div>
+						<div class="form-group">
+							<label class="col-xs-4 control-label">活动页面主体色：</label>
+							<div class="col-xs-8">
+								{php echo tpl_form_field_color('bgcolor', $reply['bgcolor']);}
+							</div>
+							<label class="col-xs-4 control-label">按钮主体色：</label>
+							
+							<div class="col-xs-8">
+								{php echo tpl_form_field_color('bggcolor', $reply['bggcolor']);}
+							</div>
+						</div>
+					</div>
+				</div>
+				
+				<div class="form-group">
+					<label class="col-xs-3 control-label">活动页底部图片：</label>
+					<div class="col-xs-6">
+						{php echo tpl_form_field_image('bottom',$reply['bottom'],'',$options);}
+						<div class="help-block">＊活动内页（集阅读）自定义底部图片，点击直接联系主办方</div>
+						<div class="form-group">
+							<label class="col-xs-4 control-label">主办方电话：</label>
+							<div class="col-xs-8">
+								<input class="form-control" type="text" value="{$reply['telephone']}" name="telephone">
+							</div>
+						</div>
+					</div>
+				</div>
+				
+				<div class="form-group">
+					<label class="col-xs-3 control-label">活动页主体内容：</label>
+					<div class="col-xs-9">
+					   {php echo tpl_ueditor('content',$reply['content'])}
+					   <div class="help-block">＊活动页面设计</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-3 control-label">活动规则：</label>
+					<div class="col-xs-9">
+						 {php echo tpl_ueditor('rule',$reply['rule'])}
+			
+	            		<div class="help-block">＊显示兑奖规则或活动地址</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-3 control-label">备注：</label>
+					<div class="col-xs-6">
+						<input class="form-control" type="text" value="{$reply['tips']}" name="tips">
+						<div class="help-block">＊告知用户如何得奖</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-3 control-label">核销时广告：</label>
+					<div class="col-xs-6">
+						{php echo tpl_form_field_image('ad',$reply['ad'],'',$options);}
+						<div class="help-block">＊核销内页底部图片，点击跳转广告链接</div>
+						<div class="form-group">
+							<label class="col-xs-4 control-label">广告地址：</label>
+							<div class="col-xs-8">
+								<input class="form-control" type="text" value="{$reply['ad_url']}" name="ad_url">
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-3 control-label">版权信息：</label>
+					<div class="col-xs-6">
+						<input class="form-control" type="text" value="{if !empty($reply['copyright'])}{$reply['copyright']}{else}{$_W['account']['name']}{/if}" name="copyright">
+						<div class="help-block">版权信息，默认为公众号名称</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<!-- 奖项设置 -->
+	<div class="panel panel-info">
+		<div class="panel-heading" role="tab" id="headingPrize">
+			<h4 class="panel-title">
+				<a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapsePrize" aria-expanded="true" aria-controls="collapsePrize">核销奖项设置（提交会自动重置剩余数量）</a>
+			</h4>
+		</div>
+		<div id="collapsePrize" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingPrize">
+			<div id="prizes" class="panel-body">
+				{loop $prizes $prize}
+				<div class="jumbotron" id="old_{$prize['id']}">
+					<button type="button" class="close">
+						<span onclick="deleteOld({$prize['id']})">&times;</span>
+						<span class="sr-only">Close</span>
+					</button>
+					<div class="row">
+						<div class="col-xs-6">
+							<div class="row">
+								<div class="input-group">
+									<span class="input-group-addon">奖品名称：</span>
+									<input type="text" name="prizename[{$prize['id']}]" class="form-control" value="{$prize['prizename']}" />
+								</div><br />
+								<div class="input-group">
+									<span class="input-group-addon">显示顺序：</span>
+									<input type="text" name="displayorder[{$prize['id']}]" class="form-control" value="{$prize['displayorder']}" />
+								</div><br />
+								<div class="input-group">
+									<span class="input-group-addon">奖品总数量：</span>
+									<input type="text" name="prizecount[{$prize['id']}]" class="form-control" value="{$prize['prizecount']}" />
+								</div><br />
+								<div class="input-group">
+									<span class="input-group-addon">兑奖需要数量：</span>
+									<input type="text" name="prizeneed[{$prize['id']}]" class="form-control" value="{$prize['prizeneed']}" />
+								</div><br />
+								<div class="input-group">
+									<span class="input-group-addon">剩余奖品数：</span>
+									<input type="text" name="prizerest[{$prize['id']}]" class="form-control" value="{$prize['prizerest']}" />
+								</div><br>
+								<div class="form-group">
+									<span class="col-xs-3 control-label">搜集信息：</span>
+									<div class="col-xs-9">
+										{loop $properties $property}
+        								<label class="checkbox-inline"><input type="checkbox" name="property[{$prize['id']}][]" value="{$property['propertykey']}" {if $prize['info']&&in_array($property['propertykey'],json_decode($prize['info'],true))}checked{/if}> {$property['propertyvalue']}</label>
+										{/loop}
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-xs-6">
+							<div class="row">
+								<div class="form-group">
+									<label class="col-xs-3 control-label">链接地址：</label>
+									<div class="col-xs-9">
+										<input type="text" name="prizeurl[{$prize['id']}]" class="form-control" value="{$prize['prizeurl']}" />
+									</div>
+								</div>
+								<div class="form-group">
+									<label class="col-xs-3 control-label">显示图片：</label>
+									<div class="col-xs-9">
+										{php echo tpl_form_field_image("prizethumb[".$prize['id']."]",$prize['prizethumb'])}
+									</div>
+								</div>
+								<div class="form-group">
+									<label class="col-xs-3 control-label">是否加入分享显示：</label>
+									<div class="col-xs-9">
+										<label class="radio-inline">
+				  							<input type="radio" name="share[{$prize['id']}]" value="0" {if $prize['share']==0}checked{/if}> 否
+										</label>
+										<label class="radio-inline">
+				  							<input type="radio" name="share[{$prize['id']}]" value="1" {if $prize['share']==1}checked{/if}> 是
+										</label>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				{/loop}
+			</div>
+			<div class="panel-footer">
+				<a href="javascript:;" onclick="addItem()" title="添加奖项">添加奖项 <i class="fa fa-plus"></i></a>
+			</div>
+		</div>
+	</div>
+	<script language='javascript'>
+
+var key=1;
+function addItem() {
+	$.post("{php echo $this->createWebUrl('Prize',array('op'=>'add'))}",{"key":key},function(data){
+		if(data.result){
+			$('#prizes').append( $(data.msg));
+			key++;
+		}else{
+			alert(data.msg);
+		}
+	},'json');
+}
+
+function deleteNew(id){
+	if(!confirm("确认删除本奖项，删除后不可恢复"))return false;
+	$("#new_"+id).remove();
+}
+
+function deleteOld(id){
+	if(!confirm("确认删除本奖项，删除后不可恢复"))return false;
+	$.post("{php echo $this->createWebUrl('prize',array('op'=>remove))}",{"prizeid":id},function(data){
+		if(data.result){
+			$("#old_"+id).remove();
+		}else{
+			alert(data.msg);
+		}
+	},'json');
+}
+</script>
+<script src="../addons/{php echo $this->m}/public/web/js/area_id.js"></script>
+<script>
+
+	$(".areaSpan").bind("click",function(){
+		$(this).prev().prop("checked",true);
+		if($("input[name='location']").eq(0).is(":checked")){
+			$("#areaBox").slideUp();
+		}
+		if($("input[name='location']").eq(1).is(":checked")){
+			$("#areaBox").slideDown();
+		}
+	});
+
+	$("input[name='location']").bind("click",function(){
+		if($("input[name='location']").eq(0).is(":checked")){
+			$("#areaBox").slideUp();
+		}
+		if($("input[name='location']").eq(1).is(":checked")){
+			$("#areaBox").slideDown();
+		}
+	});
+
+	{if !empty($reply['area'])}
+	var str = "{$reply['area']}";
+	var str_title = "{$reply['area_title']}";
+	$(".areaSpan").click();
+	{else}
+	var str = "";
+	var str_title="";
+	{/if}
+	
+
+	
+	
+
+	// 获取输出数据
+	for(var i in area_array){
+		var parentDiv = $('<div class="parentDiv"></div>');
+		$("#areaBox").append(parentDiv);
+
+		parentDiv.append('<div class="province"><input type="hidden" value="'+i+'"/><span class="provinceName" id="late9ye_'+i+'">'+area_array[i]+'</span></div>');
+
+		var childDiv = $('<div class="subContent"></div>');
+		parentDiv.append(childDiv);
+		childDiv.append('<input class="provinceInput" type="checkbox" id="all9ye_'+i+'" value="'+i+'"/><span class="city">全部</span>');
+		var all=1;
+		for(var j in sub_array[i]){
+			if(str.indexOf(j) < 0 ){
+				childDiv.append('<span class="cityAll"><input name="areaName[]" class="cityInput" type="checkbox" value="'+j+'"/><span class="city">'+sub_array[i][j]+'</span></span>');
+				all=0;
+			}else{
+				childDiv.append('<span class="cityAll"><input name="areaName[]" class="cityInput" type="checkbox" checked value="'+j+'"/><span class="city">'+sub_array[i][j]+'</span></span>');
+				if($("#late9ye_"+i).css("color") != "red"){
+					$("#late9ye_"+i).css("color","red");
+				}
+			}
+		}
+		if(all==1)
+		{
+			$("#all9ye_"+i).prop("checked",true);
+		}
+
+	}
+	// 点击input(全部)
+	$(".provinceInput").bind("click",function(){
+		if($(this).is(":checked")){
+			$(this).parent().find("input").prop("checked",true);
+			$(this).parent().siblings(".province").find(".provinceName").addClass("red");
+			for(var i=0;i<$(this).siblings(".cityAll").length;i++){
+				var theStr = $(this).siblings(".cityAll").find(".cityInput").eq(i).val() + ",";
+				var theText = $(this).siblings(".cityAll").find(".cityInput").eq(i).next().text() + ",";
+				if(str.indexOf(theStr) < 0 ){
+					str += theStr;
+					str_title+=theText;
+				}
+			}
+		}else{
+			$(this).parent().find("input").prop("checked",false);
+			$(this).parent().siblings(".province").find(".provinceName").removeClass("red");
+			for(var i=0;i<$(this).siblings(".cityAll").length;i++){
+				var theStr = $(this).siblings(".cityAll").find(".cityInput").eq(i).val() + ",";
+				var theText = $(this).siblings(".cityAll").find(".cityInput").eq(i).next().text() + ",";
+				if(str.indexOf(theStr) >= 0 ){
+					str = str.replace(new RegExp(theStr), "");
+					str_title=str_title.replace(new RegExp(theText), "");
+				}
+			}
+		}
+		$("#area").val(str);
+		$("#area_title").val(str_title);
+	});
+	// 点击市
+	$(".city").bind("click",function(){
+		if($(this).text() == "全部"){
+			if($(this).prev().is(":checked")){
+				$(this).parent().find("input").prop("checked",false);
+				$(this).parent().siblings(".province").find(".provinceName").removeClass("red");
+
+				for(var i=0;i<$(this).siblings(".cityAll").length;i++){
+					var theStr = $(this).siblings(".cityAll").find(".cityInput").eq(i).val() + ",";
+					var theText = $(this).siblings(".cityAll").find(".cityInput").eq(i).next().text() + ",";
+					if(str.indexOf(theStr) >= 0 ){
+						str = str.replace(new RegExp(theStr), "");
+						str_title= str_title.replace(new RegExp(theText), "");
+					}
+				}
+			}else{
+				$(this).parent().find("input").prop("checked",true);
+				$(this).parent().siblings(".province").find(".provinceName").addClass("red");
+				for(var i=0;i<$(this).siblings(".cityAll").length;i++){
+					var theStr = $(this).siblings(".cityAll").find(".cityInput").eq(i).val() + ",";
+					var theText = $(this).siblings(".cityAll").find(".cityInput").eq(i).next().text() + ",";
+					if(str.indexOf(theStr) < 0 ){
+						str += theStr;
+						str_title += theText;
+					}
+				}
+			}
+			$("#area").val(str);
+			$("#area_title").val(str_title);
+		}
+		else{
+			if($(this).prev().is(":checked")){
+				$(this).prev().prop("checked",false);
+				$(this).parent().parent().find("input").eq(0).prop("checked",false);
+				if(str.indexOf($(this).prev().val() + ",") >= 0 ){
+					str = str.replace(new RegExp($(this).prev().val() + ","), "");
+					str_title = str_title.replace(new RegExp($(this).text() + ","), "");
+				}
+			}else{
+				$(this).prev().prop("checked",true);
+				if(str.indexOf($(this).prev().val() + ",") < 0 ){
+					str += $(this).prev().val() + ",";
+					str_title+= $(this).text() + ",";
+				}
+			}
+			$("#area").val(str);
+			$("#area_title").val(str_title);
+			checkAllFunc(this);
+		}
+	});
+	// 点击市input
+	$(".cityInput").bind("click",function(){
+
+		if($(this).is(":checked")){
+			checkAllFunc(this);
+			if(str.indexOf($(this).val() + ",") < 0 ){
+				str += $(this).val() + ",";
+				str_title += $(this).next().text() + ",";
+			}
+			$("#area").val(str);
+			$("#area_title").val(str_title);
+		}else{
+			$(this).parent().parent().find("input").eq(0).prop("checked",false);
+			if(str.indexOf($(this).val() + ",") >= 0 ){
+				str = str.replace(new RegExp($(this).val() + ","), "");
+				str_title = str_title.replace(new RegExp($(this).next().text() + ","), "");
+			}
+			$("#area").val(str);
+			$("#area_title").val(str_title);
+		}
+	});
+	// 点击省上下拉
+	$(".province").bind("click",function(){
+		$(this).siblings(".subContent").slideToggle();
+	});
+	// 判断子市input是否所有选中
+	function checkAllFunc(obj){
+		var count = 0;
+		var len = $(obj).parent().parent().find(".cityAll").length;
+		for(var x = 0;x < len; ++x){
+			if($(obj).parent().parent().find(".cityAll").eq(x).find("input").is(":checked")){
+				++count;
+			}
+		}
+		if(count > 0){
+			$(obj).parent().parent().siblings(".province").find(".provinceName").addClass("red");
+		}else{
+			$(obj).parent().parent().siblings(".province").find(".provinceName").removeClass("red");
+		}
+		if(count == len){
+			$(obj).parent().parent().find("input").eq(0).prop("checked",true);
+		}
+	}
+
+	{if !empty($reply['location'])}
+	$(".areaSpan").click();
+	{/if}
+
+	$(".activitySpan").bind("click",function(){
+		$(this).prev().prop("checked",true);
+		if($("input[name='islimit']").eq(0).is(":checked")){
+			$("#activityBox").slideUp();
+		}
+		if($("input[name='islimit']").eq(1).is(":checked")){
+			$("#activityBox").slideDown();
+		}
+	});
+	
+</script>
+</div>

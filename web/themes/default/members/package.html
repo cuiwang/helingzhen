@@ -1,0 +1,187 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+
+	<li {if $do == 'list'}class="active"{/if}><a href="{php echo url('members/mpackage/list');}">套餐列表</a></li>
+
+	{if $do == 'post'}<li class="active"><a href="">编辑套餐</a></li>{/if}
+
+</ul>
+
+<style>
+
+	ul.ul-float{padding:0;marign:0}
+
+	ul.ul-float li{float:left;width:115px;height:30px;line-height:30px;overflow:hidden;}
+
+</style>
+{if $do =='post'}
+<form class="form-horizontal form" id="form1" action="" method="post" enctype="multipart/form-data">
+		<input type="hidden" name="sid" value="{$sid}">
+		<div class="main">
+			<div class="panel panel-default">
+				<div class="panel-heading">套餐基本信息</div>
+				<div class="panel-body">
+                    <div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="require">* </span>套餐名称</label>
+						<div class="col-sm-9 col-xs-12">
+							<input type="text" class="form-control" name="name" value="{$list['name']}">
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="require">* </span>套餐价格</label>
+						<div class="col-sm-9 col-xs-12">
+                           
+							<input type="text" name="price" value="{$items['price']}" class="form-control" style="width:50%;">
+                         
+						</div>
+					</div>
+                    <div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="require">* </span>详细信息链接</label>
+						<div class="col-sm-9 col-xs-12">
+							
+								<input type="text" class="form-control" name="outLink" value="{$list['outLink']}">
+							
+						</div>
+					</div>
+				</div>
+			</div>		
+			<div class="form-group">
+				<div class="col-sm-9 col-xs-9 col-md-9">
+					<input type="hidden" name="token" value="{$_W['token']}">
+					<input name="submit" id="submit" type="submit" value="提交" class="btn btn-primary col-lg-1">
+				</div>
+			</div>
+		</div>
+	</form>
+	<script type="text/javascript">
+		require(['util'], function(u){
+			
+			$('.field_del').click(function(){
+				var id = $(this).attr('data-id');
+				if(!confirm('确定删除吗')) return flase;
+				$.post("{php echo url('members/manage/field_del');}", {'id':id}, function(data){
+					if(data != 'success') {
+						u.message(data, '', 'error');
+						return false;
+					}
+					location.reload();
+				});
+			});
+		});
+</script>
+{elseif $op='list'}
+
+<div class="panel panel-info">
+			<div class="panel-heading">筛选</div>
+			<div class="panel-body">
+				<form action="./index.php" method="get" class="form-horizontal" role="form">
+					<input type="hidden" name="c" value="site">
+					<input type="hidden" name="a" value="entry">
+					<input type="hidden" name="m" value="buymod">
+					<input type="hidden" name="do" value="Package"/>
+					<input type="hidden" name="op" value="list"/>
+					<div class="form-group clearfix">
+						<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">关键字</label>
+						<div class="col-sm-7 col-lg-8 col-md-8 col-xs-12">
+							<input class="form-control" name="keyword" id="" type="text" value="{$_GPC['keyword']}" placeholder="输入 套餐名称 可快速查找">
+						</div>
+						<div class="col-xs-12 col-sm-3 col-md-2 col-lg-1">
+							<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+
+<div class="panel panel-default">
+
+<div class="clearfix table-responsive panel-body" style="margin-top:20px;">
+
+	<table class="table">
+
+		<thead>
+
+			<tr>
+
+				
+
+				<th style="width:150px;">名称</th>
+
+				<th>可用模块</th>
+
+				<th>可用模板</th>
+
+                <th >价格</th>
+
+                <th style="width:80px;">状态</th>
+
+				<th style="min-width:60px;">操作</th>
+
+			</tr>
+
+		</thead>
+
+		<tbody>
+
+			
+
+			{loop $list $item}
+
+			<tr>
+
+				
+
+				<td>{$item['name']}</td>
+
+				<td>
+
+					<ul class="ul-float">
+
+					{loop $item['modules'] $module}
+
+						<li>{$module['title']}</li>
+
+					{/loop}
+
+					</ul>
+
+				</td>
+
+				<td>
+
+					<ul class="ul-float">
+
+						{loop $item['templates'] $template}
+
+							<li>{$template['title']}</li>
+
+						{/loop}
+
+					</ul>
+
+				</td>
+                
+                {php $items = pdo_fetch("SELECT * FROM " . tablename('buymod_modules')."where mid=:mid", array(':mid' => $item['id']));}
+
+                <td><span style="color:#F00;">{$items['price']}</span>元/年</td>
+
+                <td><span style="color:#F00;">未购买</span></td>
+
+				<td>{if $_W['isfounder']}<span><a class="btn btn-default btn-sm" href="{php echo url('members/mpackage/post', array('id' => $item['id']))}"><i class="fa fa-edit">编辑</i></a></span>{/if}<span><a class="btn btn-default btn-sm" href="{php echo url('members/mPackage', array('id' => $item['id']))}"><i class="fa fa-plus">购买</i></a></span><span><a class="btn btn-default btn-sm" href="{php echo url('members/mPackage', array('id' => $item['id']))}"><i class="fa fa-eye">查看详情</i></a></span></td>
+
+			</tr>
+
+			{/loop}
+
+		</tbody>
+	</table>
+
+</div>
+
+</div>
+
+</form>
+{/if}
+
+
+{template 'common/footer'}

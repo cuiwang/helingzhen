@@ -1,0 +1,285 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+    <li {if $operation=='list' && $status=='' }class="active" {/if}>
+        <a href="{php echo $this->createWebUrl('shopping', array('op' => 'order','operation' => 'list'))}">全部订单</a></li>
+    <li {if $operation=='list' && $status=='1' } class="active" {/if}>
+        <a href="{php echo $this->createWebUrl('shopping', array('op' => 'order','operation' => 'list', 'status' => 1))}">待发货</a></li>
+    <li {if $operation=='list' && $status=='0' }class="active" {/if}>
+        <a href="{php echo $this->createWebUrl('shopping', array('op' => 'order', 'operation' => 'list','status' => 0))}">待付款</a></li>
+    <li {if $operation=='list' && $status=='2' }class="active" {/if}>
+        <a href="{php echo $this->createWebUrl('shopping', array('op' => 'order', 'operation' => 'list','status' => 2))}">待收货</a></li>
+    <li {if $operation=='list' && $status=='3' }class="active" {/if}>
+        <a href="{php echo $this->createWebUrl('shopping', array('op' => 'order', 'operation' => 'list','status' => 3))}">已完成</a></li>
+    <li {if $operation=='list' && $status=='-1' }class="active" {/if}>
+        <a href="{php echo $this->createWebUrl('shopping', array('op' => 'order','operation' => 'list', 'status' => -1))}">已关闭</a></li>
+    {if $operation == 'detail'}
+    <li class="active"><a href="#">订单详情</a></li> {/if}
+</ul>
+<style type="text/css">
+	.main .form-horizontal .form-group{margin-bottom:0;}
+	.main .form-horizontal .modal .form-group{margin-bottom:15px;}
+	#modal-confirmsend .control-label{margin-top:0;}
+</style>
+<div class="main">
+	<form class="form-horizontal form" action="" method="post" enctype="multipart/form-data" onsubmit="return formcheck(this)">
+		{if $item['transid']}<div  class="alert alert-error"><i class="fa fa-lightbulb"></i> 此为微信支付订单，必须要提交发货状态！</div>{/if}
+		<input type="hidden" name="dispatchid" value="{$dispatch['id']}" />
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				订单信息
+			</div>
+			<div class="panel-body">
+				{if $item['transid']}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">交易号 :</label>
+					<div class="col-sm-9 col-xs-12">
+						<p class="form-control-static">{$item['transid']}</p>
+					</div>
+				</div>
+				{/if}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">价钱 :</label>
+					<div class="col-sm-9 col-xs-12">
+						<p class="form-control-static">{$item['price']} 元 （商品: {$item['goodsprice']} 元)</p>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">付款方式 :</label>
+					<div class="col-sm-9 col-xs-12">
+						<p class="form-control-static">
+							{if $item['paytype'] == 1}余额支付{/if}
+							{if $item['paytype'] == 2}在线支付{/if}
+							{if $item['paytype'] == 3}货到付款{/if}
+							{if $item['paytype'] == 4}后台支付{/if}
+						</p>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">订单状态 :</label>
+					<div class="col-sm-9 col-xs-12">
+						<p class="form-control-static">
+						{if $item['status'] == 0}<span class="label label-info">待付款</span>{/if}
+						{if $item['status'] == 1}<span class="label label-info">待发货</span>{/if}
+						{if $item['status'] == 2}<span class="label label-info">待收货</span>{/if}
+						{if $item['status'] == 3}<span class="label label-success">已完成</span>{/if}
+						{if $item['status'] == -1}<span class="label label-success">已关闭</span>{/if}
+						</p>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">下单日期 :</label>
+					<div class="col-sm-9 col-xs-12">
+						<p class="form-control-static">{php echo date('Y-m-d H:i:s', $item['createtime'])}</p>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">备注 :</label>
+					<div class="col-sm-9 col-xs-12"><textarea style="height:150px;" class="form-control" name="remark" cols="70">{$item['remark']}</textarea></div>
+				</div>
+			</div>
+		</div>
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				用户信息
+			</div>
+			<div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">姓名 :</label>
+					<div class="col-sm-9 col-xs-12">
+						<p class="form-control-static">{if $item['realname']}{$item['realname']}{else}{$address['realname']}{/if}</p>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">手机 :</label>
+					<div class="col-sm-9 col-xs-12">
+						<p class="form-control-static">{if $item['mobile']}{$item['mobile']}{else}{$address['telephone']}{/if}</p>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">地址 :</label>
+					<div class="col-sm-9 col-xs-12">
+						<p class="form-control-static">{$region['title']}{if $item['address']}{$item['address']}{else}{$address['address']}{/if}</p>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				商品信息<span class="text-muted"></span>
+			</div>
+			<div class="panel-body table-responsive">
+				<table class="table table-hover">
+					<thead class="navbar-inner">
+					<tr>
+						<th style="width:5%;">ID</th>
+						<th style="width:10%;">商品标题</th>
+						<th style="width:20%;">销售价/成本价</th>
+						<th style="width:10%;">属性</th>
+						<th style="width:5%;">数量</th>
+						<th style="width:10%;">操作</th>
+					</tr>
+					</thead>
+					{loop $item['goods'] $goods}
+					<tr>
+						<td>{$goods['id']}</td>
+						<td>
+							{$goods['title']}
+						</td>
+					
+						<td>{$goods['marketprice']}元 / {$goods['productprice']}元</td>
+						<td>{if $goods['status']==1}<span class="label label-success">上架</span>{else}<span class="label label-error">下架</span>{/if}</td>
+						<td>{$goods['total']}</td>
+						<td>
+							<a href="{php echo $this->createWebUrl('shopping', array('id' => $goods['id'],'op' => 'goods', 'operation' => 'add'))}" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="编辑"><i class="fa fa-edit"></i>编辑</a>&nbsp;&nbsp;
+							<a href="{php echo $this->createWebUrl('shopping', array('id' => $id, 'op' => 'order','operation' => 'delete'))}" onclick="return confirm('此操作不可恢复，确认删除？');return false;" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="删除"><i class="fa fa-times"></i>删除</a>
+						</td>
+					</tr>
+					{/loop}
+					<tr>
+						<td colspan="6" class="text-right">
+							{if empty($item['status'])}
+							<button type="submit" class="btn btn-primary" onclick="return confirm('确认付款此订单吗？'); return false;" name="confrimpay" value="yes">确认付款</button>
+							{elseif $item['status'] == 1}
+							
+							<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal-confirmsend">确认发货</button>
+							<button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modal-cancelsend">取消发货</button>
+							
+							{elseif $item['status'] == 2}
+							
+							<button type="button" class="btn btn-danger" name="cancelsend" onclick="$('#modal-cancelsend').modal();" value="yes">取消发货</button>
+							
+							{elseif $item['status'] == 3}
+							{/if}
+							{if $item['status'] != 3}
+								<button type="submit" class="btn btn-success" onclick="return confirm('确认完成此订单吗？'); return false;" name="finish" value="yes">完成订单</button>
+								{if $item['status'] >= 0}
+									<button type="button" class="btn btn-default" data-toggle="modal" data-target="#modal-close">关闭订单</button>
+									{else}
+									<button type="submit" class="btn btn-default" onclick="return confirm('确认开启此订单吗？'); return false;" name="open" value="yes">开启订单</button>
+								{/if}
+							{/if}
+							<input type="hidden" name="token" value="{$_W['token']}" />
+						</td>
+					</tr>
+				</table>
+			</div>
+		</div>
+		
+		<!-- 关闭原因 -->
+		<div id="modal-close" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" style="width:600px;margin:0px auto;">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button aria-hidden="true" data-dismiss="modal" class="close" type="button">×</button>
+						<h3>关闭订单</h3>
+					</div>
+					<div class="modal-body">
+						<label>关闭订单原因</label>
+						<textarea style="height:150px;" class="form-control" name="reson" autocomplete="off"></textarea>
+						<div id="module-menus"></div>
+					</div>
+					<div class="modal-footer">
+						<button type="submit" class="btn btn-primary" name="close" value="yes">关闭订单</button>
+						<a href="#" class="btn btn-default" data-dismiss="modal" aria-hidden="true">关闭</a>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<!-- 确认发货 -->
+		<div id="modal-confirmsend" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" style="width:600px;margin:0px auto;">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button aria-hidden="true" data-dismiss="modal" class="close" type="button">×</button>
+						<h3>发货通知</h3>
+					</div>
+					<div class="modal-body">
+						<div class="form-group">
+                            <label for="realname" class="col-sm-2 control-label">发货人</label>
+                            <div class="col-xs-5">
+                                <input type='text' name='realname' id='realname' class="form-control" placeholder="请输入发货人姓名" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="room" class="col-sm-2 control-label">快递信息</label>
+                            <div class="col-xs-5">
+                                <input type='text' name='express' id='express' class="form-control" placeholder="请输入快递信息" />
+                            </div>
+                        </div>
+					</div>
+					<div class="modal-footer">
+						<button type="submit" class="btn btn-primary span2" name="confirmsend" value="yes">确认发货</button>
+						<a href="#" class="btn btn-default" data-dismiss="modal" aria-hidden="true">关闭</a>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<!-- 取消发货 -->
+		<div id="modal-cancelsend" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" style="width:600px;margin:0px auto;">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button aria-hidden="true" data-dismiss="modal" class="close" type="button">×</button>
+						<h3>取消发货</h3>
+					</div>
+					<div class="modal-body">
+						<label>取消发货原因</label>
+						<textarea style="height:150px;" class="form-control" name="cancelreson" autocomplete="off"></textarea>
+						<div id="module-menus"></div>
+					</div>
+					<div class="modal-footer">
+						<button type="submit" class="btn btn-primary span2" name="cancelsend" value="yes">取消发货</button>
+						<a href="#" class="btn btn-default" data-dismiss="modal" aria-hidden="true">关闭</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</form>
+</div>
+
+<div id="modal-cancelsend" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true" style=" width:600px;">
+	<div class="modal-header"><button aria-hidden="true" data-dismiss="modal" class="close" type="button">×</button><h3>取消发货</h3></div>
+	<div class="modal-body">
+		<table class="tb">
+			<tr>
+				<th><label for="">取消发货原因</label></th>
+				<td>
+					<textarea style="height:150px;" class="span5" name="cancelreson" cols="70" autocomplete="off"></textarea>
+				</td>
+			</tr>
+		</table>
+		<div id="module-menus"></div>
+	</div>
+	<div class="modal-footer"><button type="submit" class="btn btn-primary span2" name="cancelsend" value="yes">取消发货</button><a href="#" class="btn" data-dismiss="modal" aria-hidden="true">关闭</a></div>
+</div>
+
+<script language='javascript'>
+$(function(){
+	{if !empty($express)}
+	$("#express").find("option[data-name='{$express['express_name']}']").attr("selected",true);
+	$("#expresscom").val($("#express").find("option:selected").attr("data-name"));
+	{/if}
+	$("#express").change(function(){
+		var obj = $(this);  
+		var sel = obj.find("option:selected").attr("data-name");
+		$("#expresscom").val(sel);
+	});
+})
+</script>
+
+<script>
+	require(['bootstrap'],function($){
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+	});
+</script>
+
+
+
+
+{template 'common/footer'}

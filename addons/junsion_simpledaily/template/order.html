@@ -1,0 +1,107 @@
+{template 'common/header'}
+<style>
+td{
+	text-align: center;
+	white-space: normal !important;
+	word-break: break-all;
+}
+th{
+	text-align: center;
+}
+p{
+	margin: 0
+}
+
+.account-stat-num > div{width:25%; float:left; font-size:16px; text-align:center;}
+.account-stat-num > div span{display:block; font-size:30px; font-weight:bold;}
+</style>
+<div class="main">
+
+<form action="" method="get" class="form-horizontal" role="form">
+<div class="panel panel-info">
+        <div class="panel-heading">筛选</div>
+        <div class="panel-body">
+                <input type="hidden" name="c" value="site" />
+                <input type="hidden" name="a" value="entry" />
+                <input type="hidden" name="m" value="junsion_simpledaily" />
+                <input type="hidden" name="do" value="order" />
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">关键字</label>
+                    <div class="col-xs-12 col-sm-9 col-lg-9">
+                        <input class="form-control" name="keyword" id="" type="text" value="{$_GPC['keyword']}" placeholder="请输入相册名称/打赏编号">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                	<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">支付时间</label>
+                    <div class="col-xs-12 col-sm-3 col-lg-3">
+                        {php echo tpl_form_field_daterange('dateline',array('start'=>date('Y-m-d H:i',$start_time),'end'=>date('Y-m-d H:i',$end_time)),true);}
+                    </div>
+                    <div class=" col-xs-12 col-sm-2 col-lg-2">
+                        <button class="btn btn-default" ><i class="fa fa-search"></i> 搜索</button>
+                   	</div>
+                </div>
+                
+        </div>
+    </div>
+</form>
+<div style="padding:15px;background: white;margin-bottom: 10px;">
+	<div class="account-stat-num row">
+		<div>今日打赏总额<span>{$today_all}</span></div>
+		<div>今日手续费总额<span>{$today_rate}</span></div>
+		<div>打赏总数<span>{$all_all}</span>{php echo date('Y-m-d', $start_time);}~{php echo date('Y-m-d', $end_time);}</div>
+		<div>手续费总数<span>{$all_rate}</span>{php echo date('Y-m-d', $start_time);}~{php echo date('Y-m-d', $end_time);}</div>
+	</div>
+</div>
+	<div style="padding:15px;background: white;">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<th style="width: 200px;">订单号</th>
+					<th style="width: 200px;">简记名</th>
+					<th>粉丝信息</th>
+					<th style="width: 60px;">金额</th>
+					<th style="width: 60px;">手续费</th>
+					<th>支付信息</th>
+					<th>红包信息</th>
+					<th>操作</th>
+				</tr>
+			</thead>
+			<tbody>
+					{loop $list $k $l}
+				<tr>
+					<td>{$l['ordersn']}</td>
+					<td>{$l['title']}</td>
+					<td>{if $l['nickname']}<img src="{php echo toimage($l['avatar'])}" style="width: 80px;height: 80px;"><br/>{$l['nickname']}{else}{$l['openid']}{/if}</td>
+					<td>{$l['price']}</td>
+					<td>{$l['rate']}</td>
+					<td>
+						{if !empty($l['status'])}
+						<p>支付流水：{$l['transaction_id']}</p>
+						<p>支付时间：{php echo date('Y-m-d H:i',$l['pay_time']);}</p>
+						{/if}
+					</td>
+					<td>
+						{if !empty($l['packet_status'])}
+						<p>发放流水：{$l['packet_batch']}</p>
+						<p>发放时间：{php echo date('Y-m-d H:i',$l['packet_time']);}</p>
+						{elseif !empty($l['status'])}
+							{$l['packet_batch']}
+						{/if}
+					</td>
+					<td>
+					{if !empty($l['status']) && empty($l['packet_status'])}
+						<a href="{php echo $this->createWebUrl('order', array('id' => $l['id'],'op'=>'packet'))}" class="btn btn-primary btn-sm">发放红包</a>
+					{/if}
+						<a href="../app/{php echo $this->createMobileUrl('myworks', array('wid' => base64_encode($l['wid']),'sp'=>$l['psw'],'f'=>'web'))}" target="view_window" class="btn btn-info btn-sm">访问简记</a>
+						<a onclick="return confirm('删除打赏记录，确认删除吗？'); return false;" href="{php echo $this->createWebUrl('order', array('op' => 'del','id' => $l['id']))}" title="删除" class="btn btn-sm btn-danger"><i class="fa fa-remove"></i></a>
+					</td>
+				</tr>
+				{/loop}
+			</tbody>
+		</table>
+		{$pager}
+	</div>
+</div>
+
+{template 'common/footer'}

@@ -1,0 +1,55 @@
+{template 'header'}
+<header class="mui-bar mui-bar-nav"> <a class="mui-icon mui-icon-left-nav mui-pull-left mui-action-back"></a>
+  <h1 class="mui-title">{$firm[title]}</h1>
+</header>
+<div class="">
+  <div style="position: absolute; top: 40px; left: 0px; right: 0px; bottom: 30px; overflow: hidden; color: rgb(0, 0, 0); text-align: left; z-index: 0; background-color: rgb(243, 241, 236);" id="map"> </div>
+  <div id="r-result"></div>
+</div>
+<div style="position:absolute;top:100px;left:30%;" id="ts"> 请稍等，正在为您规划线路....</div>
+<script type="text/javascript" src="http://api.map.baidu.com/api?ak=qen1OGw9ddzoDQrTX35gote2&v=2.0&services=false"></script>
+<script>
+var map = new BMap.Map("map");
+// 创建地址解析器实例
+var locationx = '{$firm[location_x]}';
+var locationy = '{$firm[location_y]}';
+// 百度地图API功能
+map.centerAndZoom(new BMap.Point(locationx, locationx), 12);
+var output = "约";
+var p1 = new BMap.Point(locationx, locationy);
+var geolocation = new BMap.Geolocation();
+geolocation.getCurrentPosition(function (r) {
+  if (this.getStatus() == BMAP_STATUS_SUCCESS) {
+    var position = {
+      lng: r.point.lng,
+      lat: r.point.lat,
+    }
+    p2 = new BMap.Point(position.lng, position.lat);
+    var searchComplete = function (results) {
+      if (transit.getStatus() != BMAP_STATUS_SUCCESS) {
+        return;
+      }
+      var plan = results.getPlan(0);
+      output += plan.getDuration(true) + ","; //获取时间
+      output += plan.getDistance(true) + ""; //获取距离
+    }
+    var transit = new BMap.DrivingRoute(map, {
+      renderOptions: {
+        map: map
+      },
+      onSearchComplete: searchComplete,
+      onPolylinesSet: function () {
+        var a = document.getElementById("ts");
+        a.innerHTML = '';
+      }
+    });
+    transit.search(p2, p1);
+  }
+  else {
+    alert('获取当前位置失败,请确定您开启了定位服务');
+  }
+}, {
+  enableHighAccuracy: true
+});
+</script>
+</body></html>

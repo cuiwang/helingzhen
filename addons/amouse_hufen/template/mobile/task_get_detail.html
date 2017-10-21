@@ -1,0 +1,234 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no"/>
+    <meta name="format-detection" content="telephone=no"/>
+    <title>{if $set['copyright']}{$set['copyright']}{else}{$_W['account']['name']}{/if}--红包任务</title>
+    <link rel="stylesheet" href="{AMOUSE_HUFEN_RES}css/foundation.css">
+    <link rel="stylesheet" href="{AMOUSE_HUFEN_RES}css/main.red.css">
+    <script src="{AMOUSE_HUFEN_RES}js/modernizr.7710ac5fd1f2.js"></script>
+    <style>
+        .task-head {
+            text-align: center;
+        }
+        .task-title {
+            color: #ff6000;
+            line-height: 2em;
+            margin-top: 16px;
+            font-size: 18px;
+        }
+
+        .task-conds, .task-subtitle {
+            padding: 0 16px;
+            margin: 8px 0;
+            line-height: 2em;
+            text-align: left;
+        }
+
+        .sub-btn, .sub-btn:hover, .sub-btn:visited, .sub-btn:focus {
+            color: #008cba;
+        }
+
+        @media (max-width: 320px) {
+            .task-title {
+                font-size: 14px;
+            }
+
+            .sub-btn {
+                font-size: 12px;
+            }
+        }
+    </style>
+
+</head>
+<body>
+<div class="wrapper">
+
+    <div class="content">
+        <div class="dialog" id="tip">
+            <div class="dialog-cnt">
+                <div class="dialog-bd">
+                    <h3>提示</h3>
+                    <p class="text"></p>
+                    <a class="button correct-btn" id="alert_ok">确&nbsp;&nbsp;定</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="banner">
+            {if $task['thumb']}<img src="{php echo strpos($task['thumb'],'http://')===FALSE?(tomedia($task['thumb'])):$task['thumb']}">{else}<img src="http://img.hufen.npltec.com/static/img/p10.3eda9d8b0bc0.jpg">{/if}
+        </div>
+
+        <div class="fresher">
+            <div class="task-head">
+                <input type="hidden" name="taskid" id="taskid" value="{$task['id']}">
+                <p class="task-conds">
+                    <b>任务奖励：</b>
+                    <br>
+                    <span style="color:red;">现金红包 <span id="reward">?</span> 元</span>
+                    （{$task['pxprice']}～{$task['pmprice']}）元随机，限量）
+                </p>
+                <p class="task-conds">
+                    <b>任务条件：</b>
+                    <br>
+                    {$task['condition']}
+                </p>
+                <p class="task-subtitle">
+                    <b>任务内容：</b>
+                    <br>
+                     {$task['require']}
+            </div>
+            <div class="row">
+                <div class="small-12 columns publish">
+                    <div style="">
+                        <div id="activity" style="display:none;">
+                            {if $mtask['getstatus']==1}
+                            <a class="button btn" id="a_get">领取任务</a>
+                            {elseif $mtask['getstatus']==2}
+                            <a class="button btn" id="a_submit">提交任务</a>
+                            {/if}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="small-12 columns publish">
+                    <p>Tips: VIP用户在活动期间置顶名片可获得大量粉丝</p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="small-12 columns publish">
+                    <a class="sub-btn" href="{$set['shkey']}">不会玩？图文教你如何领取红包</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {template 'footerbar'}
+
+</div>
+<script src="{AMOUSE_HUFEN_RES}js/jquery.f5d547e5b88b.js?v2"></script>
+<script src="{AMOUSE_HUFEN_RES}js/foundation.min.dea49fb77ce9.js"></script>
+<script src="{AMOUSE_HUFEN_RES}js/main.04f12e56ea6a.js"></script>
+<script>
+    $(document).foundation();
+    alert_ok = null;
+    function new_alert(msg, cb) {
+        alert_ok = cb;
+        $('#tip .text').html(msg);
+        $('#tip').show();
+    }
+    old_alert = window.alert;
+    window.alert = new_alert;
+    $('#alert_ok').click(function () {
+        if (alert_ok) {
+            alert_ok();
+        }
+        $('#tip').hide();
+    });
+</script>
+
+<script>
+    $('#a_get').click(function () {
+        if ($(this).text() != '领取任务')
+            return false;
+        $(this).text('领取中...');
+        setTimeout(function () {
+            var taskid = $('#taskid').val();
+            $.ajax({
+                url: "{php echo $this->createMobileUrl('ajaxGetTask',array('action'=>'get'))}",
+                async : false,
+                type: 'POST',
+                data:{taskid:taskid},
+                dataType: 'json',
+                timeout: 5000,
+                success: function(result){
+                    var json = eval(result);
+                    var code = json.code;
+                    console.log(code);
+                    if(code == 200){
+                        $('#a_get').text('领取任务');
+                        new_alert('成功领取任务！<br>任务奖励：' + json.reward + '元现金红包', function () {
+                            location.reload();
+                        });
+                    }else{
+                        new_alert(j.msg, null);
+                        $('#a_get').text('领取任务');
+                    }
+                }
+            });
+        }, (Math.random() * 2000));
+        return false;
+    });
+    //提交任务
+    $('#a_submit').click(function(){
+        var taskid = $('#taskid').val();
+        if($(this).text() != '提交任务')
+            return false;
+        $(this).text('提交中');
+
+        $.ajax({
+            url: "{php echo $this->createMobileUrl('ajaxGetTask',array('action'=>'submit'))}",
+            async : false,
+            type: 'POST',
+            data:{taskid:taskid},
+            dataType: 'json',
+            timeout: 5000,
+            success: function(j){
+                if(j.code==200){
+                    new_alert(j.msg,function(){
+                        window.location="{php echo $_W['siteroot'].'app/'.substr($this->createMobileUrl('board',array()), 2)}";
+                    });
+                    $('#a_submit').text('已完成');
+                }else{
+                    alert(j.msg);
+                    $('#a_submit').text('提交任务');
+                }
+            }
+        });
+
+        return false;
+    });
+</script>
+
+<script>
+    function padDigits(number, digits) {
+        return Array(Math.max(digits - String(number).length + 1, 0)).join(0) + number;
+    }
+
+    var kickoff = new Date(2016, 1, 3, 21, 00, 00);
+    function updateWCTime() {
+        now = new Date();
+        if (kickoff - now < 0) {
+            $('#clock').hide();
+            $('#activity').show();
+            return;
+        } else {
+            $('#clock').show();
+            $('#activity').hide();
+        }
+        diff = kickoff - now;
+
+        days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        hours = Math.floor(diff / (1000 * 60 * 60));
+        mins = Math.floor(diff / (1000 * 60));
+        secs = Math.floor(diff / 1000);
+        ms = Math.floor(diff % 1000);
+
+        dd = days;
+        hh = hours - days * 24;
+        mm = mins - hours * 60;
+        ss = secs - mins * 60;
+
+        $('#clk_hour').text(padDigits(hh, 2));
+        $('#clk_min').text(padDigits(mm, 2));
+        $('#clk_sec').text(padDigits(ss, 2));
+        $('#clk_ms').text(padDigits(ms, 3));
+    }
+    setInterval(updateWCTime, 100);
+</script>
+
+
+</body>
+</html>

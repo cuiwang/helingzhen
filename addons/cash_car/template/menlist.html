@@ -1,0 +1,132 @@
+<!--
+ * ============================================================================
+ * 版权所有 2015-2016 米粒源码，并保留所有权利。
+ * 网站地址: http://www.webmili.com；
+ * ----------------------------------------------------------------------------
+ * 这不是一个自由软件！已购买用户允许对程序代码进行修改和使用，但是不允许对
+ * 程序代码以任何形式任何目的的再发布，作者将保留追究法律责任的权力和最终解
+ * 释权。
+ * ============================================================================
+-->
+{template 'common/header'}
+<style>
+.table td span{display:inline-block;}
+.table td input{margin-bottom:0;}
+</style>
+<script type="text/javascript">
+$(function(){
+	$(".main").delegate("span.switch", "click", function(){
+		var sw;
+		var a = $(this).find("i");
+		var reid = $(this).attr("value");
+		if(a.attr("class") == 'icon-play') {
+			a.attr("class", "icon-stop");
+			a.parent().attr("title", "关闭");
+			sw = '1';
+		} else {
+			a.attr("class", "icon-play");
+			a.parent().attr("title", "开启");
+			sw = '0';
+		}
+		$.post(location.href, {'reid': reid, 'switch': sw}, function(dat){
+		});
+	});
+});
+</script>
+<ul class="nav nav-tabs">
+	<li class="active"><a href="{php echo $this->createWebUrl('menlist')}">工作人员列表</a></li>
+	<li><a href="{php echo $this->createWebUrl('newmen')}">添加工作人员</a></li>
+</ul>
+
+<div class="main">
+    <div class="panel panel-info">
+		<div class="panel-heading">筛选</div>
+		<div class="panel-body">
+			<form action="./index.php" method="get" class="form-horizontal" role="form">
+				<input type="hidden" name="c" value="site">
+                <input type="hidden" name="a" value="entry">
+                <input type="hidden" name="m" value="cash_car">
+                <input type="hidden" name="do" value="menlist">
+				<input type="hidden" name="is_own" value="{$_GPC['is_own']}">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">服务点</label>
+					<div class="col-sm-4">
+						<select name="storeid" class="form-control">
+                            <option value="">不限</option>
+							{loop $store_list $store}
+							<option value="{$store['id']}" {if $store['id']==$_GPC['storeid']}selected{/if}>{$store['title']}</option>
+							{/loop}
+                        </select>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">工作人员</label>
+					<div class="col-sm-4">
+						<input class="form-control" name="worker" type="text" value="{$_GPC['worker']}">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">车辆标识</label>
+					<div class="col-sm-4">
+						<input class="form-control" name="car" type="text" value="{$_GPC['car']}">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">手机号码</label>
+					<div class="col-sm-4">
+						<input class="form-control" name="mobile" id="" type="text" value="{$_GPC['mobile']}">
+					</div>
+					<div class=" col-xs-12 col-sm-2 col-lg-2" style="width:100px;">
+						<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+					</div>
+					<div class=" col-xs-12 col-sm-2 col-lg-2">
+					    {if $_GPC['is_own']==1}
+						<a class="btn btn-success" href="{php echo $this->createWebUrl('menlist');}"><i class="fa fa-toggle-on"></i> 全部工作人员</a>
+						{else}
+						<a class="btn btn-danger" href="{php echo $this->createWebUrl('menlist', array('is_own'=>1));}"><i class="fa fa-toggle-off"></i> 自营工作人员</a>
+						{/if}
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+	<form action="" method="post">
+		<div class="panel panel-default">
+			<div class="panel-body table-responsive">
+				<table class="table table-hover">
+					<thead class="navbar-inner">
+					<tr>
+						<th style="width:15%;">工作人员</th>
+						<th style="width:15%;">手机号码</th>
+						<th style="width:15%;">车辆标识</th>
+						<th style="width:15%;">对应用户</th>
+						<th style="width:15%;">状态</th>
+						<th style="width:15%;">所属服务点</th>
+						<th style="text-align:right;">操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					{loop $js $row}
+					<tr>
+						<td>{$row['name']}</td>
+						<td>{$row['mobile']}</td>
+						<td>{$row['car_num']}</td>
+						<td>{$row['wx_name']}</td>
+						<td>{if $row['isshow']==1}<span class="label" style="background:#56af45;">工作中</span>{else}<span class="label" style="background:#B71C1C;">休假中</span>{/if}</td>
+						<td>{$row['store_name']}</td>
+						<td style="text-align:right;">
+						{if $row['type']==1}
+							<a href="{php echo $this->createWebUrl('newmen', array('id' => $row['id']))}" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="编辑"><i class="fa fa-edit"></i></a>
+							<a href="{php echo $this->createWebUrl('menlist', array('delid' => $row['id']))}" onclick="return confirm('确定删除工作人员？');return false;" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="删除"><i class="fa fa-remove"></i></a>
+						{/if}
+						</td>
+					</tr>
+					{/loop}
+				</tbody>
+			 </table>
+		  </div>
+	   </div>
+	</form>
+{$pager}
+</div>
+{template 'common/footer'}

@@ -1,0 +1,130 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+    <li {if $op=='dp' }class="active" {/if}><a href="{php echo $this->createWebUrl('business', array('op' => 'dp','operation' =>'list'))}">店铺管理</a></li>
+    <li {if $operation=='add' }class="active" {/if}><a href="{php echo $this->createWebUrl('business', array('op' => 'goods','operation' =>'add','dpid' => $dpid))}">添加商品</a></li>
+    <li {if $operation=='list' }class="active" {/if}><a href="{php echo $this->createWebUrl('business', array('op' => 'goods','operation' => 'list','dpid' => $dpid))}">管理商品</a></li>
+</ul>
+<div class="main">
+    <div class="panel panel-info">
+        <div class="panel-heading">筛选</div>
+        <div class="panel-body">
+            <form action="" method="post" class="form-horizontal" role="form">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">关键字</label>
+                    <div class="col-xs-4 col-sm-4 col-lg-4">
+                        <input class="form-control" name="keyword" id="" type="text" value="{$_GPC['keyword']}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">状态</label>
+                    <div class="col-xs-4 col-sm-4 col-lg-4">
+                        <select name="status" class='form-control'>
+                            <option value="1" {if !empty($_GPC[ 'status'])} selected{/if}>上架</option>
+                            <option value="0" {if empty($_GPC[ 'status'])} selected{/if}>下架</option>
+                        </select>
+                    </div>
+                    <div class=" col-xs-12 col-sm-2 col-lg-2">
+                        <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                </div>
+            </form>
+        </div>
+    </div>
+    <style>
+    .label {
+        cursor: pointer;
+    }
+    </style>
+    <div class="panel panel-default">
+        <div class="panel-body table-responsive">
+            <table class="table table-hover">
+                <thead class="navbar-inner">
+                    <tr>
+                        <th style="width:5%;">ID</th>
+                        <th style="width:15%;">商品标题</th>
+                        <th style="width:15%;">商品属性(点击可修改)</th>
+                        <th style="width:10%;">库存</th>
+                        <th style="width:15%;">状态(点击可修改)</th>
+                        <th style="text-align:right; width:20%;">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {loop $list $item}
+                    <tr>
+                        <td>{$item['id']}</td>
+                        <td>{$item['title']}</td>
+                        <td>
+                            <label data='{$item['isrecommand']}' class='label label-default {if $item['isrecommand']==1}label-info{/if}' onclick="setProperty(this,{$item['id']},'isrecommand')">
+                                {if $item['isrecommand']==1}首页{else}普通{/if}
+                            </label>
+                        </td>
+                        <td>{$item['total']}{$item['unit']}</td>
+                        <td>
+                            <label data='{$item['status']}' class='label  label-default {if $item['status']==1}label-info{/if}' onclick="setProperty(this,{$item['id']},'status')">
+                                {if $item['status']==1}上架{else}下架{/if}
+                            </label>
+                        </td>
+                        <td style="text-align:right;">
+                            <a href="{php echo $this->createWebUrl('business', array('id' => $item['id'], 'op' => 'goods','operation' => 'add','dpid' => $dpid))}" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" title="编辑">编辑</a>&nbsp;&nbsp;
+                            <a href="javascript:;" data="{$item['id']}" title="删除" class="btn btn-default btn-sm" id='del'>删除
+                        </a>&nbsp;
+                        </td>
+                    </tr>
+                    {/loop}
+                </tbody>
+                <tr>
+                    <td></td>
+                    <td colspan="5">
+                        <input name="token" type="hidden" value="{$_W['token']}" />
+                        <input type="submit" class="btn btn-primary" name="submit" value="提交" />
+                    </td>
+                </tr>
+            </table>
+            {$pager}
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+function setProperty(obj, id, type) {
+    $(obj).html($(obj).html() + "...");
+    $.post("{php echo $this->createWebUrl('business',array('op' => 'setgoodsproperty'))}", {
+        id: id,
+        type: type,
+        data: obj.getAttribute("data")
+    }, function(d) {
+        $(obj).html($(obj).html().replace("...", ""));
+        if (type == 'isrecommand') {
+            $(obj).html(d.data == '1' ? '首页' : '普通');
+        }
+        if (type == 'status') {
+            $(obj).html(d.data == '1' ? '上架' : '下架');
+        }
+        $(obj).attr("data", d.data);
+        if (d.result == 1) {
+            $(obj).toggleClass("label-info");
+        }
+    }, "json");
+}
+$(function () {
+            $("#del").bind("click",function(){
+                var id = $(this).attr('data');
+                var url = "{php echo $this->createWebUrl('business',array('op' => 'goods','operation' => 'delete'),true)}";
+                    $.post(url,
+                    {
+                        id:id
+                    },
+                    function(msg){
+                            if (msg.status == 1) {
+                                setTimeout(function(){
+                                    window.location.reload();
+                                 },100);
+                            };
+                            
+                    },
+                    'json');
+            });
+        });
+</script>
+{template 'common/footer'}

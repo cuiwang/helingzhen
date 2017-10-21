@@ -1,0 +1,140 @@
+{template 'common/header'}
+<link rel="stylesheet" href="{php echo MODULE_PATH}/public/css/sweetalert.css">
+<style>
+	.nav-width{border-bottom:0;}
+	.nav-width li.active{width:50%;text-align:center;overflow:hidden;height:40px;}
+	.nav-width .normal{background:#EEEEEE;width:50%;text-align:center;overflow:hidden;height:40px;}
+	.bg-self-1{background-color: rgba(228, 232, 234, 0.29); border: 2px solid rgba(33, 63, 80, 0.12);}
+	.mp-info .row{height: 50px; line-height: 50px;}
+	.mp-info em{font-weight: bold}
+	.mpAddMain{width: 100%; clear: both; padding-top: 40px;}
+	.mpAddMain a{margin-right: 15px}
+</style>
+<ul class="nav nav-tabs nav-width">
+	<li class="active normal"><a href="javascript:;">1. 设置公众号信息</a></li>
+	<li class="normal"><a href="javascript:;">2. 接入公众号</a></li>
+</ul>
+
+<div class="main">
+	<form action="{php echo $this->createWebUrl('MpAdd', array('op' => 'index'))}" method="post" class="form-horizontal form" id="mpAdd-form">
+		<div class="panel panel-default">
+			<div class="panel-heading">设置公众号信息</div>
+			<div class="panel-body">
+				<div class="tab-content">
+					<div class="tab-pane  active" id="tab_basic">
+						<div class="form-group">
+							<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label"><span style="color:red">*</span>公众号名称：</label>
+							<div class="col-xs-12 col-sm-8">
+								<input type="text" name="name" required class="form-control" maxlength="15" value="" />
+								<span class="help-block">要接入的公众号的名称</span>
+							</div>
+						</div>
+		                <div class="form-group">
+		                    <label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">备注：</label>
+		                    <div class="col-sm-8 col-xs-12">
+		                        <textarea class="form-control" name="desc" rows="8" maxlength="100" placeholder=""></textarea>
+		                        <span class="help-block"></span>
+		                    </div>
+		                </div>
+						<div class="form-group col-sm-12">
+							<input type="submit" name="submit" value="设置完成，下一步" class="btn btn-success" />
+							<input type="hidden" name="token" value="{$_W['token']}" />
+							<input type="hidden" name="type" value="add" />
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</form>
+	<div class="mpAddTab2" style="display: none">
+		<div class="panel panel-default">
+			<div class="panel-heading">接入公众号</div>
+			<div class="panel-body">
+				<div class="tab-content">
+					<div class="tab-pane active mp-info">
+						<h4 class="alert alert-danger">
+							<br />
+							您绑定的微信公众号：<em class="text-danger"></em>，请将以下信息填入微信公众平台中。
+							<br />
+							<br />
+						</h4>
+						<div class="row">
+							<div class="bg-self-1 col-md-8">
+								<div class="row">
+									<div class="col-md-2 text-right"><em>URL：</em></div>
+									<div class="col-md-10"></div>
+								</div>
+								<div class="row">
+									<div class="col-md-2 text-right"><em>Token：</em></div>
+									<div class="col-md-10"></div>
+								</div>
+								<div class="row">
+									<div class="col-md-2 text-right"><em>EncodingAESKey：</em></div>
+									<div class="col-md-10"></div>
+								</div>
+							</div>
+						</div>
+
+						<div class="mpAddMain">
+							<a href="javascript:void(0);" class="btn btn-success mpJoin" style="color:#FFF"> 检测是否接入成功</a>
+							<a href="javascript:void(0);" class="btn btn-primary appList" style="color:#FFF">暂不接入，先去查看管理功能</a>
+							<a href="{php echo $this->createWebUrl('MpList')}" class="btn btn-info" style="color:#FFF">返回公众号列表</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script src="{php echo MODULE_PATH}/public/js/sweetalert.min.js"></script>
+<script src="{php echo MODULE_PATH}/public/js/public.js"></script>
+<script>
+	$('#mpAdd-form').submit(function(){
+		var post_data = $(this).serialize();
+		var url = $(this).attr('action');
+		$.ajax({
+			type:'post',
+			url: url,
+			data: post_data,
+			dataType:'json',
+			success:function(res){
+				if(CheckCode(res.Code) == 'Error'){
+					swal({title:CheckCode(res.Code),text: res.Message,type: CheckCode(res.Code,2)},function(){ });
+				}else{
+					$('#mpAdd-form').slideToggle(500)
+					$('.normal').eq(0).removeClass('active')
+					$('.normal').eq(1).addClass('active')
+					$('.mpAddTab2').slideToggle(500)
+					$('.mp-info .row .col-md-10').eq(0).html(res.Data.url)
+                    $('.mp-info .row .col-md-10').eq(1).html(res.Data.token)
+					$('.mp-info .row .col-md-10').eq(2).html(res.Data.key)
+					$('.mp-info h4 em').html(res.Data.name)
+					$('.mpJoin').attr('href',res.Data.checkUrl)
+					$('.appList').attr('href',res.Data.appListUrl)
+				}
+			},
+			error:function(){ swal("Error", "请检查您的网络", "error"); }
+		});
+		return false;
+	});
+	$('.mpJoin').click(function(){
+		var url = $(this).attr('href');
+		$(this).addClass('disabled').html('检测中');
+		$.ajax({
+			url: url,
+			dataType:'json',
+			success:function(res){
+				swal({title:CheckCode(res.Code),text: res.Message,type: CheckCode(res.Code,2)},function(){
+					if( CheckCode(res.Code,2) == 'success')
+						window.location.href = '{php echo $this->createWebUrl('MpList', array('op' => 'index'))}';
+				});
+			},
+			error:function(){ swal("Error", "请检查您的网络", "error"); },
+			complete:function(){
+				$('.mpJoin').removeClass('disabled').html('检测是否接入成功');
+			}
+		});
+		return false;
+	});
+</script>
+{template 'common/footer'}

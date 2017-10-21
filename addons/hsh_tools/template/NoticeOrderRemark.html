@@ -1,0 +1,53 @@
+<form name="remarkForm" id="remarkForm" method="POST" class="form-horizontal form" >
+	<input type="hidden" name="token" value="{$_W['token']}" />
+	<input type="hidden" name="id" value="{$_GPC['id']}" />
+	<div class="form-group">
+		<label class="col-xs-12 col-sm-3 col-md-2 control-label">备注信息</label>
+		<div class="col-sm-9">
+			<textarea class="form-control" id="remark_info" name="remark_info" >{$noticeOrderInfo['remark']}</textarea>
+			<span class="help-block"></span>
+		</div>
+	</div>
+	<div class="form-group">
+		<label class="col-xs-12 col-sm-3 col-md-2 control-label">订单状态</label>
+		<div class="col-sm-9">
+			<select  name="order_state" class="form-control">
+				<!--option value="1" {if $value['default'] == $s_value } selected="selected"{/if} >{$s_value}</option-->
+				<option value="1" {if $noticeOrderInfo['state'] == 1}selected="selected"{/if}  >已确认</option>
+				<option value="2" {if $noticeOrderInfo['state'] == 2}selected="selected"{/if} >已完成</option>
+				<option value="-1"{if $noticeOrderInfo['state'] == -1}selected="selected"{/if}  >已取消</option>
+			</select>
+		</div>
+	</div>
+	<div class="form-group">
+		<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+		<div class="col-sm-9">
+			<button type="button" class="btn btn-primary" onclick="remarkSubmit();">提交</button>
+		</div>
+	</div>
+</form>
+<script type="text/javascript">
+	function remarkSubmit() {
+		$.ajax({
+			type: "POST",
+			async: false,
+			url: "{php echo $this->createWebUrl('NoticeOrderRemark',array('id' => $_GPC['id'],'op' =>'saveData'),true)}&callback=?",
+			data: $('#remarkForm').serialize(), // 你的formid
+			dataType: "jsonp",
+			jsonp: "callbackparam", //服务端用于接收callback调用的function名的参数
+			jsonpCallback: "success_jsonpCallback", //callback的function名称
+			success: function (json) {
+				if(json.state == 1) {
+					$("#remark_{$_GPC['id']}").html($("#remark_info").val());
+					modalobj.modal("hide");
+				} else {
+					alert(json.msg);
+				}
+				
+			},
+			error: function () {
+				alert("数据传输失败,请重试");
+			}
+		});
+	}
+</script>

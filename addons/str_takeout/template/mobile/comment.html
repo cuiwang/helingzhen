@@ -1,0 +1,111 @@
+{template 'header'}
+<link rel="stylesheet" type="text/css" href="../addons/str_takeout/template/resource/css/main.css">
+<script src="../addons/str_takeout/template/resource/js/touchEvent.js"></script>
+
+<div class="container">
+	<section>
+		<ul class="box score_list" id="scoreList">
+			<li data-id="taste">
+				<div>
+					<strong>菜品口味</strong>
+					{if $di['star'] > 0}
+						<span>已评分</span> 
+					{else}
+						<span>未评分</span>
+					{/if}
+				</div>
+				<p class="ico_score"><strong class="score_{$comment['taste']}"></strong></p>
+			</li>
+			<li data-id="serve">
+				<div>
+					<strong>服务态度</strong>
+					{if $di['star'] > 0}
+						<span>已评分</span> 
+					{else}
+						<span>未评分</span>
+					{/if}
+				</div>
+				<p class="ico_score"><strong class="score_{$comment['serve']}"></strong></p>
+			</li>
+			<li data-id="speed">
+				<div>
+					<strong>配送速度</strong>
+					{if $di['star'] > 0}
+						<span>已评分</span> 
+					{else}
+						<span>未评分</span>
+					{/if}
+				</div>
+				<p class="ico_score"><strong class="score_{$comment['speed']}"></strong></p>
+			</li>
+		</ul>
+		<ul class="box">
+			<li>评价:</li>
+			<li>
+				<textarea class="txt" id="note" placeholder="您的评价是我们最大的动力">{$comment['note']}</textarea>
+			</li>
+		</ul>
+	</section>
+	{if $order['comment'] != 1}
+		<footer class="order_btns score_btns">
+			<div class="fixed">
+				<a href="javascript:history.go(-1);">取消评分</a>
+				<a id="confirmScore" href="javascript:void(0);" class="on">确认评分</a>
+			</div>
+		</footer>
+	{/if}
+	{template 'footerbar'}
+</div>
+<script type="text/javascript">
+	$(function(){
+		var offsetL = $('#scoreList .ico_score').eq(0).offset().left;
+		function setStar(obj, pageX){
+			var num = Math.ceil(( pageX - offsetL ) / 33 );
+			if(num > 5) num = 5;
+			obj.firstChild.className = 'score_' + num;
+		}
+		$('#scoreList .ico_score').each(function(){
+			var _this = this;
+			touchEvent(_this, {
+				startCb: function(e, startX){
+					setStar(_this, startX);
+				},
+				moveCb: function(e, x){
+					setStar(_this, x + this.data.startX);
+					e.preventDefault();
+				}
+			});
+		});
+
+		$("#confirmScore").click(function(){
+			var post_arr = new Array;
+			$('#scoreList li').each(function(){
+				var score_str = $(this).children(".ico_score").children("strong").attr("class");
+				var temp_obj = new Object;
+				temp_obj["id"] = $(this).attr("data-id");
+				if(undefined != score_str && null != score_str && "" != score_str) {
+					temp_obj["score"] = score_str.substring(score_str.indexOf("_")+1);
+				}else{
+					temp_obj["score"] = 5;
+				}
+				post_arr.push(temp_obj);
+			});
+			var note = $.trim($('#note').val());
+			$.post("{php echo $this->createMobileUrl('comment', array('id' => $id), true)}",{'score_data' : post_arr, 'note' : note},function(e){
+				if(e.errno == 0) {
+					location.reload();
+					return false;
+				}else{
+					alert(e.error);
+					return false;
+				}
+			},'json');
+			return false;
+		});
+	});
+	document.addEventListener('WeixinJSBridgeReady', function onBridgeReady() {
+		WeixinJSBridge.call('hideOptionMenu');
+	});
+</script>
+{template 'common'}
+{template 'common/footer'}

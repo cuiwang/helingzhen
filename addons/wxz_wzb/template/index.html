@@ -1,0 +1,777 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>{$item['title']}</title>
+
+<link rel="stylesheet" href="../addons/wxz_wzb/template/mobile/css/demo.css">
+<link rel="stylesheet" href="../addons/wxz_wzb/template/mobile/css/iconfont.css">
+<link rel="stylesheet prefetch" href="../addons/wxz_wzb/template/mobile/css/photoswipe.css">
+<link rel="stylesheet prefetch" href="../addons/wxz_wzb/template/mobile/css/default-skin/default-skin.css">
+
+<script src="../addons/wxz_wzb/template/mobile/js/jquery.min.js"></script>
+<script src="../addons/wxz_wzb/template/mobile/js/layer.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript" src="{MODULE_URL}template/mobilebak2/js/global.js"></script>
+<style>
+.theme{
+    vertical-align: text-top;
+    width: 97%;
+    height: 60px;
+}
+.polt-NO{height:2.36rem;padding:0 .05rem;border-radius:.04rem;font-size: 12px;background:rgba(0,0,0,.2);z-index: 9999999;position: absolute;overflow: hidden;  right: 10px;}
+</style>
+<script>
+
+var player_height = 200;
+var fans_info = {
+		'nickname':"{$user['nickname']}",
+		'avatar':"{$user['avatar']}",
+		'openid':"{$user['openid']}",
+		'origin':"{$_W['siteroot']}"
+};	
+var Timer;
+var newsTimer;
+var load_status = 1;
+var load_news_status = 1;
+var WinW=$(window).width(),WinH=$(window).height();
+var mobile_type = {if strpos($user_agent, 'MicroMessenger') === false}0{else}1{/if};
+</script>
+<!--<script type="text/javascript" src="http://cdn.aodianyun.com/static/jquery/jquery-1.7.2.min.js"></script><!-- jquery地址也可使用您的地址 -->
+<script type="text/javascript" src="http://cdn.aodianyun.com/lss/aodianplay/player.js"></script>
+<script type="text/javascript">
+var objectPlayer=new aodianPlayer({
+    container:'play',//播放器容器ID，必要参数
+    rtmpUrl: "{$list['rtmp']}",//控制台开通的APP rtmp地址，必要参数
+    hlsUrl: "{$list['hls']}",//控制台开通的APP hls地址，必要参数
+    /* 以下为可选参数*/
+    width: '100%',//播放器宽度，可用数字、百分比等
+    height: '220',//播放器高度，可用数字、百分比等
+    autostart: true,//是否自动播放，默认为false
+    bufferlength: '1',//视频缓冲时间，默认为3秒。hls不支持！手机端不支持
+    maxbufferlength: '2',//最大视频缓冲时间，默认为2秒。hls不支持！手机端不支持
+    stretching: '1',//设置全屏模式,1代表按比例撑满至全屏,2代表铺满全屏,3代表视频原始大小,默认值为1。hls初始设置不支持，手机端不支持
+    controlbardisplay: 'enable',//是否显示控制栏，值为：disable、enable默认为disable。
+    //adveDeAddr: '',//封面图片链接
+    //adveWidth: 320,//封面图宽度
+    //adveHeight: 240,//封面图高度
+    //adveReAddr: '',//封面图点击链接
+    //isclickplay: false,//是否单击播放，默认为false
+    isfullscreen: true//是否双击全屏，默认为true
+});
+function sendmsg(id,nickname){
+	if(id){
+		$("#msg_id").val(id);
+		$("#content_msg").attr('placeholder','对'+nickname+'说');
+	}
+}
+</script> 
+</head>
+
+<body style="background-color: #f6f6f6;">
+
+
+<input type="hidden" id="lastid" value="{php echo $LivePic[0]['id']}" />
+<input type="hidden" id="replyid" value="{php echo $Comments[0]['id']}" />
+<div class="polt-NO">{$item['total_num']}人参与</div>
+	<div class="x_tab_title" id="news_tab_menu1" style="z-index:1000;">
+			{$item['activity_id']}
+
+		<ul>
+		{if $item['reward']==1 && $packet['type']==2 && strpos($user_agent, 'MicroMessenger') !== false}
+			<li id="li_001" class="news_hover" onClick="setTab(1,0)">直播</li>
+			<li id="li_002" onClick="setTab(1,1)">聊天室</li>
+			<li id="li_003" onClick="setTab(1,2)">提现</li>
+			<li id="li_004" onClick="setTab(1,3)">规则</li>
+		{else}
+			<li id="li_001" class="news_hover" onClick="setTab(1,0)" style="width:33.33%">直播</li>
+			<li id="li_002" onClick="setTab(1,1)" style="width:33.33%">聊天室</li>
+			<li id="li_004" onClick="setTab(1,2)" style="width:33.33%">规则</li>
+		{/if}
+			
+		</ul>
+	</div>
+	
+	<div id="contain1" class="main_ctn">
+		<ol style="display:block;">
+			<li >
+			{if $item['theme']}
+				<div style="height:70px;padding-left:3px;line-height:30px;color:#666;background-color:#ebebeb; text-align:left; padding-left:10px; font-size: 1.4rem;">{if $setting['yc']==1}<img class="theme" src="{$setting['yc_url']}/{$item['theme']}">{else}<img class="theme" src="../attachment/{$item['theme']}">{/if}</div>
+			{/if}
+				<div class="contain" style="margin: 0px 0 0;">
+					<ul  id="livepic">
+					{loop $LivePic $v}
+						<li>
+						<div style="height:20px;position:relative;">
+							<div class="timeline">
+								<div class="time-text">{php echo date("H:i",$v['dateline'])}</div>
+								<div class="circle">
+									<div class="circle-inner"></div>
+								</div>
+								<div class="line"></div>
+							</div>
+						</div>
+							<div class="body">
+								<div class="text">
+									<div class="title">{if $setting['yc']==1}<img class="avatar" src="{$setting['yc_url']}/{$v['images']}" alt="avatar">{else}<img class="avatar" src="../attachment/{$v['images']}" alt="avatar">{/if}{$v['publisher']}</div>
+									<div class="txt">{$v['content']}</div>
+									<div class="my-gallery" data-pswp-uid="1">
+									{loop unserialize($v['pic']) $value}
+									<figure>
+									{if $setting['yc']==1}
+									<div class="k_div"><a href="{$setting['yc_url']}/{$value}" data-size="286x220"><img style="width:100%;height:100%;" src="{$setting['yc_url']}/{$value}"></a></div>
+									{else}
+									<div class="k_div"><a href="../attachment/{$value}" data-size="286x220"><img style="width:100%;height:100%;" src="../attachment/{$value}"></a></div>
+									{/if}
+										
+									</figure>
+									{/loop}
+									
+									  </div>
+									<div class="tm">
+										<!-- <div class="fl">{php echo date("Y-m-d H:i",$v['dateline'])}</div> -->
+									</div>
+								</div>
+							</div>
+						</li>
+						{/loop}
+						
+					</ul>
+				</div>
+			</li>
+		</ol>
+		<ol>
+			<li>
+				<!-- <div style="height:30px;padding-left:3px;line-height:30px;color:#666;background-color:#ebebeb; text-align:left; padding-left:10px; font-size: 1.4rem;">{php echo date("Y-m-d",$Comment[0]['dateline'])}</div> -->
+				<div class="contain" style="margin: 10px 0 0;">
+					<ul id="comment">
+					{loop $Comment $value}
+					{if $value['ispacket']==1}
+						<li>
+							<div class="body">
+								<div class="text">
+									<div class="title">{if $setting['yc']==1}<img class="avatar" src="{$setting['yc_url']}/{$value['headimgurl']}" alt="avatar">{else}<img class="avatar" src="../attachment/{$value['headimgurl']}" alt="avatar">{/if}管理员</div>
+									<div class="txt"><img src="../addons/wxz_wzb/template/mobile/images/hb.jpg" style="width: 250px;margin-left:3rem;" onClick="jQuery('.on_div_02').show();$('#hb_money').val({$value['id']})"></div>
+									<div class="tm">
+										<div class="fl"></div>
+										<div class="fr"></div>
+									</div>
+								</div>
+								<div id="msg_{$value['id']}">
+									{loop $value['reply'] $r}
+								
+											<div class="body" style="margin:0px 14px;border:none;border-bottom:1px solid #dfdfdf">
+										<div class="text">
+											<div class="title" style='position:relative;'><img class="avatar" src="{$r['headimgurl']}" alt="avatar">{$r['nickname']}<span style="position:absolute;right:0px;">领取了{php echo ($r['amount']/100)}元</span></div>
+											<div class="txt">{$r['content']}</div>
+										</div>
+									</div>
+					
+										{/loop}
+								</div>
+							</div>
+							
+						</li>
+					{else}
+					<li>
+							<div class="body" style="padding-bottom: 10px;">
+								<div class="text">
+									<div class="title" style='position:relative;'><img class="avatar" src="{$value['headimgurl']}" alt="avatar">{$value['nickname']}<span style="position:absolute;right:0px;">{php echo date("H:i",$value['dateline'])}  <a href="javascript:;" onclick="javascript:sendmsg({$value['id']},'{$value['nickname']}');">回复</a></span></div>
+									<div class="txt">{$value['content']}</div>
+								</div>
+								<div id="msg_{$value['id']}">
+									{loop $value['reply'] $r}
+								
+											<div class="body" style="margin:0px 14px;">
+										<div class="text">
+											<div class="title" style='position:relative;'><img class="avatar" src="{$r['headimgurl']}" alt="avatar">{$r['nickname']}<span style="position:absolute;right:0px;">{php echo date("H:i",$r['dateline'])}</span></div>
+											<div class="txt">{$r['content']}</div>
+										</div>
+									</div>
+					
+										{/loop}
+								</div>
+							</div>
+							
+						</li>
+					{/if}
+						
+						{/loop}
+						
+					</ul>
+				</div>
+			</li>
+		</ol>
+		{if $item['reward']==1 && $packet['type']==2 && strpos($user_agent, 'MicroMessenger') !== false}<ol>
+			<li>
+				<div style="font-size:18px;text-align:center;height:30px;padding-left:3px;line-height:30px;color:#666;background-color:#ebebeb; padding-left:10px; font-size: 1.2rem;">好友助力获得总金额：<font style="color:red;">¥:{php echo $user['amount']/100}</font>元&nbsp;&nbsp;已提<font style="color:red;">¥:{php echo $user['deposit']/100}</font>元&nbsp;&nbsp;<button style="font-size: 15px;" onclick='send_fee();'>提现</button></div>
+				<div class="contain" style="margin: 10px 0 0;">
+					<ul>
+					{loop $help_user $value}
+						<li>
+							<div class="body">
+								<div class="text" style="position: relative; ">
+									<div class="title"><img class="avatar" src="{$value['headimgurl']}" alt="avatar">{$value['nickname']}</div>
+									<div class="txt" style="position: absolute;   right: 15px;    top: 8px;">¥:{php echo $value['amount']/100}元</div>
+								</div>
+							</div>
+						</li>
+						{/loop}
+					</ul>
+				</div>
+			</li>
+		</ol>{/if}
+		<ol>
+			<li>
+				<div class="contain" style="margin: 10px 0 0;">
+					<ul>
+						<li>
+							<div class="body">
+								<div class="text">
+									<div class="title"></div>
+									<div class="txt">{$item['rule']}</div>
+								</div>
+							</div>
+						</li>
+					</ul>
+				</div>
+			</li>
+		</ol>
+	</div>
+	{if ($item['limit'] == 3 && $paylog['status']!=1)}
+	<script language="javascript" type="text/javascript"> 
+ 
+function getCountDown(timestamp){
+	setInterval(function(){
+		var nowTime = new Date();
+		var endTime = new Date(timestamp * 1000);
+
+		var t = endTime.getTime() - nowTime.getTime();
+		var hour=Math.floor(t/1000/60/60%24);
+		var min=Math.floor(t/1000/60%60);
+		var sec=Math.floor(t/1000%60);
+		
+		if(hour <=0 && min <=0 && sec<=0){
+			window.location.href="{php echo $this->createMobileUrl('pay', array('fee'=>$item['amount'],'rid'=>$rid,'lid'=>$item['id']));}"; 
+		}
+
+		if (hour < 10) {
+			 hour = "0" + hour;
+		}
+		if (min < 10) {
+			 min = "0" + min;
+		}
+		if (sec < 10) {
+			 sec = "0" + sec;
+		}
+		
+		var countDownTime = hour + ":" + min + ":" + sec;
+		$("#countDown1").html("<font style='color:red;'>还可免费观看："+countDownTime+"</font>");
+	},1000);
+}   
+getCountDown({$limit_time}); 
+</script> {/if}
+
+					<script type="text/javascript">
+						<!--
+						/*更换显示样式*/
+						function setTab(m,n){
+						var tli=document.getElementById("news_tab_menu"+m).getElementsByTagName("li");
+						var mli=document.getElementById("contain"+m).getElementsByTagName("ol");
+						for(i=0;i<tli.length;i++){
+						tli[i].className=i==n?"news_hover":"";
+						mli[i].style.display=i==n?"block":"none";
+						}
+						}
+						//-->
+					</script>
+					<!--tab切换结束-->
+	<!-- Root element of PhotoSwipe. Must have class pswp. -->
+	
+<div class="say_write">
+{if ($item['limit'] == 3 && $paylog['status']!=1)}
+<div id="countDown1"></div>
+{else}
+	<div class="write_input"><input type="hidden" class="msg_id" id="msg_id"><input type="text" placeholder="我要说两句" class="content_msg" id="content_msg"/></div>
+	<div class="write_btn"><a href="#" class="send_msg"><img src="../addons/wxz_wzb/template/mobile/img/fasong.png" width="50%" height="auto"></a></div> {/if}
+</div>
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div> 
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+{if $item['reward']==1 && $packet['type']==2 && strpos($user_agent, 'MicroMessenger') !== false}
+<div class="fuqi">
+	<img src="../addons/wxz_wzb/template/mobile/img/c473f50ec5c004a21471dc67b8ed18a8.png" width="100%" height="100%" />
+	<div class="close_hb" onClick="jQuery('.fuqi').hide()"></div>
+	<div  class="show_hb"  onClick="jQuery('.on_div_01').show()"></div>
+</div>
+
+<!-- 弹出层 -->
+	<div class="on_div_01" style="position:fixed; top:0; left:0; width:100%; height:100%;background:rgba(0, 0, 0, 0.8); display:none; z-index:2000;">
+		<div style="width:90%; position:relative; margin-top:10%; margin-left:5%; z-index:10000;">
+			<img src="../addons/wxz_wzb/template/mobile/img/08e93ba8812e40e5d5053187ec70d588.png" width="100%" height="auto" />
+			<div style=" position:absolute; width:13px; height:13px; z-index:2003; right:5px; top:0px;" onClick="jQuery('.on_div_01').hide()"><img src="../addons/wxz_wzb/template/mobile/img/hb_close.png" width="100%" height="90%" /></div>
+			<div style="text-align:center; width:100%; position:absolute; top:2.4rem; left:0;">
+				<img src="../attachment/{$packet['logo']}" width="15%" height="15%" />
+				<p style=" color:#ffe2b1; line-height:1.2rem; display:block; margin-top:5%;">{$packet['sname']}</p>
+				<p style=" color:#ffe2b1; line-height:1.2rem; display:block; margin-top:5%;">给你发了一个红包</p>
+				<p style=" color:#ffe2b1; line-height:1.2rem; display:block; margin-top:5%;">{$packet['wishing']}</p>
+				<p style=" color:#ffe2b1; line-height:1.2rem; display:block; margin-top:5%;;font-size:12px;">你现在共获得{php echo $user['amount']/100}元,还剩{php echo ($user['amount']-$user['deposit'])/100}元没有提现</p>
+				<p style=" color:#ffe2b1; line-height:1.2rem; display:block; margin-top:5%;font-size:12px;">（满5元可以提现）</p>
+				<p style=" color:#ffe2b1; line-height:1.2rem; display:block; margin-top:10%;"><img src="../addons/wxz_wzb/template/mobile/img/hb_kai.png" width="30%" height="30%" onclick='send_fee();'/></p>
+				<p style=" color:#ffe2b1; line-height:1.2rem; display:block; margin-top:5%;">{$packet['packet_rule']}</p>
+			</div>
+		
+		</div>
+		
+	</div>
+{/if}
+	<div class="on_div_02" style="position:fixed; top:0; left:0; width:100%; height:100%;background:rgba(0, 0, 0, 0.8); display:none; z-index:2000;">
+		<div style="width:90%; position:relative; margin-top:10%; margin-left:5%; z-index:2001;">
+			<img src="../addons/wxz_wzb/template/mobile/img/08e93ba8812e40e5d5053187ec70d588.png" width="100%" height="auto" />
+			<div style=" position:absolute; width:13px; height:13px; z-index:2003; right:5px; top:0px;" onClick="jQuery('.on_div_02').hide()"><img src="../addons/wxz_wzb/template/mobile/img/hb_close.png" width="100%" height="90%" /></div>
+			<div style="text-align:center; width:100%; position:absolute; top:2.4rem; left:0;">
+				<img src="../attachment/{$packet['logo']}" width="15%" height="15%" />
+				<p style=" color:#ffe2b1; line-height:1.2rem; display:block; margin-top:5%;">{$packet['sname']}</p>
+				<p style=" color:#ffe2b1; line-height:1.2rem; display:block; margin-top:5%;">给你发了一个红包</p>
+				<p style=" color:#ffe2b1; line-height:1.2rem; display:block; margin-top:5%;">{$packet['wishing']}</p>
+				<p style=" color:#ffe2b1; line-height:1.2rem; display:block; margin-top:10%;"><img src="../addons/wxz_wzb/template/mobile/img/hb_kai.png" width="30%" height="30%" onclick='send_fees();'/><input type='hidden' id='hb_money'></p>
+			</div>
+		
+		</div>
+		
+	</div>
+</body>
+
+<script src="../addons/wxz_wzb/template/mobile/js/photoswipe.js"></script>
+<script src="../addons/wxz_wzb/template/mobile/js/photoswipe-ui-default.min.js"></script>
+<script>
+$(function(){
+	
+    $('.send_msg').click(function(){
+		var content = $(this).parent().parent().find(".content_msg").val();
+		var id = $(this).parent().parent().find(".msg_id").val();
+		if(content==''){
+			layer.open({
+					  content: '内容为空'
+					  ,style: 'background-color:#FFF; color:#000; border:none;font-size:20px;width:auto;' //自定风格
+					  ,time: 8
+				});
+				return false;
+		}
+		$(this).parent().parent().find(".content_msg").val('');
+		$(this).parent().parent().find(".msg_id").val('');
+		$(this).parent().parent().find(".content_msg").attr('placeholder','我要说两句');
+         $.ajax({
+             type: "POST",
+             url: "{php echo $this->createMobileurl('sub',array('rid'=>$rid))}",
+             data: {content:content,toid:id},
+             dataType: "json",
+             success: function(data){
+				 if(data != '提交成功'){
+					layer.open({
+					  content: data
+					  ,style: 'background-color:#FFF; color:#000; border:none;font-size:20px;width:auto;' //自定风格
+					  ,time: 8
+				});
+				 }
+				 
+             }
+         });
+    });
+});
+$(function(){ 
+	setTimeout("livepic()",8000);
+}); 
+function livepic(){
+	var lastid=$('#lastid').val();
+	var replyid=$('#replyid').val();
+	$.ajax({
+        url: '{php echo $this->createMobileUrl('getlivepic', array('rid'=>$rid,'randomaa'=>mt_rand(1000, 9999)))}',
+        type: 'POST',
+        dataType: 'json',
+        data: {replyid: replyid,lastid:lastid,randomshu:Math.random()},
+        success: function (result) {
+
+        	if(result.status==1){
+				console.log();
+        		$('#livepic').prepend(result.lhtml);
+        		$('#comment').prepend(result.rhtml);
+        		$('#lastid').val(result.lastid);
+        		$('#replyid').val(result.replyid);
+				if(result.mrhtml){
+					$.each( result.mrhtml, function( key, val ) {
+					$('#msg_'+key).prepend(val);
+					});
+					
+				}
+        	}
+        	dingshi2=setTimeout("livepic()",5000);
+        }
+    });
+}
+
+function send_fees(){
+	var hb_id = $("#hb_money").val();
+
+	$.ajax({
+		 type: "GET",
+		 url: "{php echo $this->createMobileUrl('sends',array('rid'=>$rid))}",
+		 data:{ hb_id: hb_id },
+		 dataType: "json",
+		 success: function(data){
+			 if(data.type == -10){
+				 {if $setting['yc']==1}
+				 layer.open({
+				  content: data.msg+"<br><br><img src='{$setting['yc_url']}/{$setting['attention_code']}' style='width:200px'><br><font style='font-size:12px'>长按识别二维码，可快速关注</font>"
+				  ,style: 'background-color:#FFF; color:#000; border:none;font-size:20px;width:auto;' //自定风格
+				  ,time: 8
+				});
+				 {else}
+				 layer.open({
+				  content: data.msg+"<br><br><img src='../attachment/{$setting['attention_code']}' style='width:200px'><br><font style='font-size:12px'>长按识别二维码，可快速关注</font>"
+				  ,style: 'background-color:#FFF; color:#000; border:none;font-size:20px;width:auto;' //自定风格
+				  ,time: 8
+				});
+				 {/if}
+				
+			 }else{
+				 layer.open({
+					  content: data.msg
+					  ,style: 'background-color:#FFF; color:#000; border:none;font-size:20px;width:auto;' //自定风格
+					  ,time: 8
+				});
+			 }
+			 
+		 }
+	 });
+}
+
+function send_fee(){
+	$.ajax({
+		 type: "GET",
+		 url: "{php echo $this->createMobileUrl('send',array('rid'=>$rid))}",
+		 dataType: "json",
+		 success: function(data){
+			 if(data.type == -10){
+				{if $setting['yc']==1}
+				 layer.open({
+				  content: data.msg+"<br><br><img src='{$setting['yc_url']}/{$setting['attention_code']}' style='width:200px'><br><font style='font-size:12px'>长按识别二维码，可快速关注</font>"
+				  ,style: 'background-color:#FFF; color:#000; border:none;font-size:20px;width:auto;' //自定风格
+				  ,time: 8
+				});
+				 {else}
+				 layer.open({
+				  content: data.msg+"<br><br><img src='../attachment/{$setting['attention_code']}' style='width:200px'><br><font style='font-size:12px'>长按识别二维码，可快速关注</font>"
+				  ,style: 'background-color:#FFF; color:#000; border:none;font-size:20px;width:auto;' //自定风格
+				  ,time: 8
+				});
+				 {/if}
+			 }else{
+				 layer.open({
+					  content: data.msg
+					  ,style: 'background-color:#FFF; color:#000; border:none;font-size:20px;width:auto;' //自定风格
+					  ,time: 8
+				});
+			 }
+			 
+		 }
+	 });
+}
+</script>
+{template 'share'}
+<script type="text/javascript">
+	var initPhotoSwipeFromDOM = function(gallerySelector) {
+
+    // 解析来自DOM元素幻灯片数据（URL，标题，大小...）
+    // (children of gallerySelector)
+    var parseThumbnailElements = function(el) {
+        var thumbElements = el.childNodes,
+            numNodes = thumbElements.length,
+            items = [],
+            figureEl,
+            linkEl,
+            size,
+            item,
+			divEl;
+
+        for(var i = 0; i < numNodes; i++) {
+
+            figureEl = thumbElements[i]; // <figure> element
+
+            // 仅包括元素节点
+            if(figureEl.nodeType !== 1) {
+                continue;
+            }
+			divEl = figureEl.children[0];
+            linkEl = divEl.children[0]; // <a> element
+			
+            size = linkEl.getAttribute('data-size').split('x');
+
+            // 创建幻灯片对象
+            item = {
+                src: linkEl.getAttribute('href'),
+                w: parseInt(size[0], 10),
+                h: parseInt(size[1], 10)
+            };
+
+
+
+            if(figureEl.children.length > 1) {
+                // <figcaption> content
+                item.title = figureEl.children[1].innerHTML; 
+            }
+
+            if(linkEl.children.length > 0) {
+                // <img> 缩略图节点, 检索缩略图网址
+                item.msrc = linkEl.children[0].getAttribute('src');
+            } 
+
+            item.el = figureEl; // 保存链接元素 for getThumbBoundsFn
+            items.push(item);
+        }
+
+        return items;
+    };
+
+    // 查找最近的父节点
+    var closest = function closest(el, fn) {
+        return el && ( fn(el) ? el : closest(el.parentNode, fn) );
+    };
+
+    // 当用户点击缩略图触发
+    var onThumbnailsClick = function(e) {
+        e = e || window.event;
+        e.preventDefault ? e.preventDefault() : e.returnValue = false;
+
+        var eTarget = e.target || e.srcElement;
+
+        // find root element of slide
+        var clickedListItem = closest(eTarget, function(el) {
+            return (el.tagName && el.tagName.toUpperCase() === 'FIGURE');
+        });
+
+        if(!clickedListItem) {
+            return;
+        }
+
+        // find index of clicked item by looping through all child nodes
+        // alternatively, you may define index via data- attribute
+        var clickedGallery = clickedListItem.parentNode,
+            childNodes = clickedListItem.parentNode.childNodes,
+            numChildNodes = childNodes.length,
+            nodeIndex = 0,
+            index;
+
+        for (var i = 0; i < numChildNodes; i++) {
+            if(childNodes[i].nodeType !== 1) { 
+                continue; 
+            }
+
+            if(childNodes[i] === clickedListItem) {
+                index = nodeIndex;
+                break;
+            }
+            nodeIndex++;
+        }
+
+
+
+        if(index >= 0) {
+            // open PhotoSwipe if valid index found
+            openPhotoSwipe( index, clickedGallery );
+        }
+        return false;
+    };
+
+    // parse picture index and gallery index from URL (#&pid=1&gid=2)
+    var photoswipeParseHash = function() {
+        var hash = window.location.hash.substring(1),
+        params = {};
+
+        if(hash.length < 5) {
+            return params;
+        }
+
+        var vars = hash.split('&');
+        for (var i = 0; i < vars.length; i++) {
+            if(!vars[i]) {
+                continue;
+            }
+            var pair = vars[i].split('=');  
+            if(pair.length < 2) {
+                continue;
+            }           
+            params[pair[0]] = pair[1];
+        }
+
+        if(params.gid) {
+            params.gid = parseInt(params.gid, 10);
+        }
+
+        return params;
+    };
+
+    var openPhotoSwipe = function(index, galleryElement, disableAnimation, fromURL) {
+        var pswpElement = document.querySelectorAll('.pswp')[0],
+            gallery,
+            options,
+            items;
+
+        items = parseThumbnailElements(galleryElement);
+
+        // 这里可以定义参数
+        options = {
+          barsSize: { 
+            top: 100,
+            bottom: 100
+          }, 
+		   fullscreenEl : false,
+			shareButtons: [
+			{id:'wechat', label:'分享微信', url:'#'},
+			{id:'weibo', label:'新浪微博', url:'#'},
+			{id:'download', label:'保存图片', url:'{{raw_image_url}}', download:true}
+			],
+
+            // define gallery index (for URL)
+            galleryUID: galleryElement.getAttribute('data-pswp-uid'),
+
+            getThumbBoundsFn: function(index) {
+                // See Options -> getThumbBoundsFn section of documentation for more info
+                var thumbnail = items[index].el.getElementsByTagName('img')[0], // find thumbnail
+                    pageYScroll = window.pageYOffset || document.documentElement.scrollTop,
+                    rect = thumbnail.getBoundingClientRect(); 
+
+                return {x:rect.left, y:rect.top + pageYScroll, w:rect.width};
+            }
+
+        };
+
+        // PhotoSwipe opened from URL
+        if(fromURL) {
+            if(options.galleryPIDs) {
+                // parse real index when custom PIDs are used 
+                for(var j = 0; j < items.length; j++) {
+                    if(items[j].pid == index) {
+                        options.index = j;
+                        break;
+                    }
+                }
+            } else {
+                // in URL indexes start from 1
+                options.index = parseInt(index, 10) - 1;
+            }
+        } else {
+            options.index = parseInt(index, 10);
+        }
+
+        // exit if index not found
+        if( isNaN(options.index) ) {
+            return;
+        }
+
+        if(disableAnimation) {
+            options.showAnimationDuration = 0;
+        }
+
+        // Pass data to PhotoSwipe and initialize it
+        gallery = new PhotoSwipe( pswpElement, PhotoSwipeUI_Default, items, options);
+        gallery.init();
+    };
+
+    // loop through all gallery elements and bind events
+    var galleryElements = document.querySelectorAll( gallerySelector );
+
+    for(var i = 0, l = galleryElements.length; i < l; i++) {
+        galleryElements[i].setAttribute('data-pswp-uid', i+1);
+        galleryElements[i].onclick = onThumbnailsClick;
+    }
+
+    // Parse URL and open gallery if it contains #&pid=3&gid=1
+    var hashData = photoswipeParseHash();
+    if(hashData.pid && hashData.gid) {
+        openPhotoSwipe( hashData.pid ,  galleryElements[ hashData.gid - 1 ], true, true );
+    }
+	};
+
+	// execute above function
+	initPhotoSwipeFromDOM('.my-gallery');
+
+	
+	$(".my-gallery>figure>div").each(function(){
+		$(this).height($(this).width());
+	});
+	function more(obj,id) {
+ 		if ($('#txt'+id).is(":hidden")) {
+ 			$('#p'+id).hide();
+ 	 		$('#txt'+id).show();
+ 	 		obj.innerHTML='收起';
+ 		} else {
+ 			$('#p'+id).show();
+ 	 		$('#txt'+id).hide();
+ 	 		obj.innerHTML='全文';
+ 		}
+ 	}
+</script>
+</html>

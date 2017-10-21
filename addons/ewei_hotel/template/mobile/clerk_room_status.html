@@ -1,0 +1,98 @@
+{template 'header'}
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>维护房价/房量</title>
+	<link href="{php echo $this->_css_url}clerk.css" rel="stylesheet"/>
+	<!--<link href="{php echo $this->_css_url}mui.min.css" rel="stylesheet"/>-->
+	<script language='javascript' src='{php echo $this->_script_url}jquery.js'></script>
+	<script language='javascript' src='{php echo $this->_script_url}common.js'></script>
+	<style>
+	.checkbox-inline input[type=checkbox]{position:relative;}
+</style>
+</head>
+<body style="background: white">
+<div class="myoder img-rounded" style='text-align:center;color:#aaa;padding:5px;'>
+	<div style='float:left;width:100%'>
+		<div class="{if $_GPC['status'] == ''}sel{else}nosel{/if}" style='border-top-left-radius: 5px;border-bottom-left-radius:5px;border:1px solid #1491c5;text-align: center;float:left;width:50%;line-height:30px;height:35px' onclick="location.href='{php echo $this->CreateMobileUrl('clerkroom', array('op'=>'room_status','status' =>''))}'">
+		维护房态
+		</div>
+		<div class="{if $_GPC['status'] == 'confirm'}sel{else}nosel{/if}" style='border:1px solid #1491c5;margin-left:-1px;float:left;width:50%;text-align: center;height:35px;line-height:30px;border-top-right-radius: 5px;border-bottom-right-radius:5px;border:1px solid #1491c5;' onclick="location.href='{php echo $this->CreateMobileUrl('clerkroom', array('op'=>'room_price','status' => 'confirm'))}'">
+		维护房价
+		</div>
+	</div>
+</div>   
+    <div class="panel panel-default"> 	
+    	<div class="panel-body table-responsive">
+         	<div class="sub-content" id="d_list"></div>
+<table class="table table-hover" border="1">
+	<thead class="navbar-inner">
+	<tr>
+		<th  style="width:100px;">房型 / 日期</th>
+		<th style="width:70px;" onclick="location.href='{php echo $this->createMobileUrl('clerk_room_status',array('ac'=>'getdate','hotelid'=>$hotelid,'page'=>$page-1))}'">{$item['title']}</div><div class="right"'><i class=' fa fa-chevron-left'></i></th>
+
+		<th style="width:140px;">{$date_array['month']}-{$date_array['day']}</th>
+
+		<th style="width:40px;" onclick="location.href='{php echo $this->createMobileUrl('clerk_room_status',array('ac'=>'getdate','hotelid'=>$hotelid,'page'=>$page+1))}'"><i class=' fa fa-chevron-right'></i></th>
+	</tr>
+	</thead>
+	<tbody>
+	{loop $list $data1}
+	<tr>
+		<td rowspan="2" style="text-align: center; width:150px;white-space:normal;">{php echo cutstr($data1['title'], 8)}</td>
+		<td  style="text-align: center;">房态</td>
+		<td style="text-align: center">
+			<label class="checkbox-inline">
+				<input type="checkbox" date="{$date_array['date']}" field="status" pricetype="status" hotelid="{$data1['price_list']['hotelid']}" roomid="{$data1['price_list']['roomid']}" class="status_checkbox" value="{$data1['price_list']['status']}" {if $data1['price_list']['status']==1}checked{/if}/>
+				有房
+			</label>
+		</td>
+		<td></td>
+	</tr>
+	<tr>
+		<td style="text-align: center;">房量</td>
+		<td style="text-align: center">
+            <span class="price_editspan ">
+               <input type="text" date="{$date_array['date']}" oldnum="{$data1['price_list']['num']}" field="num" pricetype="num" hotelid="{$data1['price_list']['hotelid']}" roomid="{$data1['price_list']['roomid']}" class="price_input form-control" value="{$data1['price_list']['num']}" />
+            </span>
+		</td>
+		<td></td>
+	</tr>
+	{/loop}
+	</tbody>
+</table>
+   </div>
+</div>
+<script>
+	$('.price_input').blur(function() {
+		var hotelid = $(this).attr('hotelid');
+		var roomid = $(this).attr('roomid');
+		var pricetype = $(this).attr('pricetype');
+		var date = $(this).attr('date');
+		var num =  $(this).val();
+		var oldnum =  $(this).attr('oldnum');
+		var data = {'hotelid' : hotelid, 'roomid' : roomid, 'pricetype' : pricetype, 'date' : date, 'num' : num};
+		if (oldnum != num) {
+			$.post("{php echo $this->createMobileUrl('clerk_room_status', array('ac' => 'edit'))}", data, function(data) {
+				var data = $.parseJSON(data);
+				alert('更改房量成功');
+			});
+		}
+	});
+	$('.status_checkbox').click(function() {
+		var hotelid = $(this).attr('hotelid');
+		var roomid = $(this).attr('roomid');
+		var pricetype = $(this).attr('pricetype');
+		var date = $(this).attr('date');
+		var status =  $(this).val() == '1'? '0': '1';
+		var data = {'hotelid' : hotelid, 'roomid' : roomid, 'pricetype' : pricetype, 'date' : date, 'status' : status};
+		$.post("{php echo $this->createMobileUrl('clerk_room_status', array('ac' => 'edit'))}", data, function(data) {
+			var data = $.parseJSON(data);
+			alert('更改房态成功');
+			location.reload();
+		});
+
+	});
+</script>
+</body>
+</html>

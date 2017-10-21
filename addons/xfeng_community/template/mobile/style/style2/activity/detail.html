@@ -1,0 +1,158 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+    <title>活动详情</title>
+    <link href="{$_W['siteroot']}app/resource/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{MODULE_URL}template/mobile/style/style1/static/css/weui.css" />
+    <script src="{$_W['siteroot']}app/resource/js/require.js"></script>
+    <script src="{$_W['siteroot']}app/resource/js/app/config.js"></script>
+    <script type="text/javascript" src="{$_W['siteroot']}app/resource/js/lib/jquery-1.11.1.min.js"></script>
+    <style type="text/css">
+    .res {
+        width: 100%;
+        position: fixed;
+        background-color: #48b54e;
+        height: 50px;
+        left: auto;
+        bottom: 0;
+        z-index: 2100;
+        text-align: center;
+        color: white;
+        font-size: 16px;
+        display: block;
+        text-decoration: none;
+        margin-bottom: 45px;
+        line-height: 50px;
+    }
+    
+    a:link {
+        text-decoration: none;
+        color: white;
+    }
+    
+    a:visited {
+        text-decoration: none;
+    }
+    
+    a:active {
+        text-decoration: none;
+    }
+    </style>
+</head>
+
+<body style="background-color: #f7f7f7;">
+    <div class="row">
+        <div class="col-sm-6 col-md-4">
+            <div class="thumbnail">
+                <img src="{$picurl}">
+                <div class="caption">
+                    <h3>{$detail['title']}</h3>
+                    <p style='font-size:10px;color: #AAA;'><i class='glyphicon glyphicon-time'></i>{php echo date('Y-m-d H:i',$detail['createtime'])}&nbsp;&nbsp;&nbsp;&nbsp;<span style='color: #f44938;font-size:10px;'><i class='glyphicon glyphicon-stats'></i>预付价{$detail['price']}元</span></p>
+                    <p style='font-size:10px;color: #AAA;'><i class='glyphicon glyphicon-time'></i>有效期{$starttime}至{$endtime}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="panel panel-default" style="margin-bottom:50px;">
+        <div class="panel-heading"><i class="glyphicon glyphicon-th"></i>活动介绍</div>
+        <div class="panel-body">
+            {$detail['content']}
+        </div>
+    </div>
+    {if TIMESTAMP < $enddate && !$res}
+    <a href="javascript:;" data-toggle="modal" data-target="#res_{$detail['id']}" class="res">立即报名</a>
+    {/if}
+    <!-- Modal -->
+    <div class="modal fade" id="res_{$detail['id']}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">我要报名</h4>
+                </div>
+                <div class="weui_cells weui_cells_form">
+                    <div class="weui_cell">
+                        <div class="weui_cell_hd">
+                            <label class="weui_label">姓名：</label>
+                        </div>
+                        <div class="weui_cell_bd weui_cell_primary">
+                            <input class="weui_input" type="text" value="{$member['realname']}" id="truename" />
+                        </div>
+                    </div>
+                    <div class="weui_cell">
+                        <div class="weui_cell_hd">
+                            <label class="weui_label">电话：</label>
+                        </div>
+                        <div class="weui_cell_bd weui_cell_primary">
+                            <input class="weui_input" type="text" value="{$member['mobile']}" id="mobile" />
+                        </div>
+                    </div>
+                    <div class="weui_cell weui_cell_select weui_select_after">
+                        <div class="weui_cell_hd">
+                            人数:
+                        </div>
+                        <div class="weui_cell_bd weui_cell_primary">
+                            <select class="weui_select" name="num" id="num">
+                                <?php
+                                    for ($i=1; $i <=$detail['number'] ; $i++) { 
+                                       echo "<option value='$i'>$i</option>";
+                                    }
+
+                                  ?>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="bd spacing" style="text-align:center;margin-top:10px;margin-bottom:10px;width:100px;height:30px;">
+                    <a href="javascript:;" class="weui_btn weui_btn_mini weui_btn_primary" id="showToast">提交</a>
+                </div>
+                <div id="toast" style="display: none;">
+                    <div class="weui_mask_transparent"></div>
+                    <div class="weui_toast">
+                        <i class="weui_icon_toast"></i>
+                        <p class="weui_toast_content">成功提交</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {template 'style/style1/footer'}
+</body>
+<script type="text/javascript">
+    $(function() {
+        $("#showToast").click(function(event) {
+            var truename = $("#truename").val();
+            var mobile = $("#mobile").val();
+            var num = $("#num").val();
+            var aid = "{$detail['id']}";
+            $.ajax({
+                url: "{php echo $this->createMobileUrl('activity',array('op' => 'res'))}",
+                dataType: 'json',
+                data: {
+                    truename: truename,
+                    mobile: mobile,
+                    num: num,
+                    aid : aid
+                },
+                success: function(s) {
+                    if (s.status == 1) {
+                        $('#toast').show();
+                        setTimeout(function() {
+                            $('#toast').hide();
+                            window.location.reload();
+                        }, 3000);
+                    };
+                    if (s.status == 2) {
+                        window.location.href="{php echo $this->createMobileUrl('activity',array('op' => 'pay'))}&orderid="+s.orderid;
+                    };
+                }
+            })
+
+
+        });
+    })
+    </script>
+     <script>require(['bootstrap']);</script>
+{template 'style/style1/footer'}

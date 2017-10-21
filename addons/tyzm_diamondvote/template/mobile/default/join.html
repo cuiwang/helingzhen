@@ -1,0 +1,213 @@
+{template 'header'}
+{template 'sider'}
+<div style="height:10px;"></div>
+
+<div class="fee_feedback_wrapper">
+<form id="formID">
+	<div>
+		<ul class="fd_list2">
+			<li>
+			<div class="tlt">选手姓名</div>
+			<div class="cont">
+				<input name="name"  type="text" placeholder="请输入姓名或昵称" class="tx"></div>
+			</li>
+			<li>
+			<div class="tlt">参赛宣言</div>
+			<div class="cont">
+				<textarea name="introduction" class="ta" cols="" placeholder="一句话描述自己的参赛宣言"></textarea></div>
+			</li>
+			{php echo $tplappye[0];}
+			</ul>
+			<div class="divbaoming4">
+			<div class="dlist1">{if $reply['minupimg']==$reply['maxupimg']}选择上传{$reply['maxupimg']}张照片，第一张为封面图。{else}   选择上传{$reply['minupimg']}-{$reply['maxupimg']}张照片，第一张为封面图。{/if}</div>
+
+            {if $reply['upimgtype']==1}
+            {php echo m('tpl')->tpl_app_form_field_image_tyzm('image', $image,$reply['rid']);}
+            {else}
+			<div class="dlist3" id="chooseImages"><img src="{MODULE_URL}/template/static/images/jia.gif" class="bmimg"></div>
+            {/if}
+
+            </div>
+		<div class="btn_area">
+<div class="baomingtxt"><font color="#a0a0a0">请如实填写报名信息，获取参赛资格！</font></div>
+<div class="baomingtxt"><font color="#a0a0a0"></font></div>
+<div class="btn_bg_green">提交报名</div>
+<div class="baomingtxt"><font color="#a0a0a0"></font></div>
+	</div>
+
+	</div>
+	</form> 
+</div>
+<div class="follow" id="follow" style="display:none">
+<div class="weui-mask"></div>
+<div id="guanzhubox" >
+	<div class="box1" onclick="hidemod('follow');">
+	<span class="span1">提示</span> 
+	<span class="span2" >关闭</span></div>
+	<div class="divtxt">
+	<p>长按下方二维码，长按，识别二维码</p>
+	<p><img src="{php echo $_W['account']['qrcode'];}" width="80%"></p>
+	{$reply['followguide']}
+	{if $_W['account']['subscribeurl']!=''}
+	<a href="{php echo $_W['account']['subscribeurl'];}" class="weui-btn weui-btn_primary">点击进入</a>
+	{/if}
+	
+	</div>
+</div>
+</div>
+<script>
+ $(document).ready(function(){	
+{if $reply['upimgtype']=="" || $reply['upimgtype']==0}
+	  var images = {
+	       localId: [],
+	       serverId: []
+	     };
+		 
+	    $("#chooseImages").click(function(){
+	       wx.chooseImage({
+		      count:{$reply['maxupimg']}, // 默认9
+	          success: function (res) {
+				images.localId = res.localIds;
+				$("#chooseImages").html(""); 
+				for(var i=0;i < images.localId.length; i++){
+					$("#chooseImages").append("<img src='"+images.localId[i]+"' class='bmimg' />");
+				}
+	          },
+	          fail: function(res) {
+				    //dialog2(res.errMsg);
+				    dialog2("请至公众号设置“js分享安全域名”！");
+			  }
+	       });
+		});
+
+
+
+
+
+
+{/if}
+
+
+
+	$(".btn_bg_green").click(function(){
+            var upimages=[];
+			var name=$("input[name='name']").val();
+			if(name==''){dialog2("请输入姓名");return false;}
+			var introduction=$("textarea[name='introduction']").val();
+			if(introduction==''){dialog2("参赛宣言不能为空！");return false;}
+		    {php echo $tplappye[1];}
+		     {if $reply['upimgtype']==1}
+				$("input[name='image[]']").each(  
+					function(index,e){  
+					upimages[index] = $(this).val();  
+					}  
+				);
+					var i = 0, length = upimages.length;
+				if(length < {$reply['minupimg']} || length > {$reply['maxupimg']}){
+				   var upimgtip={if $reply['minupimg']==$reply['maxupimg']}"请上传{$reply['maxupimg']}张图片。"{else}"请上传{$reply['minupimg']}-{$reply['maxupimg']}张图片"{/if};
+				   dialog2(upimgtip);return false;//1-5张照片
+				}
+
+                      //提交信息
+			            loadingToast("正在提交...");
+						$(this).unbind();
+						//提交报名
+						$.ajax({
+							type: "POST",
+							url: "{php echo $this->createMobileUrl('join', array('rid' => $reply['rid']))}",
+							data: {name:name,introduction:introduction,{php echo $tplappye[2];} picturearr:upimages},
+							dataType: "json",
+							success: function(str) {
+								hidemod("loadingToast");
+								if(str!=null && str!=''){
+									if(str.status == 1){
+										location.href="{php echo $this->createMobileUrl('view', array('rid' => $reply['rid']))}&id="+str.id;
+									}else if(str.status == 500){
+										$("#follow").show();
+									}else{
+										dialog2(str.msg);
+									}
+								}
+							},
+							error: function(err) {
+								hidemod("loadingToast");
+								dialog2("发生错误，请刷新后重试！");
+							}
+						});
+
+			//提交报名
+
+
+
+			{else}
+
+				var i = 0, length = images.localId.length;
+				if(length < {$reply['minupimg']} || length > {$reply['maxupimg']}){
+				   images.localId = [];
+				   var upimgtip={if $reply['minupimg']==$reply['maxupimg']}"请上传{$reply['maxupimg']}张图片。"{else}"请上传{$reply['minupimg']}-{$reply['maxupimg']}张图片"{/if};
+				   dialog2(upimgtip);return false;//1-5张照片
+				}
+			images.serverId = [];
+			function upload() {
+			  wx.uploadImage({
+				 localId: images.localId[i],
+				 isShowProgressTips:2,
+				 success: function (res) {
+				   i++; 
+				   images.serverId.push(res.serverId);
+				   if (i < length) {
+					  upload(); 
+				   } else {
+                      upimages=images.serverId;
+
+
+                      //提交信息
+			            loadingToast("正在提交...");
+						$(this).unbind();
+						//提交报名
+						$.ajax({
+							type: "POST",
+							url: "{php echo $this->createMobileUrl('join', array('rid' => $reply['rid']))}",
+							data: {name:name,introduction:introduction,{php echo $tplappye[2];} picturearr:upimages},
+							dataType: "json",
+							success: function(str) {
+								hidemod("loadingToast");
+								if(str!=null && str!=''){
+									if(str.status == 1){
+										location.href="{php echo $this->createMobileUrl('view', array('rid' => $reply['rid']))}&id="+str.id;
+									}else if(str.status == 500){
+										$("#follow").show();
+									}else{
+										dialog2(str.msg);
+									}
+								}
+							},
+							error: function(err) {
+								hidemod("loadingToast");
+								dialog2("发生错误，请刷新后重试！");
+							}
+						});
+
+			//提交报名
+                      //
+                      //
+
+	               }
+				 },
+				 fail: function (res) {
+					hidemod("loadingToast");
+					dialog2("发现错误，请重试");return false;
+				 }
+			  });
+			}
+		   upload();
+			{/if}
+	   
+	});
+	{if $nofollow==1}
+	     setTimeout($("#follow").show(),30000);//延时3秒 
+	{/if}
+ });
+</script>
+
+{template 'footer'}

@@ -1,0 +1,298 @@
+<form class="form-horizontal form" action="" method="post" enctype="multipart/form-data">
+	<input type="hidden" name="id" value="{$item[id]}">
+	<div class="panel panel-default">
+		<div class="panel-heading">编辑任务</div>
+		<div class="panel-body">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">排序</label>
+				<div class="col-sm-8 col-xs-12">
+					<input type="text" class="form-control" placeholder="" name="displayorder" value="{$item['displayorder']}">
+					<span class="help-block">显示顺序，越大则越靠前</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">任务类型</label>
+				<div class="col-sm-8 col-xs-12">
+					<select class="form-control" name="type">
+					{loop $types $t}
+						<option value="{$t['id']}" {if $t['id']==$item['type']}selected{/if}>{$t['title']}</option>
+					{/loop}
+					</select>
+					<span class="help-block"></span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label"><span style='color:red'>*</span>任务名称</label>
+				<div class="col-sm-8 col-xs-12">
+					<input type="text" class="form-control" placeholder="" name="title" value="{$item['title']}">
+					<span class="help-block"></span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">任务描述</label>
+				<div class="col-sm-8 col-xs-12">
+					<textarea name="description" class="form-control">{$item['description']}</textarea>
+					<span class="help-block"></span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label"><span style='color:red'>*</span>任务图标</label>
+				<div class="col-sm-8 col-xs-12">
+					{php echo tpl_form_field_image('icon', $item['icon']);}
+					<span class="help-block">推荐尺寸：36x36像素，png图片</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label"><span style='color:red'>*</span>模块标识</label>
+				<div class="col-sm-8 col-xs-12">
+					<input type="text" class="form-control" placeholder="" name="name" {if $item['issuperman']}readonly{/if} value="{$item['name']}">
+					<span class="help-block">模块标识参数可以对接其它微擎模块，或设置自定义任务，可根据文档编写任务脚本 <a href="http://www.kancloud.cn/supermanapp/creditmall/123394" target="_blank">点击查看文档</a></span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label"><span style='color:red'>*</span>模块链接</label>
+				<div class="col-sm-8 col-xs-12">
+					<input type="text" class="form-control" placeholder="" name="url" {if $item['builtin']}readonly{/if} value="{$item['url']}">
+					<span class="help-block"></span>
+				</div>
+			</div>
+			{if $item['name']=='superman_sign'}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label"><span style='color:red'>*</span>绑定签到活动</label>
+				<div class="col-sm-8 col-xs-12">
+					<div class="input-group">
+						<input class="form-control" type="text" readonly value="{if isset($item['extend']['rid'])}{$rule_name}{/if}"/>
+						<input class="form-control" type="hidden" name="extend[rid]" value="{if isset($item['extend']['rid'])}{$item['extend']['rid']}{/if}"/>
+						<div class="input-group-btn">
+							<button id="btn_sign_search" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+								搜索 <span class="caret"></span>
+							</button>
+							<ul class="dropdown-menu"></ul>
+						</div>
+					</div>
+					<span class="help-block">【微赞】签到模块创建的签到活动，绑定活动对应的rid参数</span>
+				</div>
+			</div>
+			<script>
+				require(['jquery', 'util'], function($, u){
+					$('#btn_sign_search').click(function(){
+						var dropdown_list = $(this).next();
+						var input_rid = $('input[name="extend[rid]"]');
+						$.ajax({
+							url: '{php echo $this->createWebUrl("task", array("act" => "get_sign"))}',
+							dataType: 'json',
+							success: function(response) {
+								var str = '', item;
+								for (var i=0; i<response.length; i++) {
+									item = response[i];
+									str += '<li><a href="javascript:void(0)" data-credit-min="'+item.setting.credit.min+'"';
+									str += ' data-rid="'+item.rid+'"';
+									str += ' data-credit-max="'+item.setting.credit.max+'"';
+									str += ' data-credit-type="'+item.setting.credit.type+'"';
+									str += '>'+item.name+'</a></li>';
+								}
+								dropdown_list.html(str).show();
+								$('li a', dropdown_list).click(function(){
+									var rid = $(this).attr('data-rid');
+									var credit_type = $(this).attr('data-credit-type');
+									var credit_min = $(this).attr('data-credit-min');
+									var credit_max = $(this).attr('data-credit-max');
+									var title = $(this).html();
+									input_rid.val(rid);
+									input_rid.prev().val(title);
+									$('select[name=credit_type]').find('option').each(function(){
+										if ($(this).val() == credit_type) {
+											$(this).attr('selected', true);
+											return false;
+										}
+										$('input[name=credit_min]').val(credit_min);
+										$('input[name=credit_max]').val(credit_max);
+									});
+								});
+							}
+						});
+					});
+				});
+			</script>
+			{/if}
+			{if $item['name']=='superman_house'}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label"><span style='color:red'>*</span>绑定楼盘</label>
+				<div class="col-sm-8 col-xs-12">
+					<div class="input-group">
+						<input class="form-control" type="text" readonly value="{if isset($item['extend']['houseid'])}{$house_name}{/if}"/>
+						<input class="form-control" type="hidden" name="extend[houseid]" value="{if isset($item['extend']['houseid'])}{$item['extend']['houseid']}{/if}"/>
+						<div class="input-group-btn">
+							<button id="btn_house_search" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+								搜索 <span class="caret"></span>
+							</button>
+							<ul class="dropdown-menu"></ul>
+						</div>
+					</div>
+					<span class="help-block">选择【微赞】房产模块分享得积分的楼盘</span>
+				</div>
+			</div>
+			<script>
+				require(['jquery', 'util'], function($, u){
+					$('#btn_house_search').click(function(){
+						var dropdown_list = $(this).next();
+						var input_houseid = $('input[name="extend[houseid]"]');
+						$.ajax({
+							url: '{php echo $this->createWebUrl("task", array("act" => "get_house"))}',
+							dataType: 'json',
+							success: function(response) {
+								var str = '';
+								for (var i=0; i<response.length; i++) {
+									str += '<li><a href="javascript:void(0)" data-houseid="'+response[i].id+'">'+response[i].name+'</a></li>';
+								}
+								dropdown_list.html(str).show();
+								$('li a', dropdown_list).click(function(){
+									var id = $(this).attr('data-houseid');
+									var title = $(this).html();
+									input_houseid.val(id);
+									input_houseid.prev().val(title);
+								});
+							}
+						});
+					});
+				});
+			</script>
+			{/if}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label"><span style='color:red'>*</span>积分类型</label>
+				<div class="col-sm-8 col-xs-12">
+					<select name="credit_type" class="form-control">
+						<option value="">请选择</option>
+						{loop $credits $key $val}
+						{if $val['enabled'] == 1}
+						<option value="{$key}" {if $item['credit_type']==$key}selected{/if}>{$val['title']}</option>
+						{/if}
+						{/loop}
+					</select>
+					<span class="help-block"></span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label"><span style='color:red'>*</span>积分奖励</label>
+				<div class="col-sm-6 col-xs-6">
+					<div class="input-group">
+						<div class="input-group-addon">最小</div>
+						<input placeholder="" type="text" class="form-control" name="credit_min" value="{$item['credit_min']}" />
+						<div class="input-group-addon">{$item['credit_title']}， 最大</div>
+						<input placeholder="" type="text" class="form-control" name="credit_max" value="{$item['credit_max']}" />
+						<div class="input-group-addon">{$item['credit_title']}</div>
+					</div>
+					<span class="help-block">数值相同时，生成固定奖励，反之，生成随机奖励</span>
+					{if $item['name'] == 'superman_creditmall_task5'}
+					<span class="help-block" style="color: #f00">注意：分享操作获得积分以商品分享属性数据为准，此处积分数据只作为任务展示用</span>
+					{/if}
+				</div>
+			</div>
+			{if $item['name']=='superman_creditmall_task5'}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">每天积分上限</label>
+				<div class="col-sm-8 col-xs-12">
+					<input type="text" class="form-control" placeholder="" name="extend[credit_limit]" value="{if isset($item['extend']['credit_limit'])}{$item['extend']['credit_limit']}{else}100{/if}">
+					<span class="help-block">通过分享操作，每天最多可以获得的积分上限，超过上限后将不再增加积分，防止恶意刷积分</span>
+				</div>
+			</div>
+			{/if}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">任务时间</label>
+				<div class="col-sm-8 col-xs-12">
+					<label style="font-weight: normal">
+						<input name="time_limit" data-id="time_wrap" type="checkbox" {if (!$item['starttime'] && !$item['endtime'])}checked{/if}> 不限制
+					</label>
+					<div id="time_wrap" {if (!$item['starttime'] && !$item['endtime'])}style="display:none"{/if}>
+						{php echo tpl_form_field_daterange('task_time', $item['task_time'], true);}
+					</div>
+				</div>
+				<span class="help-block"></span>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">是否显示</label>
+				<div class="col-sm-6 col-md-8 col-xs-12">
+					<div class="input-group">
+						<label class="radio-inline">
+							<input type="radio" name="isshow" value="1" {if $item['isshow']}checked{/if}> 是
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="isshow" value="0" {if !$item['isshow']}checked{/if}> 否
+						</label>
+					</div>
+					<span class="help-block"></span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">已申请次数</label>
+				<div class="col-sm-8 col-xs-12">
+					<input type="text" class="form-control" placeholder="" name="applied" value="{$item['applied']}">
+					<span class="help-block">已申请任务的次数，修改后数据将不同步，请谨慎修改</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">已完成次数</label>
+				<div class="col-sm-8 col-xs-12">
+					<input type="text" class="form-control" placeholder="" name="completed" value="{$item['completed']}">
+					<span class="help-block">已完成任务的次数，修改后数据将不同步，请谨慎修改</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">申请次数限制</label>
+				<div class="col-sm-8 col-xs-12">
+					<input type="text" class="form-control" placeholder="" name="limits" value="{$item['limits']}">
+					<span class="help-block">申请任务的次数限制，默认为0不限制，超过申请次数限制时，会员将无法申请该任务</span>
+					<span class="help-block"><strong>此限制调用真实申请次数后检查，忽略上面的已申请次数</strong></span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">会员组</label>
+				<div class="col-sm-8 col-xs-12">
+					<select class="form-control" name="applyperm[]" multiple style="height: 100px !important;">
+						<option value="0" {if empty($item['applyperm'][0])}selected{/if}>全部</option>
+						{loop $groups $group}
+						<option value="{$group['groupid']}" {if in_array($group['groupid'], $item['applyperm'])}selected{/if}>{$group['title']}</option>
+						{/loop}
+					</select>
+					<span class="help-block">可多选，限制申请任务的会员组，会员级别未达到将无法申请任务</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">显示任务数据</label>
+				<div class="col-sm-6 col-md-8 col-xs-12">
+					<div class="input-group">
+						<label class="radio-inline">
+							<input type="radio" name="showdata" value="1" {if $item['showdata']}checked{/if}> 开启
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="showdata" value="0" {if !$item['showdata']}checked{/if}> 关闭
+						</label>
+					</div>
+					<span class="help-block">开启后，前台手机端任务中心将显示任务的申请次数</span>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="form-group">
+		<div class="col-sm-12">
+			<input name="submit" type="submit" value="提交" class="btn btn-primary col-lg-1">
+			<input type="hidden" name="token" value="{$_W['token']}" />
+		</div>
+	</div>
+</form>
+<script>
+	require(['jquery', 'util'], function($, u){
+		$('input[name=time_limit]').change(function(){
+			var id = $(this).attr('data-id');
+			if ($(this).prop('checked')) {
+				$('#'+id).fadeOut();
+			} else {
+				$('#'+id).fadeIn();
+			}
+		});
+		$('form').submit(function(){
+			//TODO
+			return true;
+		});
+	});
+</script>

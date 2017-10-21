@@ -1,0 +1,256 @@
+<style>
+.join_pic{
+	display: inline-block;
+	border: 1px dashed #e4e4e4;
+    margin: 0 5px 5px 5px;
+	position: relative;
+	float: left;
+
+/*
+	background: url({$resroot}css/img/join_pic.png) center center no-repeat;
+	background-size: 60% 60%;
+	width: 80px;
+	margin: 10px;
+*/
+	height: 45px;
+}
+
+.addpiclist{
+	display: inline-block;
+	border: 1px dashed #e4e4e4;
+    margin: 0 5px 0 5px;
+	position: relative;
+}
+
+.addpiclist img{
+	width:140px;
+	height:auto;
+}
+
+.fileImage{
+	width: 80px!important;
+	height: 80px!important;
+    opacity: 0;
+}
+</style>
+
+<style>
+.webuploader-element-invisible {
+    position: absolute !important;
+    clip: rect(1px 1px 1px 1px);
+    }
+</style>
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">{$reply['title']}</h4>
+    </div>
+    <div class="modal-body">
+		<div class="footer">
+			<textarea id="submit_content" placeholder="写下精彩留言......" style="width:100%;" rows=5></textarea>
+		</div>
+		<div class="user-content" style="max-height: 240px;height:auto;margin-bottom:5px;" >
+			最多上传{$reply['maxaddimg']}张图片！
+			<div class="usertab-pane" style="display:block;text-align:center;" id="submitimglists">
+			</div>
+        </div>
+        <div id="filePicker2"  style="display:none;">官方上传（兼容远程附件）
+		</div>
+    </div>
+
+    <div class="modal-footer">
+		<div class="footer" id="submitbtns">
+			<div class="pull-right">
+				<button onclick="submit_ajax()" class="btn btn-success" type="button" style="width: 80px;padding: 6px;height:45px;">
+					<i class="fa fa-ok"></i>发送
+				</button>
+			</div>
+			<div class="clearfix" style="line-height: 47px;">
+				<div id="submit_add" onclick="openBrowse();" class="join_pic" >
+					<i class="fa fa-picture-o"></i>
+					<label>选择图片</label>
+				</div>
+
+				{if $reply['justpai']}
+				<div id="chooseImage" class="join_pic">
+					<i class="fa fa-camera"></i>
+					<label>立即拍照</label>
+				</div>
+				{/if}
+			</div>
+		</div>
+    </div>
+
+
+<script src="./resource/components/webuploader/webuploader.min.js" ></script>
+<script>
+	function submit_ajax(){
+		if ($("#submitimglists").children().length<=0){
+			showMsg({'msg':'请选择图片！'});
+			return;
+		}
+		if ($('#submit_content').val().trim().length<=0){
+			showMsg({'msg':'请填写留言！'});
+			return;
+		}
+		var imglists="",imglist1="";
+		imglist1=$("#submitimglists").children(0).attr('data-url');
+		$("#submitimglists").children().each(function(){imglists+=","+ $(this).attr('data-url')});
+		
+		url="{php echo $this->createMobileUrl('index',array('id'=>$_GPC['id'],'rid'=>$_GPC['rid'],'submit'=>1),true);}";
+		postdata={"rid":"{$_GPC['rid']}","id":"{$_GPC['id']}","imglists":imglists,"imglist1":imglist1,"content":$('#submit_content').val()};
+		$.ajax({
+			url : url,
+            data: postdata,
+            type: "post",
+            dataType : 'json',
+			success : function(data){
+                if (!data.error){
+                	showMsg({'msg':'发送成功！'+data.list['id']});
+                	$('#submitimglists').html('');
+                	$('#submit_content').val('');
+                	reload = true;
+					$("#myModal_submit").modal('hide');
+                    setTimeout("showpage("+data.list.id+")",500);
+
+                    //;
+                }else{
+                	showMsg({'msg':data.error});
+                }
+			},
+            error: function(data, status, e){
+                showMsg({'msg':'发送失败！'+JSON.stringify(e)});
+            }
+		});
+		
+	}
+
+	function openBrowse(){ 
+		if ($('#submitimglists').children().length>={$reply['maxaddimg']}){showMsg({'msg':'已达上限，无法上传图片！'});return;}
+		$('#submitbtns').disabled=false;
+		var ie=navigator.appName=="Microsoft Internet Explorer" ? true : false;
+		if(ie){
+			document.getElementById("fileToUpload").click();
+		}else{
+			var a=document.createEvent("MouseEvents");//FF的处理 
+			a.initEvent("click", true, true);
+			document.all.file.dispatchEvent(a);
+//			document.getElementById("fileToUpload").dispatchEvent(a);
+		}
+	}
+
+	var module = {};
+	module.querystring = function(name){ 
+		var result = location.search.match(new RegExp("[\?\&]" + name+ "=([^\&]+)","i")); 
+		if (result == null || result.length < 1){ 
+			return "";
+		}
+		return result[1]; 
+	}
+	
+	
+	var i = module.querystring('i');
+	var j = module.querystring('j');
+	defaultOptions = {
+			pick: {
+				id: '#filePicker2',
+				label: '点击选择图片',
+				multiple : false
+			},
+			auto: true,
+			swf: './resource/componets/webuploader/Uploader.swf',
+			server: "{php echo $this->createMobileUrl('uploadimage',array('type'=>'image'));}",
+//			server: './index.php?i='+i+'&j='+j+'&c=utility&a=file&do=upload&type=image',
+			chunked: false,
+			compress: {
+				quality: 80,
+				preserveHeaders: true,
+				noCompressIfLarger: true,
+				compressSize: 5 * 1024
+			},
+			fileNumLimit: 1,
+			fileSizeLimit: 10 * 1024 * 1024,
+			fileSingleSizeLimit: 10 * 1024 * 1024
+		};
+		
+		options = $.extend({}, defaultOptions);
+		
+		var uploader = WebUploader.create(options);
+		uploader.on( 'fileQueued', function( file ) {
+		//	module.loading();
+		});
+		
+		uploader.on('uploadSuccess', function(file, result) {
+//			$("#uploader").hide();
+//					alert(JSON.stringify(result));
+//	exit;
+			if(result.error && result.message){
+				//require(['util'], function(u){
+				//	module.loaded();
+				//	u.message(result.error.message);
+				//});
+					showMsg({'msg':result.message});
+			} else {
+	 	        $("#submitimglists").append("<div class='addpiclist' data-url='"+result.url+"' style='display: inline-block;position: relative;'><img src='"+result.url+"'><span style='position: absolute;top:0px;right: 0px;color: #aaa;color:#fff;padding: 5px 8px 5px 8px;text-shadow: 0 1px rgba(0, 0, 0, 0.9);font-size:20px;' onclick='$(this).parent().remove();' >×</span></div>");
+				uploader.reset();
+				//module.loaded();
+				//modalobj.modal('hide');
+			}
+			$('#submitbtns').disabled=true;
+		});
+		uploader.onError = function( code ) {
+			//modalobj.modal('hide');
+			$('#submitbtns').disabled=true;
+			uploader.reset();
+			if(code == 'Q_EXCEED_SIZE_LIMIT'){
+				showMsg({'msg':'错误信息: 图片大于 10M 无法上传.'});
+				return
+			}
+//			showMsg({'msg':'错误信息: ' + code});
+		};
+</script>
+
+{if $reply['justpai']}
+	<script>
+		var images = {
+		    localId: [],
+		    serverId: []
+		  };
+		document.querySelector('#chooseImage').onclick = function () {
+			if ($('#submitimglists').children().length>={$reply['maxaddimg']}){showMsg({'msg':'已达上限，无法上传图片！'});return;}
+			$('#submitbtns').disabled=true;
+			wx.chooseImage({
+				count: {$reply['maxaddimg']}, // 默认9
+				sizeType: ['compressed'], // 可以指定是原图还是压缩图，默认二者都有
+				sourceType: ['album', 'camera'], // 可以指定来源是相册还是相机，默认二者都有
+				success: function (res) {
+					images.localId = res.localIds;
+					var i = 0, length = images.localId.length;
+					showMsg({"msg":'已选择'+length+'张图片，准备上传'});
+					images.serverId = [];
+					upload();
+  					function upload() {
+						wx.uploadImage({
+							localId: images.localId[i],
+						    success: function (res) {
+								i++;
+								images.serverId.push(res.serverId);
+								showMsg({"msg":'第'+i+'张，上传成功！'});//+res.serverId
+								imgurl="http://file.api.weixin.qq.com/cgi-bin/media/get?access_token={$access_token}&media_id="+res.serverId;
+								//$('#submit_content').val($('#submit_content').val()+"\n\r"+imgurl);
+								$("#submitimglists").append("<div class='addpiclist' data-url='"+imgurl+"' style='display: inline-block;position: relative;'><img src='"+result.url+"'><span style='position: absolute;top:0px;right: 0px;color: #aaa;color:#fff;font-size:20px;' onclick='$(this).parent().remove();' >×</span></div>");
+								images.serverId.push(res.serverId);
+								if (i < length) {
+									upload();
+								}
+							},
+							fail: function (res) {
+								showMsg({"msg":'上传失败！详情如下：<label>'+JSON.stringify(res)+'</label>'});
+							}
+						});
+					}
+					$('#submitbtns').disabled=true;
+				}
+			});
+		};
+	</script>
+{/if}

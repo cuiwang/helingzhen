@@ -1,0 +1,227 @@
+{template 'public/header'}
+{template 'public/comhead'}
+<link rel="stylesheet" type="text/css" href="{MODULE_URL}public/web/css/main.css"/>
+
+{if $operation == 'display'}
+<script>
+require(['bootstrap'],function($){
+	$('.btn,.tips').hover(function(){
+		$(this).tooltip('show');
+	},function(){
+		$(this).tooltip('hide');
+	});
+});
+</script>
+
+<div class="main">
+    <style>
+        .form-control-excel {
+            height: 34px;
+            padding: 6px 12px;
+            font-size: 14px;
+            line-height: 1.42857143;
+            color: #555;
+            background-color: #fff;
+            background-image: none;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+            box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+            -webkit-transition: border-color ease-in-out .15s,-webkit-box-shadow ease-in-out .15s;
+            -o-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+            transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+        }
+    </style>
+	<script src="{MODULE_URL}public/web/js/webuploader.js"></script>
+	<script src="{MODULE_URL}public/web/js/wlzyList.js"></script>
+    <div class="panel panel-info">
+        <div class="panel-heading">班级圈管理</div>
+        <div class="panel-body">
+            <form action="./index.php" method="get" class="form-horizontal" role="form">
+                <input type="hidden" name="c" value="site" />
+                <input type="hidden" name="a" value="entry" />
+                <input type="hidden" name="m" value="fm_jiaoyu" />
+                <input type="hidden" name="do" value="bjquan" />
+				<input type="hidden" name="schoolid" value="{$schoolid}" />
+				 <div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">按班级</label>
+                    <div class="col-sm-2 col-lg-2">
+                        <select style="margin-right:15px;" name="bj_id" class="form-control">
+                            <option value="">请选择班级搜索</option>
+                            {loop $bj $row}
+                            <option value="{$row['sid']}" {if $row['sid'] == $_GPC['bj_id']} selected="selected"{/if}>{$row['sname']}</option>
+                            {/loop}
+                        </select>
+                    </div>
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">按审核</label>
+                    <div class="col-sm-2 col-lg-2">
+                        <select style="margin-right:15px;" name="isopen" class="form-control">
+                            <option>选择审核状态</option>
+                            <option value="-1" {if $_GPC['isopen'] == -1} selected="selected"{/if}>已审核</option>
+							<option value="1" {if $_GPC['isopen'] == 1} selected="selected"{/if}>未审核</option>
+                        </select>
+                    </div>						
+                    <div class="col-sm-2 col-lg-2">
+                        <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+                    </div>					
+				</div>	
+            </form>
+        </div>
+    </div>	
+	<script src="{OSSURL}public/mobile/js/faceMap.js?v=5.61" type="text/javascript"></script>
+	<div class="panel panel-default">
+        <div class="table-responsive panel-body">
+			<div id="queue-setting-index-body">
+				<div class="viewList">
+				{loop $list $item}
+					<div class="viewBox">
+						<div class="nameAndTime">
+							<span class="name">{$item['shername']}</span>
+							<span name="publishdate" class="time">{php echo(date('Y-m-d H:i:s',$item['createtime']))}</span>
+							{if $item['isopen'] == 1}
+							<a href="{php echo $this->createWebUrl('bjquan', array('op' => 'shenhe', 'schoolid' => $schoolid, 'id' => $item['id']))}" onclick="return confirm('确定审核通过本条消息吗？');return false;" title="删除"><span style="cursor:pointer;color:#428bca;">审核</span></a>	
+							{/if}
+						</div>
+						<div class="content">					
+								<a class="lightgray" >{$item['content']}</a>	
+						</div>
+						<div class="gallery" style="margin:5px;">
+								<div class="picBox">
+									<table name="imgTable" width="100%" height="100%" border="1" bordercolor="white">
+										{loop $item['picurl'] $row}
+										    {if $row['order'] == 1}
+												<tr>
+													<td>
+														<div class="img">
+															<a href="{php echo tomedia($row['picurl'])}" target="_blank" class="gallery-link" title="">
+																<img src="{php echo tomedia($row['picurl'])}" alt="{$row['order']} ">
+															</a>
+														</div>
+													</td>
+												</tr>
+											{/if}	
+										{/loop}
+
+										
+									</table>				
+								</div>	
+							<div class="likeAndDel" style="margin:5px;">
+								<div class="l">							
+									<img alt="" src="{MODULE_URL}public/web/recipe/liked.png" />
+									<span>{php echo pdo_fetchcolumn("select count(*) FROM ".tablename('wx_school_dianzan')." WHERE sherid = '".$item['sherid']."'")}</span>
+									<span>评论（{php echo pdo_fetchcolumn("select count(*) FROM ".tablename('wx_school_bjq')." WHERE sherid = '".$item['sherid']."' And type = 1")}）</span>
+									<span>照片（{php echo pdo_fetchcolumn("select count(*) FROM ".tablename('wx_school_media')." WHERE sherid = '".$item['sherid']."' ")}）</span>									
+									<a href="{php echo $this->createWebUrl('bjquan', array('op' => 'delete', 'schoolid' => $schoolid, 'id' => $item['id']))}" onclick="return confirm('此操作不可恢复，并会删除所有与本图文有关的图片和回复数据，确认删除？');return false;" title="删除"><span style="cursor:pointer;color:#428bca;">删除</span></a>
+									&nbsp;
+								</div>						
+								<div class="r">
+									<a href="{php echo $this->createWebUrl('bjquan', array('op' => 'post', 'schoolid' => $schoolid, 'id' => $item['id']))}"><button type="button" class="btn btn-sm btn-info">查看详情</button></a>
+								</div>						
+							</div>
+						</div>
+					</div>
+				{/loop}	
+				</div>
+			</div>	
+		</div>
+		&nbsp;{$pager}
+	</div>
+</div>
+<script>
+icon_replace($(".lightgray"));
+function icon_replace(content_box) {
+    var face_map_url = "{OSSURL}public/mobile/img/face/";
+    $(content_box).each(function () {
+        //替换表情
+        if (typeof ($(this).html()) != 'undefined') {
+            var desc = $(this).html().replace(/\[([^\]]+)\]/g, function (a, b) {
+                return "<img class='face_icon' style='width: 20px;' src='" + face_map_url + objMap[b] + ".gif'>";
+            });
+            $(this).html(desc);
+        }
+    })
+}
+</script>
+{elseif $operation == 'post'}
+<div class="panel panel-info">
+	<div class="panel-heading"><a class="btn btn-primary" href="{php echo $this->createWebUrl('bjquan', array('op' => 'display', 'schoolid' => $schoolid))}"><i class="fa fa-tasks"></i>返回图文列表</a></div>
+</div>
+<div class="main">
+	<div class="panel panel-default">
+        <div class="table-responsive panel-body">
+			<div id="queue-setting-index-body">
+				<div class="panel panel-default">
+					<div class="panel-heading">图文详情</div>
+				</div>
+				<div class="uploadList">
+					<div class="" style="border-bottom: 1px solid #dbe1e8;">
+						<div class="">
+							<label class="control-label" style="float: left;width: 25%;">{$item['shername']}</label>
+							<p class="form-control-static">
+								<span>{if $item['isopen'] == 1 }未审核{else}已公开{/if}</span>
+								{if $item['isopen'] == 1 }<span><a class="btn btn-primary" href="{php echo $this->createWebUrl('bjquan', array('op' => 'shenhe', 'schoolid' => $schoolid, 'id' => $row['id']))}" onclick="return confirm('确定审核通过本条消息吗？');return false;">审核</a></span>{/if}
+								<span class="time" style="float: right;">{php echo(date('Y-m-d H:i:s',$item['createtime']))}</span>
+							</p>
+							<span class="help-block">内容：<span style="color:red">{$item['content']}</span></span>							
+							<span class="help-block">发送到<span style="color:red">&nbsp;{$bj1['sname']}&nbsp;{$bj2['sname']}&nbsp;{$bj3['sname']}</span></span>							
+						</div>
+					</div>
+				</div>
+				<div class="" style="">
+					<div style="margin:10px 0"></div>
+					<div class="photoList" style="width:100%;margin:10px 0;">
+						<div id="addPhotoBox1" name="addPhotoBox">
+						    <div class="gallery" data-toggle="lightbox-gallery">
+								{loop $list1 $row}
+									<div class="photoBox">								
+										<div class="img">
+												<div class="gallery-image">
+													<a href="{php echo tomedia($row['picurl'])}" target="_blank" class="gallery-link">
+														<img src="{php echo tomedia($row['picurl'])}" alt="image" style="width:100%;">
+													</a>
+												</div>
+										</div>	
+									</div>
+								{/loop}
+			                </div>
+			            </div>
+					</div>
+					<div style="margin:10px">
+						<img alt="" src="{MODULE_URL}public/web/recipe/liked.png" />
+						<span style="margin:10px;">{php echo pdo_fetchcolumn("select count(*) FROM ".tablename('wx_school_dianzan')." WHERE sherid = '".$_GPC['id']."'")}</span>
+					</div>
+				</div>
+				<div class="" style="border-bottom: 1px solid #dbe1e8;">
+					<div class="row">
+					   <div class="col-sm-6 col-xs-5"></div>
+					   <div class="col-sm-6 col-xs-7"></div>
+					</div>
+					<table id="wlzy-datatable" class="table table-vcenter table-condensed table-bordered">
+						<thead>
+							<tr role="row">
+							    <th class="sorting_disabled text-center" tabindex="0" rowspan="1" colspan="1" style="width:200px;">回复人</th>
+								<th class="sorting_disabled text-center" tabindex="0" rowspan="1" colspan="1" style="width:600px;">内容</th>
+								<th class="sorting_disabled text-center" tabindex="0" rowspan="1" colspan="1" style="width:200px;">回复时间</th>
+								<th class="sorting_disabled text-center" tabindex="0" rowspan="1" colspan="1" style="width:200px;">管理</th>
+							</tr>
+						</thead>
+						<tbody role="alert" aria-live="polite" aria-relevant="all">
+							{loop $list2 $row}
+							<tr class="odd">
+								<td class="text-center"><a>{$row['shername']}</a></td>
+								<td class="text-center"><a>{$row['content']}</a></td>
+								<td class="text-center"><a>{php echo(date('Y-m-d H:i:s',$row['createtime']))}</a></td>
+								<td class="text-center">
+								<a href="{php echo $this->createWebUrl('bjquan', array('op' => 'delete', 'schoolid' => $schoolid, 'id' => $row['id']))}" onclick="return confirm('确定审核通过本条消息吗？');return false;">删除</a>
+								</td>
+							</tr>
+							{/loop}
+						</tbody>
+					</table>
+				</div>
+	        </div>
+		</div>
+	</div>
+</div>	
+{/if}
+{template 'public/footer'}

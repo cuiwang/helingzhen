@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="UTF-8">
+<title>{if empty($ridwall['3dsign_title'])}3d签到{else}{$ridwall['3dsign_title']}{/if}</title>
+<link rel="stylesheet" href="{MEEPO}qd/3d/css/3d.css">
+<link rel="stylesheet" href="{MEEPO}qd/3d/css/style.css" media="screen" type="text/css">
+<script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+
+</head>
+<style>
+{if empty($ridwall['3dsign_bg'])}
+body{padding:0;margin:0;font:12px/18px microsoft yahei,arial;background-image:url({MEEPO}qd/3d/images/bg.jpg);background-size:100% 100%;overflow:hidden;}
+{else}
+body{padding:0;margin:0;font:12px/18px microsoft yahei,arial;background-image:url('{php echo tomedia($ridwall['3dsign_bg'])}');background-size:100% 100%;overflow:hidden;}
+{/if}
+.join_word{background-color:#000;color:#fff;text-align:Center;font-size:24px;min-height:40px;line-height:40px;display:none;padding:10px 0;word-break:break-all;}
+.loading{
+display: table;
+position: absolute;
+background-color: #333;
+opacity:0.8;
+width:100%;
+height:100%;
+z-index:999;
+text-align: center;
+vertical-align: middle;
+}
+.loading_card{
+    display: table-cell;
+    text-align: center;
+    vertical-align: middle;
+    height: 100%;
+}
+</style>
+<body >
+
+<div class="loading">
+	  <div class="loading_card">
+        <span class="loading_gif"><img src="{if empty($ridwall['3d_noavatar'])}{MEEPO}qd/3d/images/loading.png{else}{php echo tomedia($ridwall['3d_noavatar'])}{/if}"/></span>
+      </div>
+</div>
+<div class="signin_ecode">
+	<a href="javascript:;"><img src="{$_W['attachurl']}{$ridwall['erweima']}" class="ecode_img"></a>
+	<p class="join_word">{if empty($ridwall['3dsign_join_words'])}扫码关注后、发送签到+任意文字即可完成签到{else}{$ridwall['3dsign_join_words']}{/if}</p>
+</div>
+<input type="hidden" name="logo_base64" id="logo_base64" value="" />
+<div id="container"></div>
+<canvas class="canvas" style="width:100%;height:100%;display:none"></canvas>
+<span class="signBox">
+    	<img src="" class="imgShow">    	
+        <p class="nameLine">
+        	<strong class="name"></strong>
+            <br /><br />
+            <span class="textLine"><i></i><span class="text_scrool"><u class="text"></u></span></span>
+        </p>            
+</span>
+<input type="hidden" id="max_id" name="max_id" value="{$signtotal}">
+<input type="hidden" id="mid" name="mid" value="{$rid}">
+<script type="text/javascript">
+var sign_persons = parseInt({$ridwall['3dsign_persons']});
+if(sign_persons==0){
+	sign_persons = 300;
+}
+var is_show_info = parseInt({$ridwall['3dsign_show_info']});
+var personArray = new Array;
+{if !empty($signusers)}
+{loop $signusers $row}
+var tmp = {
+id: {$row['id']},
+image : "{$row['image']}",
+name  : "{$row['name']}",
+company  : "{$row['company']}",
+position : "{$row['position']}",
+text  : "{$row['text']}",
+};
+var person_info = eval(tmp);
+personArray.push(person_info);
+{/loop}
+
+{/if}
+
+var edit_personArray = new Array;
+var table = new Array;
+var avatar = new Array;
+
+for (var i=0;i<sign_persons;i++){
+	table[i]=new Object();	
+	if(i<personArray.length){
+		if(typeof(personArray[i].image) == "undefined" ){
+			avatar[i] = "{if empty($ridwall['3d_noavatar'])}{MEEPO}qd/3d/images/no_avatar.png{else}{php echo tomedia($ridwall['3d_noavatar'])}{/if}";
+		}else{
+			avatar[i] = personArray[i].image;
+		}
+	}else{
+		/*avatar[i] = "{if empty($ridwall['3d_noavatar'])}{MEEPO}qd/3d/images/no_avatar.png{else}{php echo tomedia($ridwall['3d_noavatar'])}{/if}";*/
+		if(personArray.length ==0){
+			avatar[i] = "{if empty($ridwall['3d_noavatar'])}{MEEPO}qd/3d/images/no_avatar.png{else}{php echo tomedia($ridwall['3d_noavatar'])}{/if}";
+		}else{
+			avatar[i] = personArray[Math.floor(Math.random() * personArray.length)].image;
+		}
+	}
+	table[i].src=avatar[i];
+	table[i].p_x = i%30+1;
+	table[i].p_y = Math.floor(i/30)+1;
+}
+var table_time = parseInt({$ridwall['table_time']});
+var sphere_time = parseInt({$ridwall['sphere_time']});
+var	helix_time = parseInt({$ridwall['helix_time']});
+var grid_time = parseInt({$ridwall['grid_time']});
+var text  = {if empty($ridwall['3dsign_words'])}"logo不存在"{else}"{$ridwall['3dsign_words']}"{/if};
+var line = 0;
+var logo_url = "{$ridwall['3dsign_logo']}";
+if(logo_url!=''){ 
+	if(logo_url.indexOf("meepo_bigerwall")>0){
+			logo_url = "{$_W['siteroot']}"+logo_url.replace("..", "");
+	}else{
+			logo_url = "{$_W['siteroot']}addons/meepo_bigerwall/"+logo_url;
+	}
+}
+if(logo_url=='' && text!=''){
+	if(text.toString().indexOf('/') != -1){
+		 line = 1;
+	}
+}
+var gap = parseInt({$ridwall['3dsign_gap']});
+if(gap==0){
+	gap = 10;
+}
+</script>
+<script src="{MEEPO}qd/3d/js/three.min.js"></script>
+<script src="{MEEPO}qd/3d/js/tween.min.js"></script>
+<script src="{MEEPO}qd/3d/js/CSS3DRenderer.js"></script>
+<script src="{MEEPO}qd/3d/js/3d2.js?t={php echo time()}"></script>
+<script src="{MEEPO}qd/3d/js/2d.js?t={php echo time()}"></script>
+<script type="text/javascript">
+var signBox = $('.signBox');
+var imgShow = $('.imgShow');
+var newPic = new Array();
+var signNo = 0;
+var name;
+var job;
+var company;
+var text;
+setInterval(function(){
+	if (newPic.length > 0){ 
+		var firstInfo = newPic.shift();
+		var showImg = firstInfo.image;
+		name = firstInfo.name;
+		job = firstInfo.job;
+		company = firstInfo.company;
+		text = firstInfo.text;
+		personArray.push(firstInfo);
+		$('.element').eq(personArray.length-1).find('img').attr('src',showImg);
+	}else{
+	  if(personArray.length > 0){
+		showImg = personArray[signNo].image;			
+		name = personArray[signNo].name;
+		job = personArray[signNo].job;
+		company = personArray[signNo].company;
+		text = personArray[signNo].text;
+		signNo = signNo == personArray.length-1 ? 0 : signNo+1;
+	  }
+	}
+	if (is_show_info == 1){
+	   if(personArray.length > 0){
+		signBox.addClass('imgAnimate').show();
+		setTimeout(function(){signBox.hide()},6000);
+		imgShow.attr('src',showImg);		
+		$('.name').html(name);
+		$('.job').html(job);
+		$('.company').html(company);
+		$('.text').html(text);
+		if(text.length>12){ 
+			$('.text').addClass('scrollAnitame');
+		}else{ 
+			$('.text').removeClass('scrollAnitame');
+		}
+	   }
+	}
+},10000);	
+</script>
+
+<script type="text/javascript">
+var new_signer = new Audio(); 
+new_signer.src = "{MEEPO}qd/3d/images/new_signer2.mp3";
+  setInterval('get_new_sign_list()', 5000);
+  function get_new_sign_list(){
+  	var data = {};
+  	data.rid = $('#mid').val();
+  	data.max_id = $('#max_id').val();
+  	$.ajax({
+  		url : "{php echo $this->createMobileUrl('new_sign')}&t="+Math.random(),
+  		dataType:"JSON",
+  		type:"post",
+  		data:data,
+  		success:function(data){
+  			if(data.errno!=0){
+  				alert('加载错误');
+  				return false;
+  			}else{   
+			    var result  = data.message;
+  				if (result.max_id){
+					
+					new_signer.play();
+  					$('#max_id').val(result.max_id);
+  				}  			
+  				if (result.data){   
+  					$.each(result.data, function(key, row){
+						var tmp = {
+						id   : row.id,
+						image : row.avatar,
+						name  : row.name,
+						company : row.company,
+						position : row.position,
+						text  : row.text
+						};
+						var person_info = eval(tmp);
+						newPic.push(person_info);
+  					});
+  				}
+  				if (result.edit_message_list){   
+					$.each(result.edit_message_list, function(key, row){
+						var tmp = {
+							id : row.id,
+							image : row.avatar,
+							name  : row.name,
+							company : row.company,
+							position : row.position,
+							text  : row.message
+						};
+						var person_info = eval(tmp);
+						$.each(personArray, function(k, r){
+						  if (r.id == row.id){   
+						  // 修改原数组
+							personArray[k] = person_info;
+						  // 修改信息
+							tmp.edit_index = k;
+							var edit_person_info = eval(tmp);
+							edit_personArray.push(edit_person_info);
+						  }
+						});
+					});
+				}
+  			}	
+  		}
+  	});
+  }
+  $(document).ready(function () {
+	S.init();
+	S.ShapeBuilder.imageFile(logo_url, function (obj){
+		if(obj.error=='-1'){
+			var obj  = S.ShapeBuilder.letter(text);
+			var type = 'text';
+		}else{
+			var type = 'logo';
+			
+		}
+		init(type,obj);
+		animate();
+		$('.loading').hide();
+		transform( targets.table, 2000, 0, table_time);
+	});
+	
+	   $('.signin_ecode .ecode_img').click(function(){
+		 if($(this).css("opacity")=='0.5'){
+		   $(this).animate({height:"{$ridwall['3dsign_logo_width']}px",width:"{$ridwall['3dsign_logo_height']}px",opacity:'1'});
+		   $('.join_word').css({'width':"{$ridwall['3dsign_logo_width']}px"});
+		   {if $ridwall['3dsign_logo_width'] > 500}
+			$('.join_word').css({'font-size':"24px"});
+		   {else}
+		    $('.join_word').css({'font-size':"16px"});
+		   {/if}
+		   $('.join_word').show();
+		 }else{
+			$(this).animate({height:'50px',width:'50px',opacity:'0.5'});
+			$('.join_word').hide();
+		 }
+	   });
+});
+
+</script>
+
+</body>
+</html>

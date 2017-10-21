@@ -1,0 +1,297 @@
+{template 'head'}
+
+<div class="nav_time">
+    {if $list}
+	<ul class="clearfi">
+  
+        {loop $list $k $ls}
+            <li onclick="openReport({$k}, {$ls['id']})">
+                <b class="{if $id == '' && $k == 0} nav_time_big {else} {if $ls['id'] == $id} nav_time_big {else} time_figure {/if} {/if}">{$ls['timestart']}</b>
+                <span class="{if $id == '' && $k == 0} have_in_hand {else} {if $ls['id'] == $id} have_in_hand {/if} {/if}">
+					{if $ls['first_status'] == 0}
+						即将开场
+					{else if $ls['first_status'] == 1}
+						秒杀中
+					{else}
+						已结束
+					{/if}
+				</span>
+            </li>
+        {/loop}
+    </ul>
+    {/if}
+	<div class="banner">
+		<a href="{$config['index_img_url']}"><img src="{php echo tomedia($config['index_img']);}"></a>
+	</div>
+	<div class="nav_time_bottom clearfix" style="{if !$stage_list} display:none {/if}">
+		<div class="nav_time_left">
+			秒杀中 先记得下单哦
+		</div>  
+		<div class="nav_time_right">
+			<span class="nav_time_end" id="nav_time_title"></span>
+			<span class="nav_time_change" id="nav_time_hour">00</span>:
+			<span class="nav_time_change" id="nav_time_minute">00</span>:
+			<span class="nav_time_change" id="nav_time_second">00</span>
+		</div>
+	</div>
+</div>
+<div class="content">
+	<div class="NotUesed">
+
+	</div>
+     <div class="mydfer_img" style="{if !empty($stage_list)} display:none{/if}">
+		<img src="{HT}images/no_goods.png">
+		<span style="display:block; font-size:16px;color:#A7A7A7;font-weight:bold;">目前暂无秒杀商品</span>
+	 </div>
+</div>
+{template 'footer'}
+</body>
+
+<script type="text/javascript" src="{HT}js/dropload.min.js" ></script>
+<script type="text/javascript" src="{HT}js/lyz.delayLoading.min.js"></script>
+
+<script>
+       wx.ready(function () {
+        
+        sharedata = {
+            title: "{$config['share_title']}",
+            desc: "{$config['share_desc']}",
+            link: "{$share_url}",
+            imgUrl: "{php echo tomedia($config['share_img'])}",
+            success: function(){
+				
+            },
+            cancel: function(){
+                
+                layer.msg('分享失败，可能是网络问题，一会儿再试试？', {icon: 5});
+            }
+        };
+        wx.onMenuShareAppMessage(sharedata);
+        wx.onMenuShareTimeline(sharedata);
+    }); 
+        function openReport(stage, id) {
+        	var url = "{php echo $this->createMobileUrl('Seckill_home');}";
+        	setTimeout("location.href='" + url + "&stage=" + stage + "&id=" + id + "'", 100);
+        }  
+        setInterval(getRTime, 1000); //页面倒计时使用
+        var stage = "{$stage}"; //页面场次标识
+        var id = "{$id}"; //场次信息
+        var current_status = "{$current_status}"; //0待秒杀 1秒杀中 2已结束
+        
+        var obj;
+        function getRTime(){
+        	if(current_status == 0){ //距离开始
+        		var timestart = "{$list[$stage]['timestart']}";
+        		//截取小时 分钟
+        		var hour = timestart.substring(0, 2);
+        		var minute = timestart.substring(3, 5);
+        		var EndTime= new Date(); //截止时间
+        		if(parseInt(hour) < EndTime.getHours()){ //若第一场小时小于当前时间小时 说明是第二天
+        			EndTime.setDate(EndTime.getDate() + 1);
+        		}
+        		EndTime.setHours(hour, minute, 0);
+        		
+        		var NowTime = new Date(); 
+        		var t =EndTime.getTime() - NowTime.getTime(); 
+        		
+        		var d=Math.floor(t/1000/60/60/24);  //天
+        		var h=Math.floor(t/1000/60/60%24); //时
+        		var m=Math.floor(t/1000/60%60);  //分
+        		var s=Math.floor(t/1000%60); //秒
+        		
+        		$("#nav_time_title").html('距离开始');
+        		var hour = String(d*24 + h);
+        		if(hour.length == 1){
+        			hour = 0 + hour;
+        		}
+        		$("#nav_time_hour").html(hour);
+        		var minute = String(m);
+        		if(minute.length == 1){
+        			minute = 0 + minute;
+        		}
+        		$("#nav_time_minute").html(minute);
+        		var second = String(s);
+        		if(second.length == 1){
+        			second = 0 + second;
+        		}
+        		$("#nav_time_second").html(second);
+        	}else if(current_status == 1){ //距结束
+                var timeend = "{$list[$stage]['timeend']}";
+        		//截取小时 分钟
+        		var hour = timeend.substring(0, 2);
+        		var minute = timeend.substring(3, 5);
+        		var EndTime= new Date(); //截止时间
+        		if(parseInt(hour) < EndTime.getHours()){ //若第一场小时小于当前时间小时 说明是第二天
+        			EndTime.setDate(EndTime.getDate() + 1);
+        		}
+        		EndTime.setHours(hour, minute, 0);
+        		
+        		var NowTime = new Date(); 
+        		var t =EndTime.getTime() - NowTime.getTime(); 
+        		
+        		var d=Math.floor(t/1000/60/60/24);  //天
+        		var h=Math.floor(t/1000/60/60%24); //时
+        		var m=Math.floor(t/1000/60%60);  //分
+        		var s=Math.floor(t/1000%60); //秒
+        		
+        		$("#nav_time_title").html('距离结束');
+        		var hour = String(d*24 + h);
+        		if(hour.length == 1){
+        			hour = 0 + hour;
+        		}
+        		$("#nav_time_hour").html(hour);
+        		var minute = String(m);
+        		if(minute.length == 1){
+        			minute = 0 + minute;
+        		}
+        		$("#nav_time_minute").html(minute);
+        		var second = String(s);
+        		if(second.length == 1){
+        			second = 0 + second;
+        		}
+        		$("#nav_time_second").html(second);
+        	}else {
+        		$("#nav_time_title").html('已结束');
+        	}
+        }
+        
+        load(0, id);
+        function load(page, id){
+        	var lock=0;
+        	$('.content').dropload({
+        		scrollArea : window,
+        		loadDownFn : function(me){
+        			$.ajax({
+        				type: 'post',
+        				url: "{php echo $this->createMobileUrl('Seckill_home', array('op'=>'show_ajax'));}",
+        				data:{page:page, id:id},
+        				dataType: 'json',
+        				success: function(res){
+        				   	
+        					var str ='';
+        					$.each(res, function(index,value){
+        						var url = "{$_W['siteroot']}app/index.php?i={$_W['uniacid']}&c=entry&do=seckill_goods&goods_id="+value.id+"&stage_id="+id+"&m=hetu_seckill";
+        						if(value.first_status == 1){ //0即将开始 1秒杀中 2已结束
+        							str += '<a ontouchstart="mOver(event,this)" ontouchend="mOut(this)" href="'+url+'">';
+        						}
+        						str += '<div class="second_list clearfix">';
+        						str += '<div class="second_img">';
+        						str += '<img originalSrc={$_W['attachurl']}'+value.thumb+' >';
+        						/**if(value.miaosha_type == '' || value.miaosha_type == null){
+        							
+        						}else {
+        							str += '<div class="tag-circle" style="background-color: #F02B2B;"></div>';
+        							str += '<p class="tag-text-four">'+value.miaosha_type+'</p>';
+        						}
+        						**/
+        						str += '</div>';
+        						str += '<div class="second_content">';
+        						str += '<p class="goods_name">'+value.name+'</p>';
+        						str += '<div class="price">';
+        						str += '<span><i class="iconfont money_red" style="font-size="11px">&#xe657;</i>'+value.seksillprice+'</span>';
+        						str += '<del><i class="iconfont money_grizzly">&#xe657;</i>'+value.marketprice+'</del>';
+        						str += '</div>';
+        						str += '<div class="go_second">';
+                                
+        						if(value.first_status == 1){ //0即将开始 1秒杀中 2已结束
+        							str += '<button class="go_second_botton">去秒杀</button>';
+        						}else if(value.first_status == 2) {
+        							str += '<button class="wait_second_button">已结束</button>';
+        						}else if(value.first_status == 0){
+        							if(parseInt(value.remind_status) == 0){
+        								str += '<button class="sjkasdf" id="remind_'+value.id+'" onclick="mind_me('+id+', '+value.id+')">提醒我</button>';							
+        							}else {
+        								str += '<button class="sjkasdf" id="remind_'+value.id+'" onclick="mind_me('+id+', '+value.id+')">取消提醒</button>';
+        							}
+        						}
+        						
+        						str += '<div class="skill-lod">';
+        						str += '<span class="sale-count" id="sale-count-b">';
+        						str += '已秒<em>'+value.process+'%</em>';
+        						str += '</span>';
+        						str += '<div id="progress-b" class="kill-progress">';
+        						str += '<div class="skill-pro-bg">';
+        						str += '<p class="skill-iteam-progress">';
+        						str += '<span class="skill-pro-insetbg">';
+        						str += '<span class="skill-iteam-pro" style="width: '+value.process+'%;"></span>';
+        						str += '</span>';
+        						str += '</p>';
+        						str += '</div></div></div></div></div></div>';
+        						if(value.first_status == 1){ //0即将开始 1秒杀中 2已结束
+        							str += '</a>';
+        						}
+        					});
+        					$('.NotUesed').append(str);
+        					page++;
+        					obj = me;
+        					if(res.length < 2){
+        						me.lock();
+        						// 无数据
+                                
+        						me.noData();
+        					}
+        					me.resetload();
+        					$("img").delayLoading({
+        						defaultImg: "/wx/Public/Home/img/loading.jpg",           // 预加载前显示的图片
+        						errorImg: "",                        // 读取图片错误时替换图片(默认：与defaultImg一样)
+        						imgSrcAttr: "originalSrc",           // 记录图片路径的属性(默认：originalSrc，页面img的src属性也要替换为originalSrc)
+        						beforehand: 0,                       // 预先提前多少像素加载图片(默认：0)
+        						event: "scroll",                     // 触发加载图片事件(默认：scroll)
+        						duration: "normal",                  // 三种预定淡出(入)速度之一的字符串("slow", "normal", or "fast")或表示动画时长的毫秒数值(如：1000),默认:"normal"
+        						container: window,                   // 对象加载的位置容器(默认：window)
+        						success: function (imgObj) { },      // 加载图片成功后的回调函数(默认：不执行任何操作)
+        						error: function (imgObj) { }         // 加载图片失败后的回调函数(默认：不执行任何操作)
+        					});
+        					// 每次数据加载完，必须重置
+        				},
+        				error: function(xhr, type){
+        					//alert('Ajax error!');
+        					// 即使加载出错，也得重置
+        					me.resetload();
+        				}
+        			});
+        		}
+        	});
+        }
+        
+        	function mind_me(stage_id, goods_id){
+        		var data = {
+        			goods_id : goods_id,
+        			stage_id : stage_id,
+        		};
+        		$.ajax({
+        			type: 'get',
+        			url: "{php echo $this->createMobileUrl('Seckill_home', array('op'=>'remind_ajax'))}",
+        			data:data,
+        			dataType: 'text',
+        			success: function(res){
+        				if(res == 1){
+        					layer.msg('提醒成功！', {icon: 7});
+        					$('#remind_'+goods_id).html('取消提醒');
+        				}else if(res == 2){
+        					layer.msg('操作失败！', {icon: 5});
+        				}else if(res == 3){
+        					layer.msg('操作成功！', {icon: 7});
+        					$('#remind_'+goods_id).html('提醒我');
+        				}else if(res == 2){
+        					layer.msg('操作失败！', {icon: 5});
+        				}
+        			}  
+        		});
+        	}
+        	
+        	function mOver(event,obj)
+        	{
+        		obj.style.backgroundColor="#f2f2f2";
+        	}
+        
+        	function mOut(obj)
+        	{
+        		obj.style.backgroundColor="white";
+        	}
+            
+            
+            
+</script>
+
+</html>

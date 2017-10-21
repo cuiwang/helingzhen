@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1.0,maximum-scale=1.0,minimum-scale=1,user-scalable=no">
+    <meta content="yes" name="apple-mobile-web-app-capable">
+    <meta content="black" name="apple-mobile-web-app-status-bar-style">
+    <meta content="telephone=no" name="format-detection">
+    <meta content="email=no" name="format-detection">
+	<title>{if $id}编辑幻灯片{else}添加幻灯片{/if}</title>
+	<link rel="stylesheet" href="{MD_ROOTN}/messi/css/reset.css"/>
+    <link rel="stylesheet" href="{MD_ROOTN}/messi/iconfont/iconfont.css"/>
+	<link rel="stylesheet" href="{MD_ROOTN}/jqueryweui/css/weui.min.css"/>
+	<link rel="stylesheet" href="{MD_ROOTN}/jqueryweui/css/jquery-weui.min.css"/>
+	<link rel="stylesheet" href="{MD_ROOTN}/messi/css/common.css"/>
+	<script>
+        var deviceWidth = document.documentElement.clientWidth;
+        document.documentElement.style.fontSize = deviceWidth / 7.5 + 'px';
+    </script>
+	{php echo register_jssdk(false);}
+</head>
+
+<body style="background:#f5f5f5;">
+<div id="header">
+	<div class="goback iconfont" onclick="history.go(-1);">&#xe612;</div>
+	<div class="title textellipsis1 text-c">{if $id}编辑幻灯片{else}添加幻灯片{/if}</div>
+	<div class="empty text-c"></div>
+</div>
+
+<div class="weui-cells weui-cells_form">
+	<div class="weui-cell">
+		<div class="weui-cell__hd"><label class="weui-label wy-lab">幻灯片名称</label></div>
+		<div class="weui-cell__bd"><input class="weui-input" type="text" id="advname" value="{$item['advname']}" placeholder="请输入幻灯片名称"></div>
+	</div>
+	
+	<div class="weui-cell">
+		<div class="weui-cell__bd">
+		  <div class="weui-uploader">
+			<div class="weui-uploader__hd">
+				<p class="weui-uploader__title">上传幻灯片图片</p>
+			</div>
+			<div class="weui-uploader__bd">
+				<ul class="weui-uploader__files" id="uploaderFiles">
+					{if $item['thumb']}
+					<li class="weui-uploader__file" style="background-image:url({php echo tomedia($item['thumb'])})"></li>
+					<input type="hidden" name="thumb" id="thumb" value="{$item['thumb']}" />
+					{/if}
+				</ul>
+				<div class="weui-uploader__input-box" id="chooseImage"></div>
+			</div>
+		  </div>
+		</div>
+	</div>
+	
+	<div class="weui-cell">
+		<div class="weui-cell__hd"><label class="weui-label wy-lab">幻灯片链接</label></div>
+		<div class="weui-cell__bd"><input class="weui-input" type="text" id="link" value="{$item['link']}" placeholder="请输入幻灯片链接"></div>
+	</div>
+
+	<div class="weui-cell">
+		<div class="weui-cell__hd"><label class="weui-label wy-lab">排序</label></div>
+		<div class="weui-cell__bd"><input class="weui-input" type="tel" id="displayorder" value="{$item['displayorder']}"></div>
+	</div>
+</div> 
+<div class="weui-btn-area">
+	{if $id}
+	<a class="weui-btn weui-btn_primary" href="javascript:" id="save">修改</a>
+	<a href="javascript:;" id="del" class="weui-btn weui-btn_warn">删除该幻灯片</a>
+	{else}
+	<a class="weui-btn weui-btn_primary" href="javascript:" id="save">添加</a>
+	{/if}
+	<input type="hidden" id="id" value="{$item['id']}" />
+</div>
+
+<script type="text/javascript" src="{MD_ROOTN}/messi/js/jquery-3.1.1.min.js"></script>
+<script type="text/javascript" src="{MD_ROOTN}/jqueryweui/js/fastclick.js"></script>
+<script type="text/javascript" src="{MD_ROOTN}/jqueryweui/js/jquery-weui.min.js"></script> 
+<script>
+var images = {
+	localId: [],
+	serverId: []
+};
+$(function() {
+	FastClick.attach(document.body);
+	{if $id}
+	$("#del").click(function(){
+		$.confirm("确定要删除该幻灯片吗？", function() {
+			$.ajax({
+				url:"{php echo $this->createMobileUrl('merchantadv',array('op'=>'delete'));}",   
+				type:'post', 
+				data:{
+					id:{$item['id']},
+				},
+				dataType:'json',
+				success:function(data){
+					if (data.error == 1) {
+						$.alert(data.msg);
+					}else{
+						$.alert(data.msg,function(){
+							history.go(-1);
+						});
+					}
+				}
+			});
+		}, function() {
+
+		});
+	});
+	{/if}
+	$("#save").click(function(){
+		$.ajax({
+			url:"{php echo $this->createMobileUrl('merchantadv',array('op'=>'post'))}",   
+			type:'post', 
+			data:{
+				isdo:1,
+				id:$('#id').val(),
+				advname:$('#advname').val(),
+				link:$('#link').val(),
+				thumb:$('#thumb').val(),
+				displayorder:$('#displayorder').val(),
+				submit:1,
+			},
+			dataType:'json',
+			success:function(data){
+				if (data.error == 1) {
+					$.alert(data.msg);
+				}else{
+					$.alert(data.msg,function(){
+						history.go(-1);
+					});
+				}
+			}
+		});
+	});
+	$('#chooseImage').click(function(){
+		wx.chooseImage({
+			count: 1, // 默认9
+			sizeType: ['compressed'], // 可以指定是原图还是压缩图，默认二者都有
+			sourceType: ['album', 'camera'], // 可以指定来源是相册还是相机，默认二者都有
+			success: function(res) {
+				var localIds = res.localIds; // 返回选定照片的本地ID列表，localId可以作为img标签的src属性显示图片
+				// 上传照片
+				wx.uploadImage({
+					localId: '' + localIds,
+					isShowProgressTips: 1,
+					success: function(res) {
+						serverId = res.serverId;
+						$.ajax({   
+							 url:"{php echo $this->createMobileUrl('getmedia')}",    
+							 type:'post', 
+							 data:{
+								media_id:serverId,
+								tarwidth:750,
+								tarheight:240,
+							 },
+							 dataType:'json',
+							 success:function(data){   
+								if (data.error == 1) {
+									$.alert(data.message);
+								} else {
+									var imagehtml = '<li class="weui-uploader__file" style="background-image:url('+data.imgurl+')"></li><input type="hidden" name="thumb" id="thumb" value="'+data.realimgurl+'" />';
+									$('#uploaderFiles').html(imagehtml);
+								}  
+							 }
+						});
+					}
+				});
+			}
+		});
+	});
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,271 @@
+<style>
+.weui-comment {margin:0 auto;width:90%;padding-bottom: 10px;}
+.weui-comment-item .avatar {background-color: #fff;position: absolute;}
+.weui-comment-item {margin-top: 0px;}
+</style>
+	<div id="actionSheet_wrap">
+        <div class="weui_mask_transition" id="mask"></div>
+        <div class="weui_actionsheet" id="weui_actionsheet">
+			<div class="weui_actionsheet_menu">
+				<div class="weui-header weui_btn_default">
+					<div class="weui-header-left f-green">评价</div>
+					<h4 class="weui-header-title f-green"></h4>
+					<div class="weui-header-right">
+						<img src="{if !empty($member['avatar'])}{$member['avatar']}{else}{$fans['tag']['avatar']}{/if}" alt="" style="width:20px;margin-right:5px;">
+						<small class="f-black">{$fans['nickname']}</small>
+					</div>
+				</div>
+
+				<div class="weui_cells weui_cells_form" style="margin:0;">
+					<div class="weui_cell weui_cell_switch nickname" style="display:none;">
+					</div>
+					<div class="weui_cell pics" style="display:none;">
+					<div class="weui_cell_bd weui_cell_primary">
+					<input type="hidden" name="thumbs" id="thumbs"> 
+				<div class="weui_uploader">
+					<div class="weui_uploader_bd">
+						<ul class="weui_uploader_files" id="pub-pics">   
+						</ul>
+						<div class="weui_uploader_input_wrp">
+							<div id="chooseImage" style="width: 100%;height: 100%;" class="weui_uploader_input"></div> 
+						</div>
+					</div>
+				</div>
+			</div>
+					</div>
+
+					<div class="weui_cell" id="dafen">
+						<div class="weui_cell_hd weui_cell_primary">
+						<div class="weui-rater">
+							<a data-num = "0" class="weui-rater-box checked"> <span class="weui-rater-inner">★</span> </a>
+							<a data-num = "1" class="weui-rater-box checked"> <span class="weui-rater-inner">★</span> </a>
+							<a data-num = "2" class="weui-rater-box checked"> <span class="weui-rater-inner">★</span> </a>
+							<a data-num = "3" class="weui-rater-box checked"> <span class="weui-rater-inner">★</span> </a>
+							<a data-num = "4" class="weui-rater-box checked"> <span class="weui-rater-inner">★</span> </a>
+						</div>
+						</div>
+						<div class="weui_cell_bd" id="fen">
+						</div>
+						<input type="hidden" id="score" name="score" value="5">	
+					</div>
+					<div class="weui_cell">
+						<div class="weui_cell_bd weui_cell_primary">
+							<textarea class="weui_textarea" id="info" name="info" rows="3" placeholder="评论内容"></textarea>
+							<div class="weui_textarea_counter"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+            <div class="weui_actionsheet_action">
+                <div class="weui_actionsheet_cell" style="padding:10px;">
+					<a id="confirmScore" href="javascript:void(0);" class="weui_btn weui_btn_primary f-white">提交</a>
+				</div>
+            </div>
+        </div>
+    </div>
+	
+<script type="text/javascript">
+var images = {
+	localId: [],
+	serverId: []
+};
+document.querySelector('#chooseImage').onclick = function () {
+	wx.chooseImage({
+		success: function (res) {
+			images.localId = res.localIds;	        
+			if (images.localId.length == 0) {
+				return;
+			}
+			var m = 0, length = images.localId.length;
+			images.serverId = [];
+			function upload() {
+				wx.uploadImage({
+					localId: images.localId[m],
+					success: function (res) {
+						m++;
+						images.serverId.push(res.serverId);
+						var url = "{php echo $this->createMobileUrl('uploads',array('type'=>'image'));}&serverId=" + res.serverId + "&localId=" + m;
+						$.post(url, function(dat){
+							var dat = eval("("+dat+")");
+							if (dat.status == 'success') {
+								$.toast(dat.message, "success");
+								$upload = $( '#pub-pics' );
+								$li = $('<li onclick="var delimg=$(this);$.confirm(\'您确定要删除该图片吗?\', \'确认删除?\', function() {delimg.remove();},function(){$.toast(\'取消操作\', \'cancel\');});" class="weui_uploader_file weui_uploader_status" style="background-image:url('+dat.imgurl+')"><input type="hidden" id="thumb[]" name="thumb[]" value="'+dat.path+'"/><div class="weui_uploader_status_content"><i class="weui_icon_cancel"></i></div></li>')
+								$upload.append($li);
+							}else{
+								$.toast(dat.message, "cancel");
+							}
+						});
+						if (m < length) {
+							upload();
+						}
+					},
+					fail: function (res) {
+					//上传失败
+						alert('filed');
+					}
+				});
+			}
+		upload();
+	        
+		}
+	});
+};
+	
+	function postscore(obj,id){
+
+		var submitData = {
+			weid:"{$weid}",
+			cid:"{$par['comment']}",
+			reid:"{$reid}",
+			infoid:"{$id}",
+			addons: '{$_W['current_module']['name']}'
+		};
+		var ActionUrl = "{php echo murl('entry', array('do' => 'AjaxGet','m' => 'dayu_comment'), true, true)}";
+		$.post(ActionUrl,submitData,function(e){
+			if(e.message.hide==1){
+				$('.nickname').show();
+				$('.nickname').html(e.message.hidehtml);
+			}
+			if(e.message.pic==1){
+				$('.pics').show();
+			}
+	//				$.alert(e.message.status);
+			
+	//		$('.swiper-wrapper').html(data.message.piclist);
+	
+		
+		var mask = $('#mask');
+		var weuiActionsheet = $('#weui_actionsheet');
+		weuiActionsheet.addClass('weui_actionsheet_toggle');
+		mask.show().addClass('weui_fade_toggle').one('click', function () {
+			hideActionSheet(weuiActionsheet, mask);
+		});
+		$('#actionsheet_cancel').one('click', function () {
+			hideActionSheet(weuiActionsheet, mask);
+		});
+		weuiActionsheet.unbind('transitionend').unbind('webkitTransitionEnd');
+		
+		function hideActionSheet(weuiActionsheet, mask) {
+			weuiActionsheet.removeClass('weui_actionsheet_toggle');
+			mask.removeClass('weui_fade_toggle');
+			weuiActionsheet.on('transitionend', function () {
+				mask.hide();
+			}).on('webkitTransitionEnd', function () {
+				mask.hide();
+			})
+		}
+		
+		},'json');
+	}
+$(document).ready(function () {
+	{if pdo_tableexists('dayu_comment') && !empty($par['comment']) && !empty($row['commentid'])}
+		$.get("{php echo murl('entry', array('do' => 'GetContent','m' => 'dayu_comment'), true, true)}",{id:'{$row['commentid']}'},function(data){
+			if(data.message.status=='1'){
+				$('#comment').after(data.message.msg);
+			}
+		},"json");
+	{/if}
+
+	var arr = ["1分","2分","3分","4分","5分"];
+	var num = -1;
+	$(".weui-rater a").mouseover(function(){
+		var thisL = $(this).index();
+		for(var i = 0;i < thisL;i++){
+			$(".weui-rater a").eq(i).addClass('checked');
+		}
+		for(var i = thisL; i < 5;i++){
+			$(".weui-rater a").eq(i).removeClass('checked');
+		}
+		$(this).addClass('checked');
+	})
+	$(".weui-rater a").mouseout(function(){
+		var thisL = $(this).index();
+		for(var i = thisL; i < 5;i++){
+			$(".weui-rater a").eq(i).removeClass('checked');
+		}
+	})
+	$(".weui-rater").mouseout(function(){
+		for(var i = 0; i < num;i++){
+			$(".weui-rater a").eq(i).addClass('checked');
+		}
+	})
+	$(".weui-rater a").click(function(){
+		var thisL = $(this).index();
+		$("#fen").html(arr[thisL]);
+		$(this).addClass('checked');
+		num = thisL+1;
+//		document.getElementById("score").value = num;
+		$("#score").val(num);
+//		$.alert(num);
+//		console.log(num);
+	})
+	
+	$("#confirmScore").click(function(){
+		var bm_num='';  
+		var names =document.getElementsByName("thumb[]");  
+		for(i=0;i<names.length;i++){  
+			bm_num+=names[i].value+',';   
+			document.getElementById('thumbs').value=bm_num;    
+		}  
+		$.showLoading('提交中...');
+		var score = $("#score").val();
+		var info = $("#info").val();
+		var mode = $("#mode").val();
+		var hid = $("#hid").is(":checked");
+		var thumb = $("#thumbs").val();
+		if (hid==true){hid='1';}else{hid='0';}
+		if (info == '') {
+			$.toptips("请输入内容");
+			return false;
+		}
+		var submitData = {
+			weid:"{$weid}",
+			uid:"{$uid}",
+			openid:"{$openid}",
+			cid:"{$par['comment']}",
+			reid:"{$reid}",
+			infoid:"{$id}",
+			content: info,
+			score:score,
+			hid: hid,
+			thumb: thumb,
+			addons: '{$_W['current_module']['name']}'
+		};
+		var ActionUrl = "{php echo murl('entry', array('do' => 'AjaxPost','m' => 'dayu_comment'), true, true)}";
+		$.post(ActionUrl,submitData,function(e){
+		console.log(e);
+			if (e.message.status == 1) {
+				hideActionSheet($('#weui_actionsheet'), $('#mask'));
+				setTimeout(function() {
+					$("#postscore").hide();
+					$.hideLoading();
+					$.toast(e.message.msg);
+//					$.toptips(e.message.msg,'ok');
+				}, 1500);
+				$(".weui-comment .check").html(e.message.time);
+				$(".weui-comment .time").html(e.message.content);
+				$(".weui-comment strong").removeClass("score_").addClass(e.message.css);
+				$(".weui-comment").show();
+			}else{
+				setTimeout(function() {
+					$.hideLoading();
+					$.toast(e.message.msg, "cancel");
+//					$.toptips(e.message.msg,'warning');
+				}, 2000);
+				return false;
+			}
+		},'json');
+		function hideActionSheet(weuiActionsheet, mask) {
+			weuiActionsheet.removeClass('weui_actionsheet_toggle');
+			mask.removeClass('weui_fade_toggle');
+			weuiActionsheet.on('transitionend', function () {
+				mask.hide();
+			}).on('webkitTransitionEnd', function () {
+				mask.hide();
+			})
+		}
+		return false;
+	});
+});
+</script>

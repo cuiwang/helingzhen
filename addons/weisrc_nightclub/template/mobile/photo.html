@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>微夜店</title>
+	<meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1" />
+	<meta content="telephone=no" name="format-detection" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<link rel="stylesheet" href="{RES}css/reset.css?v={php echo $this->cur_version}" />
+	<link rel="stylesheet" href="{RES}css/bar.css?v={php echo $this->cur_version}" />
+	<link rel="stylesheet" href="{RES}css/dawn-gallery.css?v={php echo $this->cur_version}" />
+	<link rel="stylesheet" href="{RES}css/ionicons.min.css?v={php echo $this->cur_version}" />
+	<style type="text/css">
+		/*页面头部样式*/
+		body >header{
+			height: 45px;
+			background-color: rgba(255,255,255,0.2);
+		}
+		body >header p.title{
+			color: white;
+			font-size: 20px;
+			line-height: 45px;
+			text-align: center;
+		}
+		body >header span{
+			color: white;
+			font-size: 35px;
+			position: absolute;
+			top: 5px;
+			right: 10px;
+		}	
+	</style>
+    <script type="text/javascript" src="{RES}js/jquery-1.11.0.min.js?v={php echo $this->cur_version}"></script>
+
+    <link rel="stylesheet" type="text/css" href="{RES}/css/photo.mobile.css?v=6" media="all" />
+    <link rel="stylesheet" type="text/css" href="{RES}/css/photoswipe.mobile.css" media="all" />
+    <script type="text/javascript" src="{RES}/js/jquery.imagesloaded.js"></script>
+    <script type="text/javascript" src="{RES}/js/jquery.wookmark.min.js"></script>
+    <script type="text/javascript" src="{RES}/js/klass.min.js"></script>
+    <script type="text/javascript" src="{RES}/js/code.photoswipe.min.js"></script>
+    <script type="text/javascript" src="{RES}/js/jquery.lazyload.js"></script>
+</head>
+<body>
+    {php include $this->template('/_menu');}
+	<!-- 相册查看弹出层 -->
+	<div id="slider-view" class="slider-view beauty-slider-view">
+		<div id="slider" class="swipe">
+			<div class="swipe-wrap dawn-gallery-theme-a">
+			</div>
+		</div>
+		<div class="slider-img-loading" style="display: none">
+			<i class="icon ion-loading-c"></i>
+		</div>
+	</div>
+	<header>
+		<p class="title">相册</p>
+		<!-- 点击上传照片 -->
+		<span class="add-photo">+</span>
+	</header>
+	<div id="content">
+        <div id="main" class="main">
+            <ul id="gallery" class="gallery">
+                {loop $list $item}
+                <li style="">
+                    <a href="{$_W['attachurl']}{$item['attachment']}">
+                        <img src="{$_W['attachurl']}{$item['attachment']}" alt="{$item['title']}" >
+                    </a>
+                </li>
+                {/loop}
+            </ul>
+        </div>
+		<!-- 照片大图 -->
+		<!-- 超过20个项目则分页 -->
+		<div id="page-ctrl-wrap"></div>
+		<!-- 上传照片的模态窗口 -->
+		<div id="upload-modal">
+			<header>
+				<p>上传照片</p>
+				<div class="simplemodal-close">×</div>
+			</header>
+			<form id="form1" action="" method="post" enctype="multipart/form-data">
+				<p id="filepath">请浏览本地照片，并选择</p>
+				<!-- 加wrap，覆盖浏览器的文件上传样式 -->
+				<div id="input-file-wrap">
+					<p>浏览</p>
+					<input id="browse" type="file" value="浏览" accept="image/*" name="attachFile"  />
+				</div>
+                <input type="hidden" value="{$from_user}" id="from_user" name="from_user" />
+                <input type="hidden" value="{$nickname}" id="nickname" name="nickname" />
+				<input type="submit" value="上传" id="btn-upload" />
+			</form>
+		</div>
+	</div>
+	<!-- app底部导航栏 END -->
+	<script type="text/javascript" src="{RES}js/swipe.js?v={php echo $this->cur_version}"></script>
+	<script type="text/javascript" src="{RES}js/tocca.min.js?v={php echo $this->cur_version}"></script>
+	<script type="text/javascript" src="{RES}js/simplemodal.min.js?v={php echo $this->cur_version}"></script>
+	<script type="text/javascript" src="{RES}js/bar.js?v={php echo $this->cur_version}"></script>
+	<script type="text/javascript" src="{RES}js/dawn-gallery.js?v={php echo $this->cur_version}"></script>
+	<script type="text/javascript" src="{RES}js/lazyload.js?v={php echo $this->cur_version}"></script>
+    <script type="text/javascript" src="{RES}js/jquery.form.min.js"></script>
+	<script type="text/javascript">
+	    $(function () {
+	        // 图片懒加载
+	        $('.lazyload').lazyload();
+	        $("#browse").change(function () {	            
+	            var filePath = $(this).val();
+	            $("p#filepath").text(filePath);
+	        });
+            // 上传按钮点按
+	        $("#btn-upload").click(function () {
+	            var val = $("#browse").val();
+	            if (!val) {
+	                showToastInfo("请选择要上传的文件");
+	                return false;
+	            }
+	            if ($(this).hasClass("disabled")) {
+	                return false;
+	            }
+                // 禁用，避免连续点击
+	            $(this).addClass("disabled");
+	            $(this).val("上传中...");
+	            var url = "{php echo $this->createMobileUrl('UploadPhoto')}";
+	            $("#form1").ajaxSubmit({
+	                type: "post",
+                    dataType: "json",
+	                url: url,
+	                success: function (jd) {
+	                    // 取消禁用
+	                    $("#btn-upload").removeClass("disabled");
+	                    $("#btn-upload").val("上传");
+	                    if (jd.IsSuccess) {
+                            if (jd.Status) {
+                                showToastInfo("上传成功，请等待管理员审核");
+                            } else {
+                                showToastInfo("上传成功");
+                            }
+	                        setTimeout("window.location.reload()", 1500);
+	                    } else {
+	                        showToastInfo(jd.Message);
+	                    }
+	                }
+	            });
+	            return false;
+	        });
+
+	        // 点赞
+	        $(".like-count").on('tap', function (event) {
+	            event.preventDefault();
+	            var url = "GalleryPraise.aspx";
+	            var uid = "oM0mfjuERzDFFEzuYmOLuH3y22Xc";
+	            var oid = "gh_e5f739c3f550";
+	            var galleryId = $(this).attr("data-id");
+
+                // 点赞的数字
+	            var span = $(this).find('span').eq(1);
+	            var p = $(this);
+
+	            if ($(this).hasClass('liked')) {	               
+	                p.toggleClass('liked');
+	                span.text(span.text() - 0 - 1);
+	                if (span.text() - 0 == 0) {
+	                    span.text("");
+	                }
+
+	                var data = {
+	                    uid: uid,
+	                    galleryId:galleryId,
+	                    oid: oid,
+                        type: 0
+	                };
+
+	                $.post(url, data, function (jd) {
+	                    if (jd.IsActionSuccess) {  
+	                    } else {
+	                        showToastInfo(jd.ActionMsg);
+	                    }
+	                });	                
+	            } else {
+	                p.toggleClass('liked');
+	                span.text(span.text() - 0 + 1);
+	                var data = {
+	                    uid: uid,
+	                    galleryId:galleryId,
+	                    oid: oid,
+	                    type:1
+	                };
+
+	                $.post(url, data, function (jd) {
+	                    if (jd.IsActionSuccess) {
+	                    } else {
+	                        showToastInfo(jd.ActionMsg);
+	                    }
+	                });	                
+	            }
+	        });
+
+	        // 上传照片
+	        // 上传完后刷新页面，将用户上传的照片置顶，即照片按上传时间降序排列（此后来居上也）
+	        $("header span.add-photo").on('click', function (event) {
+	            event.preventDefault();
+	            event.stopPropagation();
+	            $("#upload-modal").modal({
+	                "overlayClose": true,
+	                "opacity": 80
+	            });
+	        });
+	    });
+	</script>
+    <script type="text/javascript">
+        (function(window){
+            document.addEventListener('DOMContentLoaded', function(){
+                var PhotoSwipe = window.Code.PhotoSwipe;
+                var options = {loop:false, allowUserZoom:true},
+                        instance = PhotoSwipe.attach( window.document.querySelectorAll('#gallery a'), options );
+            }, false);
+        })(window);
+        //下面是瀑布流js
+        $(function() {
+            $('#gallery').imagesLoaded(function() {
+                // Prepare layout options.
+                var options = {
+                    autoResize: true, // This will auto-update the layout when the browser window is resized.
+                    container: $('#main'), // Optional, used for some extra CSS styling
+                    offset: 4, // Optional, the distance between grid items
+                    itemWidth: 160 // Optional, the width of a grid item
+                    //itemWidth: 160 // Optional, the width of a grid item
+                };
+
+                // Get a reference to your grid items.
+                var handler = $('#gallery li');
+                // Call the layout function.
+                handler.wookmark(options);
+            });
+        });
+    </script>
+    {php include $this->template('_share');}
+</body>
+</html>

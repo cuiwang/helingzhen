@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{$set[sys][copyright]}-开通VIP</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <link href="{AMOUSE_BIZ_NAV_RES}pig/css/main.css?2016050101" rel="stylesheet">
+    <link href="{AMOUSE_BIZ_NAV_RES}pig/css/load.css?2016050101" rel="stylesheet">
+    <script src="{AMOUSE_BIZ_NAV_RES}pig/js/jquery.min.js?2016050101"></script>
+</head>
+
+<!--头部菜单   开始-->
+{template 'default/navbar'}
+
+<style>
+    /*充值页面不要底部菜单*/
+    .foot_menu{display: none;}
+</style>
+<body class="body_bg">
+<div class="content" >
+    <!--头部菜单    结束-->
+    <!--充值中心-->
+    <div id="cart-container">
+        <div class="orderlist" data-unuse="1">
+            <div class="pay_tit">
+                <h2>开通VIP会员</h2>
+            </div>
+            <div class="pay_msg">
+                <!--<span>当前帐号：<span class="red">objkFjzg1sqecRFsQkULUMK7EctI</span></span>-->
+                <span class="ml15">当前{$set['custom'][credit2txt]}：<span class="red">{$info['credit2']}</span></span>
+            </div>
+            <div class="vip_main">
+                {loop $list $index $t}
+                <div class="vip_box ">
+                    <p month="{$t['day']}" mealid="{$t['id']}" money="{$t['price']}">开通时长：{php echo intval($t['day'])}天 = {$t['price']} {$set['custom'][credit2txt]} {if $t['desc']}(送{$t['desc']}天){/if}</p>
+                </div>
+                {/loop}
+
+            </div>
+            <div class="vip_count">
+                <div class="list-group-item " id="emptyLii">
+                    <p class="vip_count_msg">开通: <span id="totalNum">1</span>天　共计: <span id="totalPrice">10</span><span>{$set['custom'][credit2txt]}</span>
+                    </p>
+
+                </div>
+            </div>
+            <input type="hidden" name="num" value="0" id="num" />
+            <input type="hidden" name="price" value="0" id="price" />
+            <input type="hidden" name="mealid" value="0" id="mealid" />
+
+        </div>
+        <div class="pay_desc mt10 bgfff">
+            <h2>VIP特权：</h2>
+            <div class="pay_desc_main">
+                <p>1、名片标题加红加粗</p>
+                <p>2、享有【V】字标识</p>
+                <p>3、搜索名片无次数限制</p>
+                <p>4、名片手动刷新<pan class='red'>（自动刷新需另外购买）</pan></p>
+                <p>5、使用功能消耗更少积分</p>
+                <p>6、优先客服应答</p>
+                <p>7、发布产品秀</p>
+               <!-- <p><a href="/home/special/vip.html">点击查看特权详情</a></p>
+                <br>-->
+                <p class='red'>温馨提示：为了避免不必要的经济纠纷，购买VIP服务前请亲们务必查阅VIP特权介绍，
+                    名片置顶与自动刷新服务需另付费购买使用。</p>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+<a id="showcard" class="submit" href="javascript:submitOrder();">立即开通</a>
+
+<script src="{AMOUSE_BIZ_NAV_RES}js/main.js?1463479867"></script>
+<script src="{AMOUSE_BIZ_NAV_RES}pig/js/show_ewm.js?1463479867"></script>
+<script src="{AMOUSE_BIZ_NAV_RES}js/jquery.cookie.js?1463479867"></script>
+
+
+{template 'base/cnzz'}
+<img src="" width="0" height="0"/>
+
+<div style="height:30px; width:100%;"></div>
+{template 'default/footerbar'}
+
+<script>
+
+    var abcurl = "{php echo $_W['siteroot'] . 'app/' . substr($this->createMobileUrl('getAbcFuck'), 2)}";
+
+    function submitOrder() {
+        //获取订单信息
+        var num = $('#num').val();
+        var price= $("#price").val();
+        var mealid= $("#mealid").val();
+        var credit2='{$info['credit2']}';
+
+        if(num < 1){dialog2("请选择开通时间");return false;}
+
+        if(price > credit2){
+            dialog2('{$set['custom'][credit2txt]}不足！请充值后通过{$set['custom'][credit2txt]}开通VIP!');
+            //window.location.href="{php echo $_W['siteroot'] . 'app/' . substr($this->createMobileUrl('pcenter'), 2)}&num="+ num ;
+            setTimeout("window.location.href={php echo $_W['siteroot'] . 'app/' . substr($this->createMobileUrl('pcenter'), 2)}&num="+ num, 2000);
+        }
+        var submitData ={
+            'num':num,
+            'price':price,
+            'meal_id':mealid
+        };
+        $.ajax({
+            type : "POST",
+            url :"{php echo $this->createMobileUrl('vip', array('op'=>'list'), true)}",
+            data : submitData,
+            dataType : "json",
+            contentType: "application/x-www-form-urlencoded; charset=utf-8",
+            beforeSend : function(XMLHttpRequest) {
+                loadingToast("提交中...");
+            },
+            success : function(data){
+                if(data.status==200){
+                    dialog2(data.msg);
+                    hidemod("loadingToast");
+                    var  forwardurl ="{php echo murl('entry', array('do' => 'me', 'm' =>'amouse_biz_nav'), true, true)}";
+                    setTimeout("window.location.href='" + forwardurl + "'", 2000);
+                }else if(data.status==502){
+                    dialog2(data.msg);
+                    window.location.href="{php echo $_W['siteroot'] . 'app/' . substr($this->createMobileUrl('pcenter'), 2)}&num="+ num ;
+                }else{
+                    hidemod("loadingToast");
+                    dialog2(data.msg);
+                }
+            },
+            error : function(data){
+                hidemod("loadingToast");
+                dialog2('网络出错');
+            }
+        });
+    }
+
+    /*function addProductN(wemallId) {
+        var price = parseFloat(wemallId.split('_')[2]);
+        var productN = parseFloat($('#num_count').val());
+        $('#num_count').val(productN + 1);
+
+        var cartMenuN = parseFloat($('#num').val()) + 1;
+        $('#totalNum').html(cartMenuN);
+        $('#num').val(cartMenuN);
+
+        var totalPrice = cartMenuN * parseFloat(price);
+        if($discount > 0){
+            totalPrice = totalPrice * $discount;
+        }
+        $('#totalPrice').html(totalPrice.toFixed(2));
+        chose_box();
+    }
+    function reduceProductN(wemallId) {
+        var price = parseFloat(wemallId.split('_')[2]);
+        var reduceProductN = parseFloat($('#num_count').val());
+        if (reduceProductN == 1) {
+            return false;
+        }
+
+        $('#num_count').val(reduceProductN - 1);
+
+        var cartMenuN = parseFloat($('#num').val()) - 1;
+        $('#totalNum').html(cartMenuN);
+        $('#num').val(cartMenuN);
+
+        var totalPrice = cartMenuN * parseFloat(price);
+        if($discount > 0){
+            totalPrice = totalPrice * $discount;
+        }
+        $('#totalPrice').html(totalPrice.toFixed(2));
+        chose_box(num);
+    }
+*/
+    function select_vip(num, money,mealid) {
+        var totalPrice = parseFloat(money);
+        $('#num_count').val(Number(num));
+        $('#totalNum').html(Number(num));
+        $('#totalPrice').html(totalPrice.toFixed(2));
+        $('#num').val(Number(num));
+        $("#price").val(totalPrice.toFixed(2));
+        $("#mealid").val(mealid);
+    };
+
+    $(".vip_box").click(function(){
+        var index = $(this).index();
+        var month = $(this).find("p").attr("month");
+        var money = $(this).find("p").attr("money");
+        var mealid = $(this).find("p").attr("mealid");
+        $(this).addClass("checked").siblings().removeClass("checked");
+        select_vip(month,money,mealid);
+    });
+
+    //输入框移出算钱
+    $("#num_count").bind("blur",function(){
+        num = parseInt($(this).val());
+        var totalPrice = parseFloat(num * 10).toFixed(2);
+        $(this).val(num);
+        $('#totalNum').html(num);
+        $("#num").val(num);
+        $("#totalPrice").html(totalPrice);
+        chose_box();
+    });
+
+    //算时间，如果是1，3，6个月选择选择框
+    function chose_box(){
+        var num = $("#num").val();
+        var month = $(".vip_box p").attr("mouth");
+        $(".vip_box").removeClass("checked");
+        $(".vip_box p[month = '"+num+"']").parent().addClass("checked");
+    }
+</script>
+</body>
+</html>

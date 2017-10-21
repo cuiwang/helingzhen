@@ -1,0 +1,254 @@
+{template 'public/header'}
+{template 'public/comhead'}
+{if $operation == 'display'}
+<script>
+require(['bootstrap'],function($){
+	$('.btn,.tips').hover(function(){
+		$(this).tooltip('show');
+	},function(){
+		$(this).tooltip('hide');
+	});
+});
+</script>
+<div class="main">
+    <style>
+        .form-control-excel {
+            height: 34px;
+            padding: 6px 12px;
+            font-size: 14px;
+            line-height: 1.42857143;
+            color: #555;
+            background-color: #fff;
+            background-image: none;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+            box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+            -webkit-transition: border-color ease-in-out .15s,-webkit-box-shadow ease-in-out .15s;
+            -o-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+            transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+        }
+    </style>
+    <div class="panel panel-info">
+        <div class="panel-heading">考勤刷卡记录</div>
+		<div class="panel-body">
+			<form action="./index.php" method="get" class="form-horizontal" role="form">
+				<input type="hidden" name="c" value="site">
+				<input type="hidden" name="a" value="entry">
+				<input type="hidden" name="m" value="fm_jiaoyu">
+				<input type="hidden" name="do" value="checklog"/>
+				<input type="hidden" name="op" value="display"/>
+				<input type="hidden" name="schoolid" value="{$schoolid}" />
+				<input type="hidden" name="type" value="{$_GPC['type']}"/>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-1 control-label">进出状态</label>
+					<div class="col-sm-9 col-xs-9 col-md-9">
+						<div class="btn-group">
+							<a href="{php echo $this->createWebUrl('checklog', array('id' => $item['id'], 'type' => '0', 'schoolid' => $schoolid))}" class="btn {if $type == 0}btn-primary{else}btn-default{/if}">不限</a>
+							<a href="{php echo $this->createWebUrl('checklog', array('id' => $item['id'], 'type' => '1', 'schoolid' => $schoolid))}" class="btn {if $type == 1}btn-primary{else}btn-default{/if}">进校</a>
+							<a href="{php echo $this->createWebUrl('checklog', array('id' => $item['id'], 'type' => '2', 'schoolid' => $schoolid))}" class="btn {if $type == 2}btn-primary{else}btn-default{/if}">出校</a>
+							<a href="{php echo $this->createWebUrl('checklog', array('id' => $item['id'], 'type' => '3', 'schoolid' => $schoolid))}" class="btn {if $type == 3}btn-primary{else}btn-default{/if}">异常</a>								
+						</div>
+					</div>
+				</div>
+				<div class="form-group clearfix">
+					<label class="col-xs-12 col-sm-3 col-md-1 control-label">按学生姓名搜索</label>
+                    <div class="col-sm-2 col-lg-2">
+                        <input class="form-control" name="sname" id="" type="text" value="{$_GPC['sname']}">
+                    </div>						
+				</div>
+				<div class="form-group clearfix">
+					<label class="col-xs-12 col-sm-3 col-md-1 control-label">按教师姓名搜索</label>
+                    <div class="col-sm-2 col-lg-2">
+                        <input class="form-control" name="tname" id="" type="text" value="{$_GPC['tname']}">
+                    </div>						
+				</div>				
+				<div class="form-group clearfix">
+					<label class="col-xs-12 col-sm-3 col-md-1 control-label">按类型</label>
+					<div class="col-sm-2 col-lg-2">
+						<select style="margin-right:15px;" name="shenfen" class="form-control">
+							<option value="0">按刷卡人搜索</option>
+							<option value="1" {if $_GPC['shenfen'] == 1} selected="selected"{/if}>学生</option>
+							<option value="2" {if $_GPC['shenfen'] == 2} selected="selected"{/if}>教师</option>
+						</select>	
+					</div>					
+					<div class="col-sm-2 col-lg-2">
+						<select style="margin-right:15px;" name="bj_id" class="form-control">
+							<option value="0">按班级搜索</option>
+							{loop $allbj $row}
+							<option value="{$row['sid']}" {if $row['sid'] == $_GPC['bj_id']} selected="selected"{/if}>{$row['sname']}</option>
+							{/loop}
+						</select>
+					</div>				
+				</div>
+				<div class="form-group clearfix">
+					<label class="col-xs-12 col-sm-3 col-md-1 control-label">刷卡时间</label>
+					<div class="col-sm-2 col-lg-2">
+						{php echo tpl_form_field_daterange('createtime', array('start' => date('Y-m-d', $starttime), 'end' => date('Y-m-d', $endtime)));}
+					</div>
+					<div class="col-sm-2 col-lg-2">
+						<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+					</div>
+					<div class="col-sm-2 col-lg-2">
+						<button class="btn btn-success" name="out_put" value="output"><i class="fa fa-download"></i>导出至EXECL</button>
+					</div>					
+				</div>
+			</form>
+		</div>		
+    </div>
+    <div class="panel panel-default">
+        <div class="table-responsive panel-body">
+			<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data">
+				<input type="hidden" name="schoolid" value="{$schoolid}" />
+				<table class="table table-hover">
+					<thead class="navbar-inner">
+						<tr>
+							<th class='with-checkbox' style="width: 20px;"><input type="checkbox" class="check_all" /></th>
+							<th style="width:200px">考勤机 </th>
+							<th style="width:150px">学生/老师</th>
+							<th style="width:8%">卡号ID</th>
+							<th style="width:8%">班级</th>
+							<th style="width:6%;">进出状态</th>
+							<th style="width:10%;">刷卡人</th>
+							<th style="width:15%;">刷卡时间</th>
+							<th style="width:8%;">体温</th>
+							<th style="width:8%;">拍照</th>
+							<th style="width:8%;">状态</th>
+							<th style="text-align:right; width:10%;">操作</th>
+						</tr>
+					</thead>
+					<tbody>
+						{loop $list $item}
+							<tr>
+								<td class="with-checkbox"><input type="checkbox" name="check" value="{$item['id']}"></td>
+								<td>
+								{if $item['checktype'] == 1}
+								   {$item['mac']}
+								{else}
+									<span class="label label-info"><i class="fa fa-wechat"></i>&nbsp;微信</span></br>							
+								{/if}								   
+								</td>
+								<td>
+								{if !empty($item['sid'])}
+									<span class="label label-success">学生</span>&nbsp;{$item['s_name']}
+									{else}
+									<span class="label label-info">老师</span>&nbsp;{$item['tname']}
+								{/if}
+								</td>
+								<td>
+								{if $item['checktype'] == 1}
+									{$item['cardid']}
+								{else}
+									<span class="label label-info"><i class="fa fa-wechat"></i>&nbsp;微信端签到</span></br>
+									{if $item['isconfirm'] == 1}<span class="label label-success">老师已确认</span>{/if}								
+								{/if}								
+								</td>
+								<td>{$item['bj_name']}</td>
+								<td>
+									<span class="label label-danger">{$item['type']}</span>	
+								</td>
+								<td> 
+									<span class="label label-success">
+										{if $item['pard'] ==1}本人{/if}
+										{if $item['pard'] ==2}母亲{/if}
+										{if $item['pard'] ==3}父亲{/if}
+										{if $item['pard'] ==4}爷爷{/if}
+										{if $item['pard'] ==5}奶奶{/if}
+										{if $item['pard'] ==6}外公{/if}
+										{if $item['pard'] ==7}外婆{/if}
+										{if $item['pard'] ==8}叔叔{/if}
+										{if $item['pard'] ==9}阿姨{/if}
+										{if $item['pard'] ==10}家长{/if}
+										{if $item['pard'] ==11}老师补签{/if}
+									</span>
+									{if $item['pard'] ==11}{$item['qdtname']}老师{else}{$item['pname']}{/if}
+								</td>
+								<td>
+									 {if !empty($item['createtime'])}{php echo date('Y年m月d日 H:i:s',$item['createtime'])}{/if}
+								</td>
+								<td>{if !empty($item['temperature'])}{$item['temperature']}{else}未测{/if}</td>
+								<td>
+								{if $item['checktype'] == 1}
+									{if !empty($item['pic'])}
+									<a href="{php echo tomedia($item['pic'])}" target="_blank" class="gallery-link">
+										<img src="{php echo tomedia($item['pic'])}" alt="image" style="width:50px;height:50px;">
+									</a>
+									{/if}
+								{else}
+									<span class="label label-info"><i class="fa fa-wechat"></i>&nbsp;微信端签到</span></br>
+									{if $item['isconfirm'] == 1}<span class="label label-success">老师已确认</span>{/if}
+								{/if}	
+								</td>
+								<td>
+								{if $item['checktype'] == 1}
+									{if $item['isread'] ==1}<span class="label label-danger">未读</span>{else}<span class="label label-success">已读</span>{/if}
+								{else}
+									<span class="label label-info"><i class="fa fa-wechat"></i>&nbsp;微信端签到</span></br></br>
+									{if $item['isconfirm'] == 1}
+										<span class="label label-success">老师已确认</span>
+									{else}	
+										<span class="label label-danger">老师未确认</span>
+									{/if}
+								{/if}
+								</td>	
+								<td style="text-align:right;">				
+									<a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('checklog', array('id' => $item['id'], 'op' => 'delete', 'schoolid' => $schoolid))}" onclick="return confirm('此操作不可恢复，确认删除？');return false;" title="删除"><i class="fa fa-times"></i></a>
+								</td>
+							</tr>
+						{/loop}
+					</tbody>
+					<tr>
+						<td colspan="10">
+							<input name="token" type="hidden" value="{$_W['token']}" />
+							<input type="button" class="btn btn-primary" name="btndeleteall" value="批量删除" />
+						</td>
+					</tr>
+				</table>
+			{$pager}
+			</form>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+<!--
+	var category = {php echo json_encode($children)};
+//-->
+$(function(){
+    $(".check_all").click(function(){
+        var checked = $(this).get(0).checked;
+        $("input[type=checkbox]").attr("checked",checked);
+    });
+
+    $("input[name=btndeleteall]").click(function(){
+        var check = $("input[type=checkbox][class!=check_all]:checked");
+        if(check.length < 1){
+            alert('请选择要删除的订单!');
+            return false;
+        }
+        if(confirm("确认要删除选择的订单?")){
+            var id = new Array();
+            check.each(function(i){
+                id[i] = $(this).val();
+            });
+            var url = "{php echo $this->createWebUrl('checklog', array('op' => 'deleteall'))}";
+            $.post(
+                url,
+                {idArr:id},
+                function(data){
+                    alert('成功删除!');
+                    location.reload();
+                },'json'
+            );
+        }
+    });
+
+});
+</script>
+
+<script type="text/javascript">
+    <!--
+    var category = {php echo json_encode($children)};
+    //-->
+</script>
+{/if}
+{template 'public/footer'}

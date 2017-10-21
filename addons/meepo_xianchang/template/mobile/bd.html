@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" id="viewport">
+    <meta name="viewport" content="target-densitydpi=get-target-densitydpi, width=device-width, user-scalable=no" />
+    <title>录入个人资料</title>
+	<link href="{$_W['siteroot']}app/resource/css/common.min.css?v=20160906" rel="stylesheet">
+	<script src="{$_W['siteroot']}app/resource/js/lib/mui.min.js?v=20160906"></script>
+	<script src="http://apps.bdimg.com/libs/jquery/2.1.1/jquery.min.js"></script>
+	<script src="{MODULE_URL}template/mobile/app/js/app_tool.js"></script>
+	<body>
+	<div class="mui-content mc-login">
+	<div class="avatar mui-text-center">
+		<p style="margin:0;padding:20px;font-weight:bold;font-size:15px;">录入个人资料</p>
+	</div>
+		<div class="mui-control-content mui-active" id="login-basic">
+			<div class="mui-input-group" >
+				{loop $bd_manage['xm'] $row}
+					  <div class="mui-input-row" style="height:60px;">
+							<label style="padding:21px 15px">{$row['bd_name']}</label>
+							<input name="{$row['zd_name']}" id="{$row['zd_name']}" type="{if $row['zd_name']=='mobile'}tel{else}text{/if}" placeholder="请输入{$row['bd_name']}" style="height:60px;">
+					  </div>
+				{/loop}
+			</div>
+		</div>
+		<div class="mui-content-padded">
+			<button class="mui-btn mui-btn-success mui-btn-block login-basic" type="submit" name="submit" value="确定">确定</button>
+		</div>
+	</div>
+<div id="yz_loading" style="display:none;background:#fff;position:fixed;width:100%;height:100%;top:0;left:0;text-align:center;opacity:0.9;padding-top:60%">
+						<span class="mui-spinner" style="font-size:20px;"></span>
+						<div style="height:40px;line-height:40px;font-size:16px;">正在拼命提交...</div>
+</div>
+<script>
+$(function(){
+		$(".login-basic").click(function(){	
+			var insert_data = {};
+			{loop $bd_manage['xm'] $row}
+				var {$row['zd_name']} = $("#{$row['zd_name']}").val();
+				if({$row['zd_name']}=='' || undefined=={$row['zd_name']}){
+					return mui.alert("请认真填写您的{$row['bd_name']}");
+				}else{
+					{if $row['zd_name']=='mobile'}
+					var phone = /^1([38]\d|4[57]|5[0-35-9]|7[06-8]|8[89])\d{8}$/;
+					if(!phone.test($("#mobile").val())){
+						return mui.alert("请输入{$row['bd_name']}");
+					}
+					{/if}
+					insert_data.{$row['zd_name']} = $("#{$row['zd_name']}").val();
+				}
+			{/loop}
+			insert_data.rid = "{$rid}";
+			_meepoajax._ajax({
+				do_it:'bd_insert',
+				type: "POST",                        
+				dataType: 'json',      
+				cache: false,                 
+				formPata:insert_data,
+				success:function(data) {
+						if(data.errno==0){
+							mui.alert('提交成功');
+							setTimeout(function(){
+								window.location.href = "{php echo $this->createMobileUrl($frompage,array('rid'=>$rid))}";
+							},1000)
+						}else{
+							mui.alert(data.message);
+						}
+				}
+			});
+		});
+});
+</script>
+<div id="toast"></div>
+</body>
+</html>

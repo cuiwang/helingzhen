@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="keywords" content="" />
+    <meta name="description" content="" />
+    <title>个人中心</title>
+    {php echo register_jssdk(false);}
+    <link rel="stylesheet" href="{RES}font/iconfont.css" />
+    <link rel="stylesheet" href="{RES}css/style_index.css" />
+    <script type="text/javascript" src="{RES}js/jquery-2.1.4.min.js" ></script>
+    <script type="text/javascript" src="{RES}js/script.js" ></script>
+    <script type="text/javascript">
+        $(function(){
+            $('#recmember').click(function(){
+                    $('.Elastic').show();
+            })
+            $('#close').click(function(){
+                $('.Elastic').hide();
+            })
+        })
+    </script>
+</head>
+<body>
+<div id="box">
+    <div class="Member_head">
+        <div class="Member_img domain">
+            <span style="background-image: url({$avatar});"></span>
+            <p>{$nickname}</p>
+        </div>
+        <div class="Member_menoy">
+            {if !empty($user)}
+            <a id="recmember" href="###"> 充值会员</a>
+            {else}
+            <a href="{php echo $this->createmobileurl('edit')}"> 成为会员</a>
+            {/if}
+        </div>
+        <div class="Elastic">
+            <div class="Elastic_min">
+                <i class="icon iconfont" id="close">&#xe60e;</i>
+                <p>您需要支付<i class="yuan">{$cfg['dg_article_recharge']}</i>元</p>
+                <input type="hidden" id="rec" value="{$cfg['dg_article_recharge']}" name="rec">
+                <div class="btn gridXt">
+                    <span class="span1"><i class="iconfont" onclick="cut()">&#xe613;</i></span>
+                    <span class="span2" id="month">1</span>个月
+                    <span class="span3"><i class="iconfont" onclick="add()">&#xe612;</i></span>
+                </div>
+                <div class="tijiao">
+                    <a href="###" onclick="pay()">提交</a>
+                </div>
+            </div>
+        </div>
+        <div class="bianji">
+            <a href="{php echo $this->createmobileurl('edit')}"><i class="iconfont">&#xe60b;</i>编辑</a>
+        </div>
+        {if $user['info_status']==2}
+        <div class="vip">
+            <i class="iconfont">&#xe60c;</i>
+        </div>
+        {/if}
+    </div>
+    <div class="Member_min">
+        <ul>
+            <li>姓名：<i>{$user['realname']}</i></li>
+            <li>姓别：{if $sex==1}<i>男</i>{else}<i>女</i>{/if}</li>
+            <li>联系电话：<i>{$user['mobile']}</i></li>
+            {if $user['info_status']==2}
+            <li>会员到期时间：<i>{php echo date('Y/m/d', $user['end_time']);}</i></li>
+            {/if}
+            <a href="{php echo $this->createmobileurl('intro')}"><li>会员介绍<i style="float:right" class="iconfont">&#xe608;</i></li></a>
+            <a href="{php echo $this->createmobileurl('sharep')}"><li>我的分享收益<i style="float:right" class="iconfont">&#xe608;</i></li></a>
+            {if !empty($author)}
+            <a href="{$pubarticle}"><li>发布文章<i style="float:right" class="iconfont">&#xe608;</i></li></a>
+            <a href="{$authorurl}"><li>我的收益<i style="float:right" class="iconfont">&#xe608;</i></li></a>
+            <a href="{$myarticle}"><li>我的文章<i style="float:right" class="iconfont">&#xe608;</i></li></a>
+            {/if}
+            {if !empty($user)}
+            <a href="###" onclick="collect('my');" ><li>我的收藏<i style="float:right" class="iconfont">&#xe608;</i></li></a>
+            {/if}
+        </ul>
+    </div>
+
+    <div class="Member_foot">
+        <ul class="clearfix">
+            <li><a href="{php echo $this->createmobileurl('payred_index')}"><i class="iconfont">&#xe60a;</i>首页</a></li>
+            <li><a class="active" href="{php echo $this->createmobileurl('center')}"><i class="iconfont">&#xe609;</i>个人中心</a></li>
+        </ul>
+    </div>
+</div>
+</body>
+<script type="text/javascript">
+    function jsApiCall(pay)
+    {
+        WeixinJSBridge.invoke(
+                'getBrandWCPayRequest',
+                pay,
+                function(res){
+                    WeixinJSBridge.log(res.err_msg);
+                    if(res.err_msg == "get_brand_wcpay_request:ok") {
+                        location.reload();
+                    } else if(res.err_msg == "get_brand_wcpay_request:cancel"){
+                        alert("已取消付费!");
+                    }else{
+                        alert(res.err_code+res.err_desc+res.err_msg);
+                    }
+                }
+        );
+    }
+
+    function callpay(pay)
+    {
+        if (typeof WeixinJSBridge == "undefined"){
+            if( document.addEventListener ){
+                document.addEventListener('WeixinJSBridgeReady', jsApiCall, false);
+            }else if (document.attachEvent){
+                document.attachEvent('WeixinJSBridgeReady', jsApiCall);
+                document.attachEvent('onWeixinJSBridgeReady', jsApiCall);
+            }
+        }else{
+            jsApiCall(pay);
+        }
+    }
+</script>
+<script>
+    function cut(){
+        var month=$("#month").text();
+        var yuan=$("#rec").val();
+        month=parseInt(month)-1;
+        (month==0)?month=1:month;
+        rec=parseFloat(yuan)*month;
+        if(month<=1){
+            $("#month").empty();
+            $("#month").html(1);
+            $(".yuan").empty();
+            $(".yuan").html(rec);
+            return;
+        }
+        $("#month").empty();
+        $("#month").html(month);
+        $(".yuan").empty();
+        $(".yuan").html(rec);
+    }
+    function add(){
+        var month=$("#month").text();
+        var yuan=$("#rec").val();
+        month=parseFloat(month)+1;
+        rec=parseFloat(yuan)*month;
+        $("#month").empty();
+        $("#month").html(month);
+        $(".yuan").empty();
+        $(".yuan").html(rec);
+    }
+    function pay(){
+        var yuan=$(".yuan").text();
+        var month=$("#month").text();
+        $.ajax({
+            type:"post",
+            data:{"rec":yuan,"month":month},
+            url:"{php echo $this->createmobileurl('center',array('op'=>'post'))}",
+            datatype:"json",
+            success:function(data){
+                $('.Elastic').hide();
+                callpay(data);
+            }
+        });
+    }
+    function collect(op){
+        var colurl="{php echo $this->createmobileurl('collect')}";
+        var c=op;
+        $.post(colurl,{op:c},function(res){
+            if(res.result==1){
+                alert(res.msg);
+            }else{
+                location.href=colurl;
+            }
+        });
+    }
+</script>
+</html>

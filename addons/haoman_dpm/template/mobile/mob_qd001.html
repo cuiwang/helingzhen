@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>签到</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+<meta name="format-detection" content="telephone=no" />
+<meta content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" name="viewport">
+<link rel="stylesheet" href="../addons/haoman_dpm/mobimg/index.css?v=20161124" />
+<style type="text/css" id="_zoom"></style>
+<style type="text/css">
+	.wrapper {
+        width: 100%;
+        max-width: 800px;
+        min-height: 100%;
+        margin: 0 auto;
+        background-image: url({$bg});
+        background-repeat: repeat;
+        background-size: 100% auto;
+    }
+</style>
+</head>
+<body>
+<div id="container">
+<div class="zoom">
+<div class="cover"></div>
+
+<div class="error_dialog">
+  <img alt="" src="../addons/haoman_dpm/mobimg/error.png">
+  <p>还有信息没有填写完哦！</p>
+</div>
+<div class="signIned">
+   <div class="success"><s></s>签到成功</div>
+   <a href="{php echo $this->createMobileUrl('index', array('id' => $rid))}" class="yellow_btn">确定</a>
+</div>	
+	<div class="wrapper">
+	   
+	    <div class="companyName" style="padding-top: 20%;">
+	      <p>欢迎参加</p>
+	      <p>{$reply['mobtitle']}</p>
+	    </div>
+	    {if $reply['ziliao']==1}
+	    <div class="signIn1" >
+			<div class="head_box">
+			  <div class="headbox"><img alt="" src="../addons/haoman_dpm/mobimg/headbox.png"></div>
+				<img alt="" src="{php echo tomedia($avatar)}" />
+			</div>
+			<div class="userName">{$nickname}</div>
+			<a href="javascript:void(0);" class="yellow_btn signin-btn">签到</a>
+		</div>
+		{else}
+		<div class="signIn2">
+		    <div class="head_box">
+			  <div class="headbox"><img alt="" src="../addons/haoman_dpm/mobimg/headbox.png"></div>
+				<img alt="" src="{php echo tomedia($avatar)}" />
+			</div>
+			 
+			  <p>请输入您的相关信息，完成签到。</p>
+			  <section id="markname1" ><s class="s1"></s><span class="b_top"></span><span class="b_bottom"></span><input type="text" class="nickname" name="realname" id="realname" placeholder="姓名"></section>
+				
+				{if $reply['ziliao']==2 || $reply['ziliao']==3} <section id="markname2" ><s class="s2"></s><span class="b_top"></span><span class="b_bottom"></span><input type="tel" class="telphone" name="mobile" id="mobile" placeholder="手机号"></section>{/if}
+				
+				{if $reply['ziliao']==3}<section id="markname4"><s class="s4"></s><span class="b_top"></span><span class="b_bottom"></span><input type="text" class="company" name="address" id="address" placeholder="公司名称/职位"></section>{/if}
+				{if $reply['qdshow']==1}<section><textarea id="qdword" name="memo" placeholder="留下您宝贵的一言吧。" maxlength=70></textarea></section>{/if}
+				<section><a href="javascript:;" class="yellow_btn signin-btn">签到</a>
+				<section style="width:100%;height:20px;"></section>
+		</div>
+		{/if}
+
+
+		
+	</div>
+</div>
+<!-- <script type="text/javascript" src="../addons/haoman_dpm/common/zepto.min.js?v=20161124170424"></script> -->
+<script type="text/javascript" src="../addons/haoman_dpm/common/jquery-2.1.4.min.js?v=2016071822351"></script>
+<script type="text/javascript" src="../addons/haoman_dpm/mobimg/index.js?v=20161124170424"></script>
+<script type="text/javascript">
+	$(function(){
+
+		$(".signin-btn").click(function(){
+
+		{if $reply['ziliao']!=1}
+
+			var mobile ='';
+			var address ='';
+
+			if(($(".nickname").val()=="")||($(".nickname").val()=="null")){
+				$(".error_dialog p").html("请填写姓名！");
+				$(".error_dialog").show();
+				setTimeout(function(){$(".error_dialog").hide()},3000);
+				return;
+			}
+			
+			{if $reply['ziliao']==2 || $reply['ziliao']==3}
+
+			if(($(".mobile").val()=="")||($(".mobile").val()=="null")){
+				$(".error_dialog p").html("请填写手机号！");
+				$(".error_dialog").show();
+				setTimeout(function(){$(".error_dialog").hide()},3000);
+				return;
+			}
+			mobile = $("input[name='mobile']").val();
+			{/if}
+			
+			{if $reply['ziliao']==3}
+			if(($(".address").val()=="")||($(".address").val()=="null")){
+				$(".error_dialog p").html("请填写公司！");
+				$(".error_dialog").show();
+				setTimeout(function(){$(".error_dialog").hide()},3000);
+				return;
+			}
+			address = $("input[name='address']").val();
+			{/if}
+
+		{/if}
+
+			var $btn = $(this);
+			if($btn.hasClass("disabled")) return;
+			$btn.addClass("disabled");
+
+
+			var submitData = {
+                {if $reply['ziliao']!=1}
+				"realname":$("input[name='realname']").val(),
+				"qdword":$("#qdword").val(),
+				"mobile":mobile,
+				"address":address,
+				"nickname":'{$nickname}',
+				"avatar":'{php echo tomedia($avatar)}'
+				{else}
+				"nickname":'{$nickname}',
+				"avatar":'{php echo tomedia($avatar)}'
+				{/if}
+            };
+            $.post('{php echo $this->createMobileUrl('ckinfo',array('id'=>$rid,'from_user'=>$page_from_user))}', submitData, function(idata) {
+               $btn.removeClass("disabled");
+				if (idata.success == 1) {
+
+					$(".signIned").show();
+					$(".cover").show();
+				}  else{
+					$(".error_dialog p").html(idata.msg);
+					$(".error_dialog").show();
+					setTimeout(function(){$(".error_dialog").hide()},3000);
+					return;
+				}
+            },"json");
+
+		    
+		});
+	});
+</script>
+</div>
+<div class="power-by" style="position: fixed;bottom: 10px;width: 100%;left: 0px;right: 0px;font-size: 12px;text-align: center;color:#EAB387;">
+	<div class="copyright fixed">{if empty($reply['copyright'])} &copy;{$_W['account']['name']}{else}&copy;{$reply['copyright']}{/if}</div>
+</div>
+</body>
+<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+<script type="text/javascript">
+	wx.config({
+		debug:false,
+		appId: '{$package["appId"]}',
+		timestamp: '{$package["timestamp"]}',
+		nonceStr: '{$package["nonceStr"]}',
+		signature: '{$package["signature"]}',
+		jsApiList: [
+			'getLocation','onMenuShareTimeline','onMenuShareAppMessage','onMenuShareWeibo'
+	]
+	});
+	var sharedata = {
+		"imgUrl" : "{$shareimg}",
+		"link" : "{$sharelink}",
+		"desc" : "{$sharedesc}",
+		"title" : "{$sharetitle}"
+	};
+
+	wx.ready(function () {
+		wx.showOptionMenu();
+		wx.onMenuShareAppMessage(sharedata);
+		wx.onMenuShareQZone(sharedata);
+		wx.onMenuShareTimeline(sharedata);
+		wx.onMenuShareQQ(sharedata);
+		wx.onMenuShareWeibo(sharedata);
+	});
+
+</script>
+</html>

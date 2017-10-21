@@ -1,0 +1,268 @@
+
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{$qmwb['title']}</title>
+    <!-- 移动设备支持 -->
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+    <meta content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
+    <meta content="no-cache,must-revalidate" http-equiv="Cache-Control">
+    <meta content="no-cache" http-equiv="pragma">
+    <meta content="0" http-equiv="expires">
+    <meta content="telephone=no, address=no" name="format-detection">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <link href="{MON_QMWB_RES}css/reset.css" rel="stylesheet" type="text/css">
+    <link href="{MON_QMWB_RES}css/treasure.css" rel="stylesheet" type="text/css">
+    <link href="{MON_QMWB_RES}css/box.css" rel="stylesheet" type="text/css">
+    <script src="{MON_QMWB_RES}js/jquery-1.8.2.min.js"></script>
+    <link rel="stylesheet" type="text/css"
+          href="{MON_QMWB_RES}/css/sweet-alert.css">
+    <script type="text/javascript" src="{MON_QMWB_RES}/js/sweet-alert.min.js"></script>
+    {template 'share'}
+</head>
+<style>
+
+    body {
+    background: {$qmwb['bg_color']};
+    }
+
+    .page2 {
+
+        background-image: url({php echo MonUtil::defaultWBImg(MonUtil::$IMG_WB_KW_BG, $address)});
+        background-repeat: no-repeat;
+        background-position: center 0px;
+        background-size: 100%;
+    }
+
+    .treasure_img {
+        background-image: url({php echo MonUtil::defaultWBImg(MonUtil::$IMG_WB_BTN_BG, $address)});
+
+    }
+</style>
+
+<body >
+<div id="wrap">
+    <div class="com_page page2">
+        <div class="treasure">
+        </div>
+        <div class="treasure_tit">
+            <div class="treasure_img">
+                <a href="javascript:wb();" class="treasure_btn">{$address['btn_kw_name']}</a>
+
+            </div>
+            <div class="treasure_go">
+                <a href="{php echo $this->createMobileUrl('box', array('qid' => $qmwb['id']))}" class="btn2">换个地方</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer" >
+        <div class="ad" id="box">
+            <a href="#" onClick="document.getElementById('box').style.display=document.getElementById('box').style.display==''?'none':''"><i></i></a>
+            <span><a href="{$qmwb['bottom_ad_url']}"><img src="{php echo MonUtil::defaultImg(MonUtil::$IMG_BOTTOM_ADD, $qmwb)}" /></a></span>
+        </div>
+        <p class="copyright">{$qmwb['copyright']}</p>
+    </div>
+
+</div>
+
+<!--用户信息弹出层-->
+{if empty($dbUser)}
+<div id="user_info">
+    <h2>填写信息</h2>
+    <ul>
+        <li><label>姓名：</label><span><input class="info_inp" name="name" type="text"></span></li>
+        <li><label>手机：</label><span><input class="info_inp" name="tel" type="tel"></span></li>
+        <li><input class="tj_btn" id="suendja" value="提　交" type="button" onclick="tj()"></li>
+    </ul>
+</div>
+{/if}
+
+<div id="help_tip">
+    <img src="{MON_QMWB_RES}images/help.png">
+</div>
+
+<script type="text/javascript" src="{MON_QMWB_RES}js/jquery.artDialog.min.js"></script>
+
+<script>
+
+    function wb() {
+
+
+        {if $qmwb['join_follow_enable'] == 1}
+               var follow = {$follow};
+
+                if (follow ==1){
+                    swal({
+                                title: "提示",
+                                text: "{$qmwb['follow_dlg_tip']}",
+                                type: "info",
+                                showCancelButton: false,
+                                confirmButtonColor: "#DD6B55",
+                                confirmButtonText: "{$qmwb['follow_btn_name']}",
+                                closeOnConfirm: false },
+                            function(){
+
+                                window.top.location.href ="{$qmwb['follow_url']}";
+
+                            });
+
+                    return ;
+                }
+
+            {/if}
+
+
+
+        {if empty($dbUser)}
+
+
+            $.dialog({
+                content: document.getElementById('user_info'),
+                lock: true,
+                padding:0
+            });
+
+             //$("#user_info").css("padding", "0").show();
+            return ;
+       {/if}
+
+           {if !empty($dbUser)}
+
+                       $.post("{php echo $this->createMobileUrl('UserWb',array('qid'=> $qmwb['id'], uid => $dbUser['id'],'aid'=> $address['id']), true)}", function(res) {
+
+                           if (res.code != 200) {
+                               dialogMsg(res.msg);
+                           } else {
+
+                               swal({
+                                   title: "提示",
+                                   text: res.msg,
+                                   type: "success",
+                                   confirmButtonText: "好的，我去了！",
+                                   showCancelButton: false,
+                                   closeOnConfirm: true
+                               }, function(){
+                                   window.location.reload();
+                               });
+
+                           }
+
+                       }, 'json');
+
+      {/if}
+
+    }
+    $(function(){
+        if($(document).height()<=$(window).height()){
+            $(".footer").css({position:"absolute",left:0,bottom:0})
+        }
+
+
+
+
+        var box3;
+        $("#help").click(function(){
+            $("#help_tip").show();
+//            box3 = $.dialog({
+//                content: document.getElementById('help_tip'),
+//                lock: true,
+//                padding:0
+//            });
+        })
+
+        $("#help_tip").click(function(){
+            $("#help_tip").hide();
+            //box3.close();
+        })
+        $("#get_jp").click(function(){
+            $.dialog({
+                content: document.getElementById('user_info'),
+                lock: true,
+                padding:0
+            });
+        })
+    })
+
+
+
+
+    function  getStringLen(Str){
+        Str = Str.replace(/[ ]/g,""); //替换所有空格
+        var   i,len,code;
+        if(Str==null || Str == "")   return   0;
+        len   =   Str.length;
+        for   (i   =   0;i   <   Str.length;i++)
+        {
+            code   =   Str.charCodeAt(i);
+            if   (code   >   255) {len ++;}
+        }
+        return   len;
+    }
+
+ {if empty($dbUser)}
+            function tj(){
+               // $("#suendja").removeAttr('onclick');
+                var name = $("input[name='name']").val();
+                var mobile = $("input[name='tel']").val();
+                var mobile_reg = /^[1][3-8]+\d{9}$/;
+                var len1 = getStringLen(name);
+                if (len1 > 16 || len1 < 1) {
+                    dialogMsg("请输入1~8个汉字、1~16个字母作为姓名");
+                    return false;
+                }
+                if(mobile==''){
+                    dialogMsg('手机号码不能为空！');
+                    return false;
+                }else if(!mobile_reg.test(mobile)){
+                    dialogMsg("您输入手机号码格式不正确，请重新输入");
+                    return false;
+                }
+
+                    $.post("{php echo $this->createMobileUrl('Regist',array('qid'=> $qmwb['id']), true)}", {'tel': mobile, 'uname':name}, function(res) {
+
+                        if (res.code != 200) {
+                            dialogMsg(res.msg);
+                        } else {
+
+                            swal({
+                                title: "提示",
+                                text: "注册成功",
+                                type: "success",
+                                confirmButtonText: "好的，我去挖宝了！",
+                                showCancelButton: false,
+                                closeOnConfirm: true
+                            }, function(){
+                                window.location.reload();
+                            });
+
+                        }
+
+                    }, 'json');
+
+                }
+{/if}
+
+
+    function dialogMsg(msg) {
+
+        swal({
+                    title: "提示",
+                    text: msg,
+                    type: "info",
+                    showCancelButton: false,
+                    confirmButtonColor: "#DD6B55",
+                    confirmButtonText: "确定",
+                    closeOnConfirm: true },
+                function(){
+
+                });
+    }
+</script>
+</body>
+</html>
+
+

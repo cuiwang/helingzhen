@@ -1,0 +1,323 @@
+{template 'common/header'}
+	<script>
+require(['jquery', 'util'], function($, util){
+    $('#setting-form').submit(function(){
+      var result = true;
+      if($('#username').val() == ''){
+        result = false;
+        util.message('你没有填写客户的名字');
+      }  
+      if($('#username').val().length>10){
+        result = false;
+        util.message('客户的名字不能超过10长度');
+      }
+      if($('#password').val()==''){
+        result = false;
+        util.message('密码不能为空');
+      }
+      if($('#password').val().length >10){
+        result = false;
+        util.message('密码长度只能是十位');
+      }
+       var reg=/^[a-zA-Z0-9]+$/;
+      if(!reg.test($('#password').val())){
+            result = false; 
+            util.message('密码只能是数字和字母！');   
+        }   
+       if($('#phoneNumber').val() == ''){
+        result = false;
+        util.message('手机号码不能为空');
+      }
+      var r = /^[0-9]+$/;
+       if(($('#phoneNumber').val().length != 11)||(!reg.test($('#phoneNumber').val()))){
+        result = false;
+        util.message('手机号码格式不正确');
+      } 
+      return result;
+    });
+  });
+</script>
+<ul class="nav nav-tabs">
+<li {if $op == 'manage'} class="active"{/if}><a href="{php echo $this->createWebUrl('customer', array('op' => 'manage'))}">所有客户</a></li>
+<li {if $op== 'check'} class="active"{/if}><a href="{php echo $this->createWebUrl('customer', array('op' => 'check'))}">待审核客户</a></li>
+{if $op == 'change'}<li class="active"><a href="{php echo $this->createWebUrl('customer', array('op' => 'change'))}">查看客户</a></li>{/if}
+</ul>
+
+{if $op == 'manage'}
+
+<div class="main">
+	<form action="" method="post" class="form-horizontal form" id="form">
+		<div class="panel panel-default">
+			<div class="panel-heading">所有客户</div>
+			<div class="panel-body">
+				<div class="table-responsive panel-body">
+					<table class="table table-hover" style="min-width: 300px;">
+						<thead class="navbar-inner">
+							<tr>
+								<th style="width:40px;">ID</th>
+								<th style="width:120px;">名字</th>
+								<th style="width:120px;">电话号码</th>
+								<th style="width:50px;">审核状态</th>
+								<th style="width:100px;">属性</th>
+							</tr>
+						</thead>
+						<tbody>
+							{loop $customer $key $item}
+							<tr>
+		<td class="text-left">
+		{php echo ++$key;}
+		</td>
+		<td>
+<input type="text"  value="{$item['username']}" class="form-control categories-name" disabled>
+		</td>
+		<td>
+<input type="text"  value="{$item['phoneNumber']}" class="form-control categories-name" disabled>
+		</td>
+		<td>
+			{if $item['uditing']==1}
+			<button type="button" class="btn btn-success">已通过</button>
+			{else}
+			<button type="button" class="btn btn-danger" onclick="if(confirm('是否通过审核?')){check('manage','{$item['id']}')}else{return false;}">未通过</button>
+			{/if}
+		</td>
+		<td>
+			<!--删除可以用ajax实现-->
+<button type="button"  class="btn  btn-danger" onclick="if(confirm('是否删除?')){shanchu('manage','{$item['id']}')}else{return false;}">删除</button>	
+<a href="{php echo $this->createWebUrl('customer',array('op'=>'change','id'=>$item['id']));}" class="btn btn-primary" />查看</a>
+		</td>
+							</tr>
+					{/loop}
+							{if !empty($customer)}
+							<tr>
+								<td colspan="4">
+									<input type="hidden" name="token" value="{$_W['token']}" />
+								</td>
+							</tr>
+							{else}
+							<tr>
+								<td colspan="4">
+									尚没有客户
+								</td>
+							</tr>
+							{/if}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</form>
+</div>
+{$page}
+{/if}
+
+{if $op == 'check'}
+
+<div class="main">
+	<form action="" method="post" class="form-horizontal form" id="form">
+		<div class="panel panel-default">
+			<div class="panel-heading">待审核客户</div>
+			<div class="panel-body">
+				<div class="table-responsive panel-body">
+					<table class="table table-hover" style="min-width: 300px;">
+						<thead class="navbar-inner">
+							<tr>
+								<th style="width:40px;">ID</th>
+								<th style="width:120px;">名字</th>
+								<th style="width:130px;">电话号码</th>
+								<th style="width:100px;">审核状态</th>
+								<th style="width:220px;">属性</th>
+								<th></th>
+							</tr>
+						</thead>
+						<tbody>
+							{loop $customer $key $item}
+							<tr>
+		<td class="text-left">
+		{php echo ++$key;}
+		</td>
+		<td>
+<input type="text"  value="{$item['username']}" class="form-control categories-name" disabled>
+		</td>
+		<td>
+<input type="text"  value="{$item['phoneNumber']}" class="form-control categories-name" disabled>
+		</td>
+		<td>
+			<button type="button" class="btn btn-danger" onclick="if(confirm('是否通过审核?')){check('check','{$item['id']}')}else{return false;}">未通过</button>
+		</td>
+		<td>
+<button type="button" class="btn btn-success" onclick="if(confirm('是否通过审核?')){check('check','{$item['id']}')}else{return false;}">通过审核</button>
+			<!--删除可以用ajax实现-->
+<button type="button"  class="btn  btn-danger" onclick="if(confirm('是否删除?')){shanchu('check','{$item['id']}')}else{return false;}">删除</button>
+<a href="{php echo $this->createWebUrl('customer',array('op'=>'change','id'=>$item['id']));}" class="btn btn-primary" />查看</a>
+		</td>
+			</tr>
+					{/loop}
+							{if !empty($customer)}
+							<tr>
+								<td colspan="4">
+									<input type="hidden" name="token" value="{$_W['token']}" />
+								</td>
+							</tr>
+							{else}
+							<tr>
+								<td colspan="4">
+									尚没有待审核客户
+								</td>
+							</tr>
+							{/if}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</form>
+</div>
+{$page}
+{/if}
+
+
+{if $op == 'change'}
+
+<div class="main">
+	<form action="" method="post" class="form-horizontal form" id="setting-form">
+		<div class="panel panel-default">
+			<div class="panel-heading">查看客户</div>
+			<div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">名字</label>
+					<div class="col-xs-12 col-sm-4">
+					<input type="text" name="data[username]" class="form-control" value="{$customer['username']}" id="username" />					
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">密码</label>
+					<div class="col-xs-12 col-sm-4">
+					<input type="text" name="data[password]" class="form-control" value="{$customer['password']}" id="password" />					
+					</div>
+				</div>
+					<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">电话号码</label>
+					<div class="col-xs-12 col-sm-4">
+						<input type="text" name="data[phoneNumber]" class="form-control" value="{$customer['phoneNumber']}" id="phoneNumber" />
+					</div>
+				</div>
+					<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">审核状态</label>
+					<div class="col-xs-12 col-sm-4">
+						{if $customer['uditing']==1}
+			<button type="button" class="btn btn-success">已通过</button>
+			{else}
+			<button type="button" class="btn btn-danger" onclick="if(confirm('是否通过审核?')){check('change','{$customer['id']}')}else{return false;}">未通过</button>
+			{/if}
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">Ta的记录</label>
+					<div class="col-xs-12 col-sm-4">
+			<a type="button" class="btn btn-info" onclick="show()" id="show">查看{$customer['username']}的故障记录</a>
+					</div>
+				</div>
+				<div class="form-group">
+				<div class="col-xs-12 col-sm-9 col-md-10 col-lg-10 col-sm-offset-3 col-md-offset-2 col-lg-offset-2">
+						<input name="submit" type="submit" value="提交" class="btn btn-primary" />
+						<input type="hidden" name="token" value="{$_W['token']}" />
+						<input type="hidden" name="data[id]" value="{$customer['id']}"/>
+					</div>
+				</div>
+			</div>
+		</div>
+	</form>
+</div>
+<div class="panel panel-default" id="record"  style="display:none;">
+  <div class="panel-heading">故障记录</div>
+  <div class="panel-body">
+     <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>故障发布者</th>
+          <th>故障标题</th>
+          <th>故障状态</th>
+          <th>接单员名字</th>
+        </tr>
+      </thead>
+      <tbody>
+      	{loop $report $key $items}
+<tr>
+
+          <th scope="row">{php echo ++$key;}</th>
+          <td>{$items['username']}</td>
+          <td>{$items['title']}</td>
+          {if $items['status']==0}<td>未接单</td>{else if $items['status']==1}<td>已接单</td>{else}<td>已完成</td>{/if}
+          <td>{$items['take_name']}</td>
+        </tr>
+      	{/loop}
+      </thead>
+    </table>
+  </div>
+</div>
+  <script type="text/javascript">
+$("#show").click(function(){
+	$("#record").show(1000);
+});
+  </script>
+{/if}
+<script type="text/javascript">
+function check(get,getid){
+	var name=false;
+		if(get=='check'){
+		var url = '{php echo $this->createWebUrl('customer',array('op'=>'check'))}';
+
+	}else if(get == 'manage'){
+		var url = '{php echo $this->createWebUrl('customer',array('op'=>'manage'))}';
+	}else{
+		var url ='{php echo $this->createWebUrl('customer',array('op'=>'change','id'=>'getid'))}';
+		name=true;
+	}
+	   $.ajax({
+			type:"POST",
+			url:"{php echo $this->createWebUrl('checkajax')}",
+			data:{
+				id:getid,
+				ku:'tb_service_user'
+			},
+			cache:false,
+			success:function(data){
+				if(data=="success"){
+					alert("审核成功");
+					if(name){
+				window.location.reload();
+			}else{
+				window.location.href=url;
+			}
+				}else{
+				   alert("审核失败");				
+				}
+			}
+		});
+	}
+</script>
+<script type="text/javascript">
+function shanchu(get,getid){
+	if(get=='check'){
+		var url = '{php echo $this->createWebUrl('customer',array('op'=>'check'))}';
+	}else{
+		var url = '{php echo $this->createWebUrl('customer',array('op'=>'manage'))}';
+	}
+	 $.ajax({
+			type:"POST",
+			url:"{php echo $this->createWebUrl('deleteajax')}",
+			data:{id:getid,ku:'tb_service_user'},
+			cache:false,
+			success:function(data){
+				if(data=="success"){
+					alert("删除成功");
+					window.location.href=url;
+				}else{
+				   alert("删除失败");				
+				}
+			}
+		});
+}
+</script>
+{template 'common/footer'}

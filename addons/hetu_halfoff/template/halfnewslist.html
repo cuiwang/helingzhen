@@ -1,0 +1,97 @@
+{template 'common/header'}
+    <div class="main">
+	<ul class="nav nav-tabs">
+		<li class="active"><a href="{php echo $this->createWebUrl('HalfNews',array('op'=>'list'));}">消息列表</a></li>
+	   <li><a href="{php echo $this->createWebUrl('HalfNews',array('op'=>'post'));}">消息添加</a></li>
+		
+	</ul>
+<div class="main">
+	<div class="panel panel-default">
+		<div class="panel-body table-responsive">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+			<tr>
+				<th class='with-checkbox' style='width:30px;'>
+					<input type="checkbox" class="check_all" onclick="selectAll();" id="alldel"/>
+				</th>
+				<th style="width:60px;">消息标题</th> 
+                <th style='width:50px;'>创建人</th>
+				<th style='width:80px;'>创建时间</th>
+				<th style='width:50px;'>排序</th>
+				<th style='width:150px;'>显示时间</th>
+				<th style="width:100px;">操作</th>
+			</tr>
+			</thead>
+			<tbody>
+			{loop $list $item}
+			<tr>  <td class="with-checkbox">
+				<input type="checkbox" name="check" value="{$item['id']}"></td>
+				<td>{$item['title']}</td>
+				<td>{$item['creater']}</td>
+				<td>{php echo date("Y-m-d H:i:s", $item['createtime'])}</td>
+				<td>{$item['sequence']}</td>
+                <td>{php echo date("Y-m-d H:i:s", $item['starttime'])} ~ {php echo date("Y-m-d H:i:s", $item['endtime'])}</td>
+				<td>
+                    <a class="btn  btn-default btn-sm" rel="tooltip" href="{php echo $this->createWebUrl('HalfNews',array('op'=>'post','id'=> $item['id']))}" title="编辑" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-edit"></i></a>
+					<a class="btn btn-default" href="#" onclick="drop_confirm('您确定要删除此模块吗?', '{php echo $this->createWebUrl('HalfNews',array('op'=>'del', 'id'=>$item['id']))}');" title="删除" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-times"></i></a>
+				</td>
+			</tr>
+			{/loop}
+			</tbody>
+			<input name="token" type="hidden" value="{$_W['token']}" />
+		</table>
+		<div>
+			<input type="hidden" value="" id="delall"/>
+			<button type="button" class="btn btn-primary" onclick="delall();">
+				全部删除
+			</button>
+		</div>
+	</div>
+	</div>
+	{$pager}
+</div>
+
+<script>
+	function drop_confirm(msg, url){
+		if(confirm(msg)){
+			window.location = url;
+		}
+	}
+	
+	function selectAll(){
+		var allche = document.getElementById("alldel");  
+		var che = document.getElementsByName("check");  
+		if(allche.checked == true){  
+			for(var i=0;i<che.length;i++){  
+				che[i].checked = "checked";  
+			}  
+		}else{  
+			for(var i=0;i<che.length;i++){  
+				che[i].checked = false;  
+			}  
+        }
+    }
+	
+	function delall(){
+		var select = false;
+		var id = new Array();
+		var j = 0;
+		for(var i=0;i<document.getElementsByName("check").length;i++){
+			if(document.getElementsByName("check")[i].checked){ 
+				select = true;
+				id[j] = document.getElementsByName("check")[i].value;
+				j++;
+				continue;
+			} 
+		}
+		if(!select){ 
+			alert("你还没选择要删除的记录！"); 
+		}else {
+			$("#delall").val(id.toString());
+			var url = "{php echo $this->createWebUrl('HalfNews')}";
+			setTimeout("location.href='" + url + "&op=delall&ids="+$('#delall').val()+"'", 500);
+		}
+	}
+</script>
+
+{template 'common/footer'}

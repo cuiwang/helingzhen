@@ -1,0 +1,211 @@
+{template 'common/header'}
+<style>
+.label{cursor:pointer;}
+</style>
+<div class="main">
+	<ul class="nav nav-tabs">
+		<li{if $_GPC['do'] == 'manage'} class="active"{/if}><a href="{php echo $this->createWebUrl('manage');}">管理拆礼盒活动</a></li>
+		<li><a href="{php echo url('platform/reply/post',array('m'=>'stonefish_chailihe', 'rid' => $rid));}"><i class="fa fa-pencil"></i> 编辑活动</a></li>
+		<li{if $_GPC['do'] == 'prizeedit'} class="active"{/if}><a href="{php echo $this->createWebUrl('prize',array('rid' => $rid));}">礼盒</a></li>
+		<li{if $_GPC['do'] == 'banner'} class="active"{/if}><a href="{php echo $this->createWebUrl('banner',array('rid' => $rid));}">幻灯</a></li>
+		<li{if $_GPC['do'] == 'fansdata'} class="active"{/if}><a href="{php echo $this->createWebUrl('fansdata',array('rid' => $rid));}">参与粉丝</a></li>
+		<li{if $_GPC['do'] == 'sharedata'} class="active"{/if}><a href="{php echo $this->createWebUrl('sharedata',array('rid' => $rid));}">分享数据</a></li>
+		<li{if $_GPC['do'] == 'prizedata'} class="active"{/if}><a href="{php echo $this->createWebUrl('prizedata',array('rid' => $rid));}">中奖名单</a></li>		
+		<li{if $_GPC['do'] == 'rankdata'} class="active"{/if}><a href="{php echo $this->createWebUrl('rankdata',array('rid' => $rid));}">粉丝排行</a></li>
+		{if $reply['mobileverify']}<li{if $_GPC['do'] == 'mobileverify'} class="active"{/if}><a href="{php echo $this->createWebUrl('mobileverify',array('rid' => $rid));}">手机验证</a></li>{/if}
+		{if $stonefish_branch && $reply['opportunity']==1}<li{if $_GPC['do'] == 'branch'} class="active"{/if}><a href="{php echo $this->createWebUrl('branch',array('rid' => $rid));}">商家赠送</a></li>{/if}
+		<li{if $_GPC['do'] == 'posttmplmsg'} class="active"{/if}><a href="{php echo $this->createWebUrl('posttmplmsg',array('rid' => $rid));}">消息通知</a></li>
+		<li{if $_GPC['do'] == 'trend'} class="active"{/if}><a href="{php echo $this->createWebUrl('trend',array('rid' => $rid));}">活动分析</a></li>
+	</ul>
+	<form action="" class="form-horizontal form" method="post" enctype="multipart/form-data">
+	<input type="hidden" name="id" value="{$item['id']}">
+    <div class="panel panel-default">
+	    <div class="panel-heading">
+		    <div class="row-fluid">
+		        <div class="span8 control-group">
+			        <span class="btn btn-primary">礼盒配置</span>
+					{if !empty($id)}<span class="btn btn-warning">现在访问量：{$item['viewnum']} 人次</span>{/if}
+                </div>
+            </div>
+		</div>
+	    <div class="panel-body">
+			<div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style='color:red'>*</span> 奖品类型</label>
+                <div class="col-sm-9">
+					<label class="radio-inline">
+						<input type="radio" name="prizetype" value="physical"{if $item['prizetype']=='physical'} checked="checked"{/if} onclick="$('#p_name_{$item['id']}').html('真实');"/>真实物品
+					</label>
+					<label class="radio-inline">
+						<input type="radio" name="prizetype" value="virtual"{if $item['prizetype']=='virtual'} checked="checked"{/if} onclick="$('#p_name_{$item['id']}').html('虚拟');"/>虚拟物品
+					</label>
+					{loop $creditnames $key $credit}
+					<label class="radio-inline">
+						<input type="radio" name="prizetype" value="{$key}"{if $item['prizetype']==$key} checked="checked"{/if} onclick="$('#p_name_{$item['id']}').html('{$credit}');"/>会员（{$credit}）
+					</label>
+					{if $item['prizetype']==$key}{php $credit_name = $credit;}{/if}
+					{/loop}
+					<label class="radio-inline">
+						<input type="radio" name="prizetype" value="redpack"{if $item['prizetype']=='redpack'} checked="checked"{/if} onclick="$('#p_name_{$item['id']}').html('现金');"/>现金红包
+					</label>
+					{if $item['fans']}<span style="float:right;" class="btn btn-danger">无法删除，已有粉丝领取此礼盒</span>{else}<span style="float:right;"><a class="btn btn-danger" href="{$item['delete_url']}">删除此礼盒</a></span>{/if}
+					<div class="help-block">奖品类型为会员（积分）、会员（余额）等会员积分类型时，价值为增送的积分或余额等积分/余额值</div>
+				</div>
+            </div>
+			<div class="form-group">
+                <label class="col-xs-12 col-sm-2 col-md-2 control-label"><span style='color:red'>*</span> <span id="p_name_{$item['id']}">{if $item['prizetype']=='physical'}真实{/if}{if $item['prizetype']=='virtual'}虚拟{/if}{$credit_name}{if $item['prizetype']=='redpack'}红包{/if}</span>价值</label>
+                <div class="col-sm-4">
+                    <input class="form-control" type="text" value="{$item['prizevalue']}" name="prizevalue">
+                </div>
+				<label class="col-xs-12 col-sm-2 col-md-2 control-label">助力人次</label>
+                <div class="col-sm-3">
+                    <div class="input-group">
+                        <input class="form-control" type="text" value="{$item['break']}" name="break">
+                        <span class="input-group-addon">人次</span>
+                    </div>
+                </div>
+            </div>			
+			<div class="form-group">
+                <label class="col-xs-12 col-sm-2 col-md-2 control-label"><span style='color:red'>*</span> 礼盒名称</label>
+                <div class="col-sm-4">
+                    <input class="form-control" type="text" value="{$item['prizerating']}" name="prizerating">
+                </div>
+				<label class="col-xs-12 col-sm-2 col-md-2 control-label"><span style='color:red'>*</span> 奖品数量</label>
+                <div class="col-sm-3">
+                    <div class="input-group">
+                        <input class="form-control" type="text" value="{$item['prizetotal']}" name="prizetotal">
+                        <span class="input-group-addon">份</span>
+                    </div>
+                </div>							
+            </div>						
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-2 col-md-2 control-label"><span style='color:red'>*</span> 奖品名称</label>
+                <div class="col-sm-4">
+                    <input class="form-control" type="text" value="{$item['prizename']}" name="prizename">
+                </div>
+				<label class="col-xs-12 col-sm-2 col-md-2 control-label"><span style='color:red'>*</span> 中奖概率</label>
+                <div class="col-sm-3">
+                    <div class="input-group">
+                        <input class="form-control" type="text" value="{$item['probalilty']}" name="probalilty">
+                        <span class="input-group-addon">%</span>
+                    </div>
+                </div>
+            </div>
+			<div class="form-group">
+                <label class="col-xs-12 col-sm-2 col-md-2 control-label">每人中奖</label>
+                <div class="col-sm-4">
+                    <div class="input-group">
+                        <span class="input-group-addon">每人最多</span>
+						<input class="form-control" type="text" value="{$item['prizeren']}" name="prizeren">
+                        <span class="input-group-addon">个 0为不限制</span>
+                    </div>
+                </div>
+				<label class="col-xs-12 col-sm-2 col-md-2 control-label">每天发奖</label>
+                <div class="col-sm-3">
+                    <div class="input-group">
+                        <span class="input-group-addon">每天最多</span>
+						<input class="form-control" type="text" value="{$item['prizeday']}" name="prizeday">
+                        <span class="input-group-addon">个 0为不限制</span>
+                    </div>
+                </div>
+            </div>
+			<div class="form-group">
+                <label class="col-xs-12 col-sm-2 col-md-2 control-label"><span style='color:red'>*</span>礼盒样式</label>
+                <div class="col-sm-4">
+                    <select name="liheid" class="form-control">
+					    <option value="">请选择礼盒样式</option>
+					    {loop $lihestyle $lihestyles}
+					    <option value="{$lihestyles['liheid']}" {if $item['liheid']==$lihestyles['liheid']}selected{/if}>{$lihestyles['title']}</option>
+					    {/loop}
+				    </select>
+                </div>
+				<label class="col-xs-12 col-sm-2 col-md-2 control-label"> 兑奖密码</label>
+                <div class="col-sm-3">
+                    <input class="form-control" type="text" value="{$item['password']}" name="password" placeholder="兑奖密码">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">奖品图片</label>
+                <div class="col-sm-9">
+				    {php echo tpl_form_field_image('prizepic',$item['prizepic']);}
+					<div class="help-block">奖品显示图片 图片大小418px X 418px</div>
+				</div>
+            </div>
+			<div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">奖品介绍</label>
+                <div class="col-sm-9">
+				    <textarea style="height:80px;" name="description" class="form-control" cols="60">{$item['description']}</textarea>
+				</div>
+            </div>
+			<div class="form-group">
+ 			    <label class="col-xs-12 col-sm-3 col-md-2 control-label"> 兑奖地点</label>
+                <div class="col-sm-9 col-xs-6">
+				    <input type="text" name="awardingaddress" class="form-control" value="{$item['awardingaddress']}" />			
+                </div>
+            </div>
+		    <div class="form-group">
+ 			    <label class="col-xs-12 col-sm-3 col-md-2 control-label"> 兑奖联系电话</label>
+                <div class="col-sm-9 col-xs-6">
+				    <input type="text" name="awardingtel" class="form-control" value="{$item['awardingtel']}" />				
+                </div>
+            </div>
+		    <div class="form-group">
+ 			    <label class="col-xs-12 col-sm-3 col-md-2 control-label"> 兑奖导航</label>
+                <div class="col-sm-9 col-xs-6">
+				    {php echo tpl_form_field_coordinate('baidumap', array('lng'=>$item['baidumaplng'],'lat'=>$item['baidumaplat']))}
+                </div>
+            </div>
+			<div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style='color:red'>*</span> 分享标题</label>
+                <div class="col-sm-9 col-xs-12">
+               	    <input type="text" id="share_title" class="form-control" name="share_title" value="{$item['share_title']}">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style='color:red'>*</span> 分享描述</label>
+                <div class="col-sm-9 col-xs-12">
+     	            <textarea style="height:60px;" id="share_desc" name="share_desc" class="form-control" cols="60">{$item['share_desc']}</textarea>
+				    <span class="help-block">分享标题以及分享描述可用变量<br/><span style='color:red'>#参与人数# </span>所有参与活动的总数 + 虚拟人数<br/><span style='color:red'>#粉丝昵称# </span>粉丝昵称<br/><span style='color:red'>#真实姓名# </span>粉丝真实姓名<br/><span style='color:red'>#奖品名称# </span>分享人所中的最大奖品名称，没有中奖则不显示</span>
+                </div>
+            </div>
+			<div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">分享朋友或朋友圈图</label>
+                <div class="col-sm-9 col-xs-12">
+               	    {php echo tpl_form_field_image('share_img',$item['share_img']);}
+					<div class="help-block">留空则显示活动图片 图片大小建议150 * 150</div>
+                </div>
+            </div>				
+			<div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label"> 虚拟人数显示</label>
+                <div class="col-sm-9 col-xs-12">
+               	    <div class="input-group">
+					    <span class="input-group-addon">首页显示</span>
+					    <input type="text" class="form-control" name="xuninum" value="{$item['xuninum']}" />
+					    <span class="input-group-addon">位虚拟人数+真实参与人数　此数值随下面设置自动变化</span>
+				    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label"> 虚拟人数设置</label>
+                <div class="col-sm-9 col-xs-12">
+               	    <div class="input-group">
+					    <span class="input-group-addon">每次间隔</span>
+                        <input type="text" class="form-control" name="xuninumtime" id="xuninumtime" value="{$item['xuninumtime']}" />
+                        <span class="input-group-addon" style="border-left:0px;border-right:0px;">秒　系统自动增加</span>
+					    <input type="text" class="form-control" name="xuninuminitial" id="xuninuminitial" value="{$item['xuninuminitial']}" />
+					    <span class="input-group-addon" style="border-left:0px;border-right:0px;">至</span>
+					    <input type="text" class="form-control" name="xuninumending" id="xuninumending" value="{$item['xuninumending']}" />
+					    <span class="input-group-addon">名虚拟人参与本活动</span>
+				    </div>
+                </div>
+            </div>
+	    </div>			
+    </div>
+	<div class="form-group">
+		<div class="col-sm-12">
+			<button type="submit" class="btn btn-primary col-lg-3" name="submit" value="保存奖品配置">保存奖品配置</button>
+			<input type="hidden" name="token" value="{$_W['token']}" />
+		</div>
+	</div>
+    </form>
+</div>
+{template 'common/footer'}

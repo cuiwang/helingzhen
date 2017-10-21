@@ -1,0 +1,163 @@
+{template 'header'}
+{template 'loading'}
+{template 'tip'}
+<div class="content top bottom mod-user-address">
+<form class="qsc-form mod-user-payment" method="post" action="" onsubmit="return _oc()">
+  <input type="hidden" name="dopost" value="shimingc">
+  <div class="qsc-form-group">
+
+    <script type='text/html' id="addpic_tpl_1">
+      <div class="file-item thumbnail">
+        <a class="fancybox" title="图片预览" rel="fancybox" href="javascript:void(0)">
+          <img src={{imgurl_thumb}}>
+        </a>
+        <div class="file-panel"><span>×</span></div>
+        <input type="hidden" name='idcar' id="idcar" class="wxId" value="{{insert_id}}">
+      </div>
+    </script>
+
+    <div class="form-item input-cell">
+      <label class="control-label" style="display:block;">收款人手持身份证照片</label>
+          <div class="qsc-uploader" id="idCardUploader" style="padding-top:0;">
+          <div class="webPicPicker webuploader-container">
+              <div id="idCardPicker" class="webuploader-pick webuploader-pick-hover">
+                    <i class="icon icon-plus"></i>上传手持身份证照片
+              </div>
+              <div id="html5_1ak7cbfvgpc3itu1p75f2l1q7s3_container" class="moxie-shim moxie-shim-html5" style="position: absolute; top: 4px; left: 4px; width: 91px; height: 92%; overflow: hidden;">
+                <input id="uploader" type="file" name="mypic[]" style="font-size: 999px; opacity: 0; position: absolute; top: 0px; left: 0px; width: 100%; height: 100%;" multiple="" accept="image/jpeg,image/png,image/bmp">
+              </div>
+         </div>
+          <div class="uploader-list main-images-list must_upload"></div>
+          </div>
+      <div class="uploader-example">
+        <div class="file-item thumbnail" style="display: block;overflow: hidden;height: 92px;">
+        <a title="示例图片" href="" class="fancybox" rel="fancybox"><img class="lazy-load" src="http://jifen.2345.com/upload/jfhelp/jfhelp_1375181038.jpg" style="display: block;"></a>
+        <div class="info" style="    width: 100%;bottom:0;">查看示例图片</div>
+        </div>
+      </div>
+      <div class="clearfix"></div>
+      <div class="help-block" style="padding: 0 15px 10px 15px;">
+          身份证上的所有信息必须清晰可见，必须能看清身份证号
+      </div>
+    </div>
+
+
+
+  </div>
+<div class="footer-btn">
+<button type="submit" class="btn btn-primary btn-lg btn-block">提交认证</button>
+</form>
+</div>
+
+
+<script>
+function _oc(){
+   var idcar = $("#idcar").val();
+   if(idcar==''){
+       _tips('请上传手持身份证');
+       return false;
+   }
+  return true;
+}
+
+</script>
+
+<script>
+
+require(['template','plupload'],function(template,sss){
+     var   i = 1;
+    var uploader = new plupload.Uploader({
+         runtimes : 'html5,flash,silverlight,html4',
+         browse_button : 'uploader', // you can pass in id...
+         chunk_size : '200kb',
+         max_retries:2,
+         url : "{php echo $this->createMobileUrl('uploadimg',array('dopost'=>'downimg','machine'=>md5(GARCIA_MACHINE)))}",
+         filters : {
+           max_file_size : '5mb',
+           mime_types: [
+             {title : "Image files", extensions : "jpg,gif,png,jpeg"},
+             {title : "Zip files", extensions : "zip"}
+           ]
+         },
+         init: {
+           PostInit: function() {
+            //  document.getElementById('filelist').innerHTML = '';
+
+               return false;
+
+           },
+
+           FilesAdded: function(up, files) {
+             plupload.each(files, function(file) {
+
+             });
+
+               var _f = uploader.files.length;
+
+              //  var _len = $("#fileList").find('div.file-item').length;
+              //  var __len = parseInt(_f)+parseInt(_len);
+               if(_f>1){
+                   _tips('不能超过1张图片');
+                   uploader.splice(0, _f);
+                   return  false;
+               }else if(_f>8){
+                   _tips('不能超过1张图片');
+                   uploader.splice(0, _f);
+                   return  false;
+               }
+
+               // return false;
+               uploader.start();
+               $("#loadingToast").show();
+               $(".weui_toast_content").html('正在上传');
+               console.log(i);
+               i++;
+           },
+           FilesRemoved:function(){
+             $(".weui_toast_content").html(0+"%");
+           },
+           UploadProgress: function(up, file) {
+           $(".weui_toast_content").html(file.percent+"%");
+                    //  console.log(file);
+           },
+           FileUploaded:function(uploader,files,responseObject){
+                 var response = responseObject.response;
+                 response = eval('(' + response + ')');
+                 //
+                 if(response.status==2){
+                     $("#loadingToast").hide();
+                     _tips(response.msg);
+                     return false;
+                 }
+
+                 var html=template('addpic_tpl_1',response);
+                 $(".uploader-list").append(html);
+                 console.log(response);
+                 $("#loadingToast").hide();
+                 // return false;
+           },
+           UploadComplete:function(uploader,files){
+               uploader.splice(0,100);
+                _tips('上传成功');
+               $("#loadingToast").hide();
+
+           },
+           Error: function(up, err) {
+                    $("#loadingToast").hide();
+             // document.getElementById('console').innerHTML += "\nError #" + err.code + ": " + err.message;
+             if(err.code==-200){
+                 _tips('服务器无响应，请重试');
+                 return  false;
+             }else if(err.code==-600){
+                 _tips('图片不能超过5MB');
+                 return  false;
+             }else{
+                 _tips(err.code);
+                 return  false;
+             }
+           }
+         }
+    })
+    uploader.init();
+})
+</script>

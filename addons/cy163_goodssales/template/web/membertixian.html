@@ -1,0 +1,91 @@
+{template 'common/header'}
+
+<ul class="nav nav-tabs">
+	<li {if $status == '0' && $operation == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('membertixian')}">等待确认</a></li>
+	<li {if $status == '1'}class="active"{/if}><a href="{php echo $this->createWebUrl('membertixian',array('status' =>'1'))}">已成功</a></li>
+	<li {if $status == '-1'}class="active"{/if}><a href="{php echo $this->createWebUrl('membertixian',array('status' =>'-1'))}">已驳回</a></li>
+	{if $operation == 'post'}<li class="active"><a href="{php echo $this->createWebUrl('membertixian',array('op' =>'post','id' => $_GPC['id']))}">完成提现</a></li>{/if}
+</ul>
+
+{if $operation == 'display'}
+<div class="main panel panel-default">
+	<div class="panel-body table-responsive">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<th style="width:15%;">真实姓名</th>
+					<th style="width:15%;">提现账户</th>
+					<th style="width:10%;">提现金额</th>					
+					<th style="width:15%;">提现时间</th>
+					<th style="width:10%;text-align:right;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $tixian}
+				<tr>
+					<td><span class="label label-info">{$tixian['txrealname']}</span></td>
+					<td><span class="label label-info">{$tixian['txaccount']}</span></td>
+					<td><span style="color:red">{$tixian['money']}</span></td>
+					<td>{php echo date('Y-m-d H:i:s', $tixian['time'])}</td>
+					<td style="text-align:right;">
+						{if $status != 0}
+							<span class="label label-danger">已完成</span>
+						{else}
+						<a href="{php echo $this->createWebUrl('membertixian', array('op' => 'post', 'id' => $tixian['id']))}" class="btn btn-info btn-sm">完成提现</a>
+						{/if}
+					</td>
+				</tr>
+				{/loop}
+			</tbody>
+		</table>
+		{$pager}
+	</div>
+</div>
+{elseif $operation == 'post'}
+<div class="main">
+	<form action="" method="post" class="form-horizontal form">
+		<div class="panel panel-default">
+			<div class="panel-heading">完成提现</div>
+			<div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">提现金额</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" class="form-control" value="{php echo abs($tixian['money']);}" disabled />
+					</div>
+				</div>
+				
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">支付宝账户</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" class="form-control" value="{$tixian['txaccount']}" disabled />
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">姓名</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" class="form-control" value="{$tixian['txrealname']}" disabled />
+					</div>
+				</div>
+				
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">操作类型</label>
+					<div class="col-sm-9 col-xs-12">
+						<label class="radio-inline">
+							<input type="radio" name="txstatus" value="1" /> 成功
+						</label>
+						<label class='radio-inline'>
+							<input type="radio" name="txstatus" value="-1" /> 驳回
+						</label>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="form-group col-sm-12">
+			<input type="hidden" name="dodo" value="1" />
+			<input type="submit" name="submit" value="确定" class="btn btn-primary col-lg-1" />
+			<input type="hidden" name="token" value="{$_W['token']}" />
+		</div>
+	</form>
+</div>
+{/if}
+{template 'common/footer'}

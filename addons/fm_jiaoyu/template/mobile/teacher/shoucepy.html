@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+<meta name="format-detection" content="telephone=no">
+<meta name="HandheldFriendly" content="true" />
+{php include $this->template('shoucecss');}
+<style type="text/css">
+.header { width: 100%; height: 50px; line-height: 50px; position: fixed; z-index: 1000; top: 0; left: 0; box-shadow: 0 0 2px 0px rgba(0,0,0,0.3),0 0 6px 2px rgba(0,0,0,0.15); }
+.header .l { width: 50px; height: 50px; line-height: 50px; color: white; position: absolute; left: 0; top: 0; } 
+.header .m { width: 100%; height: 50px; line-height: 50px; text-align: center; color: white; font-size: 18px; } 
+.header .r { width: 50px; height: 50px; line-height: 50px; position: absolute; right: 0; top: 0; } 
+.mainColor { background: #14c682 !important; } 
+.header .l a { font-size: 18px; color: white; display: block; width: 100%; height: 100%; text-align: center; }
+body {background-color: #E7FAFF;}
+</style>
+<script type="text/javascript" src="{MODULE_URL}public/mobile/js/jquery-1.11.3.min.js?v=4.8"></script>
+{php include $this->template('port');}
+<title>{$school['title']}</title>
+</head>
+<body>
+<div class="header mainColor">
+	<div class="l">
+		<a class="backOff" style="background:url({OSSURL}public/mobile/img/ic_arrow_left_48px_white.svg) no-repeat;background-size: 55% 55%;background-position: 50%;" href="javascript:history.go(-1);"></a>
+	</div>
+	<div class="m">
+		<a><span style="font-size: 18px">快捷选择评语</span></a>
+	</div>
+</div>
+<div class="top_height_blank"></div>
+<div class="insert_remark">
+    <div class="manual_student_list_search" style="margin-bottom: 10px;">
+        <input type="text" value="" placeholder="请输入评语关键字" class="search_text" />
+        <div class="search_btn"></div>
+    </div>
+    <div class='comment_group'>
+		{loop $list $row}
+            <div class="ir_cell">
+                <div class="ir_cell_text">
+                    <input type="checkbox" name='comment_id[]' com_id="{$row['id']}" />
+                    <span class="comment_content">{$row['title']}</span>                
+                </div>
+            </div>
+		{/loop}	
+    </div>
+</div>
+<div class="h_50px"></div>
+<div class="insert_remark_bottom">
+    <div class="irb_cell float_left irb_cell_l" id='add_comment_btn'>添加评语库</div>
+    <div class="irb_cell float_left irb_cell_r" id='affirm_comment'>确定</div>
+</div>
+
+        <div class="clear"></div>
+    </div>
+
+</body>
+</html>
+<script>
+	var session_comment = "session_comment";
+
+	$("#add_comment_btn").on('click', function () {
+		window.location.href = "{php echo $this->createMobileUrl('shoucepyglad', array('schoolid' => $schoolid), true)}";
+	});
+
+	$("#affirm_comment").on('click', function () {
+		var str_id = '';
+		str_length = $("input[name='comment_id[]']:checked").length - 1;
+		$("input[name='comment_id[]']:checked").each(function (i) {
+			if (i == str_length) {
+				str_id += $.trim($(this).next(".comment_content").text());
+			} else {
+				str_id += $.trim($(this).next(".comment_content").text()) + ",";
+			}
+		});
+		if (str_id == '') {
+			jTips('您还未选择评语');
+			return false;
+		}
+
+		if (sessionStorage.getItem(session_comment) != null) {
+			sessionStorage.setItem(session_comment, sessionStorage.getItem(session_comment) + str_id);
+		}
+		
+		window.location.href = "{php echo $this->createMobileUrl('shouce', array('schoolid' => $schoolid,'sid' => $sid,'scid' => $scid,'setid' => $setid, 'op' => $op), true)}";
+		//alert(url+'/comment_id/'+str_id);
+	})
+
+	/////搜索功能
+	$(".search_text").on('input propertychange', function () {
+		var search_text = $.trim($(".search_text").val());
+		if ($.trim(search_text) == '') {
+			$(".comment_group .ir_cell").show();
+		} else {
+			$(".comment_group .ir_cell").each(function () {
+				if ($.trim($(this).find('.ir_cell_text').text()).indexOf(search_text) != -1) {
+					$(this).show();
+				} else {
+					$(this).hide();
+				}
+			});
+		}
+	});
+
+</script>    

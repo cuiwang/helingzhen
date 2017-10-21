@@ -1,0 +1,171 @@
+{php $newUI = true;}
+{template 'common/header'}
+<style>
+.table>thead>tr>td, .table>tbody>tr>td, .table>tfoot>tr>td{white-space:nowrap;}
+</style>
+<ul class="nav nav-tabs">
+	<li {if $do == 'display'}class="active"{/if}><a>粉丝列表</a></li>
+</ul>
+{if $do == 'display'}
+<div class="clearfix">
+	<div class="panel panel-info">
+		<div class="panel-heading">筛选</div>
+		<div class="panel-body">
+			<form action="./index.php" method="get" class="form-horizontal" role="form">
+				<input type="hidden" name="c" value="site" />
+                <input type="hidden" name="a" value="entry" />
+                <input type="hidden" name="m" value="q_3354988381_notify" />
+                <input type="hidden" name="do" value="fans" />
+                {if $_GET['id'] != ''}
+                <input type="hidden" name="id" value="{$_GET['id']}" />
+                {else}
+                <input type="hidden" name="id" value="{$_GET['rid']}" />
+                {/if}                
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">所属公众号</label>
+					<div class="col-sm-9 col-md-8 col-lg-8 col-xs-12">
+						<select class="form-control" name="acid">
+							<option value="">所有公众号</option>
+							{loop $accounts $acc}
+							<option value="{$acc['acid']}"{if $acc['acid'] == $acid} selected="selected"{/if}>{$acc['name']}</option>
+							{/loop}
+						</select>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">昵称</label>
+					<div class="col-sm-9 col-md-8 col-lg-8 col-xs-12">
+						<input type="text" class="form-control" name="nickname" value="{$nickname}"/>
+					</div>
+				</div>
+					<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">用户组</label>
+					<div class="col-sm-9 col-md-8 col-lg-8 col-xs-12">
+						<label class="radio-inline">
+							<input type="radio" name="type" value="" {if $type == ''}checked="checked"{/if}/> 不指定
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="type" value="bind" {if $type == 'bind'}checked="checked"{/if}/> 已经注册为会员
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="type" value="unbind" {if $type == 'unbind'}checked="checked"{/if}/> 未注册为会员
+						</label>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">是否关注</label>
+					<div class="col-sm-9 col-md-8 col-lg-8 col-xs-12">
+						<label class="radio-inline">
+							<input type="radio" name="follow" value="" {if $follow == ''}checked="checked"{/if}/> 不限
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="follow" value="1" {if $follow == '1'}checked="checked"{/if}/> 已关注
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="follow" value="2" {if $follow == '2'}checked="checked"{/if}/> 取消关注
+						</label>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">粉丝分组</label>
+					<div class="col-sm-9 col-md-8 col-lg-8 col-xs-12">
+                        {loop $groups $group}
+                        <input type="checkbox" name="user_groupid[]" value="{$group['id']}" {if in_array($group['id'], $user_groupid_arr)}checked="checked"{/if} />&nbsp;{$group['name']}
+                        &nbsp;&nbsp;&nbsp;&nbsp;
+                        {/loop}	
+					</div>
+				</div>                
+                
+ 
+                    
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">关注/取消关注时间</label>
+					<div class="col-sm-9 col-md-8 col-lg-8 col-xs-12">
+						{php load()->func('tpl');}
+						{php echo tpl_form_field_daterange('time', array('starttime'=>date('Y-m-d', $starttime),'endtime'=>date('Y-m-d', $endtime)));}
+					</div>
+					<div class="pull-right col-xs-12 col-sm-3 col-md-2 col-lg-2">
+						<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+                        <button name="notify" value="1" class="btn btn-default"><i class="fa fa-file"></i> 发通知</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<div class="panel panel-default">
+	<div class="panel-body table-responsive" ng-controller="advAPI">
+		<table class="table table-hover"  style="width:100%;z-index:-10;" cellspacing="0" cellpadding="0">
+			<thead class="navbar-inner">
+				<tr>
+					<th style="width:90px;">头像</th>
+					<th style="width:100px;">昵称</th>
+					<th style="width:180px;">对应用户</th>
+					<th style="width:80px;">是否关注</th>
+                    
+                    <th style="width:80px;">积分</th>
+                    <th style="width:80px;">余额</th>
+                    
+					<th style="width:180px;">关注/取消时间</th>
+					<th style="min-width:70px;" class="text-right">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $item}
+				<tr>
+					<td><img src="{if !empty($item['user']['avatar'])}{$item['user']['avatar']}{else}resource/images/noavatar_middle.gif{/if}" width="48"></td>
+					<td>{$item['user']['nickname']}</td>
+					<td>
+						{if empty($item['uid'])}
+						<a href="{php echo url('mc/member/post', array('uid' => $item['uid'],'openid' => $item['openid'], 'fanid' => $item['fanid']));}" class="text-danger" title="该用户尚未注册会员，请为其手动注册！">[ 注册为会员 ]</a>
+						{else}
+						<a href="{php echo url('mc/member/post', array('uid'=>$item['uid']));}"><span>{if $item['user']['niemmo_effective'] == 1}{$item['user']['niemmo']}{else}{$item['uid']}{/if}</span></a>
+						{/if}
+					</td>
+					<td>
+					{if $item['follow'] == '1'}
+						<span class="label label-success">已关注 </span> 
+					{elseif $item['unfollowtime'] <> '0'}
+						<span class="label label-warning" >取消关注 </span>
+					{else}
+						<span class="label label-danger">未关注 </span>
+					{/if}
+					</td>
+                    
+                    <td>{$item['user_credit1']}</td>
+                    <td>{$item['user_credit2']}</td>
+                                        
+					<td>
+						{if $item['follow'] == '1'}{php echo date('Y-m-d H:i:s', $item['followtime'])}{elseif !empty($item['unfollowtime'])}{php echo date('Y-m-d H:i:s', $item['unfollowtime'])}{else}&nbsp;{/if}
+					</td>
+					<td>{$item['account']}</td>
+					<td class="text-right" style="overflow:visible;">
+						{if !empty($groups[$acid])}
+						<div class="btn-group">
+							<button class="btn btn-danger btn-sm dropdown-toggle" type="button" data-toggle="dropdown">
+								<span id="{$item['fanid']}-name">{$groups[$item['acid']][$item['groupid']]['name']}</span>
+								<span class="caret"></span>
+							</button>
+							<ul class="dropdown-menu" role="menu">
+							{if !empty($groups[$item['acid']])}
+								{loop $groups[$item['acid']] $li}
+									<li><a href="javascript:;" class="groupedit" title="{$li['name']}" data-acid="{$item['acid']}" data-groupid="{$li['id']}" data-openid="{$item['openid']}" data-fanid="{$item['fanid']}">{$li['name']}</a></li>
+								{/loop}
+							{/if}
+							</ul>
+						</div>
+						{/if}
+						<a href="{$send_notify_url}{$item['uid']}" id="{$item['fanid']}" class="btn btn-success btn-sm sms">发送通知</a>
+						<a href="{php echo url('mc/fans/view', array('id' => $item['fanid']));}" class="btn btn-default btn-sm">查看详情</a>
+					</td>
+				</tr>
+				{/loop}
+			</tbody>
+		</table>
+		
+	</div>
+	</div>
+	{$pager}
+</div>
+{/if}
+{template 'common/footer'}

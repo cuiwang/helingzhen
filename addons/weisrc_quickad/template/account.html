@@ -1,0 +1,225 @@
+{template 'public/header'}
+{php echo $this -> set_tabbar($action);}
+{if $operation == 'post'}
+<div class="main">
+	<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" id="form1">
+        <style>
+            .form-control-excel {
+                height: 34px;
+                padding: 6px 12px;
+                font-size: 14px;
+                line-height: 1.42857143;
+                color: #555;
+                background-color: #fff;
+                background-image: none;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+                box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+                -webkit-transition: border-color ease-in-out .15s,-webkit-box-shadow ease-in-out .15s;
+                -o-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+                transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+            }
+            .account-basicinformation span{font-weight:700;}
+            .account-stat-num > div{width:33%; float:left; font-size:16px; text-align:center;}
+            .account-stat-num > div span{display:block; font-size:30px; font-weight:bold;}
+        </style>
+        <input type="hidden" name="aweid" value="{$aweid}" />
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                生成充值码
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">数量</label>
+                    <div class="col-sm-10 col-lg-9">
+                        <input id="" name="count" type="text" class="form-control" value="10" />
+                        <span class="help-block"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="form-group col-sm-12">
+            <input type="submit" name="submit" value="保存设置" class="btn btn-primary col-lg-1" />
+            <input type="hidden" name="token" value="{$_W['token']}" />
+        </div>
+	</form>
+</div>
+{elseif $operation == 'display'}
+<div class="main">
+    <div class="panel panel-default" style="margin-top: 15px;">
+        <div class="panel-heading">筛选</div>
+        <div class="table-responsive panel-body">
+            <form action="./index.php" method="get" class="navbar-form navbar-left" role="form">
+                <input type="hidden" name="c" value="site" />
+                <input type="hidden" name="a" value="entry" />
+                <input type="hidden" name="m" value="weisrc_quickad" />
+                <input type="hidden" name="do" value="account" />
+                <input type="hidden" name="op" value="display" />
+                <div class="form-group">
+                    <select class="form-control" id="types" name="types" autocomplete="off">
+                        <option value="username">用户名</option>
+                        <option value="mobile">联系电话</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <input type="text" class="form-control" placeholder="请输入" name="keyword">
+                </div>
+                <button class="btn btn-success"><i class="fa fa-search"></i> 搜索</button>
+            </form>
+        </div>
+    </div>
+    <div class="panel panel-default">
+        <div class="table-responsive panel-body">
+        <form action="" method="post" class="form-horizontal form" >
+            <table class="table table-hover">
+                <thead class="navbar-inner">
+                <tr>
+                    <th style="width:12%;">用户名</th>
+                    <th style="width:12%;">电话</th>
+                    <th style="width:15%;">微信公众号</th>
+                    <th style="width:12%;">充值码</th>
+                    <th style="width:12%;">版权(点击)</th>
+                    <th style="width:12%;">在线支付</th>
+                    <th style="width:15%;">状态/有效期</th>
+                    <th style="width:10%;">操作</th>
+                </tr>
+                </thead>
+                <tbody id="level-list">
+                {loop $list $row}
+                <tr>
+                    <td>
+                        {$users[$row['uid']]['username']}
+                    </td>
+                    <td>
+                        {$usersdetail[$row['uid']]['mobile']}
+                    </td>
+                    <td>
+                        {if !empty($account_wechats[$row['uniacid']]['name'])}<a href="index.php?c=account&&a=switch&&uniacid={$row['uniacid']}">{$account_wechats[$row['uniacid']]['name']}</a>{/if}
+                    </td>
+                    <td>
+                        <code>
+                            {if empty($sn1[$row['uniacid']]['count'])}0{else}{$sn1[$row['uniacid']]['count']}{/if}/{if
+                            empty($sn2[$row['uniacid']]['count'])}0{else}{$sn2[$row['uniacid']]['count']}{/if}
+                        </code>
+                        <br/>
+                        <a
+                                href="{php echo $this->createWebUrl('account', array('aweid' => $row['uniacid'], 'op' => 'displaysn'))}">管理</a> |
+                        <a
+                                href="{php echo $this->createWebUrl('account', array('aweid' => $row['uniacid'], 'op' => 'post'))}">生成</a>
+                    </td>
+                    <td>
+                        <label data='{$settings[$row['uniacid']]['is_show_ad']}' class='label label-default {if $settings[$row['uniacid']]['is_show_ad']==1}label-info{/if}'
+                        onclick="setProperty(this,{$row['uniacid']},'is_show_ad')">显示</label>
+                    </td>
+                    <td>
+                        <label data='{$settings[$row['uniacid']]['is_pay']}' class='label label-default {if $settings[$row['uniacid']]['is_pay']==1}label-info{/if}'
+                        onclick="setPayProperty(this,{$row['uniacid']},'is_pay')">允许</label>
+                    </td>
+                    <td>{if $users[$row['uid']]['status']==2}<span class="label label-success">启用</span>{else}<span class="label label-danger">禁止</span>{/if}|
+                        {if $users[$row['uid']]['endtime']==0||empty($users[$row['uid']]['endtime'])||$users[$row['uid']]['endtime']> TIMESTAMP}
+                        <span class="label label-success">有效</span>
+                        {elseif $users[$row['uid']]['endtime']< TIMESTAMP}
+                        <span class="label label-danger">过期</span>
+                        {/if}
+                    </td>
+                    <td><a class="btn btn-default btn-sm" href="index.php?c=user&a=edit&uid={$row['uid']}" title="编辑"><i class="fa fa-pencil"></i></a></td>
+                </tr>
+                {/loop}
+                </tbody>
+
+            </table>
+        </form>
+        {$pager}
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    <!--
+    function setProperty(obj,id,type){
+        $(obj).html($(obj).html() + "...");
+        $.post("{php echo $this->createWebUrl('setproperty')}"
+                ,{id:id,type:type, data: obj.getAttribute("data")}
+                ,function(d){
+                    $(obj).html($(obj).html().replace("...",""));
+                    $(obj).attr("data",d.data)
+                    if(d.result==1){
+                        $(obj).toggleClass("label-info");
+                    }
+                },"json"
+        );
+    }
+
+    function setPayProperty(obj,id,type){
+        $(obj).html($(obj).html() + "...");
+        $.post("{php echo $this->createWebUrl('setPayProperty')}"
+                ,{id:id,type:type, data: obj.getAttribute("data")}
+                ,function(d){
+                    $(obj).html($(obj).html().replace("...",""));
+                    $(obj).attr("data",d.data)
+                    if(d.result==1){
+                        $(obj).toggleClass("label-info");
+                    }
+                },"json"
+        );
+    }
+    //-->
+</script>
+{elseif $operation == 'displaysn'}
+<div class="main">
+    <div class="panel panel-default">
+        <div class="table-responsive panel-body">
+            <form action="" method="post" class="form-horizontal form" >
+                <table class="table table-hover">
+                    <thead class="navbar-inner">
+                    <tr>
+                        <th style="width:25%;">sn码</th>
+                        <th style="width:25%;">使用者</th>
+                        <th style="width:25%;">状态</th>
+                        <th style="width:25%;">操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {loop $list $row}
+                    <tr>
+                        <td>
+                            {$row['sncode']}
+                        </td>
+                        <td>
+                            {if empty($fans[$row['fansid']]['nickname'])}------{else}{$fans[$row['fansid']]['nickname']}{/if}
+                        </td>
+                        <td>
+                            {if $row['status']==1} <span class="label label-success">已使用</span>{else}<span
+                                class="label label-default">未使用</span>{/if}
+                        </td>
+                        <td><a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('account', array('id' => $row['id'], 'op' => 'deletesn', 'aweid' => $aweid))}" onclick="return confirm('此操作不可恢复，确认删除？');return false;" title="删除"><i
+                                class="fa fa-times"></i></a></td>
+                    </tr>
+                    {/loop}
+                    </tbody>
+
+                </table>
+            </form>
+            {$pager}
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    <!--
+    function setProperty(obj,id,type){
+        $(obj).html($(obj).html() + "...");
+        $.post("{php echo $this->createWebUrl('setproperty')}"
+                ,{id:id,type:type, data: obj.getAttribute("data")}
+                ,function(d){
+                    $(obj).html($(obj).html().replace("...",""));
+                    $(obj).attr("data",d.data)
+                    if(d.result==1){
+                        $(obj).toggleClass("label-info");
+                    }
+                },"json"
+        );
+    }
+    //-->
+</script>
+{/if}
+{template 'common/footer'}

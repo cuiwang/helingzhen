@@ -1,0 +1,76 @@
+{template 'common/header'}
+{template 'admin/withdraw/tabs'}
+
+<div class="" style="margin-bottom:15px;">
+  <a href="{php echo $this->createWebUrl('withdraw',array('display'=>$_GPC['display']))}" class="btn btn-default btn-md {if empty($_GPC['type'])&&$_GPC['type']!='0'}active{/if}">全部</a>
+  <a href="{php echo $this->createWebUrl('withdraw',array('display'=>$_GPC['display'],'type'=>0))}" class="btn btn-default btn-md {if $_GPC['type']=='0'}active{/if}">微信</a>
+  <a href="{php echo $this->createWebUrl('withdraw',array('display'=>$_GPC['display'],'type'=>5))}" class="btn btn-default btn-md {if $_GPC['type']==5}active{/if}">银行卡</a>
+  <a href="{php echo $this->createWebUrl('withdraw',array('dopost'=>'Toexcel','type'=>$_GPC['type'],'action'=>$_GPC['display']))}" class="btn btn-default btn-md">导出当前所有</a>
+</div>
+<div class="panel panel-info">
+    <div class="panel-heading">
+        提现管理
+    </div>
+    <div class="panel-body">
+      <h3>提现管理</h3>
+      <table class="table text-center">
+          <tr>
+            <td>ID</td>
+            <td>uid</td>
+            <td>用户名</td>
+            <td>提现金额</td>
+            <td>提现方式</td>
+            <td>提现时间</td>
+            <td>操作</td>
+          </tr>
+
+          {loop $_list $row}
+
+          <tr>
+            <td>{$row['id']}</td>
+            <td>{$row['uid']}</td>
+            <td>{php echo urldecode($row['nickname'])}</td>
+
+            <td>{if $row['type']!=0}{php echo round($row['money']-($row['money']*$this->sys['tixian_suilv']/100),2)} <small>(已扣手续费)</small>{else}{$row['money']}{/if}</td>
+    
+            <td>{if $row['type']==0} <button class='btn  btn-xs btn-info' >微信</button>{else}<button class='btn  btn-xs btn-primary' >银行卡</button> {/if}</td>
+            <td>{php echo date('Y-m-d H:i:s',$row['upbdate'])}</td>
+            <td>
+              {if $row['type']==0}
+              <button href="javascript:void(0)"  data-id="{$row['id']}" onclick='return _dis($(this))' class="btn btn-xs  btn-info mark_success" >通过</button>
+              {else}
+              <button href="javascript:void(0)"  data-id="{$row['id']}" onclick='return _bank($(this))' class="btn btn-xs  btn-info mark_success" >通过</button>
+              {/if}
+              <a href="{php echo $this->createWebUrl('withdraw',array('dopost'=>'bad','id'=>$row['id']))}" class="btn btn-xs btn-danger">不通过</a>
+            </td>
+          </tr>
+          {/loop}
+      </table>
+     {$pager}
+    </div>
+</div>
+
+<script type="text/javascript">
+    function _dis(o){
+      $(".mark_success").attr('disabled',true);
+      if(confirm('确定通过提现吗?')){
+        $(".mark_success").hide();
+            window.location.href="{php echo $this->createWebUrl('withdraw',array('dopost'=>'success'))}&id="+o.attr('data-id');
+      }else{
+        $(".mark_success").attr('disabled',false);
+         return false;
+      }
+
+    }
+    function _bank(o){
+      $(".mark_success").attr('disabled',true);
+      if(confirm('请确定以对银行卡转账?')){
+        $(".mark_success").hide();
+            window.location.href="{php echo $this->createWebUrl('withdraw',array('dopost'=>'success'))}&id="+o.attr('data-id');
+      }else{
+        $(".mark_success").attr('disabled',false);
+         return false;
+      }
+
+    }
+</script>

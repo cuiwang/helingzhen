@@ -1,0 +1,418 @@
+{template 'weheader'}
+<script type="text/javascript" src="{TEMPLATE_WEUI}picker.js"></script>
+<script type="text/javascript" src="{TEMPLATE_WEUI}select.js"></script>
+{if $isloc}<script type="text/javascript" src="{TEMPLATE_WEUI}QQgetLocation.js"></script>{/if}
+{if $reside}
+<script src="{TEMPLATE_WEUI}city-picker.min.js"></script>
+{/if}
+
+<style>
+body{background-color:#fbf9ff;}
+.dayu-header {padding: 25px 0 0;}
+
+.weui_textarea_counter span {font-size:12px;}
+.weui_label{font-size:13px;}
+.weui_label span, .weui_cell_hd span{color: #E64340;}
+.weui_input, .weui_select{font-weight:300;padding-left: 15px;}
+
+.weui-popup-container{z-index:9999;}
+.weui_cell_select .weui_cell_td {padding-left: 1em;}
+.weui_cell_select .weui_cell_hd .weui_select {line-height:45px;padding:0 25px 0 5px;color: #555;}
+
+.weui_msg .weui_extra_area {margin-bottom: 5px;}
+.weui_extra_area {z-index:0;}
+.record .weui_cells:first-child {margin-top:30px;}
+.record .weui_cells {margin:0;}
+.record img{width:1.2rem;height:1.2rem;}
+.weui_cells_form .weui_cell_ft {font-size: 12px;}
+.m-img {background-position: top center;}
+.m-img img{width:100%;height:auto;}
+.m-masker {background-color: rgba(0, 0, 0, 0);}
+
+.weui_tab_bd {padding-bottom: 15px;}
+.weui_select{z-index:0;}
+.weui_grid{width:50%;padding: 10px 10px;}
+.weui_grid:after{height: 0px;border-bottom:0;}
+</style>{$role_table}
+<div class="weui_tab_bd">
+	{template 'insert/header'}
+	<form action="{php echo $this->createMobileUrl('dayu_yuyuepay', array('weid' => $_W['uniacid'], 'id' => $reid, 'timenum' => $timenum, 'havsnum' => $havsnum))}" class="" enctype="multipart/form-data" method="POST" id="form">
+	<input type="hidden" name="repeat" value="<?php echo md5(sha1(time())); ?>">
+	{if !empty($activity['store']) && !empty($sid)}
+		{template 'insert/storeinfo'}
+	{/if}
+	{if $par['member']==1 && empty($sid)}
+		{template 'insert/join'}
+	{elseif empty($sid)}
+		{template 'insert/address'}
+	{/if}
+	
+	<div class="weui_panel weui_cells_access">
+	{if $xmstotal=='1'}
+		<div class="weui_cell">
+			<div class="weui_cell_hd"><label class="weui_label">{$par['xmname']}<span>*</span></label></div>
+			<div class="weui_cell_bd weui_cell_primary">
+				{loop $xms $xm}
+					{$xm['title']}
+					<input class="weui_input" name="xmid" id="xmid" type="hidden" value="{$xm['id']}">
+				{/loop}
+			</div>
+		</div>
+	{else}
+		<div class="weui_cell weui_cell_select weui_select_after">
+			<div class="weui_cell_hd"><label class="weui_label">{$par['xmname']}<span>*</span></label></div>
+			<div class="weui_cell_bd weui_cell_primary">
+				<select class="weui_select" name="xmid" id="xmid" onchange="fetchgetjs(this)">
+					<option value="" label="请选择{$par['xmname']}"></option>
+				{loop $xms $xm}
+					<option value="{$xm['id']}" label="{$xm['title']}">{$xm['title']}</option>
+				{/loop}
+				</select>
+			</div>
+		</div>
+	{/if}
+	{if empty($activity['is_num'])}
+		<div class="weui_cell" id="grids" style="display:none;">
+			<div id="prices"></div>
+			<div id="price"></div>
+		</div>
+	{/if}
+	{if $activity['pay'] == 1}
+		<div class="weui_cell weui_cell_select weui_select_after">
+			<div class="weui_cell_hd"><label class="weui_label">支付方式<span>*</span></label></div>
+			<div class="weui_cell_bd weui_cell_primary">
+				<select class="weui_select" name="paytype" id="pay" onchange="getpay()">
+					<option value="1" label="在线支付">在线支付</option>
+					<option value="9" label="线下付款">线下付款</option>
+				</select>
+			</div>
+		</div>
+		<div class="weui_cell" id="getpay" style="display:none;">
+			<div class="weui_cell_bd weui_cell_primary f14">{$line}</div>
+		</div>
+
+	{else}
+		<input class="weui_input" name="paytype" type="hidden" value="1">
+	{/if}
+		{if !empty($activity['is_num'])}
+			{template 'insert/num'}
+		{/if}
+		
+		{template 'insert/time'}	
+	</div>
+	<div class="weui-weixin" id="content" style="display:none;">
+	</div>
+		{template 'insert/store_join'}
+	<div class="weui_panel weui_cells_form">
+	{loop $ds $field}
+				
+		{if $field['type'] == 'text'}
+			{template 'insert/field_text'}
+		{/if}
+				
+		{if $field['type'] == 'tingli'}
+			{template 'insert/field_tingli'}
+		{/if}
+		
+		{if $field['type'] == 'email'}
+			{template 'insert/field_email'}
+		{/if}
+				
+		{if $field['type'] == 'number'}
+			{template 'insert/field_number'}
+		{/if}
+				
+		{if $field['type'] == 'textarea'}
+			{template 'insert/field_textarea'}
+		{/if}
+				
+		{if $field['type'] == 'radio'}
+			{template 'insert/field_radio'}
+		{/if}
+				
+		{if $field['type'] == 'checkbox'}
+			{template 'insert/field_checkbox'}
+		{/if}
+						
+		{if $field['type'] == 'select'}
+			{template 'insert/field_select'}
+		{/if}
+
+		{if $field['type'] == 'image'}
+			{template 'insert/field_image'}
+		{/if}
+	
+		{if $field['type'] == 'photograph'}
+			{template 'insert/field_photograph'}
+		{/if}
+		
+		{if $field['type'] == 'calendar'}
+			{template 'insert/field_calendar'}
+		{/if}
+		
+		{if $field['type'] == 'range'}
+			{template 'insert/field_range'}
+		{/if}
+		
+		{if $field['type'] == 'reside'}
+			{template 'insert/field_reside'}
+		{/if}
+		
+	{/loop}
+</div>
+	
+    <div class="weui_btn_area">
+		<input type="hidden" name="token" value="{$_W['token']}" />
+		<input class="weui_btn weui_btn_primary" type="button" value="{$submit}" id="showTool">
+    </div>
+</form>
+</div>
+<script type="text/javascript">
+{if $par['smsid']!=0 && $par['member']==1}
+	var wait=60;  
+	function time(o) {
+		if (wait == 0) {
+			o.removeAttribute("disabled");
+			o.value="获取验证码";
+			wait = 60;
+		} else {
+			o.setAttribute("disabled", true);
+			o.value="重新发送(" + wait + ")";
+			wait--;  
+			setTimeout(function() {
+				time(o)
+			},
+           1000)
+		}
+	}
+	$("#sendsms").bind("click",function(){
+		var mobile = $("#mobile").val();
+		var checktel = /^(((13[0-9]{1})|(14[0-9]{1})|(15[0-9]{1})|(17[0-9]{1})|(18[0-9]{1}))+\d{8})$/;
+			if(mobile=='' || !checktel.test(mobile)){
+				$('#mobile').attr("readonly",false);
+				$.toast("请输入正确的手机号码", "cancel");
+				return false;
+			}else{
+				$('#mobile').attr('readonly',true);
+				var submitData = {};
+				$.post("{php echo murl('entry', array('do' => 'SendSms', 'id' => $activity['smsid'], 'm' => 'dayu_sms', 'form' => $_W['current_module']['name'], 'openid' => $openid), true, true)}"+"&mobile="+mobile, submitData,function(data){
+					if(data.message.state == 1) {
+						$("#htel").val(data.message.mobile);
+						$("#hsms").val(data.message.yzm);
+						$.toast(data.message.msg, "success");
+					}else{
+						$.alert(data.message.msg, "错误提示");
+					}
+				},"json");
+				time(this);
+			}
+	});
+{/if}
+function upimg(obj,id){
+	var images = {
+		localId: [],
+		serverId: []
+	};
+	wx.chooseImage({
+		count: 1,
+		sourceType: ['album', 'camera'],
+		success:function(res){
+		images.localId = res.localIds;
+		var i = 0, length = images.localId.length;
+		var wxUpload = function() {
+			wx.uploadImage({
+				localId: images.localId[i],
+				isShowProgressTips: 1,
+				success: function (res) {
+					i++;
+					images.serverId.push(res.serverId);
+					var url = "{php echo $this->createMobileUrl('uploads',array('type'=>'image'));}&serverId=" + res.serverId + "&localId=" + i;
+					$.post(url, function(dat){
+						var dat = eval("("+dat+")");
+							if (dat.status == 'success') {
+								$.toast(dat.message, "success");
+								$('input[name="'+obj.getAttribute("data")+'"]').val(tomedia(dat.path));
+								document.getElementById('show'+id).src = tomedia(dat.path);
+							}else{
+								$.toast(dat.message, "cancel");
+								document.getElementById('show'+id).src = "";
+							}
+					});
+					if(i < length){
+						wxUpload();
+					}
+				},
+				fail: function (res) {
+					alert(JSON.stringify(res));
+				}
+			});						
+		};
+		wxUpload();
+		}
+	});
+}
+function show(obj,id){
+	var pic=document.getElementById(id).src;
+	wx.previewImage({
+		current: pic,
+		urls: [pic]
+		
+	});
+}
+function changeAddress(){
+	location.href = '{php echo $this->createMobileUrl('address', array('from'=>'dayu_yuyuepay','reid'=>$reid,'sid' => $sid,'returnurl' => $returnUrl))}'
+}
+function changeInfo(){
+	location.href = '{php echo $this->createMobileUrl('info', array('from'=>'dayu_yuyuepay','reid'=>$reid,'sid' => $sid,'returnurl' => $returnUrl))}'
+}
+{if $activity['restrict']==1}
+	var url = "{php echo $this->createMobileUrl('getprice', array('op'=>'num'))}";
+{else}
+	var url = "{php echo $this->createMobileUrl('getprice')}";
+{/if}
+$(function(){
+	$("#showTool").click(function(){
+	{if $par['member']==1}
+		var member = /^[\u4E00-\u9FA5]{1,6}$/;
+		if($('input[name="member"]').val()=='' || !member.test($('input[name="member"]').val())){
+			$.toast("请正确输入姓名", "cancel");
+			return false;
+		}
+		var mobile = /^(((13[0-9]{1})|(14[7-9]{1})|(15[0-9]{1})|(17[0-9]{1})|(18[0-9]{1}))+\d{8})$/;
+		if($('input[name="mobile"]').val()=='' || !mobile.test($('input[name="mobile"]').val())){
+			$.toast("请输入正确的手机号码", "cancel");
+			return false;
+		}
+	{else if $activity['is_addr']==0}
+		if($('input[name="member"]').val()=='' || $('input[name="mobile"]').val()==''){
+			$.toast("请完善资料", "cancel");
+			return false;
+		}
+	{/if}
+	{if $par['smsid']!=0 && $par['member']==1}
+		var htel=$("#htel").val();
+		var hsms=$("#hsms").val();
+		var tel=$("#mobile").val();
+		var sms=$("#sms").val();
+		if(htel==tel){
+			if(hsms==sms){
+			}else{
+				$.toast("请输入正确验证码", "cancel");
+				return false;
+			}
+		}else{
+			$.toast("请获取验证码", "cancel");
+			return false;
+		}
+	{/if}
+	{if $activity['is_time']==2}
+		var time = $("#restime").val(),
+			xmid = $("#xmid").val(),
+			num = $("#num").val();
+		$.post(url,{'xmid' : xmid, 'time' : time, 'nums' : '{$timenum}', 'want' : num},function(s){
+			if (s.message.status == 0) {
+				if(xmid){
+					$.alert(s.message.msg, s.message.title);
+				}else{
+					$.toast('请选择{$par['xmname']}', "cancel");
+					return false;
+				}
+				$('#grids').hide();
+				$('#jsids').empty();
+				$("#xmid option:first").prop("selected", 'selected');
+				return;
+			}
+			if($('#restime').val()==''){
+				$.toast('请选择{$activity['yuyuename']}', "cancel");
+				return false;
+			}
+	{/if}
+		if($('#xmid').val()==''){
+			$.toast('请选择{$par['xmname']}', "cancel");
+			return false;
+		}
+		{loop $ds $field}
+		{if $field['essential']}
+			{if in_array($field['type'], array('text', 'calendar', 'email', 'range','image','textarea','number', 'radio', 'select'))}
+				if($('input[name="field_{$field['refid']}_{$field['bind']}"]').val() == '' || $('textarea[name="field_{$field['refid']}_{$field['bind']}"]').val() == '') {
+					$.toast("{$field['title']} 不能为空", "cancel");
+					return false;
+				}
+		{/if}
+		{if in_array($field['type'], array('image'))}
+			if($('input[name="field_{$field['refid']}_{$field['bind']}"]').val() == '') {
+				$.toast("{$field['title']} 必须上传", "cancel");
+				return false;
+			}
+		{/if}
+		{if in_array($field['type'], array('number'))}
+			var num = parseFloat($('input[name="field_{$field['refid']}_{$field['bind']}"]').val());
+			if(isNaN(num)) {
+				$.toast('{$field['title']} 必须输入数字.');
+				return false;
+			}
+		{/if}
+		{if in_array($field['type'], array('email'))}
+			var mail = $(':text[name="field_{$field['refid']}_{$field['bind']}"]').val();
+			if(!(/^\w+((-\w+)|(\.\w+))*\@[A-Za-z0-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z0-9]+$/i).test(mail)) {
+				$.toast("{$field['title']} 请正确邮箱地址", "cancel");
+				return false;
+			}
+		{/if}
+		{/if}
+		{/loop}
+			var form = document.getElementById("form");
+			form.submit();
+	{if $activity['is_time']==2}
+		},"json");
+	{/if}
+	});
+});
+	
+	function fetchgetjs(obj) {
+		if (!$(obj).val()) {
+			return false;
+		}
+		time = $("#restime").val();
+		$.getJSON('{php echo $this->createMobileUrl('getprice')}', {'xmid' : $(obj).val(), 'time' : time}, function(s){
+		if (s.message.status == 1) {
+			$('#grids').show();
+			$('#content').show();
+			$('#rmb').empty();
+			$('#jsids').empty();
+			$('#price').empty();
+			$('#prices').empty();
+			$('#rmb').append(s.message.price);
+			$('#jsids').append(s.message.price+' ×');
+			if(s.message.type==1){
+				$('#prices').append('<div class="weui_cell_hd f12">订单金额 <span class="f12 f-black">'+s.message.prices+'</span></div>');
+				$("#price").addClass("weui_cell_bd weui_cell_primary");
+				$('#price').append('<div class="tright f-orange f12"><span id="price">'+s.message.price+'</span></div>');
+			}else{
+				$('#price').append('<div class="weui_cell_bd weui_cell_primary f-orange f12" style="padding-right:10px"><span id="price">'+s.message.price+'</span></div>');
+			}
+			if(s.message.isc==1){
+				$('#content').html('<div class="weui-weixin-ui"><div class="weui-weixin-page"><div class="weui-weixin-content f12">'+s.message.content+'</div></div></div>');
+			}else{
+				$('#content').empty();
+			}
+		}else{
+			$.alert(s.message.msg, s.message.title);
+			$('#grids').hide();
+			$('#jsids').empty();
+			$("#xmid option:first").prop("selected", 'selected');
+			return false;
+		}
+		});
+	}
+	function getpay() {
+		var values=$("#pay").val();
+		if(values==9){
+			$('#getpay').show();
+		}else{
+			$('#getpay').hide();
+		}
+	}
+</script>
+{php $footer_off = 1;}
+{template 'footers'}

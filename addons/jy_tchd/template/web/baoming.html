@@ -1,0 +1,273 @@
+{template 'common/header'}
+
+<style>
+    .supportImg{width:15px;vertical-align:top;margin-left:10px}
+    .footer2{
+        width: 88%;
+        height: 60px;
+        position: fixed;
+        background: #66CCCC;
+        border-top: 1px solid #ccc;
+        right:0;
+        bottom: 0;
+        overflow: hidden;
+    }
+    .footer2>div{width: 33%;float: left;line-height: 60px;text-align: center;color: #fff;font-weight: bold}
+    #sureBtn{
+        background: #FF6600;
+        padding: 6px 20px;
+        color: #fff;
+        border-radius: 3px;
+        cursor: pointer;
+    }
+</style>
+<ul class="nav nav-tabs">
+    <li{if $op == 'display'} class="active"{/if}><a href="{php echo $this->createWebUrl('baoming');}">活动报名管理</a></li>
+    {if $op == 'add'}<li class="active"><a href="{php echo $this->createWebUrl('baoming',array('op'=>'add','id'=>$_GPC['id']));}">选择报名成功人员</a></li>{/if}
+</ul>
+<div class="main">
+    {if $op =="display"}
+    <div class="panel panel-info">
+        <div class="panel-heading">筛选</div>
+
+        <div class="panel-body">
+
+            <form action="./index.php" method="get" class="form-horizontal" role="form">
+
+                <input type="hidden" name="c" value="site" />
+                <input type="hidden" name="a" value="entry" />
+                <input type="hidden" name="m" value="{MD}" />
+                <input type="hidden" name="do" value="baoming" />
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">关键字</label>
+                    <div class="col-xs-12 col-sm-8 col-lg-9">
+                        <input class="form-control" name="keyword" id="" type="text" value="{$_GPC['keyword']}">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class=" col-xs-12 col-sm-2 col-lg-2">
+
+                        <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    {/if}
+
+    {if $op == 'display'}
+    <div class="panel panel-default">
+        <div class="panel-heading">活动详细数据  |  总数:{$total}</div>
+        <div class="panel-body table-responsive">
+
+            <form action="" method="post" onsubmit="">
+
+                <table class="table table-hover">
+
+                    <thead class="navbar-inner">
+
+                    <tr>
+                        <th  style="width:20%;">活动标题</th>
+                        <th style="width:20%;">活动地址</th>
+                        <th style="width:10%;">所属区域</th>
+                        <th style="width:8%;">活动类型</th>
+                        <th  style="width:8%;">发布者</th>
+                        <th  style="width:10%;">报名截止时间</th>
+                        <th style="width:15%;">操作</th>
+                    </tr>
+
+                    </thead>
+                    <tbody id="main">
+                    {loop $list $item}
+
+                    <tr>
+                        <td style="white-space:normal; word-break:break-all;overflow:hidden">
+                            <p>{$item['hdname']}</p>
+                        </td>
+                        <td style="white-space:normal; word-break:break-all;overflow:hidden">
+                            <p>{$item['address']}</p>
+                        </td>
+                        <td style="white-space:normal; word-break:break-all;overflow:hidden">
+                            {$item['province']}-{$item['city']}
+                        </td>
+                        <td style="white-space:normal; word-break:break-all;overflow:hidden">
+                            <p>{if $item['endtime']<time()}已结束{/if}
+                                {if $item['starttime']>time()}未开始{/if}
+                                {if $item['starttime']<=time() && $item['endtime']>time()}进行中{/if}</p>
+                        </td>
+                        <td>
+                            <p>{if !empty($item['mid'])}<span class="btn btn-sm btn-success">用户</span>{else}<span class="btn btn-sm btn-default">商家</span>{/if}</p>
+                        </td>
+                        <td>
+                            {php echo date('Y-m-d H:i',$item['deadline'])}
+                        </td>
+                        <td>
+
+                            <a href="{php echo $this->createWebUrl('huodong',array('op'=>'add','id'=>$item['id']));}" target="_blank"><div class="btn btn-sm btn-default">管理活动</div></a>&nbsp;
+                            <a href="{php echo $this->createWebUrl('baoming',array('op'=>'add','id'=>$item['id']));}"><div class="btn btn-sm btn-info">报名人员</div></a>&nbsp;
+
+                        </td>
+                    </tr>
+                    {/loop}
+                    </tbody>
+                </table>
+                {$pager}
+            </form>
+        </div>
+
+    </div>
+
+    {/if}
+
+    {if $op == 'add'}
+    <div class="panel panel-default">
+        <div class="panel-heading">活动报名人员详细数据  |  总数:{php echo count($list)} <a style="display: none" href="{php echo $this->createWebUrl('bmexport',array('id'=>$_GPC['id'],'keyword'=>$_GPC['keyword']))}"><span style="margin-left:200px" class="btn btn-default">导出数据</span></a></div>
+        <div class="panel-body table-responsive">
+
+            <form action="" method="post" onsubmit="">
+
+                <table class="table">
+
+                    <thead class="navbar-inner">
+
+                    <tr>
+                        <th  style="width:1%;"></th>
+                        <th  style="width:10%;">用户头像</th>
+                        <th  style="width:10%;">用户昵称</th>
+                        <th style="width:12%;">用户手机</th>
+                        <th style="width:12%;">用户姓名</th>
+                        <th  style="width:12%;">商户订单号</th>
+                        <th style="width:12%;">报名时间</th>
+                        <th style="width:10%;">费用</th>
+                        <th>操作</th>
+                    </tr>
+
+                    </thead>
+                    <tbody id="main">
+                    {loop $list $item}
+
+                    <tr class="selectedTr" >
+                    <td>
+
+                    </td>
+                    <td><img style="width:70px" src="{php echo tomedia($item['avatar'])}"></td>
+                    <td style="white-space:normal;word-break:break-all">
+                        <p>{$item['nicheng']}</p>
+                    </td>
+                    <td style="white-space:normal;word-break:break-all">
+                        <p>{$item['mobile']}</p>
+                    </td>
+                    <td style="white-space:normal;word-break:break-all">
+                        <p>{$item['realname']}</p>
+                    </td>
+                    <td style="white-space:normal; word-break:break-all;overflow:hidden">
+                        <p>{$item['uniontid']}</p>
+                    </td>
+                    <td style="white-space:normal;word-break:break-all">
+                        {php echo date('Y-m-d H:i',$item['createtime'])}
+                    </td>
+                    <td>
+                        {if $item['price']>0}
+                        <p style="color:red">{$item['price']} 元</p>
+                        {else}
+                        {if $item['jifen']>0}
+                        <p style="color:orange">{$item['jifen']} 积分</p>
+                        {else}
+                        <p>免费</p>
+                        {/if}
+                        {/if}
+                    </td>
+                    <td>
+                        <a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('baoming',array('op'=>'del','id'=>$item['cid']))}" class="btn btn-xs btn-danger">删除</a>
+                    </td>
+                    </tr>
+                    {/loop}
+                    </tbody>
+                </table>
+
+
+            </form>
+        </div>
+    </div>
+    {$pager}
+    {/if}
+</div>
+
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">图片展示</h4>
+            </div>
+            <div class="modal-body">
+                <img  id="mimng" alt="" width="100%;">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function(){
+        $(".bigphoto").click(function(){
+            var href = $(this).attr('src');
+            $("#boxpic").find('img').attr('src',href);
+            $("#garbox").show();
+            $("#boxpic").show();
+            return false;
+        })
+        $("#garbox").click(function(){
+            $("#garbox").hide();
+            $("#boxpic").hide();
+        })
+    })
+</script>
+<style>
+    #garbox{
+        background: #000;
+        opacity: 0.5;
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        top:0;
+        left:0;
+        z-index: 9998;
+        display: none;
+    }
+    #boxpic{
+        position: fixed;
+        margin: 0 auto;
+        z-index: 9998;
+        top: 4%;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        width: 60%;
+        max-height: 84%;
+        border-radius: 8px;
+        background: #fff;
+        display: none;
+    }
+    #boxpic img{
+        height: 100%;
+        padding: 15px;
+        margin: 0 auto;
+        display: block;
+    }
+</style>
+<div id="garbox"></div>
+<div id="boxpic">
+    <img src="" alt="">
+</div>
+{php echo $this->webnotice()}
+{template 'common/footer'}
+

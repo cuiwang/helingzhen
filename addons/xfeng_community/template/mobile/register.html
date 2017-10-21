@@ -1,0 +1,160 @@
+
+{template 'header'}
+<style>
+.step .con{width:50%; float:left; margin-bottom:20px;}
+.step .con > div{background:#EEE; color:#EEE; width:90%; height:50px; position:relative; text-align:center;}
+.step .con > div .img-circle{background:#BBB; display:inline-block; width:20px; height:20px; line-height:20px; margin-top:6px;}
+.step .con > div .step-name{display:block; color:#BBB;}
+.step .con .pull-left .icon-caret-right{position:absolute; right:-15px; top:0; font-size:50px;}
+.step .active > div{background:#D9D9D9; color:#D9D9D9;}
+.step .active > div .img-circle{background:#3276b1; color:#FFF;}
+.step .active > div .step-name{color:#333;}
+form{
+	width: 95%;
+	margin:5px auto;
+}
+</style>
+{if $this->module['config']['verifycode'] && !$_SESSION['isstatus']}
+<form class="form-horizontal img-rounded" role="form" method="post" onsubmit="return checkMobile(this);">
+<div class="step">
+	<div class="con active">
+		<div class="pull-left">
+			<span class="img-circle">1</span>
+			<span class="step-name">手机验证</span>
+			<i class="glyphicon glyphicon-triangle-right"></i>
+		</div>
+	</div>
+	<div class="con">
+		<div class="pull-right">
+			<span class="img-circle">2</span>
+			<span class="step-name">注册信息</span>
+		</div>
+	</div>
+</div>
+<div class="form-group">
+	<div class="col-xs-12">
+		<input type="text" id="mobile" name="mobile" value="" class="form-control input-lg" placeholder="请输入您的手机号" {if $_SESSION['code']}disabled="disabled"{/if}/>
+	</div>
+</div>
+<div class="form-group">
+	<div class="col-xs-12">
+		<button onclick="sendVerifyCode();" type="button" id="verifyCodeBtn" class="sendverify btn btn-warning btn-lg btn-block">发送验证码</button>
+	</div>
+</div>
+<div class="form-group">
+	<div class="col-xs-12">
+		<input type="text" name="verifycode" value="" class="form-control input-lg" placeholder="请输入短信中的验证码" />
+	</div>
+</div>
+<div class="form-group">
+	<div class="col-xs-12">
+		<button type="submit" name="submit" value="yes" class="btn btn-primary btn-lg" style="width:100%;">下一步</button>
+		<input type="hidden" name="token" value="{$_W['token']}" />
+	</div>
+</div>
+</form>
+{else}
+<form class="form-horizontal" role="form" method="post" onsubmit="return checkMobile(this);">
+<div class="panel panel-default">
+  <div class="panel-body">
+    <div class="form-group">
+	    <label for="realname" class="col-sm-2 control-label">姓名</label>
+	    <div class="col-sm-10">
+	      <input type="text" id="realname" name="realname" value="{$member['realname']}" class="form-control" placeholder="输入您的真实姓名" />
+	    </div>
+  	</div>
+  	<div class="form-group">
+	    <label for="mobile" class="col-sm-2 control-label">手机</label>
+	    <div class="col-sm-10">
+	      <input type="text" id="mobile" name="mobile" value="{if !empty($_SESSION['mobile'])}{$_SESSION['mobile']}{else}{$member['mobile']}{/if}" class="form-control span2" placeholder="输入您的手机号码" />
+	    </div>
+  	</div>
+  	<div class="form-group">
+	    <label for="" class="col-sm-2 control-label">小区</label>
+	    <div class="col-sm-10">
+	      	<select name="regionid" id="regionid" class="form-control">
+				{loop $regions $region}
+				<option value="{$region['id']}">{$region['title']}</option>
+				{/loop}
+			</select>
+	    </div>
+  	</div>
+  	<div class="form-group">
+	    <label for="address" class="col-sm-2 control-label">地址</label>
+	    <div class="col-sm-10">
+	      <input type="text" id="address" name="address" value="{$member['address']}" class="form-control" placeholder="您的楼栋地址：如1号楼3单号502" />
+	    </div>
+  	</div>
+  	<div class="form-group">
+	    <label for="remark" class="col-sm-2 control-label">备注</label>
+	    <div class="col-sm-10">
+	      <textarea id="remark" name="remark" value="{$member['remark']}" class="form-control" rows="3"></textarea>
+	    </div>
+  	</div>
+  	<div class="form-group">
+	    <label for="" class="col-sm-2 control-label"></label>
+	    <div class="col-sm-10">
+	      <button type="submit" name="submit" value="yes" class="btn btn-primary btn-lg" style="width:100%;">提交登记</button>
+		<input type="hidden" name="token" value="{$_W['token']}" />
+	    </div>
+  	</div>
+  </div>
+</div>
+</form>
+
+{/if}
+
+
+<script type="text/javascript">
+
+	function checkMobile(form) {
+		if (!form['mobile'].value) {
+			alert('请输入您的手机号码。');
+			return false;
+		}
+		if (form['mobile'].value.search(/^([0-9]{11})?$/) == -1) {
+			alert('请输入正确的手机号码！');
+			return false;
+		}
+		if (!form['verifycode'].value) {
+			alert('请输入发送给您的验证码。');
+			return false;
+		}
+		return true;
+	}
+	function sendVerifyCode() {
+		var mobile = $('#mobile').val();
+		if (!mobile) {
+			alert('请输入您的手机号码！');
+			return false;
+		}
+		if (mobile.search(/^([0-9]{11})?$/) == -1) {
+			alert('请输入正确的手机号码！');
+			return false;
+		}
+		$('#verifyCodeBtn').addClass('active');
+		$('#verifyCodeBtn').attr('disabled', true);
+		var countdown = 60;
+		timer = setInterval(function(){
+			$('#verifyCodeBtn').html(countdown--);
+			if (countdown == 0) {
+				$('#verifyCodeBtn').removeClass('active');
+				$('#verifyCodeBtn').html('重新发送');
+				clearInterval(timer);
+				$('#verifyCodeBtn').attr('disabled', false);
+			}
+		},1000);
+		$.getJSON('{php echo $this->createMobileUrl('verifycode','',true)}&mobile='+mobile+'&type=verify', function(s){
+			if (!s.message.status) {
+				// alert(s.message.message);
+				$('#verifyCodeBtn').removeClass('active');
+				$('#verifyCodeBtn').html('重新发送');
+				clearInterval(timer);
+				$('#verifyCodeBtn').attr('disabled', false);
+				return false;
+			}
+		});
+	}
+
+</script>
+

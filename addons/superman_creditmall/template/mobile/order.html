@@ -1,0 +1,309 @@
+{template 'header'}
+<div class="page-group">
+	<div class="page superpage_{$do}" id="superpage_{$do}_{$act}_{$status}">
+		{template 'nav'}
+		{if $act == 'display'}
+		{template 'title'}
+		<div class="bar-nav buttons-tab">
+			<a href="{php echo $this->createMobileUrl('order', array('status' => 'all'))}" class="{if $status=='all'}active{/if} button" data-no-cache="true">全部</a>
+			<a href="{php echo $this->createMobileUrl('order', array('status' => 'no_pay'))}" class="{if $status=='no_pay'}active{/if} button" data-no-cache="true">待支付</a>
+			<a href="{php echo $this->createMobileUrl('order', array('status' => 'no_receive'))}" class="{if $status=='no_receive'}active{/if} button" data-no-cache="true">待收货</a>
+			<a href="{php echo $this->createMobileUrl('order', array('status' => 'no_comment'))}" class="{if $status=='no_comment'}active{/if} button" data-no-cache="true">已完成</a>
+		</div>
+		<div class="content order_wrap infinite-scroll" data-url="{php echo $this->createMobileUrl('order', array('act' => 'display', 'status' => $status, 'load' => 'infinite'))}" data-item-url="{php echo $this->createMobileUrl('order', array('act' => 'detail'))}" data-detail-url="{php echo $this->createMobileUrl('detail')}" data-receive-url="{php echo $this->createMobileUrl('order', array('act' => 'receive'))}" data-img-placeholder="{php echo superman_img_placeholder()}" data-pay-url="{php echo $this->createMobileUrl('pay')}" data-list-url="{php echo $this->createMobileUrl('list')}" data-comment-url="{php echo $this->createMobileUrl('comment', array('orderid' => $item['id']))}" data-distance="50" data-page="1">
+			<div class="content-block">
+				<div class="tabs">
+					<div class="tab active add-order">
+						{if isset($list[$status])}
+						{loop $list[$status] $item}
+						<div class="card">
+							<div class="list-block">
+								<ul>
+									<li class="item-content item-link">
+										<a href="{php echo $this->createMobileUrl('order', array('act' => 'detail', 'orderid' => $item['id']))}" style="width: 100%">
+										<div class="item-inner">
+											<div class="font7">订单号: {$item['ordersn']}</div>
+											<div class="credit_color font7">{$item['status_title']}</div>
+										</div>
+										</a>
+									</li>
+									<li></li>
+								</ul>
+							</div>
+							<div class="card-content">
+								<div class="list-block media-list">
+									<ul>
+										<a href="{php echo $this->createMobileUrl('order', array('act' => 'detail', 'orderid' => $item['id']))}">
+											<li class="item-content">
+												<div class="item-media">
+													<img class="cover" src="{$item['product']['cover']}" onerror="this.src='{php echo superman_img_placeholder()}'"/>
+													{if superman_is_redpack($item['product']['type']) && strstr($item['product']['cover'], '/addons/')}
+													<span>{$item['extend']['redpack_amount']}元</span>
+													{/if}
+												</div>
+												<div class="item-inner">
+													<div class="item-title-row">
+														<div class=" text-overflow-line2">{$item['product']['title']}</div>
+													</div>
+													<div class="item-subtitle clearfix">
+														<div class="pull-left font6 total_wrap">
+															X{$item['total']}
+														</div>
+														<div class="pull-left">
+															<button class="button disabled font5 product_type">{$item['product']['type_name']}</button>
+														</div>
+													</div>
+												</div>
+											</li>
+										</a>
+									</ul>
+								</div>
+							</div>
+							<div class="card-footer clearfix">
+								<div class="row no-gutter order_footer_wrap">
+									<div class="col-50 font6 order_footer_left">
+										实付: {if $item['price']>0}{$item['credit']}{$item['credit_title']}+{$item['price']}元{else}{$item['credit']}{$item['credit_title']}{/if}
+									</div>
+									<div class="col-50 btn_wrap text-right">
+										<a href="{php echo $this->createMobileUrl('order', array('act' => 'detail', 'orderid' => $item['id']))}" class="button button-dark button-fill">查看</a>
+										{if $item['status'] == 0}
+										<a href="#" data-url="{php echo $this->createMobileUrl('pay', array('orderid' => $item['id'], 'check' => 'yes'))}" class="button button-fill button-success btn_order_pay">立即支付</a>
+										{else if $item['status'] == 2}
+										<a href="javascript:;" data-url="{php echo $this->createMobileUrl('order', array('act' => 'receive', 'orderid' => $item['id']))}" data-flag="0" data-title="确认已收到商品？" class="button button-fill create-actions btn_order_operate">确认收货</a>
+										{else if $item['status'] == 3}
+										<!--<a href="{php echo $this->createMobileUrl('comment', array('orderid' => $item['id']))}" class="button button-fill btn_comment">评价赚积分</a>-->
+										{/if}
+									</div>
+								</div>
+							</div>
+						</div>
+						{/loop}
+						{/if}
+					</div>
+				</div>
+			</div>
+			{if isset($list[$status]) && count($list[$status])==$pagesize}
+			<div class="infinite-scroll-preloader">
+				<div class="preloader"></div>
+			</div>
+			{/if}
+		</div>
+		{else if $act == 'detail'}
+		{template 'title'}
+		<div class="content">
+			{if ($this->module['config']['base']['order_checkout'] || $order['pickup_info'] != '') && $order['status'] > 0 && $order['status'] < 3}
+			<div class="qrcode">
+				<div class="row">
+					<div class="col-100 text-center">
+						<img src="{php echo $this->createMobileUrl('qrcode', array('content' => urlencode($_W['siteroot'].'app/'.$this->createMobileUrl('checkout', array('orderid' => $order['id'])))))}"/>
+					</div>
+					<div class="col-100 text-center font6 color-gray">
+						使用时请出示该二维码
+					</div>
+				</div>
+				<div class="list-block">
+					<ul>
+						<li>
+							<div class="item-content">
+								<div class="item-inner">
+									<div class="item-title text-center label font7">验证码</div>
+									<div class="item-input">
+										<input type="text" class="font7" name="code" placeholder="询问店员或由店员输入">
+									</div>
+								</div>
+							</div>
+						</li>
+					</ul>
+					<div class="content-block btn">
+						<div class="row">
+							<div class="col-100">
+								<a href="#" data-orderid="{$order['id']}" data-url="{php echo $this->createMobileUrl('order')}" class="button button-fill button-success btn_checkout">确认核销</a>
+							</div>
+						</div>
+					</div>
+					<div class="font6 text-center color-gray">核销后不可撤回</div>
+				</div>
+			</div>
+			{/if}
+			<div class="list-block order_wrap">
+				<ul class="font7">
+					<li class="item-content">
+						<div class="item-inner">
+							<div class="row detail_wrap no-gutter">
+								<div class="col-33">订单号</div>
+								<div class="col-66 grey">{$order['ordersn']}</div>
+							</div>
+						</div>
+					</li>
+					<li class="item-content">
+						<div class="item-inner">
+							<div class="row detail_wrap no-gutter">
+								<div class="col-33">状态</div>
+								<div class="col-66 grey order_status">{$order['status_title']}</div>
+							</div>
+						</div>
+					</li>
+					{if $order['pay_type_title'] != ''}
+					<li class="item-content">
+						<div class="item-inner">
+							<div class="row detail_wrap no-gutter">
+								<div class="col-33">支付方式</div>
+								<div class="col-66 grey">{$order['pay_type_title']}</div>
+							</div>
+						</div>
+					</li>
+					{/if}
+					<li class="item-content">
+						<div class="item-inner">
+							<div class="row detail_wrap no-gutter">
+								<div class="col-33">留言</div>
+								<div class="col-66 grey">{$order['remark']}</div>
+							</div>
+						</div>
+					</li>
+					{if isset($order['pickup_info']) && $order['pickup_info'] != ''}
+					<li class="item-content">
+						<div class="item-inner">
+							<div class="row detail_wrap no-gutter">
+								<div class="col-33">自取信息</div>
+								<div class="col-66 grey">
+									{php echo htmlspecialchars_decode($order['pickup_info'])}
+								</div>
+							</div>
+						</div>
+					</li>
+					{/if}
+					{if $order['express_title'] != ''}
+					<li class="item-content">
+						<div class="item-inner">
+							<div class="row detail_wrap no-gutter">
+								<div class="col-33">快递公司</div>
+								<div class="col-66 grey">{$order['express_title']}</div>
+							</div>
+						</div>
+					</li>
+					{/if}
+					{if $order['express_no'] != ''}
+					<li class="item-content">
+						<div class="item-inner">
+							<div class="row detail_wrap no-gutter">
+								<div class="col-33">快递单号</div>
+								<div class="col-66 grey">{$order['express_no']}</div>
+							</div>
+						</div>
+					</li>
+					{/if}
+					{if $order['express_fee'] > 0}
+					<li class="item-content">
+						<div class="item-inner">
+							<div class="row detail_wrap no-gutter">
+								<div class="col-33">快递费</div>
+								<div class="col-66 grey">{$order['express_fee']}元</div>
+							</div>
+						</div>
+					</li>
+					{/if}
+					{if $order['username'] != ''}
+					<li class="item-content">
+						<div class="item-inner">
+							<div class="row detail_wrap no-gutter">
+								<div class="col-33">收件人</div>
+								<div class="col-66 grey">
+									{$order['username']}&nbsp;&nbsp;{$order['mobile']}<br/>
+									{$order['address']}
+								</div>
+							</div>
+						</div>
+					</li>
+					{/if}
+					{if isset($order['extend']['virtual_result']) && $order['extend']['virtual_result'] != ''}
+					<li class="item-content">
+						<div class="item-inner">
+							<div class="row detail_wrap no-gutter">
+								<div class="col-33">虚拟物品</div>
+								<div class="col-66 grey">
+									<span class="credit_color">
+										{php echo nl2br($order['extend']['virtual_result']['key']);}
+									</span>
+								</div>
+							</div>
+						</div>
+					</li>
+					{/if}
+				</ul>
+			</div>
+			{if $product}
+			{if superman_is_redpack($product['type'])}
+			<a href="{php echo $this->createMobileUrl('list', array('type' => $product['type']))}">
+			{else}
+			<a href="{php echo $this->createMobileUrl('detail', array('id' => $product['id']))}" class="external">
+			{/if}
+				<div class="list-block media-list product_wrap">
+					<ul>
+						<li class="item-content">
+							<div class="item-media">
+								<img class="cover" src="{$product['cover']}" onerror="this.src='{php echo superman_img_placeholder()}'">
+								{if superman_is_redpack($product['type']) && strstr($product['cover'], '/addons/')}
+								<span>{$product['extend']['redpack_amount']}元</span>
+								{/if}
+							</div>
+							<div class="item-inner">
+								<div class="text-overflow-line2 font7">
+									{$product['title']}
+								</div>
+								<div class="item-subtitle">
+									<div class="pull-left font6 total_wrap">
+										X {$order['total']}
+									</div>
+									<div class="pull-left">
+										<button class="button disabled font5 product_type">{$product['type_name']}</button>
+									</div>
+								</div>
+							</div>
+						</li>
+					</ul>
+				</div>
+			</a>
+			{/if}
+			<div class="content-padded text-right">
+				<div>
+					实付:
+					<span class="credit_color">
+						{if $order['price']>0}
+							{$order['credit']}{$order['credit_title']} + {$order['price']}元
+						{else}
+							{$order['credit']}{$order['credit_title']}
+						{/if}
+					</span>
+					<div class="font6 order_time">下单时间: {$order['dateline']}</div>
+				</div>
+			</div>
+			<div class="content-padded">
+				<div class="content-block">
+					{if $order['status']==0}
+					<p>
+						<a href="#" data-url="{php echo $this->createMobileUrl('pay', array('orderid' => $order['id'], 'check' => 'yes'))}" class="button button-fill button-success btn_pay btn_order_pay">去付款</a>
+					</p>
+					{/if}
+					{if $order['status']==2}
+					<p>
+						<a href="javascript:;" data-url="{php echo $this->createMobileUrl('order', array('act' => 'receive', 'orderid' => $order['id']))}" data-flag="0" data-title="确认已收到商品？" class="button button-fill create-actions btn_order_operate">确认收货</a>
+					</p>
+					{/if}
+					{if $order['status'] ==0}
+					<p>
+						<a href="javascript:;" data-url="{php echo $this->createMobileUrl('order', array('act' => 'cancel', 'orderid' => $order['id']))}" data-flag="0" data-title="确认取消订单？" class="button button-fill button-warning create-actions btn_order_operate">取消订单</a>
+					</p>
+					{/if}
+					{if $order['status'] == -1 || $order['status'] == 4}
+					<p>
+						<a href="javascript:;" data-url="{php echo $this->createMobileUrl('order', array('act' => 'delete', 'orderid' => $order['id']))}" data-flag="0" data-title="确认删除订单？" class="button button-fill button-danger create-actions btn_order_operate">删除订单</a>
+					</p>
+					{/if}
+				</div>
+			</div>
+		</div>
+		{/if}
+	</div>
+</div>
+{template 'footer'}

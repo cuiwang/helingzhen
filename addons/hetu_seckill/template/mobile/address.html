@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>编辑收货地址</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<link rel="stylesheet" type="text/css" href="{HT}css/address.css">
+<link rel="stylesheet" href="{HT}css/weui2.css">
+</head>
+<body>
+	<form name="form_order" action="{php echo $this->createMobileUrl('Seckill_user', array('op'=>'save_add', 'id'=>$orderid))}" class="form-horizontal form" method="post" onsubmit="return formcheck()">
+		<div class="ct_ul">
+			<div class="address_list">
+				<span>收货人:</span>
+				<input type="text" name="contact_name" value="{$add_arr[0]}" id="contact_name">
+			</div>
+			<div class="address_list">
+				<span>手机号码:</span>
+				<input type="text" name="contact_phone" value="{$add_arr[1]}" id="contact_phone">
+			</div>
+			<div class="weui_cell clearfix">
+				<div class="weui_cell_hd">
+					<label for="" class="">省市县:</label>
+				</div>
+				<div class="weui_cell_bd weui_cell_primary">
+					<input class="weui_input" type="text" value="{$add_arr[2]} {$add_arr[3]} {$add_arr[4]}" name="contact_dis" id='contact_dis'/> 
+				</div>
+			</div>
+			<div class="address_list">
+				<span>详细街道：</span>
+				<input type="text" name="contact_add" value="{$add_arr[5]}" id="contact_add" placeholder="楼道、街道等">
+			</div>
+		</div>
+		<div class="hide">
+			
+		</div>
+		<div class="footer_btn clearfix">
+			<button class="hq_address btn_publick" type="button" onclick="get_wx_add()">获取微信地址</button>
+			<button class="bc btn_publick">保存编辑</button>
+		</div>
+	</form>
+<script src="{HT}js/zepto.min.js"></script>
+<script src="{HT}js/example.js"></script>  
+<script src="{HT}js/picker.js"></script>
+<script>
+$("#contact_dis").cityPicker({
+	title: "选择省市县"
+  });
+</script>
+<script type="text/javascript" src="http://res.wx.qq.com/open/js/jweixin-1.1.0.js"></script>
+<script>
+	function formcheck(){
+		if($('#contact_name').val().trim() == ''){
+			alert('请填写收货人');
+			return false;
+		}else if($('#contact_phone').val().trim() == ''){
+			alert('请填写收货人手机号码');
+			return false;
+		}else if($('#contact_dis').val().trim() == ''){
+			alert('请填写省市县信息');
+			return false;
+		}else if($('#contact_add').val().trim() == ''){
+			alert('请填写详细街道信息');
+			return false;
+		}else {
+			return true;
+		}
+	}
+	function get_wx_add(){
+		wx.config({
+			debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+			appId: "{$wxapi['appId']}", // 必填，公众号的唯一标识
+			timestamp: '{$wxapi["timestamp"]}', // 必填，生成签名的时间戳
+			nonceStr: '{$wxapi["nonceStr"]}', // 必填，生成签名的随机串
+			signature: '{$wxapi["signature"]}',// 必填，签名，见附录1
+			jsApiList: ['checkJsApi',  'editAddress', 'chooseWXPay', 'getLatestAddress'] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
+		});
+		//https://pay.weixin.qq.com/wiki/doc/api/jsapi.php?chapter=7_8
+		wx.ready(function(){
+			wx.openAddress({
+				success: function (res) {
+				/**	// 用户成功拉出地址 
+					alert('收货人姓名:' + res.userName);
+					alert('邮编:' + res.postalCode);
+					alert('国标收货地址第一级地址（省）:' + res.provinceName);
+					alert('国标收货地址第二级地址（市）:' + res.cityName);
+					alert('国标收货地址第三级地址（国家）:' + res.countryName);
+					alert('详细收货地址信息:' + res.detailInfo);
+					alert('收货地址国家码:' + res.nationalCode);
+					alert('收货人手机号码:' + res.telNumber);
+					**/
+					$('#contact_name').val(res.userName);
+					$('#contact_phone').val(res.telNumber);
+					$('#contact_dis').val(res.provinceName + ' ' + res.cityName + ' ' + res.countryName);
+					$('#contact_add').val(res.detailInfo);
+				},
+				cancel: function () {
+				}
+			});
+		});
+	}
+   </script>
+</body>
+</html>

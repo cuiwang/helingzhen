@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>购物中心</title>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="stylesheet" href="../addons/haoman_dpm/shopping/sm.css?v=42423423">
+    <script src="../addons/haoman_dpm/shopping/zepto.js"></script>
+    <script type="text/javascript" src="{$_W['siteroot']}app/resource/js/app/util.js"></script>
+    <!--<script type="text/javascript" src="{$_W['siteroot']}app/resource/js/lib/jquery-1.11.1.min.js"></script><script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>-->
+
+    <script type="text/javascript" src="{$_W['siteroot']}app/resource/js/app/common.js"></script>
+    <script type="text/javascript">
+
+        var indexUrl = "{php echo $this->createMobileUrl('mob_bjlist',array('rid'=>$rid))}";
+        var indexUrl2 = "{php echo $this->createMobileUrl('mybobing',array('rid'=>$rid))}";
+        window.sysinfo = {
+        {if !empty($_W['uniacid'])}'uniacid': '{$_W['uniacid']}',{/if}
+        {if !empty($_W['acid'])}'acid': '{$_W['acid']}',{/if}{if !empty($_W['openid'])}'openid': '{$_W['openid']}',{/if}
+        {if !empty($_W['uid'])}'uid': '{$_W['uid']}',{/if}
+        'siteroot': '{$_W['siteroot']}',
+            'siteurl': '{$_W['siteurl']}',
+            'attachurl': '{$_W['attachurl']}',
+            'attachurl_local': '{$_W['attachurl_local']}',
+            'attachurl_remote': '{$_W['attachurl_remote']}',
+            {if defined('MODULE_URL')}'MODULE_URL': '{MODULE_URL}',{/if}
+        'cookie' : {'pre': '{$_W['config']['cookie']['pre']}'}
+        };
+    </script>
+    <style type="text/css">
+        body{
+            -webkit-overflow-scrolling:touch;
+        }
+         .buttons-tab1:after {
+            height: 0px;
+        }
+        .buttons-tab1{
+            display: inline-block;
+            white-space: nowrap;
+        }
+        .buttons-tab1 .button.active {
+            color: #0a8ddf;
+            border-color: #0a8ddf;
+            font-size: 0.8rem;
+            border-bottom: 1px #0a8ddf solid;
+        }
+
+        .buttons-tab1 .button {
+            height: 2.5rem;
+            line-height: 2.5rem;
+            /*width: 100px;*/
+            display: inline-block;
+            border: none;
+            color: #5f646e;
+            font-size: 0.8rem;
+            border-radius: 0px;
+           
+        }
+        .page.page-current, .page-group.page-current {
+            overflow: auto;
+        }
+        .list-block {
+            margin: 0 0 0.5rem 0;
+        }
+        .list-block .item-text {
+            line-height: 2.1rem;
+        }
+        .list-block .item-title{
+            color: #4f4145;
+        }
+        .list-block .subtitle{
+            color: #f00b0d;
+        }
+        .fixbottom{
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            padding-top: 0.5rem;
+            font-size: 0.7rem;
+            text-align: center;
+            background-color: #6dbdc4;
+            position: absolute;
+            bottom: 2.5rem;
+            right: 1rem;
+            z-index: 99999;
+        }
+        .gw_num{line-height: 36px;overflow: hidden;position: absolute;bottom: 0.5rem;right: 0.75rem;}
+        .gw_num em{font-size:22px;display: block;height: 36px;width: 36px;float: left;color: #7A7979;border: 1px solid #999;text-align: center;border-radius: 50%;font-style:normal}
+        .gw_num .num{display: block;float: left;text-align: center;font-style: normal;font-size: 14px;line-height: 36px;border: 0;height:36px;}
+        .gw_num em.add{float: right;}
+
+    </style>
+</head>
+<body >
+<div class="page">
+    <header class="bar bar-nav" style="background: #fff;border-bottom: 1px #eee solid;">
+        <a class=" pull-left" style="z-index: 999999;" href="{php echo $this->createMobileUrl('messagesindex', array('id' => $rid))}">
+            <span class="icon icon-left"></span>
+        </a>
+        <h1 class='title' style="font-weight: 700;font-size: 20px;">商城中心</h1>
+    </header>
+
+        <div style="display: block;margin-bottom: 50px;font-size: 0;" class="content" >
+
+            <div style="background: #fff;margin-bottom: -1rem;padding: 0;margin: 0;">
+                <div id="buttonstab" class="buttons-tab1 content-inner" style="width: 91%;overflow: scroll;padding-bottom: 0px;height: 100%;">
+                <a href="javascript:void(0)" onclick="refresh_category_list(0, this);" class="{if $type == 0}active{/if} button ">全部</a>
+                {loop $category $row}
+                <a href="javascript:void(0)"  class="button" onclick="refresh_category_list({php echo $row['id']}, this);">{$row['name']}</a>
+                {/loop}
+                </div>
+                <span id="scrolltoletf" style="float: right;margin-top: 0.8rem;margin-right: 0.3rem;font-size: 16px;" class="icon icon-right"></span>
+            </div>
+
+            <div id="category_list" class="infinite-scroll user-rows" style="height: auto;overflow: scroll;position: relative;margin-top: 10px;" data-distance="10">
+                {loop $goods $row}
+                <div class="list-block media-list user-item">
+                    <ul>
+                        <li>
+                            <a href="#" class="item-content">
+                                <div class="item-media"><img src="{php echo tomedia($row['thumb'])}" style='width: 5.8rem;height: 5.8rem'></div>
+                                <div class="item-inner">
+                                    <div class="item-title-row">
+                                        <div class="item-title">{$row['title']}</div>
+                                    </div>
+                                    {if $row['give_type']!=0}
+                                    {if $row['give_type']==1}
+                                    <div class="item-text" style="font-size: 12px;color: #ff0000">{$row['give_note']}</div>
+                                    {else}
+                                    <div class="item-text" style="font-size: 12px;color: #ff0000">满{$row['full_money']}送{$row['seng_money']}霸屏金额</div>
+                                    {/if}
+                                    <div class="item-subtitle subtitle" style="">{$row['productprice']}元/{$row['company']}</div>
+                                    {else}
+                                    <div class="item-subtitle subtitle" style="margin-top: 12%">{$row['productprice']}元/{$row['company']}</div>
+                                    {/if}
+                                    <div class="gw_num" >
+                                        <em class="jian " style="display: none" onclick="jian(this)">-</em>
+                                        <input type="number" data-id="{$row['id']}" data-price="{$row['productprice']}" value="0" class="num" style="max-width: 60px;height: 36px;display: none;" disabled/>
+                                        <em class="add" onclick="add(this)">+</em>
+                                    </div>
+                                </div>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                {/loop}
+            </div>
+
+            <!--<div class="infinite-scroll-preloader">-->
+                <!--<div class="preloader"></div>-->
+            <!--</div>-->
+        </div>
+
+
+</div>
+<div style="position: fixed;bottom: 0px;width: 100%;height: 44px;right: 0px;left: 0px;background-color: #fff;z-index: 9999999999;border-top: 1px solid #e1e1e1">
+
+    <div class="" style="border: 1px solid #ddd;width: 44px;height: 44px;line-height: 44px;text-align: center;position: relative;top: -23px;background-color: #e9e9e9;border-radius: 50%;left: 4%" >
+        <span class="icon icon-cart" style="color: #999;"></span>
+        <span class="badge" id="cart_number" style="text-align: center;position: relative;top: -70px;background-color: red;right: -14px;color: #fff;display: none">0</span>
+    </div>
+
+    <span style="height: 30px;line-height: 30px;width: 50%;margin-left: 22%;position: relative;top: -40px;left:-20px;z-index: 9999999999999999">总共￥<span id="price">0.00</span>元</span>
+    <span class="" ><a href="#"  class="button button-big button-fill button-success queding" style="display:inline-block;width: 88px;height: 36px;line-height:36px;position: absolute;top:4px;right:20px;z-index: 9999999999999999;margin: 0px;">选好了</a></span>
+    <input type="hidden" value="" class="shop_id">
+</div>
+
+<div style="width: 100%;height: 100%;position: fixed;top: 0px;bottom: 0px;background-color: rgba(0,0,0,0.59);z-index:9999999999912;display: none" class="choose_address">
+    <div style="width: 80%;margin-left: 10%;margin-top: 55%;background-color: #fff;border-radius: 8px;max-height: 220px;padding-bottom: 5%">
+        <div style="width: 100%;height: 44px;text-align: center">
+            <input type="text" placeholder="请输入您的位置" style="width: 80%;margin-top: 20px;height: 44px;line-height: 44px;" name="address" class="address">
+        </div>
+        <input type="hidden" class="address2" value="0">
+        <div class="content-block" style="margin-bottom: 20px">
+            <div class="row">
+                <div class="col-50"><a href="javascript:void(0)" class="button button-big button-fill button-danger is_no" >取消</a></div>
+                <div class="col-50"><a href="javascript:void(0)" class="button button-big button-fill button-success is_ok">提交</a></div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="zhifu" style="display: none">
+
+    <h4>订单信息</h4>
+
+    <div class="panel">
+
+        <div class="clearfix" style="padding-top:10px;">
+
+            <p>商品名称 :<span class="pull-right otitle">{$params['title']}</span></p>
+
+            <p>订单编号 :<span class="pull-right ordersn" >{$params['ordersn']}</span></p>
+
+            <p>商家名称 :<span class="pull-right shangjia">{$_W['account']['name']}</span></p>
+
+            <p>支付金额 :<span class="pull-right jine">￥{php echo sprintf('%.2f', $params['fee']);} 元</span></p>
+        </div>
+
+    </div>
+
+    <div class="pay-btn" id="wechat-panel">
+
+        <form action="{php echo url('mc/cash/wechat');}" method="post" id="biaodan">
+
+            <input type="hidden" name="params" value=""  />
+
+            <input type="hidden" name="token" value="{$_W['token']}" />
+
+            <button class="weui_btn_primary weui_btn col-sm-12"  style="z-index: 9999;" type="submit" id="wBtn" value="wechat">微信支付(必须使用微信内置浏览器)</button>
+
+        </form>
+
+    </div>
+
+
+</div>
+</body>
+<script src="../addons/haoman_dpm/shopping/sm.js"></script>
+<script type="text/javascript">
+    $("#scrolltoletf").on('touchend',function(){
+        var scroll = $("#buttonstab").scrollLeft() + 60;
+        $("#buttonstab").scrollLeft(scroll);
+     });
+
+</script>
+
+<script>
+ $(".is_no").click(function () {
+     $(".choose_address").hide()
+ })
+ $('.queding').click(function () {
+     $(".choose_address").show()
+ })
+function add(e) {
+//    console.info(1111);
+    var n=$(e).prev().val();
+    var m=parseInt($("#cart_number").html());
+    var p=parseFloat($("#price").html());
+    var pp=parseFloat($(e).prev().data('price'));
+    var id=$(e).prev().data('id');
+
+    if(parseInt(n)==0){
+        $(e).parent().find(".jian").show();
+        $(e).parent().find(".num").show();
+    }
+    var num=parseInt(n)+1;
+    if(num==0){ return;}
+
+    var new_price = pp+p;
+
+    $.ajax({
+        type: 'POST',
+        url: "{php echo $this->createMobileUrl('addshoppingcar', array('rid' => $rid))}",
+        data: {
+            _status: 1,
+            _id: id,
+            _num: num
+        },
+        success: function(result) {
+            if(result.True==0){
+                $(e).parent().find(".jian").hide();
+                $(e).parent().find(".num").hide();
+                 alert('该商品销售完了！');
+                 return;
+            }
+            $(e).prev().val(num);
+            if(m==0){
+                $("#cart_number").show();
+            }
+            $("#cart_number").html(m+1);
+            $("#price").html(new_price);
+        },
+        dataType: 'json',
+        error: function() {
+           alert('失败！')
+        }
+    });
+
+
+}
+
+function jian(e) {
+    var n=$(e).next().val();
+    var m=parseInt($("#cart_number").html());
+    var p=parseFloat($("#price").html());
+    var pp=parseFloat($(e).next().data('price'));
+    var id=$(e).next().data('id');
+    if(parseInt(n)==1){
+        $(e).parent().find(".jian").hide();
+        $(e).parent().find(".num").hide();
+    }
+    var num=parseInt(n)-1;
+
+    if(num==-1){ return}
+    $.ajax({
+        type: 'POST',
+        url: "{php echo $this->createMobileUrl('addshoppingcar', array('rid' => $rid))}",
+        data: {
+            _status: 2,
+            _id: id,
+            _num: num
+        },
+        success: function(result) {
+        },
+        dataType: 'json',
+        error: function() {
+            alert(result)
+        }
+    });
+    var new_price = p-pp;
+
+
+
+    $(e).next().val(num);
+
+    if(m==0||new_price<0){
+        return;
+    }
+    $("#cart_number").html(m-1);
+    $("#price").html(new_price);
+    if(m==1){
+        $("#cart_number").hide();
+    }
+}
+
+    var user_list = {}, filter = {type: 0, page: 0}, page = 0;
+    function refresh_category_list(e, t) {
+        filter.type = e;
+        filter.page = 0;
+        page = 0;
+        user_list = {};
+        $("#buttonstab a").removeClass("active");
+        $(t).addClass("active");
+        load_category_list()
+    }
+    function load_category_list() {
+        $.showPreloader();
+
+       $.post("{php echo $this->createMobileUrl("morecategory", array('rid' => $rid))}", filter, function (e) {
+            console.log(e.list);
+            render_category_list(e.list)
+        }, "json")
+    }
+
+    function render_category_list(e) {
+        $(".user-rows").empty()
+        var d='';
+        for (var i = 0; i < e.length; i++) {
+
+            d += '<div class="list-block media-list user-item">';
+            d += '<ul>';
+            d += '<li>';
+            d += '<a href="#" class="item-content">';
+            d += '<div class="item-media"><img src='+ e[i].thumb+' style="width: 5.8rem;height: 5.8rem"></div>';
+            d += '<div class="item-inner">';
+            d += '<div class="item-title-row">';
+            d += '<div class="item-title">'+e[i].title+'</div>';
+            d += '</div>';
+            //
+
+            if (e[i].give_type != 0) {
+                if(e[i].give_type == 1){
+                    d += '<div class="item-text" style="font-size: 12px;color: #ff0000">'+e[i].give_note+'</div>';
+                }else{
+                    d += ' <div class="item-text" style="font-size: 12px;color: #ff0000">满'+e[i].full_money+'送'+e[i].seng_money+'霸屏金额</div>';
+                }
+                d += '<div class="item-subtitle subtitle" style="">'+e[i].productprice+'元/'+e[i].company+'</div>';
+            } else {
+                d += '<div class="item-subtitle subtitle" style="margin-top: 12%">'+e[i].productprice+'元/'+e[i].company+'</div>';
+            }
+
+            d += '<div class="gw_num" >';
+            if(e[i].number){
+                d += '<em class="jian" onclick="jian(this)">-</em>';
+                d += '<input type="number" value="'+e[i].number.number+'" class="num" data-id="'+e[i].id+'" data-price="'+e[i].productprice+'" style="max-width: 60px;height: 36px;" disabled/>';
+
+            }else {
+                d += '<em class="jian" style="display: none" onclick="jian(this)">-</em>';
+                d += '<input type="number" value="0" class="num" data-id="'+e[i].id+'" data-price="'+e[i].productprice+'" style="max-width: 60px;height: 36px;display: none" disabled/>';
+            }
+
+
+            d += '<em class="add" onclick="add(this)">+</em>';
+            d += '</div>';
+            d += '</div>';
+            d += '</a>';
+            d += '</li>';
+            d += '</ul>';
+            d += '</div>';
+
+        }
+        $.hidePreloader();
+        $(".user-rows").append(d)
+    }
+
+</script>
+<script type="text/javascript" src="{$_W['siteroot']}app/resource/js/lib/mui.min.js"></script>
+<script src="http://res.wx.qq.com/open/js/jweixin-1.2.0.js"></script>
+<script type="text/javascript">
+    wx.config({
+        debug:false,
+        appId: '{$package["appId"]}',
+        timestamp: '{$package["timestamp"]}',
+        nonceStr: '{$package["nonceStr"]}',
+        signature: '{$package["signature"]}',
+        jsApiList: [
+            'checkJsApi',
+            'onMenuShareTimeline',
+            'onMenuShareAppMessage',
+            'onMenuShareQQ',
+            'onMenuShareWeibo',
+            'hideMenuItems',
+            'showMenuItems',
+            'hideAllNonBaseMenuItem',
+            'showAllNonBaseMenuItem',
+            'translateVoice',
+            'startRecord',
+            'stopRecord',
+            'onRecordEnd',
+            'playVoice',
+            'pauseVoice',
+            'stopVoice',
+            'uploadVoice',
+            'downloadVoice',
+            'chooseImage',
+            'previewImage',
+            'uploadImage',
+            'downloadImage',
+            'getNetworkType',
+            'openLocation',
+            'getLocation',
+            'hideOptionMenu',
+            'showOptionMenu',
+            'closeWindow',
+            'scanQRCode',
+            'chooseWXPay',
+            'openProductSpecificView',
+            'addCard',
+            'chooseCard',
+            'openCard'
+        ]
+    });
+
+    var sharedata = {
+        "imgUrl" : "{$shareimg}",
+        "link" : "{$sharelink}",
+        "desc" : "{$sharedesc}",
+        "title" : "{$sharetitle}"
+    };
+
+    wx.ready(function () {
+        {if $reply['is_b_share'] == 2}
+        wx.hideOptionMenu();
+        {else}
+        wx.showOptionMenu();
+        wx.onMenuShareAppMessage(sharedata);
+        wx.onMenuShareTimeline(sharedata);
+        wx.onMenuShareQQ(sharedata);
+        wx.onMenuShareQZone(sharedata);
+        wx.onMenuShareWeibo(sharedata);
+        {/if}
+    });
+    {if $bp['bp_pay2']==1}
+    var click=false;
+    $(".is_ok").click(function(){
+
+        if(click){
+            return click=true;
+        }
+        click=true;
+
+        var address = $("input[name=address]").val();
+        if(address==''){
+            alert("请输入您的位置");
+            click=false;
+            return;
+        }
+        $(".choose_address").hide()
+        var submitData = {
+            "value_id": 1,//套餐价格
+            "address": address,//位置
+        };
+        $.post('{php echo $this->createMobileUrl('Confirm_shop_pay',array('rid'=>$rid,'token'=>'onBridge'))}',submitData, function(idata) {
+            if(idata.success == 1&&idata.isadmin==0){
+                var result = idata.arr;
+                $(".otitle").empty().append(result.xq);
+
+                $(".ordersn").empty().append(result.ordersn);
+
+                $(".shangjia").empty().append(result.title);
+
+                $(".jine").empty().append(result.fee);
+
+                $("input[name='params']").val(idata.params);
+                $("#biaodan").submit();
+//                    $("#wBtn").click();
+
+            } else {
+                click=false;
+                alert(idata.msg)
+            }
+        },'json');
+
+    })
+    {else}
+    $(document).ready(function(){
+        document.addEventListener('WeixinJSBridgeReady', function onBridgeReady() {
+
+            var click=false;
+            $(".is_ok").click(function(){
+
+                if(click){
+                    return click=true;
+                }
+                click=true;
+
+                var address = $("input[name=address]").val();
+                if(address==''){
+                    alert("请输入您的位置");
+                    click=false;
+                    return;
+                }
+                $(".choose_address").hide()
+                var submitData = {
+                    "value_id": 1,//套餐价格
+                    "address": address,//位置
+                };
+                $.post('{php echo $this->createMobileUrl('Confirm_shop_pay',array('rid'=>$rid))}',submitData, function(idata) {
+                    if(idata.success == 1){
+                        click=false;
+
+                        util.pay({
+                            orderFee : idata.pay_money,
+                            payMethod : 'wechat',
+                            orderTitle : '购物支付'+idata.pay_money+'元',
+                            orderTid : idata.tid,
+                            module : 'haoman_dpm',
+                            success : function(result) {
+                                click=false;
+                                alert("支付成功！！");
+                                location.href = indexUrl2;
+
+                            },
+                            fail : function(result) {
+                                click=false;
+                                alert('fail : ' + result.message);
+                                location.href = indexUrl;
+                            },
+                            complete : function(result) {
+
+                                //location.reload();
+                            }
+                        });
+                    }else{
+                        click=false;
+                        alert(idata.msg);
+                    }
+                },'json');
+
+            })
+
+        });
+    });
+    {/if}
+
+
+</script>
+</html>

@@ -1,0 +1,210 @@
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="format-detection" content="telphone=no, email=no">
+<meta name="msapplication-tap-highlight" content="no">
+<title>会员信息</title>
+<link rel="stylesheet" href="../addons/water_center/template/css/common.css">
+<link rel="stylesheet" href="../addons/water_center/template/css/font.css">
+<link rel="stylesheet" href="../addons/water_center/template/css/header.css">
+<link rel="stylesheet" href="../addons/water_center/template/css/footer.css">
+<link rel="stylesheet" href="../addons/water_center/template/css/index.css">
+<link rel="stylesheet" href="../addons/water_center/template/css/responsive.css">
+<script type="text/javascript" src="../addons/water_center/template/js/jquery.min.js"></script>
+</head>
+
+<body>
+	<header>
+		<div class="header">
+			<h1>我的资料</h1>
+			<a href="javascript:void(0);" onclick="saveinfo()"  class="head-r">保存</a>
+		</div>
+	</header>
+	
+	<!--内容区-->
+	<article class="main-container" style="margin-top: 40px;">
+		
+		<div class="list list-title">
+			<ul class="line">
+				<li><i>昵　　称：</i><input type="text" id="nickname" placeholder="填写您的昵称" value="{$fans['nickname']}"></li>
+				<li class="head"><i>头　　像：</i><img id="img" src="{$fans['headimgurl']}"><input type="hidden" name="fimg" id="fimg" value="{$fans['headimgurl']}"><button class="line" onclick="updatewimg()">点击上传<br><font>(200x200像素)</font></button></li>
+			</ul>
+			<ul class="line">
+				<li><i>姓　　名：</i><input type="text" id="fname" placeholder="填写您的姓名" value="{$fans['fname']}"></li>
+				<li><i>手机号码：</i><input type="tel" id="fmobile" placeholder="填写手机号码" value="{$fans['fmobile']}"></li>
+				<li><i>个人签名：</i><input type="text" id="fdesc" placeholder="一句话介绍自己" value="{$fans['fdesc']}"></li>
+			</ul>
+			<ul class="line">
+				<li><i>年　　龄：</i><input type="tel" id="fage" placeholder="填写您的年龄" value="{$fans['fage']}"></li>
+				<li><i>地   址：</i><input type="text" id="faddress" placeholder="填写您的地址" value="{$fans['faddress']}"></li>
+			</ul>
+		</div>
+		
+	</article>
+	        <style>
+	.mod_tips_popup {
+	opacity: 0;
+	-webkit-transition: all linear 0.2s;
+	z-index: -1;
+	position: fixed;
+	left: 33%;
+	top: 20%;
+	box-sizing: border-box;
+	width: auto;
+	padding: 15px;
+	margin-left: auto;
+	border-radius: 10px;
+	background-color: rgba(0,0,0,0.83)
+}
+	.mod_tips_popup.mod_tips_popup_show {
+	opacity: 1;
+	z-index: 10000
+	}
+	
+	</style>
+ 	  <div id="Mpopup14618046251102">
+      <div id="pup" class="mod_tips_popup">
+        <div class="mod_tips_cnt">
+          <div class="J_tips_content" style="color: #fff;font-size: .8rem;" id="info"></div>
+        </div>
+        <div class="mod_tips_ft">
+        </div>
+      </div>
+    </div>
+<script>
+function tips(content){
+	$("#info").html(content);
+	$("#pup").addClass("mod_tips_popup_show");
+	setTimeout('$("#pup").removeClass("mod_tips_popup_show")',2000); 
+	
+}
+
+function alertToUrl(info,url) {
+	tips(info);
+    setTimeout("window.location.href='" + url + "'", 2000);
+  }
+</script>
+	<input type="hidden" id="state" value="0">
+    <script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js" type="text/javascript"></script>
+    <script>
+        var appid = '{$_W['account']['jssdkconfig']['appId']}';
+        var timestamp = '{$_W['account']['jssdkconfig']['timestamp']}';
+        var nonceStr = '{$_W['account']['jssdkconfig']['nonceStr']}';
+        var signature = '{$_W['account']['jssdkconfig']['signature']}';
+
+        wx.config({
+            debug: false,
+            appId: appid,
+            timestamp: timestamp,
+            nonceStr: nonceStr,
+            signature: signature,
+            jsApiList: [
+                'checkJsApi',
+                'chooseImage',
+                'uploadImage',
+                'hideOptionMenu'
+                
+            ]
+        });
+        
+    	var images = {
+    			localId: [],
+    			serverId: []
+    		};
+        
+    	function updatewimg () {
+
+    		num = 1;
+    		wx.chooseImage({
+    			count: num,
+    			sizeType: ['compressed'], // 可以指定是原图还是压缩图，默认二者都有
+    			sourceType: ['album', 'camera'], // 可以指定来源是相册还是相机，默认二者都有
+    			success: function (res) {
+    				images.localId = res.localIds;
+    				//alert('已选择 ' + res.localIds.length + ' 张图片');
+    				doUpload();
+    			}
+    		});
+    	};
+    	
+    	
+        function doUpload(){
+			wx.uploadImage({
+				localId: images.localId[0],
+				success: function (res) {
+					images.serverId.push(res.serverId); 
+	    	        $.ajax({
+	     	     		 type:'GET',
+	     	     		 data:{media_ids:images.serverId.join(',')},
+	     	     		 url:'{php echo $this->createMobileUrl("Picupload");}',
+	     	     		 success:function(data){
+	     	     			  var json = eval("("+data+")");
+	     		      	  	  if(json.result == 1){
+	     		      	  		$("#fimg").val(json.url);  
+	     		      	  		$("#img").attr('src',json.url);
+	     		       		  }else{
+	     		       			 alert('error'); 
+	     		       		  }
+	     	     		 }
+	     	     	 }); 
+				},
+				fail: function (res) {
+					alert(JSON.stringify(res));
+				}
+			});
+        }
+        
+        function saveinfo(){
+	        var	nickname = $("#nickname").val().trim();
+	        if(nickname.length <=0){
+	        	tips('昵称不可为空');
+	        	return false;
+	        }
+	        var	fname = $("#fname").val().trim();
+	        if(fname.length <= 0){
+	        	tips('姓名不可为空');
+	        	return false;
+	        }
+	        var	fmobile = $("#fmobile").val().trim();
+	        if(fmobile.length != 11){
+	        	tips('填11位电话号码');
+	        	return false;
+	        }
+	        var state = $("#state").val();
+	        if(state == "1"){
+	        	return false;
+	        }
+       	 $.ajax({
+	     		 type:'GET',
+	     		 data:{nickname : $("#nickname").val().trim(),
+	     			  fimg : $("#fimg").val().trim(),
+	     			  fmobile : $("#fmobile").val().trim(),
+	     			  fname : $("#fname").val().trim(),
+	     			  fdesc : $("#fdesc").val().trim(),
+	     			  fage  : $("#fage").val().trim(),
+	     			  faddress : $("#faddress").val().trim(),
+	     			  
+	     		 	},
+	     		 url:'{php echo $this->createMobileUrl("updatefansinfo");}',
+	     		 success:function(data){
+	     			  var json = eval("("+data+")");
+	     			  $("#state").val("0");
+		      	  	  if(json.errcode == 0){
+		      	  	  	alertToUrl('保存成功',json.url);
+		       		  }else{
+		       			 alert('error'); 
+		       		  }
+	     		 }
+	     	 }); 
+        }
+        wx.ready(function () {
+        	wx.hideOptionMenu();
+        });
+
+        wx.error(function (res) {
+        });
+        
+    </script>
+</body></html>

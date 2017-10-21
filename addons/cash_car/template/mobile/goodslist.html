@@ -1,0 +1,105 @@
+<!--
+ * ============================================================================
+ * 版权所有 2015-2016 米粒源码，并保留所有权利。
+ * 网站地址: http://www.webmili.com；
+ * ----------------------------------------------------------------------------
+ * 这不是一个自由软件！已购买用户允许对程序代码进行修改和使用，但是不允许对
+ * 程序代码以任何形式任何目的的再发布，作者将保留追究法律责任的权力和最终解
+ * 释权。
+ * ============================================================================
+-->
+{php include $this->template('_header');}
+
+<body>
+<header class="page-header top-header">
+    <a class="icona" href="javascript:history.go(-1)"><img src="../addons/cash_car/template/images/left-white.png"/></a>
+	<h3>{$title}</h3>
+</header>
+<div class="contaniner fixed-contb">
+    {if !empty($goodslist)}
+		{loop $goodslist $goods}
+		<section class="shopcar">
+			<figure onclick="location.href='{php echo $this->createMobileUrl('goodsdetail', array('goodsid'=>$goods['id']));}'"><img src="{$_W['attachurl']}{$goods['thumb']}"/></figure>
+			<dl>
+				<dt onclick="location.href='{php echo $this->createMobileUrl('goodsdetail', array('goodsid'=>$goods['id']));}'">{$goods['title']}</dt>
+				<dd style="color:#fc605a; font-size:1.3em;">{$goods['productprice']} / {$goods['unitname']}</dd>
+				<dd style="font-size:1.2em;">{$goods['description']}</dd>
+				<dd style="font-size:1.2em;">{if !empty($goods['onlycard'])}<span style="color:#FC605A;">[支持洗车卡支付]</span>{/if}{if $goods['integral']>0}<span style="color:#2D9806;">[赠送{$goods['integral']}积分]</span>{/if}</dd>				
+				<div class="add">
+					<span onclick="reduceNum({$goods['id']});">-</span>
+					<input type="text" name="goods{$goods['id']}" id="goods{$goods['id']}" value="{if in_array($goods['id'],$cart_goods)}1{else}0{/if}" readonly/>
+					<span onclick="addNum({$goods['id']});">+</span>
+				</div>
+			</dl>
+		</section>
+		{/loop}
+	{else}
+		<div class="none">
+			<h3>
+				<img src="../addons/cash_car/template/images/order-icon01.png">
+			</h3>
+			<p>
+				<span>该服务点暂无服务项目~</span>
+			</p>
+		</div>
+	{/if}
+</div>
+<script type="text/javascript">
+function reduceNum(goodsid){
+    var number = $("#goods"+goodsid).val();
+	if(number==0){
+	    alert("已取消该服务项目");
+	}else if(number>0){
+        var url = "{php echo $this->createMobileUrl('updatecartnumber', array('from_user' => $from_user), true)}";
+        $.ajax({
+            url: url, type: "POST", dataType: "json", timeout: "10000",
+            data: {
+				'goodsid' : goodsid,
+				'number'  : 0,
+				'storeid' : "{php echo $_SESSION['storeid']}",
+            },
+            success: function (data) {
+                if (data.message['code'] != 0) {
+				    alert(data.message['msg']);
+                }else {
+                    document.getElementById("goods"+goodsid).value=0;
+					document.getElementById("totalAmount").innerHTML=data.message['totalAmount'];
+					document.getElementById("totalNumber").innerHTML=data.message['totalNumber'];
+                }
+            },error: function () {
+                alert("网络不稳定,稍后重试！");
+            }
+        });
+	}
+}
+function addNum(goodsid){
+    var number = $("#goods"+goodsid).val();
+	if(number>=1){
+	    alert("已成功添加至购物车");
+	}else if(number==0){
+        var url = "{php echo $this->createMobileUrl('updatecartnumber', array('from_user' => $from_user), true)}";
+        $.ajax({
+            url: url, type: "POST", dataType: "json", timeout: "10000",
+            data: {
+				'goodsid' : goodsid,
+				'number'  : 1,
+				'storeid' : "{php echo $_SESSION['storeid']}",
+            },
+            success: function (data) {
+                if (data.message['code'] != 0) {
+				    alert(data.message['msg']);
+                }else {
+                    document.getElementById("goods"+goodsid).value=1;
+					document.getElementById("totalAmount").innerHTML=data.message['totalAmount'];
+					document.getElementById("totalNumber").innerHTML=data.message['totalNumber'];
+                }
+            },error: function () {
+                alert("网络不稳定,稍后重试！");
+            }
+        });
+	}
+}
+</script>
+{php include $this->template('_footer');}
+</body>
+</html>

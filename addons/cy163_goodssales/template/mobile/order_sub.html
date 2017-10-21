@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1.0,maximum-scale=1.0,minimum-scale=1,user-scalable=no">
+    <meta content="yes" name="apple-mobile-web-app-capable">
+    <meta content="black" name="apple-mobile-web-app-status-bar-style">
+    <meta content="telephone=no" name="format-detection">
+    <meta content="email=no" name="format-detection">
+    <title>提交订单</title>
+    <link rel="stylesheet" href="{MD_ROOTN}/messi/css/reset.css"/>
+    <link rel="stylesheet" href="{MD_ROOTN}/messi/iconfont/iconfont.css"/>
+	<link rel="stylesheet" href="{MD_ROOTN}/jqueryweui/css/weui.min.css"/>
+	<link rel="stylesheet" href="{MD_ROOTN}/jqueryweui/css/jquery-weui.min.css"/>
+	<link rel="stylesheet" href="{MD_ROOTN}/messi/css/common.css"/>
+	<link rel="stylesheet" href="{MD_ROOTN}/messi/css/suborder.css"/>
+    <script>
+        var deviceWidth = document.documentElement.clientWidth;
+        document.documentElement.style.fontSize = deviceWidth / 7.5 + 'px';
+    </script>
+	<style>
+	#inputdiv{padding:0.2rem;background:#fff;}
+	.messi-input{height:0.7rem;line-height:0.7rem;width:7.1rem;}
+	.messi-input span{display:block;height:0.7rem;line-height:0.7rem;font-size:0.28rem;float:left;width:1.5rem;}
+	.messi-input input{display:block;border:none;height:0.7rem;line-height:0.7rem;font-size:0.3rem;background:#f5f5f5;text-indent:5px;float:right;width:5.5rem;border-radius:0.15rem;}
+	</style>
+</head>
+
+<body style="background:#f5f5f5;">
+
+<div id="header">
+	<div class="goback iconfont" onclick="history.go(-1);">&#xe612;</div>
+	<div class="title textellipsis1 text-c">提交订单</div>
+	<div class="empty"></div>
+</div>
+{if $goods['ishexiao'] == 1}
+<div id="inputdiv">
+	<div class="messi-input" style="margin-bottom:0.2rem;"><span class="text-r">联系人：</span><input type="text" id="realnameval" value="{$member['realname']}" /></div>
+	<div class="messi-input"><span class="text-r">手机：</span><input type="tel" id="telphoneval" value="{$member['telphone']}" /></div>
+	
+	<input type="hidden" id="provinceval" value="" />
+	<input type="hidden" id="cityval" value="" />
+	<input type="hidden" id="districtval" value="" />
+	<input type="hidden" id="addressval" value="" />
+</div>
+{else}
+<div id="addressdiv">
+	<div id="addresswrap">
+	{if $address}
+		<div class="address">
+			<div class="iconfont iconfontitem">&#xe613;</div>
+			<div class="msg">
+				<div class="shr">
+					<div class="realname">收货人：{$address['realname']}</div>
+					<div class="phone text-r">{$address['telphone']}</div>
+				</div>
+				<div class="add textellipsis2">
+					收货地址：
+					{$address['province']}{$address['city']}{$address['district']}{$address['address']}
+				</div>
+			</div>
+			<div class="iconfont iconfontitem text-r">&#xe642;</div>
+		</div>
+		{else}
+		<div class="noaddress">
+			<div class="addadd iconfont text-c">&#xe636;</div>
+			<div class="text">添加地址</div>
+		</div>
+		{/if}
+	</div>
+	<input type="hidden" id="realnameval" value="{$address['realname']}" />
+	<input type="hidden" id="telphoneval" value="{$address['telphone']}" />
+	<input type="hidden" id="provinceval" value="{$address['province']}" />
+	<input type="hidden" id="cityval" value="{$address['city']}" />
+	<input type="hidden" id="districtval" value="{$address['district']}" />
+	<input type="hidden" id="addressval" value="{$address['address']}" />
+</div>
+{/if}
+<div class="store">
+	<div class="iconfont text-c">&#xe618;</div>
+	<div class="storename">{$storeres['name']}</div>
+</div>
+<div class="goods">
+	<div class="item">
+		<div class="img"><img src="{php echo tomedia($goodsimage)}" /></div>
+		<div class="goodsmsg">
+			<div class="title textellipsis1">{$goods['title']}</div>
+			<div class="option">{$seloptions['title']}</div>
+			<div class="pricenum">
+				<div class="price">￥{$goodsprice}</div>
+				<div class="num text-r">×{$buynum}</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="dotype">
+	<div class="paytype">
+		<div class="left">支付方式</div>
+		<div class="right text-r">{if $goods['ishexiao'] == 1}核销支付{else}微信支付{/if}</div>
+		{if $goods['ishexiao'] == 1}
+		<input type="hidden" id="paytype" value="2" />
+		{else}
+		<input type="hidden" id="paytype" value="1" />
+		{/if}
+	</div>
+	<div class="liuyan">
+		<textarea name="name" id="remark" placeholder="如有备注请填写"></textarea>
+	</div>
+</div>
+
+<div class="yunfei">
+	<div class="text">运费</div>
+	<div class="num text-r">
+        ￥{$yunfei}
+    </div>
+</div>
+
+<div style="height:1.2rem;width:7.5rem;clear:both;"></div>
+<div id="footer">
+	<div class="price text-r">
+		合计：<span class="num">￥{$allallprice}</span>
+	</div>
+	<div class="btn text-c" id="submit_btn" onClick="suborder();">提交订单</div>
+</div>
+
+
+<div class="alerts seladdress hide">
+	<div class="alert">
+		<div class="itemtop">
+			<div class="title text-c">选择收货地址</div>
+			<div class="close iconfont text-r">&#xe736;</div>
+		</div>
+		{loop $addresslist $arow}
+		<div class="addresslist" data-realname="{$arow['realname']}" data-telphone="{$arow['telphone']}" data-province="{$arow['province']}" data-city="{$arow['city']}" data-district="{$arow['district']}" data-address="{$arow['address']}">
+			<div class="left textellipsis2">
+				<span>{$arow['realname']}</span>,<span>{$arow['telphone']}</span>,
+				{$arow['province']}{$arow['city']}{$arow['district']}{$arow['address']}
+			</div>
+			<div class="iconfont right text-r">&#xe642;</div>
+		</div>
+		{/loop}
+		<div class="newadd text-c">添加新地址</div>
+	</div>
+</div>
+
+<div class="alerts addaddress hide">
+	<div class="alert">
+		<div class="itemtop">
+			<div class="title text-c">添加收货地址</div>
+			<div class="close iconfont text-r">&#xe736;</div>
+		</div>
+		<form action="" method="post">
+			<div class="weui-cell">
+				<div class="weui-cell__hd"><label class="weui-label">收货人</label></div>
+				<div class="weui-cell__bd">
+					<input class="weui-input" id="realname" type="text" placeholder="请填写收货人" />
+				</div>
+			</div>
+			<div class="weui-cell">
+				<div class="weui-cell__hd"><label class="weui-label">手机号</label></div>
+				<div class="weui-cell__bd">
+					<input class="weui-input" id="telphone" type="text" placeholder="请填写手机号" />
+				</div>
+			</div>
+			<div class="weui-cell">
+				<div class="weui-cell__hd"><label class="weui-label">所在地区</label></div>
+				<div class="weui-cell__bd">
+					<input class="weui-input" id="address" placeholder="请选择收货地址" type="text" readonly>
+				</div>
+					<input type="hidden" id="province">
+					<input type="hidden" id="city">
+					<input type="hidden" id="district">
+			</div>
+			<div class="weui-cell">
+				<div class="weui-cell__hd"><label class="weui-label">详细地址</label></div>
+				<div class="weui-cell__bd">
+					<textarea class="weui-textarea" placeholder="请填写详细地址" id="addresscon"></textarea>
+				</div>
+			</div>
+			<div class="weui-cell weui-cell_switch">
+				<div class="weui-cell__bd">设为默认地址</div>
+				<div class="weui-cell__ft"><input class="weui-switch" type="checkbox" id="isauto" value="1"></div>
+			</div>
+			<div style="padding:0.25rem;">
+				<button type="button" class="weui-btn weui-btn_primary messi-btn">保存</button>
+			</div>
+		</form>
+	</div>
+</div>
+<div class="blackbg hide"></div>
+<script type="text/javascript" src="{MD_ROOTN}/messi/js/jquery-3.1.1.min.js"></script>
+<script type="text/javascript" src="{MD_ROOTN}/jqueryweui/js/fastclick.js"></script>
+<script type="text/javascript" src="{MD_ROOTN}/jqueryweui/js/jquery-weui.min.js"></script>
+<script type="text/javascript" src="{MD_ROOTN}/jqueryweui/js/city-picker.min.js"></script>
+<script type="text/javascript">
+$(function(){
+	FastClick.attach(document.body);
+	
+	$('.close').click(function(){
+		$('.alerts').addClass('hide');
+		$('.blackbg').addClass('hide');
+	});
+	$('.noaddress').click(function(){
+		$('.addaddress').removeClass('hide');
+		$('.blackbg').removeClass('hide');
+	});
+	
+	$('.addresslist').click(function(){
+		$('.seladdress').addClass('hide');
+		$('.blackbg').addClass('hide');
+		$('.realname').text("收货人："+$(this).attr('data-realname'));
+		$('.telphone').text($(this).attr('data-telphone'));
+		$('.add').text("收货地址："+$(this).attr('data-province')+$(this).attr('data-city')+$(this).attr('data-district')+$(this).attr('data-address'));
+		$('#realnameval').val($(this).attr('data-realname'));
+		$('#telphoneval').val($(this).attr('data-telphone'));
+		$('#provinceval').val($(this).attr('data-province'));
+		$('#cityval').val($(this).attr('data-city'));
+		$('#districtval').val($(this).attr('data-district'));
+		$('#addressval').val($(this).attr('data-address'));
+	});
+	
+	$('.newadd').click(function(){
+		$('.seladdress').addClass('hide');
+		$('.addaddress').removeClass('hide');
+		$('.blackbg').removeClass('hide');
+	});
+	
+	$('.address').click(function(){
+		$('.seladdress').removeClass('hide');
+		$('.blackbg').removeClass('hide');
+	});
+	
+	$("#address").cityPicker({
+		title: "选择地区",
+		onChange: function (picker, values, displayValues) {
+			$('#province').val(displayValues[0]);
+			$('#city').val(displayValues[1]);
+			$('#district').val(displayValues[2]);
+		}
+	});
+	
+	$(".messi-btn").click(function(){
+		var isauto = $('#isauto').is(':checked') ? 1 : 0;
+		$.ajax({
+			url:"{php echo $this->createMobileUrl('myaddress',array('op'=>'post'))}",   
+			type:'post', 
+			data:{
+				isdo:1,
+				id:$('#id').val(),
+				realname:$('#realname').val(),
+				telphone:$('#telphone').val(),
+				province:$('#province').val(),
+				city:$('#city').val(),
+				district:$('#district').val(),
+				address:$('#addresscon').val(),
+				isauto:isauto,
+			},
+			dataType:'json',
+			success:function(data){
+				if (data.error == 1) {
+					$.alert(data.msg);
+				}else{
+					$('#realnameval').val($('#realname').val());
+					$('#telphoneval').val($('#telphone').val());
+					$('#provinceval').val($('#province').val());
+					$('#cityval').val($('#city').val());
+					$('#districtval').val($('#district').val());
+					$('#addressval').val($('#address').val());
+					var html = '<div class="address">'
+								+'<div class="iconfont iconfontitem">&#xe613;</div>'
+								+'<div class="msg">'
+									+'<div class="shr">'
+										+'<div class="realname">收货人：'+$('#realname').val()+'</div>'
+										+'<div class="phone text-r">'+$('#telphone').val()+'</div>'
+									+'</div>'
+									+'<div class="add textellipsis2">收货地址：'+$('#province').val()+$('#city').val()+$('#district').val()+$('#address').val()+'</div>'
+								+'</div>'
+								+'<div class="iconfont iconfontitem text-r">&#xe642;</div>'
+							+'</div>';
+					$("#addresswrap").html(html);
+					$('.noaddress').addClass('hide');
+					$('.addaddress').addClass('hide');
+					$('.blackbg').addClass('hide');
+				}
+			}
+		});
+	});
+})
+var kaiguan = true;
+function suborder(){
+	if(kaiguan){
+		kaiguan = false;
+		$('#submit_btn').text('提交中...');
+		$.ajax({   
+			 url:"{php echo $this->createMobileUrl('dobuy')}",   
+			 type:'post', 
+			 data:{
+				goodsid:{$goodsid},
+				buynum:{$buynum},
+				optionval:'{$optionval}',
+				realname:$('#realnameval').val(),
+				telphone:$('#telphoneval').val(),
+				province:$('#provinceval').val(),
+				city:$('#cityval').val(),
+				district:$('#districtval').val(),
+				address:$('#addressval').val(),
+				remark:$('#remark').val(),
+				paytype:$('#paytype').val(),
+				shareopenid:'{$shareopenid}',
+			 },
+			 dataType:'json',
+			 success:function(data){   
+				if (data.error == 1) {
+					$.alert(data.message,function(){
+						$('#submit_btn').text("提交订单");
+					});
+				} else {
+					var buyurl = "{php echo $this->createMobileUrl('pay')}"+"&ordersn="+data.ordersn;
+					window.location.href = buyurl;
+				} 
+				kaiguan = true;
+			 }
+		});
+	}
+}
+</script>
+</body>
+</html>

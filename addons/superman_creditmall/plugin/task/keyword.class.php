@@ -1,0 +1,12 @@
+<?php
+/**
+ * Îò¿ÕÔ´ ÂëÂÛ Ì³bbs . xte c.cc
+ *
+ * @author Î¢ÔÞ
+ * @url
+ */
+defined('IN_IA') or exit('Access Denied');
+
+class SupermanCreditmallTask_keyword extends SupermanCreditmallTask {
+
+}

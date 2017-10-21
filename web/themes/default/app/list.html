@@ -1,0 +1,321 @@
+{template 'common/header'}
+<ol class="breadcrumb">
+	<li><a href="./?refresh"><i class="fa fa-home"></i></a></li>
+	<li><a href="{url 'system/welcome'}">系统</a></li>
+	<li class="active">APP列表</li>
+</ol>
+<ul class="nav nav-tabs">
+	<li {if $do == 'list'}class="active"{/if}><a href="{php echo url('app/list/list');}">APP列表</a></li>
+	<li {if $do == 'add' && !$id}class="active"{/if}><a href="{php echo url('app/list/add');}">添加APP</a></li>
+	<li {if $do == 'data'}class="active"{/if}><a href="{php echo url('app/list/data');}">APP数据</a></li>
+</ul>
+{if $do == 'list'}
+<div class="clearfix">
+	<div class='alert alert-warning' style='font-size:14px'>
+        	温馨提示：1.APP云打包功能，可以将一个手机网站打包成一个可以直接安装到手机里的应用软件。<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			2.由于安装后的应用软件运行于浏览器环境，使用APP云打包功能暂不支持类似需要使用微信授权功能的网站和需要使用微信支付功能的网站。
+
+    </div>
+	<div class="panel panel-info">
+		<div class="panel-heading">筛选</div>
+		<div class="panel-body">
+			<form action="" method="get" class="form-horizontal" role="form">
+				<input type="hidden" name="c" value="agent">
+				<input type="hidden" name="a" value="agentusers">
+				<input type="hidden" name="do" value="list">
+				<input type="hidden" name="createtime" value="{$_GPC['createtime']}">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">添加时间</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<div class="btn-group">
+							<a href="{php echo filter_url('createtime:0');}" class="btn {if $_GPC['createtime'] == 0}btn-primary{else}btn-default{/if}">不限</a>
+							<a href="{php echo filter_url('createtime:3');}" class="btn {if $_GPC['createtime'] == 3}btn-primary{else}btn-default{/if}">三天内</a>
+							<a href="{php echo filter_url('createtime:7');}" class="btn {if $_GPC['createtime'] == 7}btn-primary{else}btn-default{/if}">一周内</a>
+							<a href="{php echo filter_url('createtime:30');}" class="btn {if $_GPC['createtime'] == 30}btn-primary{else}btn-default{/if}">一月内</a>
+							<a href="{php echo filter_url('createtime:90');}" class="btn {if $_GPC['createtime'] == 90}btn-primary{else}btn-default{/if}">三月内</a>
+						</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">标题</label>
+					<div class="col-sm-8 col-lg-3 col-xs-12">
+						<input class="form-control" name="title" id="" type="text" value="{$_GPC['title']}">
+					</div>
+					<div class="pull-left col-xs-12 col-sm-2 col-lg-2">
+						<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+		<div class="panel panel-default">
+			<div class="panel-body table-responsive">
+				<table class="table table-hover">
+					<thead>
+						<tr>
+							<th width="80">APPID</th>
+							<th width="100">LOGO</th>
+							<th width="180">名称</th>
+							<th width="180">网址</th>
+							<th width="100">平台</th>
+							<th width="130">系统标题栏</th>
+							<th>横竖屏</th>
+							<th>创建时间</th>
+							<th class="text-right">操作</th>
+						</tr>
+					</thead>
+					<tbody>
+					{loop $applist $app}
+						<tr>
+							<td>{$app['web_app_id']}</td>
+							<td>{$app['icopic']}</td>
+							<td>{$app['name']}</td>
+							<td>{$app['weburl']}</td>
+							<td><?php if($app['apptype']){echo 'IOS';}else{echo '安卓';}?></td>
+							<td><?php if($app['hidetop']){echo '隐藏';}else{echo '显示';}?></td>
+							<td><?php if($app['screen']){echo '横屏';}else{echo '竖屏';}?></td>
+							<td>{php echo date('Y-m-d H:i', $user['createtime']);}</td>
+							<td class="text-right">
+								<a href="{php echo url('app/list/download', array('id' => $app['web_app_id']));}" class="btn btn-default">下载</a>
+							</td>
+						</tr>
+					{/loop}
+					</tbody>
+				</table>
+			</div>
+		</div>
+		{$pager}
+	</form>
+</div>
+<script>
+	$(document).ready(function(){});
+	function download(id){
+		$url = '<?php echo U('User/Yundabao/download',array('token'=>$token));?>&id='+id;
+		art.dialog.open($url,{
+			init: function(){
+				var iframe = this.iframe.contentWindow;
+				window.top.art.dialog.data('iframe_handle',iframe);
+			},
+			id: 'handle',
+			title:'下载应用',
+			padding: 0,
+			width: 350,
+			height: 380,
+			lock: true,
+			resize: false,
+			background:'black',
+			button: null,
+			fixed: false,
+			close: null,
+			left: '50%',
+			top: '38.2%',
+			opacity:'0.4'
+		});
+	}
+</script>
+{elseif $do == 'data'}
+<div class="clearfix">
+		<div class="panel panel-default">
+			<div class="panel-body table-responsive">
+				<table class="table table-hover">
+					<thead>
+						<tr>
+							<th width="80">日期</th>
+							<th width="100">下载量</th>
+							<th width="80">安装量</th>
+						</tr>
+					</thead>
+					<tbody>
+					{loop $data $data}
+						<tr>
+						<td>{$data['Date']}</td>
+						<td>{$data['DownNum']}</td>
+						<td>{$data['InstallNum']}</td>
+						</tr>
+					{/loop}
+					</tbody>
+				</table>
+			</div>
+		</div>
+		{$pager}
+</div>
+{elseif $do == 'add'}
+<style>
+.ioshelp{display:none}
+</style>
+<script>
+$(document).ready(function(){
+	$("form").submit(function () {
+		return sub();
+	});
+	$('input[name=apptype]').click(function(){
+		apptype = $(this).val();
+		if(apptype == 1){
+			$('.ioshelp').show();
+			$('#hellsize').html('640(宽)*960(高)');
+		}else if(apptype == 0){
+			$('.ioshelp').hide();
+			$('#hellsize').html('780(宽)*1280(高)');
+		}
+	});
+});
+function sub(){
+	var is_error = true;
+	var is_error_msg = "";
+	var is_error_array = new Array();
+	var i_error = 0;
+	
+	var name = $('#name').val().length;
+	if(name > 10 || name < 1){
+		is_error_msg += "应用名称1至10个字！\n";
+		buterror("#name");
+		is_error = false;
+		is_error_array[i_error] = '#name';
+		i_error++;
+	}
+	var weburl = $('#weburl').val();
+	if(weburl == ''){
+		is_error_msg += "请填写应用链接！\n";
+		buterror("#weburl");
+		is_error = false;
+		is_error_array[i_error] = '#weburl';
+		i_error++;
+	}
+	var icopic = $('#icopic').val();
+	if(icopic == ''){
+		is_error_msg += "请填写应用图标！\n";
+		buterror("#icopic");
+		is_error = false;
+		is_error_array[i_error] = '#icopic';
+		i_error++;
+	}
+	var hellopic = $('#hellopic').val();
+	if(hellopic == ''){
+		is_error_msg += "请填写欢迎图！\n";
+		buterror("#hellopic");
+		is_error = false;
+		is_error_array[i_error] = '#hellopic';
+		i_error++;
+	}
+	if(is_error == false){
+		alert(is_error_msg);
+		$("html,body").animate({scrollTop: $(is_error_array[0]).offset().top}, 500);
+		return false;
+	}else{
+		return true;
+	}
+}
+function buterror(id){
+	$(id).css("border","2px solid red");
+	$(id).css("background-color","rgb(255, 223, 221)");
+	$(id).focus(function(){
+		$(id).css("background-color","#fff");
+		$(id).css("border","1px solid");
+		$(id).css("border-color","#848484 #E0E0E0 #E0E0E0 #848484");
+	});
+}
+</script>
+<div class="clearfix">
+	<div class='alert alert-warning' style='font-size:14px'>
+        	温馨提示：1.APP云打包功能，可以将一个手机网站打包成一个可以直接安装到手机里的应用软件。<br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			2.由于安装后的应用软件运行于浏览器环境，使用APP云打包功能暂不支持类似需要使用微信授权功能的网站和需要使用微信支付功能的网站。
+
+    </div>
+	<form action="{php echo url('app/list/add');}" method="post" class="form-horizontal" role="form" id="form1">
+		<div class="panel panel-default">
+			<div class="panel-heading">创建APP应用</div>
+			<div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">应用名称</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<input type="text" class="form-control" name="name" value="" placeholder="应用名称"/>
+						<div class="help-block">应用名称1至10个字。手机桌面上的应用名称</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">应用简介</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<input type="textarea" class="form-control"  style="width:400px; height:125px"  name="intro" value=""/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">应用链接</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<input type="text" class="form-control" name="weburl" value="" placeholder="应用链接"/>
+						<div class="help-block">可以添加其他链接如http://www.baidu.com</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">应用类别</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<input type="radio" name="apptype" id="apptype0" value="0" checked ><label for="apptype0"> 安卓</label>
+						&nbsp;&nbsp;&nbsp;
+						<input type="radio" name="apptype" id="apptype1" value="1" ><label for="apptype1"> IOS</label>
+						<div class="help-block">ios只能生成一个软件，新生成的会覆盖以前生成的。ios只支持越狱版。</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">应用图标</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						{php echo tpl_form_field_image('icopic', $app['icopic']);}
+					<div class="help-block">必须上传大小为 200(宽)*200(高) 像素的 <span class="red">png格式</span> 图片！否则生成应用会提示失败。</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">欢迎图</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						{php echo tpl_form_field_image('hellopic', $app['hellopic']);}
+					<div class="help-block">为达最佳显示效果请选择大小为 <span id="hellsize">780(宽)*1280(高)</span> 像素的 <span class="red">png格式</span> 图片！（注意：安卓和IOS图片大小不一样）</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">隐藏标题栏</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<label class="radio-inline"><input type="radio" name="hidetop" value="1" {if $about['hidetop'] == 1} checked{/if}>是</label>
+						<label class="radio-inline"><input type="radio" name="hidetop" value="0" {if $about['hidetop'] == 0} checked{/if}>否</label>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">横竖屏</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<label class="radio-inline"><input type="radio" name="screen" value="1" {if $about['screen'] == 1} checked{/if}>横屏</label>
+						<label class="radio-inline"><input type="radio" name="screen" value="0" {if $about['screen'] == 0} checked{/if}>竖屏</label>
+					</div>
+				</div>
+				
+			</div>
+		</div>
+		<div class="form-group">
+			<div class="col-sm-8 col-lg-9 col-xs-12">
+				<!--<input type="submit" class="btn btn-primary" name="submit" value="提交" />-->
+				<a href="javascript:alert('等待系统更新')" class="btn btn-primary"><span>提交</span></a>
+				<input type="hidden" name="token" value="{$_W['token']}" />
+			</div>
+		</div>
+	</form>
+</div>
+{elseif $do == 'download'}
+<div class="clearfix">
+		<div class="panel panel-default">
+			<div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">手机浏览器扫描二维码下载（建议不要使用微信扫码）</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<div class="help-block"><img src="<?php echo U("User/Yundabao/QRcode",array('token'=>$token,'AppId'=>$now_app['web_app_id']));?>" style="width:200px;"/>
+						</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<div class="help-block"><a href="{$downloadUrl}" target="_blank">下载到电脑</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		{$pager}
+</div>
+{/if}
+{template 'common/footer'}

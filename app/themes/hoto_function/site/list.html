@@ -1,0 +1,131 @@
+{template 'com/header'}
+<link href="{$_W['siteroot']}app/resource/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="{$_W['siteroot']}app/themes/hoto_function/static/css/style.css">
+<link rel="stylesheet" href="{$_W['siteroot']}app/themes/hoto_function/static/css/list.css">
+<body id="" class="zh_CN" ontouchstart="">
+	<div class="page" style="margin:0;">
+		<!-- 幻灯片 -->
+		{template 'com/slide'}
+		{template 'com/scrollnotice'}
+		<div class="content" style="width:100%;margin-top: -30px;">
+			<div class="gun" style="width:100%; height:100px;">
+				<div id="slides">
+					<ul class="slides_container swiper-wrapper" id="ul1">
+						{php $num = 0;}
+						{data func="site_navs" item="row"}
+						{if $num%4==0}
+						<li class="swiper-slide">
+						{/if}
+							<a href="{$row[url]}">
+								<div class="tub">
+									{if $row['icon']}
+									<img class="tub1" src="{$_W['attachurl']}{$row['icon']}" alt="">
+									{else}	
+									<i class="fa {$row['css']['icon']['icon']}" style="{$row['css']['icon']['style']};"></i>
+									{/if}
+								</div>
+								<div class="tet"><span><h2>{$row['name']}</h2><br>{$row['description']}</span></div>
+							</a>
+						{php $num++;}
+						{if $num%4==0}
+						</li>
+						{/if}
+						{/data}
+					</ul>
+					<a href="javascript:;" class="prev">prev</a>
+					<a href="javascript:;" class="next" id="soso">next</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id="js_plugins" style="visibility: visible;text-align:left;">
+		<div class="tab js_plugin" id="namespace_1" data-pid="2">
+			{if $_GPC['pcid']}
+				{php $_cid = $_GPC['pcid']}
+			{else}
+				{php $_cid = $cid}
+			{/if}
+			<div style="padding-left: 10px;">
+				{data module="site" func="site_category" parentid="$_cid"}
+					{php $url = str_replace("&cid=".$row['id']."&", "&cid=".$row['id']."&pcid=".$_cid."&", $row['linkurl']);}
+					<a href="{$url}" style="padding-right: 5px; padding-top: 10px; padding-bottom: 10px; display:inline-block">
+						<button type="button" class="btn {if $row[id]==$cid}btn-primary{else}btn-default{/if} btn-sm">{$row['name']}</button>
+					</a>
+				{/data}
+			</div>
+			<div class="tab_bd">
+				<div class="article_list article_list_0">
+					{if empty($_W['styles']['list_pagesize'])}
+						{php $_W['styles']['list_pagesize'] = 10}
+					{/if}
+					{data module="site" func="site_article" cid="$cid" limit="$_W['styles']['list_pagesize']" assign="result" return="true"}
+					{if empty($result['list'])}
+						<span style="text-align: center; display: block; padding-top: 20px; padding-bottom: 20px;">本分类下暂时没有文章，请稍后查看</span>
+					{/if}
+					{loop $result['list'] $row}
+					<a class="list_item js_post" href="{$row['linkurl']}">
+						<div class="cover">
+							{if $row['thumb']}<img src="{$row['thumb']}" class="img js_img" onerror="this.parentNode.removeChild(this)" />{/if}
+						</div>
+						<div class="cont">
+							<h2 class="title js_title">{php echo cutstr($row['title'],25,1);}</h2>
+							<p class="desc">
+								{php echo cutstr($row['description'],32,1);}
+							</p>
+						</div>
+					</a>
+					{/loop}
+				</div>
+			</div>
+			<div class="pager-position" style="text-align: center">{$result['pager']}</div>
+		</div>
+	</div>
+	<script>
+		var mySwiper2 = new Swiper('#slides', {
+			pagination: false,
+			paginationClickable: true,
+		});
+		$('.prev').on('click',
+			function(e) {
+			e.preventDefault();
+			mySwiper2.swipePrev()
+		});
+		$('.next').on('click',
+			function(e) {
+			e.preventDefault();
+			mySwiper2.swipeNext()
+		});
+		$(function(){
+			$(".newTit .moreLink>a").click(function(){
+				if($(this).hasClass('on')){
+					$(this).removeClass('on').next().hide();
+				}else{
+					$(this).addClass('on').next().show();
+				}
+			});
+			$(".fixedBar a.aClick").click(function() {
+				$(".fixedBar .SubLinks").toggle();
+					return false;
+				});
+			});
+		
+			$(function(){
+				var $this = $(".scrollNews");
+				var t=null;
+				$this.hover(function(){
+					clearInterval(t);
+				},function(){
+					t = setInterval(function(){
+					scrollNews( $this );
+				}, 4000 );
+			}).trigger("mouseleave");
+		});
+		function scrollNews(obj){
+			var $self = obj.find(".yy");
+			var lineHeight = $self.find(".tongzhi").eq(0).height();
+				$self.animate({"marginTop": -lineHeight +"px"}, 600 , function(){
+				$self.css({marginTop:0}).find(".tongzhi").eq(0).appendTo($self);
+			})
+		}
+	</script>
+{template 'com/footer'}

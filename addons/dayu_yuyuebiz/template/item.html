@@ -1,0 +1,160 @@
+{template 'common/header'}
+<style type="text/css">
+	.require{color:red;}
+	.info{padding:6px;width:400px;margin:-20px auto 3px auto;text-align:center;}
+</style>
+<ul class="nav nav-tabs">
+	<li><a href="{php echo $this->createWebUrl('display')}">返回表单列表</a></li>
+	<li{if $op == 'list'} class="active"{/if}><a href="{php echo $this->createWebUrl('item', array('op' => 'list'))}">预约项目列表</a></li>
+	<li{if $op == 'post' && !$id} class="active"{/if}><a href="{php echo $this->createWebUrl('item', array('op' => 'post'))}">添加服务项目</a></li>
+	{if $id}<li class="active"><a href="#">编辑服务项目</a></li>{/if}
+</ul>
+{if $op == 'post'}
+	<form class="form-horizontal form" id="form1" action="" method="post" enctype="multipart/form-data">
+		<input type="hidden" name="id" value="{$id}">
+		<div class="main">
+			<div class="panel panel-default">
+				<div class="panel-heading">添加服务项目</div>
+				<div class="panel-body">
+					<div id="tpl">
+						<div class="form-group">
+							<label class="col-xs-12 col-sm-3 col-md-2 control-label">服务项目名称</label>
+							<div class="col-sm-9 col-xs-12">
+								<input type="text" class="form-control" name="title" value="{$item['title']}">
+							</div>
+						</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">项目分类</label>
+					<div class="col-sm-9">
+					<div class="input-group">
+                    <span class="input-group-addon">请选择分类</span>
+						<select class="form-control" name="typeid" onchange="fetchChildCategory(this.options[this.selectedIndex].value)" autocomplete="off">
+							{loop $category $row}
+							{if $row['parentid'] == 0}
+							<option value="{$row['id']}" {if $row['id'] == $item['typeid']} selected="selected"{/if}>{$row['title']}</option>
+							{/if}
+							{/loop}
+						</select>
+					</div>
+					</div>
+				</div>
+						<div class="form-group">
+							<label class="col-xs-12 col-sm-3 col-md-2 control-label">价格</label>
+							<div class="col-sm-9 col-xs-12">
+								<div class="input-group"><span class="input-group-addon"><i class="fa fa-money"></i></span><input type="text" class="form-control" name="price" value="{$item['price']}"></div>
+							</div>
+						</div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">是否显示</label>
+                    <div class="col-xs-12 col-sm-9">
+                		<label class="radio-inline"><input type="radio" name="isshow" value="1" {if $item['isshow']==1}checked="checked"{/if} /> 显示</label>
+		 				<label class="radio-inline"><input type="radio" name="isshow" value="0" {if $item['isshow']==0}checked="checked"{/if} /> 隐藏</label>
+                    <div class="help-block">是否在手机端显示该服务项目</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">项目图标</label>
+                    <div class="col-xs-12 col-sm-9">
+                         {php echo tpl_form_field_image('thumb',$item['thumb']);}
+	      				<span class="help-block">用一张图片来更好的表现你的服务项目</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">项目说明</label>
+                    <div class="col-xs-12 col-sm-9">
+						{php echo tpl_ueditor('content', $item['content']);}
+	        			<span class="help-block">服务项目详细说明</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">排序</label>
+                    <div class="col-xs-12 col-sm-9">
+                         <input type="text" class="form-control" name="displayorder" value="{if empty($item)}0{else}{$item['displayorder']}{/if}" id="displayorder" />
+                    </div>
+                </div>
+						<hr>
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-sm-9 col-xs-9 col-md-9">
+					<input type="hidden" name="token" value="{$_W['token']}">
+					<input name="submit" id="submit" type="submit" value="提交" class="btn btn-primary col-lg-1">
+				</div>	
+			</div>
+		</div>
+	</form>
+{elseif $op == 'list'}
+	<style type="text/css">
+		.status-toggle{cursor:pointer;}
+	</style>
+	<div class="main">
+		<div class="panel panel-info">
+			<div class="panel-heading">筛选</div>
+			<div class="panel-body">
+				<form action="./index.php" method="get" class="form-horizontal" role="form">
+					<input type="hidden" name="c" value="site">
+					<input type="hidden" name="a" value="entry">
+					<input type="hidden" name="m" value="dayu_form">
+					<input type="hidden" name="do" value="staff"/>
+					<input type="hidden" name="op" value="list"/>
+					<input type="hidden" name="reid" value="{$_GPC['reid']}">
+					<div class="form-group clearfix">
+						<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">服务项目</label>
+						<div class="col-sm-7 col-lg-8 col-md-8 col-xs-12">
+							<input class="form-control" name="keyword" id="" type="text" value="{$_GPC['keyword']}">
+						</div>
+						<div class="col-xs-12 col-sm-3 col-md-2 col-lg-1">
+							<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+		<form class="form-horizontal" action="" method="post" enctype="multipart/form-data">
+			<div class="panel panel-default">
+				<div class="panel-body table-responsive">
+					<table class="table table-hover">
+						<thead class="navbar-inner">
+							<tr>
+								<th style="width:80px;">排序</th>
+								<th style="width:100px;">图片</th>
+								<th>服务项目</th>
+								<th>分类</th>
+								<th style="width:80px;">显示</th>
+								<th style="width:180px;">价格</th>
+								<th style="width:120px; text-align:right;">操作</th>
+							</tr>
+						</thead>
+						<tbody>
+							{loop $lists $item}
+							<tr>
+								<input type="hidden" name="ids[]" value="{$item['id']}">
+								<input type="hidden" name="weid[]" value="{$weid}">
+								<td><input type="number" class="form-control" name="displayorder[]" value="{$item['displayorder']}"></td>
+								<td><img src="{php echo tomedia($item['thumb'])}" height="30"></td>
+								<td><input type="text" name="title[]" class="form-control" value="{$item['title']}"></td>
+								<td>{$item['category']['title']}</td>
+								<td>{$item['isshow']}</td>
+								<td class="input-group"><span class="input-group-addon"><i class="fa fa-money"></i></span><input type="text" name="price[]" class="form-control" value="{$item['price']}"></td>
+								<td style="text-align:right;">
+									<a href="{php echo $this->createWebUrl('item', array('op' => 'post', 'reid' => $item['reid'], 'id' => $item['id']))}" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="编辑"><i class="fa fa-edit"></i> 修改</a>
+									<a href="{php echo $this->createWebUrl('item', array('op' => 'itemdel', 'id' => $item['id'], 'reid' => $_GPC['reid']))}" class="btn btn-default btn-sm" title="删除" data-toggle="tooltip" data-placement="top" onclick="if(!confirm('删除服务项目，确定删除吗?')) return false;"><i class="fa fa-times"> </i></a>
+								</td>
+							</tr>
+							{/loop}
+						</tbody>
+					</table>
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-sm-9 col-xs-9 col-md-9">
+					<input type="hidden" name="token" value="{$_W['token']}">
+					<input name="submit" id="submit" type="submit" value="批量修改" class="btn btn-primary">
+				</div>	
+			</div>
+			{$pager}
+		</form>
+	</div>
+{/if}
+{template 'common/footer'}

@@ -1,0 +1,306 @@
+{template 'header'}
+<link rel="stylesheet prefetch" href="{GARCIA_CSS}photoswipe.css">
+<link rel="stylesheet prefetch" href="{GARCIA_CSS}default-skin/default-skin.css">
+
+<style type="text/css">
+* { padding: 0; margin: 0; }
+.am-share { font-size: 14px; border-radius: 0; bottom: 0; left: 0; position: fixed; text-align: center; -webkit-transform: translateY(100%); -ms-transform: translateY(100%); transform: translateY(100%); -webkit-transition: -webkit-transform 300ms; transition: transform 300ms ; width: 100%; z-index: 1110; }
+.am-modal-active { transform: translateY(0px);  -webkit-transform: translateY(0); -ms-transform: translateY(0); transform: translateY(0) }
+.am-modal-out { z-index: 1109; -webkit-transform: translateY(100%); -ms-transform: translateY(100%); transform: translateY(100%) }
+
+.am-share-title { background-color: #f7f7f7; border-bottom: 1px solid #fff;  color: #555; font-weight: 400;  padding: 10px 0 0; text-align: center; }
+.am-share-title::after { border-bottom: 1px solid #dfdfdf; content: ""; display: block; height: 0; margin-top: 10px; width: 100%; }
+
+.am-share-footer { }
+.am-share-footer .share_btn { color: #555;  display: block; width: 100%; background-color: #fff; border: 1px solid #e6e6e6; border-radius: 0; cursor: pointer;  font-size: 16px; font-weight: 400; line-height: 1.2; padding: 0.625em 0; text-align: center; transition: background-color 300ms ease-out 0s, border-color 300ms ease-out 0s; vertical-align: middle; white-space: nowrap;font-family:"微软雅黑";  }
+
+.am-share-sns { background-color: #f7f7f7;  padding-top: 15px; height:auto; zoom:1; overflow:auto; }
+
+.am-share-sns li { margin-bottom: 15px; display: block; float: left; height: auto;  width: 25%; }
+
+.am-share-sns a { color: #555; display: block; text-decoration:none; }
+.am-share-sns span { display: block; }
+
+.am-share-sns li i { background-position: center 50%; background-repeat: no-repeat; background-size: 36px 36px; background-color: #ccc; color: #fff; display: inline-block; font-size: 18px; height: 36px; line-height: 36px; margin-bottom: 5px; width: 36px; }
+.am-share-sns .share-icon-weibo { background-image: url(); }
+
+.sharebg { background-color: rgba(0, 0, 0, 0.6); bottom: 0; height: 100%; left: 0; opacity: 0; position: fixed; right: 0; top: 0; width: 100%; z-index: 1100; display:none; }
+.sharebg-active { opacity: 1; display:block; }
+.am-pureview-actions{top: 16px!important;}
+.am-pureview-direction{display: none;}
+.am-pureview-nav{display: none;}
+.am-pureview.am-pureview-bar-active{display: none;}
+.am-modal.am-modal-no-btn{display: none}
+.pswp__zoom-wrap{
+ translate3d(0px, 44px, 0px) scale(1)!important;
+}
+
+</style>
+
+<header class="qsc-bar bar-green bar-fixed project-detail-bar" id="headerTitle">
+    <a href="{php echo $this->createMobileUrl('index')}" class="bar-item pull-left"><i class="icon bar-arrow-left"></i><span>首页</span></a>
+
+    <a href="{php echo $this->createMobileUrl('jubao',array('id'=>$_GPC['id']))}" class="bar-item pull-right  report"  >举报</a>
+
+    <h1 class="bar-title qsc-logo_white" style="top:6px;">
+      <a href=""><img src="{php echo tomedia($this->sys['detaillogo'])}" width="80" height='25' alt="轻松筹"></a>
+    </h1>
+</header>
+
+
+
+
+<footer class="qsc-bar bar-fixed bar-support">
+      <span class="bar-item" id="btn-follow" data-url="">
+            <i class="icon {if $_gz}icon-star{else}icon-star-o{/if}"></i>关注 <small>{$config['shouc']}</small>
+      </span>
+        <a href="{php echo $this->createMobileUrl('pay',array('id'=>$_GPC['id']))}" class="bar-item btn-support"><span>我要支持</span></a>
+    <span onclick='toshare2()' class="bar-item">
+        <i class="icon icon-share"></i>分享
+        <small>{$config['is_share']}</small>
+    </span>
+</footer>
+
+<div id="main"></div>
+
+
+<script type="text/html" id="bodybox">
+  <div class="content-fixed top bottom mod-project mod-project-detail" style="margin-top: 48px;">
+    <div class="mod-project-detail">
+      <div class="mod-project-card card-type-1" style="margin-bottom:15px;">
+
+        <div class="mod-project-card_header clearfix">
+          <div class="mod-project-card_header__avatar">
+              <img class="lazy-load" data-original="{{avatar}}" width="24" height="24" alt="" style="display: inline;">
+          </div>
+          <div class="mod-project-card_header__user">
+              <span>{{nickname}}</span>
+              <em class="mod-project-card_header__time">{{rand_day}}</em>
+          </div>
+          <div class="mod-project-card_header__lefttime">
+          {{{php echo 'if less<=0'}}}已过期{{{php echo 'else'}}}剩余<strong>{{less}}</strong>天{{{php echo '/if'}}}</div>
+        </div>
+
+
+        <div class="mod-project-card_content">
+
+            <header class="mod-project-card_content__header">
+                <h2>{{name}}</h2>
+            </header>
+
+            <div class="mod-project-card_content__status clearfix">
+                <span><strong>{{tar_monet}}<small>元</small></strong>目标金额</span>
+                <span><strong>{{count_pay}}<small>元</small></strong>已筹金额</span>
+                <span><strong>{{count_member}}<small>次</small></strong>支持次数</span>
+            </div>
+
+            <div class="mod-project-card_content__detail">
+
+              <!-- 图片 -->
+              <div class="my-gallery mod-project-card_content__img clearfix" >
+                  <ul class="am-gallery am-avg-sm-4 am-avg-md-3 am-avg-lg-4 am-gallery-default" id="ppppc" >
+
+                    {{each thumb as row}}
+                          <img  class="lazy-load"  data-original="{{row.thumb}}"  data-src="{{row.thumb}}"  alt="{{row.url}}" width='25%' style="display: block;max-width: 100%;height: auto;border: none;margin: 0;"/>
+                      {{/each}}
+                  </ul>
+              </div>
+              <!-- 图片 -->
+              <div class="view-body" style="padding:15px 0;">{{content}}</div>
+            </div>
+
+           {{{php echo 'if is_hospital==1'}}}
+           <div class="mod-project-verify">
+            {{{php echo 'if hosdata.status!=0&&hosdata.status==null'}}}
+             <div class="project-detail_title">暂未提交验证资料</div>
+             {{{php echo 'else if hosdata.status==0'}}}
+             <div class="project-detail_title">医疗资料正在审核</div>
+             {{{php echo 'else if hosdata.status==1'}}}
+             <div class="project-detail_title">已提交资料<span></span></div>
+             <div class="item">
+               <strong>受助人(患者)：{{hosdata.dis_name}}</strong>
+               <p>
+                 <i class="icon-verify-sm"></i><span>身份证已提交</span>
+                 <i class="icon-verify-sm"></i><span>医疗证明已提交</span>
+               </p>
+               <span   data-toggle="modal" data-target="#doc-modal-1" class="icon-hospital" data-hospital="{{hosdata.hospital}}"></span>
+             </div>
+
+             <div class="item">
+               <strong>所患疾病：{{hosdata.disease}}</strong>
+               <p><i class="icon-verify-sm"></i><span>诊断证明已提交</span><i class="icon-verify-sm"></i><span>诊断医院：{{hosdata.hospital}}</span></p>
+             </div>
+
+             <div class="item">
+             <strong>收款人：{{{php echo 'if hosdata.sz_name==hosdata.creator_name'}}}{{hosdata.creator_name}}(本人){{{php echo 'else'}}}{{hosdata.creator_name}}{{{php echo '/if'}}} </strong>
+             <p><i class="icon-verify-sm"></i><span>身份证已提交</span></p>
+             <span data-toggle="modal" data-target="#modal-money-guide" class="icon-moneyguide"></span>
+             </div>
+
+             <div class="item zhengship " style="font-size:12px;">
+               {{hosdata.zhengshishuoming}}
+             </div>
+             {{{php echo '/if'}}}
+
+
+           </div>
+          {{{php echo '/if'}}}
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+</script>
+
+  {template 'modal'}
+  {template 'tip'}
+  <div class="am-share share2">
+    <h3 class="am-share-title">分享给好友</h3>
+    <ul class="am-share-sns">
+      <a href="{php echo $this->createMobileUrl('qrcode',array('fid'=>$_GPC['id']))}" id="qrcode" data-dismiss="modal" data-toggle="modal" data-target="#share-qrcode" class="item"><i class="icon icon-qrcode"></i>二维码</a>
+      <!-- <a href="javascript:void(0);"  onclick='_sharewx()' class="item h5-share-weibo" data-id="0"><i class="icon icon-weixin"></i>微信</a> -->
+      <a href="javascript:void(0);"  onclick='_shareweibo()' class="item h5-share-weibo" data-id="0"><i class="icon icon-weibo"></i>新浪微博</a>
+      <a href="javascript:void(0);" onclick="_sharqzon()" class="item h5-share-qzone" data-id="4"><i class="icon icon-qqzone"></i>QQ空间</a>
+      <a href="javascript:void(0);" onclick='_shareqweibo()' class="item h5-share-qqweibo" data-id="6"><i class="icon icon-qqweibo"></i>腾讯微博</a>
+      <a href="javascript:void(0);" onclick='_shareqq()' class="item h5-share-qq" data-id="5"><i class="icon icon-qq"></i>QQ好友</a>
+    </ul>
+    <div class="am-share-footer"><button class="share_btn">取消</button></div>
+  </div>
+
+
+<script>
+
+
+   require(['template','lazyload'],function(template){
+          template.config('escape', false);
+       window.template = template;
+       _loadDetail();
+   });
+
+
+   function _loadDetail(){
+
+     $.ajax({
+         url:base_url,
+         type:"post",
+         dataType:'json',
+         data:{
+            func:'detail',
+            action:'zc',
+            id:'{$_GPC["id"]}',
+            apikey:"{php echo md5('yidajia_app_'.$this->weid)}"
+         },success:function(ret){
+           var html = template('bodybox',ret.res);
+           $("#main").html(html);
+            $("img.lazy-load").lazyload();
+            console.log(ret);
+         },error:function(data){
+            console.log(data);
+         }
+     })
+   }
+  $(function(){
+
+    $("#btn-follow").bind('click',function(){
+     //
+           var icon = $(this).find('i');
+           var small = $(this).find('small');
+               small_p = small.html();
+               small_p = parseInt(small_p);
+           var sp = $("#toast-default").find('span');
+
+           if(icon.hasClass('icon-star-o')){
+             console.log(small_p+1);
+             $.ajax({
+                 url:"{php echo $this->createMobileUrl('detail')}",
+                 type:"post",
+                 dataType:'json',
+                 async:false,
+                 data:{
+                   dopost:'ajax',
+                   fid:{$_GPC['id']},
+                   modal:'jia'
+                 },success:function(res){
+
+
+                   if(res.status_code==1){
+
+                   }else{
+                     sp.html(res.msg);
+                                $("#toast-default").show();
+                    console.log(res);
+                   }
+                   // alert(msg.status);
+                //    sp.html('关注成功');
+                //    icon.removeClass('icon-star-o').addClass('icon-star');
+                //    small.html(small_p+1);
+                   setTimeout(function(){
+                     $("#toast-default").hide();
+                   },1000)
+                 }
+                // ,else:function(){
+                //    alert(2);
+                //  }
+             })
+           }else{
+             $.ajax({
+                 url:"{php echo $this->createMobileUrl('detail')}",
+                 type:"post",
+                 dataType:'json',
+                 async:false,
+                 data:{
+                   dopost:'ajax',
+                   fid:"{$_GPC['id']}",
+                   modal:'jian'
+                 },success:function(msg){
+                   // alert(msg.status);
+                     sp.html('取消成功');
+                     icon.removeClass('icon-star').addClass('icon-star-o');
+                     small.html(small_p-1);
+                     setTimeout(function(){
+                       $("#toast-default").hide();
+                     },1000)
+                 },else:function(){
+                   alert(2);
+                 }
+             })
+
+           }
+
+
+    });
+  })
+  function toshare2(){
+    $(".am-share.share2").addClass("am-modal-active");
+    if($(".sharebg").length>0){
+      $(".sharebg").addClass("sharebg-active");
+    }else{
+      $("body").append('<div class="sharebg"></div>');
+      $(".sharebg").addClass("sharebg-active");
+    }
+    $(".sharebg-active,.share_btn").click(function(){
+      $(".am-share").removeClass("am-modal-active");
+      setTimeout(function(){
+        $(".sharebg-active").removeClass("sharebg-active");
+        $(".sharebg").remove();
+      },300);
+    })
+  }
+  function _shareweibo(){
+    // alert();
+       window.open("{$config['share']['weibo']}");
+  }
+  function _sharqzon(){
+
+      window.open("{$config['share']['qqzon']}");
+  }
+  function _shareqweibo(){
+
+      window.open("{$config['share']['qqweibo']}");
+  }
+  function _shareqq(){
+
+  window.open("{$config['share']['qq']}");
+  }
+</script>

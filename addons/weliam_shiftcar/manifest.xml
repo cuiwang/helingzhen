@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns="http://www.012wz.com" versionCode="0.6">
+	<application setting="false">
+		<name><![CDATA[微信挪车]]></name>
+		<identifie><![CDATA[weliam_shiftcar]]></identifie>
+		<version><![CDATA[1.5.0]]></version>
+		<type><![CDATA[business]]></type>
+		<ability><![CDATA[微信挪车]]></ability>
+		<description><![CDATA[微信挪车，违章查询，罚款代缴，车辆绑定等]]></description>
+		<author><![CDATA[微赞]]></author>
+		<url><![CDATA[http://www.012wz.com]]></url>
+	</application>
+	<platform>
+		<subscribes>
+			<message type="subscribe" />
+		</subscribes>
+		<handles>
+			<message type="text" />
+			<message type="image" />
+			<message type="voice" />
+			<message type="location" />
+			<message type="subscribe" />
+			<message type="qr" />
+			<message type="trace" />
+			<message type="click" />
+		</handles>
+		<rule embed="false" />
+		<card embed="false" />
+		<supports>
+		</supports>
+	</platform>
+	<bindings>
+		<cover>
+			<entry title="首页" do="index" state="" direct="false" />
+		</cover>
+		<menu>
+			<entry title="后台管理" do="dashboard" state="" direct="false" />
+		</menu>
+	</bindings>
+	<install><![CDATA[CREATE TABLE IF NOT EXISTS `ims_weliam_shifcar_category` (
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '自动排序',
+  `uniacid` int(11) NOT NULL COMMENT '公众号id',
+  `name` varchar(32) NOT NULL COMMENT '名称',
+  `picture` varchar(64) NOT NULL COMMENT '图标',
+  `sort` int(11) NOT NULL COMMENT '排序',
+  `is_show` int(2) NOT NULL COMMENT '是否显示',
+  `createtime` varchar(32) NOT NULL COMMENT '创建时间',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='问题分类表';
+CREATE TABLE IF NOT EXISTS `ims_weliam_shifcar_question` (
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id',
+  `uniacid` int(11) NOT NULL COMMENT '公众号id',
+  `title` varchar(64) NOT NULL COMMENT '名称，不能长于20个汉字',
+  `answer` text NOT NULL COMMENT '解答内容',
+  `categoryid` int(11) NOT NULL COMMENT '分类id',
+  `createtime` varchar(32) NOT NULL COMMENT '创建时间',
+  `is_show` int(2) NOT NULL COMMENT '是否展示',
+  `scan` int(11) NOT NULL COMMENT '浏览量',
+  `sort` int(11) NOT NULL COMMENT '排序',
+  `is_importent` int(11) NOT NULL COMMENT '是否是重要问题',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='问题解答清单';
+CREATE TABLE IF NOT EXISTS `ims_weliam_shiftcar_address` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `pid` int(11) unsigned NOT NULL,
+  `name` varchar(500) NOT NULL,
+  `visible` tinyint(4) unsigned NOT NULL,
+  `displayorder` tinyint(11) unsigned NOT NULL,
+  `level` tinyint(3) unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `isShow` (`visible`),
+  KEY `parentId` (`pid`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_weliam_shiftcar_advertisement` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `position` int(11) NOT NULL,
+  `content` text NOT NULL,
+  `status` int(11) NOT NULL,
+  `createtime` int(11) NOT NULL,
+  `advtype` int(11) NOT NULL,
+  `cardnumber` varchar(100) DEFAULT NULL,
+  `remark` varchar(100) DEFAULT NULL,
+  `signtime` varchar(100) DEFAULT NULL,
+  `issettime` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_weliam_shiftcar_apirecord` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) NOT NULL,
+  `sendmid` int(11) NOT NULL,
+  `sendmobile` varchar(15) DEFAULT NULL,
+  `takemid` int(11) NOT NULL,
+  `takemobile` varchar(15) DEFAULT NULL,
+  `type` smallint(2) NOT NULL,
+  `remark` varchar(32) DEFAULT NULL,
+  `createtime` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `uniacid` (`uniacid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_weliam_shiftcar_apply` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) NOT NULL,
+  `mid` int(11) NOT NULL,
+  `ordersn` varchar(32) NOT NULL,
+  `name` varchar(32) NOT NULL,
+  `mobile` varchar(15) NOT NULL,
+  `area` varchar(32) NOT NULL,
+  `address` varchar(100) NOT NULL,
+  `status` smallint(2) NOT NULL,
+  `express` varchar(32) DEFAULT NULL,
+  `expresssn` varchar(32) DEFAULT NULL,
+  `sendtime` int(11) DEFAULT NULL,
+  `signtime` int(11) DEFAULT NULL,
+  `createtime` int(11) NOT NULL,
+  `postage` decimal(10,2) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `mid` (`mid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+CREATE TABLE IF NOT EXISTS `ims_weliam_shiftcar_brand` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `brand` varchar(50) NOT NULL,
+  `imgs` varchar(100) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_weliam_shiftcar_class` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `brandid` int(11) NOT NULL,
+  `name` varchar(50) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_weliam_shiftcar_comment` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) NOT NULL,
+  `mid` int(11) NOT NULL,
+  `reid` int(11) NOT NULL,
+  `status` int(11) NOT NULL,
+  `comment` varchar(500) DEFAULT NULL,
+  `createtime` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_weliam_shiftcar_error` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) NOT NULL,
+  `type` int(11) NOT NULL,
+  `data` text,
+  `createtime` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_weliam_shiftcar_hidenotice` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) NOT NULL,
+  `mid` int(11) NOT NULL,
+  `touser` text,
+  `num` int(11) NOT NULL,
+  `address` varchar(500) NOT NULL,
+  `createtime` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_weliam_shiftcar_limitlinetpl` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) NOT NULL,
+  `name` varchar(50) NOT NULL,
+  `type` varchar(32) NOT NULL,
+  `limitweek` varchar(300) NOT NULL,
+  `limitday` varchar(300) NOT NULL,
+  `data` text NOT NULL,
+  `islimittime` smallint(2) NOT NULL,
+  `limittime` varchar(300) NOT NULL,
+  `status` smallint(2) NOT NULL,
+  `createtime` int(11) NOT NULL,
+  `reason` varchar(300) NOT NULL,
+  `region` varchar(500) NOT NULL,
+  `interval` varchar(300) NOT NULL,
+  `isshare` int(11) NOT NULL,
+  `shareid` int(11) NOT NULL,
+  `isnumber` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_weliam_shiftcar_mcrecord` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) NOT NULL,
+  `mid` int(11) NOT NULL,
+  `sid` int(11) NOT NULL,
+  `type` int(11) NOT NULL,
+  `model` int(11) NOT NULL,
+  `fee` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `times` int(11) NOT NULL,
+  `remid` int(11) NOT NULL,
+  `remark` varchar(300) DEFAULT NULL,
+  `createtime` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_weliam_shiftcar_member` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uid` int(11) NOT NULL,
+  `invid` int(11) NOT NULL,
+  `uniacid` int(11) NOT NULL,
+  `openid` varchar(100) NOT NULL,
+  `unionid` varchar(100) NOT NULL,
+  `nickname` varchar(50) NOT NULL,
+  `realname` varchar(50) NOT NULL,
+  `credit1` decimal(10,2) NOT NULL,
+  `credit2` decimal(10,2) NOT NULL,
+  `gender` int(11) NOT NULL,
+  `avatar` varchar(300) NOT NULL,
+  `mobile` varchar(20) NOT NULL,
+  `city` varchar(50) NOT NULL,
+  `province` varchar(50) NOT NULL,
+  `plate1` varchar(5) NOT NULL,
+  `plate2` varchar(5) NOT NULL,
+  `plate_number` varchar(20) NOT NULL,
+  `engine_number` varchar(50) NOT NULL,
+  `frame_number` varchar(50) NOT NULL,
+  `brand` varchar(50) NOT NULL,
+  `brandimg` varchar(50) NOT NULL,
+  `status` int(11) NOT NULL,
+  `mstatus` int(3) NOT NULL,
+  `userstatus` int(2) NOT NULL,
+  `ncnumber` varchar(30) NOT NULL,
+  `message` varchar(200) NOT NULL,
+  `harrystatus` int(11) NOT NULL,
+  `harrytime1` int(11) NOT NULL,
+  `harrytime2` int(11) NOT NULL,
+  `acttime` int(11) NOT NULL,
+  `createtime` int(11) NOT NULL,
+  `tasktime` int(11) NOT NULL,
+  `limitlinetime` int(11) NOT NULL,
+  `hidestatus` int(11) NOT NULL,
+  `hidetime` int(11) NOT NULL,
+  `hidelng` varchar(50) DEFAULT NULL,
+  `hidelat` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+CREATE TABLE IF NOT EXISTS `ims_weliam_shiftcar_membercard` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) NOT NULL,
+  `mid` int(11) NOT NULL,
+  `sid` int(11) NOT NULL,
+  `credit1` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `credit2` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `times` int(11) NOT NULL,
+  `createtime` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_weliam_shiftcar_nearby` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `address` varchar(255) NOT NULL,
+  `mobile` varchar(255) NOT NULL,
+  `data_img` text NOT NULL,
+  `content` text NOT NULL,
+  `contact` varchar(100) NOT NULL,
+  `allimg` text NOT NULL,
+  `lng` varchar(255) NOT NULL,
+  `lat` varchar(255) NOT NULL,
+  `status` int(11) NOT NULL,
+  `createtime` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='附近商户';
+CREATE TABLE IF NOT EXISTS `ims_weliam_shiftcar_oplog` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) DEFAULT NULL,
+  `describe` varchar(225) DEFAULT NULL,
+  `view_url` varchar(225) DEFAULT NULL,
+  `ip` varchar(32) DEFAULT NULL,
+  `data` varchar(1024) DEFAULT NULL,
+  `createtime` varchar(32) DEFAULT NULL,
+  `user` varchar(32) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_weliam_shiftcar_peccrecord` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) NOT NULL,
+  `mid` int(11) NOT NULL,
+  `hphm` varchar(32) NOT NULL,
+  `address` varchar(100) DEFAULT NULL,
+  `acttime` varchar(50) DEFAULT NULL,
+  `code` int(11) DEFAULT NULL,
+  `status` smallint(2) DEFAULT NULL,
+  `info` varchar(100) DEFAULT NULL,
+  `fen` int(11) DEFAULT NULL,
+  `money` varchar(32) DEFAULT NULL,
+  `content` text,
+  `createtime` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `uniacid` (`uniacid`),
+  KEY `mid` (`mid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_weliam_shiftcar_puv` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) NOT NULL,
+  `pv` int(11) NOT NULL,
+  `uv` int(11) NOT NULL,
+  `date` varchar(20) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `uniacid` (`uniacid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_weliam_shiftcar_puvrecord` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) NOT NULL,
+  `mid` int(11) NOT NULL,
+  `pv` int(11) NOT NULL,
+  `date` varchar(20) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `uniacid` (`uniacid`),
+  KEY `mid` (`mid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_weliam_shiftcar_qrcode` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `mid` int(10) DEFAULT NULL,
+  `uniacid` int(10) unsigned NOT NULL,
+  `qrid` int(10) unsigned NOT NULL,
+  `model` tinyint(1) NOT NULL,
+  `cardsn` varchar(64) NOT NULL,
+  `status` tinyint(1) unsigned NOT NULL,
+  `createtime` int(10) unsigned NOT NULL,
+  `remark` varchar(50) NOT NULL,
+  `salt` varchar(32) DEFAULT NULL,
+  `sid` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `uniacid` (`uniacid`),
+  KEY `qrid` (`qrid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_weliam_shiftcar_record` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) NOT NULL,
+  `sendmid` int(11) NOT NULL,
+  `takemid` int(11) NOT NULL,
+  `longitude` varchar(10) DEFAULT NULL,
+  `latitude` varchar(10) DEFAULT NULL,
+  `location` varchar(50) DEFAULT NULL,
+  `createtime` int(11) NOT NULL,
+  `comment` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `uniacid` (`uniacid`),
+  KEY `sendmid` (`sendmid`),
+  KEY `takemid` (`takemid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_weliam_shiftcar_sclass` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `classid` int(11) NOT NULL,
+  `name` varchar(50) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_weliam_shiftcar_setting` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) NOT NULL,
+  `key` varchar(200) NOT NULL,
+  `value` text NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+CREATE TABLE IF NOT EXISTS `ims_weliam_shiftcar_smstpl` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) NOT NULL,
+  `name` varchar(50) NOT NULL,
+  `type` varchar(32) NOT NULL,
+  `smstplid` varchar(32) NOT NULL,
+  `data` text NOT NULL,
+  `status` smallint(2) NOT NULL,
+  `createtime` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_weliam_shiftcar_srecord` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) NOT NULL,
+  `mid` int(11) NOT NULL,
+  `type` varchar(20) DEFAULT NULL,
+  `createtime` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+CREATE TABLE IF NOT EXISTS `ims_weliam_shiftcar_sug` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) NOT NULL,
+  `mid` int(11) NOT NULL,
+  `content` varchar(1000) NOT NULL,
+  `createtime` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
+CREATE TABLE IF NOT EXISTS `ims_weliam_shiftcar_waitmessage` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) unsigned NOT NULL,
+  `type` tinyint(3) unsigned NOT NULL,
+  `str` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `index` (`type`,`uniacid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_weliam_shiftcar_wechataddr` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) NOT NULL,
+  `key` varchar(50) NOT NULL,
+  `addressid` int(11) NOT NULL,
+  `address` varchar(50) NOT NULL,
+  `acid` int(11) NOT NULL,
+  `createtime` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+]]></install>
+	<uninstall><![CDATA[DROP TABLE IF EXISTS `ims_weliam_shifcar_category`;
+DROP TABLE IF EXISTS `ims_weliam_shifcar_question`;
+DROP TABLE IF EXISTS `ims_weliam_shiftcar_address`;
+DROP TABLE IF EXISTS `ims_weliam_shiftcar_advertisement`;
+DROP TABLE IF EXISTS `ims_weliam_shiftcar_apirecord`;
+DROP TABLE IF EXISTS `ims_weliam_shiftcar_apply`;
+DROP TABLE IF EXISTS `ims_weliam_shiftcar_brand`;
+DROP TABLE IF EXISTS `ims_weliam_shiftcar_class`;
+DROP TABLE IF EXISTS `ims_weliam_shiftcar_comment`;
+DROP TABLE IF EXISTS `ims_weliam_shiftcar_error`;
+DROP TABLE IF EXISTS `ims_weliam_shiftcar_hidenotice`;
+DROP TABLE IF EXISTS `ims_weliam_shiftcar_limitlinetpl`;
+DROP TABLE IF EXISTS `ims_weliam_shiftcar_mcrecord`;
+DROP TABLE IF EXISTS `ims_weliam_shiftcar_member`;
+DROP TABLE IF EXISTS `ims_weliam_shiftcar_membercard`;
+DROP TABLE IF EXISTS `ims_weliam_shiftcar_nearby`;
+DROP TABLE IF EXISTS `ims_weliam_shiftcar_oplog`;
+DROP TABLE IF EXISTS `ims_weliam_shiftcar_peccrecord`;
+DROP TABLE IF EXISTS `ims_weliam_shiftcar_puv`;
+DROP TABLE IF EXISTS `ims_weliam_shiftcar_puvrecord`;
+DROP TABLE IF EXISTS `ims_weliam_shiftcar_qrcode`;
+DROP TABLE IF EXISTS `ims_weliam_shiftcar_record`;
+DROP TABLE IF EXISTS `ims_weliam_shiftcar_sclass`;
+DROP TABLE IF EXISTS `ims_weliam_shiftcar_setting`;
+DROP TABLE IF EXISTS `ims_weliam_shiftcar_smstpl`;
+DROP TABLE IF EXISTS `ims_weliam_shiftcar_srecord`;
+DROP TABLE IF EXISTS `ims_weliam_shiftcar_sug`;
+DROP TABLE IF EXISTS `ims_weliam_shiftcar_waitmessage`;
+DROP TABLE IF EXISTS `ims_weliam_shiftcar_wechataddr`;
+]]></uninstall>
+	<upgrade><![CDATA[upgrade.php]]></upgrade>
+</manifest>

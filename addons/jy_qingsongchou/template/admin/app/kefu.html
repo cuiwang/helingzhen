@@ -1,0 +1,239 @@
+{template 'admin/app/header'}
+
+<style>
+    .am-topbar{
+        margin-bottom:0;
+    }
+    .main{
+        width: 100%;
+        display: block;
+        overflow: hidden;
+    }
+    .main .main-left{
+        width: 20%;
+        display: block;
+        overflow: hidden;
+        min-height: 100%;
+        background: #fff;
+        border-right: 1px solid #eee;
+        float: left;
+    }
+    .mian-rgiht{
+       width: 79%;
+       float: right;
+       display: block;
+       overflow: hidden;
+       height: 100%;
+       /*background: #ddd;*/
+       border-left: 1px solid #eee;
+    }
+    .left-title,.right-title{
+        padding: 8px 0;
+        text-align: center;
+        background: #7EB7F7;
+        color: #eee;
+    }
+    .left-connect{
+      padding: 8px 0;
+      text-align: center;
+      background: #FF4C2E;
+      color: #fff;
+    }
+</style>
+<div class="main">
+
+
+     <div class="main-left">
+          <div class="left-title">
+              最近联系人2/3
+          </div>
+          <div class="left-connect">
+              网络连接成功
+          </div>
+          <div class="member-list">
+
+          </div>
+     </div>
+
+
+      <div class="mian-rgiht">
+
+        <div class="right-title">
+          a
+        </div>
+      </div>
+
+</div>
+
+
+
+<script>
+
+
+     $(function(){var ww = $(window).width();var wh = $(window).height();var amh = $(".am-topbar").outerHeight(true);var mainh = wh-amh;$(".main").height(mainh);})
+
+</script>
+
+<script>
+
+var key = 'pgyu6atqypm5u';
+var token = "{$token}";
+
+_connectInit(token,key);
+function _connectInit(token,key){
+
+      RongIMClient.init(key);
+      RongIMClient.connect(token, {
+        onSuccess:success,
+        onTokenIncorrect: function() {
+          console.log('token无效');
+        },
+        onError:function(errorCode){
+              var info = '';
+              switch (errorCode) {
+                case RongIMLib.ErrorCode.TIMEOUT:
+                  info = '超时';
+                  break;
+                case RongIMLib.ErrorCode.UNKNOWN_ERROR:
+                  info = '未知错误';
+                  break;
+                case RongIMLib.ErrorCode.UNACCEPTABLE_PaROTOCOL_VERSION:
+                  info = '不可接受的协议版本';
+                  break;
+                case RongIMLib.ErrorCode.IDENTIFIER_REJECTED:
+                  info = 'appkey不正确';
+                  break;
+                case RongIMLib.ErrorCode.SERVER_UNAVAILABLE:
+                  info = '服务器不可用';
+                  break;
+              }
+              console.log(errorCode);
+            }
+      });
+
+
+        connetListen();
+        reviceLister();
+}
+/**
+ * 链接监听事件
+ */
+function connetListen(){
+  RongIMClient.setConnectionStatusListener({
+     onChanged: function (status) {
+         switch (status) {
+             case RongIMLib.ConnectionStatus.CONNECTED:
+                 $(".left-connect").html('网络连接成功');
+                 $(".left-connect").css({'background':'#d3f8d6','color':'#000'});
+                                  console.log('链接成功');
+                 break;
+             case RongIMLib.ConnectionStatus.CONNECTING:
+                 $(".left-connect").html('正在链接');
+                 break;
+             case RongIMLib.ConnectionStatus.DISCONNECTED:
+                 $(".left-connect").html('断开连接');
+                 break;
+             case RongIMLib.ConnectionStatus.KICKED_OFFLINE_BY_OTHER_CLIENT:
+                 $(".left-connect").html('其他设备登陆');
+                 break;
+               case RongIMLib.ConnectionStatus.DOMAIN_INCORRECT:
+                 $(".left-connect").html('域名不正确');
+                 break;
+             case RongIMLib.ConnectionStatus.NETWORK_UNAVAILABLE:
+               $(".left-connect").html('网络不可用');
+               break;
+             }
+     }});
+
+}
+/**
+ * 回复监听事件
+ */
+function reviceLister(){
+  RongIMClient.setOnReceiveMessageListener({
+     // 接收到的消息
+     onReceived: function (message) {
+
+         // 判断消息类型
+         switch(message.messageType){
+             case RongIMClient.MessageType.TextMessage:
+
+                 console.log("您有新的消息:"+message.content.content);
+                 var senderUserId = message.senderUserId;
+                 $.ajax({
+                    url:'{php echo  $this->createWebUrl("app",array("display"=>"kefu"))}',
+                    type:'post',
+                    dataType:'json',
+                    data:{
+                       senderUserId:senderUserId,
+                       dopost:'getUsInfo'
+                    },
+                    success:function(msg){
+                        obj = msg.mdg;
+                        obj = eval('(' + obj + ')');
+                        console.log(obj.userPortrait);
+                        console.log(obj.userName);
+                        console.log(obj);
+                    }
+                 })
+                 break;
+             case RongIMClient.MessageType.VoiceMessage:
+                 // 对声音进行预加载
+                 // message.content.content 格式为 AMR 格式的 base64 码
+                 break;
+             case RongIMClient.MessageType.ImageMessage:
+                // message.content.content => 图片缩略图 base64。
+                // message.content.imageUri => 原图 URL。
+                break;
+             case RongIMClient.MessageType.DiscussionNotificationMessage:
+                // message.content.extension => 讨论组中的人员。
+                break;
+             case RongIMClient.MessageType.LocationMessage:
+                // message.content.latiude => 纬度。
+                // message.content.longitude => 经度。
+                // message.content.content => 位置图片 base64。
+                break;
+             case RongIMClient.MessageType.RichContentMessage:
+                // message.content.content => 文本消息内容。
+                // message.content.imageUri => 图片 base64。
+                // message.content.url => 原图 URL。
+                break;
+             case RongIMClient.MessageType.InformationNotificationMessage:
+                 // do something...
+                break;
+             case RongIMClient.MessageType.ContactNotificationMessage:
+                 // do something...
+                break;
+             case RongIMClient.MessageType.ProfileNotificationMessage:
+                 // do something...
+                break;
+             case RongIMClient.MessageType.CommandNotificationMessage:
+                 // do something...
+                break;
+             case RongIMClient.MessageType.CommandMessage:
+                 // do something...
+                break;
+             case RongIMClient.MessageType.UnknownMessage:
+                 // do something...
+                break;
+             default:
+                 // do something...
+         }
+     }
+ });
+
+}
+
+
+function success(){
+    RongIMClient.getInstance().getConversationList({
+     onSuccess: function(list) {
+       console.log(list);
+     },
+     onError: function(error) {
+        // do something...
+     }
+   },null);
+}
+
+</script>

@@ -1,0 +1,364 @@
+{template 'header'}
+  <link rel="stylesheet" href="{YC_TMP}css/order_list.css">   
+
+<div id="publicNotice" data-channel="hotel"></div>
+
+<div class="container-order">
+
+    <div class="page-header01 clearfix">
+
+        <span class="active" onclick="qie(1);" id="jin">当前订单</span>
+
+        <span class="" onclick="qie(2);" id="yi">历史订单</span>
+
+    </div>
+
+    <div class="page-content" id="pageContent">
+
+        <ul>
+
+            {if $orderlist}
+
+            {loop $orderlist $item}  
+                        <div class="column">
+                                <div class="panel panel-default">
+                                        <div class="panel-heading"> 
+                                                       
+                                            <span>{php echo $this->get_hotelname($item['hotelid']);}</span>
+                                            <span class="fr">
+                                            <a href="{php echo $this->createMobileUrl('orderinfo',array('order_id'=> $item['order_id']))}">
+                                                    <span><img src="{MODULE_URL}template/style/images/order.png" width="18px">订单详情 </span>
+                                            </a> 
+                                            </span>
+                                        </div>
+                                       
+                                        <div class="panel-body orderimg">
+                                             <a href="{php echo $this->createMobileUrl('hotelindex',array('hotelid'=> $item['hotelid']))}">
+                                            <img src="{$_W['attachurl']}{php echo $this->get_hotelThumb($item['hotelid']);}">
+                                                    <span class="order-time"><em class="orderconten">{$item['goods_name']}</em></span> 
+                                                    <span class="hotel-price"><span>¥</span>{$item['totalcpice']}<label></label></span>                                                   
+                                               </a>
+                                                <span class="order-pay-left"> 
+                                                    <span class="order-time">下单时间：<em class="orderconten">{$item['ordertime']}</em></span>
+                                                    <span class="order-time">住店日期：<em class="orderconten">{php echo date('Y-m-d',$item['sintdate'])}</em></span>
+                                                    <span class="order-time">离店日期：<em class="orderconten">{php echo date('Y-m-d',$item['soutdate'])}</em></span>
+                                                    <span class="order-time">联系电话：<em class="orderconten"><a href="tel: {php echo $this->get_hotelPhone($item['hotelid']);}"> {php echo $this->get_hotelPhone($item['hotelid']);}</a></em></span>
+                                                     <span class="order-time">要求备注：<em class="orderconten">{$item['need']}</em></span>
+                                                    <span class="order-time">酒店地址：<em class="orderconten">{php echo $this->get_hotelAddress($item['hotelid']);}</em>
+                                                    <a href="http://api.map.baidu.com/marker?location={php echo $this->get_hotelLat($item['hotelid']);},{php echo $this->get_hotelLng($item['hotelid']);}&title={php echo $this->get_hotelname($item['hotelid']);}&content={php echo $this->get_hotelname($item['hotelid']);}&output=html">   
+                                                      <span class="address_cnt flex-1"><i class="icon-address"></i> </span>
+                                                       </a></span>
+                                                     
+                                                </span> 
+                                                </span> 
+                                         
+                                        </div>
+                                        <div class="panel-footer">
+                                            <div>
+                                                        <span>
+
+                                                        {if $item['order_status'] == 0} 未支付{/if}
+
+                                                        {if $item['order_status'] == 1} 已支付{/if}
+
+                                                        {if $item['order_status'] == 2} 到店付款{/if}
+
+                                                        {if $item['order_status'] == 3} 已住店{/if}
+
+                                                        {if $item['order_status'] == 6} 退款审核中{/if}
+
+                                                        {if $item['order_status'] == 7} 退款完成{/if}
+
+                                                        </span>
+                                            </div>
+                                            <div>
+                                                {if $item['order_status']==1}
+                                                 <a style="line-height: 20px;float: right;bottom: 20px;position: relative;" onclick="showdiv('all', {$item['order_on']}, '{$item['goods_name']}',{$item['hotelid']})">核销</a>
+                                                 <!--<a class="btnduihuan" style="margin:0px 10px;line-height: 40px;" onclick="showdiv('all', 2016110810097575, '经济适用',1)">核销</a>-->
+                                                 {/if} 
+                                                 {if $item['order_status']==0}
+                                                 <a style="line-height: 20px;float: right;bottom: 20px;position: relative;" href="{php echo $this->createMobileUrl('orderwx',array('order_on'=>$item['order_on']))}">去付款</a> 
+                                                 {/if}
+                                                {if $item['order_status'] == 3 && $item['commentstatus'] == 0}
+                                                    <a style="line-height: 20px;float: right;bottom: 20px;position: relative;" href="{php echo $this->createMobileUrl('ordercomment',array('order_id'=> $item['order_id']))}">评论</a>
+                                                {/if}
+                                                {if $item['order_status'] == 3 && $item['commentstatus'] == 1}
+                                                    已评论
+                                                {/if}
+                                            </div>
+                                        </div>
+                                </div>
+                              <div class="panel-box" id="panel_box">
+                                <div class="panel-content" id="panel-content">
+                                    <div class="panel-close" id="panel-close"></div>
+                                    <div id="result_info">
+                                        <div><br/>请输入核销密码</div>
+                                        <hr class="common-hr" />
+                                        <input name="awardid" id="awardid" type="hidden" value="">
+                                        <input name="dianmian" id="dianmian" type="hidden" value="">
+                                        <div style="float: left;width:100%;"><input name="mima" class="px" style="width:100%;" id="mima" type="password" placeholder="请输入核销密码"></div>
+                                        <div id="result_info_tip" style=" height:50px;float: left;"></div>
+                                        <div class="btn-layout">
+                                            <input class="btn-confirm" name="核销" id="save-btn" type="button" value="确认核销">
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+            
+
+<!--                <li>
+
+                    <div class="order-title clearfix">
+                        <a href="{php echo $this->createMobileUrl('orderinfo',array('order_id'=> $item['order_id']))}">
+                        <span class="hotel-title">{php echo $this->get_hotelname($item['hotelid']);}（{$item['goods_name']}）</span>
+                        </a>
+                        <span class="order-confirm">
+
+                            {if $item['order_status'] == 0} 未支付{/if}
+
+                            {if $item['order_status'] == 1} 已支付{/if}
+
+                            {if $item['order_status'] == 2} 到店付款{/if}
+
+                            {if $item['order_status'] == 3} 已住店{/if}
+
+                            {if $item['order_status'] == 6} 退款审核中{/if}
+
+                            {if $item['order_status'] == 7} 退款完成{/if}
+
+                        </span>
+
+                    </div>
+
+                    <div class="order-pay clearfix">
+
+                        <span class="order-pay-left">
+
+                            <span class="hotel-price"><span>¥</span>{$item['totalcpice']}<label></label></span>
+
+                            <span class="order-time">下单时间：{$item['ordertime']}</span>
+
+                        </span> 
+                        {if $item['order_status']==1}
+                        <a class="btnduihuan" style="margin:15px 10px;line-height: 20px;float: right;" onclick="showdiv('all', {$item['order_on']}, '{$item['goods_name']}',{$item['hotelid']})">核销</a>
+                        <a class="btnduihuan" style="margin:0px 10px;line-height: 40px;" onclick="showdiv('all', 2016110810097575, '经济适用',1)">核销</a>
+                        {/if} 
+                        {if $item['order_status']==0}
+                        <a class="btnduihuan" style="margin:15px 10px;line-height: 20px;float: right;font-size: 20px;background: red" href="{php echo $this->createMobileUrl('orderwx',array('order_on'=>$item['order_on']))}">去付款</a> 
+                        {/if} 
+                    </div> 
+                    <div class="panel-box" id="panel_box">
+                        <div class="panel-content" id="panel-content">
+                            <div class="panel-close" id="panel-close"></div>
+                            <span id="duijiangpng"><img src="{MODULE_URL}template/style/images/duijiang.png" height="90"></span>
+                          
+                            <div id="result_info">
+                                <div><span id="ticketname" style="color:red;"></span><br/>请输入核销密码</div>
+                                <hr class="common-hr" />
+                                <input name="awardid" id="awardid" type="hidden" value="">
+                                <input name="dianmian" id="dianmian" type="hidden" value="">
+                                <div style="float: left;width:100%;"><input name="mima" class="px" style="width:100%;" id="mima" type="password" placeholder="请输入核销密码"></div>
+                                <div id="result_info_tip" style=" height:50px;float: left;"></div>
+                                <div class="btn-layout">
+                                    <input class="btn-confirm" name="核销" id="save-btn" type="button" value="确认核销">
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </li>-->
+ 
+
+            {/loop}
+
+            {else}
+
+            <li>
+
+                <div class="noResult" style="transform-origin: 0px 0px 0px; opacity: 1; transform: scale(1, 1);"> 
+
+                    <!--span></span-->
+
+                    <p>您暂时没有进行中的订单，不妨去看看酒店房间~~ </p>
+
+                    <a href="{php echo $this->createMobileUrl('Index')}">去看看</a>
+
+                </div>
+
+            </li>
+
+            {/if}
+
+        </ul>
+
+    </div>
+
+    <div class="page-content" id="pagejieshu" style="display: none;">
+
+        <ul>
+
+            {if $orderjie}
+
+            {loop $orderjie $item}
+
+            <a href="{php echo $this->createMobileUrl('orderinfo',array('order_id'=> $item['order_id']))}">
+
+                <li>
+
+                    <div class="order-title clearfix">
+
+                        <span class="hotel-title">{php echo $this->get_hotelname($item['hotelid']);}（{$item['goods_name']}）</span>
+
+                        <span class="order-confirm">
+
+                            {if $item['order_status'] == 4} 已完成{/if}
+
+
+
+                            {if $item['order_status'] == 5} 已取消{/if}
+
+                            {if $item['order_status'] == 6} 退款审核中{/if}
+
+                            {if $item['order_status'] == 7} 退款完成{/if}
+
+
+
+                        </span>
+
+                    </div>
+
+                    <div class="order-pay clearfix">
+
+                        <span class="order-pay-left">
+
+                            <span class="hotel-price"><span>¥</span>{$item['totalcpice']}<label></label></span>
+
+                            <span class="order-time">下单时间：{$item['ordertime']}</span>
+
+                        </span>
+
+                    </div>
+
+                </li>
+
+            </a>
+
+            {/loop}
+
+            {else}
+
+            <li>
+
+                <div class="noResult" style="transform-origin: 0px 0px 0px; opacity: 1; transform: scale(1, 1);"> 
+
+                    <!--span></span-->
+
+                    <p>您暂时没有已结束的订单，不妨去看看酒店房间~~ </p>
+
+                    <a href="{php echo $this->createMobileUrl('Index')}">去看看</a>
+
+                </div>
+
+            </li>
+
+            {/if}
+
+        </ul>
+
+
+
+
+
+
+
+    </div>
+
+</div>
+
+<script>
+
+    function showdiv(id, order_on, hotelname,hotelid){
+                $("#panel_box").show(); 
+                        if (dianmian == 0 && hotelname == '没有选择'){
+                                $("#duijiangpng").html('<img src="{MODULE_URL}template/images/duijiangkehu.png" height="90">');
+                                $("#award_id").val(id);
+                                $("#result_info").hide();
+                                $("#result_info_s").show();
+                        } else{
+                                $("#awardid").val(hotelid);
+                                $("#dianmian").val(order_on);
+                                $("#ticketname").text("您选择的是："+hotelname+" 确认后");
+                                $("#result_info").show();
+                                $("#result_info_s").hide();
+                        }
+                }
+    $("#panel-close").click(function(){ 
+            $("#panel_box").hide();
+    });
+    $("#save-btn").bind("click", function () {
+                var btn = $(this);
+                var hexiaomima = $("#mima").val();
+                if (hexiaomima == '') {
+                        $("#result_info_tip").text("请输入兑奖密码");
+                        return
+                }
+                var hotelid = $("#awardid").val();
+                var order_on = $("#dianmian").val();
+                var submitData = {
+                        hexiaomima: hexiaomima,
+                        order_on: order_on,
+                        hotelid: hotelid,
+                };
+                $.post('{php echo $this->createMobileUrl('orderlist', array('op'=>'hexiao'))}', submitData, function(data) {
+                        if (data.success == 1) {
+                                $("#result_info").html("<br/><br/>" + data.msg + "<br/><div id='share_miao'>3秒后自动关闭</div>");
+                                djstime(3, '秒自动关闭', 'share_miao');
+                                setTimeout(function () {
+                                        $("#panel_box").hide();
+                                        location.reload();
+                                }, 4000)
+                                        return
+                        } else { 
+                                $("#result_info_tip").text(data.msg);
+                                return
+                        }
+                }, "json")
+    });
+    function qie($id) {
+                if ($id == 1){
+
+                        $("#pagejieshu").hide();
+                        $("#pageContent").show();
+                        $("#yi").removeClass("active");
+                        $("#jin").addClass("active");
+                } else{
+
+                        $("#pageContent").hide();
+                        $("#pagejieshu").show();
+                        $("#jin").removeClass("active");
+                        $("#yi").addClass("active");
+                }
+
+    }
+function djstime(miao,msg,div){
+	    var e1=$("#"+div).first();
+	    var i=miao;
+	    var interval=setInterval(function(){
+		    e1.html(i+msg);
+	    	i--;
+		    if(i<0){						
+			    clearInterval(interval);	
+		    }
+	    },1000);
+	}
+
+
+</script>
+
+
+
+
+
+{template 'footer'}	

@@ -1,0 +1,136 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="stylesheet" type="text/css" href="{MODULE_URL}template/mobile/style/style1/static/css/region.css" />
+    <link rel="stylesheet" type="text/css" href="{MODULE_URL}template/mobile/style/style1/static/css/announcement.css" />
+    <!--组件依赖js begin-->
+    <script type="text/javascript" src="{MODULE_URL}template/mobile/style/style1/static/js/zepto.js"></script>
+    <script type="text/javascript" src="{MODULE_URL}template/mobile/style/style1/static/js/zepto.extend.js"></script>
+    <script type="text/javascript" src="{MODULE_URL}template/mobile/style/style1/static/js/zepto.ui.js"></script>
+    <script type="text/javascript" src="{MODULE_URL}template/mobile/style/style1/static/js/zepto.fix.js"></script>
+    <!--刷新-->
+    <script type="text/javascript" src="{MODULE_URL}template/mobile/style/style1/static/js/refresh.js"></script>
+    <title>{$region['title']}</title>
+</head>
+
+<body>
+    <!--page-->
+    <div id="page">
+        <header id="header">
+            <div class="header_div">
+                <div id="left_div" onClick="window.location.href='{php echo $this->createMobileUrl('home')}'"></div>
+                <div id="middle_div">
+                    <h1 id="title">公告列表</h1></div>
+                <div id="right_div">
+                    <div class="right_bottom"></div>
+                    <div class="right_img"></div>
+                </div>
+            </div>
+        </header>
+        <!--cont-->
+        <div class="cont">
+            <aside class="setup">
+                <span class="aff_title">全部公告</span><!-- <a href="#">全部设置已读</a> --></aside>
+            <section>
+                <div class="ui-refresh" id="affiche" style="clear:both">
+                    <ul class="data-list" id="data-list">
+                    </ul>
+
+                    <div class="ui-refresh-down"></div>
+
+                </div>
+                
+            </section>
+        </div>
+    </div>
+<script>
+    /*ajax请求函数,判断共几页，呈现不同效果*/
+    (function() {
+         xqAjax();
+            function xqAjax() {
+                var url = "{php echo $this->createMobileUrl('announcement',array('op' => 'list'))}";
+                $.ajax({
+                    url: url,
+                    async: false,
+                    type: 'post',
+                    dataType: 'json',
+                    data: {
+                        
+                    },
+                    beforeSend: function() {
+                        $("#data-list").html("<li class='seach_loading'><img src='{MODULE_URL}template/mobile/style/style1/static/image/loading.gif'/>为您搜索中……</li>")
+                    },
+                    success: function(data) {
+                        var $list = $('.data-list'),
+                            html = (function(data) { //数据渲染
+                                var liArr = [];
+                                $.each(data.allhtml, function() {
+                                    liArr.push(this.html);
+                                });
+                                return liArr.join('');
+                            })(data);
+
+                        $('.data-list').html(html)
+                        if (data.page_count < 2) {
+                            $(".ui-refresh-down").html("<span class='ui-refresh-label'>没有更多内容了</span>");
+                        } else {
+                            refreshFun();
+                        }
+                    },
+                    // error: function() {
+                    //     alert('请求不到数据，请重新搜索！');
+                    // }
+
+                })
+            }
+
+            /*组件初始化refreshFun函数*/
+
+            function refreshFun() {
+                var index = 1;
+                $('.ui-refresh').refresh({
+                    ready: function(dir, type) {
+                        var me = this;
+                        index++;
+                        $.getJSON("{php echo $this->createMobileUrl('announcement',array('op' => 'list'))}", {
+                            page: index,
+        
+                        }, function(data) {
+                            var $list = $('.data-list'),
+                                html = (function(data) { //数据渲染
+                                    var liArr = [];
+                                    $.each(data.allhtml, function() {
+                                        liArr.push(this.html);
+                                    });
+                                    return liArr.join('');
+                                })(data);
+
+                            $list[dir == 'up' ? 'prepend' : 'append'](html);
+                            if (index < data.page_count) {
+                                me.afterDataLoading();
+                            } else {
+                                me.disable(dir, false);
+                            }
+                        });
+                    }
+                });
+
+            }
+         /*组件初始化js end*/
+        })();
+$(function() {
+    select('a2');
+});
+</script>
+{template 'style/style1/footer'}
+
+</body>
+
+</html>
+
+

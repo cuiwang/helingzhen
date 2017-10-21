@@ -1,0 +1,72 @@
+
+	<div class="weui_cells weui_cells_form">
+		<div class="weui_cell">
+			<div class="weui_cell_bd weui_cell_primary">
+				<div class="weui_uploader">
+					<div class="weui_uploader_hd weui_cell">
+						<div class="weui_cell_bd weui_cell_primary">{$activity['pluraltit']}</div>
+						<div class="weui_cell_ft"></div>
+					</div>
+					<div class="weui_uploader_bd">
+						<ul class="weui_uploader_files" id="pub-pics">   
+						</ul>
+						<div class="weui_uploader_input_wrp">
+							<div id="chooseImage" style="width: 100%;height: 100%;" class="weui_uploader_input"></div> 
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript">
+          var images = {
+              localId: [],
+              serverId: []
+          };
+	  document.querySelector('#chooseImage').onclick = function () {
+	    wx.chooseImage({
+	      success: function (res) {
+	        images.localId = res.localIds;
+	        
+	        if (images.localId.length == 0) {
+	        	return;
+	        }
+	        var m = 0, length = images.localId.length;
+	        
+	        
+	        images.serverId = [];
+	        function upload() {
+	        	wx.uploadImage({
+	        	localId: images.localId[m],
+	            success: function (res) {
+	              m++;
+	              images.serverId.push(res.serverId);
+	              var url = "{php echo $this->createMobileUrl('uploads',array('type'=>'image'));}&serverId=" + res.serverId + "&localId=" + m;
+	  	    	  $.post(url, function(dat){
+	  	    		var dat = eval("("+dat+")");
+					if (dat.status == 'success') {
+						$.toast(dat.message, "success");
+						$upload = $( '#pub-pics' );
+						$li = $('<li onclick="var delimg=$(this);$.confirm(\'您确定要删除该图片吗?\', \'确认删除?\', function() {delimg.remove();},function(){$.toast(\'取消操作\', \'cancel\');});" class="weui_uploader_file weui_uploader_status" style="background-image:url('+dat.imgurl+')"><input type="hidden" name="thumb[]" value="'+dat.path+'"/><div class="weui_uploader_status_content"><i class="weui_icon_cancel"></i></div></li>')
+						$upload.append($li);
+					}else{
+						$.toast(dat.message, "cancel");
+						document.getElementById('show'+id).src = "";
+					}
+	  	    	  });
+	              if (m < length) {
+	                upload();
+	              }
+	            },
+	            fail: function (res) {
+	              //上传失败
+	            	alert('filed');
+	            }
+	          });
+	        }
+	        upload();
+	        
+	      }
+	    });
+	  };
+	</script>

@@ -1,0 +1,623 @@
+<html>
+  <head lang="en">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="format-detection" content="telephone=no">
+    <title>说吧~{$system['sysname']}</title>
+	<link rel="stylesheet" type="text/css" href="../addons/water_live/template/css/global_v3.css">
+	<link rel="stylesheet" type="text/css" href="../addons/water_live/template/css/module_v2.css">
+	<link rel="stylesheet" type="text/css" href="../addons/water_live/template/css/common.css">
+	<link rel="stylesheet" type="text/css" href="../addons/water_live/template/css/homepage.css">
+	<script type="text/javascript" src="../addons/water_live/template/js/jquery.min.js"></script>
+	<script type="text/javascript" src="../addons/water_live/template/js/jquery.lazyload.js"></script>
+	<script>
+	$(function(){ 
+		lazyLoad();
+
+		$(window).scroll(function(){
+		    　　var scrollTop = $(this).scrollTop();               //滚动条距离顶部的高度
+		    　　var scrollHeight = $(document).height();           //当前页面的总高度
+		    　　var windowHeight = $(this).height();               //当前可视的页面高度
+		 
+		    　if(scrollTop + windowHeight >= scrollHeight){        //距离顶部+当前高度 >=文档总高度 即代表滑动到底部
+		    		 var fansid = $("#asynItemListTopic").attr("data-fansid");
+		    		 var page = $("#asynItemListTopic").attr("data-pageno");
+		    		 var asyn = $("#asynItemListTopic").attr("data-asyn");
+		    		 if(asyn == 0){
+		    			 $("#asynItemListTopic").attr("data-asyn",1);
+			             $.ajax({
+		     	     		 type:'GET',
+		     	     		 data:{fansid:fansid,page:page},
+		     	     		 url:'{php echo $this->createMobileUrl("AsySection");}',
+		     	     		 success:function(data){
+		     	     			  var data = eval("("+data+")");
+		     		      	  	  if(data.errcode == 0){
+				     		      	 $("#asynItemListTopic").attr("data-pageno",data.pageno);
+				     		      	 $("#asynItemListTopic").append(data.data); 
+				     		      	 lazyLoad();
+		     		      	  	  }else{
+		     		       			 //alert(data.errmsg); 
+		     		       		  }
+		     		      	   $("#asynItemListTopic").attr("data-asyn",0);
+		     	     		 }
+		     	     	 });
+		    		 }
+		        } 
+		 }); 
+		
+		
+		$postBar = $(".post_bar"),	
+		nUin = $postBar.attr("data-id");
+		$postBar.on("click", ".comment_btn",
+			function() {
+                var $postItem = $(this).parents(".post_item");
+                $postItem.find(".comment_bar").show(500);
+                $postItem.find(".comment_edit").show(500).find(".edit_text").attr("placeholder", "我来说一句").attr("data-to", 0)[0].focus();
+           
+        });
+		$postBar.on("click", ".comment_btn3",
+				function() {
+	                var $postItem = $(this).parents(".post_item");
+	                var sectionid = $postItem.attr("data-sectionid");
+	                var url = '{php echo $this->createMobileUrl('dashang');}';
+	            	var newurl = url.replace('?','?sectionid='+sectionid+'&');  
+	            	window.location.href=newurl;
+	        });
+		
+		
+		$postBar.on("click", ".like_btn",
+			function() {
+	            var operationtype;
+	            var $this = $(this),
+	            $postItem = $(this).parents(".post_item");
+	            if ($this.attr("data-click") == 1) {
+	                return;
+	            } else {
+	                $this.attr("data-click", 1);
+	            }
+	            if ($(this).hasClass("like_active")) {
+	                operationtype = 2;
+	            } else {
+	                operationtype = 1;
+	            }
+	            var sectionId = $postItem.attr("data-sectionId");
+	            var topicId = $postItem.attr("data-topicId");
+	            var $likeNum = $this.find(".num");
+	            var $likeBar = $postItem.find(".like_bar");
+	            var $commentBar = $postItem.find(".comment_bar");
+	            $.ajax({
+	                type: 'GET',
+	                url: '{php echo $this->createMobileUrl("dolike");}',
+	                data: {sectionid: sectionId,topicid: topicId,operatetype: operationtype},
+	                success: function(data) {
+	                	var data = eval("("+data+")");
+	                    $this.attr("data-click", 0);
+	                    if (data.errcode == 0) {
+	                        if (operationtype == 2) {
+	                            if ($likeNum.html() == 1) {
+	                                $likeNum.html("赞");
+	                                $commentBar.attr("data-like", 0);
+	                            } else {
+	                                $commentBar.attr("data-like", parseInt($commentBar.attr("data-like") - 1));
+	                                $likeNum.html(parseInt($likeNum.html()) - 1);
+	                            }
+	                            $this.removeClass("like_active");
+	                        } else {
+	                            if (isNaN($likeNum.html())) {
+	                                $likeNum.html(1);
+	                                $commentBar.attr("data-like", 1);
+	                            } else {
+	                                $likeNum.html(parseInt($likeNum.html()) + 1, 10);
+	                                $commentBar.attr("data-like", parseInt($commentBar.attr("data-like") + 1));
+	                            }
+	                            $this.addClass("like_active");
+	                        }
+	                        commentShow($postItem);
+ 	                        $.ajax({
+	                            type: 'GET',
+	                            url: '{php echo $this->createMobileUrl("likelist");}',
+	                            data: {sectionid: sectionId},
+	                            success: function(data) {
+	                            	var data = eval("("+data+")");
+	                                if (data.errcode == 0) {
+	                                    $likeBar.html(data.likelist);
+	                                    lazyLoad();
+	                                } else {
+	       	                    	 	tips('网络错误4');
+	                                }
+	                            },
+	                            error: function() {}
+	                        });
+	                    } else {
+	                    	 tips('网络错误3');
+	                    }
+	                },
+	                error: function() {
+	                    $this.attr("data-click", 0);
+	                    tips('网络错误2');
+	                }
+	            });
+	           
+	    });
+			
+        $postBar.on("click", ".comment_item",
+                function(e) {
+                    if (e.target.nodeName != 'A') {
+                        var $this = $(this);
+                        var idForm = $this.attr("data-from"),
+                        nameFrom = $this.attr("data-user");
+                        if (idForm != nUin) {
+                            $this.parents(".post_item").find(".comment_edit").show(500).find(".edit_text").attr("placeholder", "回复" + nameFrom).attr("data-to", idForm).attr("data-to-name", nameFrom)[0].focus();
+                        }
+                       
+                    }
+                });
+		
+		$postBar.on("click", ".cancel",
+			function() {
+				$(this).parents(".comment_edit").hide().find(".edit_text").val('').attr("placeholder", "").parent().find(".left_num").html(200).removeClass("left_warn");
+            	commentShow($(this).parents(".post_item"));
+        });
+
+        $postBar.on("input", ".edit_text",
+			function() {
+				var textLength = $(this).val().length,
+				$num = $(this).parent().find(".left_num");
+				if (textLength > 200) {
+					$num.addClass("left_warn");
+				} else {
+					$num.removeClass("left_warn");
+				}
+				$num.html(200 - textLength);
+        });
+
+        $postBar.on("focus", ".edit_text",
+			function() {
+				$("body").css("padding-bottom", "230px");
+				$("#headWrap").hide(0);
+				$(".container").css("marginTop", 0);
+				var top = $(this).offset().top;
+				$("body").scrollTop(top - 100);
+				$(".edit_bar").hide();
+			});
+         $postBar.on("blur", ".edit_text",
+			function() {
+				$(".edit_bar").show();
+				$("#headWrap").show();
+				$(".container").css("marginTop", "44px");
+				$("body").css("padding-bottom", 0);
+			});
+
+        $postBar.on("click", ".commit",
+			function() {
+				var $text = $(this).parents(".comment_edit").find(".edit_text"),
+				text = $.trim($text.val()),
+				$postItem = $(this).parents(".post_item"),
+				sectionId = $postItem.attr("data-sectionId"),
+				topicId = $postItem.attr("data-topicid"),
+				$commentBox = $postItem.find(".comment_box"),
+				commentNum = parseInt($commentBox.attr("data-count")),
+				toId = $text.attr("data-to"),
+				toName = $text.attr("data-to-name"),
+				username = $postBar.attr("data-name"),
+				$commentBar = $postItem.find(".comment_bar"),
+				$moreBtn = $commentBox.find(".more_comment");
+				if (text.length > 200) {
+					//signPop.setContent("评论字数不能超过200").show();
+					tips("评论字数不能超过200");
+					return false;
+				}
+				if ($.trim(text) == "") {
+					tips("评论不能为空");
+					//signPop.setContent("评论不能为空").show();
+					return false;
+				}
+	    	      $.ajax({
+	     	     		 type:'GET',
+	     	     		 data:{sectionid:sectionId,topicid:topicId,content:text,toid:toId,toname:toName,nUin:nUin},
+	     	     		 url:'{php echo $this->createMobileUrl("commitconten");}',
+	     	     		 success:function(data){
+	     	     			  var data = eval("("+data+")");
+		  	                  if (data.errcode == 0) {
+			                    	tips("评论成功");
+			                        $text.parent().hide();
+			                        $text.val("");
+			                        $commentBar.attr("data-comment", commentNum + 1);
+			                        $commentBox.attr("data-count", commentNum + 1).show();
+			                        if (commentNum < 5) {
+			                            var $model = $("#commentModel").find(".comment_item");
+			                            text = text.replace(/\r\n/g, "<br>");
+			                            text = text.replace(/\r/g, "<br>");
+			                            text = text.replace(/\n/g, "<br>");
+			                            if (toId == 0) {
+			                                var $comment = $model.eq(0).clone();
+			                                $comment.find(".name").html(xss(username, 'html') + '：').attr("href", "http:page?queryuin=" + "0");
+			                                $comment.find(".comment_content").html(xss(text, 'html'));
+			                                $comment.attr("data-to", 0).attr("data-from", nUin);
+			                                $moreBtn.before($comment);
+			                            } else {
+			                                var nameTo = $text.attr("data-to-name");
+			                                var $comment = $model.eq(1).clone();
+			                                $comment.find(".name").eq(0).html(xss(username, 'html')).attr("href", "http://www.b.com?in=" + "0");
+			                                $comment.find(".name").eq(1).html(xss(nameTo, 'html') + '：').attr("href", "http://www.b.com?uin=" + "0");
+			                                $comment.find(".comment_content").html(xss(text, 'html'));
+			                                $comment.attr("data-to", toId).attr("data-from", nUin);
+			                                $moreBtn.before($comment);
+			                            }
+			                            
+			                        } else if (commentNum == 5) {
+			                            $moreBtn.show();
+			                        }
+			                    } else {
+			                    	tips('网络错误1');
+			                    }
+	     	     		 }
+	     	     	 });
+
+			});
+
+	}); 
+    function lazyLoad() {
+        $('.img_loading').lazyload({
+            effect: "fadeIn",
+            data_attribute: 'img',
+            threshold: 240,
+            appear: function(obj) {
+                $(this).removeClass("img_loading");
+            }
+        });
+    }
+	
+    function xss(str, type) {
+        if (!str) {
+            return str === 0 ? "0": "";
+        }
+        switch (type) {
+        case "none":
+            return str + "";
+            break;
+        case "html":
+            return str.replace(/[&'"<>\/\\\-\x00-\x09\x0b-\x0c\x1f\x80-\xff]/g,
+            function(r) {
+                return "&#" + r.charCodeAt(0) + ";"
+            }).replace(/ /g, "&nbsp;").replace(/\r\n/g, "<br />").replace(/\n/g, "<br />").replace(/\r/g, "<br />");
+            break;
+        case "htmlEp":
+            return str.replace(/[&'"<>\/\\\-\x00-\x1f\x80-\xff]/g,
+            function(r) {
+                return "&#" + r.charCodeAt(0) + ";"
+            });
+            break;
+        case "url":
+            return escape(str).replace(/\+/g, "%2B");
+            break;
+        case "miniUrl":
+            return str.replace(/%/g, "%25");
+            break;
+        case "script":
+            return str.replace(/[\\"']/g,
+            function(r) {
+                return "\\" + r;
+            }).replace(/%/g, "\\x25").replace(/\n/g, "\\n").replace(/\r/g, "\\r").replace(/\x01/g, "\\x01");
+            break;
+        case "reg":
+            return str.replace(/[\\\^\$\*\+\?\{\}\.\(\)\[\]]/g,
+            function(a) {
+                return "\\" + a;
+            });
+            break;
+        default:
+            return escape(str).replace(/[&'"<>\/\\\-\x00-\x09\x0b-\x0c\x1f\x80-\xff]/g,
+            function(r) {
+                return "&#" + r.charCodeAt(0) + ";"
+            }).replace(/ /g, "&nbsp;").replace(/\r\n/g, "<br />").replace(/\n/g, "<br />").replace(/\r/g, "<br />");
+            break;
+        }
+    }
+	
+
+	function commentShow(selector) {
+        var $commentBar = selector.find(".comment_bar");
+        $commentBar.each(function() {
+            var $likeBar = $(this).find(".like_bar"),
+            $comment = $(this).find(".comment_box");
+            if ($(this).attr("data-like") > 0) {
+                $likeBar.css("display", "block");
+            } else {
+                $likeBar.css("display", "none");
+            }
+            if ($(this).attr("data-comment") > 0) {
+                $comment.css("display", "block");
+            } else {
+                $comment.css("display", "none");
+            }
+            if ($(this).attr("data-like") == 0 && $(this).attr("data-comment") == 0) {
+                $(this).css("display", "none");
+            } else {
+                $(this).css("display", "block");
+            }
+        })
+    }
+
+	function tips(content){
+		$("#info").html(content);
+		$("#pup").addClass("mod_tips_popup_show");
+		setTimeout('$("#pup").removeClass("mod_tips_popup_show")',2000); 
+		
+	}
+	</script>
+	    <style>
+.icon_comment3{
+	vertical-align:middle;
+	display:inline-block;
+	background-position:-40px -40px;
+	width:20px;
+	height:20px;
+	margin-right:0
+}
+.icon_comment3 {
+	margin-right:0;
+	background-position:-60px -150px
+} 
+.comment_btn3 {
+	margin-right:0
+}
+    </style>
+  </head>
+  
+  <body style="padding-bottom: 0px;">
+    <header id="headWrap" style="-webkit-transform-origin: 0px 0px 0px; opacity: 1; -webkit-transform: scale(1, 1);">
+      <div class="md_hd_wrap" id="headContent">
+        <div class="col_left">
+          <a href="{php echo $this->createMobileUrl("topiclist");}"><i id="backChildBtn" class="hd_back" attr-tag="backBtn"></i></a>
+        </div>
+        <div class="col_middle">
+          <h1 id="title">{$thefans['nickname']}的主页</h1>
+        </div>
+        <div class="col_right">
+        </div>
+      </div>
+    </header>
+    <ul class="smart_box" id="smartbox">
+    </ul>
+    <!-- 公共模块入口 -->
+    <!-- E header -->
+    <div class="container">
+    	<div class="top_personal_homepage_info" style="margin-bottom: 10px;">
+        <div class="head_img_create_time">
+            <img class="head_img" src="{$thefans['headimgurl']}" alt="">
+
+            <div class="name_time">
+                <span class="name ">{$thefans['nickname']}</span>
+                <p class="create_time" style="padding-bottom:19px;margin-top: 5px;">已在{$system['sysname']}混迹{$thetime}</p>
+            </div>
+        </div>
+            </div>
+      <div class="post_bar list_style" data-id="{$fans['id']}" data-name="{$fans['nickname']}">
+        <!-- 分屏加载帖子内容-->
+        <div style="overflow: hidden;">
+          <div class="commonlist_pull_refresh_wrap">
+            <div style="position: absolute; top: -100px; width: 100%; height: 100px; text-align: center; vertical-align: middle; display: table;">
+              <div style="display:table-cell; vertical-align:middle;padding-top:20px;">
+                <img class="commonlist_pull_refresh_icon" style="margin: 0 5px;width:20px;">
+                <span class="commonlist_pull_refresh_text">
+                </span>
+              </div>
+            </div>
+            <div id="asynItemListTopic" data-pageno="1" data-fansid="{$thefans['id']}" data-asyn="0">
+              <div id="datapage101_1" class="list_page" data-pageno="1">
+              
+              {loop $topiclist $item}
+                <div class="post_item" data-sectionid="{$item['id']}" data-topicid="{$item['topicid']}" data-topic="{$topic['stitle']}">
+                  <div class="item_top clearfix">
+                    <a class="head" href="javascript:void(0);" title="" target=""><img class="head_img img_loading" data-img="{$item['headimgurl']}" src="../addons/water_live/template/img/head.png" alt=""></a>
+                    <a class="item_name" href=""><p class="">{$item['nickname']}</p><p class="time">{$item['showtime']} {if $system['isscan'] == 1}浏览{$item['scansum']}{/if}</p></a>
+                  </div>
+                  <a class="href_bar" href="{php echo $this->createMobileUrl('sdetail',array('sectionid'=>$item['id']));}" title="" target="">
+                    <div class="item_content">{$item['content']}</div>
+                    <?php $simgs = unserialize($item['imgs']);?>
+					{if !empty($simgs)}
+						{if count($simgs) ==1}
+		                    <div class="img_bar clearfix  img_size_1">
+		                    <img class="item_img img_single img_loading" data-img="{$_W['attachurl']}{$simgs[0]}" alt="" src="../addons/water_live/template/img/abiu_loading.gif" style="opacity: 1; width: 176px; height: auto;">
+		                    
+		                    </div>
+		                 {else}
+		                    <div class="img_bar clearfix">
+		                    	{loop $simgs $img}
+		                      <div class="img_size_little">
+		                        <img class="item_img img_multi img_loading" data-img="{$_W['attachurl']}{$img}" src="../addons/water_live/template/img/abiu_loading.gif" style="width:100%;height: auto; opacity: 1;">
+		                      </div>
+		                      	{/loop}
+		                    </div>
+		                 
+		                 {/if}
+                    {/if}
+                  </a>
+                  <div class="item_content" style="line-height: 16px; color: #5a85ce; font-size:11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{$item['address']}</div>
+                  <div class="show_bar clearfix">
+                    <div class="show_btn">
+                    {if $system['isreward'] ==1}
+                     <div class="able_btn comment_btn3 ">
+							<i class="icon_comment3 icon_source"></i><span class="num">{$item['rewardsum']}</span>
+					 </div>
+                    {/if}
+                      <div class="able_btn comment_btn">
+                        <i class="icon_comment icon_source"></i>
+                        <span class="num">评论</span>
+                      </div>
+                      <div class="able_btn like_btn {if $item['dolike'] ==1}like_active{/if}">
+                        <i class="icon_like icon_source"></i>
+                        <span class="num">{if $item['likesum'] ==0}赞{else}{$item['likesum']}{/if}</span>
+                      </div>
+                      <!--添加like_active，已点赞-->
+                    </div>
+                  </div>
+                  <div class="comment_bar" data-like="{$item['likesum']}" data-comment="{$item['replysum']}" style="display: {if $item['likesum'] == 0 && $item['replysum']== 0 }none{else}block{/if};">
+                    <i class="top_arrow">
+                    </i>
+                    <i class="top_line">
+                    </i>
+                    <div class="like_bar clearfix" style="display: {if $item['likesum'] ==0}none{else}block{/if};">
+                      <i class="icon_source icon_like_little">
+                      </i>
+                      {if $item['likesum'] > 0}
+                       {loop $item['likelist'] $ind $like}
+                       {if $ind<=6}
+                      <div class="like_item">
+                        <a class="head" href="{php echo $this->createMobileUrl('home',array('fansid'=>$like['fansid']));}" title="" target="">
+                          <img class="head_img img_loading" data-img="{$like['headimgurl']}" src="../addons/water_live/template/img/head.png">
+                        </a>
+                      </div>
+                       {/if}
+                       {/loop}
+                      <div class="like_item" style="display: {if $item['likesum']>=8}block{else}none{/if};">
+                            <a class="head" href="" >
+                                <img class="head_img img_loading" src="../addons/water_live/template/img/more_like_list.png" alt="">
+                            </a>
+                        </div>
+                      {/if}
+                    </div>
+                    <div class="comment_box" data-count="{$item['replysum']}" style="display: {if $item['replysum'] ==0}none{else}block{/if};">
+                      {if $item['replysum']>0}
+                      	{loop $item['replylist'] $ind $reply}
+                      	 {if $ind<=5}
+                      <p class="comment_item" data-to="{$reply['datato']}" data-from="{$reply['datafrom']}" data-user="{$reply['nickname']}">
+                        {if $reply['datato'] ==0}
+                        <a class="name" href="{php echo $this->createMobileUrl('home',array('fansid'=>$reply['datafrom']));}">{$reply['nickname']}：</a>
+                        {else}
+                        <a class="name" href="{php echo $this->createMobileUrl('home',array('fansid'=>$reply['datafrom']));}">{$reply['nickname']}</a>回复<a class="name" href="">{$reply['toname']}：</a>
+                        {/if}
+                        <span class="comment_content">{$reply['content']}</span>
+                      </p>{/if}
+                      	{/loop}
+                      {/if}
+                      <p class="comment_item more_comment" style="display: {if $item['replysum']>5}block{else}none{/if};">
+                        <a class="name" href="{php echo $this->createMobileUrl('sdetail',array('sectionid'=>$item['id']));}">更多…</a>
+                      </p>
+                    </div>
+                    <div class="comment_edit">
+                      <textarea class="edit_text" name="" id="" placeholder="0" data-to=""></textarea>
+                      <div class="left_num">200</div>
+                      <div class="btn_bar clearfix">
+                        <div class="commit btn">发送</div>
+                        <div class="cancel btn">取消</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {/loop}
+              </div>
+            </div>
+            <div style="height: 40px;"></div>
+            <div id="_downLine101" attr-autoload="1"></div>
+          </div>
+        </div>
+        <div id="emptyTips" style="-webkit-transform-origin: 0px 0px 0px; opacity: 1; -webkit-transform: scale(1, 1); display: none;">
+        </div>
+        <!-- 评论模型 -->
+        <div id="commentModel" style="display: none">
+          <p class="comment_item" data-to="" data-from="" data-user="">
+            <a class="name">
+            </a>
+            <span class="comment_content">
+            </span>
+          </p>
+          <p class="comment_item" data-to="" data-from="" data-user="">
+            <a class="name">
+            </a>
+            回复
+            <a class="name">
+            </a>
+            <span class="comment_content">
+            </span>
+          </p>
+        </div>
+      </div>
+      <!--弹窗-->
+      <div class="mask" id="mask">
+      </div>
+    </div>
+    <div id="Mpopup14618046251102">
+      <div id="pup" class="mod_tips_popup">
+        <div class="mod_tips_cnt">
+          <div class="J_tips_content" style="color: #fff;" id="info"></div>
+        </div>
+        <div class="mod_tips_ft">
+        </div>
+      </div>
+    </div>
+  </body>
+
+	{php $shareurl = $_W['siteroot'].'app/'.$this->createMobileUrl('home',array('fansid'=>$thefans['id']));}
+	{php $imgurl = $thefans['headimgurl'];}
+    <script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js" type="text/javascript"></script>
+    <script>
+        var appid = '{$_W['account']['jssdkconfig']['appId']}';
+        var timestamp = '{$_W['account']['jssdkconfig']['timestamp']}';
+        var nonceStr = '{$_W['account']['jssdkconfig']['nonceStr']}';
+        var signature = '{$_W['account']['jssdkconfig']['signature']}';
+
+        wx.config({
+            debug: false,
+            appId: appid,
+            timestamp: timestamp,
+            nonceStr: nonceStr,
+            signature: signature,
+            jsApiList: [
+                'checkJsApi',
+                'onMenuShareTimeline',
+                'onMenuShareAppMessage',
+            ]
+        });
+        
+        
+
+        var shareData = {
+            title: '{$thefans['nickname']}的主页',
+            desc: '已在{$system['sysname']}混迹{$thetime}',
+            link: '{php echo $shareurl}',
+            imgUrl: '{php echo $imgurl}'
+        };
+
+        wx.ready(function () {
+        	
+            wx.onMenuShareAppMessage({
+                title: shareData.title,
+                desc: shareData.desc,
+                link: shareData.link,
+                imgUrl: shareData.imgUrl,
+                trigger: function (res) {
+                },
+                success: function (res) {
+                },
+                cancel: function (res) {
+                },
+                fail: function (res) {
+                }
+            });
+
+            wx.onMenuShareTimeline({
+                title: shareData.title,
+                link: shareData.link,
+                imgUrl: shareData.imgUrl,
+                success: function () {
+                },
+                cancel: function () {
+                }
+            });
+        	
+        });
+
+        wx.error(function (res) {
+        });
+
+
+
+    </script>
+	
+	
+	
+</html>

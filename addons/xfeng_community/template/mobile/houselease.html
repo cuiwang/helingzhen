@@ -1,0 +1,228 @@
+{template 'header'}
+<link href="{MODULE_URL}template/css/css.css" rel="stylesheet" />
+<link href="{MODULE_URL}template/css/stylesheet.css" rel="stylesheet" />
+<script src="{MODULE_URL}template/js/galleria.js"></script>
+<style type="text/css">
+.list {
+border-radius: 8px;
+}
+.list {
+background: #fafafa;
+padding: 10px;
+margin: 5px;
+}
+.list .hd {
+border-bottom: 1px #DDD dotted;
+margin-bottom: 5px;
+padding-bottom: 5px;
+}
+.list .content {
+color: #545454;
+line-height: 25px;
+}
+.list .reply {
+background: #FFF;
+border-top: 2px #769cdc solid;
+padding: 10px;
+margin-top: 10px;
+overflow: hidden;
+}
+.list .content .author {
+color: #999;
+text-align: right;
+margin-top: 10px;
+}
+#galleria img{
+   display: block; position: relative; left: 50px; top: 30px;
+   height: 0px;
+   width: 0px;
+}
+</style>
+
+{if $op == 'display'}
+<a href="{php echo $this->createMobileUrl('houselease',array('op'=>'post'))}" class="top_menu">
+    <img src="{MODULE_URL}template/image/fb.png" />发布+
+</a>
+<div class="top_menu_shadow"></div>
+{if empty($list)}
+<div class="list img-rounded" >没有房屋租赁信息</div>
+{/if}
+<div id='list' style="margin-bottom:60px;">
+{loop $list $item}
+<div class="list img-rounded" {if $item['img']}style="height:250px;"{/if}>
+	<div class="hd">
+		<span class="title">{if intval($item['status'])==0}<p class="text-danger">未解决</p>{elseif intval($item['status'])==1}<p class="text-success">已解决</p>{else}<p class="text-warning">已取消</p>{/if}</span>
+		<span class="date">{php echo date('Y-m-d H:i:s', $item['createtime']);}</span>
+	</div>
+	<div class="content">
+		<p><span class="label label-info">{$categories[$item['servicesmallcategory']]['name']}</span></p>
+		<p><span class="label alert-info">说明:</span>{$item['requirement']}</p>
+		<p><span class="label alert-info">备注:</span>{$item['remark']}</p>
+		<p><span class="label alert-info">联系手机:</span>{$item['mobile']}</p>
+		{if $item['img']}
+        <p style='margin-top:5px;'>
+            {loop $item['img'] $value}
+                <img src="{$value['src']}" style="width: 60px; height: 60px;border:1px solid white;float:left;" />
+            {/loop}
+        </p>
+        {/if}
+	</div>
+</div>
+<div style='clear: both;'></div>
+{/loop}
+<div id="galleria"></div>
+</div>
+
+{if count($list)>9} 
+<div style="margin-top:20px;margin-bottom:70px;text-align:center;font-size:16px;" id='view' >查看更多</div>
+{/if}
+
+<script>
+    // Load theme
+    Galleria.loadTheme('{MODULE_URL}template/lightbox/galleria.lightbox.js');
+
+    $('#galleria').galleria({
+        data_source: '#list',
+        extend: function() {
+            this.bind(Galleria.LOADFINISH, function(e) {
+                $(e.imageTarget).click(this.proxy(function(e) {
+                    e.preventDefault();
+                    this.next();
+                }))
+            })
+        },
+        keep_source: true,
+        data_config: function(img) {
+            return {
+                description: $(img).next('.caption').html()
+            }
+        }
+    });
+</script>
+<script>
+var page = 2;
+$(function() {
+    $("#view").click(function() {
+        $('#layer').show();
+        obj=$(this);
+        $(this).html('正在加载中...')
+        $.get("{php echo $this->createMobileUrl('houselease',array('op'=>'more'))}&page="+page, function(result){
+                    if(result!=''){
+                        $('#list').append(result);
+                        page++;    
+                        obj.html('查看更多');
+                    }else{
+                        obj.html('没有更多信息了');
+                    }
+                    $('#layer').hide();
+            });
+        });
+});
+</script>
+{/if}
+{if $op == 'post'}
+<!--仿微社区上传图片-->
+        <link rel="stylesheet" href="{MODULE_URL}template/imgupload/css/comm.css">
+        <script type="text/javascript" src="{MODULE_URL}template/imgupload/js/global.js">
+        </script>
+        <script type="text/javascript" src="{MODULE_URL}template/imgupload/js/gps.js">
+        </script>
+        <script type="text/javascript" src="{MODULE_URL}template/imgupload/js/seajs-0.1.5.js">
+        </script>
+        <script type="text/javascript" src="{MODULE_URL}template/imgupload/js/newthread.js">
+        </script>
+        <script type="text/javascript" charset="utf-8" src="{MODULE_URL}template/imgupload/js/jpegmeta.js">
+        </script>
+        <script type="text/javascript" charset="utf-8" src="{MODULE_URL}template/imgupload/js/jpeg.encoder.basic.js">
+        </script>
+        <script type="text/javascript" charset="utf-8" src="{MODULE_URL}template/imgupload/js/image_compress.js">
+        </script>
+        
+<!--仿微社区上传图片-->
+<!--仿微社区上传图片-->
+        <script type="text/javascript">
+            var myurl="{php echo $this->createMobileUrl('imgupload')}";
+        </script>
+<!--仿微社区上传图片-->
+<form class="form-horizontal img-rounded" role="form" method="post" onsubmit="return checkInfo(this);" name="newthread" id="newthread">
+	<input type="hidden" name="id" value="{$item['id']}">
+	<div class="panel panel-default">
+  		<div class="panel-body">
+			<div class="form-group">
+				<label for="servicesmallcategory" class="col-sm-2 control-label" style="padding-right:0px;">房屋租赁</label>
+				<div class="col-sm-10">
+					<select class="form-control" id="cate_2" name="servicesmallcategory" autocomplete="off" style='margin-top:10px;'>
+					<option value="长期租赁">长期租赁</option>
+                    <option value="短期租赁">短期租赁</option>
+					</select>
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="status" class="col-sm-2 control-label" style="padding-right:0px;">联系方式</label>
+				<div class="col-sm-10">
+					<label for="contacttype1" class="radio-inline" >
+						<input type="radio" name="contacttype" id="contacttype1" value="1" {if $item['contacttype']==1 || empty($item['contracttype'])}checked='checked'{/if} />随时联系
+						<input type="hidden" name="contactdesc[1]" value="随时联系"/>
+					</label>
+					<label for="contacttype2" class="radio-inline">
+						<input type="radio" name="contacttype" id="contacttype2" value="2" {if $item['contacttype']==2}checked='checked'{/if} />白天联系
+						<input type="hidden" name="contactdesc[2]" value="白天联系"/>
+					</label>
+					<label for="contacttype3" class="radio-inline">
+						<input type="radio" name="contacttype" id="contacttype3" value="3" {if $item['contacttype']==3}checked='checked'{/if} />晚上联系
+						<input type="hidden" name="contactdesc[3]" value="晚上联系"/>
+					</label>
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="requirement" class="col-xs-3 control-label">说明</label>
+				<div class="col-sm-10">
+					<textarea rows= '3' class="form-control" name="requirement" >{$item['requirement']}</textarea>
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="remark" class="col-sm-2 control-label">备注</label>
+				<div class="col-sm-10">
+					<textarea rows= '3' class="form-control" name="remark" >{$item['remark']}</textarea>
+				</div>
+			</div>
+			<div class='form-group'>
+				<label class="col-sm-2 control-label">房屋照片(最多可上传3张图片)</label>
+				<div class='col-sm-10'>
+						<div class="tipLayer">
+                            <div class="photoList">
+                                <ul>
+                                    <li class="on" id="addPic">
+                                        <input type="file" class="on needsclick" style="z-index:200;opacity:0;filter:alpha(opacity=0);-ms-filter:'alpha(opacity=0)';" id="uploadFile" accept="image/*" single>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="" class="col-sm-2 control-label"></label>
+                <div class="col-sm-10">
+                    <button type="submit" name="submit" value="yes" class="btn btn-primary" style="width:100%;">提交</button>
+                    <input type="hidden" name="id" value="{$item['id']}" />
+                    <input type="hidden" name="token" value="{$_W['token']}" />
+                </div>
+			</div>
+		</div>
+	</div>
+</form>
+{/if}
+<br><br><br>
+
+<script type="text/javascript">
+function checkInfo(form) {
+		if (!form['requirement'].value) {
+			alert('请输入说明内容。');
+			return false;
+		}
+		return true;
+	}
+
+
+</script>
+{template 'footer'}

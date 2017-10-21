@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>{$reply["title"]}</title>
+<!--
+	<meta name="keywords" content="{$seo_keywords}" />
+	<meta name="description" content="{$seo_description}">
+    <tc_include file="Public:head" />
+-->
+{template 'head'}
+</head>
+<body style="" onresize="$('.modal-body').each(function(){$(this).css('height',($(this).parent().outerHeight()-$(this).next().outerHeight()-$(this).prev().outerHeight())+'px');});">
+    <style>
+    body:before {
+  content: ' ';
+  position: fixed;
+  z-index: -1;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+background-image: url('{php echo tomedia($reply['bgurl']);}');
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    }
+    </style>
+<div id="shareimgurl" onclick="$(this).hide();$('body').removeClass('modal-open');" style="width:100%;position:fixed;top:0;left:0;z-index: 10000;display:none;height: 100%;
+    background-color: rgba(0,0,0,0.9);">
+<img src="{$resroot}images/share.jpg" style="width:100%;"/>
+</div>
+{if $reply['coverurl']}
+{if empty($_GPC['pageid'])}
+<div id='coverurl' onclick="$(this).hide();" style="background: url('{php echo tomedia($reply['coverurl']);}') no-repeat;background-size: 100% 100%;    height: 100%;
+    width: 100%;
+    position: fixed;top:0px;left:0px;z-index:10000;">
+</div>
+{/if}
+{/if}
+<div class="container" style="margin: 0 auto;">
+    <div class="pg-opt pin">
+        <div class="container" style="background-color: #eee;">
+			<div class="item-image">
+				<img  src="{$reply['topurl']}" class="img-responsive" style="width:100%;">
+			</div>
+            <div class="header" data-toggle="collapse" data-target="#detail" >
+				<h3 class="pull-left" style="margin: 9px;">{$reply['title']}</h3>
+				<a class="pull-right" style="width: 50px;height: 38px;line-height: 38px;font-size: 24px;text-align: center;border-left: 1px #DDD solid;">
+					<i class="fa fa-question"></i>
+				</a>
+  				<div class="clearfix"></div>
+            </div>
+            <div class="body" style="font-size:13px;">
+            活动时间：{$reply['startend']}
+<div id="detail" class="collapse" style="border-top: 1px #888 solid;border-bottom: 1px #888 solid;margin-top: 10px;margin-bottom: 10px;padding-top: 10px;padding-bottom:10px;">
+{$reply['content']}
+<button class="btn btn-success" onclick="$('#detail').collapse('toggle')" style="margin: 0 auto;text-align: center;">我知道了</button>
+</div>
+            </div>
+			<div class="footer">
+				<div class="input-group ">
+					<input class="form-control" id="searchval" name="searchval" type="text" placeholder="输入编号或姓名." />
+					<span class="input-group-btn">
+						<button onclick="if ($('#searchval').val()){displayit(1000); reloadlists(0,$('#searchval').val());}" class="btn btn-success" type="button" ><i class="fa fa-search">搜索</i></button>
+					</span>
+
+				</div>
+				<table class="table table-hover" style="margin-bottom: auto;width:100%;font-size:12px;">
+					<thead class="navbar-inner">
+						<tr>
+						<th style="width:24%;border-right: 1px solid #ddd;border-bottom:0;text-align:center;">
+							参与
+						</th>
+						<th style="width:24%;border-right: 1px solid #ddd;border-bottom:0;text-align:center;">点赞
+						</th>
+						<th style="width:24%;border-right: 1px solid #ddd;border-bottom:0;text-align:center;">分享
+						</th>
+						<th style="width:24%;border-bottom:0;text-align:center;">浏览
+						</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr id="replycount">
+							<td style="width:24%;border-right: 1px solid #ddd;text-align:center;">0
+							</td>
+							<td style="width:24%;border-right: 1px solid #ddd;text-align:center;">0
+							</td>
+							<td style="width:24%;border-right: 1px solid #ddd;text-align:center;">0
+							</td>
+							<td style="width:24%;text-align:center;">0
+							</td>
+						</tr>
+					</tbody>
+				</table>
+				<div class="clearfix"></div>
+			</div>
+        </div>
+    </div>
+    <hr>
+    <div id="container" class="container" style="padding:0;">
+        <div>
+             <div id="lists">
+				<div class="grid-sizer" style="margin: 0px 1%;"></div>
+             </div>
+        </div>
+    </div>
+</div>
+
+
+
+<div class="top_bar" style="-webkit-transform:translate3d(0,0,0);opacity: 0.9;">
+	<nav>
+		<ul id="top_menu" class="top_menu">
+			<li>
+				<a onclick="closeall();reloadlists(0,'');">
+					<i class="fa fa-star" style="font-size:150%;margin-top: 5px;"></i><label>最新</label>
+				</a>
+			</li>
+			<li>
+				<a onclick="closeall();reloadlists(1,'');">
+					<i class="fa fa-heart" style="font-size:150%;margin-top: 5px;"></i><label>最热</label>
+				</a>
+			</li>
+			<li class="home">
+				<a {if (intval('0'.$_W['fans']['follow'])==0&&$reply['gzjoin'])} onclick="show_guanzhu('')" {else} data-toggle="modal" data-target="#myModal_submit" {/if} style="background-color: #428bca;" >
+					<i class="yao fa fa-camera" style="font-size: 200%;margin-top: 8px;"></i>
+					<label style="font-size:14px;/*			bottom: 0px;position: fixed;left:0px;width:80%;*/">
+						参与
+					</label>
+				</a>
+			</li>
+			<li>
+				<a onclick="$('#shareimgurl').show();$('body').addClass('modal-open');">
+					<i class="fa fa-share-alt" style="font-size:150%;margin-top: 5px;"></i><label>分享</label>
+				</a>
+			</li>
+			<li>
+				<a {if $reply['followurl']} href="{$reply['followurl']}" target="_blank" {else} onclick="show_guanzhu('')" {/if}>
+					<i class="fa fa-comments" style="font-size:150%;margin-top: 5px;"></i><label>关注</label>
+				</a>
+			</li>
+		</ul>
+  </nav>
+</div>
+
+<style>
+	.modal.in .modal-dialog{
+	    height: 100%;
+    	width: 100%;
+    	padding:3%;
+    	margin: 0;
+	}
+	.modal.in .modal-content{
+		height:100%;
+	}
+	
+	.modal.in .modal-header{
+		height:10%;
+		padding:5px;
+		height:60px;
+	}
+	.modal.in .modal-title{
+		line-height: 50px;
+	}
+	.modal.in .modal-body{
+		height:80%;
+		overflow-y:auto;
+		width: 100%;
+	}
+	.modal.in .modal-footer{
+		height:10%;
+		padding:5px;
+		height:60px;
+	}
+	.modal.in .close{
+		font-size: 44px;
+	}
+</style>
+
+		    
+
+                            <div class="modal inmodal fade" id="myModal_page" tabindex="-1" role="dialog"  aria-hidden="true">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+											{template 'page'}
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div class="modal inmodal fade" id="myModal_submit" tabindex="-1" role="dialog"  aria-hidden="true">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+											{template 'submit'}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="modal inmodal fade" id="myModal_guanzhu" tabindex="-1" role="dialog"  aria-hidden="true">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+											{template 'guanzhu'}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <script>
+                            $(function(){
+                            	$('#myModal_page').on('shown.bs.modal', function () {
+  									// 执行一些动作...当模态框对用户可见时触发（将等待 CSS 过渡效果完成）。
+  									$bb=$(this).find('.modal-body');
+	                            	$bb.css('height',($bb.parent().outerHeight()-$bb.next().outerHeight()-$bb.prev().outerHeight())+'px');
+	                            	wx.showOptionMenu();
+	                            	
+//微信内置图片浏览<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	var imgsSrc = new Array();
+	var reviewImage=function (dsrc) {
+	    if (typeof window.WeixinJSBridge != 'undefined') {
+	        WeixinJSBridge.invoke('imagePreview', {
+	            'current' : dsrc,
+	            'urls' : imgsSrc
+	        });
+/*
+	    }else{
+			layer.photos({
+        		photos:_photos(dsrc,imgsSrc)//_photos(dsrc,imgsSrc) //格式见API文档手册页
+    		});
+	    }
+*/
+	}};
+/*
+	_photos=function(dsrc,imgsSrc){
+		re = new RegExp(dsrc,[""]);
+  		im= (imgsSrc.toString().replace(re,"┢").replace(/[^,┢]/g,"")).indexOf("┢")
+		m=imgsSrc.length;
+		var reval='{"data":[';
+		for(var i=0;i<m;i++){
+			if (i==0){
+				reval+='{"src":"'+imgsSrc[im]+'"}';
+			}else{
+				reval+=',{"src":"'+imgsSrc[im]+'"}';
+			}
+			im=im+1;
+			if (im==m){im=0;}
+		}
+		reval+=']}';
+		return JSON.parse(reval);
+	}
+*/
+//window.onload = function (){
+	$("#page img").each(function(i){
+		var dsrc = $(this).attr("src");
+		if(dsrc){
+			imgsSrc.push(dsrc);
+			this.addEventListener("click", function(){
+				reviewImage(dsrc);
+			}, false);
+		}
+	});
+
+//微信内置图片浏览>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	                            	
+								});
+                            	$('.modal').on('hidden.bs.modal', function () {
+  									// 执行一些动作...当模态框完全对用户隐藏时触发。
+  									index_sharedata();
+  									wx.showOptionMenu();
+								});
+								
+								$('#myModal_submit').on('shown.bs.modal', function () {
+  									// 执行一些动作...当模态框对用户可见时触发（将等待 CSS 过渡效果完成）。
+  									$bb=$(this).find('.modal-body');
+	                            	$bb.css('height',($bb.parent().outerHeight()-$bb.next().outerHeight()-$bb.prev().outerHeight())+'px');
+									wx.hideOptionMenu();
+								});
+								
+                            });
+                            
+                            function show_guanzhu(str_title){
+                            	$('#custitle').html(str_title);
+                            	$('#myModal_guanzhu').modal('show');
+                            }
+                            	
+                            </script>
+<div class="text-center footer" style="margin-bottom:80px;bottom:0px; width:100%; text-align:center; word-break:break-all;">
+	{$reply["crinfo"]}
+</div>
+
+
+
+{template 'scripts'}

@@ -1,0 +1,121 @@
+{template 'header'}
+<div class="siyuan_top weui-row">
+<div class="weui-col-15"><a href="javascript:history.go(-1)"><i class="fa fa-angle-left f-32"></i></a></div>
+<div class="weui-col-70">{$set['name']}</div>
+<div class="weui-col-15"><a class="cd-bouncy-nav-trigger" href="#0"><img src="{$_W['siteroot']}addons/siyuan_cms/ui/img/daohang.png"></a></div>
+</div>
+<div class="cd-bouncy-nav-modal">
+<nav>
+<ul class="cd-bouncy-nav">
+{loop $menu $caidan}
+<li><a href="{$caidan['url']}"><img src="{$_W['attachurl']}{$caidan['thumb']}"><p>{$caidan['title']}</p></a></li>
+{/loop}
+</ul>
+</nav>
+<a href="#0" class="cd-close fa fa-power-off">返回</a>
+</div>
+<div style="height:40px;"></div>
+{if $user_ok['status'] == ''}
+<div class="weui_msg" style="margin-top:-25px;margin-bottom:-15px;">
+<div class="weui_icon_area"><img src="{$_W['attachurl']}{$news['fenxiang']}" style="width:80px;border-radius:10px;"></div>
+<div class="weui_text_area" style="margin-top:-25px;">
+<p class="weui_msg_desc" style="color:#ec6c53;font-size:24px;">{if $news['feiyong'] == '0'}免费参加{else}报名费用:{$news['feiyong']} 元{/if}</p>
+</div>
+</div>
+<div class="weui_cells weui_cells_form margin1">
+<div class="weui_cell">
+<div class="weui_cell_hd">姓名</div>
+<div class="weui_cell_bd weui_cell_primary">
+<input class="weui_input padd_left10" type="text" name="name" id="name" placeholder="请输入姓名">
+</div>
+</div>
+<div class="weui_cell">
+<div class="weui_cell_hd">手机</div>
+<div class="weui_cell_bd weui_cell_primary">
+<input class="weui_input padd_left10" type="tel" name="tel" id="tel" placeholder="请输入手机号码">
+</div>
+</div>
+<div class="weui_cell">
+<div class="weui_cell_bd weui_cell_primary">
+<textarea class="weui_textarea" name="body" id="body" placeholder="说点什么吧！" rows="3"></textarea>
+<div class="weui_textarea_counter"></div>
+</div>
+</div>
+</div>
+<div class='demos-content-padded w96 mar_top15'>
+<a href="javascript:;" id="save_btn" onclick="doSave(this)" class="weui_btn btn_cheng">确定</a>
+</div>
+{elseif $user_ok['status'] == '0' and $news['feiyong'] > '0'}
+<div class="weui_msg">
+<div class="weui_icon_area"><i class="weui_icon_msg weui_icon_warn"></i></div>
+<div class="weui_text_area">
+<h2 class="weui_msg_title">暂未支付</h2>
+<p class="weui_msg_desc">您已登记报名，还未支付报名费用！</p>
+</div></div>
+<div class='demos-content-padded w96 mar_top15'>
+<a href="{php echo $this->createMobileUrl(pay, array(id => $dingdan['id']))}" class="weui_btn btn_cheng">点击去支付</a>
+</div>
+{elseif $user_ok['status'] == '1'}
+<div class="weui_msg">
+<div class="weui_icon_area"><i class="weui_icon_msg weui_icon_success"></i></div>
+<div class="weui_text_area">
+<h2 class="weui_msg_title">您已报名成功</h2>
+<p class="weui_msg_desc" style="margin-top:10px;font-size:18px;color:#ec6c53;">您的活动编号：{$user_ok['ordersn']}</p>
+</div></div>
+<div class='demos-content-padded w96 mar_top15'>
+<a href="{php echo $this->createMobileUrl('huodong', array('act' => 'news','id' => $news['id']))}" class="weui_btn btn_cheng">返回活动页面</a>
+</div>
+{else}
+<div class="weui_msg">
+<div class="weui_icon_area"><i class="weui_icon_msg weui_icon_waiting"></i></div>
+<div class="weui_text_area">
+<h2 class="weui_msg_title">您已登记</h2>
+<p class="weui_msg_desc" style="margin-top:10px;font-size:18px;color:#ec6c53;">请耐心等待管理员审核通过！</p>
+</div></div>
+<div class='demos-content-padded w96 mar_top15'>
+<a href="{php echo $this->createMobileUrl('huodong', array('act' => 'news','id' => $news['id']))}" class="weui_btn btn_cheng">返回活动页面</a>
+</div>
+{/if}
+<script type="text/javascript">
+	function doSave() {
+		if(!$("#name").val() || !$("#tel").val() || !$("#body").val()) {
+			$.toast("信息必须全部填写", "text");
+			return;
+		}
+			$.ajax({
+			type:'post',
+			dataType:'json',
+			url:"{php echo $this->createMobileUrl('huodong', array('act' => 'baoming','id' => $news['id']))}",
+			data:{name:$("#name").val(),tel:$("#tel").val(),body:$("#body").val(),},
+			success:function(msg){
+				if(msg.status==1){
+				$.toast("跳转到付款...", "text");
+				window.location.href='{php echo $this->createMobileUrl(pay)}'+'&id='+ msg.id;
+				}else{
+				$.toast("登记成功...", "text");
+				window.location.href='{php echo $this->createMobileUrl(huodong, array(act => news,id => $news[id]))}';
+				}
+				}
+			})
+		}
+</script>
+{php echo register_jssdk(false);}
+<script type="text/javascript">
+wx.ready(function () {
+sharedata = {
+title: "{$news['name']}",
+desc: "{$news['name']}",
+link: window.location.href,
+imgUrl: "{$_W['attachurl']}{$news['fenxiang']}",
+success: function (res) {},
+cancel: function(){
+}
+};
+wx.onMenuShareAppMessage(sharedata);
+wx.onMenuShareTimeline(sharedata);
+wx.onMenuShareQQ(sharedata);
+wx.onMenuShareWeibo(sharedata);
+wx.onMenuShareQZone(sharedata);
+});
+</script>
+{template 'footer'}

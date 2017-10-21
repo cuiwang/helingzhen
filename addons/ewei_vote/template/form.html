@@ -1,0 +1,218 @@
+{template 'common'}
+{php load()->func('tpl')}
+<input type="hidden" name="reply_id" value="{$reply['id']}"/>
+<div class="panel panel-default">
+    <div class="panel-heading">
+        添加投票信息
+    </div>
+    <div class="panel-body">
+        {if !empty($reply['id'])}
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">查看内容</label>
+            <div class="col-sm-9 col-xs-12 form-control-static">
+                <a href="javascript:;" onclick='result()'>查看投票结果</a>&nbsp;&nbsp;
+                <a href="{php echo $this->createWebUrl('votelist', array('id' => $reply['rid']))}">查看投票记录</a>
+            </div>
+        </div>
+        {/if}
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">投票标题</label>
+            <div class="col-sm-9 col-xs-12">
+                <input type="text" id="title" class="form-control" placeholder="" name="title" value="{$reply['title']}">
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">投票图片</label>
+            <div class="col-sm-9 col-xs-12">
+                {php echo tpl_form_field_image('thumb',$reply['thumb']);}
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">投票内容</label>
+            <div class="col-sm-9 col-xs-12">
+                <textarea style="height:60px;" id='description' name="description" class="form-control" cols="60">{$reply['description']}</textarea>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="panel panel-default">
+    <div class="panel-heading">
+        投票设置
+    </div>
+    <div class="panel-body">
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">投票限制</label>
+            <div class="col-sm-2 col-xs-12">
+                <label class="radio-inline">
+                    <input type="radio" name="votelimit" value="0" {if $reply['votelimit'] == 0}checked="checked"{/if}/>时间限制
+                </label>
+            </div>
+            <div class="col-sm-3">
+                {php echo tpl_form_field_daterange('datelimit', array('starttime'=>date('Y-m-d H:i',$reply['starttime']),'endtime'=>date('Y-m-d H:i',$reply['endtime'])),array('time'=>true))}
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+            <div class="col-sm-2">
+                <label class="radio-inline">
+                    <input type="radio" name="votelimit" value="1" {if $reply['votelimit'] == 1}
+                    checked="checked"{/if}/>人数限制
+                </label>
+            </div>
+            <div class="col-sm-3">
+                <div class="input-group" style='float:left'>
+                    <span class="input-group-addon">共</span>
+                    <input type="text" class="form-control" name="votetotal" id="votetotal" value="{$reply['votetotal']}"/>
+                    <span class="input-group-addon">人</span>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">每人投票次数</label>
+            <div class="col-sm-3 ">
+                <div class="input-group">
+                    <span class="input-group-addon">共</span>
+                    <input type="text" class="form-control" name="votetimes" id="votetimes" value="{$reply['votetimes']}"/>
+                    <span class="input-group-addon">次</span>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">投票选项类型</label>
+            <div class="col-sm-9 col-xs-12">
+                <label class="radio-inline">
+                    <input type="radio" name="votetype" value="0" {if $reply['votetype'] == 0}checked="true" {/if}>单选
+                </label>&nbsp;&nbsp;
+                <label class="radio-inline">
+                    <input type="radio" name="votetype" value="1" {if $reply['votetype'] == 1}checked="true" {/if}>多选
+                </label>&nbsp;&nbsp;
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">投票类型</label>
+
+            <div class="col-sm-9 col-xs-12">
+                <label class="radio-inline">
+                    <input type="radio" name="isimg" onclick="changeTo('text')" id='isimg' value="0" {if $reply['isimg'] == 0} checked="true" {/if}>文本
+                </label>&nbsp;&nbsp;
+                <label class="radio-inline">
+                    <input type="radio" name="isimg" onclick="changeTo('image')" value="1" {if $reply['isimg'] == 1} checked="true" {/if}>图片
+                </label>&nbsp;&nbsp;
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">投票选项</label>
+            <div class="col-sm-9 col-xs-12" id="re-items">
+                {loop $options $o}
+                {template 'item'}
+                {/loop}
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+            <div class="col-sm-9 col-xs-12" id="items_div" tabindex='-1'>
+                {if $hasData}
+                <a href="javascript:;">已经存在投票, 不能修改投票信息</a>
+                {else}
+                <a class='btn btn-default' href="javascript:;" onclick="addItem();">添加投票选项
+                    <i class="fa fa-plus-circle" title="添加投票选项"></i></a>
+                {/if}
+                <span class="help-block">投票开始后(已经有粉丝用户投票), 将不能再修改投票信息, 请仔细编辑. </span>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="panel panel-default">
+    <div class="panel-heading">
+        分享设置
+    </div>
+    <div class="panel-body">
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">分享标题</label>
+            <div class="col-sm-9 col-xs-12">
+                <input type="text" id="share_title" class="form-control" placeholder="" name="share_title" value="{$reply['share_title']}">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">分享地址</label>
+            <div class="col-sm-9 col-xs-12">
+                <input type="text" id="share_url" class="form-control" placeholder="" name="share_url" value="{$reply['share_url']}">
+                <div class="help-block">分享的链接! 推荐用微信平台的素材库，转成短地址。<a target="_blank" href="http://www.dwz.cn/">短网址转换</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">分享描述</label>
+            <div class="col-sm-9 col-xs-12">
+                <textarea style="height:60px;" id='share_desc' name="share_desc" class="form-control" cols="60">{$reply['share_desc']}</textarea>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">分享描述</label>
+
+            <div class="col-sm-9 col-xs-12">
+                <textarea style="height:60px;" id='share_txt' name="share_txt" class="form-control richtext" cols="60">{$reply['share_txt']}</textarea>
+                <span class="help-block">如分享地址为空，则显示这里文字，分享后用户需关注公共号,才可以参加活动! </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    require(['util'], function (util) {
+        util.editor($('#share_txt')[0]);
+    });
+    function changeTo(t) {
+        if (t == 'image') {
+            $(".item-image").show();
+        }
+        else {
+            $(".item-image").hide();
+        }
+    }
+
+    function addItem() {
+        var url = "{php echo $this->createWebUrl('item')}";
+        $.post(url, {
+            type: $("#isimg").get(0).checked ? "text" : "image"
+        }, function (data) {
+            $("#itemlen").val(parseInt($("#itemlen").val()) + 1);
+            $('#re-items').append(data);
+        });
+        return;
+
+    }
+    function deleteItem(o) {
+        $(o).parent().parent().remove();
+    }
+    function result() {
+        require(['util'], function (util) {
+            util.ajaxshow("{php echo $this->createWebUrl('result',array('id' => $reply['rid']))}", "查看票数");
+        });
+    }
+
+
+    $('form').submit(function () {
+        if ($("#title").isEmpty()) {
+            Tip.focus("title", '请填写投票标题!', "right");
+            return false;
+        }
+        if ($(".voteitem").length <= 1) {
+            require(['util'], function (util) {
+                util.message('至少二个投票选项!');
+            });
+            return false;
+        }
+        var full = true;
+        $(".item_title").each(function (i) {
+            if ($(this).isEmpty()) {
+                Tip.focus(".item_title:eq(" + i + ")", "请输入投票选项标题!", "top");
+                full = false;
+                return false;
+            }
+        });
+        return full;
+    });
+</script>

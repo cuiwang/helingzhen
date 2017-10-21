@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>客服管理</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Bootstrap -->
+<script src="../addons/cy163_goodssales/static/admin/js/jquery.min.js"></script>
+<script src="../addons/cy163_goodssales/static/admin/bootstrap/js/bootstrap.min.js"></script>
+<script src="../addons/cy163_goodssales/static/admin/validate/jquery-html5Validate-min.js"></script>
+<script src="../addons/cy163_goodssales/static/admin/js/jUploader.js"></script>
+<link rel="stylesheet" type="text/css" href="../addons/cy163_goodssales/static/admin/bootstrap/css/bootstrap.min.css" />
+<link rel="stylesheet" type="text/css" href="../addons/cy163_goodssales/static/admin/css/admin.css" />
+<script type="text/javascript">
+$(function(){
+	$("#form").html5Validate();
+	
+	$.jUploader.setDefaults({
+		cancelable: false, // 可取消上传
+		allowedExtensions: ['jpg', 'png', 'gif','jpeg'], // 只允许上传图片
+		messages: {
+			upload: '上传',
+			cancel: '取消',
+			emptyFile: "{file} 为空，请选择一个文件.",
+			invalidExtension: "{file} 后缀名不合法. 只有 {extensions} 是允许的.",
+			onLeave: "文件正在上传，如果你现在离开，上传将会被取消。"
+		}
+	});
+	
+	$.jUploader({
+		button: 'uploadify', // 这里设置按钮id
+		action: "{$_W['siteroot']}app/{php echo str_replace('./','',$this->createMobileUrl('adminuploadmore'));}", // 这里设置上传处理接口
+		
+		onUpload: function (fileName) {
+			$('#thumb_msg').html("<span style='color:green;'>正在上传"+fileName+"</span>");
+		 },
+	
+		// 上传完成事件
+		onComplete: function (fileName, response) {
+			// response是json对象，格式可以按自己的意愿来定义，例子为： { success: true, fileUrl:'' }
+			if (response.success) {
+				$('#thumb').val(response.fileUrl);
+				$('#fileQueue').html('<img src="'+response.realUrl+'" width="180" height="180" class="img-polaroid" /><i class="icon-remove" onclick="delpic();" style="cursor:pointer;margin-left:5px;"></i>');
+				$('#thumb_msg').html("<span style='color:green;'>上传"+fileName+"成功！</span>");
+			} else {
+				$('#thumb_msg').html("<span style='color:red;'>上传"+response.msg+"失败！</span>");
+			}
+		},	
+	});
+});
+function delpic(){
+	$('#fileQueue').html("");
+	$('#thumb').val("");
+}
+</script>
+<style>
+ .panel{margin-bottom:20px;background-color:#fff;border:1px solid transparent;border-radius:4px;-webkit-box-shadow:0 1px 1px rgba(0,0,0,.05);box-shadow:0 1px 1px rgba(0,0,0,.05)}
+ .panel-body{padding:15px}
+ .panel-heading{padding:10px 15px;border-bottom:1px solid transparent;border-top-left-radius:3px;border-top-right-radius:3px}
+ .panel-info{border-color:#bce8f1}
+ .panel-info>.panel-heading{color:#31708f;background-color:#d9edf7;border-color:#bce8f1}
+ .panel-info>.panel-heading+.panel-collapse>.panel-body{border-top-color:#bce8f1}
+ .panel-info>.panel-heading .badge{color:#d9edf7;background-color:#31708f}
+ #accountname,#accountrealname,#bankname{display:none;}
+</style>
+</head>
+
+
+<body>
+<div id="container">
+{if $operation == 'post'}
+	<div class="panel panel-info">
+		<div class="panel-heading">{if !$id}添加客服{else}编辑客服{/if}</div>
+		<div class="panel-body">
+		<form class="form-horizontal" id="form" action="{php echo $this->createMobileUrl('admincservice',array('op'=>'post'));}" method="post">
+			<div class="control-group">
+				<label class="control-label" for="name"><span style="color:red">*</span>客服名称</label>
+				<div class="controls">
+					<input type="text" name="name" id="name" class="form-control" value="{$cservice['name']}" required />
+				</div>
+			</div>
+
+			<div class="control-group">
+				<label class="control-label">客服类型</label>
+				<div class="controls">
+					<label class='radio inline'>
+						<input type='radio' name='ctype' value='1' {if $cservice['ctype']==1}checked{/if} /> 微信客服
+					</label>
+					<label class='radio inline'>
+						<input type='radio' name='ctype' value='2' {if $cservice['ctype']==2}checked{/if} /> QQ客服
+					</label>
+					<label class='radio inline'>
+						<input type='radio' name='ctype' value='3' {if $cservice['ctype']==3}checked{/if} /> 移动客服
+					</label>
+					<label class='radio inline'>
+						<input type='radio' name='ctype' value='4' {if $cservice['ctype']==4}checked{/if} /> 座机客服
+					</label>
+				</div>
+			</div>
+			
+			<div class="control-group">
+				<label class="control-label" for="content"><span style="color:red">*</span>客服内容</label>
+				<div class="controls">
+					<input type="text" name="content" id="content" class="form-control" value="{$cservice['content']}" required /><br />
+					<div class="alert alert-danger" role="alert" style="margin-top:10px;">微信客服内容填openid，QQ客服填qq号码，移动客服填手机号，坐班客服填座机号</div>
+				</div>
+			</div>
+			
+			<div class="control-group">
+				<label class="control-label" for="thumb"><span style="color:red">*</span>客服头像</label>
+				<div class="controls">		
+					<div><a class="btn btn-info" id="uploadify">选择图片</a><span style="color:#900; margin-left:10px;">(为了保证美观，请上传180*180尺寸的图片)</span></div>
+					<div id="thumb_msg"></div>
+					<div id="fileQueue" style="margin:5px 0;">
+						{if $cservice['thumb']}
+						<img src="{php echo tomedia($cservice['thumb']);}" width="180" height="180" class="img-polaroid" /><i class="icon-remove" onclick="delpic();" style="cursor:pointer;margin-left:5px;"></i>
+						{/if}
+					</div>
+					<input type="hidden" value="{$cservice['thumb']}" name="thumb" id="thumb" required />
+				</div>
+			</div>
+
+			<div class="control-group">
+				<label class="control-label">排序</label>
+				<div class="controls">
+					<input name="displayorder" class="form-control" value="{$cservice['displayorder']}" type="text">
+				</div>
+			</div>
+			
+			<div class="control-group">
+				<label class="control-label"></label>
+				<div class="controls">
+					<input type="hidden" name="id" value="{$cservice['id']}" />
+					<input type="submit" name="submit" class="btn btn-success" value="提交" />
+					<input type="hidden" name="token" value="{$_W['token']}" />
+				</div>
+			</div>
+		</form>
+		</div>
+	</div>
+{elseif $operation == 'display'}
+	<div class="panel panel-info">
+		<div class="panel-heading">客服列表</div>
+		<div class="panel-body">
+			<form action="" method="post">
+			<table class="table table-bordered table-hover">		
+				<thead>
+					<tr>
+						<th style="width:5%;">排序</th>
+						<th style="width:15%;">客服名称</th>
+						<th style="width:15%;">客服头像</th>
+						<th style="width:50%;">客服内容</th>
+						<th style="text-align:right; width:15%;">操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					{loop $cservicelist $row}
+					<tr>
+						<td><input class="form-control span1" name="displayorder[{$row['id']}]" value="{$row['displayorder']}" type="text" /></td>
+						<td>{$row['name']}</td>
+						<td><img src="{php echo tomedia($row['thumb']);}" width="50" height="50" /></td>
+						<td>
+							<span class='label label-success'>{$row['content']}</span>
+						</td>
+						<td style="text-align:right;">
+							<a href="{php echo $this->createMobileUrl('admincservice', array('op' => 'post', 'id' => $row['id']))}" class="btn btn-default btn-mini" title="编辑"><i class="icon-edit"></i></a>&nbsp;&nbsp;
+							<a href="{php echo $this->createMobileUrl('admincservice', array('op' => 'delete', 'id' => $row['id']))}" onclick="return confirm('确认删除吗？');return false;" class="btn btn-default btn-mini" title="删除"><i class="icon-remove"></i></a>
+						</td>
+					</tr>
+					{/loop}
+					<tr>
+						<td colspan="5">
+							<input name="submit" class="btn btn-primary" value="提交" type="submit">
+							<input name="token" value="{$_W['token']}" type="hidden">
+						</td>
+					</tr>
+				</tbody>		
+			</table>
+			</form>
+		</div>
+	</div>
+{/if}
+</div>
+</body>
+</html>

@@ -1,0 +1,116 @@
+{template 'header'}
+<link rel="stylesheet" href="{MODULE_URL}/template/static/css/donate.css?a=12">
+
+ 
+<div class="donate_donate">
+	<div class="donate_avatar_p"><img class="donate_avatar" src="{media  $voteuser['avatar']}" /></div>
+	<div class="donate_name">给<span>{$voteuser['name']}</span>送礼</div>
+<div class="divbottommenu"style="margin-top:10px;border-top: 1px dashed #d5d5d5;">
+  
+  <div class="divitem" >
+	  <span><i class="fa fa-user fa-fw"></i>编号</span>
+	  <span>{$voteuser['noid']}</span>
+  </div>
+  <div class="divitem">
+	  <span><i class="fa fa-ticket fa-fw"></i>票数</span>
+	  <span>{$voteuser['votenum']}</span>
+  </div>
+  <div class="divitem">
+	  <span><i class="fa fa-fire fa-fw"></i>热度</span>
+	  <span>{$pvtotal['pv_total']}</span>
+  </div>
+  {if $reply['diamondmodel']!=1}
+  <div class="divitem">
+	  <span><i class="fa fa-diamond fa-fw"></i>礼物</span>
+	  <span>{php echo $voteuser['giftcount']*$reply['giftscale'];}{$reply['giftunit']}</span>
+  </div>
+  {/if}
+</div>
+<div class="donate_money_p_p">
+		<div class="donate_money_choose_p">
+		
+		
+		
+		{loop $giftlist  $item}
+			<div class="donate_money_choose donate_money_choose1">
+			    {loop $item $index $rom}
+					<div class="donate_money" dada-key="{$index}" dada-tip="支付{$rom['giftprice']}元，送 {$voteuser['name']} {$rom['gifttitle']}，抵{$rom['giftvote']}票！">
+						<p class="donate_money_icon"><img src="{media $rom['gifticon']}" width="50%" /></p> 
+						<span class="donate_money_title">{$rom['gifttitle']}</span>
+						<span class="donate_money_num">{php echo $rom['giftprice']*$reply['giftscale'];}{$reply['giftunit']}</span>
+					</div>
+				{/loop}
+			</div>
+		{/loop}
+		</div>
+		<div class="donate_money_edit">
+			<div class="donate_money_edit_text">请选择以上礼品</div>
+		</div>
+	</div>  
+
+	<div class="donate_bank_p">
+		<a href="javascript:;" id="weixin" class="weui-btn weui-btn_primary">微信支付</a>
+	</div>
+<!--<div class="donate_submit">确定</div>-->
+</div>
+
+
+<div id="qshuli" class="donate_alert_mask" onclick="document.getElementById('qshuli').style.display='none';"><div class="donate_alert"><div class="donate_alert_msg">请选择你要赠送的礼物</div><div class="donate_alert_btns"><div class="donate_alert_btn ok">确定</div></div></div></div>
+<br></br>
+<script>
+$(document).ready(function(){
+    var giftid="";
+	$(".donate_money_choose .donate_money").click(function(){
+		var tip = $(this).attr("dada-tip"); 
+		$(".donate_money_edit_text").text(tip); 
+		giftid=$(this).attr("dada-key"); 
+		$(".donate_money_choose .donate_money").removeClass("active");
+		$(this).addClass("active");
+    });
+	$("#weixin").click(function(){
+		if(giftid ===""){dialog2("请选择你要赠送的礼物");return false;}
+		
+		{if $reply['defaultpay']==0}
+	 
+		$.ajax({
+			type : "post",
+			url : "{php echo $this->createMobileUrl('gift', array('rid' => $reply['rid'],'id' => $voteuser['id'],'ty' => 1))}",
+			data : { 
+				type : 1,
+				giftid : giftid,
+			},
+			dataType : "json",
+			beforeSend : function(XMLHttpRequest) {
+				loadingToast("跳转支付...");
+			},
+			success : function(res) {
+				if (res.status == 200) {
+					window.location.href = res.pay_url;
+				}else if(res.status == 201) {
+					dialog2(res.msg);
+					window.location.href = "{php echo $this->createMobileUrl('view', array('rid' => $reply['rid'],'id' => $voteuser['id']))";
+				}else{
+					hidemod("loadingToast");
+					dialog2(res.msg);
+				}
+			},
+			error : function(res, type) {
+				hidemod("loadingToast");
+				dialog2(res.msg);
+			}
+		    });
+			
+			{else}
+		    location.href ="{php echo $this->createMobileUrl('gift', array('rid' => $reply['rid'],'id' => $voteuser['id'],'ty' => 1))}&type=1&giftid="+giftid;
+
+			{/if}
+		
+		
+	    
+		
+		});
+
+});
+
+</script>
+{template 'footer'}

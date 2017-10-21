@@ -1,0 +1,341 @@
+<!--
+ * ============================================================================
+ * 版权所有 2015-2016 米粒源码，并保留所有权利。
+ * 网站地址: http://www.webmili.com；
+ * ----------------------------------------------------------------------------
+ * 这不是一个自由软件！已购买用户允许对程序代码进行修改和使用，但是不允许对
+ * 程序代码以任何形式任何目的的再发布，作者将保留追究法律责任的权力和最终解
+ * 释权。
+ * ============================================================================
+-->
+{php include $this->template('_header');}
+<style type="text/css">
+.fixed-cont{margin-bottom:5%;}
+.contaniner{width:96%;}
+.to-buy .buy-list select,.to-buy .buy-list textarea{width: 60%;display: inline-block;-webkit-appearance: button;border: 1px solid #dedede;border-radius: 12px;padding: 6px 10px;background: -webkit-gradient(linear, 0 0, 0 100%, from(#fff), to(#f2f2f2));background-size: auto auto;outline: none;}
+.buy-list .store-type{color:#fff; padding: 6px 15px; border: 1px #ddd solid; border-radius: 12px;}
+.buy-list .store-type1-bgcolor{background:#FC605A;}
+.buy-list .store-type2-bgcolor{background:#45C018;}
+.buy-list .input-type{padding: 8px;background: #eaeaea;border-radius: 12px;border: 1px solid #dedede;padding: 6px 10px;outline: none;resize: none;width: 68%;-webkit-box-sizing: border-box;box-shadow: none;}
+/* 洗车卡样式 */
+.usecard {width:90px; height:30px; background:#333; display:inline-block; border-radius:50px; position:relative;}
+.usecard:before {content:'ON';position:absolute;top:5px;left:9px;height:2px;color:#26ca28;font-size:16px;}
+.usecard:after {content: 'OFF';position: absolute;top: 5px;left: 55px;height: 2px;color: #ddd;font-size: 16px;}
+.usecard label {display: block;width: 45px;height: 20px;border-radius: 50px;-webkit-transition: all .5s ease;-moz-transition: all .5s ease;-o-transition: all .5s ease;-ms-transition: all .5s ease;transition: all .5s ease;cursor: pointer;position: absolute;top: 6px;z-index: 1;left: 9px;background: #ddd;}
+.usecard input[type=checkbox]:checked + label {left: 42px;background: #26ca28;}
+input[type=checkbox] {visibility: hidden;}
+/* 结算合计样式 */
+.totalStyle{text-align:right;border-bottom: solid 1px #E6E6E6 !important;}
+.amount{color: red; font-size: 1.5em;}
+.integralStyle{text-align: right;font-size: 1.2em !important; color: #333;}
+.integral{color:#16AB06;}
+/* 提交订单按钮样式 */
+.addOrder{width:96% !important;}
+
+#allmap{position:absolute;width:100%;height:100%; z-index:15; display:none;}
+#comfir{
+   width:100%;
+   height:7%;
+   position: absolute;
+   z-index:18;
+   bottom:0;
+   display:none;
+}
+.comfir_btn{
+   width:70%;
+   margin-left:15%;
+   font-size: 1.5em;
+   padding: 2% 0px;
+   background-color: #fdb338;
+   border: 1px #fdb338 solid;
+   border-radius: 5px;
+   color: white;
+}
+.go-shop{
+    margin-top: 5%;
+    padding: 3% 12%;
+    font-size: 1.15em;
+    text-align: center;
+    color: #fff;
+    background: -webkit-gradient(linear, 0 0, 0 100%, from(#FC605A), to(#F97A75));
+    border: 1px solid #FC605A;
+    border-radius: 5px !important;
+}
+</style>
+<body onload="init()">
+<header class="top-header fixed-header">
+	<a class="icona" href="javascript:history.go(-1)"><img src="../addons/cash_car/template/images/left-white.png"/></a>
+	<h3>{$title}</h3>
+</header>
+
+<div id="allmap"></div>
+<div id="comfir"><button class="comfir_btn">确认位置</button></div>
+
+<div class="contaniner fixed-cont" id="details">
+	<section class="to-buy">
+		<div class="buy-list">
+		    <ul style="padding:3%;">
+				<li style="margin-left:0px;">
+					<h3 class="title">服务项目</h3>
+				</li>
+				<li style="width:30%; text-align:right;">
+				   <button class="go-shop" onclick="location.href='{php echo $this->createMobileUrl('goodslist');}'">再去逛逛</button>
+				</li>
+			</ul>
+			{loop $cart $goods}
+			<ul>
+				<li>
+					<h3>{$goods['title']}</h3>
+					<b>{$goods['price']}元 / {$goods['unitname']}</b>
+				</li>
+			</ul>
+			{/loop}
+		</div>
+	</section>
+	<section class="to-buy">
+		<div class="buy-list">
+			<dl>
+				<dd>
+					<i style="color:#fff;">服</i>服务点：
+					<select name="storeid" onchange="select_store(this);">
+					{loop $storelist $store}
+					   <option value="{$store['id']}" {if $store['id']==$storeid}selected{/if}>{$store['title']}</option>
+					{/loop}
+					</select>
+				</dd>
+				<dd>
+					订单类型：
+					{if $stores['store_type']=='1'}
+					  <button class="store-type store-type1-bgcolor">上门洗车</button>
+					{else if $stores['store_type']=='2'}
+					  <button class="store-type store-type2-bgcolor">到店洗车</button>
+					{/if}
+				</dd>
+				<dd>
+					用户姓名：
+					<input type="text" name="guest_name" id="guest_name" value="{if !empty($user['realname'])}{$user['realname']}{/if}" maxlength="10" class="input-type">
+				</dd>
+				<dd>
+					手机号码：
+					<input type="tel" id="tel" name="tel" value="{$order['tel']}" maxlength="11" class="input-type">
+				</dd>
+				<dd>
+					洗车车牌：
+					<input type="text" name="mycard" id="mycard" value="{$order['mycard']}" maxlength="10" class="input-type">
+				</dd>
+				<dd>
+					预约日期：
+					<select name="meal_date" id="meal_date" onchange="select_date(this);">
+					<?php for($i=0;$i<$setting['book_days'];$i++){ ?>
+					  <option value="{php echo date('Y-m-d',time()+$i*86400);}" {if $meal_date==(strtotime('today')+$i*86400)}selected{/if}>{php echo date('Y-m-d',time()+$i*86400);}</option>
+					<?php } ?>
+					</select>
+				</dd>
+				<dd>
+					预约时间：
+					<select name="meal_time" id="meal_time">
+					  {loop $worktimes $time}
+					  <option value="{$time['time']}" {$time['selected']}>{$time['time']}({$time['remain']})</option>
+					  {/loop}
+					</select>
+				</dd>
+				<dd>
+					洗车地址：
+					{if $stores['store_type']==1}
+						<input type="text" id="address" name="address" value="点击地图选择洗车地址" readonly class="input-type">
+					{elseif $stores['store_type']==2}
+						<input type="text" name="address" value="{$stores['address']}" readonly class="input-type">
+					{/if}
+				</dd>
+				<dd>
+					备注说明：
+					<textarea name="remark" id="remark" style="height:36px; font-size:14px;" maxlength="100" placeholder="{if $stores['store_type']=='1'}请描述车辆颜色、停放位置(负一层、3号楼右侧)等{/if}"></textarea>
+				</dd>
+				{if $cardtotal>0}
+				<dd>
+				    <i style="color:#fff">用</i>洗车卡：
+					<div class="usecard">
+						<input type="checkbox" value="0" id="usecard" name="usecard" />
+						<label for="usecard"></label>
+					</div>
+				{else}
+				    <input type="hidden" name="usecard" value="0" checked>
+				</dd>
+				{/if}
+			</dl>
+			<dl>
+			   <dd class="totalStyle">共计：<strong class="amount" id="amount">{$totalAmount}</strong> 元</dd>
+			   {if $totalIntegral>0}
+			   <dd class="integralStyle">交易完成可获得<strong class="integral"> {$totalIntegral}</strong>积分</dd>
+			   {/if}
+			</dl>
+		</div>
+	</section>
+	<section class="to-buy">
+		<div class="buy-list">
+		    <ul>
+				<li class="addOrder">
+				    <input type="hidden" name="token" value="{$_W['token']}"/>
+					<input type="hidden" id="lng"/>
+					<input type="hidden" id="lat"/>
+					<input type="submit" id="submit_form" value="提交订单" class="submit-btn"/>
+				</li>
+			</ul>
+	</section>
+</div>
+<script type="text/javascript">
+function select_store(obj) {
+	if (obj.value != '') {
+		window.location.href = "{php echo $this->createMobileUrl('cashcar', array('meal_date'=>$_GPC['meal_date'])); }" + "&storeid=" + obj.value;
+	}
+}
+function select_date(obj) {
+	if (obj.value != '') {
+		window.location.href = "{php echo $this->createMobileUrl('cashcar', array('storeid'=>$storeid)); }" + "&meal_date=" + obj.value;
+	}
+}
+$("#usecard").click(function(){
+    var usecard = $("#usecard").val();
+	if(usecard=='0'){
+	    document.getElementById("usecard").value = 1;
+		document.getElementById("amount").innerHTML  = ({php echo $totalAmount-$cardtotal;}).toFixed(2);
+	}else if(usecard=='1'){
+	    document.getElementById("usecard").value = 0;
+		document.getElementById("amount").innerHTML  = ({php echo $totalAmount;}).toFixed(2);
+	}
+});
+</script>
+
+<script type="text/javascript">
+$("#submit_form").click(function () {
+    var usecard = $('input[name="usecard"]:checked').eq(0).val();
+	if ($("#name").val() == "") { alert("请输入用户姓名！"); return false;}
+    if ($("#tel").val() == "" ) { alert("请输入手机号码！"); return false;}
+	if ($("#mycard").val() == "") { alert("请输入洗车车牌！"); return false;}
+    if ($("#total").text() == "0"  && usecard=="0") { alert("您还没选服务项目！"); return false; }
+    {if $stores['store_type']=='1'}
+	    if ($("input[name=address]").val() == "") { alert("请选择洗车地址！"); return false;}
+	{/if}
+
+	$("#submit_form").hide();
+	var url = "{php echo $this->createMobileUrl('addorder', array('storeid' => $storeid, 'from_user' => $from_user), true)}";
+
+	$.ajax({
+		url: url, type: "post", dataType: "json", timeout: "10000",
+		data: {
+			"total"     : $("#amount").text(),
+			"guest_name": $("#guest_name").val(),
+			"tel"       : $("#tel").val(),
+			"mycard"    : $("#mycard").val(),
+			"meal_date" : $("#meal_date").val(),
+			"meal_time" : $("#meal_time").val(),
+			"address"   : $("input[name=address]").val(),
+			"remark"    : $("#remark").val(),
+			"usecard"   : $('input[name="usecard"]:checked').eq(0).val(),
+			"lng"       : $("#lng").val(),
+			"lat"       : $("#lat").val(),
+		},
+		success: function (data) {
+			if (data.message['code'] != 0) {
+				var url = "{php echo $this->createMobileUrl('pay', array(), true)}"+"&orderid="+data.message['orderid'];
+				location.href = url;
+			} else {
+				alert(data.message['msg']);
+			}
+			$("#submit_form").show();
+		},error: function () {
+			alert("订单提交失败！");
+		}
+	});
+
+});
+</script>
+
+<script charset="utf-8" src="http://map.qq.com/api/js?v=2.exp"></script>
+<script type="text/javascript">
+//弹出地图层，隐藏订单层
+$("#address").click(function(){
+   document.getElementById('allmap').style.display = 'block';
+   document.getElementById('comfir').style.display = 'block';
+   document.getElementById('details').style.display = 'none';
+});
+//隐藏地图层，弹出订单层
+$("#comfir").click(function(){
+   document.getElementById('allmap').style.display = 'none';
+   document.getElementById('comfir').style.display = 'none';
+   document.getElementById('details').style.display = '';
+});
+</script>
+
+<script>
+function init() {
+	var storelng = {php echo $stores['txlng'];};
+	var storelat = {php echo $stores['txlat'];};
+
+	//服务点所在区域
+    var center = new qq.maps.LatLng(storelat,storelng);
+    var city = document.getElementById("allmap");
+    var map = new qq.maps.Map(document.getElementById('allmap'),{
+        center: center,
+        zoom: 17
+    });
+
+    //添加监听事件 获取鼠标单击事件
+    qq.maps.event.addListener(map, 'click', function(event) {
+       var marker=new qq.maps.Marker({
+			position:event.latLng, 
+			map:map
+       });  
+	   qq.maps.event.addListener(map, 'click', function(event) {
+			marker.setMap(null);     
+	   });
+
+	   document.getElementById("lng").value = event.latLng.getLat();
+	   document.getElementById("lat").value = event.latLng.getLng();
+	   
+	   var getAddressurl = "{php echo $_W['siteroot'];}app/{php echo $this->createMobileUrl('getaddrajax')}";
+	   $.ajax({
+			url: getAddressurl, type: "post", dataType: "json", timeout: "10000",
+			data: {
+				"lng"  : event.latLng.getLat(),
+				"lat"  : event.latLng.getLng(),
+			},
+			success: function (data) {
+			   if(data.message['address'] != ''){
+			       document.getElementById("address").value = data.message['address'];
+			   }else{
+			       alert("获取地址失败1！");
+			   }
+			   
+			},error: function () {
+			    alert("获取地址失败2！");
+			}
+		});
+    });
+}
+</script>
+
+<script type="text/javascript">
+wx.ready(function(){
+	var shareData = {
+		title: "{$sharelink['title']} - {$_W['account']['name']}",
+		desc: "{$sharelink['desc']}",
+		link: "{php echo $_W['siteroot'] .'app/'.$this->createMobileUrl('storelist');}",
+		imgUrl: "{php echo $_W['attachurl'];}{$sharelink['images']}",
+		trigger: function (res) {},
+		complete: function (res) {},
+		success: function (res) {},
+		cancel: function (res) {},
+		fail: function (res) {}
+	};
+	wx.onMenuShareTimeline(shareData);
+	wx.onMenuShareAppMessage(shareData);
+	wx.onMenuShareQQ(shareData);
+	wx.onMenuShareWeibo(shareData);
+	wx.onMenuShareQZone(shareData);
+	
+});
+</script>
+{php include $this->template('_footer');}
+</body>
+</html>

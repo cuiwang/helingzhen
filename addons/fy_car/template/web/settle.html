@@ -1,0 +1,131 @@
+{template 'common/header'}
+
+<div class="main">
+   <ul class="nav nav-tabs">
+	  <li {if $op=='display'}class="active"{/if}><a href="{php echo $this->createWebUrl('settle');}">结算账单列表</a></li>
+	  {if $op=='details'}
+	  <li class="active"><a href="javascript:;">{$_GPC['settle_sn']}洗车加盟商账单</a></li>
+	  {/if}
+   </ul>
+
+{if $op=='display'}
+		<div class="panel panel-default">
+			<div class="panel-body table-responsive">
+				<table class="table table-hover">
+					<thead class="navbar-inner">
+						<tr>
+							<th style="width:15%;">结算单号</th>
+							<th style="width:15%;">营业总额</th>
+							<th style="width:15%;">佣金总额</th>
+							<th style="width:15%;">积分总额</th>
+							<th style="width:15%;">结算金额</th>
+							<th style="width:25%;text-align:center;">结算阶段</th>
+							<th style="width:8%;text-align:center;">操作</th>
+						</tr>
+					</thead>
+					<tbody>
+					{loop $settlelist $item}
+						<tr>
+							<td>{$item['settle_sn']}</td>
+							<td>{$item['business_amount']} 元</td>
+							<td>{$item['commission_amount']} 元</td>
+							<td>{$item['integralAmount']} 元</td>
+							<td>{$item['settle_amount']} 元</td>
+							<td style="text-align:center;">{$item['settle_date']}</td>
+							<td style="text-align:center;;">
+								<a href="{php echo $this->createWebUrl('settle', array('op'=>'details', 'settle_sn'=>$item['settle_sn']));}" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom">查看</a>
+							</td>
+						</tr>
+					 {/loop}
+					</tbody>
+				</table>
+			 </div>
+		 </div>
+{elseif $op=='details'}
+	<form name="myform" method="post" class="form-horizontal form">
+	    <input type="hidden" name="c" value="site">
+		<input type="hidden" name="a" value="entry">
+		<input type="hidden" name="op" value="confirmPayAll">
+		<input type="hidden" name="do" value="settle">
+		<input type="hidden" name="m" value="fy_car" />
+		<div class="panel panel-default">
+			<div class="panel-body table-responsive">
+				<table class="table table-hover">
+					<thead class="navbar-inner">
+						<tr>
+						    <th style="width:8%;">全选</th>
+							<th style="width:12%;">账单单号</th>
+							<th style="width:10%;">加盟商名称</th>
+							<th style="width:10%;">营业总额</th>
+							<th style="width:10%;">佣金总额</th>
+							<th style="width:10%;">积分总额</th>
+							<th style="width:10%;">结算金额</th>
+							<th style="width:20%;">结算阶段</th>
+							<th style="width:10%;">结算状态</th>
+						</tr>
+					</thead>
+					<tbody>
+					{loop $settle_list $item}
+						<tr>
+						    <td>{if $item['settle_status']==1}<input type="checkbox" name="payid[]" value="{$item['id']}">{else}{$item['id']}{/if}</td>
+							<td>{$item['settle_sn']}</td>
+							<td>{$item['username']}</td>
+							<td>{$item['business_amount']} 元</td>
+							<td>{$item['commission_amount']} 元</td>
+							<td>{$item['integralAmount']} 元</td>
+							<td>{$item['settle_amount']} 元</td>
+							<td>{$item['settle_date']}</td>
+							<td>
+							{if $item['settle_status']==1}
+							    <span class="label" style="background:#DC3005;">已出账</span>
+						    {elseif $item['settle_status']==2}
+							    <span class="label" style="background:#56af45;">已完成</span>
+							{/if}
+							</td>
+						</tr>
+					 {/loop}
+					    <tr>
+							<td colspan="9">
+							    <input type="button" id="btnSelect" value="全选" class="btn btn-default"  onclick="checkAll(myform.hidnSelectFlag.value);" style="margin-right:15px;"/>
+								<input name="submit" type="submit" class="btn btn-primary" value="批量确认支付">
+								<input type="button" class="btn btn-success" onclick="location.href='{php echo $refurl.'&out_put=output';}'" value="导出Excel" />
+								<input type="hidden" name="token" value="{$_W['token']}">
+								<input type="hidden" name="hidnSelectFlag" value="1"/>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			 </div>
+		 </div>
+	</form>
+<script language="javascript">
+/**
+ * 选择复选框
+ * @param type 1 全选；0 全不选
+ */
+function checkAll(type) {
+    var type = Number(type);
+    var inputs = document.getElementsByTagName("input");
+    for(var i = 0; i < inputs.length; i++) {
+        if(inputs[i].type == "checkbox") {
+            inputs[i].checked = type;
+        }
+    }
+    myform.hidnSelectFlag.value = Number(!type);
+}
+
+$(function(){
+    $("input[name=submit]").click(function(){
+        var check = $("input[type=checkbox][class!=check_all]:checked");
+        if(check.length < 1){
+            alert('请选择要确认已支付的项目');
+            return false;
+        }
+    });
+
+});
+</script>
+{/if}
+
+</div>
+{template 'common/footer'}

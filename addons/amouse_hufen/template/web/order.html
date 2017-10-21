@@ -1,0 +1,216 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+    <li {if $op =='display'}class="active"{/if}><a href="{php echo $this->createWebUrl('orders',array('op'=>'display'));}">管理订单</a>  </li>
+    {if !empty($id) && $op=='detail'}
+    <li class="active"> <a href="{php echo $this->createWebUrl('orders',array('op'=>'detail','id'=>$id));}">订单详情</a> </li>
+    {/if}
+</ul>
+<div class='container' style='padding:0 5px 10px;margin:0;width:100%'>
+{if $op =='display'}
+<style>
+    i.icon-edit{
+        color: #3b8db2;
+        float: right;
+    }
+</style>
+<div class="panel panel-info">
+    <div class="panel-heading">筛选</div>
+    <div class="panel-body">
+        <form action="./index.php" method="get" class="form-horizontal" role="form">
+            <input type="hidden" name="c" value="site" />
+            <input type="hidden" name="a" value="entry" />
+            <input type="hidden" name="m" value="amouse_hufen" />
+            <input type="hidden" name="do" value="orders" />
+
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">关键字</label>
+                <div class="col-sm-9">
+                    <input class="form-control" placeholder="搜索订单编号 或者 昵称" name="keyword" type="text" value="{$_GPC['keyword']}">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2  control-label">下单时间</label>
+                <div class="col-sm-8">
+                    {php echo tpl_form_field_daterange('date',array('start'=>date('Y-m-d', $starttime),'end'=>date('Y-m-d', $endtime)))}
+                </div>
+
+                <div class="col-xs-12 col-sm-2 col-lg-2">
+                    <button class="btn btn-primary pull-left span2">
+                        <i class="icon-search icon-large"></i> 搜索
+                    </button>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+<div style="padding: 0 15px 0  15px;">
+    <div class="row-fluid">
+        <div class="span8 control-group">
+            <a class="btn btn-default" href="{php echo $this->createWebUrl('orderDownload',array())}"><i class="icon-download-alt"></i>导出订单信息</a>
+            <a class="btn btn-default" href="{php echo $this->createWebUrl('orders',array('op' => 'display'))}">全部</a>
+            <a class="btn btn-default" href="{php echo $this->createWebUrl('orders',array('op' => 'display','status'=>0))}">已下单</a>
+            <a class="btn btn-default" href="{php echo $this->createWebUrl('orders',array('op' => 'display','status'=>1))}">已支付</a>
+            <a class="btn btn-default" href="{php echo $this->createWebUrl('orders',array('op' => 'display','status'=>2))}">已关闭</a>
+        </div>
+    </div>
+</div>
+<div style="padding:15px;">
+    <form id="form2" class="form-horizontal" method="post">
+        <table class="table table-hover">
+            <thead class="navbar-inner">
+            <tr>
+                <th style="width:5%;">全选</th>
+               <!-- <th style="width:10%;">订单号</th>-->
+                <th style="width:10%;">姓名</th>
+                <th style="width:10%;">Openid</th>
+                <th style="width:10%;">名片微信号</th>
+                <th style="width:12%;">购买套餐</th>
+                <th style="width:10%;">时间</th>
+                <th style="width:5%;">状态</th>
+                <th style="width:15%;">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {loop $list $v}
+            <tr>
+                <td> <input type="checkbox" value="{$v['id']}" name="delete[]"> </td>
+              <!--  <td> {$v['ordersn']} </td>-->
+                <td title="{$v['username']}"> {$v['nickname']}</td>
+                <td title="{$v['openid']}"> {$v['openid']}</td>
+                <th title="{$v['btitle']}">{$v['btitle']}</th>
+                <th title="{$v['atitle']}">{$v['atitle']}</th>
+                <td>{php echo date('Y-m-d H:i',$v['createtime'])}</td>
+                <td>
+                    {if $v['status'] ==0}<span class="label label-info">已下单</span>{/if}
+                    {if $v['status'] ==1}<span class="label label-info">已付款</span>{/if}
+                    {if $v['status'] ==2}<span class="label label-success">未付款</span>{/if}
+                </td>
+                <td>
+                    <a href="{php echo $this->createWebUrl('orders', array('op' => 'detail', 'id' => $v['id']))}" title="详情" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" title="" data-original-title="详情" >
+                        <i class="fa fa-paw"></i>
+                    </a>
+                    <a href="{php echo $this->createWebUrl('export2', array('id' => $v['id']))}" title="导出" class="btn btn-default btn-sm">
+                        <i class="fa fa-print"></i>
+                    </a>
+                    <a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('orders', array('id' => $v['id'],'op'=>'del'))}" title="删除" class="btn btn-default btn-sm">
+                        <i class="fa fa-times"></i>
+                    </a>
+                </td>
+            </tr>
+            {/loop}
+            <tr>
+                <td colspan="6">
+                    <input type="checkbox"  onclick="var ck = this.checked;$(':checkbox').each(function(){this.checked = ck});" name=''>
+                    <input class="btn btn-primary" type="submit" value="删除" name="submit" >
+                </td>
+                <td></td>
+                <td></td>
+            </tr>
+
+            </tbody>
+        </table>
+        <div style="margin:0 auto;margin-right: auto;vertical-align: middle;text-align: center;" >
+            {$pager}
+        </div>
+        <input type="hidden" name="token" value="{$_W['token']}" />
+        <input type="hidden" value="del" name="op">
+        <input type="hidden" name="c" value="site" />
+        <input type="hidden" name="a" value="entry" />
+        <input type="hidden" name="m" value="amouse_hufen" />
+        <input type="hidden" name="do" value="orders" />
+    </form>
+
+    <script>
+        $('#form2').submit(function(){
+            if($(":checkbox[name='delete[]']:checked").size() > 0){
+                return confirm('删除后不可恢复，您确定删除吗？');
+            }
+            return false;
+        });
+
+
+        function trimStr(str){
+            return str.replace(/(^\s*)|(\s*$)/g,"");
+        }
+    </script>
+
+</div>
+{elseif $op == 'detail'}
+<div class="main">
+    <form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" onsubmit="return validate(this);">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                操作订单
+            </div>
+            <div class="panel-body">
+                <input type="hidden" name="id" value="{$item[id]}">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">订单号</label>
+                    <div class="col-sm-8 col-xs-12">
+                        <input type="text" name="ordersn" readonly class="form-control" value="{$item['ordersn']}" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">客户微信号:</label>
+                    <div class="col-sm-8 col-xs-12">
+                        <input type="text" name="ordersn" readonly class="form-control" value="{$btitle}" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">套餐:</label>
+                    <div class="col-sm-8 col-xs-12">
+                        {if empty($meal) && $item['notifytime']>0}
+                        <input type="text" readonly class="form-control" value="下载软件套餐--{$s['sprice']}元" />
+                        {else}
+                        <input type="text" readonly class="form-control" value="{$meal['title']}--{$meal['price']}元" />
+                        {/if}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">总价:</label>
+                    <div class="col-sm-4">
+                        <span class="label label-info"><script>
+				var reg=/^[0-9]*$/;
+				var tt={$item['price']};
+				if(!reg.test(tt)){
+					tt = tt<0?0:tt.toFixed(1);
+				}else{
+					tt = tt<0?0:tt;
+				} 
+				document.write(tt);
+			</script>  元</span>
+                    </div>
+
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">订单状态:</label>
+                    <div class="col-sm-4">
+                        <span class="label label-info">
+                            {if $item['status'] ==0}<span class="label label-info">已下单</span>{/if}
+                            {if $item['status'] ==1}<span class="label label-info">已付款</span>{/if}
+                            {if $item['status'] ==2}<span class="label label-success">未付款</span>{/if}
+                            {if $item['status'] ==-1}<span class="label label-success">已关闭</span>{/if}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+                    <input type="hidden" name="id" value="{$item[id]}">
+                    <input type="hidden" name="token" value="{$_W['token']}" />
+                    <div class="col-sm-4">
+                        {if $item['status'] != 1}
+                        <button type="submit" class="btn btn-primary" onclick="return confirm('确认完成此订单吗？'); return false;" name="finish" onclick="" value="yes">确认订单</button>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        <button type="submit" class="btn  label-danger" name="close" onclick="return confirm('确认关闭此订单，确认吗？'); return false;" value="关闭">关闭订单</button>
+                        {/if}
+                    </div>
+                </div>
+
+            </div>
+    </form>
+</div>
+{/if}
+</div>

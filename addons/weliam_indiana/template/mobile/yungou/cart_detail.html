@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="weixin embed">
+	<head>
+		{template wxshare}
+		  <META HTTP-EQUIV="Pragma" CONTENT="no-cache">    
+		  <META HTTP-EQUIV="Cache-Control" CONTENT="no-cache">
+		  <META HTTP-EQUIV="Expires" CONTENT="0">
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<title>
+			我的购物车 - {php echo $this->module['config']['sname']}
+		</title>
+		<meta name="description" content="1元夺宝">
+		<meta name="keywords" content="1元夺宝">
+		<meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, width=device-width">
+		<meta content="telephone=no" name="format-detection">
+		<link href="../addons/weliam_indiana/secondstatic/css/newcomm.css" rel="stylesheet" type="text/css">
+		<link href="../addons/weliam_indiana/secondstatic/css/common.css" rel="stylesheet">
+		<link href="../addons/weliam_indiana/secondstatic/css/cart.css" rel="stylesheet">
+		<script language="javascript" src="../addons/weliam_indiana/secondstatic/js/jquery.js"></script>
+	</head>
+	<body>
+		
+		<form id="form1" action="{php echo $this->createMobileUrl('cart',array('op'=>'totalcart'))}" method="post">
+			
+		<div class="m-simpleHeader" id="pro-view-0">
+			<a href="javascript:void(0);" data-pro="back" data-back="true" class="m-simpleHeader-back">
+				<i class="ico ico-back">
+				</i>
+			</a>
+			<h1>
+				清单
+			</h1>
+		</div>
+	  
+		<div class="m-simpleFooter" id="pro-view-3" style="padding-bottom: 56px;">
+			<div data-pro="text" class="m-simpleFooter-text">
+				<div id="pro-view-4">
+					共<span id="goodsnum">{$myCart_num}</span>件商品，总计：<em class="txt-red" style="color: #FF6500;" id="total">{$money}</em>&nbsp;夺宝币(<span id="re">点击刷新</span>)
+				</div>
+			</div>
+			<div data-pro="ext" class="m-simpleFooter-ext" >
+				<a class="w-button w-button-main {if empty($myCart)} w-button-disabled{/if}" style="background: #FF6500;" id="submit">
+					提交
+				</a>
+			</div>
+		</div>
+		<div class="m-cart" id="pro-view-5">
+
+			{loop $myCart $goods}
+			<input type="hidden" id="addnum{$goods['id']}"  value="{$goods['init_money']}">
+			<div class="item"  id="div{$goods['id']}">
+				<div class="pic">
+					<a href="{php echo $this->createMobileUrl('detail', array('id' => $goods['goodsid']))}">
+						<img src="{php echo tomedia($goods['picarr']);}" alt="">
+					</a>
+				</div>
+				<div class="text">
+					<h1 class="title">
+						<a href="{php echo $this->createMobileUrl('detail', array('id' => $goods['goodsid']))}">
+							(第{$goods['periods']}期){$goods['title']}
+						</a>
+					</h1>
+					<div>
+						总需 {$goods['zong_codes']} 人次，剩余最大购买次数 <em class="remain" id="shengyu{$goods['id']}">{if $goods['shengyu_codes'] >= $goods['left'] && $goods['left']!= -1} {$goods['left']} {else}{$goods['shengyu_codes']}{/if}</em> 人次
+					</div>
+					<div>
+						参与人次
+						<div class="w-number" id="pro-view-7">
+							<input class="w-number-input" type="tel" id="num{$goods['id']}" name="num[]" value="{if $goods['left']==0}0{else}{$goods['num']}{/if}">
+							<input type="hidden" id="period_number{$goods['id']}" name="goods[]" value="{$goods['period_number']}">
+							<input type="hidden" id="title{$goods['id']}"  value="{$goods['title']}">
+							<a class="w-number-btn w-number-btn-plus" id="up{$goods['id']}">
+								+
+							</a>
+							<a class="w-number-btn w-number-btn-minus" id="down{$goods['id']}">
+								-
+							</a>
+						</div>
+					</div>
+					<a href="javascript:void(0);" data-pro="del" class="del" id="remove{$goods['id']}">
+						<i class="ico ico-del" >
+						</i>
+					</a>
+				</div>
+			</div>
+			<script>
+				$('#re').bind('click',function(){
+					location.reload();
+				});
+				$('#submit').bind('click',function(){
+					var total = $('#total').html();
+						total = parseInt(total);
+					if(!isNaN(total)){
+						if(total<=0){
+							tip("并没有填写购买量！",true);
+							return false;
+						}
+					}else{
+						tip("错误！",true);return false;
+					}
+					setTimeout(function(){$('#form1').submit();}, 300);
+					
+				});
+					
+				$("#num{$goods['id']}").change(function(){
+					var num = document.getElementById("num{$goods['id']}").value;
+					var shengyu = $('#shengyu{$goods['id']}').html();
+						shengyu = parseInt(shengyu);
+					var init_money = $('#addnum{$goods['id']}').val(); 
+						if(isNaN(num)){
+							if(init_money==10){
+								num = 10;
+							}else{
+								num = 1;
+							}
+							$('#num{$goods['id']}').val(num);
+						}else{
+							if(init_money==10){
+							if(num<10 && num>0){
+							   num=10;
+							}else{
+								var yu = num%10;
+								if(yu>=5){
+									num = num-yu+10;
+								}else{
+									num = num-yu;
+								}
+							}
+							
+							if(shengyu<num){
+								$('#num{$goods['id']}').val(shengyu);
+								num = shengyu;
+								tip("兄弟,剩的不多啦!",true);
+										
+							}
+							$('#num{$goods['id']}').val(num);
+						}else{
+							if(num<=0){
+									tip("购买0个有意思吗？",true);
+									return false;
+								}
+								if(shengyu<num){
+									$('#num{$goods['id']}').val(shengyu);
+									num = shengyu;
+									tip("兄弟,剩的不多啦!",true);
+									
+								}
+						}
+						}
+						
+						
+					var periodnumber = $('#period_number{$goods['id']}').val();
+					var title = $('#title{$goods['id']}').val();
+					$.post("{php echo $this->createMobileUrl('cart',array('op'=>'tocart','type'=>'input'))}",{num:num,periodnumber:periodnumber,title:title},function(d){
+							var goodsnum = d.num;
+							var allmoney = d.money;
+							$('#total').html(allmoney);
+							$('#goodsnum').html(goodsnum);	
+					},"json");
+				
+				});
+				function inputnum{$goods['id']}(){}
+				$("#up{$goods['id']}").bind('click',function(){
+					var num = $('#num{$goods['id']}').val();
+					var shengyu = $('#shengyu{$goods['id']}').html();
+					var init_money = $('#addnum{$goods['id']}').val(); 
+						if(init_money==10){
+							addnum = 10;
+						}else{
+							addnum = 1;
+						}
+						num = parseInt(num);
+						shengyu = parseInt(shengyu);
+					if(shengyu<=num){
+						tip("兄弟,剩的不多啦!",true);
+						return false;
+					}
+					num =  parseInt(num) + addnum; 
+					$('#num{$goods['id']}').val(num);
+					var periodnumber = $('#period_number{$goods['id']}').val();
+					var title = $('#title{$goods['id']}').val();
+					$.post("{php echo $this->createMobileUrl('cart',array('op'=>'tocart','type'=>'up'))}",{periodnumber:periodnumber,title:title},function(d){
+							var goodsnum = d.num;
+							var allmoney = d.money;
+							$('#total').html(allmoney);
+							$('#goodsnum').html(goodsnum);	
+					},"json");
+					
+				});
+				$("#down{$goods['id']}").bind('click',function(){
+					var num = $('#num{$goods['id']}').val();
+					var init_money = $('#addnum{$goods['id']}').val(); 
+						if(init_money==10){
+							addnum = 10;
+						}else{
+							addnum = 1;
+						}
+					num =  parseInt(num) - addnum; 
+					if(num<=0){
+						num=1;
+						tip("购买0个有意思吗？",true);
+						return false;
+					}
+					$('#num{$goods['id']}').val(num);
+					var money = $('#total').html();
+					if(num>0){
+						var periodnumber = $('#period_number{$goods['id']}').val();
+						var title = $('#title{$goods['id']}').val();
+						$.post("{php echo $this->createMobileUrl('cart',array('op'=>'tocart','type'=>'down'))}",{periodnumber:periodnumber,title:title},function(d){
+							var goodsnum = d.num;
+							var allmoney = d.money;
+							$('#total').html(allmoney);
+							$('#goodsnum').html(goodsnum);
+						},"json");
+						}
+					});
+					//remove
+					$("#remove{$goods['id']}").bind('click',function(){
+					var periodnumber = $('#period_number{$goods['id']}').val();
+					var title = $('#title{$goods['id']}').val();
+					$.post("{php echo $this->createMobileUrl('cart',array('op'=>'tocart','type'=>'remove'))}",{periodnumber:periodnumber,title:title},function(d){
+						if(d.result==1){
+							var goodsnum = d.num;
+							var allmoney = d.money;
+							$('#total').html(allmoney);
+							$('#goodsnum').html(goodsnum);
+							$('#count').html("<b>"+d.num+"</b>");
+							$('#div{$goods['id']}').hide();
+							$('#div{$goods['id']}').remove();
+							if(allmoney==0){
+								$('#submit').addClass('w-button-disabled');
+								$('#s').css('display','block');
+							}
+						}
+					},"json");
+				});
+			</script>
+			{/loop}
+		</div>
+		</form>
+		<!--
+			作者：916345570@qq.com
+			时间：2016-01-16
+			描述：底部栏
+		-->
+		<div class="footer clearfix" style="bottom: 0px;">
+		    <ul>
+		        <li class="f_home"><a href="{php echo $this->createMobileUrl('allgoods');}" ><i></i>云购</a></li>
+		        <li class="f_announced"><a href="{php echo $this->createMobileUrl('newannounce');}" ><i></i>最新揭晓</a></li>
+		        <li class="f_single"><a href="{php echo $this->createMobileUrl('allshare');}"><i></i>晒单</a></li>
+		        <li class="f_car"><a id="btnCart" href="{php echo $this->createMobileUrl('cart',array('op'=>'cart_detail'));}" class="hover"><i id="count">{if $myCart_num!=0}<b>{$myCart_num}</b>{/if}</i>购物车</a></li>
+		        <li class="f_personal"><a href="{php echo $this->createMobileUrl('person');}"><i></i>我的云购</a></li>
+		    </ul>
+		</div>
+		<!--
+        	作者：916345570@qq.com
+        	时间：2016-01-18
+        	描述：商品结算栏
+        -->
+		<div class="m-cart" id="s" {if empty($myCart)}style="display:block";{else}style="display:none";{/if}><div class="empty" id="pro-view-6">您的清单里还没有任何商品，<a href="{php echo $this->createMobileUrl('index')}">马上去逛逛~</a></div></div>
+	</body>
+	{template 'common_message'}
+</html>

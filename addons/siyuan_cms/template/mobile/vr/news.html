@@ -1,0 +1,200 @@
+﻿{template 'header'}
+<div class="siyuan_top weui-row">
+<div class="weui-col-15"><a href="javascript:history.go(-1)"><i class="fa fa-angle-left f-32"></i></a></div>
+<div class="weui-col-70">{$set['name']}</div>
+<div class="weui-col-15"><a class="cd-bouncy-nav-trigger" href="#0"><img src="{$_W['siteroot']}addons/siyuan_cms/ui/img/daohang.png"></a></div>
+</div>
+<div class="cd-bouncy-nav-modal">
+<nav>
+<ul class="cd-bouncy-nav">
+{loop $menu $caidan}
+<li><a href="{$caidan['url']}"><img src="{$_W['attachurl']}{$caidan['thumb']}"><p>{$caidan['title']}</p></a></li>
+{/loop}
+</ul>
+</nav>
+<a href="#0" class="cd-close fa fa-power-off">返回</a>
+</div>
+<div class="top_nav">
+<div class="top_nav_more"><i class="fa fa-angle-left"></i></div>
+<div class="nav_list">
+<div class="topnav_item"><a href="{php echo $this->createMobileUrl('vr')}"><em>全部</em></a></div>
+{loop $vr_fenlei $row}
+<div class="topnav_item {if $news['vid'] ==$row['id']}top_nav_on{/if}"><a href="{php echo $this->createMobileUrl('vr', array('act' => 'list','vid' => $row['id']))}"><em>{$row['name']}</em></a></div>
+{/loop}
+</div>
+</div>
+</div>
+<div style="height:80px;"></div>
+<div id="player_iframe"><iframe width="100%" height="100%" frameborder="0"  src="{$news['url']}" allowfullscreen="" style="margin-bottom:-10px;"></iframe></div>
+<div class="view_cmt" id="view_cmt" data-isshow="0">查看简介与评论<em></em></div>
+<script>
+(function($){
+	var w_w = $(window).width();
+	var h = parseInt($(window).height()-165);
+	$('#player_iframe iframe').attr({'width':'100%','height':h+'px'});
+	$('#view_cmt').click(function(){
+		var t = $(this);
+		if(t.attr('data-isshow') === '0'){
+			$('#player_iframe').slideUp();
+			t.attr('data-isshow','1');
+			t.addClass('current');
+		}else{
+			$('#player_iframe').slideDown();
+			t.attr('data-isshow','0');
+			t.removeClass('current');
+		}
+		
+	});
+})(jQuery);
+</script>
+<div class="module_01" style="margin-top:10px;" id="pinglun_body">
+<div class="hd"><span class="tit">介绍</span></div>
+<div class="bd">{$news['body']}</div>
+</div>
+<div class="module_01">
+<div class="hd"><span class="tit">评论<div class="num">(<span>{$news['pinglun']}</span>)</div></span></div>
+{if $user !=='0'}
+<div class="msg-post">
+<input type="text" id="content" name="content" class="comment-input" placeholder="文明上网，理性发言！" />
+<button id="save_btn" onclick="doSave(this)" class="msg-post-button">评论</button>
+</div>
+{/if}
+</div>
+<div class="comment-sub" id="dvContent">
+<ul>
+{if $reply}
+{loop $reply $key $rep}
+<li class="bottom_line">
+<div class="comment_top">
+<div class="comment-pic">
+<img src="{$rep['avatar']}">
+</div>
+<div class="commenter">
+<div class="comment-name">{$rep['name']}</div>
+<div class="comment-time">{php echo date('m-d H:i', $rep['time'])}</div>
+<span class="reply">{if $user !=='0'}<a onClick="doHuifu({$rep['id']})" id="show-custom">回复</a>{/if}</span></div>
+</div>
+<div class="comment-content">
+<p>{$rep['content']}</p>
+{if !empty($rep['mreply'])}
+<div class="replys">
+<i class="pointTop"></i>
+{loop $rep['mreply'] $mre}
+<div class="replyler">
+<div class="reply_cont">
+<p class="comter"><span class="reply_name">{$mre['name']}</span><span class="remark">：{$mre['content']}</span></p>
+</div>
+</div>
+{/loop}
+</div>
+{/if}
+</div>
+</li>
+{/loop}
+{else}
+<div class="no_pinglun"><img src="{$_W['siteroot']}addons/siyuan_cms/ui/img/null.png"></div>
+{/if}
+<div class='demos-content-padded'><a id="aMore" href="#" class="cont-more">点击加载更多</a></div>
+</ul>
+</div>
+<script language="javascript" type="text/javascript">
+var totalpage = {$total_page}, currentpage = 1;
+if (totalpage < 2) $('#aMore').remove();
+else
+$('#aMore').click(function () {
+$.ajax({ url: '{php echo $this->createMobileUrl("vr", array("act" => "pinglun_list","newsid" => $news["id"]))}', type: 'POST', data: { currentpage: currentpage + 1}, complete: function (xhr) {
+if (xhr.status == '200') {
+currentpage++;
+if (currentpage > totalpage) $('#aMore').remove($.toast("没有评论了...", "text"));
+$(xhr.responseText).insertBefore('#aMore');
+}
+else $.toast("没有评论了...", "text");
+}
+});
+return false;
+});
+</script>
+</div>
+<div class="footFixed blackk">
+<div class="reply_hd clearfix" id="reply_hd">
+<ul>
+<li><a href="javascript:;" onclick="document.getElementById('mcover').style.display='block';"><span class="share">分享</span></a></li>
+<li><span class="zan">{$news['yuedu']}</span></li>
+<li><a href="#pinglun_body" class="num">{$news['pinglun']}</a></li>
+<li><a href="#pinglun_body" class="btn">写评论</a></li>
+</ul>
+</div>
+</div>
+<div id="mcover" onclick="document.getElementById('mcover').style.display='';" style="display: none;">
+<img src="{$_W['siteroot']}addons/siyuan_cms/img/fenxiang.jpg">
+</div>
+<script>
+function doHuifu(t) {
+$(document).on("click", "#show-custom", function() {
+$.prompt({
+title: "请输入回复内容",
+onOK: function(text) {
+$.ajax({
+type:'post',
+dataType:'json',
+url:"{php echo $this->createMobileUrl('vr', array('act' => 'form_pinglun','id' => $id,'num' => $news['pinglun']))}",
+data:{content:text,pid:t},
+success:function(msg){
+if(msg.status==1){
+$.toast("评论成功", "text");
+window.location.href="{php echo $this->createMobileUrl('vr', array('act' => 'news','id' => $news['id']))}";
+}else{
+$.toast("未评论成功", "text");
+window.location.href=window.location.href;
+}
+}
+})
+},
+onCancel: function() {
+console.log("取消了");
+},
+});
+});
+}
+function doSave() {
+if(!$("#content").val()) {
+$.toast("请填写评论内容！", "text");
+return;
+}
+$.ajax({
+type:'post',
+dataType:'json',
+url:"{php echo $this->createMobileUrl('vr', array('act' => 'form_pinglun','id' => $id,'num' => $news['pinglun']))}",
+data:{content:$("#content").val()},
+success:function(msg){
+if(msg.status==1){
+$.toast("评论成功", "text");
+window.location.href="{php echo $this->createMobileUrl('vr', array('act' => 'news','id' => $news['id']))}";
+}else{
+$.toast("未评论成功", "text");
+window.location.href=window.location.href;
+}
+}
+})
+}
+</script>
+{php echo register_jssdk(false);}
+<script type="text/javascript">
+wx.ready(function () {
+sharedata = {
+title: "{$news['title']}",
+desc: "{$news['title']}",
+link: window.location.href,
+imgUrl: "{$_W['attachurl']}{$news['thumb']}",
+success: function (res) {},
+cancel: function(){
+}
+};
+wx.onMenuShareAppMessage(sharedata);
+wx.onMenuShareTimeline(sharedata);
+wx.onMenuShareQQ(sharedata);
+wx.onMenuShareWeibo(sharedata);
+wx.onMenuShareQZone(sharedata);
+});
+</script>
+{template 'footer1'}

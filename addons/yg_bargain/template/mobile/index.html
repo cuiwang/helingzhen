@@ -1,0 +1,132 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0 , maximum-scale=1.0, user-scalable=0">
+<title>{$reply['title']}</title>
+<link rel="stylesheet" type="text/css" href="{MODULE_URL}template/mobile/images/css.css">
+<script src="{MODULE_URL}template/mobile/images/jquery-1.8.0.min.js" type="text/javascript"></script>
+<meta name="viewport" content="width=640, user-scalable=no, target-densitydpi=device-dpi">
+{php echo register_jssdk(false);}
+<script>
+	wx.ready(function () {
+		sharedata = {
+			  title: "{php echo $reply['sharetitle']}",
+                desc: "{php echo strip_tags(htmlspecialchars_decode($reply['sharedesc']));}",
+			    link: "{php echo $_W['siteroot'].str_replace('./','app/',$this->createMobileurl('index',array('id' => $id)))}",
+				imgUrl: "{php echo toimage($reply['sharepic'])}",
+			success: function(){
+				//alert('success');
+				 //window.location.href="{php echo $this->createMobileUrl('makepage');}";
+				   var surl = "{php echo $this->createMobileUrl('updatecount');}";
+                    $.ajax({
+                        type: "POST",
+                        url: surl,
+                        success: function (msg) {
+							
+                        }
+                    });
+			},
+			cancel: function(){
+				//alert('cancel');
+			}
+		};
+		
+		wx.onMenuShareAppMessage(sharedata);
+		wx.onMenuShareTimeline(sharedata);
+	});
+	
+	</script>
+</head>
+<body>
+<div id="wrapper">
+<img src="{php echo toimage($reply['toppic'])}" width="100%" />
+<div class="tipsnav">
+    <p>{$reply['advertising']}</p>
+    </div>
+  <div style="height:14px;background-color:#8c0e32;"></div>
+  {loop $shoplist $row}
+      <div class="products clearfix" style="position: relative;">
+    <img src="{php echo toimage($row['listpic'])}">
+            <div>
+                <p class="p1">{$row['sname']}</p>
+                <p class="p2"><span class="red">{$row['pnum']}人参与</span></p>
+                <p class="p2">价格：￥{$row['price']}</p>
+                <p class="p3">砍后价格：<span class="red">￥{$row['bgprie']}</span></p>
+            </div>
+			       {if $row['state']=="进行中"}
+                        <a  class="btncut" data="{php echo $this->createMobileUrl('bargain',array('id'=>$id,'shopid'=>$row['id']))}" onclick="showcheck(this,{$row['id']})"></a>
+                        <div style="position: absolute;left: -7px;right: 0;border: none;">
+                        进行中
+                       </div>
+					 {else}
+						<a href="#" class="btncut"  onclick="showalert()"></a>
+                        <div style="position: absolute;left: -7px;right: 0;border: none;">
+						{$row['state']}
+                       </div>
+					  {/if}
+            </div>
+	{/loop}
+			
+</div>
+<div class="bnav">
+  <a href="{php echo $this->createMobileUrl('index',array('op'=>'virtual','id'=>$id))}">{$shoptypelist[0]['typename']}</a>
+    <a href="{php echo $this->createMobileUrl('index',array('op'=>'reality','id'=>$id))}" >{$shoptypelist[1]['typename']}</a>
+</div>
+
+<div id="bgblack" style="height: 4727px;"></div>
+<div id="rulepop" style="top: 4175px;">
+    <span onclick="hiderule()"></span>
+    <p style="text-align:center; font-size:25px; color:#493a3e; padding-top:585px; line-height:1.5;"></p>
+</div>
+<script src="{MODULE_URL}template/mobile/images/jquery-1.8.3.min.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+    var commonjspath = '{MODULE_URL}template/mobile/images';
+</script>
+<script src="{MODULE_URL}template/mobile/images/common.js" type="text/javascript" type="text/javascript"></script>
+<script>
+function showalert(){
+   tusi("活动已结束!");
+}
+function showcheck(obj,shopid){
+
+var url = $(obj).attr('data');
+
+   $.ajax({
+        type: "post",
+        url: "{php echo $this->createMobileUrl('checkshop')}&shopid="+shopid,
+        dataType : "json",
+        data:"",
+        success: function(data){
+           
+            if(data.status == 100) {
+                tusi("已经对"+data.sname+"发起了砍价");
+                setTimeout(function(){document.location.reload();},1888);
+            }else if(data.status == 200){
+               window.location.href=url;
+            }else{
+                tusi("错误");
+               // setTimeout(function(){document.location.reload();},1888);
+            }
+        }
+    });
+}
+    var hh=$(document).height();
+    $("#bgblack").height(hh)
+
+    function showrule(){
+        $("#bgblack,#rulepop").show();
+    }
+    function hiderule(){
+        $("#bgblack,#rulepop").hide();
+    }
+
+$(window).scroll(function(){
+var t=$(window).scrollTop();
+$("#rulepop").css('top',t+116);
+})
+
+</script>
+</body>
+</html>

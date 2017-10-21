@@ -1,0 +1,187 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+    <li {if $op=='list' }class="active" {/if}>
+        <a href="{php echo $this->createWebUrl('property', array('op' => 'list'));}">物业管理</a>
+    </li>
+    <li {if $op=='add' }class="active" {/if}>
+        <a href="{php echo $this->createWebUrl('property', array('op' => 'add'));}">{if $_GPC['id']}修改物业{else}新增物业{/if}</a>
+    </li>
+</ul>
+<form action="" class="form-horizontal form" method="post" role="form" enctype="multipart/form-data" onsubmit="return check(this);">
+    <input type="hidden" name="id" value="{$item['id']}">
+    <input type="hidden" name="regionid" value="" />
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">物业信息</h3>
+        </div>
+        <div class="panel-body">
+            <div class="form-group">
+                <label for="title" class="col-sm-2 control-label">物业名称</label>
+                <div class="col-sm-4">
+                    <input type='text' name='title' id='title' class="form-control" value="{$item['title']}" placeHolder="请输入物业名称" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="telphone" class="col-sm-2 control-label">物业电话</label>
+                <div class="col-sm-4">
+                    <input type="text" name="telphone" value="{$item['telphone']}" id='telphone' class="form-control" placeHolder="请输入物业电话">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="linkmen" class="col-sm-2 control-label">物业图片</label>
+                <div class="col-sm-5">
+                    {php echo tpl_form_field_image('thumb', $item['topPicture'])}
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="linkway" class="col-sm-2 control-label">物业介绍</label>
+                <div class="col-sm-8">
+                    {php echo tpl_ueditor('content', $item['content']);}
+                    <!--<textarea name="content" id="content" class="form-control" rows="8">{$item['content']}</textarea>-->
+                </div>
+            </div>
+            {if !$user['companyid'] || !$user['regionid']}
+            <div class="form-group">
+                <label for="" class="col-sm-2 control-label">省市区</label>
+                <div class="col-sm-5">
+                    {php echo tpl_form_field_district('birth',array('province' => $item['province'],'city' => $item['city'],'dist' => $item['dist']))}
+                </div>
+            </div>
+            <div class="form-group region" {if !$regs}style="display: none"{/if}>
+                <label for="" class="col-sm-2 control-label">小区</label>
+                <div class="col-sm-10 content">
+                {if $regs}
+                    <label class="checkbox-inline">
+                        <input type="checkbox" id="checkAll" name="checkAll" data-group="regionid">全部
+                    </label>
+                    {loop $regions $region}
+                    <label class="checkbox-inline">
+                        <input type="checkbox" id="regionid" value="{$region['id']}" data-group="regionid" {if @in_array($region[ 'id'], $regs)}checked='checked' {/if}> {$region['city']}{$region['dist']}{$region['title']}
+                    </label>
+                    {/loop}
+
+
+                {/if}
+
+                </div>
+            </div>
+            {/if}
+        </div>
+        <div class="form-group">
+            <label for="" class="col-sm-2 control-label"></label>
+            <div class="col-sm-5">
+                <button type="submit" class="btn btn-primary span3" name="submit" value="提交">提交</button>
+                <input type="hidden" name="token" value="{$_W['token']}" />
+            </div>
+        </div>
+    </div>
+
+</form>
+<script type="text/javascript">
+function check(form) {
+    if (!form['title'].value) {
+        alert('请输入物业名称。');
+        return false;
+    }
+    if (!form['telphone'].value) {
+        alert('请输入正确的电话号码！');
+        return false;
+    }
+    var regionids = [];
+    $("input[id='regionid']:checked").each(function(){
+        var lastid = $(this).val();
+        regionids.push(lastid);
+    })
+    regionids.join(",");
+    console.log(regionids);
+    $("input[name='regionid']").val(regionids);
+    return true;
+}
+{if $id}
+$(function() {
+    $("#checkAll").click(function() {
+        var checked = $(this).get(0).checked;
+        var group = $(this).data('group');
+        $("#regionid[data-group='" +group + "']").each(function(){
+            $(this).get(0).checked = checked;
+        })
+    });
+});
+    {/if}
+$(function() {
+    //省
+    $('.tpl-province').change(function(){
+        var province =$('.tpl-province').val();
+        $.getJSON("{php echo $this->createWebUrl('cregion',array('op'=> 'company'))}",{province:province},function(data){
+            var region ="";
+            region += "<label class=\"checkbox-inline\" >";
+            region += "<input type=\"checkbox\" id=\"checkAll\" name=\"checkAll\" data-group=\"regionid\" />全部";
+            region += "</label>";
+            for(var o in data){
+                region += "<label class=\"checkbox-inline\" >";
+                region += "<input type='checkbox' id='regionid' value='"+data[o].id+"' data-group='regionid' >"+data[o].title;
+                region += "</label>";
+            }
+            $('.content').html(region);
+            $('.region').show();
+            $("#checkAll").click(function() {
+                var checked = $(this).get(0).checked;
+                var group = $(this).data('group');
+                $("#regionid[data-group='" +group + "']").each(function(){
+                    $(this).get(0).checked = checked;
+                })
+            });
+        })
+    })
+    //市
+    $('.tpl-city').change(function(){
+        var city =$('.tpl-city').val();
+        $.getJSON("{php echo $this->createWebUrl('cregion',array('op'=> 'company'))}",{city:city},function(data){
+            var region ="";
+            region += "<label class=\"checkbox-inline\" >";
+            region += "<input type=\"checkbox\" id=\"checkAll\" name=\"checkAll\" data-group=\"regionid\"  />全部";
+            region += "</label>";
+            for(var o in data){
+                region += "<label class=\"checkbox-inline\" >";
+                region += "<input type='checkbox' id='regionid' value='"+data[o].id+"' data-group ='regionid'>"+data[o].title;
+                region += "</label>";
+            }
+            $('.content').html(region);
+            $('.region').show();
+            $("#checkAll").click(function() {
+                var checked = $(this).get(0).checked;
+                var group = $(this).data('group');
+                $("#regionid[data-group='" +group + "']").each(function(){
+                    $(this).get(0).checked = checked;
+                })
+            });
+        })
+    })
+    //区
+    $('.tpl-district').change(function(){
+        var dist =$('.tpl-district').val();
+        $.getJSON("{php echo $this->createWebUrl('cregion',array('op'=> 'company'))}",{dist:dist},function(data){
+            var region ="";
+            region += "<label class=\"checkbox-inline\" >";
+            region += "<input type=\"checkbox\" id=\"checkAll\" name=\"checkAll\" data-group=\"regionid\"  />全部";
+            region += "</label>";
+            for(var o in data){
+                region += "<label class=\"checkbox-inline\" >";
+                region += "<input type='checkbox' id='regionid' value='"+data[o].id+"' data-group ='regionid'>"+data[o].title;
+                region += "</label>";
+            }
+            $('.content').html(region);
+            $('.region').show();
+            $("#checkAll").click(function() {
+                var checked = $(this).get(0).checked;
+                var group = $(this).data('group');
+                $("#regionid[data-group='" +group + "']").each(function(){
+                    $(this).get(0).checked = checked;
+                })
+            });
+        })
+    })
+
+});
+</script>
+{template 'common/footer'}

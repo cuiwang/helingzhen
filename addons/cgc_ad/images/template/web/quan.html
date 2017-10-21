@@ -1,0 +1,820 @@
+{template 'common/header'}
+
+<ul class="nav nav-tabs">
+	<li {if $op=='display'}class="active"{/if}><a href="{php echo $this->createWebUrl('quan')}">管理广告平台</a></li>
+	<li {if $op=='post' && empty($id)}class="active"{/if}><a href="{php echo $this->createWebUrl('quan',array('op'=>'post'))}">新建广告平台</a></li>
+	{if !empty($id)}
+	<li class="active"><a>编辑广告平台</a></li>
+	{/if}
+</ul>
+{if $op=='display'}
+	<div class="panel panel-default">
+
+		<div class="panel-heading">广告平台详细数据  |  总数:{$total}</div>
+
+		<div class="panel-body table-responsive" style="overflow:visible;">
+
+		    <form action="" method="post" onsubmit="">
+
+			<table class="table table-hover">
+
+				<thead class="navbar-inner">
+
+					<tr>
+
+						<th style="width:3%;" class="row-first">选择</td>
+
+						<th style="width:3%;">ID</th>
+
+						<th style="width:10%;">广告平台名称</th>
+
+						<th style="width:10%;">允许领钱时间</th>
+
+						<th style="width:8%;">用户总数</th>
+
+						<th style="width:8%;">广告总数</th>
+
+						<th style="width:8%;">广告总金额</th>
+
+						<th style="width:8%;">服务费率</th>
+
+						<th style="width:7%;">状态</th>
+
+						<th style="width:10%;">创建时间</th>
+
+						<th style="width:20%;">操作</th>
+
+					</tr>
+
+				</thead>
+
+				<tbody id="main">
+
+					{loop $list $row}
+
+					<tr>
+
+					    <td><input type="checkbox" name="select[]" value="{$row['id']}" /></td>
+
+					    <td style="white-space:normal;word-break:break-all">{$row['id']}</td>
+
+					    <td style="white-space:normal;word-break:break-all">{$row['aname']}</td>
+
+						<td style="white-space:normal;word-break:break-all">{$row['begin_time']}点 - {$row['over_time']}点</td>
+
+						 <td style="white-space:normal;word-break:break-all">{$row['user']}</td>
+
+						<td style="white-space:normal;word-break:break-all">{$row['adv']}个</td>
+
+						<td style="white-space:normal;word-break:break-all">{$row['adv_fee']}元</td>
+
+						<td style="white-space:normal;word-break:break-all">{$row['percent']}%</td>
+
+						<td style="white-space:normal;word-break:break-all">{if $row['status']==0}<span class="btn btn-danger">关闭</span>{/if}{if $row['status']==1}<span class="btn btn-info">开启</span>{/if}</td>
+
+						<td style="white-space:normal;word-break:break-all">{php echo date('Y年n月j日', $row['create_time']);}</td>
+
+						<td style="white-space:normal;word-break:break-all;overflow:visible;">
+							<div class="btn-group btn-group-sm">
+								<a class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-expanded="false" href="javascript:;">入口 <span class="caret"></span></a>
+								<ul class="dropdown-menu dropdown-menu-right" role="menu">
+									<li>
+										<a href="{$row['url']}" target="_blank"><i class="fa fa-external-link fa-fw"></i> 直接访问</a>
+									</li>
+									<li role="presentation">
+										<a href="javascript:;" onclick="displayUrl('{$row['url']}', '{$row['surl']}');"><i class="fa fa-link fa-fw"></i> 查看链接</a>
+									</li>
+									<li role="presentation">
+										<a href="javascript:;" onclick="displayQr('{php echo $_W['siteroot'] . 'web/'.substr($this->createWebUrl('qr', array('raw' => base64_encode($row['url']))),2)}');"><i class="fa fa-qrcode fa-fw"></i> 查看二维码</a>
+									</li>
+										<li role="presentation">
+										<a href="{php echo $_W['siteroot'] . 'web/'.substr($this->createWebUrl('adv', array('quan_id' => $row['id'])),2)}"><i class="fa fa-qrcode fa-fw"></i>广告管理</a>
+									</li>
+									<li role="presentation">
+										<a href="{php echo $_W['siteroot'] . 'web/'.substr($this->createWebUrl('member', array('quan_id' => $row['id'])),2)}"><i class="fa fa-qrcode fa-fw"></i>用户管理</a>
+									</li>
+								</ul>
+							</div>
+							<a class="btn btn-danger" href="{php echo $this->createWebUrl('stat',array('quan_id'=>$row['id']))}">数据统计</a>
+							<a href="{php echo $this->CreateWebUrl('quan',array('op'=>'post','id'=>$row['id']))}"><div class="btn btn-success">编辑</div></a>
+							<a href="{php echo $this->CreateWebUrl('quan',array('op'=>'del','id'=>$row['id']))}"><div class="btn btn-danger">删除</div></a>
+						</td>
+
+					</tr>
+
+					{/loop}
+
+				</tbody>
+
+			</table>
+
+
+			</form>
+
+	    </div>
+	    {$pager}
+	</div>
+		<script type="text/javascript">
+
+	require(['bootstrap'],function($){
+
+		$('.btn').hover(function(){
+
+			$(this).tooltip('show');
+
+		},function(){
+
+			$(this).tooltip('hide');
+
+		});
+
+	});
+	
+	
+	function displayUrl(lurl, surl) {
+		require(['jquery', 'util'], function($, u) {
+			var content = '<p class="form-control-static" style="word-break:break-all">菜单使用链接(需要oAuth): <br>' + lurl + '</p>';
+			content += '<p class="form-control-static" style="word-break:break-all">自动回复使用链接: <br>' + surl + '</p>';
+			var footer =
+					'<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>' +
+					'<button type="button" class="btn btn-primary">复制菜单链接</button>' +
+					'<button type="button" class="btn btn-success">复制自动回复链接</button>';
+			var diaobj = u.dialog('查看URL', content, footer);
+			diaobj.find('.btn-default').click(function() {
+				diaobj.modal('hide');
+			});
+			diaobj.on('shown.bs.modal', function(){
+				u.clip(diaobj.find('.btn-primary')[0], lurl);
+				u.clip(diaobj.find('.btn-success')[0], surl);
+			});
+			diaobj.modal('show');
+		});
+	}
+	function displayQr(url) {
+		require(['jquery', 'util'], function($, u) {
+			var content = '<div class="panel panel-default text-center"><img src="' + url + '" alt="活动地址二维码" class="img-rounded"></div>';
+			var footer =
+					'<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>';
+			var diaobj = u.dialog('查看URL二维码', content, footer);
+			diaobj.find('.btn-default').click(function() {
+				diaobj.modal('hide');
+			});
+			diaobj.modal('show');
+		});
+	}
+
+
+</script>
+{/if}
+{if $op=='post'}
+<link rel="stylesheet" href="../addons/jy_adv/js/sweetalert/sweetalert.css" type="text/css"/>
+<div class="main">
+	<form action="" method="post" class="form-horizontal form"
+		enctype="multipart/form-data">
+		<input type="hidden" name="id" value="{$item['id']}" />
+
+
+		<div class="panel panel-info">
+			<div class="panel-heading">
+				基本设置
+			</div>
+			<div class="panel-body">
+
+				{if !empty($id)}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+					<div class="col-sm-7 col-xs-12">
+						<a class="btn btn-info" href="{php echo $this->createWebUrl('adv',array('quan_id'=>$id))}">该平台的广告管理</a>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+					<div class="col-sm-7 col-xs-12">
+						<a class="btn btn-success" href="{php echo $this->createWebUrl('member',array('quan_id'=>$id))}">该平台的用户管理</a>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+					<div class="col-sm-7 col-xs-12">
+						<a class="btn btn-danger" href="{php echo $this->createWebUrl('stat',array('quan_id'=>$id))}">该平台的数据统计</a>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+					<div class="col-sm-7 col-xs-12">
+						<a class="btn btn-primary" href="{php echo $this->createWebUrl('message',array('quan_id'=>$id))}">该平台的评论</a>
+					</div>
+				</div>
+				{/if}
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">广告平台名称</label>
+					<div class="col-sm-7 col-xs-12">
+						<input type="text" name="aname" class="form-control" value="{$item['aname']}" />
+					</div>
+				</div>
+				
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">广告平台初始人气</label>
+					<div class="col-sm-7 col-xs-12">
+						<input type="text" name="views" class="form-control" value="{$item['views']}" />
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">广告平台滚动公告</label>
+					<div class="col-sm-7 col-xs-12">
+						<input type="text" name="notice" class="form-control" value="{$item['notice']}" />
+						<div class="help-block">广告平台滚动公告</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">广告平台限制城市</label>
+					<div class="col-sm-7 col-xs-12">
+						<input type="text" name="city" class="form-control" value="{$item['city']}" />
+						<div class="help-block">多区域可以用|分割开，支持省市区，例如需要广东省和广西省，则输入广西省|广东省</div>
+					</div>
+
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">广告平台说明</label>
+					<div class="col-sm-7 col-xs-12">
+						{php echo tpl_ueditor('rule',$item['rule'])}
+						<div class="help-block">
+							对广告平台的规则等进行说明
+						</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">每日可领取红包时段</label>
+					<div class="col-sm-4 col-xs-8">
+						<div class="input-group">
+							<div class="input-group-addon">开始</div>
+							<input type="text" name="begin_time" class="form-control" value="{$item['begin_time']}" />
+							<div class="input-group-addon">点</div>
+							<div class="input-group-addon">结束</div>
+							<input type="text" name="over_time" class="form-control" value="{$item['over_time']}" />
+							<div class="input-group-addon">点</div>
+						</div>
+						<div class="help-block">每日用户可参与的时段（0~24点）</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">领取红包冷却时间</label>
+					<div class="col-sm-2 col-xs-4">
+						<div class="input-group">
+							<input type="text" name="cold_time" class="form-control" value="{$item['cold_time']}" />
+							<div class="input-group-addon">秒</div>
+						</div>
+						<div class="help-block">用户领取红包的间隔时间（单位：秒）</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">用户发布广告</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="col-sm-7 col-xs-12">
+							<label class="radio-inline">
+								<input type="radio" value="1" name="shenhe" {if $item[shenhe]==1}checked{/if}/> 需要审核
+							</label>
+							<label class="radio-inline">
+								<input type="radio" value="0" name="shenhe" {if $item[shenhe]==0}checked{/if}/> 不需要审核
+							</label>
+						</div>
+						<div class="help-block"></div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">广告平台状态</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="col-sm-7 col-xs-12">
+							<label class="radio-inline">
+								<input type="radio" value="1" name="status" {if $item[status]==1}checked{/if}/> 开启
+							</label>
+							<label class="radio-inline">
+								<input type="radio" value="0" name="status" {if $item[status]==0}checked{/if}/> 关闭
+							</label>
+						</div>
+						<div class="help-block"></div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">评论审核</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="col-sm-7 col-xs-12">
+							<label class="radio-inline">
+								<input type="radio" value="1" name="is_pl" {if $item[is_pl]==1}checked{/if}/> 开启
+							</label>
+							<label class="radio-inline">
+								<input type="radio" value="0" name="is_pl" {if $item[is_pl]==0}checked{/if}/> 关闭
+							</label>
+						</div>
+						<div class="help-block"></div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">是否开启评论</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="col-sm-7 col-xs-12">
+							<label class="radio-inline">
+								<input type="radio" value="1" name="is_message" {if $item[is_message]==1}checked{/if}/> 开启
+							</label>
+							<label class="radio-inline">
+								<input type="radio" value="0" name="is_message" {if $item[is_message]==0}checked{/if}/> 关闭
+							</label>
+						</div>
+						<div class="help-block"></div>
+					</div>
+				</div>
+
+				
+				
+				
+			
+				
+				
+
+
+			</div>
+		</div>
+
+		<div class="panel panel-success">
+			<div class="panel-heading">
+				发布广告设置
+			</div>
+			<div class="panel-body">
+			
+				<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">开启广告类型</label>
+				<div class="col-sm-9 col-xs-12">
+					<label class="checkbox-inline">
+						<input type="checkbox" value="1" name="piece_model[]" {if in_array('1',$item['piece_model'])}checked{/if}/> 普通模式
+					</label>
+					<label class="checkbox-inline">
+						<input type="checkbox" value="2" name="piece_model[]" {if in_array('2',$item['piece_model'])}checked{/if}/> 团伙模式
+					</label>
+					<label class="checkbox-inline">
+						<input type="checkbox" value="3" name="piece_model[]" {if in_array('3',$item['piece_model'])}checked{/if}/> 免费模式
+					</label>
+					<label class="checkbox-inline">
+						<input type="checkbox" value="4" name="piece_model[]" {if in_array('4',$item['piece_model'])}checked{/if}/> 任务模式
+					</label>
+					<div class="help-block">选中即可开启相应抢钱类型</div>
+				</div>
+			</div>
+			
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">普通模式金额</label>
+				<div class="col-sm-9 col-xs-12">
+					<div class="input-group">
+							<div class="input-group-addon">广告总额下限</div>
+							<input type="text" name="total_min" class="form-control" value="{$item['total_min']}" />
+							<div class="input-group-addon">元</div>
+							<div class="input-group-addon">广告总额上限</div>
+							<input type="text" name="total_max" class="form-control" value="{$item['total_max']}" />
+							<div class="input-group-addon">元</div>
+							<div class="input-group-addon">广告平均额下限</div>
+							<input type="text" name="avg_min" class="form-control" value="{$item['avg_min']}" />
+							<div class="input-group-addon">元</div>
+						</div>
+						<div class="help-block">
+							支持到小数点后两位
+						</div>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">团伙模式金额</label>
+				<div class="col-sm-9 col-xs-12">
+					<div class="input-group">
+						<div class="input-group-addon">广告总额下限</div>
+						<input type="text" name="total_min2" class="form-control" value="{$item['total_min2']}" />
+						<div class="input-group-addon">元</div>
+						<div class="input-group-addon">广告总额上限</div>
+						<input type="text" name="total_max2" class="form-control" value="{$item['total_max2']}" />
+						<div class="input-group-addon">元</div>
+						<div class="input-group-addon">广告平均额下限</div>
+						<input type="text" name="avg_min2" class="form-control" value="{$item['avg_min2']}" />
+						<div class="input-group-addon">元</div>
+					</div>
+					<div class="help-block">支持到小数点后两位</div>
+				</div>
+			</div>
+			
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">任务模式金额</label>
+				<div class="col-sm-9 col-xs-12">
+					<div class="input-group">
+							<div class="input-group-addon">广告总额下限</div>
+							<input type="text" name="total_min4" class="form-control" value="{$item['total_min4']}" />
+							<div class="input-group-addon">元</div>
+							<div class="input-group-addon">广告总额上限</div>
+							<input type="text" name="total_max4" class="form-control" value="{$item['total_max4']}" />
+							<div class="input-group-addon">元</div>
+							<div class="input-group-addon">广告平均额下限</div>
+							<input type="text" name="avg_min4" class="form-control" value="{$item['avg_min4']}" />
+							<div class="input-group-addon">元</div>
+						</div>
+						<div class="help-block">
+							支持到小数点后两位
+						</div>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">团伙人数上限</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="groupmax" class="form-control" value="{$item['groupmax']}" />
+					<div class="help-block">商家可设置的最大团伙人数</div>
+				</div>
+			</div>
+			
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">任务模式是否提交任务稿</label>
+				<div class="col-sm-9 col-xs-12">
+				<label class="radio-inline">
+				 <input type="radio" value="0" name="task_submit_switch" {if $item['task_submit_switch']==0}checked{/if}/> 关闭
+				</label>
+				<label class="radio-inline">
+						<input type="radio" value="1" name="task_submit_switch" {if $item['task_submit_switch']==1}checked{/if}/> 开启
+				</label>
+					
+					<div class="help-block">任务模式提交任务稿开关，如果选择开启，则粉丝需要提交图片和描述到平台。</div>
+				</div>
+			</div>
+			
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">核销模式开关</label>
+				<div class="col-sm-9 col-xs-12">
+				<label class="radio-inline">
+				 <input type="radio" value="0" name="hx_switch" {if $item['hx_switch']==0}checked{/if}/> 关闭
+				</label>
+				<label class="radio-inline">
+						<input type="radio" value="1" name="hx_switch" {if $item['hx_switch']==1}checked{/if}/> 开启
+				</label>
+					
+					<div class="help-block">核销模式开关，如果选择开启，则粉丝可以获得线下打折特权。</div>
+				</div>
+			</div>
+
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">可置顶金额设置</label>
+					<div class="col-sm-9 col-xs-12">
+						<div class="input-group col-sm-2 col-xs-4">
+							<input type="text" name="top_line" class="form-control" value="{$item['top_line']}" />
+							<div class="input-group-addon">元</div>
+						</div>
+						<div class="help-block">当用户发布的广告金额大于等于该金额的广告将置顶展示（0为不可以进行置顶,支持到小数点后两位）</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">服务费率</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="input-group col-sm-2 col-xs-4">
+							<input type="text" name="percent" class="form-control" value="{$item['percent']}" />
+							<div class="input-group-addon">%</div>
+						</div>
+						<div class="help-block">每次抽取的服务费费率（单位：% ,支持到小数点后两位）</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">最小提现金额</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="input-group col-sm-2 col-xs-4">
+							<input type="text" name="tx_min" class="form-control" value="{$item['tx_min']}" />
+							<div class="input-group-addon">元</div>
+						</div>
+						<div class="help-block">最小允许提现的金额（支持到小数点后两位）</div>
+					</div>
+				</div>
+				
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">抢钱上级提成</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="input-group col-sm-2 col-xs-4">
+							<input type="text" name="up_rob_fee" class="form-control" value="{$item['up_rob_fee']}" />
+							<div class="input-group-addon">%</div>
+						</div>
+						<div class="help-block">抢钱上级提成（单位：% ,支持到小数点后两位）</div>
+					</div>
+				</div>
+				
+				<div class="form-group" style="display:none">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">撒钱上级提成</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="input-group col-sm-2 col-xs-4">
+							<input type="text" name="up_send_fee" class="form-control" value="{$item['up_send_fee']}" />
+							<div class="input-group-addon">%</div>
+						</div>
+						<div class="help-block">撒钱上级提成（单位：% ,支持到小数点后两位）</div>
+					</div>
+				</div>
+
+				{if !empty($id)}
+					{if empty($yure)}
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label">预热时间设置</label>
+						<div class="col-sm-7 col-xs-12">
+							<div class="input-group" >
+								<div class="input-group-addon">广告总额</div>
+								<input type="text" class="form-control" value="" />
+								<div class="input-group-addon">元</div>
+								<div class="input-group-addon">*</div>
+								<div class="input-group-addon">时间数</div>
+								<input type="text" class="form-control" value="" />
+								<div class="input-group-addon">秒</div>
+								<div class="input-group-addon" onclick="bc_yr(this)" style="background-color: #4cc0c1;color: #fff;font-weight: bold">保存</div>
+								<div class="input-group-addon" onclick="del_yr(this)" style="background-color: #fb6b5b;color: #fff;font-weight: bold">删除</div>
+							</div>
+
+						</div>
+					</div>
+					{else}
+						{php $temp_y=1;}
+						{loop $yure $y}
+							<div class="form-group">
+								<label class="col-xs-12 col-sm-3 col-md-2 control-label">{if $temp_y==1}预热时间设置{/if}</label>
+								<div class="col-sm-7 col-xs-12">
+									<div class="input-group" >
+										<div class="input-group-addon">广告总额</div>
+										<input type="text" class="form-control" value="{$y['fee']}" />
+										<div class="input-group-addon">元</div>
+										<div class="input-group-addon">*</div>
+										<div class="input-group-addon">时间数</div>
+										<input type="text" class="form-control" value="{$y['time']}" />
+										<div class="input-group-addon">秒</div>
+										<div class="input-group-addon" onclick="bc_yr(this)" data-yureid="{$y['id']}" style="background-color: #4cc0c1;color: #fff;font-weight: bold">保存</div>
+										<div class="input-group-addon" onclick="del_yr(this)" data-yureid="{$y['id']}" style="background-color: #fb6b5b;color: #fff;font-weight: bold">删除</div>
+									</div>
+
+								</div>
+							</div>
+							{php $temp_y++;}
+						{/loop}
+					{/if}
+
+					<div class="form-group" id="yure">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+						<div class="col-sm-7 col-xs-12">
+							<div class="input-group col-sm-2 col-xs-4">
+							</div>
+							<div class="help-block"><span class="btn btn-success" onclick="new_yr()">添加新设置</span></div>
+							<div class="help-block">
+								例：广告总额10元，时间数10秒，则表示用户发布10元以下的广告时，该广告可以预热金额乘以10的时间，比如5元，就代表可以预热50s，6元就可以60s
+							</div>
+						</div>
+					</div>
+				{/if}
+
+
+			</div>
+		</div>
+		{if !empty($id)}
+		<div class="panel panel-primary">
+			<div class="panel-heading">
+				幻灯片设置
+			</div>
+			<div class="panel-body">
+				<a href="{php echo $this->createWebUrl('banner',array('quan_id'=>$id))}"><span class="btn btn-success">管理平台banner</span></a>
+
+			</div>
+
+		</div>
+		{/if}
+
+		<div class="panel panel-danger">
+			<div class="panel-heading">
+				引导关注设置
+			</div>
+			<div class="panel-body">
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">引导关注图标设置</label>
+					<div class="col-sm-7 col-xs-12">
+						{php echo tpl_form_field_image('follow_logo', $item['follow_logo']);}
+						<div class="help-block">请使用png图片，不设置则不显示</div>
+					</div>
+				</div>
+				
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">抢红包是否开启强制关注</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="col-sm-7 col-xs-12">
+							<label class="radio-inline">
+								<input type="radio" value="1" name="is_follow" {if $item[is_follow]==1}checked{/if}/> 开启
+							</label>
+							<label class="radio-inline">
+								<input type="radio" value="0" name="is_follow" {if $item[is_follow]==0}checked{/if}/> 关闭
+							</label>
+						</div>
+						<div class="help-block"></div>
+					</div>
+				</div>
+				
+				
+					<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">组团是否开启强制关注</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="col-sm-7 col-xs-12">						
+							<label class="radio-inline">
+								<input type="radio" value="0" name="group_guanzhu" {if $item['group_guanzhu']==0}checked{/if}/> 关闭
+							</label>
+								<label class="radio-inline">
+								<input type="radio" value="1" name="group_guanzhu" {if $item['group_guanzhu']==1}checked{/if}/> 开启
+							</label>
+						</div>
+						<div class="help-block"></div>
+					</div>
+				</div>
+				
+				
+			
+				
+				
+				
+					<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">提现时候开启强制关注</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="col-sm-7 col-xs-12">
+							<label class="radio-inline">
+								<input type="radio" value="1" name="tx_follow" {if $item['tx_follow']==1}checked{/if}/> 开启
+							</label>
+							<label class="radio-inline">
+								<input type="radio" value="0" name="tx_follow" {if $item['tx_follow']==0}checked{/if}/> 关闭
+							</label>
+								<div class="help-block">用户点提现的时候，给他跳到一个关注链接那边去</div>
+						</div>
+					
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">关注地址url</label>
+					<div class="col-sm-7 col-xs-12">
+						<input type="text" name="follow_url" class="form-control"
+							   value="{$item['follow_url']}" />
+						<div class="help-block">请于url前增加http://</div>
+					</div>
+				</div>
+
+			</div>
+		</div>
+		
+		
+			<div class="panel panel-danger">
+			<div class="panel-heading">
+				品牌模式设置
+			</div>
+			<div class="panel-body">
+
+			
+				
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">是否开启品牌模式</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="col-sm-7 col-xs-12">
+						   <label class="radio-inline">
+								<input type="radio" value="0" name="pp_mode" {if $item['pp_mode']==0}checked{/if}/> 关闭
+							</label>
+							<label class="radio-inline">
+								<input type="radio" value="1" name="pp_mode" {if $item['pp_mode']==1}checked{/if}/> 开启
+							</label>
+							<span class="help-block">品牌模式简单说，就是绑定用户的openid，只能这些用户才可以发布广告。适合包月，或者直接圈子包给品牌商发布广告</span>
+						</div>
+						
+					</div>
+				</div>
+				
+				   <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">品牌模式下的用户openid</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <textarea name="pp_openid" id="" cols="30" rows="10" class="form-control">{$item['pp_openid']}</textarea>
+                                                            用英文逗号隔开
+                    </div>
+                </div>
+                
+				
+				
+
+			</div>
+		</div>
+
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				分享设置
+			</div>
+			<div class="panel-body">
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">分享标题</label>
+					<div class="col-sm-7 col-xs-12">
+						<input type="text" name="sharetitle" class="form-control"
+							   value="{$item['sharetitle']}" />
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">分享描述</label>
+					<div class="col-sm-7 col-xs-12">
+						<input type="text" name="sharedesc" class="form-control"
+							   value="{$item['sharedesc']}" />
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">分享logo</label>
+					<div class="col-sm-7 col-xs-12">
+						{php echo tpl_form_field_image('sharelogo', $item['sharelogo']);}
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+					<div class="col-sm-9 col-xs-12">
+						<input name="submit" type="submit" value="提交" class="btn btn-primary span3">
+						<input type="hidden" name="token" value="{$_W['token']}" />
+					</div>
+				</div>
+
+			</div>
+		</div>
+
+		<script type="text/javascript">
+			function new_yr()
+			{
+				$("#yure").prepend('<div class="form-group"><label class="col-xs-12 col-sm-3 col-md-2 control-label"></label><div class="col-sm-7 col-xs-12"><div class="input-group"><div class="input-group-addon">广告总额</div><input type="text"  class="form-control" value="" /><div class="input-group-addon">元</div><div class="input-group-addon">*</div><div class="input-group-addon">时间数</div><input type="text" class="form-control" value="" /><div class="input-group-addon">秒</div><div class="input-group-addon" onclick="bc_yr(this)" style="background-color: #4cc0c1;color: #fff;font-weight: bold">保存</div><div class="input-group-addon" onclick="del_yr(this)" style="background-color: #fb6b5b;color: #fff;font-weight: bold">删除</div></div></div></div>');
+			}
+			function del_yr(obj)
+			{
+				var self=obj;
+				var yureid=$(self).data('yureid');
+				if(!yureid)
+				{
+					$(self).parent().parent().remove();
+					alert("删除成功!");
+				}
+				else
+				{
+					$.post("{php echo $_W['siteroot'].'web/'.substr($this->createWebUrl('quan',array('op'=>'yure_del','quan_id'=>$id)),2)}"+"&yureid="+yureid,function(data){
+			              if (data == 1) {
+			              	  $(self).parent().parent().remove();
+			                  alert("删除成功!");
+			              }
+			              else{
+			                  alert("删除失败!错误日志为："+data);
+			              }
+			          });
+				}
+			}
+			function bc_yr(obj)
+			{
+				var self=obj;
+				var fee=$(self).parent().find('input').eq(0).val();
+				var time=$(self).parent().find('input').eq(1).val();
+				var myreg=/^\d+(\.\d{2})?$/;
+				if(myreg.test(fee))
+				{
+					if(myreg.test(time))
+					{
+						var yureid=$(self).data('yureid');
+						$.post("{php echo $_W['siteroot'].'web/'.substr($this->createWebUrl('quan',array('op'=>'yure','quan_id'=>$id)),2)}"+"&fee="+fee+"&time="+time+"&yureid="+yureid,function(data){
+				              if (data.status == 1) {
+
+				              	  $(self).data('yureid',data.yureid);
+				              	  $(self).next('div').data('yureid',data.yureid);
+				                  alert("保存成功!");
+				              }
+				              else if (data.status==2)
+				              {
+				                  alert("保存失败!已存在您设置广告总额，不得重复!");
+				              }
+				              else{
+				                  alert("保存失败!错误日志为："+data.status);
+				              }
+				          },'json');
+
+					}
+					else
+					{
+						alert("保存失败!请填写正确的时间数!");
+					}
+				}
+				else
+				{
+					alert("保存失败!请填写正确的广告总额!");
+				}
+			}
+		</script>
+	</form>
+</div>
+{/if}

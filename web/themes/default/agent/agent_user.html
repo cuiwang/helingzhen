@@ -1,0 +1,215 @@
+{template 'common/header-agent'}
+<ol class="breadcrumb">
+	<li><a href="./?refresh"><i class="fa fa-home"></i></a></li>
+	<li><a href="{url 'agent/agent_show'}">代理商管理</a></li>
+	<li class="active">用户管理</li>
+</ol>
+<ul class="nav nav-tabs">
+	<li {if $do == 'groups'}class="active"{/if}><a href="javascript:alert('等待系统更新')">用户组管理</a></li>
+	<li {if $do == 'list'}class="active"{/if}><a href="{php echo url('agent/agent_user/list');}">用户管理</a></li>
+	<li {if $do == 'add'}class="active"{/if}><a href="{php echo url('agent/agent_user/add');}">添加用户</a></li>
+	<li {if $do == 'wxuser'}class="active"{/if}><a href="javascript:alert('等待系统更新')">公众号管理</a></li>
+</ul>
+{if $do == 'list'}
+<div class="clearfix">
+	<div class="panel panel-info">
+		<div class="panel-heading">筛选</div>
+		<div class="panel-body">
+			<form action="" method="get" class="form-horizontal" role="form">
+				<input type="hidden" name="c" value="agent">
+				<input type="hidden" name="a" value="info">
+				<input type="hidden" name="do" value="record">
+				<input type="hidden" name="cateid" value="{$_GPC['cateid']}">
+				<input type="hidden" name="createtime" value="{$_GPC['createtime']}">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">产生时间</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<div class="btn-group">
+							<a href="{php echo filter_url('createtime:0');}" class="btn {if $_GPC['createtime'] == 0}btn-primary{else}btn-default{/if}">不限</a>
+							<a href="{php echo filter_url('createtime:3');}" class="btn {if $_GPC['createtime'] == 3}btn-primary{else}btn-default{/if}">三天内</a>
+							<a href="{php echo filter_url('createtime:7');}" class="btn {if $_GPC['createtime'] == 7}btn-primary{else}btn-default{/if}">一周内</a>
+							<a href="{php echo filter_url('createtime:30');}" class="btn {if $_GPC['createtime'] == 30}btn-primary{else}btn-default{/if}">一月内</a>
+							<a href="{php echo filter_url('createtime:90');}" class="btn {if $_GPC['createtime'] == 90}btn-primary{else}btn-default{/if}">三月内</a>
+						</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">用户名</label>
+					<div class="col-sm-8 col-lg-3 col-xs-12">
+						<input class="form-control" name="title" id="" type="text" value="{$_GPC['title']}">
+					</div>
+					<div class="pull-left col-xs-12 col-sm-2 col-lg-2">
+						<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+		<div class="panel panel-default">
+			<div class="panel-body table-responsive">
+				<table class="table table-hover">
+					<thead>
+						<tr>
+							<td>会员组ID</td>
+							<td>用户名</td>
+							<td>会员组</td>
+							<td>注册日期</td>
+							<td>到期日期</td>
+							<td>最后登录时间</td>
+							<td>最后登录IP</td>
+							<th class="text-right">操作</th>
+						</tr>
+					</thead>
+					<tbody>
+					{loop $users $user}
+						<tr>
+							<td>{$user['groupid']}</td>
+							<td>{$user['username']}</td>
+							<td>{$usergroups[$user['groupid']]['name']}</td>
+							<td>{php echo date('Y-m-d H:i:s',$user['joindate']);}</td>
+							<td>{php echo date('Y-m-d H:i:s',$user['endtime']);}</td>
+							<td>{php echo date('Y-m-d H:i:s',$user['lastvisit']);}</td>
+							<td>{$user['lastip']}</td>
+							<td><a href="{php echo url('agent/agent_user/edit', array('uid' => $user['uid']))}">修改</a></td>
+						</tr>
+					{/loop}
+					</tbody>
+				</table>
+			</div>
+		</div>
+		{$pager}
+</div>
+{/if}
+{if $do == 'edit'}
+<div class="clearfix">
+	<form action="{php echo url('agent/agent_user');}" method="post" class="form-horizontal" role="form" id="form1">
+		<div class="panel panel-default">
+			<div class="panel-heading">添加用户</div>
+			<div class="panel-body">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">用户名</label>
+				<div class="col-sm-9 col-xs-12">
+						<input type="text" name="name" class="form-control" value="{$user['username'];}" readonly />
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">密码</label>
+				<div class="col-sm-9 col-xs-12">
+						<input type="password" name="password" class="form-control" value=""  />
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">确认密码</label>
+				<div class="col-sm-9 col-xs-12">
+						<input type="password" name="repassword" class="form-control" value="" />
+				</div>
+			</div>
+			<div class="form-group">
+			<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">所属用户组</label>
+			<div class="col-sm-10 col-xs-12">
+				<select name="groupid" class="form-control" id="groupid">
+					<option value="0">请选择所属用户组</option>
+					{loop $groups $row}
+					<option value="{$row['id']}" {if $user['groupid'] == $row['id']}selected{/if}>{$row['name']}</option>
+					{/loop}
+				</select>
+				<span class="help-block">分配用户所属用户组后，该用户会自动拥有此用户组内的模块操作权限</span>
+				<span class="help-block"><strong class="text-danger">更改用户的所属会员组后，该用户的服务到期时间为：当前时间 + 更改用户组的服务有效期。</strong></span>
+			</div>
+		</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">到期时间</label>
+				<div class="col-sm-9 col-xs-12">
+						{php echo tpl_form_field_date('endtime', $user['endtime']);}
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">备注说明</label>
+				<div class="col-sm-9 col-xs-12">
+						<input type="text" name="remark" class="form-control" value="<?php echo $user['remark'];?>" />
+				</div>
+			</div>
+			
+			</div>
+		</div>
+		<div class="form-group">
+			<div class="col-sm-8 col-lg-9 col-xs-12">
+				<input type="submit" class="btn btn-primary" name="submit" value="提交" />
+				<input type="hidden" name="token" value="{$_W['token']}" />
+			</div>
+		</div>
+	</form>
+</div>
+{/if}
+{if $do == 'add'}
+<div class="clearfix">
+	<form action="{php echo url('agent/agent_user/add');}" method="post" class="form-horizontal" role="form" id="form1">
+		<div class="panel panel-default">
+			<div class="panel-heading">添加用户</div>
+			<div class="panel-body">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">用户名</label>
+				<div class="col-sm-9 col-xs-12">
+						<input type="text" name="name" class="form-control" value="{$user['username']}" />
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">密码</label>
+				<div class="col-sm-9 col-xs-12">
+						<input type="password" name="password" class="form-control" value=""  />
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">确认密码</label>
+				<div class="col-sm-9 col-xs-12">
+						<input type="password" name="repassword" class="form-control" value="" />
+				</div>
+			</div>
+			<div class="form-group">
+			<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">所属用户组</label>
+			<div class="col-sm-9 col-xs-12">
+				<select name="groupid" class="form-control" id="groupid">
+					<option value="0">请选择所属用户组</option>
+					{loop $groups $row}
+					<option value="{$row['id']}" {if $user['groupid'] == $row['id']}selected{/if}>{$row['name']}</option>
+					{/loop}
+				</select>
+				<span class="help-block">分配用户所属用户组后，该用户会自动拥有此用户组内的模块操作权限</span>
+				<span class="help-block"><strong class="text-danger">更改用户的所属会员组后，该用户的服务到期时间为：当前时间 + 更改用户组的服务有效期。</strong></span>
+			</div>
+		</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">到期时间</label>
+				<div class="col-sm-9 col-xs-12">
+						{php echo tpl_form_field_date('endtime', $user['endtime']);}
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">备注说明</label>
+				<div class="col-sm-9 col-xs-12">
+						<input type="text" name="remark" class="form-control" value="{php echo $user['remark'];}" />
+				</div>
+			</div>
+			
+			</div>
+		</div>
+		<div class="form-group">
+			<div class="col-sm-8 col-lg-9 col-xs-12">
+				<input type="submit" class="btn btn-primary" name="submit" value="提交" />
+				<input type="hidden" name="token" value="{$_W['token']}" />
+			</div>
+		</div>
+	</form>
+</div>
+{/if}
+{if $do == 'groups'}
+<div class="clearfix">
+抱歉，该功能还在完善中!
+</div>
+{/if}
+{if $do == 'wxuser'}
+<div class="clearfix">
+抱歉，该功能还在完善中!
+</div>
+{/if}
+{template 'common/footer'}

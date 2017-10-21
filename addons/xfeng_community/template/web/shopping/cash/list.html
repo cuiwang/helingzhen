@@ -1,0 +1,103 @@
+{template 'common/header'}
+<div class="panel panel-default">
+        <div class="panel-body table-responsive">
+            <table class="table table-hover" ng-controller="advAPI" style="width:100%;" cellspacing="0" cellpadding="0">
+                <thead class="navbar-inner">
+                    <tr>
+                        <th width="120">提现单号</th>
+                        <th width="100">提现金额</th>
+                        <th width="100">提现账号</th>
+                        <th width="100">提现时间</th>
+                        <th width="80">状态</th>
+                        <th width="100" style="text-align:right">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {loop $list $item}
+                    <tr>
+                        <td>{$item['ordersn']}</td>
+                        <td>{$item['price']}元</td>
+                        <td>
+                            <?php
+                                    load()->model('user');
+                                    $result = user_single($item['uid']);
+                                    echo $result['username'];
+
+
+
+                            ?>
+
+                        </td>
+                        <td>{php echo date('Y-m-d H:i',$item['createtime'])}</td>
+                        <td><label  class='label  label-default {if $item['status']==1}label-info{/if}' >{if $item['status']==1}已处理{else}未处理{/if}</label></td>
+                        <td style="text-align:right">
+                            <a class="btn btn-default" onclick="del({$item['id']})" title="删除">删除</a>
+                            {if !$user}
+                            {if empty($item['status'])}
+                            <a href="javascript:;" class="btn btn-default" title="处理提现" data-id="{$item['id']}" id='cash'>处理提现</a>
+                            {/if}
+                            {/if}
+                        </td>
+                    </tr>
+                    {/loop}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {$pager}
+<script type="text/javascript">
+	// function verify(obj,id,type){
+	// 	$(obj).html($(obj).html() + "...");
+	// 	$.post("{php echo $this->createWebUrl('business',array('op' => 'verify'))}"
+	// 		,{id:id,type:type, data: obj.getAttribute("data")}
+	// 		,function(d){
+	// 			$(obj).html($(obj).html().replace("...",""));
+	// 			if(type=='status'){
+	// 			 $(obj).html( d.data=='1'?'已处理':'未处理');
+	// 			}
+	// 			$(obj).attr("data",d.data);
+	// 			if(d.result==1){
+	// 				$(obj).toggleClass("label-info");
+	// 			}
+	// 		}
+	// 		,"json"
+	// 	);
+	// }
+    $(function () {
+            $("#cash").bind("click",function(){
+                var id = $(this).attr('data-id');
+                var url = "{php echo $this->createWebUrl('shopping',array('op' => 'verify'))}";
+                    $.post(url,
+                    {
+                        id:id
+                    },
+                    function(msg){
+                            if (msg.status == 1) {
+                                setTimeout(function(){
+                                    window.location.reload();
+                                 },100);
+                            };
+                            
+                    },
+                    'json');
+            });
+        });
+    function del(id) {
+        var id = id;
+        var url = "{php echo $this->createWebUrl('shopping',array('op' => 'cash','operation' => 'del'))}";
+        $.post(url, {
+                id: id
+            },
+            function(msg) {
+                if (msg.status == 1) {
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 100);
+                };
+
+            },
+            'json');
+    }
+</script>
+
+{template 'common/footer'}

@@ -1,0 +1,83 @@
+{template 'common/header'}
+<div class="panel panel-default">
+    <div class="panel-heading">订单管理</div>
+    <div class="panel-body">
+        <div class="panel-group">  
+            <div class="panel panel-primary">  
+                <div class="panel-heading">  
+                    订单列表  
+                </div>  
+                <form method="post" action="{php echo $this->createWebUrl('ordermanangement');}" >
+	                <div class="panel-body">  
+	                    <div class="row">
+						  <div class="col-lg-3">
+						    <div class="input-group">
+						      <input type="text" name="search" class="form-control" placeholder="搜索订单号">
+						      <span class="input-group-btn">
+						        <button class="btn btn-default" name="submit" type="submit">搜索</button>
+						        <input type="hidden" name="token" value="{$_W['token']" />
+						      </span>
+						    </div>
+						  </div>
+						</div> 
+	                </div> 
+                </form> 
+                <table class="table table-bordered table-hover">  
+                    <thead>  
+                        <tr class="success">  
+                            <th>编号</th>
+                            <th>订单号</th>  
+                            <th>商品详情</th>
+                            <th>付款金额</th>
+                            <th>会员名</th>
+                            <th>送货地址</th>  
+                            <th>联系方式</th>  
+                            <th>配送时间</th>
+                            <th>订单状态</th>
+                            <th>下单时间</th>
+                            <th>配送员电话</th>
+                            <th>操作</th>   
+                        </tr>  
+                    </thead>  
+                    <tbody>  
+                        {loop $orders $id $order}
+                        {php $member = pdo_fetch("SELECT * FROM ".tablename('hao_water_member')." WHERE uniacid = :uniacid AND id = :id LIMIT 1",array(':uniacid' => $_W['uniacid'],':id' => $order['member_id'] )); }
+                        {php $status = pdo_fetch("SELECT * FROM ".tablename('hao_water_order_status')." WHERE uniacid = :uniacid AND ordersn = :ordersn order by id DESC LIMIT 1",array(':uniacid' => $_W['uniacid'],':ordersn' => $order['ordersn'] )); }
+                        {php $address = pdo_fetch("SELECT * FROM ".tablename('hao_water_address')." WHERE uniacid = :uniacid AND id = :id LIMIT 1",array(':uniacid' => $_W['uniacid'],':id' => $order['member_id'] ));}
+                        <tr style="border-bottom:1px solid #428bca;"> 
+                            <th>{$order['id']}</th>
+                            <th>{$order['order_number']}</th> 
+                            <th>{$order['good_num']}</th>
+                            <th style="color:green;">￥{php echo number_format($order['fee'],2);}</th> 
+                            <th>{$member['member_nickname']}</th> 
+                            <th>{$address['address_detail']}</th> 
+                            <th>{$member['member_phone']}</th>  
+                            <th>{$order['delivery_time']}</th>
+                            {if ($status['order_deliver_status'] == '0') }
+			                <th style="color:red">支付成功</th>
+			                {else if ($status['order_deliver_status'] == '1') }
+			                <th style="color:#FF9912;">配送中</th>
+			                {else if ($status['order_deliver_status'] == '2') }
+			                <th style="color:green;">订单已完成</th>
+			                {/if}
+                            <th>{php echo date('Y-m-d H:i:s',$order['order_time']);}</th>
+                            {if (!empty($order['staff_phone']))}
+                            <th style="color:green">{$order['staff_phone']}</th>
+                            {else}
+                            <th style="color:red">还未配送</th>
+                            {/if}
+                            {if ($status['order_deliver_status'] == '2')}
+                            <th><a href="{php echo $this->createWebUrl('orderstatus',array('id'=>$order['id']))}"><button type="button" class="btn btn-default btn-sm" id="add" style="color:green;">订单已完成</button></a></th>
+                            {else}
+                            <th><a href="{php echo $this->createWebUrl('orderstatus',array('id'=>$order['id']))}"><button type="button" class="btn btn-default btn-sm" id="add" style="color:red;">跟踪订单</button></a></th>
+                            {/if}
+                        </tr> 
+                        {/loop} 
+                    </tbody>  
+                    {$pager}
+                </table>  
+            </div>
+        </div> 
+    </div>
+</div>
+{template 'common/footer'}

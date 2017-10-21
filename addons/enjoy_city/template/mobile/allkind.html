@@ -1,0 +1,116 @@
+{template 'header'}
+<div class="mui-content mui-row mui-fullscreen">
+  <div class="sort-menu" id="category" style="top: 0px; opacity: 1;">
+    <div class="sort-title"> <span class="fl sort-title-text">所有分类</span>
+      <div class="fr"> <a style="color:#fff" href="javascript:history.back(-1)" class="sort-btn sort-close mui-icon-closeempty mui-icon"></a> </div>
+      <div class="clear"></div>
+    </div>
+    <div class="sort-box">
+      <ul class="mui-table-view mui-grid-view mui-grid-9">
+        {loop $allkind $item}
+        <li class="mui-table-view-cell mui-media mui-col-xs-3 mui-col-sm-3"> <a href="{if empty($item['wurl'])}{php echo $this->createMobileUrl('kind',array('pid'=>$item[id]))}{else}{$item['wurl']}{/if}"> <span class="mui-icon" style="width: 36px; height: 36px; border-radius: 36px; background: url('{php echo tomedia($item[thumb])}') top center;background-size:100% 100%"></span>
+          <div class="mui-media-body" style="font-size:14px;">{$item['name']}</div>
+          </a></li>
+        {/loop}
+      </ul>
+    </div>
+  </div>
+</div>
+<div style="height:40px;"></div>
+<script>
+initEvents.push(function () {
+  function loadList(element) {
+    $(element).off('scroll', scrollList).find('.loading').show();
+    var apiUrl = $(element).data('api'),
+      page = parseInt($(element).data('page'), 10);
+    if (page > -1) {
+      apiUrl = apiUrl.replace('%page%', ++page);
+      $(element).data('page', '');
+      $.get(apiUrl, function (data) {
+        if ($.trim(data)) {
+          $(element).data('page', page);
+          $(element).find('ul').append(data);
+          // load lazy img
+          $(element).find('img[data-lazy]').lazyload();
+          if (page == 1) {
+            var banner = $(element).find('.category-banner-swiper');
+            if (banner.length > 0) {
+              runSlider(banner);
+              $(element).find('ul').addClass('category-banner-list');
+            }
+          }
+          setTimeout(function () {
+            $(element).on('scroll', scrollList);
+          }, 1000);
+        }
+        else {
+          $(element).find('.loading').html('已经全部加载完毕！').show();
+        }
+      });
+    }
+  }
+
+  function scrollList() {
+    var scrollElement = $(this);
+    var offset = scrollElement.offset();
+    var top = scrollElement.scrollTop();
+    var slide = scrollElement.find('ul').eq(0);
+    // trigger lazyload pic
+    window.__lazyLoad(top + offset.top);
+    // trigger lazy load content
+    if (slide.height() - 150 < scrollElement.height() + top) {
+      loadList(scrollElement);
+    }
+  }
+  $('.nav-item').on('click', function () {
+    var index = $(this).data('id');
+    $('.mui-active').removeClass('mui-active');
+    $(this).addClass('mui-active');
+    var scrollElement = $('#content' + index);
+    scrollElement.addClass('mui-active');
+    if (parseInt(scrollElement.data('page'), 10) == 0) {
+      loadList(scrollElement);
+    }
+  });
+  $('#content0').on('scroll', scrollList);
+  window.searchIndex = function (o) {};
+  var hashString = location.hash.substr(1);
+  if (!hashString) {
+    hashString = '';
+  }
+  if (hashString) {
+    var item = $('.mui-control-item[data-id="' + hashString + '"]');
+    if (item.length > 0) {
+      item.trigger('click');
+    }
+    $('#segmentedControls').parent().scrollTop(item.offset().top - 50);
+  }
+});
+</script>
+<script usetime="19.053ms">
+function onBridgeReady() {
+  WeixinJSBridge.call(hideWXMenu == 1 ? 'hideOptionMenu' : 'showOptionMenu');
+}
+if (typeof WeixinJSBridge == "undefined") {
+  if (document.addEventListener) {
+    document.addEventListener('WeixinJSBridgeReady', onBridgeReady, false);
+  }
+  else if (document.attachEvent) {
+    document.attachEvent('WeixinJSBridgeReady', onBridgeReady);
+    document.attachEvent('onWeixinJSBridgeReady', onBridgeReady);
+  }
+}
+else {
+  try {
+    onBridgeReady();
+  }
+  catch (e) {}
+}
+setTimeout(function () {
+  document.getElementById('countjs').innerHTML = '<img src="http://img.users.51.la/18746113.asp" style="display: none" >';
+  var url = "//api.share.baidu.com/s.gif?r=" + encodeURIComponent(document.location.href),
+    img = new Image;
+  img.src = url;
+}, 0);
+</script>
+</body></html>

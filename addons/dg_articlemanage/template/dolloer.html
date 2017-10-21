@@ -1,0 +1,152 @@
+{template 'common/header'}
+
+{if $op == 'display'}
+<link rel="stylesheet" href="../addons/dg_articlemanage/style/css/jquery-ui-tooltip.min.css?v=20140603" />
+<script type="text/javascript" src="../addons/dg_articlemanage/style/css/jquery-ui-tooltip.min.js?v=20140601" ></script>
+<div class="panel panel-info">
+    <div class="panel-heading">筛选</div>
+    <div class="panel-body">
+        <form role="form" class="form-horizontal" method="get" action="./index.php">
+            <input type="hidden" name="m" value="dg_articlemanage" >
+            <input type="hidden" name="do" value="dolloer" >
+            <input type="hidden" name="c" value="site" />
+            <input type="hidden" name="a" value="entry" />
+            <input type="hidden" value="display" name="op">
+
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-2 col-md-2 control-label">关键字</label>
+                <div class="col-sm-8 col-md-8 col-lg-8">
+                    <input class="form-control" name="keyword" id="" type="text" value="{$_GPC['keyword']}">
+                </div><div class="form-group">
+                <div class="pull-right col-xs-12 col-sm-2 col-md-2 col-lg-2">
+                    <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+                </div>
+            </div>
+            </div>
+
+
+        </form>
+    </div>
+</div>
+
+<div class="main panel panel-default">
+    <div class="panel-body table-responsive">
+        <div style="font-weight:bold;color:red;margin:10px;">共计 {$total} 个付费阅读,合计{$sum} 元</div>
+        <table class="table table-hover">
+            <thead class="navbar-inner">
+            <tr>
+                <th style="width:50px;">ID</th>
+                <th style="width:30%">文章标题</th>
+                <th>支付人</th>
+                <th style="width:10%">金额(￥)</th>
+                <th>支付时间</th>
+                <th>交易流水号</th>
+            </tr>
+            </thead>
+            <tbody>
+            {loop $list $slide}
+            <tr>
+                <td>{$slide['id']}</td>
+                <td>
+                    {$slide['title']}</td>
+                <td >
+                    {$slide['nickname']}</td>
+                </td>
+                <td>
+                    {$slide['pay_money']}</td>
+                </td>
+                <td>
+                    {php echo date('Y-m-d H:i:s', $slide['pay_time']);}</td>
+                </td>
+                <td>
+                    {$slide['transaction_id']}</td>
+                </td>
+            </tr>
+            {/loop}
+            </tbody>
+        </table>
+        <div style="margin:0 auto;margin-right: auto;vertical-align: middle;text-align: center;" >
+            {$pager}
+        </div>
+    </div>
+</div>
+<script>
+    $("td.qrcode").tooltip({
+        items:'img',
+        content: function() {
+            return "<img width='300px' height='300px' src='"  + $(this).attr("src") + "'></img>";
+        },
+        position: {
+            my : "right bottom-300",
+            collision: "fit"
+        }
+    });
+</script>
+{elseif $op == 'post'}
+<div class="main">
+    <form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" onsubmit='return formcheck()'>
+        <input type="hidden" name="id" value="{$slide['id']}" />
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                幻灯片设置
+            </div>
+            <div class="panel-body">
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style="color:red">*</span>幻灯片标题</label>
+                    <div class="col-sm-9">
+                        <input type="text" id='title' name="title" class="form-control" value="{$slide['title']}" />
+                    </div>
+                </div>
+
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">类别</label>
+                    <div class="col-sm-8 col-xs-12">
+                        <select id="pid" name="pid" class="form-control">
+                            <option value="0">选择父分类</option>
+                            {loop $category $row}
+                            {if $pid}
+                            <option value="{$row['id']}" {if $row['id']==$pid} selected="selected"{/if}>{$row['name']}</option>
+                            {else}
+                            <option value="{$row['id']}" {if $row['id']==$slide['pid']} selected="selected"{/if}>{$row['name']}</option>
+                            {/if}
+                            {/loop}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">幻灯片图片</label>
+                    <div class="col-sm-9">
+                        {php echo tpl_form_field_image('thumb', $slide['thumb'])}
+                        <span>建议尺寸：640像素 * 425像素</span>
+                    </div>
+
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">幻灯片连接</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="link" class="form-control" value="{$slide['link']}" />
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div class="form-group col-sm-12">
+            <input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+            <input type="hidden" name="token" value="{$_W['token']}" />
+        </div>
+    </form>
+</div>
+
+<script language='javascript'>
+    function formcheck() {
+        if ($("#title").isEmpty()) {
+            Tip.focus("title", "请填写幻灯片名称!");
+            return false;
+        }
+        return true;
+    }
+</script>
+{/if}

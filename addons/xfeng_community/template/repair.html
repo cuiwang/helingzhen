@@ -1,0 +1,227 @@
+{template 'common/header'}
+{template 'nav'}
+{php load()->func('tpl')}
+<script src="{MODULE_URL}template/js/galleria.js"></script>
+<style type="text/css">
+    #galleria img{
+   display: block; position: relative; left: 50px; top: 30px;
+   height: 0px;
+   width: 0px;
+}
+</style>
+<div class="main" id='list'>
+    {if $op == 'post'}
+    <ul class="nav nav-tabs">
+        <li>
+            <a href="{php echo $this->createWebUrl('repair', array('op' => 'display','regionid'=>$_GPC['regionid']));}">管理</a>
+        </li>
+        <li class="active">
+            <a href="{php echo $this->createWebUrl('repair', array('op' => 'post','regionid'=>$_GPC['regionid'], 'id'=>$item['id']));}">编辑</a>
+        </li>
+    </ul>
+    <form action="" class="form-horizontal form" method="post">
+        <input type="hidden" name="regionid" value="{$_GPC['regionid']}" />
+        <input type="hidden" name="id" value="{$item['id']}" />
+        <input type="hidden" name="type" value="1" />
+        <input type="hidden" name="openid" value="{$item['openid']}" />
+        <div class="panel panel-default">
+          <div class="panel-heading">
+            <h3 class="panel-title">报修信息</h3>
+          </div>
+          <div class="panel-body">
+            <div class="form-group">
+                <label for="" class="col-sm-2 control-label">状态</label>
+                <div class="col-sm-10">
+                  <select name="status" class="form-control">
+                        <option value="0" {if intval($item[ 'status'])==0} selected{/if}>未解决</option>
+                        <option value="1" {if intval($item[ 'status'])==1} selected{/if}>已解决</option>
+                        <option value="2" {if intval($item[ 'status'])==2} selected{/if}>用户取消</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="" class="col-sm-2 control-label">报修类型</label>
+                <div class="col-sm-10">
+                  <select name="category" class="form-control">
+                        {loop $categories $category}
+                        <option value="{$category['name']}" {if $category[ 'name']==$item[ 'category']} selected{/if}>{$category['name']}</option>
+                        {/loop}
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="" class="col-sm-2 control-label">报修人</label>
+                <div class="col-sm-10">
+                  <input type="text" value="{$item['realname']}" class="form-control" readonly="readonly" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="" class="col-sm-2 control-label">报修时间</label>
+                <div class="col-sm-10">
+                   <input type="text" readonly="readonly" value="{php echo date('Y-m-d H:i:s', $item['createtime'])}" class="form-control" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="" class="col-sm-2 control-label">报修内容</label>
+                <div class="col-sm-10">
+                   <textarea readonly="readonly" style="height:100px;" class="form-control" name="content" cols="70" id="content">{$item['content']}</textarea>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="" class="col-sm-2 control-label">报修需求</label>
+                <div class="col-sm-10">
+                   <textarea readonly="readonly" style="height:100px;" class="form-control" name="requirement" cols="70" id="requirement">{$item['requirement']}</textarea>
+                </div>
+            </div>
+            {if $item['img']}
+            <div class="form-group">
+                <label for="" class="col-sm-2 control-label">报修图片</label>
+                <div class="col-sm-10">
+                     {loop $item['img'] $value}
+                        <img src="{$value['src']}" style="width: 60px; height: 60px;border:1px solid white;" />
+                     {/loop}
+                </div>
+            </div>
+            {/if}
+          </div>
+        </div>
+
+        <h4>往来记录</h4>
+        <table class="tb" style="width:665px;">
+            {loop $item['reply'] $reply}
+            <tr>
+                <td colspan="2" {if !empty($reply[ 'isreply'])} style="text-align:right; border-bottom:#999999 solid 1px;" {else} style="text-align:left; border-bottom:#999999 solid 1px;" {/if}>
+                    <p>{if empty($reply['isreply'])}业主{/if}{if !empty($reply['isreply'])}物业{/if}</p>
+                    <div>{$reply['content']}</div>
+                </td>
+            </tr>
+            {/loop}
+            <tr>
+                <th>回复</th>
+                <td>
+                    <textarea style="height:100px;" class="form-control" name="reply" cols="70"></textarea>
+                </td>
+            </tr>
+        </table>
+        <table class="tb">
+            <tr>
+                <th></th>
+                <td>
+                    <button type="submit" class="btn btn-primary span3" name="submit" value="提交">提交</button>
+                    <input type="hidden" name="token" value="{$_W['token']}" />
+                </td>
+            </tr>
+        </table>
+    </form>
+    <div id="galleria"></div>
+    <script>
+    // Load theme
+    Galleria.loadTheme('{MODULE_URL}template/lightbox/galleria.lightbox.js');
+
+    $('#galleria').galleria({
+        data_source: '#list',
+        extend: function() {
+            this.bind(Galleria.LOADFINISH, function(e) {
+                $(e.imageTarget).click(this.proxy(function(e) {
+                    e.preventDefault();
+                    this.next();
+                }))
+            })
+        },
+        keep_source: true,
+        data_config: function(img) {
+            return {
+                description: $(img).next('.caption').html()
+            }
+        }
+    });
+</script>
+    {elseif $op == 'display'}
+    <ul class="nav nav-tabs">
+        <li class="active"><a href="{php echo $this->createWebUrl('repair', array('op' => 'display','regionid'=>$_GPC['regionid']));}">管理</a>
+        </li>
+    </ul>
+    <div class="panel panel-info">
+        <div class="panel-heading">筛选</div>
+        <div class="panel-body">
+            <form action="" method="post" class="form-horizontal" role="form">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 control-label">报修类型</label>
+                    <div class="col-sm-3 col-md-3 col-lg-3 col-xs-3">
+                        <select name="category" class="form-control">
+                                {loop $categories $category}
+                                <option value="{$category['name']}" {if $category[ 'name']==$_GPC[ 'category']} selected{/if}>{$category['name']}</option>
+                                {/loop}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 control-label">报修日期</label>
+                    <div class="col-sm-8 col-md-8 col-lg-8 col-xs-12">
+                        {php echo tpl_form_field_daterange('birth', array('starttime' => $item['starttime'],'endtime' => $item['endtime']));}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 control-label">状态</label>
+                    <div class="col-sm-8 col-md-8 col-lg-8 col-xs-12">
+                        <label for="ipt_status1" class="radio-inline">
+                                <input class="" name="status" id="ipt_status1" type="radio" value="0" {if @in_array(0, $status) || empty($status)}checked='checked' {/if}/>未解决
+                        </label>
+                        <label for="ipt_status2" class="radio-inline">
+                            <input class="" name="status" id="ipt_status2" type="radio" value="1" {if @in_array(1, $status)}checked='checked' {/if} />已解决
+                        </label>
+                        <label for="ipt_status3" class="radio-inline">
+                            <input class="" name="status" id="ipt_status3" type="radio" value="2" {if @in_array(2, $status)}checked='checked' {/if} />用户取消
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="pull-right col-xs-12 col-sm-2 col-md-2 col-lg-2">
+                        <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div style="padding:15px;">
+        <table class="table table-hover">
+            <thead class="navbar-inner">
+                <tr>
+                    <th style="width:100px;">报修类型</th>
+                    <th style="width:50px;">报修人</th>
+                    <th style="width:100px;">报修人手机</th>
+                    <th style="width:100px;">报修日期</th>
+                    <th style="width:100px;">状态</th>
+                    <th style="min-width:60px; width:10%;">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {loop $list $item}
+                <tr>
+                    <td>{$item['category']}</td>
+                    <td>{$item['realname']}</td>
+                    <td>{$item['mobile']}</td>
+                    <td>{php echo date('Y-m-d H:i:s', $item[createtime]);}</td>
+                    <td>{if $item['status'] ==1 }<span class="label label-success">已解决</span>{/if}{if $item['status'] == 0 }<span class="label label-info">未解决</span>{/if}{if $item['status'] == 2 }<span class="label label-default">已取消</span>{/if}</td>
+                    <td>
+                        <span>
+							<a href="{php echo $this->createWebUrl('repair',array('op'=>'post','id'=>$item['id'], 'regionid' => $regionid));}">
+                                <i class='glyphicon glyphicon-edit'></i>
+                            查看</a>
+						</span>
+                        &nbsp;&nbsp;
+                        <span>
+							<a onclick="return confirm('删除操作不可恢复，确认吗？')" href="{php echo $this->createWebUrl('repair',array('op'=>'delete','id'=>$item['id'], 'regionid' => $regionid));}">
+                             <i class='glyphicon glyphicon-remove-circle'></i>
+                            删除</a>
+						</span>
+                    </td>
+                </tr>
+                {/loop}
+            </tbody>
+        </table>
+        {$pager}
+    </div>
+    {/if}
+</div>
+{template 'common/footer'}

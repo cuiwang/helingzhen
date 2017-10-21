@@ -1,0 +1,431 @@
+{template 'common/header'}
+
+
+
+<style type="text/css">
+.account-stat-num > div{width:25%;float:left;font-size:16px;text-align:center;}
+.account-stat-num > div span{font-size:30px;display:block;font-weight:bold;}
+
+.modal-body li{height:35px;line-height:35px;}
+.modal-body p{padding:0;margin:0;width:50%;float:left;height:35px;line-height:35px;}
+</style>
+
+<ul class="nav nav-tabs">    
+<li class="active"><a href="javascript:void(0);">会员列表</a></li>
+</ul>
+<div class="clearfix">    
+
+
+		
+    	<!--<div class="panel-heading">
+  
+        	 <a class="navbar-brand" href="javascript:;">数据统计</a>
+			 <ul class="nav navbar-nav navbar-right">
+				<li class="active"><a href="">今日</a></li>
+				<li class="active">昨日</li>
+				
+			</ul>
+			
+        </div> -->
+         
+	        <div class="panel panel-info">
+	        	<div class="panel-heading">筛选</div>
+	        	<div class="panel-body">
+	        		<div class="col-xs-12 col-sm-3 col-md-2 control-label">昵称：</div>
+	        		<form action="./index.php" method="get" class="form-horizontal" role="form">
+		        	<input type="hidden" name="c" value="site" />
+		
+		            <input type="hidden" name="a" value="entry" />
+		
+		            <input type="hidden" name="m" value="zm_jfb" />
+		
+		            <input type="hidden" name="do" value="hylist" />
+		            
+		        	<div class="col-sm-6 col-md-6 col-lg-6 col-xs-12">
+			        	<input type="text" name="hyname" value="{$_GPC['hyname']}" class="form-control"/>
+					</div>
+					<div class="pull-left col-xs-12 col-sm-3 col-md-2 col-lg-2">
+						<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+					</div>
+					</form>
+					
+				</div>
+	        </div>
+		
+
+		<div class="panel panel-default ">
+	        <div class="table-responsive panel-body" >
+	
+	            <table class="table table-hover">
+	
+	            	<thead>
+	
+	                	<tr class="active">
+	
+							<td width="8%">头像</td>
+							
+	                    	<td width="22%">昵称</td>
+		                        
+		                    <td>门店详情</td>
+		                    
+		                    <td>姓名</td>
+		                    
+		                    <td>手机号</td>
+		                    
+							<td>剩余积分</td>
+							
+							<td>剩余余额</td>
+							
+							<!--<td>综合评分</td>-->
+	
+	                        <td width="12%">操作</td>
+	
+	                    </tr>
+	
+	                </thead>
+	
+	                <tbody>
+	
+	                	{loop $list $val}
+	
+	                	<tr>
+							<td><img src="{php echo tomedia($val[avatar])}"  width="60"/></td>
+							
+	                    	<td>{$val[nickname]}</td>
+	                    	
+	                    	<td><a class="btn btn-default" href="javascript:void(0);" data-toggle="modal" data-target="#topup{$val['uid']}" onclick="loadMendian({$val['uid']})">查看门店</a></td>
+	                    	
+	                    	<td>{$val[realname]}</td>
+	                    	
+	                    	<td>{$val[mobile]}</td>
+							
+							<td>{$val[credit1]}</td>
+							
+							<td>{$val[credit2]}</td>
+							
+							
+							<td>
+								<a class="btn btn-default" href="{php echo $this->createWebUrl('hydel', array('id'=>$val['id'],'uid'=>$val['uid']))}" onclick="if(confirm('确认删除会员信息?')){return true}else{return false};"><i class="fa fa-remove"></i> 删除</a>
+								<a class="btn btn-default" href="{php echo $this->createWebUrl('hylists', array('nick'=>$val[nickname]));}">查看详情</a>
+								</br>
+								<div style="margin-top:5px;">
+								<button class="btn btn-default modal-trade" data-toggle="modal" data-target="#credit1" data-type="credit1" data-uid="{$val['uid']}" onclick="return loaduser(1,{$val['uid']})">积分</button>
+
+								<button class="btn btn-default modal-trade" data-toggle="modal" data-target="#credit2" data-type="credit2" data-uid="{$val['uid']}" onclick="return loaduser(2,{$val['uid']})">余额</button>
+								</div>
+							</td>
+							
+	                    </tr>
+	                    <script>
+	                    function loadMendian(uid){
+	                    	$(".md-list").html("");
+	                    	$.ajax({
+	                    		
+	                            url:"{php echo $this->createWebUrl('hylist')}",
+	                            type:'POST',
+	                            dataType:'json',
+	                            async:false,
+	                            data:{
+	                              opp:"getmd",
+	                              uid:uid
+	                            },
+	                            success:function(msg){
+	                            	
+	                            	$.each( msg, function(index, content) { 
+	                            		
+	                            		$(".md-list").html("<li><p>"+content.name+"</p><p>"+content.addtime+"</p></li>");
+	                            		
+	                            	});
+	                            	if($(".md-list").html()=="")
+	                            		$(".md-list").html("<li>没有获得积分活余额</li>");
+	                            }
+	                         });
+	                    }
+	                    
+	                    
+	                    </script>
+	 			<div class="modal fade" id="topup{$val['uid']}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+
+				  <div class="modal-dialog" role="document">
+
+				    <div class="modal-content">
+
+				      <div class="modal-header">
+
+				        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+
+				        <h4 class="modal-title" id="myModalLabel">门店详情</h4>
+
+				      </div>
+
+				      <div class="modal-body">
+							<ul style="list-style-type:none"><li><p>门店名称</p><p>加入时间</p></li></ul>
+				       		<ul class="md-list" style="list-style-type:none">
+				       		
+				       		</ul>
+
+				      </div>
+
+				      <div class="modal-footer">
+
+				        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+
+
+				      </div>
+
+				    </div>
+
+				  </div>
+
+				</div>
+	                    {/loop}
+	
+	                    
+	
+	                </tbody>
+	
+	            </table>
+	
+	        </div>
+	
+	       
+	
+	        <div class="panel-body text-center">
+	
+	            {$pager} 
+	
+	        </div>
+	        
+	        <div class="modal fade" id="credit1" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+
+				  <div class="modal-dialog" role="document">
+
+				    <div class="modal-content">
+
+				      <div class="modal-header">
+
+				        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+
+				        <h4 class="modal-title" id="myModalLabel">会员积分操作</h4>
+
+				      </div>
+						
+				      <div class="modal-body" id="credit1-body">
+							<table class="table table-hover table-bordered">						
+								<tbody>
+									<tr>							
+										<th width="150">								
+											<select name="type" id="type" class="form-control" disabled="disabled">									
+											<option value="uid">会员UID</option>
+											<option value="mobile">手机号</option>		
+											</select>							
+										</th>							
+										<td>								
+											<div>									
+												<input type="text" value="" name="username" id="username" class="form-control" data-bv-field="username" disabled="disabled">								
+											</div>							
+										
+										</td>						
+									</tr>
+															
+									<tr id="user" style="">							
+										<th>会员信息</th>							
+											<td>								
+												<div class="form-group">									
+													<div class="input-group"><strong class="form-control-static" id="msg">姓名:徐,会员组:普通会员<br><br>余额:0.00元,积分:0.00<br></strong></div>								
+												</div>							
+											</td>						
+									</tr>
+															
+									<tr>							
+										<th>修改积分(增减)</th>							
+										<td>								
+											<div class="form-group">									
+												<input type="text" value="" name="num" id="total" class="form-control" data-bv-field="num">									
+												<div class="help-block">输入500,则标识增加500;输入-500则表示减少500</div>								
+											</div>							
+										</td>
+									</tr>
+															
+									<tr>							
+										<th>备注</th>							
+										<td><textarea name="remark" id="remark" class="form-control" cols="81"></textarea></td>						
+									</tr>					
+								</tbody>
+							</table>
+
+				      </div>
+
+				      <div class="modal-footer">
+						
+				        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+						<button type="button" class="btn btn-primary" data-dismiss="modal" onclick="savecredit(1)">提交</button>
+
+				      </div>
+
+				    </div>
+
+				  </div>
+
+				</div>
+				
+				<div class="modal fade" id="credit2" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+
+				  <div class="modal-dialog" role="document">
+
+				    <div class="modal-content">
+
+				      <div class="modal-header">
+
+				        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+
+				        <h4 class="modal-title" id="myModalLabel">会员余额操作</h4>
+
+				      </div>
+
+				      <div class="modal-body" id="credit2-body">
+							<table class="table table-hover table-bordered">						
+								<tbody>
+									<tr>							
+										<th width="150">								
+											<select name="type" id="type" class="form-control" disabled="disabled">									
+											<option value="uid">会员UID</option>
+											<option value="mobile">手机号</option>		
+											</select>							
+										</th>							
+										<td>								
+											<div>									
+												<input type="text" value="" name="username1" id="username1" class="form-control" data-bv-field="username" disabled="disabled">							
+											</div>							
+										
+										</td>						
+									</tr>
+															
+									<tr id="user" style="">							
+										<th>会员信息</th>							
+											<td>								
+												<div class="form-group">									
+													<div class="input-group"><strong class="form-control-static" id="msg1">姓名:徐,会员组:普通会员<br><br>余额:0.00元,积分:0.00<br></strong></div>								
+												</div>							
+											</td>						
+									</tr>
+															
+									<tr>							
+										<th>修改余额(增减)</th>							
+										<td>								
+											<div class="form-group">									
+												<input type="text" value="" name="num" id="total1" class="form-control" data-bv-field="num">									
+												<div class="help-block">输入500,则标识增加500;输入-500则表示减少500</div>								
+											</div>							
+										</td>
+									</tr>
+															
+									<tr>							
+										<th>备注</th>							
+										<td><textarea name="remark" id="remark1" class="form-control" cols="81"></textarea></td>						
+									</tr>					
+								</tbody>
+							</table>
+				      </div>
+
+				      <div class="modal-footer">
+
+				        <button type="button" class="btn btn-default" data-dismiss="modal" >关闭</button>
+						<button type="button" class="btn btn-primary" data-dismiss="modal" onclick="savecredit(2)">提交</button>
+
+				      </div>
+
+				    </div>
+
+				  </div>
+
+				</div>
+		</div>
+        
+
+		 <!--<div class="panel-footer">
+
+            <span style="color:red;">接受预约是在用户提交订单后，该员工会收到订单消息，在基础数据上只能选择一个</span>
+
+         </div>-->
+
+		
+
+        <div class="panel-footer">
+
+            <!--{if in_array('1', $power)}
+
+			<a class="btn btn-default" href="{php echo $this->createWebUrl('staffadd', array('name'=>'xm_housekeep'))}">新增员工</a>
+
+			{/if}  -->
+
+        </div>
+
+    <script>
+    
+    function loaduser(obj,uid){
+		
+    	if(obj == 1){
+    		$("#username").val(uid);
+    		
+    	}else{
+    		$("#username1").val(uid);
+    	}
+		$.ajax({
+    		
+            url:"{php echo $this->createWebUrl('hylist')}",
+            type:'POST',
+            dataType:'json',
+            async:false,
+            data:{
+              opp:"getuser",
+              uid:uid,
+              type:obj
+            },
+            success:function(msg){
+            	alert(msg.realname);
+            	
+            	$("#msg").html("姓名:"+msg.realname+",会员组:"+msg.title+"<br/><br/>余额:"+msg.credit2+"元,积分:"+msg.credit1);
+            	
+            	
+            }
+         });
+    }
+    
+    function savecredit(obj){
+		$.ajax({
+    		
+            url:"{php echo $this->createWebUrl('hylist')}",
+            type:'POST',
+            dataType:'json',
+            async:false,
+            data:{
+              opp:"saveuser",
+              uid:$("#username").val(),
+              type:obj,
+              num:$("#total").val(),
+              num1:$("#total1").val(),
+              remark:$("#remark").val(),
+              remark1:$("#remark1").val()
+            },
+            success:function(msg){
+            	
+            	if(msg == "jifen"){
+            		alert("积分修改成功!");
+            		location.reload();
+					return true;
+            	}else if(msg == "yue"){
+            		alert("余额修改成功!");
+            		location.reload();
+					return true;
+            	}
+            	
+            }
+         });
+    }
+    </script>   
+
+    </div>
+
+
+{template 'common/footer'}

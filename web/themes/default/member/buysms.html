@@ -1,0 +1,146 @@
+{template 'common/header-gw'}
+{php $settings = get_settings()}
+<ol class="breadcrumb">
+	<li><a href="./?refresh"><i class="fa fa-home"></i></a></li>
+	<li><a href="{url 'system/welcome'}">系统</a></li>
+</ol>
+<style type="text/css">
+    .panel-body > ul{list-style:none;margin: 0px;padding: 0px}
+    .panel-body > ul li{display: inline-block}
+</style>
+<div class="main">
+<ul class="nav nav-tabs">
+    <li><a href="{php echo url('member/member');}">充值续费</a></li>
+    <li><a href="{php echo url('member/buypackage');}">套餐购买</a></li>
+    <li class="active"><a href="{php echo url('member/buysms');}">短信购买</a></li>
+	{if $_W['isfounder']}
+    <li><a href="{php echo url('member/record');}">会员消费</a></li>
+	<li><a href="{php echo url('member/users');}">充值记录</a></li>
+	<li><a href="{php echo url('member/configs');}">服务配置</a></li>
+    {/if}
+</ul>
+    <div style="width: 100%" >
+        {template 'member/common/account'}
+        <aside style="width: 49%;float: left">
+            <section>
+                <div class="panel panel-default">
+                    <div class="panel-heading">用户购买短信条数</div>
+                    <div class="panel-body">
+                        <form action="" class="form-horizontal form" method="post" enctype="multipart/form-data">
+                            <div class="form-group">
+                                <div class="col-sm-2"></div>
+                                <div class="col-sm-8">
+                                    <div class="input-group" >
+                                        <span class="input-group-addon">购买帐号</span>
+                                        <input class="form-control" type="text" placeholder="购买帐号" value="{$_W[username]}"  disabled="disabled" >
+                                    </div>
+                                </div>
+                                <div class="col-sm-2"></div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-2"></div>
+                                <div class="col-sm-8">
+                                    <div class="input-group" >
+                                        <span class="input-group-addon">当前剩余</span>
+                                        <input class="form-control" type="text" placeholder="当前剩余" value="{$_W[user][sms][balance]}"  disabled="disabled" />
+                                        <span class="input-group-addon">条</span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-2"></div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-2"></div>
+                                <div class="col-sm-8">
+                                    <div class="input-group">
+                                        <span class="input-group-addon">购买</span>
+                                        <input class="number form-control" name="number" type="text" data-reg="^[1-9][0-9]{0,5}$" maxlength="6" placeholder="条数" value="5"  >
+                                        <span class="input-group-addon">条,每条短信<span style="color: red;font-weight: bold">{if $settings["dx_UnitPrice"] > 0} {$settings["dx_UnitPrice"]} {else}0.1{/if}</span>元</span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-2"></div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-12" style="text-align: center;font-size: 18px">
+                                    购买<span class="number" style="font-weight: bold;color: red;font-size: 26px">5</span> 条短信，需要消费
+                                    <span class="money" style="font-weight: bold;color: red;font-size: 26px">{php echo $settings["dx_UnitPrice"]*5}</span> 元
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="panel-footer" style="text-align: center">
+                        <button type="button" class="btn btn-warning buy">确认购买</button>
+                    </div>
+                </div>
+            </section>
+        </aside>
+        <aside style="width: 22%;float: left;margin-left: 5px">
+            <section>
+                <div class="list-group bg-white set_list_group">
+                    <span class="list-group-item">
+                        <h4 style="text-align: center;color: red">服务公告</h4>
+                        <div style="font-size: 13px">
+                            {php echo html_entity_decode($settings['service_gg']);}
+                        </div>
+                    </span>
+                </div>
+            </section>
+            <section>
+                <div class="panel panel-default">
+                    <div class="panel-heading">在线客服中心</div>
+                    <div class="panel-body">
+                        <div class="list-group bg-white set_list_group">
+                            {loop $qqs $service}
+                            <span class="list-group-item">
+                                <i class="fa fa-qq"></i> <a target="_blank" style="color: blue" href="http://wpa.qq.com/msgrd?v=3&amp;uin={$service[qq]}&amp;site=qq&amp;menu=yes">{$service[name]}</a>
+                            </span>
+                            {/loop}
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </aside>
+    </div>
+    <script type="text/javascript">
+        require(['bootstrap'],function($){
+            $("button.buy").on("click", function(){
+                var reg = new RegExp($("input.number").attr("data-reg"));
+                $("input.number").parent().parent().parent().removeClass("has-error");
+                if(!reg.test($("input.number").val())) {
+                    $("input.number").parent().parent().parent().addClass("has-error");
+                    return;
+                }
+                $(this).attr("disabled","true");
+                $.ajax({
+                    'url':"{php echo url('member/buysms')}",
+                    'data':$("form").serialize(),
+                    'type':'POST',
+                    'async':'true',
+                    'dataType':'json',
+                    'complete':function(XMLHttpRequest, textStatus){
+                        $("button.btn-warning").removeAttr("disabled");
+                    },
+                    'success':function(data){
+                        console.debug(data);
+                        alert(data.message);
+                        if(data.code>0){
+                            location.reload();
+                        }
+                    }
+                });
+                console.log("ss");
+            });
+            $("input.number").on("blur",function(){
+                var reg = new RegExp($(this).attr("data-reg"));
+                $(this).parent().parent().parent().removeClass("has-error");
+                if(!reg.test($(this).val())) {
+                    $(this).parent().parent().parent().addClass("has-error");
+                    return;
+                }
+                $("span.money").text($(this).val()*{$settings["dx_UnitPrice"]});
+                $("span.number").text($(this).val());
+            });
+        });
+    </script>
+</div>
+
+{template 'member/common/footer'}

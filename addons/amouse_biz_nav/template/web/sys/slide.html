@@ -1,0 +1,152 @@
+{template 'common/header'}
+
+{template 'web/sys/tabs'}
+
+{if $op=='post'}
+<div class="main">
+    <form action="" method="post" class="form-horizontal form" id="form1">
+        <div class="panel panel-default">
+            <div class="panel-heading">幻灯片详细设置</div>
+            <div class="panel-body">
+               <!-- <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">名称</label>
+                    <div class="col-sm-8 col-xs-12">
+                        <input type="text" name="title" class="form-control" value="{$item['title']}" />
+                    </div>
+                </div>-->
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">排序</label>
+                    <div class="col-sm-8 col-xs-12">
+                        <input type="text" name="displayorder" class="form-control" value="{$item['displayorder']}" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">对应链接</label>
+                    <div class="col-sm-8 col-xs-12">
+                            <input type="text" class="form-control" placeholder="来源地址" name="link" value="{$item['link']}"/>
+                        <span>
+                           <a target="_blank" href="http://www.dwz.cn/">短网址转换</a>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">图标</label>
+                    <div class="col-sm-8">
+                        {php echo tpl_form_field_image('img', $item['img']);}
+                        <span class='help-block'><img src="http://xiaoxiong.1158spx.com/Images/banner/banner_home01.jpg" width="110px" height="66px" />尺寸: 1080*360 </span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">是否启用</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <input type="radio" name="status" value="0" id="form-oauth-0"{if $item['status']==0}checked="true"{/if}  />
+                        <label for="form-oauth-0">开启</label>
+                        <input type="radio" name="status" value="1" id="form-oauth-1"{if $item['status']==1}checked="true"{/if}  />
+                        <label for="form-oauth-1">暂停</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-sm-12">
+                <input name="submit" type="submit" value="提交" class="btn btn-primary col-lg-1">
+                <input type="hidden" name="token" value="{$_W['token']}" />
+            </div>
+        </div>
+    </form>
+</div>
+<script type="text/javascript">
+
+    require(['jquery', 'util'], slidection ($, u) {
+        $('.link_select').unbind('click').click(slidection(){
+            var ipt = $(this).parent().prev();
+            util.linkBrowser(slidection(href){
+                var site_url = "{$_W['siteroot']}";
+                if(href.indexOf("http://") == -1 && href.indexOf("https://") == -1) {
+                    href = href.replace('./index.php?', '/index.php?');
+                    href = site_url + 'app' + href;
+                }
+                ipt.val(href);
+            });
+        });
+
+        $('.account p a').each(slidection(){
+            u.clip(this, $(this).text());
+        });
+
+    });
+
+</script>
+{elseif $op == 'display'}
+<div class="panel panel-default">
+
+    <div class="panel-body">
+        <a class='btn btn-default' href="{php echo $this->createWebUrl('slide',array('op'=>'post'))}"><i class='fa fa-plus'></i>添加幻灯片</a>
+    </div>
+
+    <div class="category">
+        <form action="" method="post" onsubmit="return formcheck(this)">
+            <div class="panel panel-default">
+                <div class="panel-body table-responsive">
+                    <table class="table table-hover">
+                        <thead class="navbar-inner">
+                        <tr>
+                            <th style="width:10%; text-align:center;">显示顺序</th>
+                            <th style="width:20%;">图标</th>
+                            <th style="width:45%;">链接</th>
+                            <th style="width:10%;">状态</th>
+                            <th style="text-align:center;">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {loop $list $row}
+                        <tr>
+                            <td class="text-center">
+                                <input type="text" class="form-control" name="displayorders[]" value="{$row['displayorder']}">
+                                <input name="ids[]" type="hidden" value="{$row['id']}">
+                            </td>
+                            <td>
+                                <img src='{php echo tomedia($row['img'])}' style='width:30px;height:30px;padding:1px;border:1px solid #ccc' />
+
+                                <br/><label class='label label-info'>状态：{if $row['status']==1}禁用{else if $row['status']==0}开启{/if}</label>
+                            </td>
+                            <td>{$row['link']}</td>
+                            <td>
+                                <label title="点击自动切换审核" data="{$row['status']}" class='label label-default {if $row['status']==0}label-success{else}label-info{/if}' onclick="setProperty(this,{$row['id']},'status')">{if $row['status']==1}禁用{else if $row['status']==0}开启{/if}
+                                </label>
+                            </td>
+                            <td style="text-align:center;">
+                                <a href="{php echo $this->createWebUrl('slide', array('op' => 'post', 'id' => $row['id']))}" title="编辑" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top"><i class="fa fa-edit">编辑</i></a>
+                                <a href="{php echo $this->createWebUrl('slide', array('op' => 'delete','id' => $row['id']))}" onclick="return confirm('确认删除吗？');return false;" title="删除" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top"><i class="fa fa-times">删除</i></a>
+                            </td>
+                        </tr>
+                        {/loop}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="form-group col-sm-12">
+                <input name="submit" type="submit" class="btn btn-primary col-lg-1" value="提交">
+                <input type="hidden" name="token" value="{$_W['token']}" />
+            </div>
+        </form>
+    </div>
+</div>
+<script type="text/javascript">
+      function setProperty(obj, id,type) {
+        $(obj).html($(obj).html() + "...");
+        $.post("{php echo $this->createWebUrl('slide',array('op'=>'setstatus'))}",{id: id,type: type,data: obj.getAttribute("data")},slidection (d) {
+            $(obj).html($(obj).html().replace("...", ""));
+            if (type == 'status') {
+                $(obj).html(d.data == '0' ? '开启' : '禁用');
+            }
+            $(obj).attr("data", d.data);
+            if (d.result == 1) {
+                $(obj).toggleClass("label-info");
+            }
+        }, "json");
+    }
+</script>
+{/if}

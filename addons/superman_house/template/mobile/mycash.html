@@ -1,0 +1,70 @@
+{template 'header'}
+{template 'header-common'}
+<link type="text/css" rel="stylesheet" href="{$_W['siteroot']}addons/superman_house/template/mobile/css/mycash.css">
+<div class="margin">
+	<form action="" method="post">
+		<input type="hidden" name="token" value="{$_W['token']}">
+		<div class="card mycash border-1px">
+			<p class="fontcolor">申请提现</p>
+			<hr />
+			<span style="padding: 0 12px; line-height: 40px;" class="fontcolor">
+				可申请提现{$credit[title]}：{$credit[value]}
+			</span>
+			<div class="row">
+				<div class="col-xs-12" style="padding: 0 10px;">
+					<div class="form-group">
+						<input type="text" placeholder="请输入提现金额" class="form-control" name="money" id="money">
+					</div>
+					<div class="form-group">
+						<textarea name="remark" rows="3" id="remark" class="form-control" placeholder="备注内容"></textarea>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-xs-12">
+				{if $this->module['config']['getcash']['min'] > 0 && $this->module['config']['getcash']['min'] > $credit[value]}
+					<input disabled type="submit" name="submit" class="btn btn-primary btn-block" value="申请提现（最低提现金额{php echo $this->module['config']['getcash']['min']}）">
+				{else}
+					<input type="submit" name="submit" class="btn btn-primary btn-block" value="申请提现">
+				{/if}
+			</div>
+		</div>
+	</form>
+</div>
+{if !empty($conf['getcash']['desc'])}
+<div style="margin: 2em 0.5em;padding-bottom: 30px;">
+	<div class="well">
+		{php echo htmlspecialchars_decode($conf['getcash']['desc'])}
+	</div>
+</div>
+{/if}
+<script>
+	require(['jquery', 'util'],function($, u){
+		$('form').submit(function(){
+			var money = parseFloat($('#money').val().trim());
+			if(isNaN(money)) {
+				u.message('请输入正确的提现金额', '', 'error');
+				return false;
+			}
+			if(money < 1) {
+				u.message('最低提现金额为1元', '', 'error');
+				return false;
+			}
+			{if $credit[value] > 0}
+			if(money > {$credit[value]}) {
+				u.message('提现金额超过可申请提现额度', '', 'error');
+				return false;
+			}
+			{/if}
+			var remark = $('#remark').val().trim();
+			if (remark.length > 200) {
+				u.message('备注内容不能超过200个字符', '', 'error');
+				return false;
+			}
+			return true;
+		});
+	});
+</script>
+{template 'footer-common'}
+{template 'footer'}

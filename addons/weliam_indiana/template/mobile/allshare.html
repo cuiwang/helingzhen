@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>晒单 - {php echo $this->module['config']['sname']}</title>
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, width=device-width">
+    <meta content="telephone=no" name="format-detection">
+    <link href="../addons/weliam_indiana/static/css/common.css" rel="stylesheet">
+    <script src="../addons/weliam_indiana/static/js/jquery.js"></script>
+    <script type="text/javascript">
+			$(document).ready(function() {
+				$(window).scroll(function() {
+					var scrollTop = $(this).scrollTop();
+					var scrollHeight = $(document).height();
+
+					var h = getScrollTop();
+					if(h>300){
+						$('#go-top').show();
+					}else{
+						$('#go-top').hide();
+					}
+				});
+				//在页面上展示下一页
+			function getScrollTop() {  
+				var scrollPos;  
+				if (window.pageYOffset) {  
+				scrollPos = window.pageYOffset; }  
+				else if (document.compatMode && document.compatMode != 'BackCompat'){
+					scrollPos = document.documentElement.scrollTop; }
+		        else if (document.body) { scrollPos = document.body.scrollTop; }   
+		        return scrollPos;   
+			}
+			});
+			function BackTop(){
+				window.scrollTo(0,0);
+			}
+		</script>
+ </head>
+ {template wxshare}
+<script>
+	var id=0;
+	var flag=0;
+	id = {$id};
+	function down_load(){
+		//传值验证返回	
+	    $.post("{php echo $this->createMobileUrl('allshare')}",
+	    {
+	    	id:id
+	    },
+	    function(m){
+				if(m==''){
+					document.getElementById('refresh').innerHTML="没有可加载项";
+				}else{
+					if(m.success=='-1'){
+						document.getElementById('refresh').innerHTML='没有更多的信息了';
+					}else{
+						id = m.success;
+						for(var i=0;i<m.list.length;i++){
+							var addr = "{php echo $this->createMobileUrl('share_detail')}&id="+m.list[i].id;
+							var mess = "location.href='"+addr+"'";
+							var more ='<div class="w-shareItem" onclick="'+mess+'"><p class="title">'+m.list[i].title+'</p><p class="author"><a href="{php echo $this->createMobileUrl('otherpersonal')}&openid='+m.list[i].openid+'">'+m.list[i].nickname+'</a><span class="time">'+m.list[i].createtime+'</span></p><div class="abbr"><div class="pic"><img src="'+m.list[i].thumbs[0]+'"></div><div class="txt">'+m.list[i].detail+'</div></div></div>'
+  							$("#morelist").append(more);
+  							flag = 0;
+  							document.getElementById('refresh').innerHTML="上拉加载更多";
+						}
+						
+					}
+				}
+
+             },"json");
+	}
+	
+/*	function refresh(){
+		var re = document.getElementById('refresh');
+		if({$id} == -1){
+			re.innerHTML='没有更多的信息了';
+			flag == 1;
+		}
+	}*/
+	
+	//判断div是否在可视区域
+	  $(document).ready(function () {
+            $(window).scroll(function () {
+                var a = document.getElementById("refresh").offsetTop;
+                if (a >= $(window).scrollTop() && a < ($(window).scrollTop()+$(window).height())&&flag==0) {
+                   document.getElementById('refresh').innerHTML="努力加载中<i class='fa fa-spinner fa-pulse'></i>";
+					flag = 1;
+					down_load();	
+                }
+            });
+        });
+</script>
+
+
+
+<body onload="refresh();">
+<div class="g-header">
+    <!-- 导航栏 -->
+    <div class="m-nav">
+        <div class="g-wrap h_fix">
+            <ul class="m-nav-list">
+                <li ><a href="{php echo $this->createMobileUrl('index', array())}"><span>首页<span></span></span></a></li>
+                <li><a href="{php echo $this->createMobileUrl('allgoods', array())}" data-op=''><span>全部商品<span></span></span></a></li>
+                <li class="selected"><a href="{php echo $this->createMobileUrl('allshare', array())}" ><span>晒单<span></span></span></a></li>
+                <li><a href="{php echo $this->createMobileUrl('person', array())}"><span>个人中心<span></span></span></a></li>
+         </ul>
+        </div>
+    </div>
+</div>
+<style>
+	.h_fix{position: fixed;background-color: #fff;border-bottom: 1px solid #d5d5d5;box-shadow: 0 1px 3px 0px rgba(160,160,160,0.2);}
+</style>
+<div class="g-body" id="dvWrapper">
+    <div id="pro-view-0">
+    <div data-pro="loading"></div>
+    <div class="w-shareList" data-pro="list" id="morelist">
+    {loop $result $result}
+    <div class="w-shareItem" onclick="location.href='{php echo $this->createMobileUrl('share_detail',array(id => $result['id']));}'">
+    	
+       		 <p class="title">{$result['title']}</p>
+       		 <p class="author">
+       		 	<a href="{php echo $this->createMobileUrl('otherpersonal',array(openid => $result['openid']));}">{$result['nickname']}</a>
+       		 	<span class="time">{php echo date("m-d H:i",$result['createtime'])}</span>
+       		 </p>
+        <div class="abbr">
+            <div class="pic"><img src="{$result['thumbs'][0]}"></div>
+            <div class="txt">{$result['detail']}</div>
+        </div> 
+    </div> 
+    {/loop}
+  </div>
+  <div data-pro="more"><div class="w-more" id="pro-view-14"><div data-pro="link" id="refresh">上拉加载更多</div><div data-pro="loading" style="display:none"><b class="ico ico-loading"></b> 努力加载中</div><div data-pro="disable" style="display:none">已经没有更多</div></div></div></div></div>
+{template 'footer'}
+
+<button class="w-button w-button-round w-button-backToTop" style="display: none;" id="go-top" onclick="BackTop()">返回顶部</button>
+</body></html>

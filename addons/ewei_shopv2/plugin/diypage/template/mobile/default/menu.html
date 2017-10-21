@@ -1,0 +1,112 @@
+<link href="../addons/ewei_shopv2/plugin/diypage/static/css/foxui.diy.css?v=201705261600"rel="stylesheet"type="text/css"/>
+<style type="text/css">
+    .diymenu .item .inner {background: {$diymenu['style']['bgcolor']};}
+    .diymenu .item .inner:before,
+    .diymenu .item .inner:after {border-color: {$diymenu['style']['bordercolor']};}
+    .diymenu .item .inner .text {color: {$diymenu['style']['textcolor']};}
+    .diymenu .item .inner .icon {color: {$diymenu['style']['iconcolor']};}
+    .diymenu .item.on .inner {background: {$diymenu['style']['bgcoloron']};}
+    .diymenu .item.on .inner .text {color: {$diymenu['style']['textcoloron']};}
+    .diymenu .item.on .inner .icon {color: {$diymenu['style']['iconcoloron']};}
+    .diymenu .item .child {border-color: {$diymenu['style']['childbordercolor']}; background-color: {$diymenu['style']['childbgcolor']};}
+    .diymenu .item .child a {color: {$diymenu['style']['childtextcolor']};}
+    .diymenu .item .child a:after {border-color: {$diymenu['style']['childbordercolor']}; color: {$diymenu['style']['childtextcolor']};}
+    .diymenu .item .child .arrow:before {background: {$diymenu['style']['childbordercolor']};}
+    .diymenu .item .child .arrow:after {background: {$diymenu['style']['childbgcolor']};}
+    .diymenu .item .inner .badge {background: {$diymenu['style']['cartbgcolor']};}
+</style>
+<?php
+    function menuon($url){
+        global $_GPC;
+        if(strexists($url, 'http://') || strexists($url, 'https://') || empty($url)){
+            return;
+        }
+        $r = trim($_GPC['r']);
+        if($r=='diypage') {
+            $id = strstr($url,"id=");
+            $id = str_replace('id=', '', $id);
+            if(intval($_GPC['id'])==$id) {
+                return 'on';
+            }
+        } else {
+            $r = strstr($url,"r=");
+            $r = str_replace('r=', '', $r);
+            if(trim($_GPC['r'])==$r){
+                return 'on';
+            }
+        }
+        return;
+    }
+?>
+<div class="diymenu" style="{if !is_mobile()} position: absolute;max-width: 750px;{else}position: fixed;{/if}">
+    {loop $diymenu['data'] $item}
+        <div class="item item-col-{php echo count($diymenu['data'])} {if count($item['child'])==0 && $diymenu['params']['navstyle']==0}{php echo menuon($item['linkurl'])}{/if}" {if count($item['child'])>0 && $diymenu['params']['navstyle']==0}onclick="showSubMenu(this)"{else}onclick="location.href = '{$item['linkurl']}'"{/if} {if strstr($item['linkurl'], 'r=member.cart')}id="menucart"{/if}>
+            <div class="inner {if $diymenu['params']['navstyle']==1}image{/if} {$diymenu['params']['navfloat']}">
+                {if strstr($item['linkurl'], 'r=member.cart') && $cartcount>0 && $diymenu['params']['cartnum']==1}
+                    <span class="badge">{$cartcount}</span>
+                {/if}
+                {if $diymenu['params']['navstyle']==0}
+
+                    {if !empty($item['iconclass'])}
+                        <span class="icon {$item['iconclass']} {$diymenu['params']['navfloat']}"></span>
+                    {/if}
+                    <span class="text {$diymenu['params']['navfloat']}" {if empty($item['iconclass'])} style="margin-top: 10px; font-size: 15px;"{/if}>{$item['text']}</span>
+                {elseif $diymenu['params']['navstyle']==1}
+                    <img src="{php echo tomedia($item['imgurl'])}" />
+                {/if}
+            </div>
+            {if count($item['child'])>0 && $diymenu['params']['navstyle']==0}
+                <div class="child">
+                    {loop $item['child'] $child}
+                        {if !empty($child['text'])}
+                            <a href="{$child['linkurl']}" class="external">{$child['text']}</a>
+                        {/if}
+                    {/loop}
+                    <span class="arrow"></span>
+                </div>
+            {/if}
+        </div>
+    {/loop}
+</div>
+{if $diymenu['params']['navstyle']==0}
+    <script>
+        function showSubMenu(obj) {
+            $(obj).toggleClass('on').siblings().removeClass('on');
+            $(obj).find('.child').toggleClass('in');
+            $(obj).siblings().find('.child').removeClass('in')
+        }
+        $(function () {
+            var len = $(".diymenu .child").length;
+            setTimeout(function () {
+                $(".diymenu .child").each(function (i) {
+                    var width = $(this).outerWidth();
+                    var margin = -(width / 2);
+                    var left = '50%';
+                    var pleft = $(this).position().left - width / 2;
+                    if(i==0 && pleft<2){
+                        left = 2;
+                        margin = 0;
+                        var pwidth = $(this).closest('.item').width();
+                        var arrowleft = pwidth / 2;
+                        var oldleft = parseFloat( $(this).find('.arrow').css('left').replace('px','') );
+                        $(this).find('.arrow').css({'left': arrowleft-10, 'margin-left': 0});
+                    }
+                    else if(i+1==len) {
+                        var thisleft = parseFloat( $(this).offset().left.toString().replace('px',''));
+                        if((thisleft+width)>$(document).width()){
+                            var pleft = $(this).closest('.item').offset().left;
+                            left =  $(document).width() - width - 2 - pleft;
+                            margin = 0;
+                            var pwidth = $(this).closest('.item').width();
+                            var itemleft = (pwidth / 2) + pleft;
+                            var childleft = $(document).width() - width - 2;
+                            var arrowleft = itemleft - childleft;
+                            $(this).find('.arrow').css({'left': arrowleft-10, 'margin-left': 0});
+                        }
+                    }
+                    $(this).css({'position': 'absolute', 'left': left, 'margin-left': margin, 'z-index': 0});
+                })
+            }, 500);
+        })
+    </script>
+{/if}

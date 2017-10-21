@@ -1,0 +1,419 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li {if $foo == 'post' || $foo == 'copy'}class="active"{/if}><a href="{php echo $this->createWebUrl('zmfwpee', array('foo' => 'post'))}">新增批次</a></li>
+	<li {if $foo == 'display' && (int)$_GPC['at'] == '0'}class="active"{/if}><a href="{php echo $this->createWebUrl('zmfwpee', array('foo' => 'display','at' => '0'))}">防伪码管理</a></li>
+	<li {if $foo == 'display' && (int)$_GPC['at'] == '1'}class="active"{/if}><a href="{php echo $this->createWebUrl('zmfwpee', array('foo' => 'display','at' => '1'))}">活动码管理</a></li>
+	<li {if $foo == 'display' && (int)$_GPC['at'] == '9'}class="active"{/if}><a href="{php echo $this->createWebUrl('zmfwpee', array('foo' => 'display','at' => '9'))}">过期或未启用批次</a></li>
+	{if zmcn_isqx($settings['isccode']) == '1'}
+		<li {if $foo == 'daoru'}class="active"{/if}><a href="#" data-toggle="tooltip" data-placement="top" title="请从《批次管理》各批次最右端按扭进入" >生成防伪码</a></li>
+	{/if}
+	{if $_W['role'] == "founder" && 1 == 2 }
+		<li {if $foo == 'xz'}class="active"{/if}><a href="{php echo $this->createWebUrl('zmfwpee', array('foo' => 'xz'))}" title="" >防伪码生成器</a></li>
+	{/if}
+</ul>
+{if $foo == 'daoru'}
+<div class="main">
+	<div class="panel panel-info">
+		<div class="panel-heading">生成防伪码</div>
+		<div class="panel-body">
+			<div class="form-group clearfix">
+				<form action="./index.php" method="post" class="form-horizontal" role="form" name="fr1" id="fr1">
+				<input type="hidden" name="c" value="site" />
+				<input type="hidden" name="a" value="entry" />
+				<input type="hidden" value="zmcn_fw" name="m">
+				<input type="hidden" value="zmfwpee" name="do">
+				<input type="hidden" value="{$_GPC['at']}" name="at">
+				<input type="hidden" value="daoru" name="foo">
+				<input type="hidden" value="{$batch['id']}" name="id">
+				<input type="hidden" name="token" value="{$_W['token']}" />
+				<input type="hidden" value="{$sheng}" name="abc" id="abc">
+				<label class="control-label col-md-2">生成数据包</label>
+				<div class="col-md-4">
+				<select class="form-control input-medium"  name="codetype" id="codetp">
+					<optgroup label="生成印刷用数据包" />
+					<option value="1" {if $_GPC['codetype']=='1'}selected{/if}>生成可读防伪码(分节)</option>
+					<option value="2" {if $_GPC['codetype']=='2'}selected{/if}>生成二维防伪码</option>
+					<option value="8" {if $_GPC['codetype']=='8'}selected{/if}>生成人机两用标</option>
+					<option value="11" {if $_GPC['codetype']=='11'}selected{/if}>生成分批号印刷标</option>
+					<option value="7" {if $_GPC['codetype']=='7'}selected{/if}>生成原始防伪码(多用途拓展)</option>
+				</select>
+				</div>
+				<div class="col-sm-4 col-xs-12">
+					<div class="input-group form-group">
+						<span class="input-group-addon">生成</span>
+						<input type="text" name="codeno1" id="codeno1" class="form-control" value="0" placeholder="注意:是多少万个"  maxlength="9" onkeyup="checkinput_zzjs(event);value=value.replace(/[^1234567890.]+/g,'');" />
+						<span class="input-group-addon">万个密码</span>
+					</div>
+					<div class="help-block">每次最少1万条(除非该批不足量,尾数会自动折算)</div>
+				</div>				
+				<div class="col-md-2">
+					<input type='button' value='提交' onclick='abab()' class="btn btn-primary"/>
+				</div>
+				</form>
+			</div>
+			<hr/>
+			<div class="form-group clearfix">
+				<form action="./index.php" method="post" class="form-horizontal" role="form">
+				<input type="hidden" name="c" value="site" />
+				<input type="hidden" name="a" value="entry" />
+				<input type="hidden" value="zmcn_fw" name="m">
+				<input type="hidden" value="zmfwpee" name="do">
+				<input type="hidden" value="{$_GPC['at']}" name="at">
+				<input type="hidden" value="daoru" name="foo">
+				<input type="hidden" value="{$batch['id']}" name="id">
+				<input type="hidden" name="token" value="{$_W['token']}" />
+				<label class="control-label col-md-2">生成演示密码(图片)</label>
+				<div class="col-md-4">
+				<select id="common_corp" class="form-control input-medium"  name="codetype">
+					<optgroup label="生成网页格式显示,仅供印刷前测试用" />
+					<option value="3" {if $_GPC['codetype']=='3'}selected{/if}>生成可读防伪码(分节)</option>
+					<option value="4" {if $_GPC['codetype']=='4'}selected{/if}>生成二维防伪码</option>
+					<option value="6" {if $_GPC['codetype']=='6'}selected{/if}>生成原始防伪码</option>
+				</select>
+				</div>
+				<div class="col-sm-4 col-xs-12">
+					<div class="input-group form-group">
+						<span class="input-group-addon">生成</span>
+						<input type="text" name="codeno"  class="form-control" value="0" placeholder=""  maxlength="4" onkeyup="value=value.replace(/[^1234567890]+/g,'');"/>
+						<span class="input-group-addon">个密码</span>
+					</div>
+					<div class="help-block">1万条以内请在这边生成(二维码建议每次最多500个)</div>					
+				</div>				
+				<div class="col-md-2">
+					<input type="submit" name="submit" value="提交" class="btn btn-primary"/>
+				</div>
+				</form>
+			</div>
+			<hr/>
+			<div class="form-group clearfix">
+				<form action="./index.php" method="post" class="form-horizontal" role="form">
+				<label class="control-label col-md-2">数据包说明示例(图片)</label>
+				<div class="col-md-4">
+					<img width="100%" src="{MODULE_URL}template/web/fwb.jpg" >
+					<div class="help-block">不同数据包对应该不同防伪标示例(这里只是举出一个代表性的样标,在实际生产中同一个数据包能生产很多不同格式的防伪标,<b>并非就一定要和上图一样</b>)</div>		
+				</div>
+				<div class="col-sm-1 col-xs-12">
+			
+				</div>				
+				<div class="col-md-1">
+
+				</div>
+				</form>
+			</div>			
+			
+		</div>
+	</div>
+
+		<div class="panel panel-info">
+		<div class="panel-heading">生成防伪码结果</div>
+		<div class="panel-body">
+          <div class="col-md-12" id='pposs'>
+		  {if $mima != ""}
+            <textarea class="form-control" name="" placeholder="" rows="25">{$mima}</textarea>
+			{else}
+			{$html}
+			{/if}
+          </div>
+		</div></div>
+</div>
+
+<script language='javascript'>
+    function upgrade(){
+	  if( $('#a2').val() * 1 > $('#a1').val() * 1 ){
+        $.ajax({
+            url: "{php echo $this->createWebUrl('zmfwpee', array('id' => $batch['id'], 'foo' => 'daoru'))}&codetype=" + $('#codetp').val() + "&codeno=" + $('#codeno').val(),
+            data:{op:'down'},
+            type:'post',
+            dataType:'json',
+			error:function() {
+				$('#process').html("发生未知错误!请马上<a href='{php echo $this->createWebUrl('zmfwpee', array('id' => $batch['id'], 'foo' => 'daoru', 'op' => 'del'))}'>点这里删除服务器上的数据包</a>再重新生成!");			
+				alert("发生未知错误!为避免密码重复建议本批密码作废!请回网页点击清除数据!然后再作生成!");
+				},
+            success:function(ret){
+             if(ret.result==1)      {
+				 document.getElementById("a1").value=document.getElementById("a1").value * 1 + ret.success * 1
+				 document.getElementById("abc").value=document.getElementById("abc").value * 1 - ret.success * 1
+                 upgrade();
+             }
+             else if(ret.result==2){
+			 	document.getElementById("a1").value=document.getElementById("a1").value * 1 + ret.success * 1
+				document.getElementById("abc").value=document.getElementById("abc").value * 1 - ret.success * 1
+                $('#process').html("防伪码生成完毕!<a href='{php echo $this->createWebUrl('zmfwpee', array('id' => $batch['id'], 'foo' => 'daoru', 'op' => 'zip'))}'>请点这里下载</a>!下载后请马上查看文件是否有效,如果有效,请马上<a href='{php echo $this->createWebUrl('zmfwpee', array('id' => $batch['id'], 'foo' => 'daoru', 'op' => 'del'))}'>点这里删除服务器上的数据包</a>!");
+                alert('该批次的防伪码已给用完,如还有需要,请新增加一个批次!');
+             }
+            }
+        });
+	  }else{
+		$('#process').html("防伪码生成完毕!<a href='{php echo $this->createWebUrl('zmfwpee', array('id' => $batch['id'], 'foo' => 'daoru', 'op' => 'zip'))}'>请点这里下载</a>!下载后请马上查看文件是否有效,如果有效,请马上<a href='{php echo $this->createWebUrl('zmfwpee', array('id' => $batch['id'], 'foo' => 'daoru', 'op' => 'del'))}'>点这里删除服务器上的数据包</a>!");
+		alert('防伪码生成完毕!该批次还可再生成' + $('#abc').val() + '个防伪码!');
+	  }
+    }
+    function abab(){
+		if(confirm('请确认是否要生成数据包?')){
+			var abc =  $('#abc').val() *1;
+			if($('#codeno1').val() * 10000 > abc ){document.getElementById("codeno1").value= abc * 1 / 10000;}
+			$('#pposs').html("<div class='col-sm-6 col-xs-12'><div class='input-group form-group'><span class='input-group-addon'>已经生成</span><input type='text' class='form-control' name='a1'  value='0' id='a1'  readOnly='true'><span class='input-group-addon'>个密码 / 共</span><input type='text' class='form-control' name='a2'  value='" + $('#codeno1').val() * 10000 + "' id='a2'  readOnly='true'><span class='input-group-addon'>个密码！</span></div></div><div id='process'>正在生成防伪码中...</div>");
+			upgrade();
+		}
+	}
+	
+function checkinput_zzjs(event){
+	var abc =  $('#abc').val() *1;
+  if (event.srcElement.name=="codeno1") {
+    if (event.srcElement.value * 10000> abc ) {
+      event.srcElement.value= abc * 1 / 10000 ;
+      alert("本批最多只能再生成" + abc + "个密码！");
+      event.srcElement.select();
+    }
+  }
+}
+</script>
+{elseif $foo == 'display'}
+<style>
+.label{cursor:pointer;}
+</style>
+<div class="main">
+  <div class="panel panel-info">	
+	<div class="panel-heading">筛选</div>
+		<div class="panel-body">
+			<form action="./index.php" method="get" class="form-horizontal" role="form">
+            <input type="hidden" name="c" value="site" />
+            <input type="hidden" name="a" value="entry" />
+			<input type="hidden" value="zmcn_fw" name="m">
+			<input type="hidden" value="zmfwpee" name="do">
+			<input type="hidden" value="display" name="foo">
+				<input type="hidden" value="{$_GPC['at']}" name="at">
+			<input type="hidden" name="token" value="{$_W['token']}" />
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">商品名称</label>
+				<div class="col-sm-8">
+						<input type="text" placeholder="关键字" value="{$_GPC['keyword']}" id="" name="keyword" class="form-control">
+				</div>				
+			</div>
+			<div class="form-group">
+				<div class="pull-right col-xs-12 col-sm-2 col-lg-1">
+					<button class="btn btn-block"><span class="icon icon-search"></span> 搜索</button>				
+				</div>
+			</div>
+			</form>	
+		</div>
+	</div>
+  </div>
+
+  
+  {if $_GPC['at']=='1'} {php $tistype='1'} {/if}
+  
+  <div class="panel panel-default">
+	<div class="panel-body table-responsive">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<th style="text-align:center; width:50px;">ID</th>
+					<th style="text-align:center; width:100px;">前缀 批号</th>
+					<th style="text-align:center; width:75px;">查询量<br>发行量</th>
+					<th style="text-align:center; width:180px;">{php echo zmcn_get_xmnane('brand'.$tistype,$batch['wailink']['name'],'')}<br>{php echo zmcn_get_xmnane('product'.$tistype,$batch['wailink']['name'],'')}</th>
+					{if $settings['ischuanhuo'] > 0}
+					<th style="text-align:center; width:100px;">销售区域</th>
+					{/if}
+					<th style="text-align:center; width:100px;">积分活动</th>
+					<th style="text-align:center; width:100px;">生成时间</th>
+					<th style="text-align:center; width:100px;">最后操作</th>
+					<th style="text-align:center; width:160px;">属性</th>
+					<th style="text-align:center; width:190px;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $row}
+				<tr  style="text-align:center;" data-toggle="popover" data-trigger="hover" data-placement="left" class="js-goods-img">				
+				   <td style="text-align:center;">{$row['id']}</td>
+				   <td style="text-align:center;">{$row['m1']} {$row['batch']}</td>
+				   <td style="text-align:center;">{$row['rcon']}<br>{$row['num']} </td>
+					<td style="text-align:center;">{$row['brand']}<br>{$row['product']}</td>
+					{if $settings['ischuanhuo'] > 0}
+					<td style="text-align:center;">
+					{if $row['ischuanhuo']==0}不限{elseif $settings['ischuanhuo'] ==2}{$row['province']}{elseif $settings['ischuanhuo'] ==3}{$row['province']}<br>{$row['city']}{/if}
+					</td>
+					{/if}
+					<td style="text-align:left;">{php echo zm_get_credit($row['inttype'])} {$row['integral']}</td>
+					<td style="text-align:center;">{php echo date('Y-m-d', $row['addtime'])}<br>{php echo date('H:i:s', $row['addtime'])}</td>
+					<td style="text-align:center;">{php echo date('Y-m-d', $row['lasttime'])}<br>{php echo date('H:i:s', $row['lasttime'])}</td>	
+					<td style="text-align:left;">
+					{if $row['validity'] > $_W['timestamp']}<span class="label label-success">有效</span>{else}<span class="label label-info">过期</span>{/if}
+					{if $row['sint'] == '1'}<span class="label label-info">活动</span>{else}<span class="label label-success">商品</span>{/if}
+					{if strlen($row['videoid']) > 20}<span class="label label-danger">视频</span>{elseif strlen($row['video']) > 20}<span class="label label-info">视频</span>{/if}
+					</td>		
+					<td>
+
+					<a rel="tooltip" href="{php echo $this->createWebUrl('zmfwsjj', array('foo' => 'po' , 'cred'=> '1', 'sp'=> $row['id']))}" title="查看此商品在各地区的销售分布情况" class="btn btn-default" data-toggle="tooltip" data-placement="top" title="查看此商品在各地区的销售分布情况"><i class="fa fa-bar-chart-o"></i></a> 
+					<a rel="tooltip" href="{php echo $this->createWebUrl('zmfwcaa', array('cid' => $row['id'], 'foo' => 'post'))}" title="查询管理操作日志" class="btn btn-default" data-toggle="tooltip" data-placement="top" title="查询管理操作日志"><i class="fa fa-calendar"></i></a> 
+					<a rel="tooltip" href="{php echo $this->createWebUrl('zmfwpee', array('id' => $row['id'], 'foo' => 'post'))}" title="编辑" class="btn btn-default" data-toggle="tooltip" data-placement="top" title="编辑"><i class="fa fa-pencil"></i></a> 
+					<a rel="tooltip" href="{php echo $this->createWebUrl('zmfwpee', array('id' => $row['id'], 'foo' => 'copy'))}" title="复制新增" class="btn btn-default" data-toggle="tooltip" data-placement="top" title="复制新增"><i class="fa fa-copy"></i></a> 
+					{if zmcn_isqx($settings['isccode'])=='1'}
+						<a rel="tooltip" href="{php echo $this->createWebUrl('zmfwpee', array('id' => $row['id'], 'foo' => 'daoru'))}" title="生成密码" class="btn btn-default" data-toggle="tooltip" data-placement="top" title="生成密码"><i class="fa fa-qrcode"></i></a>
+					{/if}
+
+					</td>
+				</tr>
+				{/loop}	
+			</tbody>
+		</table>
+		{$pager}
+	</div>
+  </div>
+</div>
+{elseif $foo == 'post'|| $foo == 'copy'}
+
+<form action="./index.php" method="post" class="form-horizontal" role="form" NAME="userinfo">
+			<input type="hidden" name="c" value="{$_GPC['c']}">
+			<input type="hidden" name="a" value="{$_GPC['a']}">
+			<input type="hidden" name="do" value="{$_GPC['do']}">
+			<input type="hidden" name="m" value="{$_GPC['m']}" />
+			<input type="hidden" name="foo" value="post" />
+				<input type="hidden" value="{$_GPC['at']}" name="at">
+			<input type="hidden" name="id" value="{$batch['id']}" />
+<div class="main">
+	<div class="panel panel-info">
+		<div class="panel-heading">新增防伪码批次</div>
+            <div class="panel-body">
+                <ul class="nav nav-tabs" id="myTab">
+                    <li class="active"><a href="#tab_batch">商品信息</a></li>
+                    <li><a href="#tab_param">扩展属性</a></li>
+                    <li><a href="#tab_chuanhuo">窜货监控</a></li>
+                    <li><a href="#tab_factory">商品溯源</a></li>
+					<li><a href="#tab_pro">关联商品</a></li>
+					<li><a href="#tab_inttype">活动设置</a></li>
+					<li><a href="#tab_wailink">展位设置</a></li>
+					<li><a href="#tab_user">用户管理</a></li>
+                </ul>
+				<div class="tab-content">
+                    <div class="tab-pane  active" id="tab_batch">{template 'batch'.DS.'batch'}</div>
+                    <div class="tab-pane  " id="tab_param">{template 'batch'.DS.'param'}</div>
+                    <div class="tab-pane  " id="tab_chuanhuo">{template 'batch'.DS.'chuanhuo'}</div>
+					<div class="tab-pane  " id="tab_factory">{template 'batch'.DS.'factory'}</div>
+					<div class="tab-pane  " id="tab_pro">{template 'batch'.DS.'pro'}</div>
+					<div class="tab-pane  " id="tab_inttype">{template 'batch'.DS.'inttype'}</div>
+					<div class="tab-pane  " id="tab_wailink">{template 'batch'.DS.'wailink'}</div>
+					<div class="tab-pane  " id="tab_user">{template 'batch'.DS.'user'}</div>
+				</div>
+			</div> 
+	</div>
+</div>
+			<div class="form-group">
+				<div class="col-sm-8">
+					<input type="hidden" name="aboutpro" value="{$aboutpro}"> 
+					<input type="hidden" name="tab" value="{$_GPC['tab']}" />
+					<button type="submit" class="btn btn-primary span3" name="submit" value="提交">提交</button>
+					<input type="hidden" name="token" value="{$_W['token']}" />
+				</div>		
+			</div>
+			</form>
+<script type="text/javascript">
+<!--
+	function addStatusItem(a) {
+		var html = '' +
+				'<tr>' +
+					'<td><input type="hidden" name="tps[]" value="' + a +
+					'" /><input name="titles[]" type="text" class="form-control" placeholder="为美观,尽量为4个汉字长度" list="tx_yd' + a +
+					'" autocomplete="off"/></td>' +
+					'<td><input name="values[]" type="text" value="" class="form-control" placeholder="尽量不要超过16个汉字"></td>' +
+					'<td style="text-align:right;"><a href="javascript:;" onclick="$(this).parent().parent().remove();" class="btn btn-small" title="删除此条目"><i class="glyphicon glyphicon-remove-circle"></i> 删除</a></td>' +
+				'</tr>';
+		$('#status-items' + a).append(html);
+	}
+	
+	
+	
+	
+	
+$(document).ready(function(){
+checkConfirm();
+});
+function checkConfirm(){
+$("#batch").blur(function(){
+var gradename = $(this).val();
+var changeUrl = "{php echo $this->createWebUrl('zmfwpee', array( 'foo' => 'chong'))}&b="+gradename;
+$.get(changeUrl,function(str){
+if(str == '1'){
+$("#gradeInfo").html("<font color=\"red\">您输入的批号已经存在！请重新输入！</font>");
+}else{
+$("#gradeInfo").html("");
+}
+})
+return false;
+})
+}
+
+function abcde(acc){
+	$.ajax({
+		url: "{php echo $this->createWebUrl('zmfwpee', array( 'foo' => 'spp'))}&b="+acc,
+		type:'get',
+		dataType:'json',
+		error:function(){},
+		success:function(ret){
+			if(ret.b == acc){
+				document.userinfo.product.value=ret.product;
+				document.userinfo.logo.value=ret.logo;
+				document.userinfo.banner.value=ret.logo;
+				document.userinfo.buylink.value=ret.buylink;
+				document.userinfo.factory.value="{$settings['factory']}";
+				$(".img-thumbnail").get(0).src = "{$_W['attachurl']}"+ret.logo;
+				$(".img-thumbnail").get(1).src = "{$_W['attachurl']}"+ret.logo;	
+			}
+		}
+	});
+}
+//-->
+<!--操作全部-->
+function moveAllOption(e1, e2){ 
+ var fromObjOptions=e1.options; 
+  for(var i=0;i<fromObjOptions.length;i++){ 
+   fromObjOptions[0].selected=true; 
+   e2.appendChild(fromObjOptions[i]); 
+   i--; 
+  } 
+ document.userinfo.aboutpro.value=getvalue(document.userinfo.list2); 
+}
+<!--操作单个-->
+function moveOption(e1, e2){ 
+ var fromObjOptions=e1.options; 
+  for(var i=0;i<fromObjOptions.length;i++){ 
+   if(fromObjOptions[i].selected){ 
+    e2.appendChild(fromObjOptions[i]); 
+    i--; 
+   } 
+  } 
+ document.userinfo.aboutpro.value=getvalue(document.userinfo.list2); 
+} 
+function getvalue(geto){ 
+var allvalue = ""; 
+for(var i=0;i<geto.options.length;i++){ 
+allvalue +=geto.options[i].value + ","; 
+} 
+return allvalue; 
+} 
+	$(function () {
+		$('#myTab a').click(function (e) {
+			var tab = $(this).attr('href').split('_')[1];
+			$(':hidden[name=tab]').val(tab);
+			e.preventDefault();
+			$(this).tab('show');
+		})
+                        {if !empty($_GPC['tab'])}
+                           $('#myTab li').removeClass('active');
+                           $("a[href='#tab_{$_GPC['tab']}']").parent().addClass('active');
+                           $('.tab-content div').removeClass('active');
+                           $("#tab_{$_GPC['tab']}").addClass('active');
+                        {/if}
+	});
+
+
+
+</script> 
+{/if}
+
+ <script type="text/javascript">
+ 	require(['bootstrap'],function($){
+		$('[data-toggle="tooltip"]').tooltip();
+	});
+</script>
+{template 'common/footer'}

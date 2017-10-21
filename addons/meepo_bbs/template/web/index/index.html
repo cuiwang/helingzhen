@@ -1,0 +1,121 @@
+{template 'common/header'}
+<style>
+	.account-stat{overflow:hidden; color:#666;}
+	.account-stat .account-stat-btn{width:100%; overflow:hidden;}
+	.account-stat .account-stat-btn > div{text-align:center; margin-bottom:5px;margin-right:2%; float:left;width:23%; height:80px; padding-top:10px;font-size:16px; border-left:1px #DDD solid;}
+	.account-stat .account-stat-btn > div:first-child{border-left:0;}
+	.account-stat .account-stat-btn > div span{display:block; font-size:30px; font-weight:bold}
+</style>
+	<div class="main">
+        <div class="panel panel-default col-md-8">
+			<div class="panel-body" style="padding:0px;">
+				<nav role="navigation" class="navbar navbar-default" id="clear" style="margin: -1em -1em 1em -1em;">
+					<div class="container-fluid">
+						<div class="navbar-header">
+							<a href="javascript:;" class="navbar-brand">社区统计趋势图</a>
+						</div>
+						<ul class="nav navbar-nav nav-btns">
+							<li class="active" id="basic"><a href="javascript:;">帖子统计</a></li>
+						</ul>
+					</div>
+				</nav>
+				
+				<div class="account-stat">
+					<div class="account-stat-btn">
+						<div>帖子总数<span id="rule"></span></div>
+						<div>今日帖子<span id="today"></span></div>
+						<div>本月帖子<span id="month"></span></div>
+						<div>
+							<a href="" id="show"  style="display:block; margin:5px 0;"><i class="fa fa-search"></i>查看帖子</a>
+							<a href="" id="add" style="display:block;"><i class="fa fa-plus"></i> 新增帖子</a>
+						</div>
+					</div>
+				</div>
+			
+				<div style="margin-top:20px;">
+					<canvas id="myChart" height="80"></canvas>
+				</div>
+			</div>
+        </div>
+        <div class="col-xs-12 col-sm-3 col-lg-4 big-menu">
+        <div class="panel panel-default" >
+            <div class="panel-heading">
+               <form action="" method="get">
+                <div class="form-group">
+	                <div class="col-sm-8 col-lg-9 col-xs-12">
+						<input class="form-control" name="nickname" id="" type="text" value="{$_GPC['nickname']}" placeholder="会员昵称">
+					</div>
+                    <input type="submit" value="搜索" class="btn btn-default"/>
+                    <input type="hidden" name="token" value="{$_W['token']}" />
+                </div>
+            </form>
+            </div>
+            <div class="panel-body" id="useronline" style="height:800px;padding:0px;">
+                
+                
+        	</div>
+        	
+        	<div class="panel-footer">
+        		
+        	</div>
+        </div>
+        </div>
+	</div>
+<script>
+	require(['chart', 'jquery'], function(c, $) {
+		var myLine = new Chart(document.getElementById("myChart").getContext("2d"));
+		var datasets = '';
+		var label = '';
+		var lineChartData = null;
+		var obj = null;
+		var day_num = "{php echo $day_num;}";
+		var show_url = "{php echo $this->createWebUrl('manage')}";
+		var add_url = "{php echo $this->createWebUrl('forum_post')}";
+		var data = null;
+		
+		$.post(location.href, {'m_name' : 'basic'}, function(data){
+			data = $.parseJSON(data);
+			
+			$("#rule").html(data.stat.rule);//总数
+			$("#today").html(data.stat.today);
+			$("#month").html(data.stat.month);
+			$('#show').attr('href', show_url);
+			$('#add').attr('href', add_url);
+
+			 lineChartData = {
+					labels : data.key,
+					datasets : [
+						{
+							fillColor : "rgba(36,165,222,0.1)",
+							strokeColor : "rgba(36,165,222,1)",
+							pointColor : "rgba(36,165,222,1)",
+							pointStrokeColor : "#fff",
+							pointHighlightFill : "#fff",
+							pointHighlightStroke : "rgba(36,165,222,1)",
+							data : data.value
+						}
+					]
+			}
+			 obj = myLine.Line(lineChartData, {responsive: true});
+		});
+ 	});
+</script>
+<script language='javascript'>
+	function checktopic(){
+		$('#waitting').empty();
+		$('#useronline').empty();
+		var url = "{php echo $this->createWebUrl('index',array('doo'=>'index','op'=>'index','act'=>'waitting'))}";
+		$.get(url,function(data){
+			$('#waitting').append(data);
+		});
+		
+		var url = "{php echo $this->createWebUrl('index',array('doo'=>'index','op'=>'index','act'=>'useronline'))}";
+		$.get(url,function(data){
+			$('#useronline').append(data);
+		});
+	}
+    $(function(){
+    	checktopic();
+    });
+</script>
+{template 'common/footer'}

@@ -1,0 +1,203 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+<li {if $op == 'display'}class="active"{/if}><a href="{php echo url('site/entry/xinxi_ershou',array('op'=>'display','m'=>'siyuan_cms'))}">信息列表</a></li>
+<li {if $op == 'post'}class="active"{/if}><a href="{php echo url('site/entry/xinxi_ershou',array('op'=>'post','m'=>'siyuan_cms'))}">添加信息</a></li>
+{if $op == 'img'}<li class="active"><a href="">编辑图片</a></li>{/if}
+</ul>
+<style>
+.table td span{display:inline-block;margin-top:4px;}
+.table td input{margin-bottom:0;}
+</style>
+{if $op == 'display'}
+
+<div class="main panel panel-default">
+	<div class="panel-body table-responsive"><table class="table table-hover">
+<thead class="navbar-inner">
+	<tr><th style="width:50px;">ID</th><th style="width:300px;">标题</th><th>新旧程度</th><th>价格</th><th>联系人</th><th>电话</th><th>设置置顶</th><th>黑名单操作</th><th>查看信息</th><th>操作</th></tr>
+</thead>
+<tbody>{loop $list $item}<tr><td>{$item['id']}</td><td><a href="{php echo $this->createWebUrl('xinxi_ershou', array('op' => 'post', 'id' => $item['id']))}">{$item['title']}</a></td><td>{$item['xinjiu']}</td><td>{if $item['jiage']=='0'}面议{else}{$item['jiage']}{/if}</td><td>{$item['name']}</td><td>{$item['phone']}</td><td>{if $item['ding'] == '0'}<a href="{php echo $this->createWebUrl('xinxi_ershou', array('op' => 'ding', 'status' => 1, 'id' => $item['id']))}" class="btn btn-success btn-xs">设置为置顶</a>{else}<a href="{php echo $this->createWebUrl('xinxi_ershou', array('op' => 'ding', 'status' => 0, 'id' => $item['id']))}" class="btn btn-danger btn-xs">取消置顶</a>{/if}</td><td><a target="_blank" href="{php echo $this->createWebUrl('black_list', array('op' => 'edit', 'openid' => $item['openid']))}" class="btn btn-danger btn-xs"><i class="fa fa-check"></i> 加入黑名单</a></td><td><a target="_blank" href="{$_W['siteroot']}app/{php echo $this->createMobileUrl('xinxi_ershou', array('id' => $item['id'],'act' => news, 'weid' => $_W['weid']))}"><button type="button" class="btn btn-primary"><i class="fa fa-paper-plane"></i>访问</button></a></td><td style="text-align:left;">
+<a href="{php echo $this->createWebUrl('xinxi_ershou', array('op' => 'post', 'id' => $item['id']))}" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" title="修改"><i class="fa fa-edit"></i></a>
+<a href="{php echo $this->createWebUrl('xinxi_ershou', array('op' => 'delete', 'id' => $item['id']))}"class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" title="删除"><i class="fa fa-times"></i></a></td>
+	</tr>
+	{/loop}
+</tbody></table>{$pager}
+</div>
+</div>
+<script>
+	require(['bootstrap'],function($){$('.btn').hover(function(){
+$(this).tooltip('show');},function(){
+$(this).tooltip('hide');});
+	});
+</script>
+{elseif $op == 'post'}
+<script type="text/javascript">
+var category = {php echo json_encode($children)};
+</script>
+<div class="main">
+<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" onsubmit='return formcheck()'>
+<input type="hidden" name="id" value="{$item['id']}" />
+<div class="panel panel-default">
+<div class="panel-heading">信息设置</div>
+<div class="panel-body">
+<div class="form-group">
+<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style="color:red">*</span>标题</label>
+<div class="col-sm-8 col-xs-12">
+<input type="text" name="title" class="form-control" value="{$item['title']}" />
+</div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style="color:red">*</span>联系电话</label>
+<div class="col-sm-2 col-xs-12">
+<input type="text" name="phone" class="form-control" value="{$item['phone']}" />
+</div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style="color:red">*</span>联系人</label>
+<div class="col-sm-2 col-xs-12">
+<input type="text" name="name" class="form-control" value="{$item['name']}" />
+</div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">成色</label>
+<div class="col-sm-2 col-xs-12">
+<select class="form-control" name="xinjiu">
+<option value="全新" {if $item['xinjiu'] == "全新"}selected="selected"{/if}>全新</option>
+<option value="9成新" {if $item['xinjiu'] == "9成新"}selected="selected"{/if}>9成新</option>
+<option value="8成新" {if $item['xinjiu'] == "8成新"}selected="selected"{/if}>8成新</option>
+<option value="7成新" {if $item['xinjiu'] == "7成新"}selected="selected"{/if}>7成新</option>
+<option value="6成新" {if $item['xinjiu'] == "6成新"}selected="selected"{/if}>6成新</option>
+<option value="5成新以下" {if $item['xinjiu'] == "5成新以下"}selected="selected"{/if}>5成新以下</option>
+</select>
+</div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-3 col-md-2 control-label">价格</label>
+<div class="col-sm-9 col-xs-12">
+<div class="row row-fix">
+<div class="col-sm-2 col-xs-2">
+<div class="input-group">
+<input type="text" name="jiage" class="form-control" value="{$item['jiage']}">
+<span class="input-group-addon">元</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">封面图</label>
+<div class="col-sm-6 col-xs-12">
+{php echo tpl_form_field_image('pic', $item['pic']);}
+<div class="help-block">推荐大小：200px(宽)*150px(高) 也可以1:1正方形</div>
+</div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">图片</label>
+<div class="col-sm-8 col-xs-12">
+<div class="input-group">
+<span class="input-group-btn">
+<a class="btn btn-info" href="{php echo $this->createWebUrl('xinxi_ershou', array('op' => 'img', 'id' => $item['id']))}" target="_blank">管理图片</a>
+</span>
+</div>
+<div class="input-group multi-img-details">
+{loop $photos $row}
+<div class="multi-item">
+<img src="{$row['pic']}" onerror="this.src='./resource/images/nopic.jpg'; this.title='图片未找到.'" class="img-responsive img-thumbnail">
+</div>
+{/loop}
+</div>
+</div></div>
+
+
+<div class="form-group">
+<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style='color:red'>*</span>信息说明</label>
+<div class="col-sm-4 col-xs-12"><textarea style="height:160px;" id='body' name="body" class="form-control" cols="60">{$item['body']}</textarea>
+</div>
+</div>
+
+<div class="form-group col-sm-12">
+	<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+	<input type="hidden" name="token" value="{$_W['token']}" />
+	</div>
+	</form>
+</div></div>
+<script type="text/javascript">
+require(['jquery', 'util'], function($, u){
+$(function(){
+$('.richtext').each(function() {
+u.editor(this);
+});
+});
+});
+
+require(['jquery', 'util'], function($, u){
+$('#form1').submit(function(){
+if($("input[name=title]").val().length <= 0) {
+u.message('没有填写标题', '', 'error');
+return false;
+}
+return true;
+});
+});
+</script>
+{elseif $op == 'img'}
+<div class="panel panel-default">
+<div class="panel-heading">图片管理</div>
+<div class="panel-body">
+<script type="text/javascript">
+
+	require(['jquery', 'util'], function($, util){
+	$(function(){
+		// 对象绑定点击事件
+		$('#selectimage').click(function(){
+			util.uploadMultiPictures(function(list){
+				// your code here
+				for(var i=0; i<list.length; i++){
+					html = '<div class="multi-item"><input type="hidden" name="attachment-new[]" value="'+list[i]['filename']+'" /><img src="'+list[i]['url']+'" class="img-responsive img-thumbnail"></div>';
+					$('#listimage').append(html);
+				}
+			});
+		});
+	});
+});
+
+
+ </script>
+
+<form method="post" class="form">
+<div class="form-group">
+<div class="col-sm-8 col-xs-12">
+<style>
+.multi-img-details{width:100%;float:left;}
+.multi-img-details .multi-item {float:left;margin-bottom:10px;margin-left:10px;}
+.pic_width{width:240px;}
+</style>
+<div class="input-group">
+<input type="text" class="form-control" readonly="readonly" value="" placeholder="批量上传图片" autocomplete="off">
+<span class="input-group-btn">
+<span id="selectimage" class="btn btn-primary"><i class="icon-plus"></i> 上传照片</span>
+<input type="hidden" value="descimgs[]" />
+</span>
+</div>
+<div class="input-group multi-img-details" id="listimage">
+{loop $photos $item}
+<div class="multi-item">
+<input type="hidden" value="{$item['pic']}" name="attachment[{$item['id']}]">
+<img src="{$item['pic']}" onerror="this.src='./resource/images/nopic.jpg'; this.title='图片未找到.'" class="img-responsive img-thumbnail pic_width">
+<a href="{php echo $this->createWebUrl('xinxi_ershou', array('op' => 'del_img', 'id' => $item['id']))}"><em class="close" title="删除这张图片">×</em></a>
+</div>
+{/loop}
+</div>
+</div>
+</div>
+<div class="form-group col-sm-12">
+<br>
+<input type="submit" name="submit" id="selectimage" class="btn btn-primary col-lg-2" value="保存" />
+<input name="token" type="hidden" value="{$_W['token']}" />
+</div>
+</form>
+
+</div>
+</div>
+<div style="clear:both"></div>
+{/if}
+{template 'common/footer'}

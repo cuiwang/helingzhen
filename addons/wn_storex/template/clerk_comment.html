@@ -1,0 +1,105 @@
+{template 'common/header'}
+<script language='javascript' src='{php echo $this->_script_url}jquery.gcjs.js'></script>
+<script language='javascript' src='{php echo $this->_script_url}jquery.form.js'></script>
+<script language='javascript' src='{php echo $this->_script_url}tooltipbox.js'></script>
+<div class="main">
+	<ul class="nav nav-tabs">
+		<li ><a href="{php echo $this->createWebUrl('clerk',array('op'=>'list'));}">店员管理</a></li>
+		<li><a href="{php echo $this->createWebUrl('clerk',array('op'=>'edit'));}">添加店员</a></li>
+		<li class="active"><a href="{php echo $this->createWebUrl('clerk',array('op'=>'clerkcommentlist'));}">店员评分</a></li>
+	</ul>
+	<div class="panel panel-default">
+		<div class="panel-body table-responsive">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+			<tr>
+				<th style='width:100px'>序号</th>
+				<th style='width:100px'>店员姓名</th>
+				<th style='width:150px'>评价星级</th>
+				<th style='width:150px'>评价内容</th>
+				<th style='width:150px'>加入时间</th>
+			</tr>
+			</thead>
+			<tbody>
+			{loop $comments $comment}
+			<tr>
+				<td>{$comment['id']}</td>
+				<td>{$comment['realname']}</td>
+				<td>
+					{$comment['grade']}
+				</td>
+				<td>
+					{$comment['comment']}
+				</td>
+				<td>{php echo date('Y-m-d H:i',$comment['createtime'])}</td>
+			</tr>
+			{/loop}
+			</tbody>
+		</table>
+	</div>
+	</div>
+	{$pager}
+</div>
+<script>
+	require(['bootstrap'],function(){
+		$('.btn').tooltip();
+	});
+	$(function(){
+		$(".check_all").click(function(){
+			var checked = $(this).get(0).checked;
+			$(':checkbox').each(function(){this.checked = checked});
+		});
+		$(".edit_all").click(function(){
+			var name = $(this).attr('name');
+			var check = $("input:checked");
+			if(check.length < 1){
+				alert('请选择要操作的记录!');
+				return false;
+			}
+			var id = new Array();
+			check.each(function(i){
+				id[i] = $(this).val();
+			});
+			$.post("{php echo create_url('site/entry', array('do' => 'clerk','op'=>'showall', 'm' => $_GPC['m']))}", {idArr:id,show_name:name},function(data){
+				if (data.errno == 0)
+				{
+					location.reload();
+				} else {
+					alert(data.error);
+				}
+			},'json');
+		});
+
+		$("input[name=deleteall]").click(function(){
+			var check = $("input:checked");
+			if(check.length<1){
+				alert('请选择要删除的记录!');
+				return false;
+			}
+			if( confirm("确认要删除选择的记录?")){
+				var id = new Array();
+				check.each(function(i){
+					id[i] = $(this).val();
+				});
+				$.post("{php echo create_url('site/entry', array('do' => 'clerk','op'=>'deleteall', 'm' => $_GPC['m']))}", {idArr:id},function(data){
+					if (data.errno ==0)
+					{
+						location.reload();
+					} else {
+						alert(data.error);
+					}
+				},'json');
+			}
+
+		});
+	});
+</script>
+<script>
+	function drop_confirm(msg, url){
+		if(confirm(msg)){
+			window.location = url;
+		}
+	}
+</script>
+
+{template 'common/footer'}

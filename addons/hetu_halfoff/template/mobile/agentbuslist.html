@@ -1,0 +1,193 @@
+{template 'agenthader'}
+    <div class="main">
+	<ul class="nav nav-tabs">
+		<li class="active"><a href="{php echo $this->createMobileUrl('halfagent', array('op'=>'agentlist', 'id'=>$id));}">商家列表</a></li>
+	    <li><a href="{php echo $this->createMobileUrl('halfagent', array('op'=>'agentpost', 'id'=>$id));}">商家添加</a></li>
+		<li><a href="{php echo $this->createMobileUrl('halfagent', array('op'=>'agentgetcardlist', 'id'=>$id));}">购卡列表</a></li>
+		<li><a href="{php echo $this->createMobileUrl('halfagent', array('op'=>'agentcirclelist', 'id'=>$id));}">商圈列表</a></li>
+		<li><a href="{php echo $this->createMobileUrl('halfagent', array('op'=>'agentcirclepost', 'id'=>$id));}">商圈添加</a></li>
+	</ul>
+<div class="main">
+ 
+	
+
+	<div class="panel panel-default">
+		<div class="panel-body table-responsive">
+		<form action="" class="form-horizontal form" method="post" enctype="multipart/form-data" onsubmit="return formcheck()">
+				  <div class="panel-body">
+					<div class="form-group">
+					  <label class="col-xs-12 col-sm-1 col-md-1 control-label">城市：</label>
+					  <div class="col-sm-4 col-xs-12 col-md-4">
+						 {php echo $this->halfoff_district('birth', $id, array('province' => $birth['province'], 'city' => $birth['city'], 'district' => $birth['district'] ));}
+					  </div>
+					  <div class="col-sm-4 col-xs-12 col-md-2" id="zxq">
+							<select name="cir_id" class="form-control">
+								<option value="">中心圈</option>
+								{loop $result $son}
+									<option value="{$son['cir_id']}" {if $_GPC['cir_id']==$son['cir_id']}selected{/if}>{$son['name']}</option>
+								{/loop}
+							</select>
+					  </div>
+					</div>
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-1 col-md-1 control-label">名称：</label>
+						<div class="col-sm-4 col-xs-12 col-md-4">
+							<input type="text" name="bus_name" id="bus_name"  class="form-control" value="{$_GPC['bus_name']}">
+						</div>
+						<div class="col-sm-5 col-xs-12 col-md-6">
+							<input type="submit" name="submit" value="搜索" class="btn btn-primary col-lg-1" />
+						</div>
+					</div>
+				  </div>
+			</form>
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+			<tr><th class='with-checkbox' style='width:30px;'>
+				<!-- <input type="checkbox" class="check_all" /></th> -->
+				<th style="width:120px;">商家名称</th> 
+				<th style='width:100px;'>营业时间</th>
+				<th style='width:100px;'>商户图片</th>
+				<th style='width:120px;'>城市/中心圈</th>
+				<th style="width:100px;">详细地址</th>
+				<th style="width:50px;">状态</th>
+				<th style="width:50px;">核销次数</th>
+				<th style="width:100px;">核销详情列表</th>
+				<th style="width:100px;">二维码</th>
+				<th style="width:50px;">排序</th>
+				<th style="width:100px;">操作</th>
+			</tr>
+			</thead>
+			<tbody>
+			{loop $list $item}
+			<tr>  <td class="with-checkbox">
+				<!-- <input type="checkbox" name="check" value="{$item['id']}"></td> -->
+				<td>{$item['name']}</td>
+				<td>{$item['businesshour']}</td>
+				<td>
+				<img src="{php echo tomedia($item['img']);}" width="50" height="50" alt="店铺门户图片">
+				</td>
+				<td>{php echo $this->get_city($item['province'])}/{php echo $this->get_city($item['city'])}/{php echo $this->get_city($item['county'])}/{$item['cir_name']}</td>
+				<td>{$item['address']}</td>
+				<td>
+					{if $item['status']==1}
+					<span class='label label-success'>显示</span>
+					{elseif $item['status']==0}
+					<span class='label label-default'>隐藏</span>
+                    {else}
+                    <span class='label label-warning'>审核中</span>
+                    
+					{/if}
+				</td>
+				<td>{$item['num']}</td>
+				{if $item['num'] == 0}
+				<td>
+					<span class="glyphicon glyphicon-th-list"></span> 列表
+				</td>
+				{else}
+				<td>
+					<a href="{php echo $this->createMobileUrl('halfagent', array('op'=>'confirmlist', 'bus_id'=>$item['bus_id'], 'bus_name'=>$item['name'], 'id'=>$id))}">
+						<span class="glyphicon glyphicon-th-list"></span> 列表
+					</a>
+				</td>
+				{/if}
+				<td>
+					<img src="http://qr.liantu.com/api.php?text={$item['link']}" width="50" height="50" alt="店铺二维码"/>
+				</td>
+				<td>{$item['sequence']}</td>
+				<td>
+                    <a class="btn  btn-default btn-sm" rel="tooltip" href="{php echo $this->createMobileUrl('halfagent',array('op'=>'edit','bus_id'=> $item['bus_id'], 'id'=>$id))}" title="编辑" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-edit"></i></a>
+                    <a class="btn  btn-default btn-sm" rel="tooltip" href="{php echo $this->createMobileUrl('halfagent',array('op'=>'confirmuserlist', 'bus_id'=> $item['bus_id'], 'id'=>$id))}" title="核销管理" data-toggle="tooltip" data-placement="bottom"><i class="glyphicon glyphicon-eye-open"></i></a>
+					{if $item['status']==1}
+					<a class="btn btn-default btn-sm" title="显示" href="#" onclick="drop_confirm('您确定要隐藏此商铺吗?', '{php echo $this->createMobileUrl('halfagent',array('op'=>'status','status'=>0, 'bus_id'=>$item['bus_id'], 'id'=>$id))}');"  data-toggle="tooltip" data-placement="bottom"><i class="fa fa-play"></i></a>
+					{elseif $item['status']==0}
+					<a class="btn btn-default btn-sm" title="隐藏" href="#" onclick="drop_confirm('您确定要显示此商铺吗?', '{php echo $this->createMobileUrl('halfagent',array('op'=>'status','status'=>1, 'bus_id'=>$item['bus_id'], 'id'=>$id))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-stop"></i></a>
+					{/if}
+					<!-- <a class="btn btn-default" href="#" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createMobileUrl('halfagent',array('op'=>'del', 'bus_id'=>$item['bus_id'], 'id'=>$id))}');" title="删除" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-times"></i></a> -->
+				</td>
+			</tr>
+			{/loop}
+			</tbody>
+			<input name="token" type="hidden" value="{$_W['token']}" />
+		</table>
+	</div>
+	</div>
+	{$pager}
+</div>
+{template 'banquan'}
+<script>
+	$(function() {
+		$("select[name='birth[district]']").change(function() {
+			var province = $.trim($("select[name='birth[province]']").val()); 
+			var city = $.trim($("select[name='birth[city]']").val());
+			var district = $.trim($("select[name='birth[district]']").val());
+            
+			var data = {
+                'province':province,
+                'city':city,
+                'district':district
+            } 
+			$.ajax({
+                    url: "{php echo $this->createMobileUrl('HalfcircleAjax')}",
+                    type: "POST",
+                    data: data,
+                     cache:false,
+                    dataType: "JSON",
+                    
+                    success: function (res) {
+                        $("#zxq").html(res);
+                      
+                       }
+                });     
+		});
+	});
+
+	function drop_confirm(msg, url){
+		if(confirm(msg)){
+			window.location = url;
+		}
+	}
+
+
+	function omcid(){
+          
+           var province = $.trim($("select[name='district[province]']").val())
+              if (!province) {
+                 util.message('请选择省/直辖市','','error');
+    			return false;
+                }
+            var city = $.trim($("select[name='district[city]']").val())
+              if (!city) {
+                 util.message('请选择市','','error');
+    			return false;
+                }
+           var county = $.trim($("select[name='district[district]']").val())
+         
+              if (!county) {
+                 util.message('请选择区/县','','error');
+    			return false;
+                } 
+                
+           var data = {
+                'province':province,
+                'city':city,
+                'county':county
+            } 
+            
+             $.ajax({
+                    url: "{php echo $this->createMobileUrl('HalfcircleAjax')}",
+                    type: "POST",
+                    data: data,
+                     cache:false,
+                    dataType: "JSON",
+                    
+                    success: function (res) {
+                          
+                        $("#zxq").html(res);
+                      
+                       }
+                });            
+        
+        
+  }
+  
+</script>

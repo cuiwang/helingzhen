@@ -1,0 +1,215 @@
+{template 'header'}
+<div class="content top bottom">
+  <form action="" method="post" class="qsc-form publishForm" name="publishForm" id="publishForm" onsubmit="return _sub()">
+    <input type="hidden" name='dopost' value='save'>
+    <input type="hidden" name='fid' value="{$_GPC['fid']}">
+    <input type="hidden" name='pid' value="{$_GPC['pid']}">
+    <input type="hidden" name='tid' value="{$_GPC['tid']}">
+    <div id="rewardform">
+      <div class="reward-form">
+        <div class="qsc-form-group qsc-publish-form">
+
+        <div class="form-item input-group">
+          <label for="supportNumber" class="control-label">支持金额</label>
+          <input type="tel" pattern="[0-9]*" maxlength="10" name="supportNumber" id="supportNumber"  value="{$_reward['supportNumber']}" class="control-input" placeholder="填写支持金额">
+          <span class="input-group-mb">元</span>
+        </div>
+
+        <div class="form-item input-cell">
+            <textarea name="supportContent" id="supportContent" placeholder="填写回报的具体内容" class="control-input" rows="3">{$_reward['supportContent']}</textarea>
+        </div>
+
+        <div class="form-item">
+            <div id="uploader-100" class="qsc-uploader clearfix">
+            <div class="uploader-list">
+              {if $_reward['thumb']}
+
+              <div class="WU_FILE_0 file-item thumbnail upload-state-done">
+
+                <a class="fancybox">
+                     <img src={$_reward['thumb']} alt="">
+
+                </a>
+                <input type="hidden" name='thumb' class="wxId" value="{$_reward['thumb']}">
+                <div class="file-panel"><span>×</span></div>
+
+
+
+              {/if}
+            </div>
+              <div class="webPicPicker webuploader-container">
+              <div id="webPicPicker-100" class="webuploader-pick webuploader-pick-hover">
+              <i class="icon icon-plus"></i>上传图片<br>(仅限1张) </div>
+              <div id="html5_1ak4omajrav93391n6akqo15ij8_container" class="moxie-shim moxie-shim-html5" style="position: absolute; top: 4px; left: 4px; width: 91px; height: 92%; overflow: hidden;">
+                <div id="uploader"  style="font-size: 999px; opacity: 0; position: absolute; top: 0px; left: 0px; width: 100%; height: 100%;"></div>
+              </div>
+            </div>
+            </div>
+        </div>
+   </div>
+        <div class="form-item input-group">
+          <label for="places" class="control-label">限制数量</label>
+          <input type="tel" pattern="[0-9]*" maxlength="10" name="places" value="{$_reward['places']}" class="control-input" placeholder="默认不限制">
+          <span class="input-group-mb">份</span>
+        </div>
+
+        </div>
+        <div class="footer-btn" style="margin-top:15px;">
+            <input name="type_id" type="hidden" value="100">
+            <input name="supportPeopleNumber" type="hidden" value="0">
+            <button  type="submit" class="btn btn-success btn-lg btn-block btn-save">添加保存</button>
+            {if $_GPC['tid']}
+              <a href="{php echo $this->createMobileUrl('reward',array('fid'=>$fid,'pid'=>$_GPC['pid'],'tid'=>$_GPC['tid'],'dopost'=>'del'))}" class="btn btn-danger btn-lg btn-block btn-save">删除回报</a>
+            {/if}
+            <a href="javascript:history.go(-1);" class="btn btn-info btn-lg btn-block btn-save">返回上级</a>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<div class="qsc-toast" id="toast-default" >
+  <div class="toast-backdrop"></div>
+  <div class="toast-dialog">
+     <div class="toast-content"><span></span></div>
+  </div>
+</div>
+{template 'loading'}
+{template 'tip'}
+<script type='text/html' id="file_tpl_1">
+    <div class="WU_FILE_0 file-item thumbnail upload-state-done">
+      <a class="fancybox">
+           <img src={{imgurl_thumb}} alt="">
+      </a>
+      <input type="hidden" name='thumb' class="wxId" value="{{imgurl_thumb}}">
+      <div class="file-panel"><span>×</span></div>
+
+    </div>
+</script>
+<script>
+function _sub(){
+ var supportNumber  = $("#supportNumber").val();
+ var supportContent = $("#supportContent").val();
+  if(supportNumber==''){
+    _tips('请输入金额');
+     return false;
+  }
+  if(supportContent==''){
+    _tips('请输入回报内容');
+     return false;
+  }
+
+  return true;
+}
+$(function(){
+  $(document).on('click','.file-panel',function(){
+
+    if(confirm('确定删除该图片吗')){
+      $(this).parent().remove();
+        // _rankpic();
+    }
+
+  });
+})
+
+</script>
+
+<script>
+
+require(['template','plupload'],function(template,sss){
+     var   i = 1;
+    var uploader = new plupload.Uploader({
+         runtimes : 'html5,flash,silverlight,html4',
+         browse_button : 'uploader', // you can pass in id...
+         chunk_size : '200kb',
+         max_retries:2,
+         url : "{php echo $this->createMobileUrl('uploadimg',array('dopost'=>'downimg','machine'=>md5(GARCIA_MACHINE)))}",
+         filters : {
+           max_file_size : '5mb',
+           mime_types: [
+             {title : "Image files", extensions : "jpg,gif,png,jpeg"},
+             {title : "Zip files", extensions : "zip"}
+           ]
+         },
+         init: {
+           PostInit: function() {
+            //  document.getElementById('filelist').innerHTML = '';
+
+               return false;
+
+           },
+
+           FilesAdded: function(up, files) {
+             plupload.each(files, function(file) {
+
+             });
+
+               var _f = uploader.files.length;
+
+              //  var _len = $("#fileList").find('div.file-item').length;
+              //  var __len = parseInt(_f)+parseInt(_len);
+               if(_f>1){
+                   _tips('不能超过1张图片');
+                   uploader.splice(0, _f);
+                   return  false;
+               }else if(_f>8){
+                   _tips('不能超过1张图片');
+                   uploader.splice(0, _f);
+                   return  false;
+               }
+
+               // return false;
+               uploader.start();
+               $("#loadingToast").show();
+               $(".weui_toast_content").html('正在上传');
+               console.log(i);
+               i++;
+           },
+           FilesRemoved:function(){
+             $(".weui_toast_content").html(0+"%");
+           },
+           UploadProgress: function(up, file) {
+           $(".weui_toast_content").html(file.percent+"%");
+                    //  console.log(file);
+           },
+           FileUploaded:function(uploader,files,responseObject){
+                 var response = responseObject.response;
+                 response = eval('(' + response + ')');
+                 //
+                 if(response.status==2){
+                     $("#loadingToast").hide();
+                     _tips(response.msg);
+                     return false;
+                 }
+
+                 var html=template('file_tpl_1',response);
+                 $(".uploader-list").append(html);
+                 console.log(response);
+                 $("#loadingToast").hide();
+                 // return false;
+           },
+           UploadComplete:function(uploader,files){
+              uploader.splice(0,100);
+                _tips('上传成功');
+               $("#loadingToast").hide();
+
+           },
+           Error: function(up, err) {
+                    $("#loadingToast").hide();
+             // document.getElementById('console').innerHTML += "\nError #" + err.code + ": " + err.message;
+             if(err.code==-200){
+                 _tips('服务器无响应，请重试');
+                 return  false;
+             }else if(err.code==-600){
+                 _tips('图片不能超过5MB');
+                 return  false;
+             }else{
+                 _tips(err.code);
+                 return  false;
+             }
+           }
+         }
+    })
+    uploader.init();
+})
+</script>

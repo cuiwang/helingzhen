@@ -1,0 +1,122 @@
+{template 'common/header'}
+
+<ul class="nav nav-tabs">
+    <li><a href="{php echo $this->createWebUrl('guess',array('op'=>'guess_list'));}">项目管理</a></li>
+    <li class="active"><a href="{php echo $this->createWebUrl('guess',array('op'=>'classify_list'));}">分类管理</a></li>
+</ul>
+{if $operation=='classify_list'}
+<style type='text/css'>
+    .dd-handle { height: 40px; line-height: 30px}
+</style>
+<div class="main">
+    <div class="category">
+        <form action="" method="post">
+            <div class="panel panel-default">
+                <div class="panel-body table-responsive">
+                    <div class="dd" id="div_nestable">
+                        <ol class="dd-list">
+                            {loop $classify $row}
+                            {if $row['parentid'] == 0}
+                            <li class="dd-item" data-id="{$row['id']}">
+                                <div class="dd-handle"  style='width:100%;'>
+                                    [ID: {$row['id']}] {$row['name']}
+                                        <span class="pull-right">
+                                            <a class='btn btn-default btn-sm' href="{php echo $this->createWebUrl('guess', array('id' => $row['id'], 'op' => 'add_classify'))}" title="修改" ><i class="fa fa-edit"></i></a>
+                                            <a class='btn btn-default btn-sm' href="{php echo $this->createWebUrl('guess', array('id' => $row['id'], 'op' => 'classify_delete'))}" title='删除' onclick="return confirm('确认删除此分类吗？');return false;"><i class="fa fa-remove"></i></a>
+                                        </span>
+                                </div>
+                                {if count($row['son'])>0}
+                                <ol class="dd-list"  style='width:100%;'>
+                                    {loop $row['son'] $child}
+                                    <li class="dd-item" data-id="{$child['id']}" style="padding-left: 40px;">
+                                        <div class="dd-handle">
+                                            [ID: {$child['id']}] {$child['name']}
+                                                <span class="pull-right">
+                                                      <a class='btn btn-default btn-sm' href="{php echo $this->createWebUrl('guess', array('id' => $child['id'], 'op' => 'add_classify'))}" title="修改" ><i class="fa fa-edit"></i></a>
+                                                      <a class='btn btn-default btn-sm' href="{php echo $this->createWebUrl('guess', array('id' => $child['id'], 'op' => 'classify_delete'))}" title='删除' onclick="return confirm('确认删除此分类吗？');return false;"><i class="fa fa-remove"></i></a>
+                                                </span>
+                                        </div>
+                                    </li>
+                                    {/loop}
+                                </ol>
+                                {/if}
+                            </li>
+                            {/if}
+                            {/loop}
+                        </ol>
+                        <table class='table'>
+                            <tr>
+                                <td>
+                                    <a href="{php echo $this->createWebUrl('guess',array('op' => 'add_classify'))}" class="btn btn-default"><i class="fa fa-plus"></i> 添加新分类</a>
+                                    <input type="hidden" name="token" value="{$_W['token']}" />
+                                    <input type="hidden" name="datas" value="" />
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{else if $operation=='add_classify'}
+<form action="" method='post' class='form-horizontal'>
+    <input type="hidden" name="id" value="{$classify_one['id']}" />
+    <div class='panel panel-default'>
+        <div class='panel-heading'>
+            分类详情
+        </div>
+        <div class='panel-body'>
+            <!--<div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">排序</label>
+                <div class="col-sm-9 col-xs-12">
+                    <input type="text" name="sort" class="form-control" value="{$classify_one['sort']}"/>
+                    填入0-99 数字越大越靠前 不填默认为0
+                </div>
+            </div>-->
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">上级分类</label>
+                <div class="col-lg-9 col-xs-12">
+                    <select name='parents_id' class='form-control'>
+                        <option value="0">无上级</option>
+                        {loop $classify $row}
+                        <option value="{$row['id']}" {if $classify_one['parents_id'] == $row['id'] }selected{/if}>{$row['name']}</option>
+                        {/loop}
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">分类名</label>
+                <div class="col-sm-9 col-xs-12">
+                    <input type="text" name="name" class="form-control" value="{$classify_one['name']}"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">分类链接</label>
+                <div class="col-sm-9 col-xs-12">
+                    <input type="text" name="link" class="form-control" value="{$classify_one['link']}"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">分类图标</label>
+                <div class="col-sm-9 col-xs-12">
+                    {php echo tpl_form_field_image('image', $classify_one['image'])}
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">是否在首页显示</label>
+                <div class="col-sm-9 col-xs-12">
+                    <input type="radio" name="is_show" value="1" {if $classify_one['is_show'] == '1'}checked{/if}> 是
+                    <input type="radio" name="is_show" value="0" {if $classify_one['is_show'] == '0'}checked{/if}> 否
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="form-group col-sm-12">
+        <input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+        <input type="hidden" name="token" value="{$_W['token']}" />
+    </div>
+</form>
+{/if}
+{template 'common/footer'}

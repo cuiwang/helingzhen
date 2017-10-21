@@ -1,0 +1,442 @@
+<!DOCTYPE>
+<html>
+<head>
+    <title>微夜店</title>
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1">
+    <meta charset="utf-8">
+    <meta content="telephone=no" name="format-detection">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="stylesheet" href="{RES}css/reset.css?v={php echo $this->cur_version}" />
+    <link rel="stylesheet" href="{RES}css/ionicons.css?v={php echo $this->cur_version}">
+    <link rel="stylesheet" href="{RES}css/bar.css?v={php echo $this->cur_version}" />
+</head>
+<body>
+{php include $this->template('/_menu');}
+<div class="content">
+    <!-- 12小时邻座的TA START -->
+    <section id="people-nearby">
+        <!--<p>12小时邻座的TA</p>-->
+        <p>邻座的TA</p>
+        <!-- 头像slider START -->
+        <div id="headimg-slider" data-item="three" class="swipe" style="visibility: visible;">
+            <div class="swipe-wrap">
+                <!-- slider单元 START -->
+                {if count($userlist) > 0}
+                    {php $indicator = 1}<!-- 标识1 -->
+                    {php $startdiv = false;}<!-- div是否已经输出 -->
+                    {php $startul = false;}<!-- ul是否已经输出 -->
+                    {php $closediv = false;}<!-- div是否已经关闭 -->
+                    {php $closeul = false;}<!-- ul是否已经关闭 -->
+                    {php $ishavedownside = false;}<!-- downside是否有输出 -->
+                    {php $licount = 1;}<!-- li数量  -->
+                    {loop $userlist $item}
+                        {if $indicator == 1 || $indicator == 7 || $indicator == 13 || $indicator == 19 || $indicator == 25 || $indicator == 31 || $indicator == 37}
+                        <div class="swipe-item" data-index="{$indicator}">
+                            {php $startdiv = true;}
+                            {php $closediv = false;}
+                        {/if}
+                        <!-- 上部分，3个头像 START -->
+                        <!-- 特别说明：此处为盒子布局，每ul下面必须有3个li，就算li是空的，也必须占位 -->
+                        {if $indicator == 1 || $indicator == 7 || $indicator == 13 || $indicator == 19 || $indicator == 25 || $indicator == 31 || $indicator == 37}
+                        <ul class="upside">
+                            {php $startul = true;}<!--ul开始-->
+                            {php $closeul = false;}
+                            {php $licount = 1;}
+                            {php $ishavedownside = false;}
+                        {/if}
+                        {if $indicator == 4 || $indicator == 10 || $indicator == 16 || $indicator == 22 || $indicator == 28 || $indicator == 34 || $indicator == 40}
+                        <ul class="downside">
+                            {php $startul = true;}
+                            {php $closeul = false;}
+                            {php $licount = 1;}
+                            {php $ishavedownside = true;}
+                            {/if}
+                            <!-- 即将入座的用户，先显示默认用户 -->
+                            <li>
+                                <img class="headimg" data-phone="{$item['tel']}" data-wxid="{$item['weixin']}"  src="{if (strpos($item['headimgurl'], 'http') === false)}{$_W['attachurl']}{$item['headimgurl']}{else}{$item['headimgurl']}{/if}" onerror="this.src='{RES}images/default-headimg.jpg'" />
+                                <!-- 昵称 -->
+                                <p class="nickname">{$item['nickname']}</p>
+                            </li>
+                            {php $licount = $licount + 1;}
+                            {if $indicator == 3 || $indicator == 6 || $indicator == 9 || $indicator == 12 || $indicator == 15 || $indicator == 18 || $indicator == 21 || $indicator == 24 || $indicator == 27 || $indicator == 30 || $indicator == 33}
+                        </ul>
+                        {php $startul = false;}
+                        {php $closeul = true;}
+                        {php $licount = 1;}
+                        {/if}
+                        <!-- 上部分，3个头像 START -->
+                        {if $indicator == 6 || $indicator == 12 || $indicator == 18 || $indicator == 24 || $indicator == 30 || $indicator == 36 || $indicator == 42}
+                        </div>
+                            {php $closediv = true;}
+                            {php $startdiv = false;}
+                        {/if}
+                        {php $indicator = $indicator + 1}
+                    {/loop}
+                    <!-- 循环 END -->
+                    {if $closeul == false && $startul == true}
+                        {if $licount == 2}
+                            <li></li><li></li>
+                        {/if}
+                        {if $licount == 3}
+                            <li></li>
+                        {/if}
+                        </ul>
+                        {/if}
+                        {if $ishavedownside==false}
+                        <ul class="downside">
+                            <li></li><li></li><li></li>
+                        </ul>
+                    {/if}
+                    {if $startdiv == true && $closediv == false }
+                        </div>
+                    {/if}
+                {else}
+                <div class="swipe-item" data-index="{$indicator}">
+                    <ul class="upside">
+                        <li></li><li></li><li></li>
+                    </ul>
+                    <ul class="downside">
+                        <li></li><li></li><li></li>
+                    </ul>
+                </div>
+                {/if}
+            </div><!-- swipe-wrapr -->
+        </div><!-- headimage-slider -->
+        <!-- 控制器，控制slider左右滑动和用户就坐 -->
+        <ul class="controller">
+            <li class="to-left"></li>
+            <li class="add"></li>
+            <li class="to-right"></li>
+        </ul>
+        <label>我要就坐</label>
+        <!-- 首次就坐时需要题写表单 -->
+        <form id="sitting-form" style="display: none">
+            <div class="simplemodal-close">×</div>
+            <legend>首次就坐需要完善如下信息用于他人联系，24小时后将隐藏。</legend>
+            <!-- 姓名 -->
+            <input type="tel" id="tel" name="tel" placeholder="手机号">
+            <!-- 微信号 -->
+            <input type="text" id="wx-id" name="wx-id" placeholder="微信号">
+            <input type="submit" value="提交">
+        </form>
+        <div id="usr-contact" class="">
+            <p>
+                <span>手机号：</span>
+                <a id="usr-phone" href=""></a>
+            </p>
+            <p>
+                <span>微信号：</span>
+                <a href="#" id="usr-id"></a>
+            </p>
+        </div>
+    </section>
+    <!-- 12小时邻座的TA END -->
+    <!-- 邻座心语 START -->
+    <section id="wish">
+        <p>邻座心语</p>
+        <!-- 成功提交心语后，应立即将新发表的心语置顶 -->
+        <form id="wish-form" action="###">
+            <textarea id="my-wish" name="my-wish" placeholder="已经就座，赶紧发表心语吧！"></textarea>
+            <input type="submit" value="提交">
+        </form>
+
+        <div class="article-wrap">
+            {loop $feedbacklist $item}
+            <!-- 一条心语 START -->
+            <article>
+                <!-- 头像，居左 -->
+                <img class="headimg" src="{php echo tomedia($item['headimgurl']);}" onerror="javascript:this.src='{RES}/images/default-headimg.jpg';">
+                <!-- 文字，居右 -->
+                <div class="text">
+                    <p class="caption">
+                        <!-- 昵称 -->
+                        <span class="nickname">{$item['nickname']}</span>
+                        <span>{php echo $this->format_date($item['dateline'])}</span>
+                    </p>
+                    <!-- 心语正文 -->
+                    <p class="content">
+                        {$item['content']}
+                    </p>
+                </div>
+            </article>
+            <!-- 一条心语 END -->
+            {/loop}
+            <div class="loading">
+                <i class="icon ion-ios7-reloading"></i>
+            </div>
+        </div>
+    </section>
+    <!-- 邻座心语 END -->
+</div>
+<!-- 需要改动 -->
+<input type="hidden" value="{$inseat}" id="inseat" name="inseat">
+<input type="hidden" value="{$nickname}" id="wx-nickname">
+<input type="hidden" value="{$headimgurl}" id="wx-headimg">
+<script type="text/javascript" src="{RES}js/jquery-1.11.0.min.js?v={php echo $this->cur_version}"></script>
+<script type="text/javascript" src="{RES}js/swipe.js?v={php echo $this->cur_version}"></script>
+<script type="text/javascript" src="{RES}js/tocca.min.js?v={php echo $this->cur_version}"></script>
+<script type="text/javascript" src="{RES}js/simplemodal.min.js?v={php echo $this->cur_version}"></script>
+<!--<script type="text/javascript" src="{RES}js/nearby.js?v={php echo $this->cur_version}"></script>-->
+<script type="text/javascript" src="{RES}js/bar.js?v={php echo $this->cur_version}"></script>
+
+
+<script>
+//    $(function () {
+//        SetactivedIndex("nearby.aspx");
+//    })
+$(document).ready(function() {
+    //初始化底部导航栏swipe控件
+    window.navSwipe = new Swipe(document.getElementById('nav-slider'), {
+        continuous: false
+    });
+
+    var isInSeat = $("#inseat").val();
+    if (isInSeat == 1) {
+        $("#wish-form textarea#my-wish").attr('disabled', false);
+        $("#wish-form textarea#my-wish").attr('placeholder', '已经就座，赶紧发表心语吧！');
+    }
+
+    // 底部菜单向前一屏
+    $("nav.app").on('tap', 'span.nav-prev', function(event) {
+        event.preventDefault();
+        navSwipe.prev();
+    });
+
+    // 底部菜单向后一屏
+    $("nav.app").on('tap', 'span.nav-next', function(event) {
+        event.preventDefault();
+        navSwipe.next();
+    });
+
+    // 初始化已就坐用户头像swipe控件
+    window.headimgSwipe = new Swipe(document.getElementById('headimg-slider'), {
+        continuous: false
+    });
+
+    // 已就坐用户头像swipe向前一屏
+    $("ul.controller").on('tap', 'li.to-left', function(event) {
+        event.preventDefault();
+        headimgSwipe.prev();
+    });
+
+    // 已就坐用户头像swipe向后一屏
+    $("ul.controller").on('tap', 'li.to-right', function(event) {
+        event.preventDefault();
+        headimgSwipe.next();
+    });
+
+    // 点击“我要就坐”弹出表单
+    $("ul.controller").on('click', 'li.add', function (event) {
+        var inseat = $("#inseat").val();
+
+        if(inseat == 1){
+            showToastInfo("您已就坐！");
+            return false;
+        }
+
+        $("#sitting-form").modal({
+            overlayClose: true,
+            opacity: 80
+        });
+    });
+
+    // 就坐
+    $("#sitting-form").on("submit", function( event ){
+        event.preventDefault();
+
+        var telRegPattern = /^1[3-8]+\d{9}$/;
+
+        if($("input#tel").val() === ""){
+            showToastInfo("请填写手机号！");
+            return false;
+        } else if($("input[name=tel]").val().match(telRegPattern) === null){
+            showToastInfo("请填写正确的11位手机号！");
+            return false;
+        }
+
+        if($("input#wx-id").val() === ""){
+            showToastInfo("请填写微信号！");
+            return false;
+        }
+
+        var tel = encodeURIComponent($("input#tel").val());
+        var weixin = encodeURIComponent($("input#wx-id").val());
+
+        var url = "{php echo $this->createMobileUrl('inseat')}";
+        var data = {
+            from_user: "{$from_user}",
+            nickname: "{$nickname}",
+            headimgurl: "{$headimgurl}",
+            tel:tel,
+            weixin:weixin
+        };
+
+        // 提交到服务器
+        $.post(url, data, function (jd) {
+            if (jd.IsSuccess) {
+                // 验证通过则关闭模态窗口
+                $.modal.close();
+
+                //// 将用户头像和昵称置入头像slider
+                //$("#headimg-slider li:eq(0) >img").attr('src', 'images/headimg/head-me.jpg');
+                //$("#headimg-slider li:eq(0) >p").text('Bright');
+
+                // 使发表心语的文本域可用
+                //$("#wish-form textarea#my-wish").attr('disabled', false);
+                // 更新文本域的提示
+                //$("#wish-form textarea#my-wish").attr('placeholder', '成功就坐，赶紧发表心语吧！');
+
+                // 设置本地存储，将用户就坐标志设为真
+                // sessionStorage.isUsrSitted = true;
+                showToastInfo("就坐成功！");
+                setTimeout("window.location.reload()", 1500);
+            } else {
+                showToastInfo(jd.Message);
+            }
+        }, 'json');
+
+        return false;
+    });
+
+    // 发表心语
+    $("#wish-form").on("submit", function( event ){
+        event.preventDefault();
+        if($("textarea#my-wish").val() === ""){
+            showToastInfo("请输入内容！");
+            return false;
+        }
+
+        var content = $("textarea#my-wish").val();
+        var url = "{php echo $this->createMobileUrl('neighborfeedback')}";
+        var data = {
+            from_user: "{$from_user}",
+            nickname: "{$nickname}",
+            headimgurl: "{$headimgurl}",
+            content: content
+        };
+
+        $.post(url, data, function (jd) {
+            if (jd.IsSuccess) {
+                // 验证通过后立即发表心语
+                var usrNickName = $("#wx-nickname").val();
+                var usrImgUrl = $("#wx-headimg").val();
+                var $newWishArticle = $('<article></article>');
+                var $img = $("<img class='headimg'" + 'src=' + usrImgUrl + " />");
+                var textString = "<div class='text'>" +
+                        "<p class='caption'>" +
+                        "<!-- 昵称 -->" +
+                "<span class='nickname'>" +
+                        usrNickName +
+                        "</span>" +
+                        "<span>，刚刚</span>" +
+                        "</p>" +
+                "<!-- 心语正文 -->" +
+                "<p class='content'>" +
+                        content +
+                        "</p>" +
+                "</div>";
+                $img.appendTo($newWishArticle);
+                $(textString).appendTo($newWishArticle);
+                $newWishArticle.insertAfter('#wish-form').hide().slideDown('500');
+                $("textarea#my-wish").val("");
+            } else {
+                showToastInfo(jd.Message);
+            }
+        }, 'json');
+    });
+
+    // 提示错误消息
+    function showToastInfo(info){
+        if($("label.error").length === 0){
+            $("<label class='error'></label>").text(info).appendTo($("body")).show().delay(1000).fadeOut(600);
+        } else{
+            $("label.error").text(info).show().delay(1000).fadeOut(600);
+        }
+    }
+
+    // 文本输入框禁用提示
+    $("#wish-form").on('tap', 'textarea[disabled]', function(event) {
+        event.preventDefault();
+        showToastInfo("就坐后才可以发心语哦！");
+    });
+
+    // 点击在线用户头像获取联系方式
+    $('#headimg-slider').on('tap', 'li:not(".gone") img', function(event) {
+        event.preventDefault();
+
+        var inseat = $("#inseat").val();
+
+        if (inseat == 1) {
+            var weixinId = $(this).attr("data-wxid");
+            var phone = $(this).attr("data-phone");
+
+            $('#usr-id').text(weixinId);
+            $('#usr-phone').text(phone);
+
+            $('#usr-contact').addClass('show');
+            setTimeout("$('#usr-contact').removeClass('show')", 10000);
+        } else{
+            showToastInfo('就坐后才能联系Ta哦！');
+        }
+
+    });
+
+    // 用户离线提示
+    $('#headimg-slider').on('tap', 'li.gone img', function(event) {
+        event.preventDefault();
+        showToastInfo('用户已经离开酒吧！');
+    });
+
+    // 滑到页面底部自动加载下一页心语
+    $(window).on('scroll', function(){
+        var windowInnerHeight = window.innerHeight,
+                bodyOuterHeight = $('body').outerHeight(),
+                windowScrollTop = $(window).scrollTop();
+        if( windowInnerHeight+windowScrollTop >= bodyOuterHeight ){
+            $('.loading').show();
+
+            $newWishList = $('<div></div>');
+            $newWishList.html($('#wish-article-template').html());
+
+            $.getJSON('wish.json?id='+Math.random(), function(data){
+                $.each(data.wish, function(wishItemIndex, wishItem){
+                    var $tmpItem = $newWishList.find('article').first().clone();
+                    $tmpItem.find('img').attr('src', wishItem.imgSrc);
+                    $tmpItem.find('.nickname').text(wishItem.usrNickName);
+                    $tmpItem.find('span:eq(1)').text(wishItem.time);
+                    $tmpItem.find('.content').text(wishItem.content);
+
+                    $tmpItem.appendTo($newWishList);
+                    $tmpItem = null;
+                });
+                $newWishList.find('article').eq(0).remove();
+                $('.loading').hide();
+                $newWishList.find('article').appendTo($('.article-wrap')).show();
+            });
+        }
+    });
+});
+</script>
+<!-- 心语模板 -->
+<script id="wish-article-template" type="text/template">
+    <article>
+        <!-- 头像，居左 -->
+        <img class="headimg" src="">
+
+        <!-- 文字，居右 -->
+        <div class="text">
+
+            <p class="caption">
+                <!-- 昵称 -->
+                <span class="nickname"></span>
+                <span>，刚刚</span>
+            </p>
+
+            <!-- 心语正文 -->
+            <p class="content"></p>
+        </div>
+    </article>
+</script>
+{php include $this->template('_share');}
+</body>
+</html>

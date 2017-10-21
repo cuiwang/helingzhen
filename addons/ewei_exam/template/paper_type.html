@@ -1,0 +1,209 @@
+{template 'common/header'}
+{template 'common'}
+<ul class="nav nav-tabs">
+    <li {if $operation == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('paper_type', array('op' => 'display'))}">管理试卷类型</a></li>
+    <li {if $operation == 'post' && empty($item['id'])}class="active"{/if}><a href="{php echo $this->createWebUrl('paper_type', array('op' => 'post'))}">添加试卷类型</a></li>
+    {if $operation == 'post' && !empty($item['id'])}
+    <li class="active"><a href="{php echo $this->createWebUrl('paper_type', array('op' => 'post', 'id' => $item['id']))}">编辑试卷类型</a></li>
+    {/if}
+</ul>
+{if $operation == 'post'}
+<div class="main">
+    <form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" onsubmit="return formcheck()">
+        <input type="hidden" name="parentid" value="{$parent['id']}" />
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                试卷类型设置
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">类型名称</label>
+                    <div class="col-sm-9 col-xs-12">
+						<input type="text" id="title" name="title" class="form-control" value="{$item['title']}" />
+                    </div>
+                </div>
+  				<div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">考试时间</label>
+                    <div class="col-sm-3 col-xs-12">
+                       	<div class="input-group">
+                    		<input type="text" class="form-control" name="times" value="{$item['times']}" />
+                    		<span class="input-group-addon">分钟</span>
+                    	</div>
+                  		<span class='help-block'>如果设置成空或0则不限制时间</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">题型设置</label>
+                    <div class="col-sm-9 col-xs-12">
+						<div id="item_div" tabindex="-1" class="panel panel-default">
+						<div class="panel-body table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th style="width:30px;">选择</th>
+                                    <th style="width:100px;">题型</th>
+                                    <th style="width:100px;">题数</th>
+                                    <th style="width:120px;">单题分数</th>
+                                </tr>
+                            </thead>
+                            <tbody id="re-items">
+                                {loop $types_config $k $t}
+                                    {if $k != 4}
+                                    <tr>
+                                        <td><input type="checkbox" title="是否选择" key="{$k}" class='has has_{$k}' name="has[{$k}]" {if $arr[$k]['has'] == 1} checked="checked"  {/if} value="true"/></td>
+                                        <td>{$t}</td>
+                                        <td><select name="num[{$k}]" class="form-control num num_{$k}">
+                                                <option></option>
+                                                <?php for($i=0;$i<=500;$i++) { ?>
+                                                <option value="{$i}"  {if $arr[$k]['num']==$i}selected{/if}>{$i}</option>
+                                                <?php } ?>
+                                            </select></td>
+                                        <td><select name="one_score[{$k}]" class="form-control score  score_{$k}">
+                                                <option></option>
+                                                <?php for($i=0;$i<=50;$i+=0.5) { ?>
+                                                <option value="{$i}" {if $arr[$k]['one_score']==$i}selected{/if}>{$i}</option>
+                                                <?php } ?>
+                                            </select>
+										</td>
+                                    </tr>
+                                    {/if}
+                                {/loop}
+                            </tbody>
+                        </table>
+                    </div>
+                    </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">考试分制</label>
+                    <div class="col-sm-3 col-xs-12">  
+                      	<div class="input-group">
+                    		<input type="text" class="form-control" id='score' name="score" value="{$item['score']}" readonly />
+                    		<span class="input-group-addon">分</span>
+                    	</div>
+                  		<span class='help-block'>考试分制是根据题型、题数及单题得分计算出的</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+         <div class="form-group col-sm-12">
+			<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+			<input type="hidden" name="token" value="{$_W['token']}" />
+		</div>
+    </form>
+</div>
+ 
+<script type="text/javascript">
+  $(function(){
+      $(".has").change(calc);
+      $(".num").change(calc);
+      $(".score").change(calc);
+      
+      
+  })
+  
+  function calc(){
+       var score = 0;
+       $(".has").each(function(){
+            if($(this).get(0).checked){
+               var key = $(this).attr("key");
+           
+               score+= parseInt($(".num_" + key).val()) * parseFloat($(".score_"+key).val());
+            }
+        })
+        $("#score").val(score);
+      
+  }
+    function formcheck(){
+        if($("#title").isEmpty()){
+            Tip.focus("title","请输入类型名称!","right");
+            return false;
+        }
+      
+        
+        var checked = false;
+        $(".has").each(function(){
+            if($(this).get(0).checked){
+                checked = true;
+                return false;
+            }
+        })
+        if(!checked){
+            Tip.focus(".has:eq(0)","至少选择一种题型!","top");
+            return false;
+        }
+          var ok = true;
+           $(".has").each(function(){
+            if($(this).get(0).checked){
+               
+               var key = $(this).attr("key");
+               if(!$(".num_" + key).isNumber() || parseFloat($(".num_" + key))<=0 ){
+                   Tip.select(".num_" + key,"请输入大于0的数字!","top");
+                   ok = false;
+                   return false;
+               }
+                if(!$(".score_" + key).isNumber() || parseFloat($(".score_" + key))<=0 ){
+                   Tip.select(".score_" + key,"请输入大于0的数字!","top");
+                   ok = false;
+                   return false;
+               }
+               
+            }
+        })
+      
+        return ok;
+    }
+</script>
+{elseif $operation == 'display'}
+<div class="main panel panel-default">
+    <div class="category panel-body table-responsive">
+        <form action="" method="post" onsubmit="return formcheck(this)">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th style="width:120px;">类型名称</th>
+                        <th style="width:120px;">考试时间</th>
+                        <th style="width:120px;">考试分制</th>
+                        <th style="width:150px">题型设置</th>
+                        <th style="width:200px;">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {loop $types $row}
+                    <tr>
+                        <td><div class="type-parent">{$row['title']}</div></td>
+                        <td><div class="type-parent">{$row['times']}分钟</div></td>
+                        <td><div class="type-parent">{$row['score']}</div></td>
+                        <td><div class="type-parent">
+                            {loop $row['types'] $key $value}
+                            {if $value['has'] == 1}
+                            {$types_config[$key]}({$value['num']}道 共{$value['sum_score']}分)<br />
+                            {/if}
+                            {/loop}
+                        </div></td>
+                        <td>
+                            <a href="{php echo $this->createWebUrl('paper', array('op' => 'edit', 'tid' => $row['id']))}" title="添加试卷" data-toggle="tooltip" data-placement="bottom" class="btn btn-default btn-sm" ><i class="fa fa-plus"></i></a>
+                            <a href="{php echo $this->createWebUrl('paper_type', array('op' => 'post', 'id' => $row['id']))}" title="编辑" data-toggle="tooltip" data-placement="bottom" class="btn btn-default btn-sm"><i class="fa fa-edit"></i></a>
+                            <a href="{php echo $this->createWebUrl('paper_type', array('op' => 'delete', 'id' => $row['id']))}" onclick="return confirm('确认删除此类型吗？');return false;" title="删除" data-toggle="tooltip" data-placement="bottom" class="btn btn-default btn-sm"><i class="fa fa-times"></i></a>
+						</td>
+                    </tr>
+                    {/loop}
+                    <tr>
+                        <td colspan="5">
+							<input name="submit" type="submit" class="btn btn-primary col-lg-1" value="提交">
+							<input type="hidden" name="token" value="{$_W['token']}" />&nbsp;&nbsp;
+                            <a class="btn btn-default" href="{php echo $this->createWebUrl('paper_type', array('op' => 'post'))}"><i class="fa fa-plus"></i> 添加新类型</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </form>
+    </div>
+</div>
+{/if}
+<script>
+	require(['bootstrap'],function($){
+		$('.btn').tooltip();
+	});
+</script>
+{template 'common/footer'}

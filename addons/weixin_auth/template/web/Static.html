@@ -1,0 +1,107 @@
+{template 'common/header'}
+<style>
+    .account-stat{overflow:hidden; color:#666;}
+    .account-stat .account-stat-btn{width:100%; overflow:hidden;}
+    .account-stat .account-stat-btn > div{text-align:center; margin-bottom:5px;margin-right:2%; float:left;width:23%; height:80px; padding-top:10px;font-size:16px; border-left:1px #DDD solid;}
+    .account-stat .account-stat-btn > div:first-child{border-left:0;}
+    .account-stat .account-stat-btn > div > span{display:block; font-size:30px; font-weight:bold}
+    .account-stat .account-stat-btn > div p{width: 50%;font-weight:bold;float: left;margin: 0 0 5px;position: relative}
+    .span-color{    width: 30px; height: 3px;  position: absolute; top: 45%;}
+    .span-text{margin-left: 35px;overflow: hidden}
+</style>
+<div class="page-header">
+    <h4><i class="fa fa-android"></i> &#x5E94;&#x7528;&#x670D;&#x52A1;&#x7EDF;&#x8BA1; </h4>
+</div>
+<div class="panel panel-default" style="padding:2em;">
+    <nav role="navigation" class="navbar navbar-default navbar-static-top" id="clear" style="margin: -1em -1em 1em -1em;">
+        <div class="container-fluid">
+            <ul class="nav navbar-nav nav-btns">
+                {loop $mpList $v}
+                <li class="app-select"><a href="javascript:;" data-id="{$v['id']}">{$v['name']}</a></li>
+                {/loop}
+            </ul>
+        </div>
+    </nav>
+
+    <div class="account-stat">
+        <div class="account-stat-btn">
+            <div>总服务次数<span id="rule">0</span></div>
+            <div>今日服务次数<span id="today">0</span></div>
+            <div>本月服务次数<span id="month">0</span></div>
+            <div style="height: 100%" class="app_info_color">
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top:20px;" id="myChartParent">
+        <canvas id="myChart" height="80"></canvas>
+    </div>
+</div>
+
+<script>
+    require(['chart'], function(c) {
+        var label = '';
+        var lineChartData = null;
+        var obj = null;
+        var data = null;
+        var datasets = new Array();
+        $('.app-select').click(function(){
+            $('.app-select').each(function(i){
+                $('.app-select').eq(i).removeClass('active')
+            })
+            $(this).addClass('active')
+            $.post(location.href, {'mp' : $('a',$(this)).data('id')}, function(data){
+                var myLine = new Chart(document.getElementById("myChart").getContext("2d"));
+                $('.app_info_color').html('');
+                data = $.parseJSON(data);
+
+                $("#rule").html(data.stat.rule);
+                $("#today").html(data.stat.today);
+                $("#month").html(data.stat.month);
+                var datasets = new Array();
+                if(data.value == null){
+                        var tmp_color = GetRandomNum(20,150) + ',' + GetRandomNum(20,255) + ',' + GetRandomNum(20,255);
+                        datasets[0] = {
+                            fillColor: "rgba(" + tmp_color + ",0.1)",
+                            strokeColor: "rgba(" + tmp_color + ",1)",
+                            pointColor: "rgba(" + tmp_color + ",1)",
+                            pointStrokeColor: "#fff",
+                            pointHighlightFill: "#fff",
+                            pointHighlightStroke: "rgba(" + tmp_color + ",1)",
+                            data: [0, 0, 0, 0, 0, 0, 0]
+                        }
+                }else{
+                    for(var i = 0,l = data.value.length;i < l; i ++){
+                        var tmp_color = GetRandomNum(20,255) + ',' + GetRandomNum(20,255) + ',' + GetRandomNum(20,255);
+                        datasets[i] = {
+                            fillColor : "rgba("+tmp_color+",0.1)",
+                            strokeColor : "rgba("+tmp_color+",1)",
+                            pointColor : "rgba("+tmp_color+",1)",
+                            pointStrokeColor : "#fff",
+                            pointHighlightFill : "#fff",
+                            pointHighlightStroke : "rgba("+tmp_color+",1)",
+                            data : data.value[i].data
+                        }
+                        $('.app_info_color').append('<p><span class="span-color" style="background: rgba('+tmp_color+',1)"></span><span class="span-text" style="color: rgba('+tmp_color+',1)">'+data.value[i].name+'</span></p>')
+
+                    }
+                }
+
+                lineChartData = {
+                    labels : data.key,
+                    datasets : datasets
+                }
+                obj = myLine.Line(lineChartData, {responsive: true});
+            });
+        });
+        $('.app-select').eq(0).addClass('active').click();
+        function GetRandomNum(Min,Max)
+        {
+            var Range = Max - Min;
+            var Rand = Math.random();
+            return(Min + Math.round(Rand * Range));
+        }
+    });
+</script>
+
+{template 'common/footer'}

@@ -1,0 +1,158 @@
+﻿<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport"
+          content="width=device-width,height=device-height,inital-scale=1.0,maximum-scale=1.0,user-scalable=no;">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="format-detection" content="telephone=no">
+    <title>{$reply['title']}</title>
+    <link href="{RES}mobile/css/list2.css?e2542" rel="stylesheet" type="text/css"/>
+    <style>
+        .vgy_user .info2 {
+            display: block;
+            padding: 40px 0 0 0;
+            background: url({RES}mobile/images/line.png) no-repeat;
+            background-size: cover;
+        }
+    </style>
+</head>
+<script type="text/javascript" src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+<body>
+<div class="vgy_user">
+    <div class="info2">
+        <a href="{php echo $this->createMobileUrl('index', array('id' => $id), true)}">
+        <div class="update back"><img src="{RES}mobile/images/back_01.png"></div>
+        </a>
+        <img class="touxiang"
+             src="{php echo tomedia($fans['headimgurl']);}">
+        <a href="{php echo $this->createMobileUrl('index', array('id' => $id), true)}">
+            <div class="update"><img src="{RES}mobile/images/update.png"></div>
+        </a>
+        <p class="name">{$fans['nickname']}</p>
+        <ul>
+            <li><span>{$fans['totalnum']}</span>
+                <p>灯笼</p></li>
+            <li><span>({if $fans['issuccess']==1}已集齐{else}未集齐{/if}){php echo intval($orderNo);}</span>
+                <p>排名</p></li>
+            <li>
+                <span {if $fans['issuccess']==1 && $fans['issend']==0}onclick="setprizestatus();"{/if}>
+                {if $fans['issend']==1}已发{else}未发{/if}{if $fans['issuccess']==1 && $fans['issend']==0}(兑换){/if}
+                </span>
+                <p>领奖状态</p>
+            </li>
+        </ul>
+        <div class="Ranking">
+            <div class="left">完成人数：{$total}人</div>
+        </div>
+    </div>
+</div>
+<div class="list">
+    <ul id="Gallery">
+        {php $num=1}
+        {loop $list $item}
+        <li>
+            <div class="NO">{$num}</div>
+            <div class="Head">
+                <img src="{php echo tomedia($item['headimgurl']);}"
+                    width="120"></div>
+            <div class="text">
+                <div class="his"><h1>{if empty($item['nickname'])}------{else}{$item['nickname']}{/if}</h1>
+                    <h2>　</h2></div>
+                <div class="gift">
+                    {if $reply['mode']==1}
+                    {php echo date('Y/m/d H:i',$item['success_time']);}
+                    {else}
+                    {$item['totalnum']}盏
+                    {/if}
+                </div>
+            </div>
+        </li>
+        {php $num++;}
+        {/loop}
+    </ul>
+    <div style="text-align:center; color:#CCC; font-size:12px; display:none;" id="tip_message">-------- <span
+            id="tip_more">加载更多</span> --------
+    </div>
+</div>
+<script>
+    function setprizestatus() {
+
+        if (confirm('此操作必须在店员面前使用，确认领取？')) {
+            var url = "{php echo $this->createMobileUrl('setprizestatus', array('id' => $id), true)}";
+            $.ajax
+            ({
+                url: url,
+                type:'POST',
+                data: {
+                },
+                dataType:'json',
+                error: function () {
+                    alert('网络通讯异常，请稍后再试！');
+                },
+                success: function (result) {
+                    alert(result.msg);
+                    setTimeout('time_jump()', 2000);
+                }
+            });
+        }
+    }
+
+    function time_jump() {
+        var url = "{php echo $this->createMobileUrl('list', array('id' => $id), true)}";
+        location.href = url;
+    }
+</script>
+<script>
+    var record = "1";
+    var maxpage = "{$maxpage}";
+
+    var isLoading = false;
+    var page = 2;
+
+    function pullUpAction() {
+        if (isLoading) {
+            return;
+        }
+        $("#tip_message").show();
+        $("#tip_more").html("加载中");
+        isLoading = true;
+        url = "{php echo $this->createMobileUrl('getmore', array('id' => $id), true)}";
+        $.ajax({
+            type: 'GET',
+            url: url + '&page=' + page,
+            dataType: 'html',
+            success: function (data, textStatus) {
+                if (data != '') {
+                    $("#Gallery").append(data);
+                    page++;
+                }
+                isLoading = false;
+                $("#tip_message").hide();
+                $("#tip_more").html("");
+            },
+            timeout: 15000,
+            error: function (xhr, type) {
+                isLoading = false;
+                $("#tip_message").hide();
+                $("#tip_more").html("");
+            }
+        });
+    }
+    $(function () {
+        $(window).scroll(function () {
+            if (record == '1') {
+                if ($(document).height() <= $(window).height() + $(window).scrollTop() + 60) {
+                    if (page <= maxpage) {
+                        pullUpAction();
+                    } else {
+                        $("#tip_message").show();
+                        $("#tip_more").html("没有更多内容");
+                    }
+                }
+            }
+        });
+    });
+</script>
+</body>
+</html>

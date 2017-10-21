@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>微夜店</title>
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1">
+    <meta content="telephone=no" name="format-detection">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="stylesheet" href="{RES}css/reset.css?v={php echo $this->cur_version}" />
+    <link rel="stylesheet" href="{RES}css/bar.css?v={php echo $this->cur_version}" />
+    <link rel="stylesheet" href="{RES}css/idangerous.swiper.css?v={php echo $this->cur_version}" />
+</head>
+<body style="">
+{php include $this->template('/_menu');}
+<div class="content">
+    <!-- 标题 START -->
+    <header class="activity">
+        <a href="{php echo $this->createMobileUrl('activity')}">
+            <img src="{RES}images/icon-arrow-back.png">
+        </a>
+        <p class="subject">{$item['title']}</p>
+        <p class="date">{php echo date('Y/m/d H:i', $item['start_time'])} - {php echo date('Y/m/d H:i', $item['end_time'])}</p>
+    </header>
+    <!-- 标题 END -->
+    <!-- 顶部区域 START -->
+    <section id="top" class="activity">
+        <!-- 区域标题 -->
+        <p>{$item['title']}</p>
+        <!-- 海报轮播 START -->
+        <div id="post-swiper" class="swiper-container">
+            <div class="swiper-wrapper">
+                <img src="{php echo tomedia($item['logo'])}" style="width:100%;">
+            </div>
+            <div class="pagination">
+
+            </div>
+        </div>
+        <div style="color: #fff;padding-top: 5px;line-height: 20px;">
+            {$item['content']}
+            <br>
+            地址：{$item['address']}
+            <br>
+            电话：{$item['tel']}
+        </div>
+        <!-- 海报轮播 END -->
+        <!-- 已报名用户区域 END -->
+        <button type="button" class="{if $flag}no-join{else}join{/if}">
+            {if $item['end_time'] > TIMESTAMP}
+            <span style="color:#ff3052;">{if $flag}您已经报名{else}报名{/if}</span>
+            {else}
+            <span style="color:#888;">已结束</span>
+            {/if}
+        </button>
+    </section>
+    <!-- 顶部区域 END -->
+    <!-- 已报名用户区域 START -->
+    <section id="applicants" class="activity">
+        <p>已报名用户</p>
+        <!-- 已报名用户列表 START -->
+        <ul class="applicants-list clearfix">
+            {loop $userlist $item}
+            <li>
+                <!-- 头像 -->
+                <img class="headimg" src="{php echo tomedia($item['headimgurl']);}" onerror="javascript:this.src='{RES}/images/default-headimg.jpg';">
+                <!-- 昵称 -->
+                <p class="nickname" style="height:12px;">{$item['nickname']}</p>
+            </li>
+            {/loop}
+        </ul>
+        <!-- 已报名用户列表 END -->
+    </section>
+    <!-- 已报名用户区域 END -->
+    {if $setting['feedback_show_enable']==1}
+    <!-- 用户评论区域 START -->
+    <section id="comments" class="activity">
+        <p>用户评论</p>
+        <!-- 成功提交评论后，应立即将新发表的评论置顶 -->
+        <form id="comment-form" action="###">
+            <textarea id="my-comment" name="my-comment" placeholder="我也要说一下" rows="3"></textarea>
+            <input type="submit" value="提交">
+        </form>
+        <div class="article-wrap">
+            {loop $feedback $item}
+            <!-- 一条评论 START -->
+            <article>
+                <!-- 头像，居左 -->
+                <img class="headimg" src="{php echo tomedia($item['headimgurl']);}" onerror="javascript:this.src='{RES}/images/default-headimg.jpg';">
+                <!-- 文字，居右 -->
+                <div class="text">
+                    <p class="caption">
+                        <!-- 昵称 -->
+                        <span class="nickname">{$item['nickname']}</span>
+                        <span>{php echo $this->format_date($item['dateline'])}</span>
+                    </p>
+                    <!-- 评论正文 -->
+                    <p class="content">
+                        {$item['content']}
+                    </p>
+                </div>
+            </article>
+            <!-- 一条评论 END -->
+            {/loop}
+            <div class="loading">
+                <i class="icon ion-ios7-reloading"></i>
+            </div>
+        </div>
+    </section>
+    <!-- 用户评论区域 END -->
+    {/if}
+</div>
+<script type="text/javascript" src="{RES}js/jquery-1.11.0.min.js"></script>
+<script type="text/javascript" src="{RES}js/swipe.js"></script>
+<script type="text/javascript" src="{RES}js/idangerous.swiper.min.js"></script>
+<script type="text/javascript" src="{RES}js/tocca.min.js"></script>
+<script>
+    $(function () {
+        //SetactivedIndex("activity.aspx");
+    })
+</script>
+<script type="text/javascript" src="{RES}js/bar.js"></script>
+<!-- 评论模板 -->
+<script id="comment-article-template" type="text/template">
+    <article>
+        <!-- 头像，居左 -->
+        <img class="headimg" src="">
+        <!-- 文字，居右 -->
+        <div class="text">
+            <p class="caption">
+                <!-- 昵称 -->
+                <span class="nickname"></span>
+                <span>，刚刚</span>
+            </p>
+            <!-- 评论正文 -->
+            <p class="content"></p>
+        </div>
+    </article>
+</script>
+
+<script type="text/javascript">
+$(document).ready(function () {
+    // 海报幻灯片
+    //var postSwiper = $('#post-swiper').swiper({
+    //    mode: 'horizontal',
+    //    loop: false,
+    //    speed: 600,
+    //    autoplay: 5000,
+    //    autoplayDisableOnInteraction: false,
+    //    pagination: '#post-swiper .pagination',
+    //    paginationClickable: true,
+    //});
+
+
+    // 表单验证
+    $("form").on("submit", function (event) {
+        event.preventDefault();
+        if ($("textarea").val() == "") {
+            showToastInfo("请输入内容！");
+            return false;
+        }
+    });
+
+
+    // 活动倒计时
+    function countdown(days, hours, minutes, object) {
+        var interval = setInterval(function () {
+            var el = $(object);
+            if (minutes == 0) {
+                if (hours == 0) {
+                    if (days == 0) {
+                        el.text("0天0小时0分");
+                        location.reload();
+                        return;
+                    } else {
+                        days--;
+                        hours = 23;
+                        minutes = 59;
+                    }
+                } else {
+                    hours--;
+                    minutes = 59;
+                }
+            } else {
+                minutes--;
+            }
+            el.text(days + "天" + hours + "小时" + minutes + "分");
+        }, 60000);
+    }
+
+    $("span.count-down").each(function (e) {
+        var timeString = $(this).text().replace(/[ ]/g, "");
+        var days = parseInt(timeString.substring(0, timeString.indexOf("天")));
+
+        var hours = parseInt(timeString.substring(timeString.indexOf("天") + 1, timeString.indexOf("小")));
+
+        var minutes = parseInt(timeString.substring(timeString.indexOf("时") + 1, timeString.indexOf("分")));
+
+        countdown(days, hours, minutes, this);
+    });
+
+    // ***************** Bright **********************
+    // 如果用户已经报名，则将用当前户头像和昵称插入已报名列表
+    // 这个动作应该在后台完成，此处脚本只是为了演示效果，开发时删除
+    // 这段脚本
+    //if (sessionStorage.isUsrAnticipated) {
+    //    var imgSrc = "images/headimg/head-me.jpg",
+    //		nickNmae = "Bright";
+
+    //    var htmlString = "<img class='headimg' src=" +
+    //					imgSrc +
+    //					">" +
+    //					"<p class='nickname'>" +
+    //					nickNmae +
+    //					"</p>",
+    //	$newApplicant = $('<li></li>').html(htmlString);
+    //    $newApplicant.appendTo('ul.applicants-list');
+    //}
+    // *****************
+
+    // 报名
+    $(".activity button.join").on("tap", function (event) {
+        event.preventDefault();
+        var url = "{php echo $this->createMobileUrl('userregist')}";
+        var data = {
+            activityId: "{$id}",
+            from_user: "{$from_user}",
+            nickname: "{$nickname}",
+            headimgurl: "{$headimgurl}"
+        };
+
+        $.post(url, data, function (jd) {
+            showToastInfo(jd.Message);
+            if (jd.Status == 0) {
+                setTimeout("window.location.reload()", 1500);
+            }
+        }, 'json');
+        return false;
+
+        //var imgSrc = "images/headimg/head-me.jpg";
+        //var nickNmae = "Bright";
+
+        //var htmlString = "<img class='headimg' src=" +
+        //				imgSrc +
+        //				">" +
+        //				"<p class='nickname'>" +
+        //				nickNmae +
+        //				"</p>",
+        //$newApplicant = $('<li></li>').html(htmlString);
+        //$newApplicant.appendTo('ul.applicants-list');
+
+        //// 设置本地存储，将用户已报名标志设为真
+        //sessionStorage.isUsrAnticipated = true;
+        //showToastInfo("报名成功！");
+
+    });
+
+    // 发表评论
+    $("#comment-form").on("submit", function (event) {
+        event.preventDefault();
+
+        if ($("textarea#my-comment").val() === "") {
+            showToastInfo("请输入内容！");
+            return false;
+        }
+
+        var url = "{php echo $this->createMobileUrl('feedback')}";
+        var data = {
+            activityId: "{$id}",
+            from_user: "{$from_user}",
+            nickname: "{$nickname}",
+            headimgurl: "{$headimgurl}",
+            content: $("textarea#my-comment").val()
+        };
+        $("textarea#my-comment").val('');
+        $.post(url, data, function (jd) {
+            if (jd.IsSuccess) {
+                "{if $setting['feedback_check_enable'] == 1}"
+                showToastInfo('评论提交成功，请等待管理员的审核!');
+                "{else}"
+                // 验证通过后立即发表评论
+                var usrCommentContent = $("textarea#my-comment").val().replace(/</gi, "&lt;").replace(/>/gi, "&gt;");
+                var usrNickName = "{$nickname}";
+                var usrImgUrl = '{$headimgurl}';
+                var $newCommentArticle = $('<article></article>');<!-- 昵称 -->
+                var $img = $("<img class='headimg'" + 'src=' + usrImgUrl + " />");
+                var textString = "<div class='text'>" +
+                        "<p class='caption'>" + "" + "<span class='nickname'>" +
+                        usrNickName +
+                        "</span>" +
+                        "<span>，刚刚</span>" +
+                        "</p>" + "" + "<p class='content'>" +
+                        usrCommentContent +
+                        "</p>" +
+                "</div>";
+                <!-- 评论正文 -->
+                $img.appendTo($newCommentArticle);
+                $(textString).appendTo($newCommentArticle);
+                $newCommentArticle.prependTo('.article-wrap').hide().slideDown('500');
+                $("textarea#my-comment").val("");
+                "{/if}"
+            } else {
+                showToastInfo(jd.Message);
+            }
+        }, 'json');
+        return false;
+    });
+
+    // 滑到页面底部自动加载下一页心语
+    $(window).on('scroll', function () {
+        var windowInnerHeight = window.innerHeight,
+                bodyOuterHeight = $('body').outerHeight(),
+                windowScrollTop = $(window).scrollTop();
+        if (windowInnerHeight + windowScrollTop >= bodyOuterHeight) {
+            $('.loading').show();
+
+            $newCommentList = $('<div></div>');
+            $newCommentList.html($('#comment-article-template').html());
+
+            //$.getJSON('comment.json?id=' + Math.random(), function (data) {
+            //    $.each(data.comment, function (commentItemIndex, commentItem) {
+            //        var $tmpItem = $newCommentList.find('article').first().clone();
+            //        $tmpItem.find('img').attr('src', commentItem.imgSrc);
+            //        $tmpItem.find('.nickname').text(commentItem.usrNickName);
+            //        $tmpItem.find('span:eq(1)').text(commentItem.time);
+            //        $tmpItem.find('.content').text(commentItem.content);
+
+            //        $tmpItem.appendTo($newCommentList);
+            //        $tmpItem = null;
+            //    });
+            //    $newCommentList.find('article').eq(0).remove();
+            //    $('.loading').hide();
+            //    $newCommentList.find('article').appendTo($('.article-wrap')).show();
+            //});
+        }
+    });
+});
+</script>
+{php include $this->template('_share');}
+</body>
+</html>

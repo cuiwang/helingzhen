@@ -1,0 +1,196 @@
+{template 'common/header'}
+{template 'nav'}
+{if $op == 'list'}
+<div class="main panel panel-danger">
+<div class="panel-heading ">
+	轮数列表&nbsp;&nbsp;<a class="btn btn-success" href="{php echo $this->createWebUrl('redpack_manage',array('op'=>'reset','id'=>$id))}"
+								ng-mouseenter="tooltip()" data-toggle="tooltip" data-placement="top" title="清空所有轮数">清空所有轮数
+								<i class="fa fa-times"></i>
+							</a>
+</div>
+<style>
+tbody tr td{text-align:center}
+</style>
+	<div class="panel-body table-responsive">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<th style="width:5em;text-align:center">轮数</th>
+					<th style="width:5em;text-align:center">游戏状态</th>
+					<th style="width:5em;text-align:center">红包类型</th>
+					<th style="width:15em;text-align:center">红包计划</th>
+					<th style="width:5em;text-align:center">参与人数</th>
+					<th style="width:5em;text-align:center">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $key $redpack}
+				<tr>
+				    <td>第{php echo $key+1}轮</td>
+					<td>{if $redpack['status']==1}未开始{elseif $redpack['status']==2}进行中{else}已结束{/if}</td>
+					<td>{if $redpack['type']==1}固定红包{else}随机红包 {/if}</td>
+					<td>
+						{if $redpack['type']==2}
+						<div>红包区间 【 {$redpack['min']} 】元 到 【 {$redpack['max']} 】元</div>
+						<div>计划投放【 {$redpack['all_money']} 】元</div>
+						<div>计划投放【 {$redpack['redpack_num']} 】个红包</div>
+						{else}
+						每个红包【{$redpack['money']}】元、共计划投放【{$redpack['redpack_num']}】个红包
+						{/if}
+					</td>
+					{php $money = '0.0';}
+					<td>{php echo pdo_fetchcolumn("SELECT count(id) FROM ".tablename($this->redpack_user_table)." WHERE rid=:rid AND weid=:weid AND rotate_id=:rotate_id AND money=:money",array(':rid'=>$rid,':weid'=>$weid,':rotate_id'=>$redpack['id'],':money'=>$money))}人</td>
+					<td style="text-align:left;">
+						<a href="{php echo $this->createWebUrl('redpack_manage', array('id' => $id,'op' => 'post', 'redpack_id' =>$redpack['id']))}" class="btn btn-success btn-sm" data-toggle="tooltip" data-placement="top" title="修改"><i class="fa fa-edit"></i></a>
+						<a href="{php echo $this->createWebUrl('redpack_record', array('id' => $id, 'rotate_id' =>$redpack['id']))}"class="btn btn-danger btn-sm" data-toggle="tooltip" data-placement="top" title="抢红包记录" ><i class="fa fa-users"></i></a>
+						<a href="{php echo $this->createWebUrl('redpack_manage', array('id' => $id,'op' => 'del', 'redpack_id'=>$redpack['id']))}"class="btn btn-danger btn-sm" data-toggle="tooltip" data-placement="top" title="删除" onclick="return confirm('删除将无法恢复，确认吗？');return false;"><i class="fa fa-times"></i></a>
+					</td>
+				</tr>
+				{/loop}
+			</tbody>
+		</table>
+		{$pager}
+	</div>
+</div>
+<script>
+	require(['bootstrap'],function($){
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+	});
+</script>
+{elseif $op == 'post'}
+<div class="main">
+	<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" onsubmit='return formcheck()'>
+		<input type="hidden" name="redpack_id" value="{$redpack['id']}" />
+		<div class="panel panel-danger">
+			<div class="panel-heading">
+				{if empty($redpack['id'])}添加{else}编辑{/if}抢红包
+			</div>
+			<div class="panel-body">
+				<div class="form-group" {if empty($redpack['id'])}style="display:none"{/if}>
+					<label class="col-xs-12 col-sm-3 col-md-2  control-label">红包状态</label>
+					<div class="col-sm-9 ">
+						<label class="radio-inline">
+							<input type="radio" name="status" value="1"  {if $redpack['status'] == '1'}checked="true"{/if}>未开始
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="status" value="2"  {if $redpack['status'] == '2'}checked="true"{/if}>进行中
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="status" value="3"  {if $redpack['status'] == '3'}checked="true"{/if}>已结束
+						</label>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2  control-label">红包类型</label>
+					<div class="col-sm-9 ">
+						<label class="radio-inline">
+							<input type="radio" name="type" value="1"  {if $redpack['type'] == '1'}checked="true"{/if} onclick="change_type1()">普通红包
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="type" value="2"  {if $redpack['type'] == '2'}checked="true"{/if} onclick="change_type2()">随机红包
+						</label>
+					</div>
+				</div>
+				<div class="form-group guding" {if $redpack['type']=='2'}style="display:none"{/if}>
+									<label class="col-xs-12 col-sm-3 col-md-2  control-label">红包金额 </label>
+									<div class="col-sm-9 ">
+										<div class="input-group">
+											<input type="text" name="money"  class="form-control" value="{$redpack['money']}">
+											<span class="input-group-addon">元</span>
+										</div>
+									</div>
+				</div>
+				<div class="form-group suiji" {if $redpack['type']=='1'}style="display:none"{/if}>
+									<label class="col-xs-12 col-sm-3 col-md-2  control-label">总金额 单位: 元 </label>
+									<div class="col-sm-9 ">
+										<div class="input-group">
+											<input type="text" name="all_money"  class="form-control" value="{$redpack['all_money']}">
+											<span class="input-group-addon">元</span>
+										</div>
+									</div>
+				</div>
+				<div class="form-group suiji" {if $redpack['type']=='1'}style="display:none"{/if}>
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">红包面值区间(单位: 元) </label>
+					<div class="col-sm-2">
+						<input type="text"  class="form-control" name="min" value="{$redpack['min']}">
+						<span class="help-block" style="color:red">
+						必须大于1
+						</span>
+					</div>
+					<div class="col-sm-1" style="width:3%;text-align:center">~</div>
+					<div class="col-sm-2">
+						<input type="text"  class="form-control" name="max" value="{$redpack['max']}">
+						<span class="help-block" style="color:red">
+						必须大于1
+						</span>
+					</div>
+				</div>
+				<div class="form-group">
+									<label class="col-xs-12 col-sm-3 col-md-2  control-label">红包个数</label>
+									<div class="col-sm-9 ">
+										<div class="input-group">
+											<input type="text" name="redpack_num"  class="form-control" value="{$redpack['redpack_num']}">
+											<span class="input-group-addon">个</span>
+										</div>
+									</div>
+				</div>
+
+				<div class="form-group">
+									<label class="col-xs-12 col-sm-3 col-md-2  control-label">此轮每个用户最多抢红包个数</label>
+									<div class="col-sm-9 ">
+										<div class="input-group">
+											<input type="text" name="get_num"  class="form-control" value="{$redpack['get_num']}">
+											<span class="input-group-addon">个</span>
+										</div>
+									</div>
+				</div>
+				<div class="form-group">
+									<label class="col-xs-12 col-sm-3 col-md-2  control-label">中奖概率</label>
+									<div class="col-sm-9 ">
+										<div class="input-group">
+											<input type="text" name="gailv"  class="form-control" value="{$redpack['gailv']}">
+											<span class="input-group-addon">%</span>
+										</div>
+									</div>
+				</div>
+				<div class="form-group">
+									<label class="col-xs-12 col-sm-3 col-md-2  control-label">倒计时 </label>
+									<div class="col-sm-9 ">
+										<div class="input-group">
+											<input type="text" name="countdown"  class="form-control" value="{$redpack['countdown']}">
+											<span class="input-group-addon">秒</span>
+										</div>
+									</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">红包提供方</label>
+					<div class="col-sm-9">
+						<input type="text" value="{$redpack['zzs']}" class="form-control" name="zzs" >
+						<span class="help-block">红包提供方</span>
+					</div>
+				</div>
+				
+			</div>
+		</div>
+		<div class="form-group col-sm-12">
+			<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+			<input type="hidden" name="token" value="{$_W['token']}" />
+			</div>
+			</form>
+		</div>
+		<script>
+		function change_type1(){
+			$('.guding').show();
+			$('.suiji').hide();
+		}
+		function change_type2(){
+			$('.guding').hide();
+			$('.suiji').show();
+		}
+		</script>
+{/if}
+{template 'common/footer'}

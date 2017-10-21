@@ -1,0 +1,196 @@
+{template 'common/header'}
+{if $threadUrlArray}
+	<style>
+        iframe{
+            width: 100%;
+            height: 3em;
+            border: none;
+            overflow-x : hidden; 
+            overflow-y : hidden;
+        }
+    </style>
+    <div class="clearfix">
+        <h4>正在发送中......</h4>
+        {loop $threadUrlArray $url}
+        <iframe src="{$url}" ></iframe><br />
+        {/loop}
+    </div>
+    <div class="clearfix">
+        <a class="btn btn-primary" href="{php echo $this->createWebUrl('notifyset')}">返回</a>
+    </div>
+{else}
+    <ul class="nav nav-tabs">
+        <li class=""><a href="{php echo $this->createWebUrl("notify");}">通知管理</a></li>
+        <li class="active"><a href="#">{php echo $data['id']>0 ? '通知编辑' : '通知添加';}</a></a></li>    
+        
+    </ul>
+
+<form action="" id="theform"  method="post" class="form-horizontal form ng-pristine ng-valid" accept-charset="utf-8">
+<input type="hidden" name="id" value="{$data['id']}" />
+<input type="hidden" name="token" value="{$_W['token']}" />
+<div class="panel panel-default">  
+	<div class="panel-heading">
+		基本信息&nbsp;&nbsp;<span style="color:#F00">注：客服消息有时间限制，微信用户如果24小时之内未与微信公众号互动过，则公众号无法向该微信用户发送客服消息。</span>
+	</div>
+                 
+	<div class="panel-body">
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">API调用demo</label>
+			<div class="col-sm-8">
+				<a href="../addons/q_3354988381_notify/api_demo.txt" target="_blank">查看</a>
+			</div>
+		</div>    
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">发送进程数</label>
+            <div class="col-sm-8">
+                <select name="thread_count" id="thread_count" class="form-control">
+                    <option value="1" >1</option>
+                    <option value="3" selected="selected" >3</option>
+                    <option value="5" >5</option>
+                    <option value="10" >10</option>
+                </select>
+                <span class="help-block">根据发送人数进行选择，100人以下用1个进程即可</span>
+            </div>
+        </div>        
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">接收人openid</label>
+			<div class="col-sm-8">
+            {if $_GPC['uid'] == 'batch'}
+            	批量发放通知，选取了 {php echo count($_SESSION['batch_notify_list']);} 个用户
+            {else}
+				<input name="openid" value="{$data['openid']}" class="form-control"/>
+            {/if}
+			</div>
+		</div>
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">通知类型</label>
+            <div class="col-sm-8 col-xs-12" style="margin-top:3px">
+				<input onclick="chg_type('T')" type="radio" name="type" {if 'T' == $data['type']}checked="checked"{/if} value="T" />模板【必须在服务号中进行】&nbsp;&nbsp;
+                <input onclick="chg_type('M')" type="radio" name="type" {if 'M' == $data['type']}checked="checked"{/if} value="M" />客服消息（文本）&nbsp;&nbsp;
+                <input onclick="chg_type('I')" type="radio" name="type" {if 'I' == $data['type']}checked="checked"{/if} value="I" />图文回复&nbsp;&nbsp;
+                <input onclick="chg_type('P')" type="radio" name="type" {if 'P' == $data['type']}checked="checked"{/if} value="P" />图片&nbsp;&nbsp;
+            </div>
+        </div> 
+        
+    <div id="type_tpl">        
+        <div class="form-group" style="display:none">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">模板ID</label>
+            <div class="col-sm-9 col-xs-12">
+            	<div class="input-group">
+                    <input type="text" value="{php echo $data['tpl_id']}" class="form-control">
+                    <span class="input-group-btn">
+                        <a class="btn btn-default" href="javascript:;" onclick="getTemplateID();" title="自动获得模板ID"><i class="fa fa-refresh"></i></a>
+                    </span>                
+                </div>              
+            </div>
+        </div> 
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">模板选择</label>
+            <div class="col-sm-8 col-xs-12">
+            	<select class="form-control"  id="tpl_id" name="tpl_id">
+                {loop $tpl_list $tpl_id $tpl_row}
+                	<option value="{$tpl_id}" {if ($tpl_id == $data['tpl_id'])}selected="selected"{/if}>{$tpl_row['template_name']}</option>
+                {/loop}
+                </select>
+            </div>
+        </div>                                            
+    </div> 
+            
+
+        <div class="form-group" id="type_msg">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">普通信息</label>
+            <div class="col-sm-8 col-xs-12">
+              <textarea class="form-control" name="content" rows="5">{php echo $data['content']}</textarea>
+            </div>
+        </div>         
+    
+    <div id="type_info">        
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">图文选择</label>
+            <div class="col-sm-8 col-xs-12">
+            	<select class="form-control"  id="info_id" name="info_id">
+                {loop $info_list $info_id $info_row}
+                	<option value="{$info_id}" {if ($info_id == $data['info_id'])}selected="selected"{/if}>{$info_row['info_name']}</option>
+                {/loop}
+                </select>
+            </div>
+        </div>                                            
+    </div> 
+
+    <div id="type_pic">        
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">上传图片</label>
+            <div class="col-sm-8 col-xs-12">
+				{php //echo tpl_form_field_image('pic', $data['pic'])}
+				{php echo tpl_form_field_wechat_image('pic', $data['pic'], '');}
+				<span class="help-block">请上传所要回复的图片</span>                
+            </div>
+        </div>                                            
+    </div> 
+             
+    </div>        
+</div>
+
+	{if $data['status'] != 1}
+		<div class="form-group">
+			<div class="col-sm-12">
+			<input type="hidden" name="id" value="{$_GPC['id']}"/>
+			<input type="submit"  name="submit" value="提交" class="btn btn-primary col-lg-1"/>
+				
+			</div>
+		</div>
+	{/if}
+
+</form>
+
+<script type="text/javascript">
+var slt_type = '{$data['type']}';
+function chg_type(type) {
+	$('#type_tpl').hide();
+	$('#type_msg').hide();
+	$('#type_info').hide();
+	$('#type_pic').hide();
+	
+	if (type == 'T') {
+		$('#type_tpl').show();
+	} else if (type == 'M') {
+		$('#type_msg').show();
+	} else if (type == 'I') {
+		$('#type_info').show();
+	} else if (type == 'P') {
+		$('#type_pic').show();
+	}
+	slt_type = type;
+}
+chg_type('{$data['type']}');
+
+
+require(['jquery', 'util'], function($, u){
+	$(function(){
+		//u.editor($('.richtext')[0]);	 
+		$('#theform').submit(function(){
+			if (slt_type == 'T') {
+				var message = '';
+				if($.trim($(':select[name=tpl_id]').val()) == '') {
+					message += '必须输入模板ID<br>';
+				}
+				if(message) {
+					u.message(message);
+					return false;
+				}
+				return true;				
+			}
+		});
+	});	
+});
+function getTemplateID() {
+	if(!confirm('将自动调用接口来获取模板ID. \n根据公众平台的限制, 一个账号最多能使用15个模板消息. \n多次调用将会产生重复的模板ID, 你可以访问公众平台来确定重复的ID并删除掉. \n确定要继续吗?')) {
+		return;
+	}
+	require(['jquery'], function($) {
+		
+	});
+}
+</script>
+{/if}
+{template 'common/footer'}

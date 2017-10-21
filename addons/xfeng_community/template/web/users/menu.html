@@ -1,0 +1,83 @@
+{template 'common/header'}
+<style>
+.table>thead>tr>th {
+    border-bottom: 0;
+}
+
+.table>thead>tr>th .checkbox label {
+    font-weight: bold;
+}
+
+.table>tbody>tr>td {
+    border-top: 0;
+}
+
+.table .checkbox {
+    padding-top: 4px;
+}
+</style>
+<form class="form-horizontal form" action="" method="post">
+    <div class="alert alert-info">
+        <i class="fa fa-exclamation-circle"></i> 默认未勾选任何菜单时，用户拥有全部权限
+    </div>
+    <div class="panel panel-default">
+        <div class="panel-body table-responsive">
+            <table class="table">
+                {loop $menus $sections}
+                <thead>
+                    <tr class="info">
+                        <th colspan="6">
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" name="menus[]" class='perm-all' data-group="{$sections['method']}" value="{$sections['id']}" 
+                                    {if in_array($sections['id'],$mmenus)}checked{/if}>{$sections[title]}</label>
+                            </div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="system_platform">
+                    {php $i = 1;}
+                        {loop $sections['items'] $menu}
+                            {if $i%6 == 1 || $i == 1}<tr>{/if}
+                                <td>
+                                    <div class="checkbox">
+                                        <label><input type="checkbox" class="perm-item" value="{$menu['id']}" name="menus[]" data-group="{$menu['method']}" value="{$menu['id']}" {if in_array($menu['id'],$mmenus)}checked{/if}>{$menu['title']}</label>
+                                    </div>
+                                </td>
+                            {if $i%6 == 0}</tr>{/if}
+                            {php $i++;}
+                        {/loop}
+                    {if $i%6 != 1}</tr>{/if}
+                </tbody>
+                {/loop}
+            </table>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary span3" name="submit" value="提交" onclick="if ($('input:checkbox:checked').size() == 0) {return confirm('您未勾选任何菜单权限，意味着允许用户使用所有功能。确定吗？')}">提交</button>
+    <input type="hidden" name="token" value="{$_W['token']}" />
+</form>
+<script>
+ $(function(){
+        $('.perm-all').click(function(){
+            var checked = $(this).get(0).checked;
+            var group = $(this).data('group');
+            $(".perm-item[data-group='" +group + "']").each(function(){
+                $(this).get(0).checked = checked;
+            })
+        })      
+        $('.perm-item').click(function(){
+            var group = $(this).data('group');
+            var child = $(this).data('child');
+            var check = false;
+            $(".perm-item[data-group='" +group + "']").each(function(){
+                if($(this).get(0).checked){
+                     check =true;
+                     return false;
+                }
+            });
+           $(".perm-all[data-group=" + group + "]").get(0).checked = check;
+            
+        });
+    })
+</script>
+{template 'common/footer'}

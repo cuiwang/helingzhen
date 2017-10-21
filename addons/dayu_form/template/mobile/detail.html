@@ -1,0 +1,403 @@
+{template 'weheader'}
+<script src="{TEMPLATE_WEUI}js/qrcode.js"></script>
+<style>
+body{background-color:#f0f0f0;font-weight:300;}
+a{color:#666}
+.weui_navbar{line-height:20px;}
+.weui_cells {margin-top:0;}
+.weui_media_box.weui_media_text .weui_media_info {margin-top: 0px;}
+.weui_tabbar_icon {height: 24px;}
+.weui_bar_item_on .weui_tabbar_icon i {color: #09BB07;}
+.weui_cell_bd i {color:#666;}
+
+.dayu_cells {overflow: hidden;position: relative;}
+.sticky-fixed {width: 100%;position: fixed;bottom: 0;z-index:9998;}
+
+.weui_cell_ft {margin-left:10px;font-size:14px;}
+.weui_cell_bd {font-size:16px;}
+.weui_cells_title {margin-top: 10px;}
+
+.weui_actionsheet {background-color: transparent;}
+.weui_actionsheet_action, .weui_actionsheet_menu{width:96%;border-radius:5px;margin:0 auto;}
+.weui_actionsheet_action{margin:10px auto;}
+#actionSheet_wrap, #weui_actionsheet{z-index:99999;bottom:55px;}
+</style>
+<div class="weui_tab_bd">
+	<div class="weui_cells_title">
+		<span class="weui_btn f18 weui_btn_mini{if $row['status'] == 0} weui_btn_default">{$activity['state1']}</span>
+		{elseif $row['status'] == 1} bg-blue">{$activity['state2']}</span>
+		{elseif $row['status'] == 2} weui_btn_warn">{$activity['state4']}</span>
+		{elseif $row['status'] == 3} weui_btn_primary">{$activity['state3']}</span>
+		{elseif $row['status'] == 9} weui_btn_warn">{$activity['state5']}</span>
+		{/if}
+		{if $activity['isdel']==1 && $row['status'] != 2}
+		<a href="javascript:void(0);" class="right f-red" id="changeAjax">删除此记录</a>
+	<script>
+    $(document).ready(function () {
+        var ActionUrl = "{php echo $this->createMobileUrl('dayu_Delete', array(), true);}";
+        $("#changeAjax").bind('click',function () {
+		 $.confirm("删除本记录，此操作不可恢复，确认删除？", "确认?", function() {
+
+            var submitData = {
+                id:"{$row['rerid']}",
+                reid:"{$reid}"
+            };
+            $.post(ActionUrl, submitData,function(data) {
+                if (data.status == 1) {
+                    $.toast(data.message);
+                    setTimeout('window.location.href=location.href',1000);
+                    return;
+                } else {
+                    $.toast(data.message);
+                }
+            },"json")
+			        }, function() {
+          //取消操作
+        });
+
+        });
+	});
+	</script>
+		{/if}
+	</div>
+	<div class="weui_cells">
+		<div class="weui_cell">
+			<div class="weui_cell_bd weui_cell_primary f12">
+				{$row['createtimes']}
+			</div>
+			<div class="weui_cell_ft f12">提交时间</div>
+		</div>
+		<div class="weui_cell f12 f-blue">
+	{if $activity['is_time']==0}
+			<div class="weui_cell_bd weui_cell_primary f12">
+				{$row['yuyuetime']}
+			</div>
+			<div class="weui_cell_ft f12">{$activity['yuyuename']}</div>
+	{elseif $activity['is_time']==2}
+			<div class="weui_cell_bd weui_cell_primary f12">
+				{$row['restime']}
+			</div>
+			<div class="weui_cell_ft f12">{$activity['yuyuename']}</div>
+			{if !$row['yuyuetime']}
+			<div class="weui_cell_bd weui_cell_primary f12">
+				{$row['yuyuetime']}
+			</div>
+			<div class="weui_cell_ft f12">受理时间</div>
+			{/if}
+	{/if}
+		</div>
+		{if !empty($row['kfinfo'])}
+		<div class="weui_cell">
+			<div class="weui_cell_bd weui_cell_primary f-orange">
+				{$row['kfinfo']}
+			</div>
+			<div class="weui_cell_ft f12">客服答复</div>
+		</div>
+		{/if}
+	</div>
+
+{if $row['paystatus'] == 1 && $row['status'] != 9 && $offline != 9}
+<div class="weui_cells" style="margin:10px 5%">
+	{if $row['outtime'] <= TIMESTAMP}
+	<span class="weui_btn weui_btn_disabled weui_btn_warn"><span class="am-icon iconfont">&#xe614;</span> 超时未付款，此订单已失效</span>
+	{else}
+	<a href="{php echo $this->createMobileUrl('pay', array('orderid' => $row['rerid'],'weid'=>$weid,'id'=>$id))}" class="weui_btn weui_btn_primary">现在去付款 <span class="am-icon iconfont">&#xe61a;</span> {$row['price']}</a>
+	{/if}
+</div>
+{else if $row['paystatus'] == 2 && $activity['code'] == 1 && $row['status'] == 1}
+<div class="weui_cells" style="margin:10px 5%">
+	<a href="javascript:;" class="weui_btn bg-blue" id="sa">出示二维码</a>
+</div>
+	 <!--BEGIN actionSheet-->
+    <div id="actionSheet_wrap">
+        <div class="weui_mask_transition" id="mask"></div>
+        <div class="weui_actionsheet" id="weui_actionsheet">
+            <div class="weui_actionsheet_menu">
+                <div class="weui_actionsheet_cell">核销二维码 请出示给工作人员</div>
+                <div class="weui_actionsheet_cell"><div id="qrcodeCanvas"></div></div>
+            </div>
+            <div class="weui_actionsheet_action">
+                <div class="weui_actionsheet_cell" id="actionsheet_cancel">取消</div>
+            </div>
+        </div>
+    </div>
+    <!--END actionSheet-->
+		<script type="text/javascript">
+		$("#sa").click(function(){
+                    var mask = $('#mask');
+                    var weuiActionsheet = $('#weui_actionsheet');
+                    weuiActionsheet.addClass('weui_actionsheet_toggle');
+                    mask.show().addClass('weui_fade_toggle').one('click', function () {
+                        hideActionSheet(weuiActionsheet, mask);
+                    });
+                    $('#actionsheet_cancel').one('click', function () {
+                        hideActionSheet(weuiActionsheet, mask);
+                    });
+                    weuiActionsheet.unbind('transitionend').unbind('webkitTransitionEnd');
+
+                    function hideActionSheet(weuiActionsheet, mask) {
+                        weuiActionsheet.removeClass('weui_actionsheet_toggle');
+                        mask.removeClass('weui_fade_toggle');
+                        weuiActionsheet.on('transitionend', function () {
+                            mask.hide();
+                        }).on('webkitTransitionEnd', function () {
+                            mask.hide();
+                        })
+                    }
+		});
+
+
+        var qrnode = new AraleQRCode({
+          render: 'canvas',
+          correctLevel: 3,
+          text: '{$qrcode}',
+          size: 200,
+          background: '#eeeeee',
+          foreground: '#667766',
+          pdground: '#00aaee',
+          image : '{$qrcodesrc}',
+          imageSize : 50
+        });
+		document.getElementById('qrcodeCanvas').appendChild(qrnode);
+		</script>
+{else if $row['paystatus'] == 2 && $row['status'] == 0}
+<div class="weui_cells" style="margin:10px 5%">
+	<span class="weui_btn bg-blue">已支付，请等待客服受理</span>
+</div>
+{/if}
+
+
+	<div class="weui_cells_title"><span class="f14">我的资料</span></div>
+	<div class="weui_cells">
+		<div class="weui_cell">
+			<div class="weui_cell_bd weui_cell_primary -wrap ell">
+				{$row['member']}
+			</div>
+			<div class="weui_cell_ft">姓名</div>
+		</div>
+		<div class="weui_cell">
+			<div class="weui_cell_bd weui_cell_primary">
+				{$row['mobile']}
+			</div>
+			<div class="weui_cell_ft">手机</div>
+		</div>
+		{if $row['address'] && $activity['is_addr']==1}
+		<div class="weui_cell">
+			<div class="weui_cell_bd weui_cell_primary">
+				{$row['address']}
+			</div>
+			<div class="weui_cell_ft">地址</div>
+		</div>
+		{/if}
+	</div>
+	<div class="weui_cells_title"><span class="f14">订单信息</span></div>
+	<div class="weui_cells">
+		<div class="weui_cell">
+			<div class="weui_cell_bd weui_cell_primary">
+				{$row['ordersn']}
+			</div>
+			<div class="weui_cell_ft">订单编号</div>
+		</div>
+		{if $row['transid']}
+		<div class="weui_cell">
+			<div class="weui_cell_bd weui_cell_primary f14">
+				{$row['transid']}
+			</div>
+			<div class="weui_cell_ft">微信单号</div>
+		</div>
+		{/if}
+		{if $row['paydetail']}
+		<div class="weui_cell">
+			<div class="weui_cell_bd weui_cell_primary f12 f-orange">
+				{$row['paydetail']}
+			</div>
+		</div>
+		{/if}
+		{if $row['num'] > 1}
+		<div class="weui_cell">
+			<div class="weui_cell_bd weui_cell_primary">
+				<span class="right">{$xiangmu['title']}</span><span><i class="iconfont">&#xe61a;</i> {$xiangmu['price']}</span> × {$row['num']}
+			</div>
+			<div class="weui_cell_ft">{$activity['xmname']}</div>
+		</div>
+		<div class="weui_cell">
+			<div class="weui_cell_bd weui_cell_primary">
+				<span class="f-orange"><i class="iconfont">&#xe61a;</i> {$row['price']}</span>
+			</div>
+			<div class="weui_cell_ft">费用合计</div>
+		</div>
+		{else}		
+			{if $xiangmu['type']==1}
+		<div class="weui_cell">
+			<div class="weui_cell_bd weui_cell_primary">
+				{$xiangmu['title']}
+			</div>
+			<div class="weui_cell_ft">{$activity['xmname']}</div>
+		</div>
+		<div class="weui_cell">
+			<div class="weui_cell_bd weui_cell_primary">
+				<span class="f-orange">支付定金:<i class="iconfont f-orange">&#xe61a;</i> {$xiangmu['price']}</span>
+			</div>
+			<div class="weui_cell_ft">订单金额:{$xiangmu['prices']}</div>
+		</div>
+			{else}
+		<div class="weui_cell">
+			<div class="weui_cell_bd weui_cell_primary">
+				<span class="right">{$xiangmu['title']}</span> <span class="f-orange"><i class="iconfont">&#xe61a;</i> {$xiangmu['price']}</span>
+			</div>
+			<div class="weui_cell_ft">{$activity['xmname']}</div>
+		</div>
+			{/if}
+		{/if}
+		<div class="weui_cell">
+			<div class="weui_cell_bd weui_cell_primary">
+				{if $row['paystatus'] == 1}<span class="weui_btn weui_btn_mini weui_btn_default">未支付</span>
+                {elseif $row['paystatus'] == 2}<span class="weui_btn weui_btn_mini weui_btn_warn left">已支付</span>
+				{/if}
+				<span class="right f-{$row['css']}">{$row['paytypes']}</span>
+			</div>
+			<div class="weui_cell_ft">付款状态</div>
+		</div>
+	{if $row['paytype']==9}
+		<div class="weui_cell">
+			<div class="weui_cell_bd weui_cell_primary">{$line}</div>
+		</div>
+        <div class="weui_cell">
+            <div class="weui_cell_bd weui_cell_primary">
+                <div class="weui_uploader">
+                    <div class="weui_uploader_hd weui_cell">
+                        <div class="weui_cell_bd weui_cell_primary">{if empty($row['remit'])}请补充转账凭据{else}如果转账凭据不清晰，请重新上传{/if}</div>
+                        <div class="weui_cell_ft f14"></div>
+                    </div>
+                    <div class="weui_uploader_bd">
+                        <ul class="weui_uploader_files"> 
+							{if !empty($row['remit'])}
+							<image class="weui_uploader_file weui_uploader_status" id="showremit" src="{php echo tomedia($row['remit'])}" />
+<script>
+document.querySelector('#showremit').onclick = function () {
+  wx.previewImage({
+    current: '{php echo tomedia($row['remit'])}',
+    urls: [
+      '{php echo tomedia($row['remit'])}'
+    ]
+  });
+};
+</script>
+							{/if}
+                        </ul>
+                        <div class="weui_uploader_input_wrp" id="remittance">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+<script>
+var remittance = "{php echo $this->createMobileUrl('upload', array('type' => 3,'id' => $id));}";
+var btn = document.getElementById('remittance');
+var images = {
+	localId: [],
+	serverId: []
+};
+	btn.onclick = function(){
+		wx.chooseImage({
+			count: 1,
+			sourceType: ['remit', 'camera'],
+			success:function(res){
+				images.localId = res.localIds;
+				var i = 0, length = images.localId.length;
+				var wxUpload = function() {
+					wx.uploadImage({
+						localId: images.localId[i],
+						isShowProgressTips: 1,
+						success: function (res) {
+							images.serverId.push(res.serverId);
+							$.getJSON(remittance, { media_id: res.serverId },
+							function(data){
+								if(data.status == 1) {
+									$.toast(data.message, "success");
+									setTimeout("location.reload();",1000);
+									return;
+								} else {
+									$.toast("上传失败", "cancel");
+								}
+							});
+						},
+						fail: function (res) {
+							alert(JSON.stringify(res));
+						}
+					});						
+				};
+				wxUpload();
+			}
+		});  
+	}
+</script>
+	{/if}
+	</div>
+{if $row['status'] == 0}
+{if $row['paystatus'] == 1}
+<div class="weui_cells_title" style="margin:10px 5%">
+			<a href="javascript:void(0);" class="weui_btn weui_btn_warn" id="cancel">取 消 订 单</a>
+</div>
+	<script>
+    $(document).ready(function () {
+        var ActionUrl = "{php echo $this->createMobileUrl('changeAjax', array(), true);}";
+        $("#cancel").bind('click',function () {
+		 $.confirm("确定要取消此订单吗？", "确认?", function() {
+
+            var submitData = {
+                id:"{$row['rerid']}",
+                reid:"{$reid}",
+                status: "9"
+            };
+            $.post(ActionUrl, submitData,function(data) {
+                if (data.status == 1) {
+                    $.toast(data.message);
+                    setTimeout('window.location.href=location.href',1000);
+                    return;
+                } else {
+                    $.toast(data.message);
+                }
+            },"json")
+			        }, function() {
+          //取消操作
+        });
+
+        });
+	});
+	</script>
+{/if}
+{/if}
+	<div class="weui_cells_title"><span class="f14">内容</span></div>
+	<div class="weui_cells">
+	{loop $ds $fid $ftitle}
+		<div class="weui_cell">
+			<div class="weui_cell_bd weui_cell_primary">
+		{if $ftitle['type'] == 'image'}
+			{if $row['fields'][$fid]}
+			<image class="weui_uploader_file weui_uploader_status" id="p{$fid}" src="{php echo tomedia($row['fields'][$fid]);}" height="50">
+			<script>
+				document.querySelector('#p{$fid}').onclick = function () {
+					wx.previewImage({
+						current: '{php echo tomedia($row['fields'][$fid]);}',
+						urls: [
+						'{php echo tomedia($row['fields'][$fid]);}'
+						]
+					});
+				};
+			</script>
+			{else}
+				未上传
+			{/if}
+		{else}
+			{if !empty($row['fields'][$fid])}{$row['fields'][$fid]}{else}未填{/if}
+		{/if}
+			</div>
+			<div class="weui_cell_ft">{$ftitle['fid']}</div>
+		</div>
+	{/loop}
+	</div>
+</div>
+	
+{php $share = 1;}
+{template 'footers'}

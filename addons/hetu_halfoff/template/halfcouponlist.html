@@ -1,0 +1,129 @@
+{template 'common/header'}
+
+<div class="main">
+
+<div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+		<form action="" method="post" class="form-horizontal" role="form" enctype ="multipart/form-data" onsubmit="return formcheck();">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">商家名称</label>
+				<div class="col-xs-12 col-sm-8 col-md-8 col-lg-6">
+                    <select class="form-control"  name="bus_id">
+                        <option value="0">全部</option>
+                        {loop $buslist $v}
+                            <option value="{$v['bus_id']}" {if $_GPC['bus_id'] == $v['bus_id'] } selected {/if}>{$v['name']}</option>
+                        {/loop}
+                    </select>
+				</div>
+				<div class="col-xs-12 col-sm-2 col-md-1 col-lg-1">
+					<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+
+
+<ul class="nav nav-tabs">
+	<li class="active"><a href="{php echo $this->createWebUrl('halfcoupon', array('op'=>'list'));}">优惠券类型列表</a></li>
+	<li><a href="{php echo $this->createWebUrl('halfcoupon', array('op'=>'post'));}">优惠券类型添加</a></li>
+</ul>
+
+<div class="main">
+    
+	<div class="panel panel-default">
+		<div class="panel-body table-responsive">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+			<tr>
+				<th class='with-checkbox' style='width:50px;'>
+					<input type="checkbox" class="check_all"/>
+				</th>
+				<th style="width:100px;">商家名称</th>
+				<th style="width:120px;">优惠券名称</th>
+				<th style="width:120px;">打折信息</th>
+				<th style='width:140px;'>有效时间</th>
+				<th style='width:130px;'>可用时段</th>
+				<th style='width:100px;'>优惠券个数</th>
+				<th style='width:100px;'>领取限额</th>
+				<th style='width:100px;'>状态</th>
+				<th style='width:100px;'>排序</th>
+				<th style="width:100px;">领取数量</th>
+				<th style="width:100px;">领取列表</th>
+				<th style="width:120px;">操作</th>
+			</tr>
+			</thead>
+			<tbody>
+			{loop $list $item}
+			<tr>
+				<td class="with-checkbox">
+					<input type="checkbox" name="check" value="{$item['id']}">
+				</td>
+				<td>{$item['name']}</td>
+				<td>{$item['title']}</td>
+				<td>{$item['discount']}折</td>
+				<td>{php echo date("Y.m.d", $item['starttime'])}-{php echo date("Y.m.d", $item['endtime'])}</td>
+				<td>{$item['timezone']}</td>
+				<td>{$item['num']}</td>
+				<td>
+					{if $item['limit'] == 0}
+						无限额
+					{else}
+						{$item['limit']}
+					{/if}
+				</td>
+				<td>
+					{if $item['isouttime'] == 0} <!-- 0未过期/1已过期 -->
+						{if $item['status'] == 0} <!-- 0隐藏/1显示 -->
+							<span class='label label-default'>隐藏</span>
+						{else}
+							<span class='label label-success'>显示</span>
+						{/if}
+					{else}
+						<span class='label label-danger'>已过期</span>
+					{/if}
+				</td>
+				<td>{$item['sequence']}</td>
+				<td>{$item['getnum']}</td>
+				{if $item['getnum'] == 0}
+				<td>
+					<span class="glyphicon glyphicon-th-list"></span> 列表
+				</td>
+				{else}
+				<td>
+					<a href="{php echo $this->createWebUrl('halfcoupon', array('op'=>'getcouponlist', 'id'=>$item['id'], 'bus_id'=>$item['bus_id']))}">
+						<span class="glyphicon glyphicon-th-list"></span> 列表
+					</a>
+				</td>
+				{/if}
+				<td> 
+                    <a class="btn  btn-default btn-sm" rel="tooltip" href="{php echo $this->createWebUrl('halfcoupon', array('op'=>'post','id'=> $item['id']))}" title="编辑" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-edit"></i></a>
+					{if $item['status'] == 0}
+						<a class="btn btn-default btn-sm" title="显示" href="#" onclick="drop_confirm('您确定要显示此分类吗?', '{php echo $this->createWebUrl('halfcoupon', array('op'=>'status','status'=>1, 'id'=>$item['id']))}');"  data-toggle="tooltip" data-placement="bottom"><i class="fa fa-play"></i></a>
+					{elseif $item['status'] == 1}
+						<a class="btn btn-default btn-sm" title="隐藏" href="#" onclick="drop_confirm('您确定要隐藏此分类吗?', '{php echo $this->createWebUrl('halfcoupon', array('op'=>'status','status'=>0, 'id'=>$item['id']))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-stop"></i></a>
+					{/if}
+					{if $item['getnum'] == 0}
+						<a class="btn btn-default" href="#" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('halfcoupon', array('op'=>'del', 'id'=>$item['id']))}');" title="删除" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-times"></i></a>
+					{/if}
+				</td>
+			</tr>
+			{/loop}
+			</tbody>
+			<input name="token" type="hidden" value="{$_W['token']}" />
+		</table>
+		</div>
+	</div>
+	{$pager}
+</div>
+
+<script>
+	function drop_confirm(msg, url){
+		if(confirm(msg)){
+			window.location = url;
+		}
+	}
+</script>
+
+{template 'common/footer'}

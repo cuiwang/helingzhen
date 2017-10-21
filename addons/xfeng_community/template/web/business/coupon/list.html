@@ -1,0 +1,125 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li class="active"><a href="javascript:;">卡券核销</a></li>
+</ul>
+<style>
+	.text-danger{color:red;}
+</style>
+<div class="clearfix">
+	<div class="panel panel-info">
+		<div class="panel-heading">筛选</div>
+		<div class="panel-body">
+			<form action="" method="post" class="form-horizontal" role="form">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">状态</label>
+					<div class="col-sm-7 col-lg-8 col-md-8 col-xs-12">
+						<a class="btn btn-default {if $_GPC['enable'] == '0' || $_GPC['enable'] == ''}btn-primary{/if}" href="{php echo $this->createWebUrl('business',array('operation' => 'list','op' => 'coupon'))}">不限</a>
+						<a class="btn btn-default {if $_GPC['enable'] == '1'}btn-primary{/if}" 
+						href="{php echo $this->createWebUrl('business',array('operation' => 'list','enable' => 1,'op' => 'coupon'))}">未使用</a>
+						<!-- <a class="btn btn-default {if $_GPC['status'] == '2'}btn-primary{/if}" href="{php echo url('wechat/consume/record', array('op' => 'list', 'status' => '2', 'card_id' => $card_id))}">已失效</a> -->
+						<a class="btn btn-default {if $_GPC['enable'] == '2'}btn-primary{/if}" 
+						href="{php echo $this->createWebUrl('business',array('operation' => 'list','enable' => 2,'op' => 'coupon'))}">已核销</a>
+					</div>
+					
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">code码</label>
+					<div class="col-sm-7 col-lg-8 col-md-8 col-xs-12">
+						<input class="form-control" name="code" placeholder="code码" type="text" value="{$_GPC['code']}">
+					</div>
+					<div class="col-xs-12 col-sm-3 col-md-2 col-lg-1">
+						<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+					</div>
+				</div>
+				<!-- <div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">粉丝昵称</label>
+					<div class="col-sm-7 col-lg-8 col-md-8 col-xs-12">
+						<input class="form-control" name="nickname" placeholder="粉丝昵称" type="text" value="{$_GPC['nickname']}">
+					</div>
+					<div class="col-xs-12 col-sm-3 col-md-2 col-lg-1">
+						<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+					</div>
+				</div> -->
+			</form>
+		</div>
+	</div>
+	<form class="form-horizontal" action="" method="post" onkeydown="if(event.keyCode==13){return false;}">
+		<div class="panel panel-default">
+			<div class="panel-body table-responsive">
+				<table class="table table-hover">
+					<thead class="navbar-inner">
+					<tr>
+						<th width="110">商品名称</th>
+						<th width="120">购买人</th>
+						<th width="120">code码</th>
+						<th width="120">状态</th>
+						<th width="120">购买时间</th>
+						<th width="120">使用时间</th>
+						<th style="width:100px; text-align:right;">操作</th>
+					</tr>
+					</thead>
+					<tbody>
+					{loop $list $item}
+					<tr>
+						<td>{$item['title']}</td>
+						<td>
+							{php $member = $this->member($item['from_user'])}
+							{php echo $member['realname']}
+						</td>
+						<td>
+							{$item['couponsn']}
+						</td>
+						<td>
+							{if $item['enable'] == 1}
+							<span class="label label-success">未使用</span>
+							{elseif $item['enable'] == 2}
+							<span class="label label-danger">已核销</span>
+							{/if}
+						</td>
+						<td>
+							{php echo date('Y-m-d H:i',$item['createtime'])}
+						</td>
+						<td>
+							{if $item['usetime']}
+								{php echo date('Y-m-d H:i:s', $item['usetime']);}
+							{/if}
+						</td>
+						<td style="text-align:right;">
+							{if $item['enable'] == 1}
+							<a href="javascript:;" class="consume" title="核销卡券" data-id="{$item['id']}">核销卡券</a>
+							{/if}
+							<!-- <a href="{php echo $this->createWebUrl('business',array('op' => 'coupon','operation' => 'del'))}" title="删除" onclick="if(!confirm('删除后不可恢复，确定删除吗?')) return false;">删除</a> -->
+						</td>
+					</tr>
+					{/loop}
+					</tbody>
+				</table>
+			</div>
+		</div>
+		{$pager}
+	</form>
+</div>
+<script type="text/javascript">
+	$(function () {
+            $(".consume").bind("click",function(){
+                var id = $(this).attr('data-id');
+                var url = "{php echo $this->createWebUrl('business',array('op' => 'coupon','operation' => 'use'),true)}";
+                    $.post(url,
+                    {
+                        id:id
+                    },
+                    function(msg){
+                            if (msg.status == 1) {
+                                setTimeout(function(){
+                                    window.location.reload();
+                                 },100);
+                            };
+                            
+                    },
+                    'json');
+            });
+        });
+</script>
+
+
+{template 'common/footer'}

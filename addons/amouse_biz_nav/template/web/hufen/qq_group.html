@@ -1,0 +1,218 @@
+{template 'common/header'}
+{template 'web/hufen/tabs'}
+{if $op == 'display'}
+<div class="panel panel-info">
+    <div class="panel-heading">筛选</div>
+    <div class="panel-body">
+        <form action="./index.php" method="get" class="form-horizontal" role="form">
+            <input type="hidden" name="c" value="site"/>
+            <input type="hidden" name="a" value="entry"/>
+            <input type="hidden" name="m" value="amouse_biz_nav"/>
+            <input type="hidden" name="do" value="qun"/>
+            <input type="hidden" name="op" value="display"/>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">关键词</label>
+                <div class="col-xs-12 col-sm-8 col-lg-9">
+                    <input class="form-control" name="keyword" placeholder="昵称 或者 微信号" type="text" value="{$_GPC['keyword']}" placeholder="可搜索订单号/商品标题">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label"> </label>
+                <div class="col-xs-12 col-sm-2 col-lg-2">
+                    <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="panel panel-default">
+    <div class='panel-heading' >
+        可以设置拉黑功能。
+    </div>
+    <div class="panel-body">
+        <a class='btn btn-default' href="{php echo $this->createWebUrl('qun',array('op'=>'post'))}"><i class='fa fa-plus'></i> 添加名片</a>
+        
+    </div>
+    <div class='panel-body'>
+        <form id="form2" class="form-horizontal" method="post">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th style="width:5%;">全选</th>
+                    <th style="width:30%">标题</th>
+                    <th style="width:10%;">二维码</th>
+                    <th style="width:10%;">在线时间</th>
+                    <th style='width:8%;'>拉黑/审核</th>
+                    <th style="text-align:center;width:35%;">操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                {loop $list $item}
+                <tr>
+                    <td> <input type="checkbox" value="{$item['id']}" name="delete[]"> </td>
+                    <td><img src='{php echo tomedia($item['headimgurl'])}' style='width:30px;height:30px;padding:1px;border:1px solid #ccc' /> {$item['title']}
+                        ({$item['nickname']}/{$item['wechatno']})
+                        <br/> <label class='label label-danger'>人气: {$item['hot']}</label>
+                        <br/>
+                        {if $item['vipstatus']==0}<span class="label label-success">普通会员</span>
+                        {elseif $item['vipstatus']==2}<span class='label label-danger'>超级VIP</span>{/if}
+                        <br>
+                        <a href="{php echo $this->createWebUrl('qun', array('op' => 'post', 'id' => $item['id']))}" style="color:#333;">
+                            {$item['title']}
+                        </a>
+                    </td>
+
+                    <td  style="width:5%;">
+                        {if $item['qrcode']}
+                        <img src="{php echo strpos($item['qrcode'],'http://')===FALSE?(tomedia($item['qrcode'])):$item['qrcode']}" style="width:45px; height:45px;padding:1px;border:1px solid #ccc" >
+                        {/if}
+                    </td>
+                    <td style="width:10%;">{php echo date('Y-m-d H:i',$item['updatetime'])} </td>
+                    <td>
+                        <label title="点击自动切换是否拉黑" data="{$item['status']}" class='label label-default {if $item['status']==1}label-success{/if}' onclick="setProperty(this,{$item['id']},'status')">{if $item['status']==0}待审核{else if $item['status']==1}正常{/if}
+                        </label>
+                    </td>
+
+                    <td style="text-align:center;">
+
+                        <a href="{php echo $this->createWebUrl('qun', array('op' => 'post', 'id' => $item['id'],'page'=>$pindex))}" title="编辑" data-toggle="tooltip"
+                           data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-edit">编辑</i>
+                        </a>
+                        <a onclick="return confirm('此操作不可恢复，确认吗？'); return false;"
+                           href="{php echo $this->createWebUrl('qun', array('op' => 'delete', 'id' => $item['id']))}"
+                           title="删除" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-times"></i></a>
+                    </td>
+                </tr>
+                {/loop}
+                <tr>
+                    <td colspan="6">
+                        <input type="checkbox"  onclick="var ck = this.checked;$(':checkbox').each(function(){this.checked = ck});" name=''>
+                        <input class="btn btn-primary" type="submit" value="删除" name="submit" >
+                    </td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                </tbody>
+
+            </table>
+            {$pager}
+            <input type="hidden" name="token" value="{$_W['token']}" />
+            <input type="hidden" value="delete" name="op">
+            <input type="hidden" name="c" value="site" />
+            <input type="hidden" name="a" value="entry" />
+            <input type="hidden" name="m" value="amouse_biz_nav" />
+            <input type="hidden" name="do" value="qun" />
+        </form>
+    </div>
+</div>
+
+<script type="text/javascript">
+    require(['bootstrap'], function ($) {
+        $('.btn').hover(function () {
+            $(this).tooltip('show');
+        }, function () {
+            $(this).tooltip('hide');
+        });
+    });
+
+    function setProperty(obj, id,type) {
+        $(obj).html($(obj).html() + "...");
+        $.post("{php echo $this->createWebUrl('qun',array('op'=>'setstatus'))}",{id: id,type: type,data: obj.getAttribute("data")},function (d) {
+            $(obj).html($(obj).html().replace("...", ""));
+            if (type == 'status') {
+                $(obj).html(d.data == '0' ? '待审核' : '正常');
+            }
+            $(obj).attr("data", d.data);
+            if (d.result == 1) {
+                $(obj).toggleClass("label-info");
+
+            }
+        }, "json");
+    }
+
+    $('#form2').submit(function(){
+        if($(":checkbox[name='delete[]']:checked").size() > 0){
+            return confirm('删除后不可恢复，您确定删除吗？');
+        }
+        return false;
+    });
+</script>
+{elseif $op == 'post'}
+<div class="clearfix">
+    <form class="form-horizontal form" action="" method="post" enctype="multipart/form-data">
+        <div class="panel panel-default">
+            <div class="panel-heading">个人名片管理</div>
+            <div class="panel-body">
+                <input type="hidden" name="id" value="{$item[id]}">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">选择粉丝</label>
+                    <div class="col-sm-8">
+                        <select class="form-control" name="openid">
+                            <option value="0">请选择</option>
+                            {loop $fans $fan}
+                            <option value="{$fan['from_user']}" {if $fan['from_user']==$item['openid']}selected {/if}>{$fan['from_user']}/{$fan['nickname']}  <img src='{php echo tomedia($fan['headimgurl'])}' style='width:30px;height:30px;padding:1px;border:1px solid #ccc' />
+                            </option>
+                            {/loop}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">标题</label>
+                    <div class="col-sm-8">
+                        <input type="text" class="form-control" placeholder="" name="title" value="{$item['title']}">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">人气</label>
+                    <div class="col-sm-8">
+                        <input type="text" class="form-control" placeholder="" name="hot" value="{$item['hot']}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">二维码</label>
+                    <div class="col-sm-8">
+                        {php echo tpl_form_field_image('qrcode', $item['qrcode']);}
+                    </div>
+                </div>
+
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">所在地区</label>
+                    <div class="col-xs-12 col-sm-2 col-md-2 col-lg-3">
+                        <select name="location_p" id="location_p" class="form-control tpl-province"></select></div>
+                    <div class="col-xs-12 col-sm-2 col-md-2 col-lg-3">
+
+                        <select name="location_c" id="location_c" class="form-control tpl-city"></select>
+                    </div>
+                    <script type="text/javascript" src="{AMOUSE_BIZ_NAV_RES}js/region_select.js"></script>
+                    <script type="text/javascript">
+                        var location_p = "{if !empty($item['location_p'])}{$item['location_p']}{else} {/if}";
+                        var location_c = "{if !empty($item['location_c'])}{$item['location_c']}{else} {/if}";
+                        new PCAS("location_p", "location_c", location_p, location_c);
+                    </script>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">描述</label>
+                    <div class="col-sm-8">
+                        <textarea cols="20" class="form-control" name="intro" rows="4">{$item['intro']}</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-sm-12">
+                <input name="submit" type="submit" value="提交" class="btn btn-primary col-lg-1">
+                <input type="hidden" name="token" value="{$_W['token']}"/>
+            </div>
+        </div>
+    </form>
+</div>
+{/if}
+
+
+

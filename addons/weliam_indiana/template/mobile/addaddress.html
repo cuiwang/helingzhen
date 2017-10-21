@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>添加地址 </title>
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, width=device-width">
+	<meta content="telephone=no" name="format-detection">
+    <link href="{WELIAM_INDIANA_STATIC}css/common.css" rel="stylesheet">
+    <link href="{WELIAM_INDIANA_STATIC}css/user.css" rel="stylesheet">
+    <script src="{WELIAM_INDIANA_STATIC}js/jquery.js"></script>
+    <script src="{WELIAM_INDIANA_STATIC}js/cascadeall.js"></script>
+</head>
+{template wxshare}
+<script>
+//div切换
+function chgclass(){
+var u = document.getElementById('pro-view-16');
+	if(u.className == 'w-checkBar w-bar'){
+		u.className = 'w-checkBar w-bar w-checkBar-checked';
+	}else{
+		u.className = 'w-checkBar w-bar';
+	}
+}
+//判定是否默认地址
+function botton(){
+	var u = document.getElementById('pro-view-16');
+	var w = document.getElementById('pro-view-175');
+	if({$addaddres['isdefault']} == 1){
+		u.className = 'w-checkBar w-bar w-checkBar-checked';
+	}else{
+		u.className = 'w-checkBar w-bar';
+	}
+	//判定是否是新增地址
+	if({$addaddres['id']} > 0){
+		w.style.display = "block";
+	}else{
+		w.style.display = "none";
+	}
+}
+
+function store(){
+	 var username = $("#username").val();
+	 var mobile = $("#mobile").val();
+	 var zipcode = $("#zipcode").val();
+	 var provance = $("#sel-provance").val();
+	 var city = $("#sel-city").val();
+	 var district = $("#sel-area").val();
+	 var address = $("#address").val();
+	 var isdefault = '0';
+	 var u = document.getElementById('pro-view-16');
+	 if(u.className == 'w-checkBar w-bar'){
+	 	isdefault = '0';
+	 }else{
+	 	isdefault = '1';
+	 }
+	 
+	  //判定地址填写格式
+	 if(!username||username.length>5){
+	 	tip("请输入长度小于5的收货人姓名",true);
+	 	return false;
+	 }
+	 
+	 var reg = /^0?1[3|4|5|7|8][0-9]\d{8}$/;
+	 if(!reg.test(mobile)){
+	 	tip("请输入正确手机号",true);
+	 	return false;
+	 }
+	 if(!provance){
+	 	tip("请选择省份",true);
+	 	return false;
+	 }
+	 if(!city){
+	 	tip("请选择城市",true);
+	 	return false;
+	 }
+	 if(!district){
+	 	tip("请选择地区",true);
+	 	return false;
+	 }
+	 if(!address){
+	 	tip("请填写详细地址",true);
+	 	return false;
+	 }
+
+	//传值验证返回	
+   $.post(
+   	'{php echo $this->createMobileUrl('changeaddress',array('type'=> 'update' ,'id'=>$addaddres['id'],'pid'=>$_SESSION['pid']))}',
+  		 {
+  		 	username:username,
+  		 	mobile:mobile,
+  		 	zipcode:zipcode,
+  		 	provance:provance,
+  		 	city:city,
+  		 	district:district,
+  		 	address:address,
+  		 	isdefault:isdefault
+  		 },function(m){
+        if(m.result==1){
+            tip('保存成功！',true);
+          	{if empty($_SESSION['pid'])}
+            	location.href='{php echo $this->createMobileUrl('address');}';
+        	{else}
+        		location.href='{php echo $this->createMobileUrl('order_get', array('op' => 'detail','id'=>$_SESSION['pid']))}&aid='+m.data;
+        	{/if}
+        }else{
+        	tip("保存失败！",true);
+        	location.href='{php echo $this->createMobileUrl('address');}';
+        }
+
+     },"json");
+}
+function deleteaddress(){
+	 var username = $("#username").val();
+	 var mobile = $("#mobile").val();
+	 var zipcode = $("#zipcode").val();
+	 var provance = $("#sel-provance").val();
+	 var city = $("#sel-city").val();
+	 var district = $("#sel-area").val();
+	 var address = $("#address").val();
+	 var isdefault = '0';
+	 var u = document.getElementById('pro-view-16');
+	 if(u.className == 'w-checkBar w-bar'){
+	 	isdefault = '0';
+	 }else{
+	 	isdefault = '1';
+	 }
+	 //传值验证返回
+   $.post(
+   	'{php echo $this->createMobileUrl('changeaddress',array('type'=> 'delete' ,'id'=>$addaddres['id']))}',
+  		 {
+  		 	username:username,
+  		 	mobile:mobile,
+  		 	zipcode:zipcode,
+  		 	provance:provance,
+  		 	city:city,
+  		 	district:district,
+  		 	address:address,
+  		 	isdefault:isdefault
+  		 },function(m){
+        if(m=='true' ){
+          tip('删除成功！',true);
+          location.href='{php echo $this->createMobileUrl('address');}';
+        }else{
+        	tip("删除失败！",true);
+        	 location.href='{php echo $this->createMobileUrl('address');}';
+        }
+
+     },"html");
+}
+</script>
+
+<body onload="cascdeInit('{$addaddres['province']}','{$addaddres['city']}','{$addaddres['district']}');botton();">
+<div class="m-user" id="pro-view-5"  style="padding-top:37px;">
+    <div class="m-simpleHeader" data-pro="dvHeader" id="pro-view-17">
+        {if empty($_SESSION['pid'])}
+        <a href="{php echo $this->createMobileUrl('address');}" data-pro="cancel" class="m-simpleHeader-back">取消</a>
+        {else}
+        <a href="{php echo $this->createMobileUrl('order_get', array('op' => 'detail','id'=>$_SESSION['pid']))}" data-pro="cancel" class="m-simpleHeader-back">取消</a>
+        {/if}
+        <a href="javascript:store();" data-pro="ok" class="m-simpleHeader-ok">保存</a>
+        <h1>新增收货地址</h1>
+    </div>
+    <div class="m-user-addrAdd">
+        <div class="m-user-bar" data-pro="entry">
+            <div class="w-inputBar w-bar" id="pro-view-6">
+                <div class="w-bar-label">收货人</div>
+                <div class="w-bar-control"><input data-pro="input" class="w-bar-input" type="text" id="username" value="{$addaddres['username']}"></div>
+            </div>
+            <div class="w-inputBar w-bar" id="pro-view-8">
+                <div class="w-bar-label">手机号码</div>
+                <a data-pro="clear" href="javascript:void(0);" class="w-bar-input-clear">×</a>
+                <div class="w-bar-control"><input data-pro="input" class="w-bar-input" type="text" id="mobile" value="{$addaddres['mobile']}" maxlength="11"></div>
+            </div>
+            <div class="w-inputBar w-bar" id="pro-view-9">
+                <div class="w-bar-label">邮政编码</div>
+                <a data-pro="clear" href="javascript:void(0);" class="w-bar-input-clear">×</a>
+                <div class="w-bar-control"><input data-pro="input" class="w-bar-input" type="text" id="zipcode" value="{$addaddres['zipcode']}" maxlength="6"></div>
+            </div>
+            <div class="w-selectBar w-bar" id="pro-view-18">
+                <div class="w-bar-label">省份</div>
+                <div class="w-bar-control">
+                    <select class="w-bar-input" name="provinceId" id="sel-provance"  onchange="selectCity();">
+                        <option value="0" selected="selected">{$addaddres['province']}</option>
+                    </select>
+                    </div>
+                </div>
+                <div class="w-selectBar w-bar" id="pro-view-13"><div class="w-bar-label">城市</div>
+                <div class="w-bar-control">
+                    <select class="w-bar-input"  id="sel-city" name="city" tabindex="4" required="required" onchange="selectcounty()">
+                       <option value="0" selected="selected">{$addaddres['city']}</option>
+                    </select>
+                </div></div>
+                <div class="w-selectBar w-bar" id="pro-view-14"><div class="w-bar-label">地区</div>
+                <div class="w-bar-control">
+                    <select class="w-bar-input"  id="sel-area" name="area" tabindex="5" required="required">
+                        <option value="0" selected="selected">{$addaddres['district']}</option>
+                    </select>
+                </div></div>
+                <div class="w-inputBar w-bar" id="pro-view-15">
+                    <div class="w-bar-label">详细地址</div>
+                    <a data-pro="clear" href="javascript:void(0);" class="w-bar-input-clear">×</a>
+                    <div class="w-bar-control">
+                        <textarea class="w-bar-input" id="address">{$addaddres['address']}</textarea>
+                </div>
+            </div>
+            <div class="w-checkBar w-bar" id="pro-view-16" onclick="chgclass()">是否设为默认地址<div class="w-bar-ext">
+                <b data-pro="switcher" class="w-switcher"></b>
+                <input type="checkbox">
+            </div></div>
+            <div class="w-bar m-user-bar-margin m-user-bar-border" style="display: none;" id="pro-view-175"><span onclick="javascript:deleteaddress();" class="txt-err">删除收货地址</span></div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+{template 'common_message'}

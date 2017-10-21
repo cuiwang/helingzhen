@@ -1,0 +1,1 @@
+$(function(){$(".btn-join-f").click(function(){$(".baoming").removeClass("none");$(".btn-join-b").hide();scrollTo(0,$(".handle").offset().top)});$(".btn-join-b").click(function(){$(".baoming").removeClass("none");$(".btn-join-b").hide()});var shareText='<div class="share-text"></div>',$maskBlack=$(".mask-black");$maskBlack.append(shareText)});

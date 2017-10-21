@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{$set['sys'][copyright]}-{$set['custom'][credittxt]}兑换</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <link href="{AMOUSE_BIZ_NAV_RES}pig/css/main.css?2016050101" rel="stylesheet">
+    <link href="{AMOUSE_BIZ_NAV_RES}pig/css/load.css?2016050101" rel="stylesheet">
+    {php echo register_jssdk(false);}
+    <script src="{AMOUSE_BIZ_NAV_RES}pig/js/jquery.min.js?2016050101"></script>
+</head>
+
+{template 'default/navbar'}
+<link href="{AMOUSE_BIZ_NAV_RES}pig/css/index.css" rel="stylesheet" />
+<style>
+    /*充值页面不要底部菜单*/
+    .foot_menu{display: none;}
+</style>
+<!--头部菜单    结束-->
+<body >
+<div class="chose_head">
+    <div class="chose_menu"><a href="{php echo $_W['siteroot'].'app/'.substr($this->createMobileUrl('exchange'), 2)}">{$credittxt}兑换</a></div>
+    <div class="cur chose_menu"><a href="{php echo $_W['siteroot'].'app/'.substr($this->createMobileUrl('exchangelog'), 2)}">兑换记录</a></div>
+</div>
+<div class="main" style="padding-bottom:70px;">
+   {loop $list $t}
+     <div class="jilu_padding">  <div class="chose_product">
+        <span>兑换产品：<span class="product_name">{$t['title']}</span></span>
+     </div>
+    <div class="order_msg">
+        <p>订单ID号：<span>{$t['id']}</span></p>
+        <p>消耗{$credittxt}：<span>{$t['credit']}</span>个</p>
+        <p>兑换时间：<span> {$t['createtime']}</span></p>
+        </div>
+    </div>
+    {/loop}
+</div>
+<script src="{AMOUSE_BIZ_NAV_RES}pig/js/common_new.js?version=20150221"></script>
+<script type="text/javascript">
+
+    var page=2;
+    var finished=0;
+    var sover=0;
+
+    function loadmore(obj){
+        if(finished==0 && sover==0){
+            var scrollTop = $(obj).scrollTop();
+            var scrollHeight = $(document).height();
+            var windowHeight = $(obj).height();
+            if (scrollTop + windowHeight -scrollHeight<=50 ) {
+
+                finished=1;
+                var page_url = '{php echo $this->createMobileUrl('exchangelog',array(),true)}&pageIndex='+page+'&isajax=1&_=' + Math.random();
+                var result=AjaxReturn(page_url,'get');
+                if(result.status==1) {
+                    $loading.show();
+                    var res = result.html;
+                    var str = '';
+                    $.each(res,function(i,item){
+                        str+='<div class="jilu_padding"><div class="chose_product"><span>兑换产品：<span class="product_name">'+item.title+'</p><p>消耗{$credittxt}：<span>'+item.credit+'</span>个</p><p>兑换时间：'+item.createtime+'</span></p></div></div>';
+                    });
+
+                    setTimeout(function () {
+                        $(".main").append(str);
+                        page += 1;
+                        finished = 0;
+                        var lastPage=result.gtotal;//
+                        if (page==lastPage) {//最后一页
+                            sover = 1;
+                            noMore();
+                        }
+                    }, 1000);
+                }else{
+                    noMore();
+                }
+            }
+        }
+    }
+    //页面滚动执行事件
+    $(window).scroll(function (){
+        loadmore($(this));
+    });
+
+    function noMore(){
+        var list = '<div class="nomore"><span>已经到底了</span></div>';
+        $(".main").append(list);
+        setTimeout("$('.nomore').remove()",3000);
+    };
+
+</script>
+</body>
+</html>

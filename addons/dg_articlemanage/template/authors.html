@@ -1,0 +1,156 @@
+{template 'common/header'}
+
+<div class="main">
+
+    <div class="panel panel-info">
+        <div class="panel-heading">筛选</div>
+        <div class="panel-body">
+            <form action="./index.php" method="get" class="form-horizontal" role="form">
+                <input type="hidden" name="c" value="site"/>
+                <input type="hidden" name="a" value="entry"/>
+                <input type="hidden" name="m" value="dg_articlemanage"/>
+                <input type="hidden" name="do" value="authors"/>
+                <input type="hidden" name="op" value="display"/>
+
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 control-label">作者名称</label>
+
+                    <div class="col-sm-8 col-md-8 col-lg-8 col-xs-12">
+                        <input class="form-control" name="keyword" id="" type="text" value="{$_GPC['keyword']}" placeholder="请输入作者昵称">
+                    </div>
+                    <div class="pull-right col-xs-12 col-sm-2 col-md-2 col-lg-2">
+                        <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+
+    <div class="panel-heading">
+        <div class="row-fluid">
+            <div class="span8 control-group">
+                <a class="btn btn-primary" href="###" onclick="popwin = $('#modal-module-menus').modal();"><i class="fa fa-plus"></i>添加作者</a>
+            </div>
+            <span>这里查找的作者，作者必须是关注了该公众号的用户</span>
+        </div>
+    </div>
+
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <div class="row-fluid">
+                <div class="span8 control-group">
+                    共计 {$total} 条数据
+                </div>
+            </div>
+        </div>
+        <div class="panel-body table-responsive">
+            <table class="table table-hover">
+                <thead class="navbar-inner">
+                <tr>
+                    <th style="width:65px;" align="center">头像</th>
+                    <th>昵称</th>
+                    <th>总收益</th>
+                    <th>添加时间</th>
+                    <th style="width:170px;" align="center">操作</th>
+                </tr>
+                </thead>
+                <tbody id="add_author">
+                {loop $records $row}
+                <tr>
+                    <td><img alt="" src="{$row['avatar']}" width='auto' style="max-width:50px; max-height:50px;" height='auto'></td>
+                    <td>{$row['nickname']}</td>
+                    <td>{$row['money']}</td>
+                    <td>{php echo date('Y/m/d H:i:s', $row['createtime']);}</td>
+                    <td data="{$row['id']}">
+                        <a class="btn btn-default" data-toggle="tooltip" data-placement="top" href="{php echo $this->createweburl('set',array(id=>$row['id']))}"  title="设置"><i class="fa fa-edit"></i></a>
+                        <a class="btn btn-default" data-toggle="tooltip" data-placement="top" href="javascript:" onclick="return del(this)" title="删除"><i class="fa fa-times"></i></a>
+                    </td>
+                </tr>
+                {/loop}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {$pager}
+</div>
+
+
+
+
+
+
+
+    <div id="modal-module-menus"  class="modal fade" tabindex="-1">
+        <div class="modal-dialog" style='width: 920px;'>
+            <div class="modal-content">
+                <div class="modal-header"><button aria-hidden="true" data-dismiss="modal" class="close" type="button">×</button><h3>选择作者</h3></div>
+                <div class="modal-body" >
+                    <div class="row">
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="keyword" value="" id="search-kwd" placeholder="请输入粉丝昵称" />
+                            <span class='input-group-btn'><button type="button" class="btn btn-default" onclick="search_members()">搜索</button></span>
+                        </div>
+                    </div>
+                    <div id="module-menus" style="padding-top:5px;"></div>
+                </div>
+                <div class="modal-footer"><a href="#" class="btn btn-default" data-dismiss="modal" aria-hidden="true">关闭</a></div>
+            </div>
+
+        </div>
+    </div>
+
+
+
+
+
+
+<script language='javascript'>
+
+    function search_members() {
+        if ($.trim($('#search-kwd').val()) == '') {
+            Tip.focus('#search-kwd', '请输入关键词');
+            return;
+        }
+        $("#module-menus").html("正在搜索....");
+        $.get('{php echo $this->createWebUrl('fans')}', {
+            keyword: $.trim($('#search-kwd').val())
+        }, function (dat) {
+            $('#module-menus').html(dat);
+        });
+    }
+    function select_member(o) {
+        $.ajax({
+            type:"post",
+            data:o,
+            url:"{php echo $this->createweburl('add')}",
+            datatype:"json",
+            success:function(res){
+                if(res.success==1){
+                    var html='<tr><td><img alt="" src="' + res.avatar + '" width="auto" style="max-width:50px; max-height:50px;" height="auto"></td> ';
+                    html+=' <td>' + res.nickname + '</td>';
+                    html+=' <td>' + res.money + '</td>';
+                    html+=' <td>'+ res.createtime+'</td> ';
+                    html+=' <td data="'+res.id+'"> <a class="btn btn-default" data-toggle="tooltip" data-placement="top" href="javascript:" onclick="return del(this)" title="删除"><i class="fa fa-times"></i></a> </td> </tr>';
+                    $("#add_author").append(html);
+                    $('#modal-module-menus').modal('hide');
+                    location.reload();
+                }else{
+                    alert("他已经是作者了！");
+                }
+            }
+        });
+    }
+    function del(obj){
+        var conf=confirm("确定删除吗？");
+        var id=$(obj).parents('td').attr('data');
+        $.post(location.href,{del:true,id:id},function(result){
+            location.reload();
+        });
+    }
+
+</script>
+

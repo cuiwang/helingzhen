@@ -1,0 +1,129 @@
+{php $bootstrap_type = 3;}
+{template 'header'}
+ <link rel="stylesheet" href="{MODULE_URL}template/shopping/css/jointCSS.css?ver=0430">
+    <link href="{MODULE_URL}template/shopping/css/buttons.css" rel="stylesheet" type="text/css" media="all">
+    <link href="{MODULE_URL}template/shopping/css/theme3.css" rel="stylesheet" type="text/css" media="all">
+     <link href="{MODULE_URL}template/shopping/css/flexslider.css" type="text/css" rel="stylesheet" media="all">
+    <link href="{MODULE_URL}template/shopping/css/style.css" type="text/css" rel="stylesheet" media="all">
+     <link href="{MODULE_URL}template/shopping/css/font-awesome.min.css" rel="stylesheet" type="text/css" media="all">
+    <link href="{$_W['siteroot']}app/resource/css/font-awesome.min.css" rel="stylesheet">
+<script type='text/javascript' src='resource/js/lib/jquery-1.11.1.min.js'></script>
+<link type="text/css" rel="stylesheet" href="../addons/xfeng_community/template/shopping/mobile/style.css">
+<!-- <link type="text/css" rel="stylesheet" href="../addons/xfeng_community/template/shop_css/style.css">
+<link type="text/css" rel="stylesheet" href="../addons/xfeng_community/template/shop_css/theme3.css"> -->
+
+<div class="head" style="background: #0bca9f;">
+	<a href="javascript:history.back();" class="bn pull-left"><i class="fa fa-angle-left"></i></a>
+	<span class="title">结算</span>
+	<a href="{php echo $this->createMobileUrl('shopping',array('op' => 'mycart'))}" class="bn pull-right"><i class="fa fa-shopping-cart"></i><span class="buy-num img-circle"> {$carttotal} </span></a>
+</div>
+
+<form class="form-horizontal" method="post" role="form" onsubmit='return check()'>
+	<input type="hidden" name="goodstype" value="{$goodstype}" />
+	<input type="hidden" name="address" value="{$row['id']}" />
+	<div class="order-main">
+		<h5>收货地址</h5>
+		<div id="myaddress">
+			{if !empty($row)}
+			<div id='address_{$row['id']}' class="shopcart-main img-rounded address_item" style='margin:0;padding:10px;margin-bottom:10px;cursor:pointer' onclick='changeAddress()'>
+				<span>{$row['province']} {$row['city']} {$row['area']} {$row['address']} <br/> {$row['realname']}, {$row['mobile']}</span>
+				<span style='float:right'>&nbsp;&nbsp;
+					<a href="{php echo $this->createMobileUrl('shopping',array('op' => 'address','from'=>'confirm','returnurl'=>urlencode($returnurl)))}">管理收货地址</a>
+				</span>
+			</div>
+			{else}
+			<div>
+				<button type="button" class="btn btn-danger" onclick="location.href='{php echo $this->createMobileUrl('shopping',array('op' => 'address','from'=>'confirm','returnurl'=>urlencode($returnurl)))}'"><i class="fa fa-plus"></i> 添加修改地址</button>
+			</div>
+			{/if}
+		</div>
+ 		<h5>配送方式</h5>
+		<select id='dispatch' name="dispatch" class="form-control">
+	   	{loop $dispatch $d}
+			<option value="{$d['id']}" price='{$d['price']}'>{$d['dispatchname']} ({$d['price']}元)</option>
+		{/loop}
+		</select>
+		<h5>订单详情</h5>
+		<div class="order-detail">
+			<table class="table">
+				<thead>
+				<tr>
+					<th class="name">商品</th>
+					<th class="num">数量</th>
+					<th class="total">单价</th>
+				</tr>
+				</thead>
+				<tbody>
+				{loop $allgoods $item}
+				<tr>
+					<td class="name">
+						<span  style="float:left;">
+							<a href='{php echo $this->createMobileUrl('detail',array('id'=>$item['id']))}'>{$item['title']}</a>
+							{if !empty($item['optionname'])}<br/>
+							<span style='font-size:12px;color:#666'> {$item['optionname']}</span>
+							{/if}
+						</span>
+					</td>
+					<td class="num">
+						{$item['total']}{if !empty($item['unit'])}{$item['unit']}{/if}
+					</td>
+					<td class="total">
+						<span style="display: none;">{$item['total']}</span>
+						<span class='goodsprice'>{$item['marketprice']} 元</span>
+						<span style="display: none;">{$item['marketprice']}</span>
+					</td>
+				</tr>
+				{/loop}
+				</tbody>
+			</table>
+			<div class="order-detail-hd">
+				<span class="pull-right" style="color:#E74C3C;">
+					[合计：<span id='totalprice'>{$totalprice}</span>]
+				</span>
+			</div>
+			<div style="clear:both;"></div>
+		</div>
+		<h5>留言</h5>
+		<div class="message-box">
+			<textarea class="form-control" rows="3" name="remark" placeholder="亲，还用什么能帮助到您吗？就写到这里吧！"></textarea>
+		</div>
+		<button type="submit" name="submit" value="yes" class="btn btn-success order-submit btn-lg" style="margin-bottom:40px;">提交订单</button>
+		<input type="hidden" name="token" value="{$_W['token']}" />
+	</div>
+</form>
+
+<script language='javascript'>
+	function changeAddress(){
+		location.href = '{php echo $this->createMobileUrl('address', array('from'=>'confirm','returnurl'=>urlencode($returnurl)))}'
+	}
+	function check(){
+		if((".address_item").length<=0){
+			alert("请添加收货地址!");
+			return false;
+		}
+		return true;
+	}
+
+	$("#dispatch").change(canculate);
+
+	function canculate(){
+		var prices = 0;
+		$(".goodsprice").each(function() {
+			var total = $(this).prev().text();
+			var price = $(this).next().text();
+			prices += parseFloat(total * price);
+		});
+		var dispatchprice = parseFloat($("#dispatch").find("option:selected").attr("price"));
+		if (dispatchprice > 0){
+			$("#totalprice").html(prices + dispatchprice + " 元 (含运费"+dispatchprice + ")");
+		} else {
+			$("#totalprice").html(prices + " 元");
+		}
+	}
+	$(function(){
+		canculate();
+	})
+</script>
+
+
+{template 'shopping_footerbar'}

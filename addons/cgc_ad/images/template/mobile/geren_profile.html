@@ -1,0 +1,189 @@
+{php $title='发布者身份'}
+
+{template 'inc/header'}	
+	<style>
+		#avatar_upload_cell{display:inline-block;width:80px;height:80px;border-radius:5px;overflow:hidden;}
+		#avatar_upload_cell img{width:80px;}
+		#qrcode_upload_cell{display:inline-block;width:160px;height:160px;border-radius:5px;overflow:hidden;}
+		#qrcode_upload_cell img{width:160px;}
+	</style>
+		<div class="app-topbar" style="display:none;height:0px;"></div>
+		<div class="app-content" style="background:#F8F8F8;">
+			<div class="app-body">
+				
+				<form id="profile_form" class="weui_cells weui_cells_form" action="{php echo $_W['siteroot'] . 'app/' . substr($this->createMobileUrl('geren',array('op'=>'profile','quan_id'=>$quan_id,'id'=>$id)), 2)}" method="post" style="margin-top:0px;border-top:0px none;">
+					<input type="hidden" name="submit" value="save"/>
+
+					<div class="weui_cell" style="text-align:center;padding:30px 10px 30px 10px;">
+						<span id="avatar_upload_cell"><img id="avatar_upload" 
+						src="{if empty($member['headimgurl'])}{MODULE_URL}/images/avatar_upload.png{else}{php echo tomedia($member['headimgurl'])}{/if}" /></span>
+						<input id="avatar_val" type="hidden" name="avatar_val" value=""/>
+							<input id="headimgurl" type="hidden" name="headimgurl" value="{$member['headimgurl']}"/>
+					</div>
+
+					<div class="weui_cell">
+						<div class="weui_cell_hd"><label class="weui_label">名称</label></div>
+						<div class="weui_cell_bd weui_cell_primary">
+							<input class="weui_input" type="text" name="nickname" placeholder="发布时作为您的名称显示" value="{$member['nickname']}"/>
+						</div>
+					</div>
+					<div class="weui_cell">
+						<div class="weui_cell_hd"><label class="weui_label">手机号</label></div>
+						<div class="weui_cell_bd weui_cell_primary">
+							<input class="weui_input" type="text" name="telphone" placeholder="手机号" value="{$member['telphone']}"/>
+						</div>
+					</div>
+				
+					<div class="weui_cell" style="display:none">
+						<div class="weui_cell_hd"><label class="weui_label">主页</label></div>
+						<div class="weui_cell_bd weui_cell_primary">
+							<input class="weui_input" type="text" name="home"  placeholder="用户点击名称时跳转到该地址" value="{$member['home']}"/>
+						</div>
+					</div>
+					
+					<div class="weui_cell" style="text-align:center;">
+						<div class="weui_cell_hd"><label class="weui_label">微信二维码(任务模式提供加好友)</label></div>
+						<span id="qrcode_upload_cell">
+							<img id="qrcode_upload"  src="{if empty($member['qr_code'])}{MODULE_URL}/images/avatar_upload.png{else}{php echo tomedia($member['qr_code'])}{/if}" /></span>
+						<input id="qrcode_val" type="hidden" name="qrcode_val" value=""/>
+							<input id="qr_code" type="hidden" name="qr_code" value="{$member['qr_code']}"/>
+					</div>
+
+				</form>
+				
+				<div class="weui_btn_area">
+					<a class="weui_btn weui_btn_primary" href="javascript:" id="btn_save">保存</a>
+				</div>
+			</div>
+		</div>
+
+		<!-- loading toast -->
+		<div id="toast_loading" class="weui_loading_toast" style="display:none;z-index:99999;position:fixed;">
+			<div class="weui_mask_transparent"></div>
+			<div class="weui_toast">
+				<div class="weui_loading">
+					<div class="weui_loading_leaf weui_loading_leaf_0"></div>
+					<div class="weui_loading_leaf weui_loading_leaf_1"></div>
+					<div class="weui_loading_leaf weui_loading_leaf_2"></div>
+					<div class="weui_loading_leaf weui_loading_leaf_3"></div>
+					<div class="weui_loading_leaf weui_loading_leaf_4"></div>
+					<div class="weui_loading_leaf weui_loading_leaf_5"></div>
+					<div class="weui_loading_leaf weui_loading_leaf_6"></div>
+					<div class="weui_loading_leaf weui_loading_leaf_7"></div>
+					<div class="weui_loading_leaf weui_loading_leaf_8"></div>
+					<div class="weui_loading_leaf weui_loading_leaf_9"></div>
+					<div class="weui_loading_leaf weui_loading_leaf_10"></div>
+					<div class="weui_loading_leaf weui_loading_leaf_11"></div>
+				</div>
+				<p class="weui_toast_content">正在保存...</p>
+			</div>
+		</div>
+
+
+	
+
+
+
+
+{template 'inc/script'}
+<script type="text/javascript">
+	$(function(){
+	
+			var toast_loading=$('#toast_loading');
+
+			// 添加图片
+			var avatar_upload=$('#avatar_upload');
+			var avatar_val=$('#avatar_val');
+			avatar_upload.on('click',function(){
+				wx.chooseImage({
+					count:1,
+					success: function (res) {
+						if(res.localIds){
+							for (var i in res.localIds){
+								avatar_upload.attr('src',res.localIds[i]);
+								avatar_val.val(-1);// -1表示正在上传
+								wx.uploadImage({
+									localId:res.localIds[i],
+									isShowProgressTips:0,
+									success: function (res) {
+										avatar_val.val(res.serverId);
+									},
+									fail: function () {
+										avatar_val.val('');
+									}
+								});
+							}
+						}
+					}
+				});
+			});
+			
+			var qrcode_upload=$('#qrcode_upload');
+			var qrcode_val=$('#qrcode_val');
+			qrcode_upload.on('click',function(){
+				wx.chooseImage({
+					count:1,
+					success: function (res) {
+						if(res.localIds){
+							for (var i in res.localIds){
+								qrcode_upload.attr('src',res.localIds[i]);
+								qrcode_val.val(-1);// -1表示正在上传
+								wx.uploadImage({
+									localId:res.localIds[i],
+									isShowProgressTips:0,
+									success: function (res) {
+										qrcode_val.val(res.serverId);
+									},
+									fail: function () {
+										qrcode_val.val('');
+									}
+								});
+							}
+						}
+					}
+				});
+			});
+
+
+			/** 执行保存 **/
+			var wait=0;
+			var form = $('#profile_form');
+			function doPost(){
+				// 判断头像是否正在上传中，则需要等待完成后再保存(对用户透明)
+				if(avatar_val.val()==-1||qrcode_val.val()==-1){
+					wait++;
+					setTimeout(doPost,1000);//间隔1秒等待图片上传
+				}else{
+					$.post(form.attr('action'), form.serialize(),function(resp) {
+						toast_loading.hide();
+						if(resp.status!=1){
+							alert("保存失败");
+						}else{
+							swal({   
+								title: "保存成功",
+								type: "success",
+								confirmButtonText: "确定"
+							}, function(isConfirm){
+								if(isConfirm){
+									location.href="{php echo $_W['siteroot'] . 'app/' . substr($this->createMobileUrl('geren',array('quan_id'=>$quan_id)), 2)}";
+								}
+							});
+						}
+					},'json');
+				}
+			}
+
+			// 发布
+			$('#btn_save').on('click',function(){
+				toast_loading.show();
+				doPost();
+			});
+
+
+
+		
+		
+	});
+</script>
+	</body>
+</html>

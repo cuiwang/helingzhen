@@ -1,0 +1,76 @@
+{template 'common/header'}
+<link rel="stylesheet" href="{$_W['siteroot']}app/themes/superman_wxtmpl/css/list.css">
+<link rel="stylesheet" href="//res.wx.qq.com/open/libs/weui/0.3.0/weui.min.css">
+<body class="zh_CN">
+	<div id="js_plugins" style="visibility: visible;">
+		<div class="slider js_plugin" id="namespace_0" data-pid="1">
+			{template 'common/slide'}
+		</div>
+		<div class="tab js_plugin" id="namespace_1" data-pid="2">
+			<div class="tab_hd">
+				<div class="tab_hd_inner">
+					<div type="index" data-index="0" class="item">
+						<div class="top_menu_bar">
+							<div class="top_menu">
+								<div class="top_menu_list">
+                                    {if isset($_W['styles']['index_url'])}
+									<a href="{if empty($_W['styles']['index_url'])||$_W['styles']['index_url']=='/'}{php echo url('home/home')}{else}{$_W['styles']['index_url']}{/if}" class="btn cur" scroll-left="0">首页</a>
+                                    {/if}
+									{data module="site" func="site_category"}
+                                    <a href="{$row['linkurl']}" class="btn cur {if $_GPC['cid'] == $row['id'] || $_GPC['pcid'] == $row['id']}super_active{/if}" scroll-left="0">{$row['name']}</a>
+									{/data}
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+				{if $_GPC['pcid']}
+					{php $_cid = $_GPC['pcid']}
+				{else}
+					{php $_cid = $cid}
+				{/if}
+			<div style="padding-left: 10px;">
+				{data module="site" func="site_category" parentid="$_cid"}
+					{php $url = str_replace("&cid=".$row['id']."&", "&cid=".$row['id']."&pcid=".$_cid."&", $row['linkurl']);}
+					<a href="{$url}" style="padding-right: 5px; padding-top: 10px; padding-bottom: 10px; display:inline-block">
+						<button type="button" class="btn {if $row[id]==$cid}btn-primary{else}btn-default{/if} btn-sm">{$row['name']}</button>
+					</a>
+				{/data}
+			</div>
+			<div class="tab_bd">
+				<div class="article_list article_list_0">
+					{if empty($_W['styles']['list_pagesize'])}
+						{php $_W['styles']['list_pagesize'] = 10}
+					{/if}
+					{data module="site" func="site_article" cid="$cid" limit="$_W['styles']['list_pagesize']" assign="result" return="true"}
+					{if empty($result['list'])}
+						<span style="text-align: center; display: block; padding-top: 20px; padding-bottom: 20px;">本分类下暂时没有文章，请稍后查看</span>
+					{/if}
+					{loop $result['list'] $row}
+					<a class="list_item js_post" href="{$row['linkurl']}">
+						<div class="cover">
+							{if $row['thumb']}<img src="{$row['thumb']}" class="img js_img" onerror="this.parentNode.removeChild(this)" />{/if}
+						</div>
+						<div class="cont">
+							<h2 class="title js_title">{php echo cutstr($row['title'],25,1);}</h2>
+							<p class="desc">
+								{php echo cutstr($row['description'],32,1);}
+							</p>
+						</div>
+					</a>
+					{/loop}
+				</div>
+			</div>
+			{if $_GPC['pcid']}
+				{php $total =  pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('site_article')." WHERE pcate=".$_GPC['pcid']." AND ccate=".$_GPC['cid'])}
+			{else}
+				{php $total =  pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('site_article')." WHERE pcate=".$_GPC['cid'])}
+			{/if}
+			{php $pindex = max(1, intval($_GPC['page']))}
+			{php $result['pager'] = pagination($total, $pindex, $_W['styles']['list_pagesize'], '', array('before' => 0, 'after' => 1))}
+			<div class="pager-position" style="text-align: center">{$result['pager']}</div>
+		</div>
+	</div>
+</body>
+{template 'common/footer'}

@@ -1,0 +1,803 @@
+{template 'web/common/header-base'}
+{template 'web/common/header-nav'}
+{template 'web/common/header'}
+<link href="http://cdn.bootcss.com/bootstrap-slider/9.2.0/css/bootstrap-slider.min.css" rel="stylesheet">
+<script src="http://cdn.bootcss.com/bootstrap-slider/9.2.0/bootstrap-slider.min.js"></script>
+<script src="{GARCIA_JS}/plupload.full.min.js"></script>
+<script src="{GARCIA_JS}/template.js"></script>
+<link href="{GARCIA_CSS}web/editor.css" rel="stylesheet">
+<style>
+
+#ex1Slider .slider-selection {
+    position: absolute;
+    box-shadow: inset 0 -1px 0 rgba(0,0,0,.15);
+    border-radius: 4px;
+    background-image: none;
+    background-color: #43AC43;
+}
+</style>
+<form class="form-horizontal" method="post" onsubmit="return _cform()">
+<div class="publish-form-item" id="set1">
+  <div >
+<h2 class="modules-title text-center">{$conf['name']}</h2>
+
+    <div class="wrap" style="background:#fff;">
+          <h2 class="modules-title">项目基本信息</h2>
+          <div class="form-container-notice">
+                <a href="javascript:void(0)" id="xuzhi"><span>发起须知</span></a>
+          </div>
+      <div class="form-container clearfix" >
+
+         <input type="hidden" name="rand_day" id="rand_day" value="{$lday}">
+         {if $fabu['id']}
+            <input type="hidden" name="dopost" value="save_editor">
+            <input type="hidden" name="fid" value="{$_GPC['fid']}">
+            <input type="hidden" name="today" value="{$today}">
+         {else}
+            <input type="hidden" name="dopost" value="save">
+            <input type="hidden" name="fid" value="{$_GPC['id']}">
+         {/if}
+         <input type="hidden" id="max_up">
+
+          <div class="form-group form-group-lg clearfix">
+              <label class="col-md-3 control-label">目标金额</label>
+              <div class="col-md-9">
+                  <div class="input-group">
+                      <input type="text" name="tar_monet" id="tar_monet" value="{$fabu['tar_monet']}" class="form-control text_validata" maxlength="7" placeholder="筹款金额">
+                      <span class="input-group-mb">元</span>
+                  </div>
+              </div>
+          </div>
+
+          {if $conf['is_use']}
+          <div class="form-group form-group-lg clearfix">
+            <label class="col-md-3 control-label">资金用途</label>
+            <div class="col-md-9">
+              <input type="text" name="use" id="use" maxlength="20" value="{$fabu['use']}" class="form-control text_validata" placeholder="资金用途">
+            </div>
+          </div>
+          {/if}
+
+          <div class="form-group form-group-lg clearfix">
+            <label class="col-md-3 control-label">项目标题</label>
+            <div class="col-md-9">
+              <input type="text" name="name" id="name" maxlength="20" value="{$fabu['name']}" class="form-control text_validata" placeholder="填写筹款项目标题">
+            </div>
+          </div>
+
+           <div class="form-group form-group-lg clearfix">
+              <label for="raisefundsNumber" class="col-md-3 control-label">截止日期</label>
+              <div class="col-md-9 qsc-slider-row">
+                  <p class="form-control-static">
+                      <span id="raiseDays" data-today="{$today}">{$lday}</span>&nbsp;&nbsp;共<strong id="liderVal">{$minday}</strong>天
+                  </p>
+                  <div class="qsc-slider">
+                    <span>{$conf['minday']}天</span> <input id="ex1" data-slider-id='ex1Slider' type="text" data-slider-min="{$conf['minday']}" data-slider-max="{$conf['maxday']}"  value="1" data-slider-step="1"/> <span>{$conf['maxday']}天</span>
+                </div>
+              </div>
+           </div>
+
+
+           <script type="text/javascript">
+               $(function(){
+
+                  var mySlider =  $("#ex1").slider({
+                     tooltip:'hide'
+                  }).on('slide',function(){
+                      value  = mySlider.getValue();
+                      var rd = addDate($("#raiseDays").attr('data-today'),value);
+                      $("#raiseDays").html(rd);
+                      $("#liderVal").html(value);
+                      $("#rand_day").val(rd);
+                  }).data('slider');
+
+                  mySlider.setValue({$minday});
+
+
+               })
+               function fsc(){
+                 console.log(1);
+               }
+               function addDate(date,days){
+                   var d=new Date(date);
+                   d.setDate(d.getDate()+days);
+                   var month=d.getMonth()+1;
+                   var day = d.getDate();
+                   if(month<10){
+                       month = "0"+month;
+                   }
+                   if(day<10){
+                       day = "0"+day;
+                   }
+                   var val = d.getFullYear()+"-"+month+"-"+day;
+                   return val;
+               }
+           </script>
+
+
+           {if $conf['is_reward']==1}
+
+              <div class="form-group">
+                  <div class="col-md-12">
+                      <input type="checkbox" name="billAddress" id="billAddress" value="1" checked="checked">
+                      <label for="billAddress" class="radius pull-left"></label>
+                      <label for="billAddress" class="icheck-label">需要支持者收件地址</label>
+                      <input type="checkbox" name="askRecommend" id="recommend" value="1">
+                      <label for="recommend" class="icheck-label">设为隐私项目 <small>(开启后不会被搜索到)</small></label>
+                  </div>
+              </div>
+
+              <div class="form-group form-group-lg clearfix">
+                <label class="col-md-3 control-label">运费</label>
+                <div class="col-md-9">
+                  <input type="text" name="yunfei" id="yunfei" maxlength="20" value="" class="form-control text_validata" placeholder="填写运费金额或包邮">
+                </div>
+              </div>
+
+
+              <div class="form-group form-group-lg clearfix">
+                <label class="col-md-3 control-label">发货时间</label>
+                <div class="col-md-9">
+                  <input type="text" name="deliveryTime" id="deliveryTime" maxlength="20" value="" class="form-control text_validata" placeholder="填写发货时间">
+                </div>
+              </div>
+
+           {/if}
+           <link rel="stylesheet" href="{GARCIA_CSS}wangEditor.min.css">
+           <script src='{GARCIA_JS}wangEditor.min.js'></script>
+          <div class="form-group form-group-lg clearfix">
+             <div class="col-md-12" >
+                   <textarea name="detail" rows="20"  placeholder="23" id="wang">{if $fabu['project_texdesc']} {$fabu['project_texdesc']} {else} {$conf['textdesc']} {/if}</textarea>
+             </div>
+             {php echo htmlspecialchars_decode($conf['tips'])}
+          </div>
+          <script type="text/javascript">
+              var editor = new wangEditor('wang');
+              editor.config.menus = ['source','|','bold','underline','italic','strikethrough','eraser','forecolor','bgcolor','video','img'];
+              // 上传图片（举例）
+              editor.config.uploadImgUrl = '{php echo $this->createMobileUrl("api")}';
+              editor.config.uploadParams = {
+                  func:'uimg',
+                  action:'text',
+                   apikey:apikey
+              };
+              // editor.config.uploadHeaders = {
+              //     'Accept' : 'text/x-json'
+              // };
+
+
+
+              editor.create();
+          </script>
+
+            <div class="form-group form-group-lg">
+                 <div class="col-md-12">
+                   <div id="reviewuploader" class="qsc-uploader clearfix">
+                     <div class="uploader-list main-images-list" id="fileList">
+
+                               {loop $thumb $k $row2}
+
+                                   <div class="file-item thumbnail">
+                                         <a class="fancybox" title="图片预览" rel="fancybox" href="">
+                                           <img src="{$row2['thumb']}"></a>
+                                           <div class="file-panel"><span>×</span></div>
+                                            <input type="hidden" name='wxId[]' class="wxId" value="{$row2['id']}">
+                                            {if $k==0}
+                                            <div class="info">分享封面图</div>
+                                            {else}
+                                           <div class="info">第{php echo $k+2}张</div>
+                                           {/if}
+                                   </div>
+                               {/loop}
+     
+                     </div>
+                     <div class="webPicPicker webuploader-container">
+                           <div id="reviewPicker" class="webuploader-pick webuploader-pick-hover" style="position: relative; z-index: 1;    margin-top: 21px;">
+                             <i class="icon icon-plus2"></i>上传图片<br>(最多8张)
+                           </div>
+                             <div  class="moxie-shim moxie-shim-html5" style="position: absolute; top: 15px; left: 0px; width: 118px; height: 92%; overflow: hidden; z-index: 0;">
+                               <input type="file" style="font-size: 999px; opacity: 0; position: absolute; top: 0px; left: 0px; width:100%; height: 100%;" multiple="" accept="image/jpeg,image/png,image/bmp">
+                             </div>
+                       </div>
+                 </div>
+                 <div class="help-block">请上传清晰的产品图片，建议图片尺寸大于 750 x 400</div>
+                 </div>
+            </div>
+      </div>
+
+  </div>
+  {if $conf['is_reward']==1}
+
+      <div class="wrap">
+              <h2 class="modules-title">回报设置</h2>
+              <div class="form-container clearfix">
+                  <div id="reward-list" class="qsc-lists reward-lists" data-id="0">
+                      {loop $reward $k $row}
+                      <div id="reward{$k}" >
+                        <a href="javascript:void(0)" class="item" onclick="_editor($(this))" data-reid="{$row['thumb']}" data-pic="{$row['pic']}" data-content="{$row['supportContent']}" data-fee="{$row['supportNumber']}" data-number="{$row['places']}" data-id="{$k}">
+                            <header><i class="icon"><img src="{php echo tomedia($row['thumb'])}" width="100%"></i><h6>支持<strong>{$row['supportNumber']}</strong>元</h6></header>
+                            <footer>{$row['supportContent']}</footer>
+                            <input type="hidden" class="reId" name='reward_thumb[]' value="{$row['thumb']}">
+                            <input type="hidden" name='reward_content[]' value="{$row['supportContent']}">
+                            <input type="hidden" name='reward_fee[]' value="{$row['supportNumber']}">
+                            <input type="hidden" name='reward_number[]' value="{$row['places']}">
+                            <input type="hidden" name="reward_id[]" value="{$k}">
+                        </a>
+                      </div>
+                      {/loop}
+                      <div class="footer-btn text-center foot-reward" style="margin-top:15px;">
+                          <a href="javascript:void(0)" data-toggle="modal" data-target="#modal-add-reward" id="rewardbtn" class="btn btn-default btn-add">
+                              <i class="icon-plus2"></i>
+                              <span>继续添加</span>
+                          </a>
+                      </div>
+                  </div>
+              </div>
+      </div>
+
+  {/if}
+  {if $conf['is_list']==1}
+  <div class="wrap">
+          <h2 class="modules-title">筹款设置</h2>
+          <div class="form-container clearfix">
+              <div id="list-list" class="qsc-lists reward-lists" data-id="0">
+
+                {loop $dream $row}
+                <a href="javascript:void(0)" class="item">
+                    <header style="padding-left:0px;">
+                      <h6>支持<strong>{$row['money']}</strong>元</h6>
+                  </header>
+                  <footer style="padding-left:0px;">{$row['content']}</footer>
+                  <input type="hidden" name='list_fee[]' value="{$row['money']}">
+                  <input type="hidden" name='list_use[]' value="{$row['content']}">
+                  <input type="hidden" name="list_id[]" value="{$row['dream_id']}">
+                </a>
+                {/loop}
+                  <div class="footer-btn text-center foot-reward">
+                      <a href="javascript:void(0)" data-toggle="modal" data-target="#modal-add-reward" id="listbtn" class="btn btn-default btn-add">
+                          <i class="icon-plus2"></i>
+                          <span>继续添加</span>
+                      </a>
+                  </div>
+              </div>
+          </div>
+  </div>
+  {/if}
+      <div class="form-group form-group-lg">
+        <div class="col-md-12 text-center">
+          {if $fabu['id']}
+              <input type="submit" name="submit" class="btn btn-primary btn-lg large" value="保存项目">
+          {else}
+              <input type="submit" name="submit" class="btn btn-primary btn-lg large" value="发布项目">
+          {/if}
+        </div>
+      </div>
+  </div>
+</div>
+
+
+
+
+</form>
+    <div class="wxblock"></div>
+
+  <div class="bfixed clearfix" id="shuoming">
+    <div class="shuoming">
+          <div class="stitle text-center">
+              发起须知
+          </div>
+          <div class="sbody">
+              {php echo htmlspecialchars_decode($conf['tips'])}
+          </div>
+          <div class="sfooter text-center">
+                    <a href="javascript:void(0)" class="btn btn-primary btn-lg btn-radius" id="iknow">我知道了</a>
+          </div>
+    </div>
+  </div>
+
+  {if $conf['is_reward']==1}
+
+     <div id="addreward" class="addreward">
+           <div class="modal-header">
+                 <button type="button" id="closeModel" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true"> ×</span></button>
+                 <h4 class="modal-title">添加回报</h4>
+           </div>
+
+           <div class="modal-body">
+                    <div class="form-group form-group-lg clearfix">
+                        <label class="col-md-3 control-label">支持金额</label>
+                        <div class="col-md-9">
+                            <div class="input-group">
+                                <input type="tel" maxlength="6" id="fee" class="form-control" placeholder="填写支持金额">
+                                <span class="input-group-mb">元</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group form-group-lg clearfix">
+                        <label class="col-md-3 control-label">限制数量</label>
+                        <div class="col-md-9">
+                            <div class="input-group">
+                                <input type="tel" maxlength="6" id="number" class="form-control" placeholder="数量">
+                                <!-- <span class="input-group-mb">元</span> -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group form-group-lg clearfix">
+                      <div class="col-md-12">
+                          <textarea  id="content" name="supportContent" maxlength="48" placeholder="填写回报的具体内容" class="form-control input-lg" rows="5"></textarea>
+                     </div>
+                  </div>
+
+                  <div class="form-group form-group-lg clearfix"  style="    margin-bottom: 24px;">
+                       <div class="col-md-12">
+                         <div id="reviewuploader2" class="qsc-uploader clearfix">
+                           <div class="uploader-list main-images-list" id="fileList2"></div>
+                           <div class="webPicPicker webuploader-container">
+                                 <div id="reviewPicker2" class="webuploader-pick webuploader-pick-hover" style="position: relative; z-index: 1;    margin-top: 21px;">
+                                   <i class="icon icon-plus2"></i>上传图片<br>(最多1张)
+                                 </div>
+                                   <div  class="moxie-shim moxie-shim-html5" style="position: absolute; top: 15px; left: 0px; width: 118px; height: 92%; overflow: hidden; z-index: 0;">
+                                     <input type="file" style="font-size: 999px; opacity: 0; position: absolute; top: 0px; left: 0px; width:100%; height: 100%;" multiple="" accept="image/jpeg,image/png,image/bmp">
+                                   </div>
+                             </div>
+                       </div>
+                       <div class="help-block">请上传回报的产品图片</div>
+                       </div>
+                  </div>
+                  <div class="form-group form-group-lg clearfix">
+                    <div class="footer-btn text-center">
+                           <a href="javascript:void(0)" class="btn btn-primary btn-lg large btn-add-reward" id="addrewardbtn">添加</a>
+                           <a href="javascript:void(0)" class="btn btn-primary btn-lg large btn-add-reward" id="saverewardbtn" style="display:none;">保存</a>
+                           &nbsp;&nbsp;<a  href="javascript:void(0)" class="btn btn-default btn-lg large btn-cancel" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">返回</span></a>
+                  </div>
+                </div>
+           </div>
+     </div>
+  {/if}
+
+
+  {if $conf['is_list']==1}
+  <div id="addlist" class="addreward">
+        <div class="modal-header">
+              <button type="button" id="closeModel" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true"> ×</span></button>
+              <h4 class="modal-title">添加梦想</h4>
+        </div>
+
+        <div class="modal-body">
+                 <div class="form-group form-group-lg clearfix">
+                     <label class="col-md-3 control-label">筹款金额</label>
+                     <div class="col-md-9">
+                         <div class="input-group">
+                             <input type="tel" maxlength="6" id="fee"   class="form-control" placeholder="填写梦想基金">
+                             <span class="input-group-mb">元</span>
+                         </div>
+                     </div>
+                 </div>
+
+                 <div class="form-group form-group-lg clearfix">
+                     <label class="col-md-3 control-label">资金用途</label>
+                     <div class="col-md-9">
+                             <input type="tel" maxlength="6"  id="use"  class="form-control" placeholder="资金用途">
+                     </div>
+                 </div>
+               <div class="form-group form-group-lg clearfix">
+                 <div class="footer-btn text-center">
+                        <a href="javascript:void(0)" class="btn btn-primary btn-lg large btn-add-list">添加</a>
+                        &nbsp;&nbsp;<a  href="javascript:void(0)" class="btn btn-default btn-lg large btn-cancel" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">返回</span></a>
+               </div>
+             </div>
+        </div>
+  </div>
+  {/if}
+<script type="text/html" id="file_tpl_1">
+  <div class="file-item thumbnail">
+        <a class="fancybox" title="图片预览" rel="fancybox" href="{{imgurl}}">
+          <img src="{{imgurl_thumb}}"></a>
+          <div class="file-panel"><span>×</span></div>
+           <input type="hidden" name='wxId[]' class="wxId" value="{{insert_id}}">
+          <div class="info">分享封面图</div>
+  </div>
+</script>
+
+
+<script type="text/html" id="file_tpl_2">
+  <div class="file-item thumbnail">
+        <a class="fancybox" title="图片预览" rel="fancybox" href="{{imgurl}}">
+          <img src="{{imgurl_thumb}}" ></a>
+          <div class="file-panel"><span>×</span></div>
+           <input type="hidden" id="reId" value="{{imgurl}}">
+           <input type="hidden" id="rethumb" value="{{imgurl_thumb}}">
+
+  </div>
+</script>
+
+
+<script type="text/html" id="tpl_3">
+  <div id="reward{{id}}" >
+  <a href="javascript:void(0)" class="item" onclick="_editor($(this))"  data-pic="{{imgurl}}" data-reid="{{reid}}" data-content="{{content}}" data-fee="{{fee}}" data-number="{{number}}" data-id="{{id}}">
+      <header>
+         <i class="icon">
+            <img src="{{rethumb}}" width="100%">
+        </i>
+        <h6>支持<strong>{{fee}}</strong>元</h6>
+    </header>
+    <footer>{{content}}</footer>
+
+    <input type="hidden" class="reId" name='reward_thumb[]' value="{{reid}}">
+    <input type="hidden" name='reward_content[]' value="{{content}}">
+    <input type="hidden" name='reward_fee[]' value="{{fee}}">
+    <input type="hidden" name='reward_number[]' value="{{number}}">
+    <input type="hidden" name="reward_id[]" value="{{id}}">
+  </a>
+  </div>
+</script>
+
+<script type="text/html" id="tpl_4">
+  <a href="javascript:void(0)" class="item">
+      <header style="padding-left:0px;">
+        <h6>支持<strong>{{fee}}</strong>元</h6>
+    </header>
+    <footer style="padding-left:0px;">{{use}}</footer>
+    <input type="hidden" name='list_fee[]' value="{{fee}}">
+    <input type="hidden" name='list_use[]' value="{{use}}">
+    <input type="hidden" name="list_id[]" value="{{id}}">
+  </a>
+</script>
+<script>
+
+
+  function _cform(){
+
+  {if $conf['is_reward']==1}
+    var reid = $(".reId").length;
+    if(reid<=0){
+       _tips('请设置回报');
+           console.log(reid);
+           return false;
+    }
+    console.log(reid);
+  {/if}
+    return true;
+  }
+
+
+  function _editor(o){
+      var reid = o.attr('data-reid');
+      var content = o.attr('data-content');
+      var fee = o.attr('data-fee');
+      var number = o.attr('data-number');
+      var id = o.attr('data-id');
+      var tar = "#reward"+id;
+      var response = {
+        imgurl:reid,
+        imgurl_thumb:reid
+      };
+      var html=template('file_tpl_2',response);
+      $("#fileList2").append(html);
+      $("#addrewardbtn").hide();
+      $("#saverewardbtn").show();
+      $("#saverewardbtn").attr('data-tar',tar);
+      $("#saverewardbtn").attr('data-id',id);
+      $("#fee").val(fee);
+      $("#number").val(number);
+      $("#content").val(content);
+      $(".wxblock").fadeIn();
+      $("#addreward").fadeIn();
+  }
+
+$(function(){
+          _rankpic();
+  $("#saverewardbtn").bind('click',function(){
+       var id = $(this).attr('data-id');
+       var reId = $("#reId").val();
+       var fee = $("#fee").val();
+       var number= $("#number").val();
+       var content= $("#content").val();
+       var rethumb = $("#rethumb").val();
+       var data = {
+         reid:reId,
+         fee:fee,
+         number:number,
+         content:content,
+         rethumb:rethumb,
+         id:$(this).attr('data-id')
+       };
+       var h = template('tpl_3',data);
+       console.log(jts(data));
+       $("#reward"+id).html(h);
+       $(".wxblock").fadeOut();
+       $("#addreward").fadeOut();
+       $("#fee").val('');
+       $("#number").val('');
+       $("#content").val('');
+       $("#rethumb").val('');
+       $("#fileList2").find('.file-item').remove();
+  })
+    $(document).on('click','.file-panel',function(){
+          if(confirm('是否删除该图片?')){
+              $(this).parent('div').remove();
+              _rankpic();
+          }
+    });
+    $("#closeModel,.btn-cancel").bind('click',function(){
+              $(".wxblock").fadeOut();
+              $("#addreward").fadeOut();
+              $("#addlist").fadeOut();
+              $("#fee").val('');
+              $("#number").val('');
+              $("#content").val('');
+              $("#rethumb").val('');
+                     $("#fileList2").find('.file-item').remove();
+              //  $("body").css('overflow','auto');
+    });
+    $("#rewardbtn").bind('click',function(){
+        //  $("body").css('overflow','hidden');
+          $(".wxblock").fadeIn();
+          $("#addreward").fadeIn();
+    });
+    $("#listbtn").bind('click',function(){
+        $(".wxblock").fadeIn();
+        $("#addlist").fadeIn();
+    })
+    $("#xuzhi").bind('click',function(){
+
+        $(".wxblock").fadeIn();
+        $("#shuoming").fadeIn();
+    });
+    $("#iknow").bind('click',function(){
+        $(".wxblock").fadeOut();
+        $("#shuoming").fadeOut();
+    });
+
+    $(".btn-add-list").bind('click',function(){
+        var fee = $("#fee").val();
+        var use =  $("#use").val();
+          var timestamp=new Date().getTime();
+        var data = {
+           id:timestamp,
+           fee:fee,
+           use:use
+        };
+        var h = template('tpl_4',data);
+        $("#list-list").prepend(h);
+        $(".wxblock").fadeOut();
+        $("#addlist").fadeOut();
+        //  $("body").css('overflow','auto');
+        $("#fee").val('');
+        $("#use").val('');
+    });
+    $("#addrewardbtn").bind('click',function(){
+        var reId = $("#rethumb").val();
+        var fee = $("#fee").val();
+        var number= $("#number").val();
+        var content= $("#content").val();
+        var rethumb = $("#rethumb").val();
+        var timestamp=new Date().getTime();
+        var data = {
+          reid:reId,
+          fee:fee,
+          number:number,
+          content:content,
+          rethumb:rethumb,
+          id:timestamp
+        };
+        var h = template('tpl_3',data);
+        console.log(jts(data));
+        $("#reward-list").prepend(h);
+        $(".wxblock").fadeOut();
+        $("#addreward").fadeOut();
+            //  $("body").css('overflow','auto');
+        $("#fee").val('');
+        $("#number").val('');
+        $("#content").val('');
+        $("#rethumb").val('');
+        $("#fileList2").find('.file-item').remove();
+        // console.log(data);
+    })
+})
+var uploader = new plupload.Uploader({
+     runtimes : 'html5,flash,silverlight,html4',
+     browse_button : 'reviewPicker', // you can pass in id...
+     chunk_size : '200kb',
+     max_retries:2,
+     url : "{php echo $this->createMobileUrl('uploadimg',array('dopost'=>'downimg','machine'=>md5(GARCIA_MACHINE)))}",
+     filters : {
+       max_file_size : '5mb',
+       mime_types: [
+         {title : "Image files", extensions : "jpg,gif,png,jpeg"},
+         {title : "Zip files", extensions : "zip"}
+       ]
+     },
+     init: {
+       PostInit: function() {
+           return false;
+       },
+
+       FilesAdded: function(up, files) {
+
+           var _len =''; var  _f ='';var __len = '';
+            _f = uploader.files.length;
+           console.log('s2s:'+uploader.files.length);
+
+
+            _len = $("#uploader-list").find('div.file-item').length;
+            __len = parseInt(_f)+parseInt(_len);
+           if(__len>8){
+               _tips('不能超过8张图片');
+               uploader.splice(0, _f);
+               return  false;
+           }
+            if(_f>8){
+               _tips('不能超过8张图片');
+               return  false;
+           }
+
+           uploader.start();
+       },
+       FilesRemoved:function(){
+
+       },
+       UploadProgress: function(up, file) {
+
+       },
+       FileUploaded:function(uploader,files,responseObject){
+             var response = responseObject.response;
+             response = eval('(' + response + ')');
+             //
+             console.log(response);
+
+             if(response.status==2){
+                 $("#loadingToast").hide();
+                 _tips(response.msg);
+                 return false;
+             }
+             var html=template('file_tpl_1',response);
+             $("#fileList").append(html);
+
+             // $("#loadingToast").hide();
+             // return false;
+       },
+       UploadComplete:function(uploader,files){
+           _tips('完成上传');
+           $("#loadingToast").hide();
+
+           var i = 1;
+           uploader.splice(0,100);
+           _rankpic();
+           console.log(uploader);
+           console.log(files);
+       },
+       Error: function(up, err) {
+                $("#loadingToast").hide();
+         // document.getElementById('console').innerHTML += "\nError #" + err.code + ": " + err.message;
+         if(err.code==-200){
+             _tips('服务器无响应，请重试');
+             return  false;
+         }else if(err.code==-600){
+             _tips('图片不能超过5MB');
+             return  false;
+         }else{
+             _tips(err.code);
+             return  false;
+         }
+       }
+     }
+})
+
+
+
+
+
+var uploader2 = new plupload.Uploader({
+     runtimes : 'html5,flash,silverlight,html4',
+     browse_button : 'reviewPicker2', // you can pass in id...
+     chunk_size : '200kb',
+     max_retries:2,
+     url : "{php echo $this->createMobileUrl('uploadimg',array('dopost'=>'downimg','machine'=>md5(GARCIA_MACHINE)))}",
+     filters : {
+       max_file_size : '5mb',
+       mime_types: [
+         {title : "Image files", extensions : "jpg,gif,png,jpeg"},
+         {title : "Zip files", extensions : "zip"}
+       ]
+     },
+     init: {
+       PostInit: function() {
+
+
+           return false;
+
+       },
+
+       FilesAdded: function(up, files) {
+
+           var _len =''; var  _f ='';var __len = '';
+            _f = uploader2.files.length;
+          //  console.log('s2s:'+uploader.files.length);
+
+
+            _len = $("#fileList2").find('div.file-item').length;
+            __len = parseInt(_f)+parseInt(_len);
+           if(__len>1){
+               _tips('不能超过1张图片');
+               uploader2.splice(0, _f);
+               return  false;
+           }
+            if(_f>8){
+               _tips('不能超过1张图片');
+               return  false;
+           }
+
+           uploader2.start();
+       },
+       FilesRemoved:function(){
+
+       },
+       UploadProgress: function(up, file) {
+
+       },
+       FileUploaded:function(uploader,files,responseObject){
+             var response = responseObject.response;
+             response = eval('(' + response + ')');
+             //
+             console.log(response);
+
+             if(response.status==2){
+                 $("#loadingToast").hide();
+                 _tips(response.msg);
+                 return false;
+             }
+             var html=template('file_tpl_2',response);
+             console.log(html);
+             $("#fileList2").append(html);
+
+             // $("#loadingToast").hide();
+             // return false;
+       },
+       UploadComplete:function(uploader,files){
+           _tips('完成上传');
+           $("#loadingToast").hide();
+
+           var i = 1;
+           uploader2.splice(0,100);
+           _rankpic();
+           console.log(uploader);
+           console.log(files);
+       },
+       Error: function(up, err) {
+                $("#loadingToast").hide();
+         // document.getElementById('console').innerHTML += "\nError #" + err.code + ": " + err.message;
+         if(err.code==-200){
+             _tips('服务器无响应，请重试');
+             return  false;
+         }else if(err.code==-600){
+             _tips('图片不能超过5MB');
+             return  false;
+         }else{
+             _tips(err.code);
+             return  false;
+         }
+       }
+     }
+})
+uploader.init();
+uploader2.init();
+function _rankpic(){
+   var i = 0;
+   var l = $("#fileList").find('.file-item').length;
+    var num = 8-l;
+   //  alert();
+    $("#max_up").val(num);
+  $("#fileList").find('.file-item').each(function(){
+    if(i==0){
+      $(this).find('.info').html('分享封面图');
+    }else{
+      $(this).find('.info').html("第"+(i+1)+"张");
+    }
+      i++;
+  })
+}
+</script>
+{template 'web/common/footer'}

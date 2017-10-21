@@ -1,0 +1,150 @@
+{template 'common/header'}
+	<ul class="nav nav-tabs">
+		<li class="active">
+			<a href="">拼车管理</a>
+		</li>
+	</ul>
+	<div class="panel panel-info">
+		<div class="panel-heading">筛选</div>
+		<div class="panel-body">
+			<form action="" method="post" class="form-horizontal" role="form">
+			{if !$user}
+				<div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 control-label">选择小区</label>
+                    <div class="col-sm-3 col-md-3 col-lg-3 col-xs-3">
+                        <select name="regionid" class="form-control">
+                                {loop $regions $region}
+                                <option value="{$region['id']}" {if $region['id']==$_GPC[ 'regionid']} selected{/if}>{$region['city']}{$region['dist']}{$region['title']}</option>
+                                {/loop}
+                        </select>
+                    </div>
+                </div>
+            {/if}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 control-label">类型</label>
+					<div class="col-sm-8 col-md-8 col-lg-8 col-xs-12">
+						<label for="ipt_status1" class="radio-inline">
+							<input name="type"  type="radio" value="1" {if $_GPC['type'] == 1 || empty($_GPC['type'])}checked='checked'{/if} />司机
+						</label>
+						<label for="ipt_status2" class="radio-inline">
+							<input name="type"  type="radio" value="2" {if $_GPC['type'] == 2}checked='checked'{/if} />乘客
+						</label>
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="pull-right col-xs-12 col-sm-2 col-md-2 col-lg-2">
+						<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+	<div style="padding:15px;">
+		<form class="form-horizontal form" method="post" >
+		<table class="table table-hover table-striped">
+			<thead>
+				<tr>
+					<th class="col-sm-1">删?</th>
+					<th class="col-sm-1">编号</th>
+					<th class="col-sm-2">标题</th>
+					<th class="col-sm-1">类型</th>
+					<th class="col-sm-4">出发地->目的地</th>
+					<th class="col-sm-3">出发时间->返回时间</th>
+					<th class="col-sm-2">可载人数</th>
+					<th class="col-sm-2">价格(元/人)</th>
+					<!-- <th class="col-sm-4">所属小区</th> -->
+					<th style="width:60px">状态</th>
+					<th class="col-sm-4">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $cars}
+				<tr>
+					<td>
+						<input type="checkbox" name="ids[]" value="{$item['id']}">
+					</td>
+					<td>{$cars['id']}</td>
+					<td>{$cars['title']}</td>
+					<td>{if $cars['type'] == 1} 司机{else}乘客 {/if}</td>
+					<td>{$cars['start_position']}->{$cars['end_position']}</td>
+					<td>{$cars['gotime']}->{$cars['backtime']}</td>
+					<td>{$cars['seat']}</td>
+					<td>{if $cars['sprice']}{$cars['sprice']}{else}按实分摊{/if}</td>
+					<!-- <td>{$cars['city']}{$cars['dist']}{$cars['rtitle']}</td> -->
+					<td>
+						<label data="{$cars['enable']}" class='label  label-default {if $cars['enable']==0}label-info{/if}' onclick="verify(this,{$cars['id']},'enable')">{if $cars['enable']==0}通过{else}禁止{/if}</label>
+					</td>
+					<td>
+						<a onclick="toblack({$cars['id']})" href="#" class="btn btn-primary btn-sm"><i class="fa fa-eye-slash"></i>加入黑名单</a>
+						&nbsp;
+						<a onclick="del({$cars['id']})" title="删除" class="btn btn-primary btn-sm" ><i class="fa fa-times"></i>删除
+						</a>&nbsp;
+						
+					</td>
+				</tr>
+				{/loop}
+			</tbody>
+		</table>
+		<table class="table table-hover">
+			<tr>
+				<td width="30">
+					<input type="checkbox" onclick="var ck = this.checked;$(':checkbox').each(function(){this.checked = ck});" />
+				</td>
+				<td class="text-left">
+					<input name="token" type="hidden" value="{$_W['token']}" />
+					<input type="submit" class="btn btn-primary span2" name="delete" value="批量删除" /> &nbsp;
+				</td>
+			</tr>
+		</table>
+		</form>
+	</div>
+	{$pager}
+	<script type="text/javascript">
+	
+
+		function del(id){
+			var id=id;
+		        var url = "{php echo $this->createWebUrl('car',array('op' => 'delete'),true)}";
+		            $.post(url,
+		            {
+		                id:id
+		            },
+		            function(msg){
+		                    if (msg.status == 1) {
+		                    	setTimeout(function(){
+		                        	window.location.reload();
+		                   		 },100);
+		                    };
+		                    
+		            },
+		            'json');
+		}
+	    function toblack(id){
+	    	var id = id;
+	            if(!id) return false;
+	            $.post("{php echo $this->createWebUrl('car')}", {"op":"toblack","id":id}, function(msg){
+	                var _obj = JSON.parse(msg);
+	                if(_obj.state==1){
+	                   location.reload();
+	                }
+	            });
+	    }
+		function verify(obj, id, type) {
+			$(obj).html($(obj).html() + "...");
+			$.post("{php echo $this->createWebUrl('car',array('op' => 'verify'))}", {
+				id: id,
+				type: type,
+				data: obj.getAttribute("data")
+			}, function(d) {
+				$(obj).html($(obj).html().replace("...", ""));
+				if (type == 'enable') {
+					$(obj).html(d.data == '0' ? '通过' : '禁止');
+				}
+				$(obj).attr("data", d.data);
+				if (d.result == 1) {
+					$(obj).toggleClass("label-info");
+				}
+			}, "json");
+		}
+	</script>
+{template 'common/footer'}

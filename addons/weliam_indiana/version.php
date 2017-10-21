@@ -1,0 +1,1 @@
+<?php if(!defined('IN_IA')) {exit('Access Denied');}if(!defined('WELIAM_INDIANNA_VERSION')) {define('WELIAM_INDIANNA_VERSION', '2.3.5');}

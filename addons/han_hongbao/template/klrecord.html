@@ -1,0 +1,164 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li><a href="{php echo $this->createWebUrl('kouling', array('op' => 'post'))}"><i class="fa fa-wechat"></i>口令设置</a></li>
+	<li><a href="{php echo $this->createWebUrl('kouling', array('op' => 'display'))}"><i class="fa fa-cog"></i>口令管理</a></li>
+    <li class="active"><a href="{php echo $this->createWebUrl('klhb', array('op' => 'display'))}"><i class="fa fa-cog"></i>领取记录</a></li>
+</ul>
+<style>
+.label{cursor:pointer;}
+</style>
+<div class="main">
+  <div class="panel panel-info">	
+	<div class="panel-heading">筛选</div>
+		<div class="panel-body">
+			<form action="./index.php" method="get" class="form-horizontal" role="form">
+            <input type="hidden" name="c" value="site" />
+            <input type="hidden" name="a" value="entry" />
+			<input type="hidden" value="han_hongbao" name="m">
+			<input type="hidden" value="klhb" name="do">
+			<input type="hidden" value="display" name="op">
+			<input type="hidden" name="token" value="{$_W['token']}" />
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-1 control-label">粉丝昵称</label>
+				<div class="col-sm-9">
+						<input type="text" placeholder="关键字" value="" id="" name="nickname" class="form-control">
+				</div>				
+			</div>
+			<div class="form-group">
+				<div class="pull-right col-xs-12 col-sm-2 col-lg-1">
+					<button class="btn btn-block"><span class="icon icon-search"></span> 搜索</button>				
+				</div>
+			</div>
+			</form>	
+		</div>
+	</div>
+  </div>
+  <div class="panel panel-default">
+	<div class="panel-body table-responsive">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+                    <th class='with-checkbox' style='width:30px;'>
+					<input type="checkbox" class="check_all" />
+				    </th>
+					<th style="text-align:center; width:100px;">粉丝昵称</th>
+                    <th style="text-align:center; width:130px;">粉丝编号</th>
+					<th style="text-align:center; width:60px;">领取金额</th>
+                    <th style="text-align:center; width:100px;">领取时间</th>
+                    <th style="text-align:center; width:100px;">好评图片</th>
+					<th style="text-align:center; width:60px;">状态</th>
+					<th style="text-align:center; width:130px;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $row}
+				<tr  style="text-align:center;">
+                   <td class="with-checkbox">
+				   <input type="checkbox" name="check" value="{$row['id']}"></td>
+                   <td style="text-align:center;">{$row['nick_name']}</td>
+                   <td style="text-align:center;">{$row['openid']}</td>			
+                   <td style="text-align:center;">{$row['moneyCount']}元</td>
+                   <td style="text-align:center;">{$row['time']}</td>
+                   <td style="text-align:center;"><a href="{php echo tomedia($row['imgurl'])}" target="_blank" ><img src="{php echo tomedia($row['imgurl'])}" width="50"/></td>
+				   <td>
+					{if $row['state']=='success'||$row['state']=='SUCCESS'}<span class="label label-success">成功</span>{else if $row['state']=='FAIL'}<span class="label label-info">失败</span>{else if $row['state']=='check'}<span class="label label-info">待审核</span>{/if}
+					</td>		
+					<td>
+                    {if $row['state']=='check'}<a class="btn btn-default" data-toggle="tooltip" data-placement="bottom" href="{php echo $this->createWebUrl('klhb',array('op'=>'check','id'=>$row['id']))}" title="审核通过"><span class="label label-success">发放</span></a>{/if}
+
+					<a class="btn btn-default" href="#" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('klhb', array('op' => 'delete','id' => $row['id']))}');" title="删除" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-times"></i></a>
+                    
+					</td>
+				</tr>
+				{/loop}	
+                <tr>
+				<td colspan="2">
+					<input type="button" class="btn btn-primary" name="deleteall" value="删除选择的" />
+				</td>
+                <td colspan="2">
+					<input type="button" class="btn btn-primary" name="checkall" value="审核通过选择的" />
+				</td>
+                <td colspan="4"></td>
+			    </tr>	
+			</tbody>
+		</table>
+		{$pager}
+	</div>
+  </div>
+</div>
+<script>
+	require(['bootstrap'],function($){
+		$('.btn').tooltip();
+	});
+</script>
+<script>
+	$(function(){
+
+		$(".check_all").click(function(){
+			var checked = $(this).get(0).checked;
+			$(':checkbox').each(function(){this.checked = checked});
+		});
+		$("input[name=deleteall]").click(function(){
+
+			var check = $("input:checked");
+			if(check.length<1){
+				alert('请选择要删除的记录!');
+				return false;
+			}
+			if( confirm("确认要删除选择的记录?")){
+				var id = new Array();
+				check.each(function(i){
+					id[i] = $(this).val();
+				});
+
+				$.post("{php echo $this->createWebUrl('klhb',array('op'=>'deleteall'))}", {idArr:id},function(data){
+					location.href="{php echo $this->createWebUrl('klhb', array('op' => 'display'))}";
+					/*if (data.errno ==0)
+					{
+						//location.reload();
+						location.href="{php echo $this->createWebUrl('kouling', array('op' => 'display'))}";
+					} else {
+						alert(data.error);
+					}*/
+				},'json');
+			}
+
+		});
+		
+		$("input[name=checkall]").click(function(){
+
+			var check = $("input:checked");
+			if(check.length<1){
+				alert('请选择要审核通过的记录!');
+				return false;
+			}
+			if( confirm("确认要审核通过选择的记录?")){
+				var id = new Array();
+				check.each(function(i){
+					id[i] = $(this).val();
+				});
+
+				$.post("{php echo $this->createWebUrl('klhb',array('op'=>'checkall'))}", {idArr:id},function(data){
+					location.href="{php echo $this->createWebUrl('klhb', array('op' => 'display'))}";
+					/*if (data.errno ==0)
+					{
+						//location.reload();
+						location.href="{php echo $this->createWebUrl('kouling', array('op' => 'display'))}";
+					} else {
+						alert(data.error);
+					}*/
+				},'json');
+			}
+
+		});
+		
+	});
+</script>
+<script>
+	function drop_confirm(msg, url){
+		if(confirm(msg)){
+			window.location = url;
+		}
+	}
+</script>
+{template 'common/footer'}

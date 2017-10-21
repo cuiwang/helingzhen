@@ -1,0 +1,83 @@
+{template '_header'}
+<div class="page">
+	<div class="weui_btn_primary weui-header">
+		<div class="weui-header-left"><a class="icon icon-109 f-white" onclick='javascript:history.go(-1);'></a></div>
+		<h1 class="weui-header-title">我的团队</h1>
+		<div class="weui-header-right"><a class="icon icon-22 f-white open-popup" data-target="#half"></a></div>
+	</div>
+	<div class="weui_panel weui_panel_access"><div class="weui_panel_bd" id="list"><div class="weui_msg">
+<div class='notice '><p><i class="icon icon-40 f22"></i> 暂无数据</p></div></div></div></div>
+	<div class="weui-infinite-scroll" id="aabb"><div></div></div>
+</div>
+<input type="hidden" name="usid" id="usid" value="0" />
+<div id="full" class='weui-popup-container' style="width:100%;"><div class="weui-popup-modal" id="userin" style="width:100%;"></div></div>
+
+{template '_footer'}
+<script>
+      var loading = false;
+	  var i=1;
+      $(document.body).infinite().on("infinite", function() {
+		if(loading) return;
+		loading = true;
+		upgrade()
+      });
+    function upgrade(){
+		$("#aabb").html("<div class='infinite-preloader'></div> 正在加载...");
+        $.ajax({
+            url: "{php echo url('entry',array('do' => 'myteamlis','m' => 'zmcn_cer'),true)}" ,
+            data:{ab:i},
+            type:'post',
+			error:function() {
+				 $("#aabb").html("<a class='weui_icon_warn'></a> 通信错误！");
+					loading = true;
+				},
+            success:function(ret){
+             if(ret==1)      {
+				if(i==1) {
+					$("#aabb").html("<div></div>");
+				}else{
+					$("#aabb").html("<a class='weui_icon_info_circle'></a> 已经到底了！");
+				}
+				loading = true;
+             }else{
+				if(ret.length<100) {
+					if(i==1) {
+						$("#aabb").html("<div></div>");
+					}else{
+						$("#aabb").html("<a class='weui_icon_info_circle'></a> 已经到底了！");
+					}
+					loading = true;
+				}else{
+					if(i==1) {
+						$("#list").html(ret);
+					}else{
+						$("#list").append(ret);
+					}
+					loading = false;
+					i++
+					$("#aabb").html("<div onclick='upgrade();'><i class='weui_icon_info'></i> 点击加载更多</div>");
+				}
+             }
+            }
+        });
+    }
+	upgrade();
+	
+</script>
+<script>
+	$(document).on("open", ".weui-popup-modal", function() {
+		var usid=document.getElementById("usid").value;
+		$("#userin").html("<div class='weui_btn_primary weui-header'><div class='weui-header-left'><a class='icon icon-95 f-white close-popup'></a></div><h1 class='weui-header-title'>授权操作</h1><div class='weui-header-right'><a class='icon icon-95 f-white close-popup'></a></div></div><iframe src='{php echo url('entry',array('do' => 'myteamsq','m' => 'zmcn_cer'),true)}&usid="+usid+"&wxref=mp.weixin.qq.com#wechat_redirect' id='iframepage' frameborder='0' scrolling='no' marginheight='0' marginwidth='0' onLoad='iFrameHeight()' style='width:100%;'></iframe><section><a href='javascript:;' class='weui_btn weui_btn_plain_primary close-popup' style='width:92%;'>退 出 管 理</a></section><footer>powered by {$_W['uniaccount']['name']}</footer>");
+		console.log("open popup");
+	}).on("close", ".weui-popup-modal", function() {
+		console.log("close popup");
+	});
+	function iFrameHeight() {   
+		var ifm= document.getElementById("iframepage");   
+		var subWeb = document.frames ? document.frames["iframepage"].document : ifm.contentDocument;   
+		if(ifm != null && subWeb != null) {
+			ifm.height = subWeb.body.scrollHeight;
+			ifm.width = subWeb.body.scrollWidth;
+		}   
+	}   
+</script>

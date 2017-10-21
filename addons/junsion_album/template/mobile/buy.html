@@ -1,0 +1,124 @@
+
+<style>
+#buy_style{
+	position: absolute;
+	left: 80%;
+	background-color: rgba(0, 0, 0, 0.5);
+	border-radius: 5px;
+	font-size: 16px;
+	text-align: center;
+	height: 45px;
+	line-height: 45px;
+	width: 80px;
+	top: 70%;
+	color: #fff;
+	text-shadow: none;
+}
+.reward_qrcode{
+    position: absolute;
+    background: rgba(0,0,0,.7);
+    width: 100%;
+    height: 100%;
+    top: 0;
+    text-align: center;
+    z-index: 9999;	
+    display: none;
+}
+.reward_qrcode img{
+    width: 50%;
+    margin-top: 30%;
+}
+.reward_qrcode p{
+    font-size: 25px;
+    color: white;
+    margin-top: 20px;	
+}
+.reward_qrcode span{
+    position: absolute;
+    font-size: 40px;
+    color: white;
+    right: 30px;
+    top: 10%;
+    border: 1px solid white;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    line-height: 50px;   	
+}
+</style>
+<div id="buy_style" data-aid="{$aid}" onclick="onPay({$styles[$album['is_preview']]['price']},{$styles[$album['is_preview']]['id']})">购买</div>
+<div class="reward_qrcode">
+	<span onclick="$('.reward_qrcode').hide()">×</span>
+	<img>
+	<p>长按二维码即可购买啦</p>
+</div>
+<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js" type="text/javascript"></script>
+<script>
+var orderid = 0;
+    function onPay(fee,styleid){
+    	if(!styleid){
+    		alert('模板不存在，请重试');
+    		return false;
+    	}
+    	if(fee < 1){
+    		alert('亲，不可低于1元哦');
+    		return false;
+    	}
+    	$.ajax({
+			 type:'POST',
+			 data:{fee:fee,styleid:styleid},
+			 url:'{php echo $this->createMobileUrl("GetPrepayid",array("aid"=>$_GPC["aid"]));}',
+			 success:function(data){
+				  var json = eval("("+data+")");
+				  if(json.errcode == 0){
+					  orderid = json.orderid;
+					  if(json.auth == 0){
+ 						  wx.chooseWXPay({
+ 							    timestamp: json.timeStamp, 
+ 							    nonceStr: json.nonceStr, 
+ 							    package: json.package, 
+ 							    signType: json.signType, 
+ 							    paySign: json.paySign,
+ 							    success: function (res) {
+ 								   	checkorder();
+ 							    },
+ 							    fail:function(res){
+ 							    	var str = JSON.stringify(res);
+ 							        alert(str)
+ 							    }
+ 							});
+					  }else{
+						  $('.reward_qrcode img').attr('src',json.code_url)
+						  $('#buy_style').hide();
+						  $('.reward_qrcode').show();
+						  checkorder();
+					  }
+				  }else{	 
+					alert(json.errmsg);
+				  }
+			 }
+			 
+		 });
+    }
+
+	function checkorder(){
+		if(orderid > 0){
+			$.ajax({
+				 type:'POST',
+				 data:{orderid:orderid},
+				 url:'{php echo $this->createMobileUrl("checkbuy",array("aid"=>$_GPC["aid"]));}',
+				 success:function(data){
+					  if(data == 1){
+						  alert('购买成功！');
+						  $('.reward_qrcode').hide();
+						  $('#buy_style').hide();
+					  }else{	 
+						  setTimeout(function(){
+							  checkorder();
+						  },2000);
+					  }
+				 }
+			 });
+		}
+	}
+</script>

@@ -1,0 +1,138 @@
+{template 'common/header'}
+
+<div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+		<form action="" method="get" class="form-horizontal" role="form" enctype ="multipart/form-data" onsubmit="return formcheck()">
+				<input type="hidden" name="c" value="site" />
+    			<input type="hidden" name="a" value="entry" />
+    			<input type="hidden" name="m" value="hetu_halfoff" />
+    			<input type="hidden" name="do" value="Halfoff" />
+                <input type="hidden" name="op" value="buylist" />
+                <input type="hidden" name="id" value="{$id}" />
+            <div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">领取类型</label> <!-- gettype 领取类型 支付1/激活2 -->
+				<div class="col-xs-12 col-sm-8 col-md-8 col-lg-6">
+                    <select class="form-control"  name="gettype">
+                        <option value="0" {if $_GPC['gettype'] == '0'} selected {/if}>全部</option>
+                        <option value="1" {if $_GPC['gettype'] == '1' } selected {/if}>微信支付</option>
+						<option value="2" {if $_GPC['gettype'] == '2' } selected {/if}>激活码激活</option>
+                        <option value="3" {if $_GPC['gettype'] == '3' } selected {/if}>扫码领取</option>
+                    </select>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">状态</label> <!-- status 标识 0未支付/1已领取/2已禁用 -->
+				<div class="col-xs-12 col-sm-8 col-md-8 col-lg-6">
+                    <select class="form-control"  name="status">
+                        <option value="999999"{if $_GPC['status'] == 999999} selected {/if}>全部</option>
+                        <option value="0" {if $_GPC['status'] == '0' } selected {/if}>未支付</option>
+						<option value="1" {if $_GPC['status'] == '1' } selected {/if}>已支付</option>
+						<option value="2" {if $_GPC['status'] == '2' } selected {/if}>已禁用</option>
+						<option value="3" {if $_GPC['status'] == '3' } selected {/if}>已过期</option>
+                    </select>
+				</div>
+				<div class="col-xs-12 col-sm-2 col-md-1 col-lg-1">
+					<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+				</div>
+			</div>
+			<div class="form-group">
+			</div>
+		</form>
+	</div>
+</div>
+<div class="panel panel-info">
+	<div class="panel-heading">统计(总)</div>
+	<div class="panel-body">
+		<form action="" method="post" class="form-horizontal" role="form" enctype ="multipart/form-data">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">微信支付</label> 
+				<div class="col-xs-12 col-sm-8 col-md-4 col-lg-2">{$wx_tatol}</div>
+                	<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">激活购买</label> 
+				    <div class="col-xs-12 col-sm-8 col-md-4 col-lg-2">{$jh_tatol}</div>
+                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">免费送（体验卡）</label>
+				    <div class="col-xs-12 col-sm-8 col-md-4 col-lg-2">{$sm_tatol}</div>
+			</div>
+			
+		</form>
+	</div>
+</div>
+<div class="main"> 
+<ul class="nav nav-tabs">
+	<li><a href="{php echo $this->createWebUrl('Halfoff', array('op'=>'display'));}">{$config['zhekou']}卡类型列表</a></li>
+	<li><a href="{php echo $this->createWebUrl('Halfoff', array('op'=>'post'));}">{$config['zhekou']}卡类型添加</a></li>
+	<li class="active"><a href="{php echo $this->createWebUrl('Halfoff', array('op'=>'buylist', 'id'=>$list[0]['cardtype_id']));}">购买列表</a></li>
+</ul>
+
+<div class="main">
+	<div class="panel panel-default">
+		<div class="panel-body table-responsive">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+			<tr>
+				<th class='with-checkbox' style='width:30px;'>
+					<input type="checkbox" class="check_all"/>
+				</th>
+				<th style="width:100px;">{$config['zhekou']}卡号</th>
+				<th style='width:50px;'>昵称</th>
+				<th style='width:120px;'>购买时间</th>
+				<th style='width:100px;'>有效期</th>
+   	            <th style='width:180px;'>购买途径</th>
+				<th style='width:100px;'>状态</th>
+				<th style='width:100px;'>操作</th>
+			</tr>
+			</thead>
+			<tbody>
+			{loop $list $item}
+			<tr>
+				<td class="with-checkbox">
+					<input type="checkbox" name="check" value="{$item['cardtype_id']}">
+				</td>
+				<td>{$item['card_no']}</td>
+				<td>{$item['nickname']}</td>
+				<td>{php echo date("Y-m-d H:i:s", $item['start_time'])}</td>
+				<td>{php echo date("Y-m-d", $item['start_time'])} ~ {php echo date("Y-m-d", $item['end_time'])}</td>
+                <td>{if $item['gettype'] == 1}
+                    微信支付
+                    {else if $item['gettype'] == 2}
+                    激活码激活（激活卡号：<code>{php echo $this->get_activation_card($item['activation_id'])}</code>）
+                    {else}
+                    扫码支付
+                    {/if}
+                </td>
+				<td>
+					{if $item['status'] == 1} <!-- 1已领取/2已禁用 -->
+						<span class='label label-success'>已支付</span>
+					{elseif $item['status'] == 2}
+						<span class='label label-default'>已禁用</span>
+					{elseif $item['status'] == 0}
+						<span class='label label-info'>未支付</span>
+					{/if}
+				</td>
+				<td>
+					{if $item['status'] == 2}
+					<a class="btn btn-default btn-sm" title="领取" href="#" onclick="drop_confirm('您确定要显示此纪录吗?', '{php echo $this->createWebUrl('Halfoff',array('op'=>'buyliststatus', 'cardno'=>$item['card_no'], 'uid'=>$item['user_id'], 'status'=>1, 'id'=>$item['cardtype_id'],'card_id'=>$item['card_id']))}');"  data-toggle="tooltip" data-placement="bottom"><i class="fa fa-play"></i></a>
+					{elseif $item['status'] == 1}
+					<a class="btn btn-default btn-sm" title="禁用" href="#" onclick="drop_confirm('您确定要禁用此纪录吗?', '{php echo $this->createWebUrl('Halfoff',array('op'=>'buyliststatus', 'cardno'=>$item['card_no'], 'uid'=>$item['user_id'], 'status'=>2, 'id'=>$item['cardtype_id'],'card_id'=>$item['card_id']))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-stop"></i></a>
+					{/if}
+					<a class="btn btn-default" href="#" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('Halfoff',array('op'=>'buylistdel', 'cardno'=>$item['card_no'], 'uid'=>$item['user_id'], 'id'=>$item['cardtype_id'],'card_id'=>$item['card_id']))}');" title="删除" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-times"></i></a>
+				</td>
+			</tr>
+			{/loop}
+			</tbody>
+			<input name="token" type="hidden" value="{$_W['token']}" />
+		</table>
+		</div>
+	</div>
+	{$pager}
+</div>
+
+<script>
+	function drop_confirm(msg, url){
+		if(confirm(msg)){
+			window.location = url;
+		}
+	}
+</script>
+
+{template 'common/footer'}

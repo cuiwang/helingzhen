@@ -1,0 +1,199 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li {if $act == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('dispatch');}">配送方式</a></li>
+	<li {if $act == 'post' && !$_GPC['id']}class="active"{/if}><a href="{php echo $this->createWebUrl('dispatch', array('act' => 'post'));}">添加配送方式</a></li>
+	{if $_GPC['id']}<li {if $act == 'post'}class="active"{/if}><a href="{php echo $this->createWebUrl('dispatch', array('act' => 'post', 'id' => $id));}">编辑配送方式</a></li>{/if}
+</ul>
+<style>
+	.tac {
+		text-align: center;
+	}
+	.nav.nav-tabs {
+		margin-bottom: 20px;
+	}
+	.table>thead>tr>th {
+		vertical-align: bottom;
+		border-bottom: 2px solid #ddd;
+		font-size: 14px;
+	}
+	.tac>.btn-sm{
+		position: relative;
+	}
+	.table>tbody>tr>td {
+		vertical-align: middle;
+	}
+	.we7-checkbox-option {
+		display: none;
+	}
+</style>
+
+{if $act == 'display'}
+<form action="" method="post">
+	<div class="panel panel-default">
+		<div class="table-responsive panel-body">
+			<table class="table table-hover">
+				<thead>
+				<tr>
+					<th style="width:80px" class="tac">排序</th>
+					<th>配送方式名称</th>
+					<th class="tac">费用</th>
+					<th class="tac">是否显示</th>
+					<th class="tac">是否需要地址</th>
+					<th width="90" class="tac">操作</th>
+				</tr>
+				</thead>
+				<tbody>
+				{loop $list $item}
+				<tr>
+					<td><input type="text" class="form-control text-center" name="displayorder[{$item['id']}]" value="{$item['displayorder']}"></td>
+					<td>{$item['title']}</td>
+					<td class="tac">{$item['fee']}元</td>
+					<td class="tac">
+						<input type="checkbox" value="{$item['isshow']}" data-id="{$item['id']}" data-field="isshow" {if $item['isshow'] == 1}checked{/if} name="isshow[]"/>
+					</td>
+					<td class="tac">
+						<input type="checkbox" value="{$item['need_address']}" data-id="{$item['id']}" data-field="need_address" {if $item['need_address'] == 1}checked{/if} name="need_address[]"/>
+					</td>
+					<td class="tac">
+						<a href="{php echo $this->createWebUrl('dispatch',array('act'=>'post','id'=>$item['id']));}" title="编辑" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm" style="padding: 5px 9px;"><i class="fa fa-edit"></i></a>
+						<a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('dispatch',array('act'=>'delete','id'=>$item['id']));}" title="删除" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm" style="padding: 5px 10px;">
+							<i class="fa fa-times"></i>
+						</a>
+					</td>
+				</tr>
+				{/loop}
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-2 text-left">
+			<input name="submit" type="submit" value="更新排序" class="btn btn-primary">
+			<input type="hidden" name="token" value="{$_W['token']}" />
+		</div>
+		<div class="col-xs-10 text-right">
+			<div>
+				{$pager}
+			</div>
+		</div>
+	</div>
+
+</form>
+<script type="text/javascript">
+	require(['jquery','bootstrap'],function($){
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+	});
+	require(['jquery','bootstrap.switch', 'util'], function($, u){
+		$(function(){
+			$(':checkbox').bootstrapSwitch();
+			$(':checkbox').on('switchChange.bootstrapSwitch', function(e, state){
+				var t = $(this);
+				var id = t.attr('data-id');
+				var field = t.attr('data-field');
+				var value = this.checked ? 1 : 0;
+				$.post(location.href, {_method: 'switch', id: id, field: field, value: value}, function(resp){
+					if(resp != 'success') {
+						u.message('操作失败, 请稍后重试.')
+					}
+				});
+			});
+		});
+	});
+
+</script>
+{else if $act == 'post'}
+<form class="form-horizontal form" action="" method="post" enctype="multipart/form-data">
+	<input type="hidden" name="id" value="{$item[id]}">
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			{if empty($item['id'])}
+			添加配送方式
+			{else}
+			编辑配送方式
+			{/if}
+		</div>
+		<div class="panel-body">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">排序</label>
+				<div class="col-sm-8 col-xs-12">
+					<input type="text" class="form-control" placeholder="" name="displayorder" value="{$item['displayorder']}">
+					<span class="help-block">显示顺序，越大则越靠前</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">配送方式名称</label>
+				<div class="col-sm-8 col-xs-12">
+					<input type="text" class="form-control" placeholder="" name="title" value="{$item['title']}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">费用</label>
+				<div class="col-sm-8 col-xs-12">
+					<div class="input-group">
+						<input type="text" class="form-control" placeholder="" name="fee" value="{$item['fee']}"><span class="input-group-addon">元</span>
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">是否显示</label>
+				<div class="col-sm-6 col-md-8 col-xs-12">
+					<div class="input-group">
+						<label class="radio-inline">
+							<input type="radio" name="isshow" value="1" {if $item['isshow']}checked{/if}> 是
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="isshow" value="0" {if !$item['isshow']}checked{/if}> 否
+						</label>
+					</div>
+					<span class="help-block">选择显示的配送方式会在用户下订单时可选</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">是否需要地址</label>
+				<div class="col-sm-6 col-md-8 col-xs-12">
+					<div class="input-group">
+						<label class="radio-inline">
+							<input type="radio" name="need_address" value="1" {if $item['need_address']}checked{/if}> 是
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="need_address" value="0" {if !$item['need_address']}checked{/if}> 否
+						</label>
+					</div>
+					<span class="help-block">如自提，或虚拟物品可不需要填写地址。</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">扩展内容</label>
+				<div class="col-sm-6 col-md-8 col-xs-12">
+					{php echo tpl_ueditor('extend[pickup_info]', $item['extend']['pickup_info'])}
+					<span class="help-block">如自提方式，此处可填写自提的地址，联系电话等，用户下订单时选择当前配送方式时展示</span>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="form-group">
+		<div class="col-sm-12">
+			<input name="submit" type="submit" value="提交" class="btn btn-primary col-lg-1">
+			<input type="hidden" name="token" value="{$_W['token']}" />
+		</div>
+	</div>
+</form>
+<script>
+	require(['jquery', 'util'], function($, u){
+		//检查表单提交内容
+		$('form').submit(function(){
+			var title = $('input[name=title]');
+			if (title.val() == '') {
+				u.message('请输入配送方式名称！', '', 'error');
+				return false;
+			}
+			return true;
+		});
+	});
+</script>
+{/if}
+{template 'common/footer'}

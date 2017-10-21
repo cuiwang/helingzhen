@@ -1,0 +1,144 @@
+{template 'common/header'}
+<div class="page-group">
+    <div class="page page-current" id="page-goods-list">
+		{template 'followed'}
+		{template 'common/footbar'}
+		<div class="content infinite-scroll" data-distance="10" style="background-color: white;">
+			<div class="c_classfix_goods c_classfix_goods_publish">
+		        <div id="dataList">
+		        	<!-- ↓↓↓↓↓商品加载开始↓↓↓↓↓ -->   
+			           	
+			        <!-- ↑↑↑↑↑商品加载结束↑↑↑↑↑ -->
+		        </div>
+        	</div>
+        	<div class="infinite-scroll-preloader" id="preloader">
+		      	上拉、试试
+		    </div>
+		</div>
+	</div>
+</div>
+</body>
+<!-- ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓商品嵌入模块开始↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ -->
+<script type="text/html" id="nowannounce">
+	{{# for(var i = 0, len = d.result.length; i < len; i++){ }}
+	<div class="c_classfix_goods_out">
+    	<div class="c_img_goods">
+    		<a href="{php echo $this->createMobileUrl('detail')}&periodid={{ d.result[i].id }}">
+    			<img data-original="{{ d.result[i].picarr }}" class="img-responsive lazy1" style="width: 130px; display: block;margin: auto;height: 130px;" src="{{ d.result[i].picarr }}">
+    		</a>
+    	</div>
+    	<a href="{php echo $this->createMobileUrl('detail')}&periodid={{ d.result[i].id }}">(第{{ d.result[i].periods }}期){{ d.result[i].title }}</a>
+    	{{# if(d.result[i].endtime > d.result[i].nowtime){ }}
+    	<div class="c_shopping_cart c_publish_cart" id="goodsinfo_{{ d.result[i].id }}" style="text-align:center">
+    		<p class="c_publish_time" id="time_{{ d.result[i].id }}">
+				<span id="mm_10_{{ d.result[i].id }}">-</span><span id="mm_1_{{ d.result[i].id }}">-</span><span class="c_colon">:</span><span id="ss_10_{{ d.result[i].id }}">-</span><span id="ss_1_{{ d.result[i].id }}">-</span><span class="c_colon">:</span><span id="pp_10_{{ d.result[i].id }}">-</span><span id="pp_1_{{ d.result[i].id }}">-</span>
+			</p>
+    	</div>
+    	{{# }else{ }}
+    	<div class="c_get_goods_details">
+            <p>获得者：<a href="#">{{ d.result[i].nickname }}</a></p>
+          	<p>参与人次：<b> {{ d.result[i].partakes }}人次</b></p>
+          	<p>幸运号码：<i>{{ d.result[i].code }}</i></p>
+          	<p>揭晓时间：<b class="c_font_small">{{ d.result[i].change_endtime }}</b></p>
+        </div>
+    	{{# } }}
+    </div>
+	{{# } }}
+</script>
+<!-- ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑商品嵌入模块结束↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ -->
+<!-- ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓商品倒计时js开始↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓ -->
+<script>
+	var strr ='{php echo date('Y-m-d H:i:s',time())}';
+    	strr = strr.replace(/-/g,"/");
+	var nowtime = new Date(strr);//当前时间
+    var now_time = parseInt(nowtime.getTime());
+//商品揭晓倒计时方法
+function freshtime(endtime,id,nickname){
+	var starttime = new Date(endtime.replace(/-/g,"/"));//开始时间
+    var start_time = parseInt(starttime.getTime());
+    now_time += 11;
+    var lefttime = (start_time - now_time)/1000;
+    if(lefttime > 0){
+    	m_10 = parseInt(((lefttime/60)%60)/10);
+    	m_1 = parseInt(((lefttime/60)%60)%10);
+    	
+    	s_10 = parseInt((lefttime%60)/10);
+    	s_1 = parseInt((lefttime%60)%10);
+    	
+    	p_10 = parseInt((lefttime - parseInt(lefttime))*10);
+    	p_1 = parseInt((lefttime - parseInt(lefttime))*100) - parseInt((lefttime - parseInt(lefttime))*10)*10;
+    	
+    	document.getElementById('mm_10_'+id).innerHTML = m_10;
+    	document.getElementById('mm_1_'+id).innerHTML = m_1;
+    	document.getElementById('ss_10_'+id).innerHTML = s_10;
+    	document.getElementById('ss_1_'+id).innerHTML = s_1;
+    	document.getElementById('pp_10_'+id).innerHTML = p_10;
+    	document.getElementById('pp_1_'+id).innerHTML = p_1;
+    }else{
+    	return false;
+    }
+}
+
+function actionTimer(endtime,id,nickname) {
+    var g = window.setInterval(function() {
+        freshtime(endtime,id,nickname)
+    },
+    10)
+}
+</script>
+<!-- ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑商品倒计时js结束↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑ -->
+
+<script>
+	$(function() {
+		'use strict';
+		//商品列表页
+		$(document).on("pageInit", "#page-goods-list", function(e, id, page) {			
+			/******加载首页最新揭晓******/
+			var page_num = 8;
+			var page_start = 0;
+			var flag_announce = 0;		//是否加载完成0未加载完成，1加载完成
+			
+			function addAnnounceItems(announce_num,announce_page){
+				document.getElementById('preloader').innerHTML = '<div class="preloader"></div>';	//开启加载动态
+				var announceAjaxUrl = "{php echo $this->createMobileUrl('index')}"+"&op="+"announce"+"&announce_num="+ announce_num +"&announce_page=" + announce_page;
+				$.ajax({
+					type: "POST",
+					url: announceAjaxUrl,
+					dataType: 'json',
+					beforeSend: function(XMLHttpRequest) {},
+					success: function(data) {
+						if (data.result.length > 0) {
+							var gettpl = document.getElementById('nowannounce').innerHTML;
+							laytpl(gettpl).render(data, function(html){
+							    $("#dataList").append(html);
+							    document.getElementById('preloader').innerHTML = '上拉加载更多';		//关闭加载动态
+							});
+							for(var i = 0, len = data.result.length; i < len; i++){
+								//判定是否需要加载时间
+								if(data.result[i].endtime > data.result[i].nowtime){
+									actionTimer(data.result[i].change_endtime,data.result[i].id,data.result[i].nickname);
+								}
+							}
+						} else {
+							document.getElementById('preloader').innerHTML = '商品已加载完成';
+							flag_announce = 1;
+						}
+					},
+					error: function() {
+						$('.error').show();
+					}
+				});
+			}
+			addAnnounceItems(page_num,page_start);	//第一次进入加载
+			/**********刷新加载商品**********/
+			$(page).on('infinite', function() {
+				page_start++;
+				if(flag_announce == 0){
+					addAnnounceItems(page_num,page_start);
+				}
+			});
+		});
+		$.init();
+	});
+</script>
+</html>

@@ -1,0 +1,160 @@
+{template 'header'}
+<script src="{$_W['siteroot']}addons/siyuan_cms/ui/js/ichart.1.2.min.js"></script> 
+<script src="{$_W['siteroot']}addons/siyuan_cms/ui/js/fdjsq.js"></script>
+<div class="siyuan_top weui-row">
+<div class="weui-col-15"><a href="javascript:history.go(-1)"><i class="fa fa-angle-left f-32"></i></a></div>
+<div class="weui-col-70">{$set['name']}</div>
+<div class="weui-col-15"><a class="cd-bouncy-nav-trigger" href="#0"><img src="{$_W['siteroot']}addons/siyuan_cms/ui/img/daohang.png"></a></div>
+</div>
+<div class="cd-bouncy-nav-modal">
+<nav>
+<ul class="cd-bouncy-nav">
+{loop $menu $caidan}
+<li><a href="{$caidan['url']}"><img src="{$_W['attachurl']}{$caidan['thumb']}"><p>{$caidan['title']}</p></a></li>
+{/loop}
+</ul>
+</nav>
+<a href="#0" class="cd-close fa fa-power-off">返回</a>
+</div>
+<div style="height:40px;"></div>
+<div class="swiper-container">
+<div class="swiper-wrapper">
+{loop $flash $flash}
+<img onclick="window.location.href='{$flash['url']}'" src="{php echo tomedia($flash['attachment'])}" style="width:100%;" class="swiper-slide">
+{/loop}
+</div>
+</div>
+   <div class="main" id="zyinfo"> 
+    <section class="listtab"> 
+     <a href="{php echo $this->createMobileUrl('jisuan', array('act' => 'index'))}"> 商业贷</a> 
+     <a href="{php echo $this->createMobileUrl('jisuan', array('act' => 'gjj'))}"> 公积金贷</a> 
+     <a href="{php echo $this->createMobileUrl('jisuan', array('act' => 'zhd'))}"> 组合贷</a> 
+     <a href="{php echo $this->createMobileUrl('jisuan', array('act' => 'sfjs'))}" class="active">税费计算</a> 
+    </section> 
+    <div class="taxation01"> 
+     <div class="mTab"> 
+      <div class="flexbox">
+       <a href="{php echo $this->createMobileUrl('jisuan', array('act' => 'sfjs'))}" class="active">新房</a>
+       <a href="{php echo $this->createMobileUrl('jisuan', array('act' => 'essfjs'))}">二手房</a>
+      </div> 
+     </div> 
+    </div> 
+    <div class="calculator counter_padtop"> 
+     <dl> 
+      <dt>
+       房屋面积：
+      </dt> 
+      <dd> 
+       <div class="flexbox"> 
+        <input type="tel" class="ipt-texta" name="" id="txtmj" value="100" /> 
+        <i>㎡</i> 
+       </div> 
+      </dd> 
+     </dl> 
+     <dl> 
+      <dt>
+       面积单价：
+      </dt> 
+      <dd> 
+       <div class="flexbox"> 
+        <input type="tel" class="ipt-texta" name="" id="txtdj" value="10000" /> 
+        <i>元</i> 
+       </div> 
+      </dd> 
+     </dl> 
+     <dl class="calculator"> 
+      <dt>
+       普通住宅：
+      </dt> 
+      <dd class="select-rt"> 
+       <select> <option value="0" selected="selected"> 普通住宅</option> <option value="1"> 非普通住宅</option> </select> 
+      </dd> 
+     </dl> 
+     <dl class="calculator"> 
+      <dt>
+       是否唯一：
+      </dt> 
+      <dd> 
+       <label>
+        <section class="count_margin">
+         <input type="radio" class="ipt-rd " name="unique" id="isUnique" value="1" checked="checked" />是
+        </section><label><input type="radio" class="ipt-rd" name="unique" id="noUnique" value="0" />否</label></label>
+      </dd> 
+     </dl> 
+     <div class="methodbox">
+      <a class="btn-cal">开始计算</a>
+     </div> 
+    </div> 
+   </div> 
+   <section class="jsresults" style="display:none"> 
+   </section> 
+  </div> 
+  <a class="counter_back_top" onclick="window.scrollTo(0,0); this.style.display=&quot;none&quot;;" style="right:8px; bottom:65px; display:none">╱╲</a>   
+  <script>
+    $(".btn-cal").click(function () {
+        sfMethod.mj = $("#txtmj").val();
+        sfMethod.dj = $("#txtdj").val();
+    $(".jsresults").show();
+    var sfwy = $('.count_margin input[name="unique"]:checked ').val();  //是否唯一住房
+    var sl;
+    if (sfwy == "1") {
+        if ($("#txtmj").val() <= 90) {
+            sl = 1 / 100;
+        } else if ($("#txtmj").val() > 90 && $("#txtmj").val() <= 144) {
+            sl = 1.5 / 100;
+        } else {
+            sl = 3 / 100;
+        }
+    }
+    else {
+        sl = 3 / 100;
+    }
+    var h = "";
+    h += "<div><div class=\"jsresults10 mt20 f14\"><h3>税金明细</h3><a href=\"javascript:;\" id=\"detailLink\"><div class=\"rquan\"><div class=\"info lh\">参考税金</div><div id=\"pieCon1\"></div></div></a></div>";
+    h += "<div class=\"jsresults03\">";
+    h += "<dl><dt class=\"f14\">房款总价：</dt><dd id=\"housetotal\">" + sfMethod.mj * sfMethod.dj / 10000 + "万元</dd></dl>";
+    h += "<dl><dt class=\"bj01 f14\">公证费：</dt><dd id=\"gzf\">" + sfMethod.gzf() + "元</dd></dl>";
+    h += "<dl><dt class=\"bj02 f14\">委托产权费：</dt><dd id=\"wt_sxf\">" + sfMethod.gzf() + "元</dd></dl>";
+    h += "<dl><dt class=\"bj05 f14\">买卖手续费：</dt><dd id=\"house_sxf\">500元</dd></dl>";
+    h += "<dl><dt class=\"bj04 f14\">契税：</dt><dd>" + sfMethod.qs(sl) + "元</dd></dl>";
+    h += "<dl><dt class=\"bj03 f14\">印花税：</dt><dd>" + sfMethod.yhs() + "元</dd></dl>";
+    h += "<dl><dt class=\"f14\">税金总额：</dt><dd>" + (sfMethod.gzf() - (-sfMethod.gzf()) - (-500) - (-sfMethod.qs(sl)) - (-sfMethod.yhs())) + "元</dd></dl>";
+    h += "</div>";
+    h += "<p class=\"f14 f999 center mt10\" id=\"cankao\" style=\"display: block;\">以上结果仅供参考</p></div>";
+    $(".jsresults").html(h);
+    var data = [
+				        	{ name: '公证费', value: sfMethod.gzf(), color: '#6dbdff' },
+				        	{ name: '委托产权费', value: sfMethod.gzf(), color: '#ffd87b' },
+				        	{ name: '买卖手续费', value: 500, color: '#ffa585' },
+                            { name: '契税', value: sfMethod.qs(sl), color: '#bae786' },
+                            { name: '印花税', value: sfMethod.yhs(), color: '#ff6ea0' }
+
+			        	];
+
+    tableFun("pieCon1", data);
+    jsScorll();
+});
+
+$("#txtmj").numeral();
+$("#txtdj").numeral();
+</script>
+{php echo register_jssdk(false);}
+<script type="text/javascript">
+wx.ready(function () {
+sharedata = {
+title: "{$set['name']}-{$set['ad']}",
+desc: "{$set['name']}-{$set['ad']}",
+link: window.location.href,
+imgUrl: "{$_W['attachurl']}{$set['logo']}",
+success: function (res) {},
+cancel: function(){
+}
+};
+wx.onMenuShareAppMessage(sharedata);
+wx.onMenuShareTimeline(sharedata);
+wx.onMenuShareQQ(sharedata);
+wx.onMenuShareWeibo(sharedata);
+wx.onMenuShareQZone(sharedata);
+});
+</script>
+{template 'footer'}

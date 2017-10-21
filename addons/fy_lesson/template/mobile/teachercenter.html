@@ -1,0 +1,96 @@
+<!-- 
+ * 讲师中心
+ * ============================================================================
+-->
+{php include $this->template('_header');}
+<style type="text/css">
+    body {margin:0px; background:#eee; font-family:'微软雅黑'; }
+    .topbar {height:40px; padding:10px; background:#fff;}
+    .topbar .user_face {height:40px; width:40px; background:#ccc; float:left;}
+    .topbar .user_face img {height:100%; width:100%;}
+    .topbar .user_info {height:40px; width:auto; float:left; margin-left:12px;}
+    .topbar .user_info .user_name {height:24px; width:100%; font-size:16px; line-height:24px; color:#666;}
+    .topbar .user_info .user_name span { font-size:14px; color:#11ABE6}
+    .topbar .user_info .user_date {height:14px; width:100%; font-size:14px; line-height:14px; color:#999;}
+    .teacher-top .top_1 {height:114px; width:100%;}
+    .teacher-top .top_1 .text {height:114px; width:auto; float:left; color:#fff; line-height:50px; font-size:14px; color:#fff;}
+    .teacher-top .top_1 .ico {font-size:14px; color:#fff; padding:2px 6px; float: right; margin-top: 8px; border:1px solid #fff; border-radius: 5px;}
+    .teacher-top .top_2 {height:66px; width:100%; font-size:40px; line-height:66px; color:#fff;}
+    .teacher-top .top_2 span {height:32px; color:#fff; width:auto; border:1px solid #fff; font-size:14px; line-height:32px; margin-top:17px; padding:0px 15px;  float:right; border-radius:5px;}
+    .teacher-top .top_2 .disabled { color:#999;border:1px solid #999;}
+    .menu {overflow:hidden; background:#fff;}
+    .menu .nav { width:33%; float:left;padding-top:10px;padding-bottom:10px;}
+
+    .menu .nav .title {height:24px; width:100%; text-align:center; font-size:14px; color:#666;}
+    .menu .nav .con {height:20px; width:100%; text-align:center; font-size:12px; color:#999;}
+    .menu .nav .con span {color:#f90;}
+
+    .menu .nav .ico{width:48px;height:48px;display:block;background-repeat:no-repeat;margin:0 auto;}
+    .menu .nav .ico-team{background-image:url("{MODULE_URL}/template/mobile/images/ico-mylesson.png");}
+    .menu .nav .ico-commission{background-image:url("{MODULE_URL}/template/mobile/images/ico-lesson.png");}
+    .menu .nav .ico-qrcode{background-image:url("{MODULE_URL}/template/mobile/images/ico-lessoncash.png");}
+    .menu .nav .ico-account{background-image:url("{MODULE_URL}/template/mobile/images/ico-account.png");}
+
+    .menu .nav1,.menu .nav2,.menu .nav3{border-bottom:1px solid #f1f1f1; border-right:1px solid #f1f1f1;text-align:center;}
+</style>
+<div id="container">
+    <div class="topbar">
+        <div class="user_face" style="background-image:url({$teacher['avatar']});background-size:contain;"></div>
+        <div class="user_info">
+            <div class="user_name">{$teacher['nickname']} <span>[uid:{$teacher['uid']}] </span></div>
+            <div class="user_date">加入时间：{php echo date('Y-m-d H:i', $teacher['addtime']);}</div>
+        </div>
+    </div> 
+    <div class="teacher-top">
+        <div class="top_1">
+            <div class="text">累计课程收入：{php echo sprintf("%.2f",$member['pay_lesson']+$member['nopay_lesson']);} 元<br>可提现课程收入（元）</div>
+            <a href="{php echo $this->createMobileUrl('applyteacher');}">
+                <div class="ico">
+                    {if empty($teacher)}未申请{elseif $teacher['status']==-1}审核未通过{elseif $teacher['status']==1}申请通过{elseif $teacher['status']==2}审核中{/if}
+                </div>
+            </a>
+        </div>
+        <div class="top_2">{$member['nopay_lesson']}<a href="{if $member['nopay_lesson']<$setting['cash_lower']}javascript:;{else}{php echo $this->createMobileUrl('lessoncash', array('op'=>'display'));}{/if}" id="cash_btn"><span class="{if $member['nopay_lesson']<$setting['cash_lower']}disabled{/if}">提现</span></a></div>
+    </div> 
+    <div class="menu"> 
+        <a href="{php echo $this->createMobileUrl('teacher', array('teacherid'=>$teacher['id']));}"><div class="nav nav1"><i class="ico ico-team"></i><div class="title">我的课程</div><div class="con"><span>{$mylessoncount}</span>节课程</div></div></a>
+        <a href="{php echo $this->createMobileUrl('income');}"><div class="nav nav2"><i class="ico ico-commission"></i><div class="title">课程收入</div><div class="con">课程收入明细</div></div></a>
+        <a href="{php echo $this->createMobileUrl('lessoncashlog');}"><div class="nav nav3"><i class="ico ico-qrcode"></i><div class="title">提现记录</div><div class="con">收入提现记录</div></div></a>        
+    </div>
+    <div class="menu"> 
+        <a href="{php echo $this->createMobileUrl('teachercenter', array('op'=>'account'));}"><div class="nav nav1"><i class="ico ico-account"></i><div class="title">账号管理</div><div class="con">登录讲师平台凭证</div></div></a>
+    </div>
+</div>
+{if $member['nopay_lesson']<$setting['cash_lower']}
+<script type="text/javascript">
+    var cash_lower = {php echo $setting['cash_lower']; };
+    $("#cash_btn").click(function () {
+        alert("当前提现最低额度为" + cash_lower + "元");
+    });
+</script>
+{/if}
+
+{php echo register_jssdk(false);}
+<script type="text/javascript">
+    wx.ready(function () {
+        var shareData = {
+            title: "{$sharelink['title']} - {$setting['sitename']} - {$_W['account']['name']}",
+            desc: "{$sharelink['desc']}",
+            link: "{php echo $shareurl;}",
+            imgUrl: "{php echo $_W['attachurl'];}{$sharelink['images']}",
+            trigger: function (res) {},
+            complete: function (res) {},
+            success: function (res) {},
+            cancel: function (res) {},
+            fail: function (res) {}
+        };
+        wx.onMenuShareTimeline(shareData);
+        wx.onMenuShareAppMessage(shareData);
+        wx.onMenuShareQQ(shareData);
+        wx.onMenuShareWeibo(shareData);
+        wx.onMenuShareQZone(shareData);
+
+    });
+</script>
+
+{php include $this->template('_footer');}

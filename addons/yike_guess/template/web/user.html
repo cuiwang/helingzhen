@@ -1,0 +1,217 @@
+{template 'common/header'}
+
+<ul class="nav nav-tabs">
+    <li {if $do == 'user'} class="active" {/if}>
+        <a href="{php echo $this->createWebUrl('user',array('op'=>'display'));}">会员管理</a>
+    </li>
+</ul>
+{if $operation=='display'}
+<!-- 筛选 -->
+<div class="panel panel-info">
+    <div class="panel-heading">筛选</div>
+    <div class="panel-body">
+        <form action="./index.php" method=" get" class="form-horizontal" role="form" id="form1">
+            <input type="hidden" name="c" value="site" />
+            <input type="hidden" name="a" value="entry" />
+            <input type="hidden" name="m" value="yike_guess" />
+            <input type="hidden" name="do" value="user" />
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">ID</label>
+                <div class="col-sm-8 col-lg-9 col-xs-12">
+                    <input type="text" class="form-control"  name="mid" value="{$_GPC['uid']}" placeholder="可搜索用户ID"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">会员昵称</label>
+                <div class="col-sm-8 col-lg-9 col-xs-12">
+                    <input type="text" class="form-control"  name="realname" value="{$_GPC['realname']}" placeholder="可搜索昵称"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label"></label>
+                <div class="col-sm-7 col-lg-9 col-xs-12">
+                    <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+                    <input type="hidden" name="token" value="{$_W['token']}" />
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<div class="clearfix">
+    <div class="panel panel-default">
+        <div class="panel-heading">总数：{$total}</div>
+        <div class="panel-body">
+            <table class="table table-hover" style="overflow:visible;">
+                <thead class="navbar-inner">
+                <tr>
+                    <th style='width:80px;'>会员ID</th>
+                    <th style='width:120px;'>昵称</th>
+                    <th style='width:120px;'>{$bet_name}余额</th>
+                    <th style='width:120px;'>竞猜订单总数</th>
+                    <th style='width:120px;'>是否在黑名单</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                {loop $all $v}
+                    <tr>
+                        <td>{$v['uid']}</td>
+                        <td>{$v['nickname']}</td>
+                        <td>{$v['credit1']}</td>
+                        <td>{$v['num']}</td>
+                        {if $v['blacklist']==1}
+                            <td>√</td>
+                        {else}
+                            <td>×</td>
+                        {/if}
+                        <td style="overflow:visible;">
+                        <!-- 操作 -->
+                            <div class="btn-group btn-group-sm" >
+                                <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" href="javascript:;">操作 <span class="caret"></span></a>
+                                <ul class="dropdown-menu dropdown-menu-left" role="menu" style='z-index: 9999'>
+                                    <li>
+                                        <a  href="{php echo $this->createWebUrl('user',array('op'=>'delete','id' => $v['uid']));}" title='删除会员' onclick="return confirm('确定要删除该会员吗？');">删除会员</a>
+                                    </li>
+                                    <li>
+                                        <a href="{php echo $this->createWebUrl('user',array('op'=>'detail','id' => $v['uid']));}" title="会员详情">会员详情</a>
+                                    </li>
+                                    {if $v['blacklist']==0}
+                                        <li>
+                                            <a  href="{php echo $this->createWebUrl('user',array('op'=>'blacklist','id' => $v['uid']));}" title='设置黑名单' onclick="return confirm('确定要把该会员设置成黑名单吗？');">设置黑名单
+                                            </a>
+                                        </li>
+                                    {else}
+                                        <li>
+                                           <a  href="{php echo $this->createWebUrl('user',array('op'=>'blacklist','id' => $v['uid']));}" title='取消黑名单' onclick="return confirm('确定要把该会员设置成黑名单吗？');">取消黑名单
+                                            </a>
+                                        </li>
+                                    {/if}
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                {/loop}
+                </tbody>
+            </table>
+        {$pager}
+        </div>
+    </div>
+</div>
+{else if $operation=='detail'}
+<form action="" method='post' class='form-horizontal'>
+<input type="hidden" name="op" value="detail">
+<input type="hidden" name="c" value="site" />
+<input type="hidden" name="a" value="entry" />
+<input type="hidden" name="m" value="yike_guess" />
+<input type="hidden" name="do" value="user" />
+<div class='panel panel-default'>
+    <div class='panel-heading'>
+        会员详细信息
+    </div>
+    <div class="form-group">
+        <label class="col-xs-12 col-sm-3 col-md-2 control-label">会员昵称</label>
+        <div class="col-sm-9 col-xs-12">
+            <div class='form-control-static'>
+                {$all['nickname']}
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-xs-12 col-sm-3 col-md-2 control-label">手机号码</label>
+        <div class="col-sm-9 col-xs-12">
+            <div class='form-control-static'>
+                {if empty($all['groupname'])}
+                    暂无
+                {else}
+                    {$all['mobile']}
+                {/if}
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-xs-12 col-sm-3 col-md-2 control-label">竞猜订单总数</label>
+        <div class="col-sm-9 col-xs-12">
+            <div class='form-control-static'>
+                {if empty($all['num'])}
+                    暂无
+                {else}
+                    {$all['num']}
+                {/if}
+            </div>
+        </div>
+    </div>
+    
+    <div class="form-group">
+        <label class="col-xs-12 col-sm-3 col-md-2 control-label">注册时间</label>
+        <div class="col-sm-9 col-xs-12">
+            <div class='form-control-static'>{php echo date('Y-m-d H:i:s', $user['createtime']);}</div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-xs-12 col-sm-3 col-md-2 control-label">{$bet_name}余额</label>
+        <div class="col-sm-3">
+            <div class='input-group'>
+                <div class=' input-group-addon'  style='width:200px;text-align: left;'>{$all['credit1']}</div>
+                <div class='input-group-btn'>
+                    <a class='btn btn-primary' href="{php echo $this->createWebUrl('user', array('op'=>'credit1','id'=>$all['uid']))}">充值</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class='panel-body'>
+        <div class="form-group">
+            <div class="col-sm-9 col-xs-12">
+                <a href="{php echo $this->createWebUrl('user',array('op'=>'display'));}" title="返回">
+                    返回
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+</form>
+{else if $operation == 'credit1'}
+    <form action="" method='post' class='form-horizontal'>
+    <input type="hidden" name="op" value="credit1">
+    <input type="hidden" name="c" value="site" />
+    <input type="hidden" name="a" value="entry" />
+    <input type="hidden" name="m" value="yike_guess" />
+    <input type="hidden" name="do" value="user" />
+    <input type="hidden" name="uid" value="{$all['uid']}"/>
+    <div class='panel panel-default'>
+    <div class='panel-heading'>
+        {$bet_name}充值
+    </div>
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">会员昵称</label>
+            <div class="col-sm-9 col-xs-12">
+                <div class='form-control-static'>
+                    {$all['nickname']}
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">充值{$bet_name}</label>
+            <div class="col-sm-9 col-xs-12">
+                <input type="text" name="credit" class="form-control" value="" style='width:200px'/>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+            <div class="col-sm-9 col-xs-12">
+                <input type="submit" name = "submit" value="充值" class="btn btn-primary col-lg-1" onclick="return confirm('是否充值');"/>
+                <input type="hidden" name="token" value="{$_W['token']}"/>
+            </div>
+        </div>
+        <div class='panel-body'>
+        <div class="form-group">
+            <div class="col-sm-9 col-xs-12">
+                <a href="{php echo $this->createWebUrl('user',array('op'=>'detail','id' => $all['uid']));}" title="返回">
+                    返回
+                </a>
+            </div>
+        </div>
+    </div>
+    </form>
+{/if}
+{template 'common/footer'}

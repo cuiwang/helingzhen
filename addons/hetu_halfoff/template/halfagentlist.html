@@ -1,0 +1,229 @@
+{template 'common/header'}
+
+<div class="main">
+
+<div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+		<form action="" method="post" class="form-horizontal" role="form" enctype ="multipart/form-data" onsubmit="return formcheck();">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">代理商名称：</label>
+    			<div class="col-xs-12 col-sm-8 col-md-8 col-lg-6">
+    				<input type="text" name="name" id="name"  class="form-control" value="{$_GPC['name']}">
+					<span class="help-block">代理商名称支持模糊搜索</span>
+    			</div>
+    		</div>
+            <div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-1 control-label">代理商代理等级：</label>
+				<div class="col-sm-5 col-xs-12">
+					<label class="radio-inline">
+						<input type="radio" name="limit_condition" class="limit_condition" onclick="limit(1);" value="0" {if empty($limit_condition)} checked {/if}/>不限
+					</label>
+					<label class="radio-inline">
+						<input type="radio" name="limit_condition" class="limit_condition" onclick="limit(1);" value="1" {if $limit_condition == 1} checked {/if}/>省级
+					</label>
+					<label class="radio-inline">
+						<input type="radio" name="limit_condition" class="limit_condition" onclick="limit(2);" value="2" {if  $limit_condition == 2} checked {/if}/>市级
+					</label>
+					<label class="radio-inline">
+						<input type="radio" name="limit_condition" class="limit_condition" onclick="limit(3);" value="3" {if $limit_condition == 3} checked {/if}/>区/县
+					</label>
+					<div class="help-block">
+						<code>注：请不要省市县/区一起选</code>
+					</div>
+				</div>
+				<div class="form-group" id="form_group_birth">
+					<div class="col-xs-12 col-sm-2 col-md-1 col-lg-1">
+						<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+					</div>				
+				</div>	
+				<script>
+					$("#cityadd").click(function(){
+						var limit_condition = $(".limit_condition:checked").val();
+						var id = '';
+						if(limit_condition == 1){
+							id = $(".tpl-province").val();
+						}else if(limit_condition == 2){
+							id = $(".tpl-city").val();
+						}else if(limit_condition == 3){
+							id = $(".tpl-district").val();
+						}
+						
+					});
+					
+					$(".limit_condition").change(function(){
+				
+						$("#hidden_city_list").val(''); //将hidden信息清空
+						var limit_condition = $(".limit_condition:checked").val();
+						if(limit_condition == 1){ //省
+							$("#hetu_city").hide();
+							$("#hetu_district").hide();
+						}else if(limit_condition == 2){ //市
+							$("#hetu_city").show();
+							$("#hetu_district").hide();
+						}else if(limit_condition == 3){ //县区
+							$("#hetu_city").show();
+							$("#hetu_district").show();
+						}								
+					});
+					$(".limit_condition").change();
+				</script>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">代理商WEB登录入口【点击复制】</label>
+				<div class="col-xs-12 col-sm-8 col-md-8 col-lg-6">
+					<a id="needCopy" href="javascript:">{$web_url}</a>
+				</div>
+    		</div>
+		</form>
+	</div>
+</div>
+
+
+<ul class="nav nav-tabs">
+	<li class="active"><a href="{php echo $this->createWebUrl('halfoffagent', array('op'=>'list'));}">代理商列表</a></li>
+	<li><a href="{php echo $this->createWebUrl('halfoffagent', array('op'=>'post'));}">代理商添加</a></li>
+</ul>
+
+<div class="main">
+    
+	<div class="panel panel-default">
+		<div class="panel-body table-responsive">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+			<tr>
+				<th class='with-checkbox' style='width:50px;'>
+					<input type="checkbox" class="check_all"/>
+				</th>
+				<th style="width:150px;">代理商名称</th>
+				<th style="width:150px;">联系方式</th>
+				<th style='width:200px;'>详细地址</th>
+				<th style='width:100px;'>代理城市</th>
+				<th style='width:80px;'>状态</th>
+				<th style='width:150px;'>添加时间</th>
+				<th style='width:70px;'>购卡次数</th>
+				<th style='width:70px;'>核销次数</th>
+				<th style='width:100px;'>代理商页面链接</th>
+				<th style="width:120px;">操作</th>
+			</tr>
+			</thead>
+			<tbody>
+			{loop $list $item}
+			<tr>
+				<td class="with-checkbox">
+					<input type="checkbox" name="check" value="{$item['id']}">
+				</td>
+				<td id="agentname_td_{$item['id']}">{$item['name']}</td>
+				<td>{$item['phone']}</td>
+				<td>{$item['address']}</td>
+				<td>
+                    {php echo $this->get_city($item['citylist']);}
+                </td>
+				<td>
+					{if $item['status'] == 0} <!-- 0隐藏/1显示 -->
+						<span class='label label-default'>隐藏</span>
+					{else}
+						<span class='label label-success'>显示</span>
+					{/if}
+				</td>
+				<td>{php echo date("Y-m-d H:i:s", $item['time'])}</td>
+				<!-- 2016年7月9日09:37:59 add by CuiZhibo 代理商购卡次数 START-->
+				{if $item['getcardnum'] == 0}
+				<td>
+					0 次
+				</td>
+				{else}
+				<td>
+					<a href="{php echo $this->createWebUrl('halfuser', array('op'=>'getcardlist', 'name'=> $item['name']))}">
+						{$item['getcardnum']} 次
+					</a>
+				</td>
+				{/if}
+				<!-- 2016年7月9日09:37:59 add by CuiZhibo 代理商购卡次数 END-->
+				<!-- 2016年7月9日09:37:59 add by CuiZhibo 代理商核销次数 START-->
+				{if $item['confirmnum'] == 0}
+				<td>
+					0 次
+				</td>
+				{else}
+				<td>
+					<a href="{php echo $this->createWebUrl('halfoffagent', array('op'=>'confirmlist', 'id'=> $item['id']))}">
+						{$item['confirmnum']} 次
+					</a>
+				</td>
+				{/if}
+				<td>
+					<button type="button" class="btn btn-info" onclick="comment({$item['id']})">页面链接</button>
+				</td>
+				<!-- 2016年7月9日09:37:59 add by CuiZhibo 代理商核销次数 END-->
+				<td> 
+                    <a class="btn  btn-default btn-sm" rel="tooltip" href="{php echo $this->createWebUrl('halfoffagent', array('op'=>'post','id'=> $item['id']))}" title="编辑" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-edit"></i></a>
+					{if $item['status'] == 0}
+					<a class="btn btn-default btn-sm" title="显示" href="#" onclick="drop_confirm('您确定要显示此分类吗?', '{php echo $this->createWebUrl('halfoffagent', array('op'=>'status','status'=>1, 'id'=>$item['id']))}');"  data-toggle="tooltip" data-placement="bottom"><i class="fa fa-play"></i></a>
+					{elseif $item['status'] == 1}
+					<a class="btn btn-default btn-sm" title="隐藏" href="#" onclick="drop_confirm('您确定要隐藏此分类吗?', '{php echo $this->createWebUrl('halfoffagent', array('op'=>'status','status'=>0, 'id'=>$item['id']))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-stop"></i></a>
+					{/if}
+					<a class="btn btn-default" href="#" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('halfoffagent', array('op'=>'del', 'id'=>$item['id']))}');" title="删除" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-times"></i></a> 
+				</td>
+			</tr>
+			{/loop}
+			</tbody>
+			<input name="token" type="hidden" value="{$_W['token']}" />
+		</table>
+		</div>
+	</div>
+	{$pager}
+</div>
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+	<div class="modal-dialog" style="width:42%">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+					&times;
+				</button>
+				<h4 class="modal-title" id="myModalLabel">
+					
+				</h4>
+			</div>
+			<div class="modal-body link_info_tbody">
+				
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal -->
+</div>
+<script>
+function drop_confirm(msg, url){
+	if(confirm(msg)){
+		window.location = url;
+	}
+}
+function comment(id){
+	var agentname = $("#agentname_td_" + id).html();
+	var data = {
+		'id' : id,
+	}
+	$.ajax({
+		type: 'post',
+		url: "{php echo $this->createWebUrl('halfoffagent', array('op'=>'link_ajax'))}",
+		data: data,
+		dataType: 'json',
+		success: function(res){
+			$("#myModalLabel").html('代理商：' + agentname + ' 各页面链接');
+			$('#myModal').modal('toggle');
+			$('.link_info_tbody').html(res);
+		}
+	});
+}
+</script>
+<script type="text/javascript">
+require(['jquery', 'util'], function($, util){
+	$(function(){
+		util.clip($('#needCopy')[0], $('#needCopy').text());
+	});
+});
+</script>
+
+{template 'common/footer'}

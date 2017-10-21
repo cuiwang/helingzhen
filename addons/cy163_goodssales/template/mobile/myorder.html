@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>订单管理</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black">
+	<meta name="format-detection" content="telephone=no" />
+	<link rel="stylesheet" href="../addons/cy163_goodssales/static/mui/css/mui.min.css">
+	<style>
+	.orderlist{background:#fff;border-bottom:1px solid #e7e7e7;margin-bottom:10px;}
+	</style>
+</head>
+<body>
+
+<header class="mui-bar mui-bar-nav">
+	<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+	<h1 class="mui-title" id="info">订单管理</h1>
+</header>
+<div class="mui-content">
+	<div class="mui-backdrop" style="display:none;"></div>
+	<div id="alertbox" style="width:80%;position:fixed;z-index:999;left:10%;margin-top:15%;display:none;background:#fff;text-align:center;">
+		<div style="text-align:right;padding:5px 10px 0 10px;"><span class="mui-icon mui-icon-close-filled" onclick="$('.mui-backdrop').hide();$('#alertbox').hide();"></span></div>
+		<div><img src="" id="qrcode" style="max-width:100%;" /></div>
+	</div>
+	<div class="mui-segmented-control mui-segmented-control-inverted mui-segmented-control-primary">
+		<a class="mui-control-item mui-active" href="#item1">全部</a>
+		<a class="mui-control-item" href="#item2">待付款</a>
+		<a class="mui-control-item" href="#item3">待发货/核销</a>
+		<a class="mui-control-item" href="#item4">待收货</a>
+		<a class="mui-control-item" href="#item5">已完成</a>
+	</div>
+	<div id="item1" class="mui-control-content mui-active">
+		{if $myorderlist1}
+			{loop $myorderlist1 $row}
+			<div class="orderlist">
+				<div class="mui-row" style="padding:8px;">
+					<div class="mui-col-sm-6 mui-col-xs-6">
+						<span class="mui-badge mui-badge-success">订单号：{$row['ordersn']}</span>
+					</div>
+					<div class="mui-col-sm-6 mui-col-xs-6" style="text-align:right;">
+						{if $row['status'] == 0}
+						<span class="mui-badge mui-badge-warning">待付款</span>
+						{/if}
+						{if $row['status'] == 1}
+						<span class="mui-badge mui-badge-warning">待发货/核销</span>
+						{/if}
+						{if $row['status'] == 2}
+						<span class="mui-badge mui-badge-warning">待收货</span>
+						{/if}
+						{if $row['status'] == 4}
+						<span class="mui-badge mui-badge-warning">交易完成</span>
+						{/if}
+					</div>
+				</div>
+				<div class="mui-row" style="background:#f5f5f5;padding:5px;">
+					<div class="mui-col-sm-3 mui-col-xs-3">
+						<img style="width:60px;height:60px;" src="{php echo tomedia($row['goods']['thumb']);}" />
+					</div>
+					<div class="mui-col-sm-6 mui-col-xs-6" style="font-size:14px;">{$row['goods']['title']}{if $row['ordergoods']['optionname']}【{$row['ordergoods']['optionname']}】{/if}</div>
+					<div class="mui-col-sm-3 mui-col-xs-3" style="text-align:right;">
+						<div><strong>￥{$row['ordergoods']['price']}</strong></div>
+						<div style="font-size:14px;color:#999;text-align:right;">x{$row['ordergoods']['total']}</div>
+					</div>
+				</div>
+				<div class="mui-row" style="padding:5px;border-bottom:1px solid #e7e7e7;">
+					<div class="mui-col-sm-4 mui-col-xs-4" style="text-align:left;font-size:14px;">共<b>{$row['ordergoods']['total']}</b>件商品</div>
+					<div class="mui-col-sm-4 mui-col-xs-4" style="text-align:center;font-size:14px;">合计：<b>￥{$row['price']}</b></div>
+					<div class="mui-col-sm-4 mui-col-xs-4" style="text-align:right;font-size:14px;">(含运费<b>￥{$row['dispatchprice']}</b>)</div>
+				</div>
+				<div class="mui-row" style="padding:5px;text-align:right;">
+					<div class="mui-col-sm-12 mui-col-xs-12">
+						{if $row['status'] == 0}
+						<button type="button" class="mui-btn delorder" orderid="{$row['id']}">删除订单</button>
+						<button type="button" class="mui-btn mui-btn-warning payorder" ordersn="{$row['ordersn']}">去付款</button>
+						{/if}
+						{if $row['status'] == 1 && $row['ishexiao'] == 1}
+						<button type="button" class="mui-btn mui-btn-warning hexiaobtn" ordersn="{$row['ordersn']}">立即核销</button>
+						{/if}
+						{if $row['status'] == 2}
+						<button type="button" class="mui-btn mui-btn-warning orderdshouhuo" orderid="{$row['id']}">确认收货</button>
+						{/if}
+					</div>
+				</div>
+			</div>
+			{/loop}
+		{else}
+		<div style="margin-top:40px; text-align:center;">
+			<span class="mui-icon mui-icon-info" style="color:#900;font-size:70px;"></span>
+			<h4>暂无订单</h4>
+		</div>
+		{/if}
+	</div>
+	<div id="item2" class="mui-control-content">
+		{if $myorderlist2}
+			{loop $myorderlist2 $row}
+			<div class="orderlist">
+				<div class="mui-row" style="padding:8px;">
+					<div class="mui-col-sm-6 mui-col-xs-6">
+						<span class="mui-badge mui-badge-success">订单号：{$row['ordersn']}</span>
+					</div>
+					<div class="mui-col-sm-6 mui-col-xs-6" style="text-align:right;">
+						{if $row['status'] == 0}
+						<span class="mui-badge mui-badge-warning">待付款</span>
+						{/if}
+						{if $row['status'] == 1}
+						<span class="mui-badge mui-badge-warning">待发货/核销</span>
+						{/if}
+						{if $row['status'] == 2}
+						<span class="mui-badge mui-badge-warning">待收货</span>
+						{/if}
+						{if $row['status'] == 4}
+						<span class="mui-badge mui-badge-warning">交易完成</span>
+						{/if}
+					</div>
+				</div>
+				<div class="mui-row" style="background:#f5f5f5;padding:5px;">
+					<div class="mui-col-sm-3 mui-col-xs-3">
+						<img style="width:60px;height:60px;" src="{php echo tomedia($row['goods']['thumb']);}" />
+					</div>
+					<div class="mui-col-sm-6 mui-col-xs-6" style="font-size:14px;">{$row['goods']['title']}{if $row['ordergoods']['optionname']}【{$row['ordergoods']['optionname']}】{/if}</div>
+					<div class="mui-col-sm-3 mui-col-xs-3" style="text-align:right;">
+						<div><strong>￥{$row['ordergoods']['price']}</strong></div>
+						<div style="font-size:14px;color:#999;text-align:right;">x{$row['ordergoods']['total']}</div>
+					</div>
+				</div>
+				<div class="mui-row" style="padding:5px;border-bottom:1px solid #e7e7e7;">
+					<div class="mui-col-sm-4 mui-col-xs-4" style="text-align:left;font-size:14px;">共<b>{$row['ordergoods']['total']}</b>件商品</div>
+					<div class="mui-col-sm-4 mui-col-xs-4" style="text-align:center;font-size:14px;">合计：<b>￥{$row['price']}</b></div>
+					<div class="mui-col-sm-4 mui-col-xs-4" style="text-align:right;font-size:14px;">(含运费<b>￥{$row['dispatchprice']}</b>)</div>
+				</div>
+				<div class="mui-row" style="padding:5px;text-align:right;">
+					<div class="mui-col-sm-12 mui-col-xs-12">
+						{if $row['status'] == 0}
+						<button type="button" class="mui-btn delorder" orderid="{$row['id']}">删除订单</button>
+						<button type="button" class="mui-btn mui-btn-warning payorder" ordersn="{$row['ordersn']}">去付款</button>
+						{/if}
+						{if $row['status'] == 1 && $row['ishexiao'] == 1}
+						<button type="button" class="mui-btn mui-btn-warning hexiaobtn" ordersn="{$row['ordersn']}">立即核销</button>
+						{/if}
+						{if $row['status'] == 2}
+						<button type="button" class="mui-btn mui-btn-warning orderdshouhuo" orderid="{$row['id']}">确认收货</button>
+						{/if}
+					</div>
+				</div>
+			</div>
+			{/loop}
+		{else}
+		<div style="margin-top:40px; text-align:center;">
+			<span class="mui-icon mui-icon-info" style="color:#900;font-size:70px;"></span>
+			<h4>暂无待付款订单</h4>
+		</div>
+		{/if}
+	</div>
+	<div id="item3" class="mui-control-content">
+		{if $myorderlist3}
+			{loop $myorderlist3 $row}
+			<div class="orderlist">
+				<div class="mui-row" style="padding:8px;">
+					<div class="mui-col-sm-6 mui-col-xs-6">
+						<span class="mui-badge mui-badge-success">订单号：{$row['ordersn']}</span>
+					</div>
+					<div class="mui-col-sm-6 mui-col-xs-6" style="text-align:right;">
+						{if $row['status'] == 0}
+						<span class="mui-badge mui-badge-warning">待付款</span>
+						{/if}
+						{if $row['status'] == 1}
+						<span class="mui-badge mui-badge-warning">待发货/核销</span>
+						{/if}
+						{if $row['status'] == 2}
+						<span class="mui-badge mui-badge-warning">待收货</span>
+						{/if}
+						{if $row['status'] == 4}
+						<span class="mui-badge mui-badge-warning">交易完成</span>
+						{/if}
+					</div>
+				</div>
+				<div class="mui-row" style="background:#f5f5f5;padding:5px;">
+					<div class="mui-col-sm-3 mui-col-xs-3">
+						<img style="width:60px;height:60px;" src="{php echo tomedia($row['goods']['thumb']);}" />
+					</div>
+					<div class="mui-col-sm-6 mui-col-xs-6" style="font-size:14px;">{$row['goods']['title']}{if $row['ordergoods']['optionname']}【{$row['ordergoods']['optionname']}】{/if}</div>
+					<div class="mui-col-sm-3 mui-col-xs-3" style="text-align:right;">
+						<div><strong>￥{$row['ordergoods']['price']}</strong></div>
+						<div style="font-size:14px;color:#999;text-align:right;">x{$row['ordergoods']['total']}</div>
+					</div>
+				</div>
+				<div class="mui-row" style="padding:5px;border-bottom:1px solid #e7e7e7;">
+					<div class="mui-col-sm-4 mui-col-xs-4" style="text-align:left;font-size:14px;">共<b>{$row['ordergoods']['total']}</b>件商品</div>
+					<div class="mui-col-sm-4 mui-col-xs-4" style="text-align:center;font-size:14px;">合计：<b>￥{$row['price']}</b></div>
+					<div class="mui-col-sm-4 mui-col-xs-4" style="text-align:right;font-size:14px;">(含运费<b>￥{$row['dispatchprice']}</b>)</div>
+				</div>
+				<div class="mui-row" style="padding:5px;text-align:right;">
+					<div class="mui-col-sm-12 mui-col-xs-12">
+						{if $row['status'] == 0}
+						<button type="button" class="mui-btn delorder" orderid="{$row['id']}">删除订单</button>
+						<button type="button" class="mui-btn mui-btn-warning payorder" ordersn="{$row['ordersn']}">去付款</button>
+						{/if}
+						{if $row['status'] == 1 && $row['ishexiao'] == 1}
+						<button type="button" class="mui-btn mui-btn-warning hexiaobtn" ordersn="{$row['ordersn']}">立即核销</button>
+						{/if}
+						{if $row['status'] == 2}
+						<button type="button" class="mui-btn mui-btn-warning orderdshouhuo" orderid="{$row['id']}">确认收货</button>
+						{/if}
+					</div>
+				</div>
+			</div>
+			{/loop}
+		{else}
+		<div style="margin-top:40px; text-align:center;">
+			<span class="mui-icon mui-icon-info" style="color:#900;font-size:70px;"></span>
+			<h4>暂无待发货订单</h4>
+		</div>
+		{/if}
+	</div>
+	<div id="item4" class="mui-control-content">
+		{if $myorderlist4}
+			{loop $myorderlist4 $row}
+			<div class="orderlist">
+				<div class="mui-row" style="padding:8px;">
+					<div class="mui-col-sm-6 mui-col-xs-6">
+						<span class="mui-badge mui-badge-success">订单号：{$row['ordersn']}</span>
+					</div>
+					<div class="mui-col-sm-6 mui-col-xs-6" style="text-align:right;">
+						{if $row['status'] == 0}
+						<span class="mui-badge mui-badge-warning">待付款</span>
+						{/if}
+						{if $row['status'] == 1}
+						<span class="mui-badge mui-badge-warning">待发货/核销</span>
+						{/if}
+						{if $row['status'] == 2}
+						<span class="mui-badge mui-badge-warning">待收货</span>
+						{/if}
+						{if $row['status'] == 4}
+						<span class="mui-badge mui-badge-warning">交易完成</span>
+						{/if}
+					</div>
+				</div>
+				<div class="mui-row" style="background:#f5f5f5;padding:5px;">
+					<div class="mui-col-sm-3 mui-col-xs-3">
+						<img style="width:60px;height:60px;" src="{php echo tomedia($row['goods']['thumb']);}" />
+					</div>
+					<div class="mui-col-sm-6 mui-col-xs-6" style="font-size:14px;">{$row['goods']['title']}{if $row['ordergoods']['optionname']}【{$row['ordergoods']['optionname']}】{/if}</div>
+					<div class="mui-col-sm-3 mui-col-xs-3" style="text-align:right;">
+						<div><strong>￥{$row['ordergoods']['price']}</strong></div>
+						<div style="font-size:14px;color:#999;text-align:right;">x{$row['ordergoods']['total']}</div>
+					</div>
+				</div>
+				<div class="mui-row" style="padding:5px;border-bottom:1px solid #e7e7e7;">
+					<div class="mui-col-sm-4 mui-col-xs-4" style="text-align:left;font-size:14px;">共<b>{$row['ordergoods']['total']}</b>件商品</div>
+					<div class="mui-col-sm-4 mui-col-xs-4" style="text-align:center;font-size:14px;">合计：<b>￥{$row['price']}</b></div>
+					<div class="mui-col-sm-4 mui-col-xs-4" style="text-align:right;font-size:14px;">(含运费<b>￥{$row['dispatchprice']}</b>)</div>
+				</div>
+				<div class="mui-row" style="padding:5px;text-align:right;">
+					<div class="mui-col-sm-12 mui-col-xs-12">
+						{if $row['status'] == 0}
+						<button type="button" class="mui-btn delorder" orderid="{$row['id']}">删除订单</button>
+						<button type="button" class="mui-btn mui-btn-warning payorder" ordersn="{$row['ordersn']}">去付款</button>
+						{/if}
+						{if $row['status'] == 1 && $row['ishexiao'] == 1}
+						<button type="button" class="mui-btn mui-btn-warning hexiaobtn" ordersn="{$row['ordersn']}">立即核销</button>
+						{/if}
+						{if $row['status'] == 2}
+						<button type="button" class="mui-btn mui-btn-warning orderdshouhuo" orderid="{$row['id']}">确认收货</button>
+						{/if}
+					</div>
+				</div>
+			</div>
+			{/loop}
+		{else}
+		<div style="margin-top:40px; text-align:center;">
+			<span class="mui-icon mui-icon-info" style="color:#900;font-size:70px;"></span>
+			<h4>暂无待收货订单</h4>
+		</div>
+		{/if}
+	</div>
+	<div id="item5" class="mui-control-content">
+		{if $myorderlist5}
+			{loop $myorderlist5 $row}
+			<div class="orderlist">
+				<div class="mui-row" style="padding:8px;">
+					<div class="mui-col-sm-6 mui-col-xs-6">
+						<span class="mui-badge mui-badge-success">订单号：{$row['ordersn']}</span>
+					</div>
+					<div class="mui-col-sm-6 mui-col-xs-6" style="text-align:right;">
+						{if $row['status'] == 0}
+						<span class="mui-badge mui-badge-warning">待付款</span>
+						{/if}
+						{if $row['status'] == 1}
+						<span class="mui-badge mui-badge-warning">待发货/核销</span>
+						{/if}
+						{if $row['status'] == 2}
+						<span class="mui-badge mui-badge-warning">待收货</span>
+						{/if}
+						{if $row['status'] == 4}
+						<span class="mui-badge mui-badge-warning">交易完成</span>
+						{/if}
+					</div>
+				</div>
+				<div class="mui-row" style="background:#f5f5f5;padding:5px;">
+					<div class="mui-col-sm-3 mui-col-xs-3">
+						<img style="width:60px;height:60px;" src="{php echo tomedia($row['goods']['thumb']);}" />
+					</div>
+					<div class="mui-col-sm-6 mui-col-xs-6" style="font-size:14px;">{$row['goods']['title']}{if $row['ordergoods']['optionname']}【{$row['ordergoods']['optionname']}】{/if}</div>
+					<div class="mui-col-sm-3 mui-col-xs-3" style="text-align:right;">
+						<div><strong>￥{$row['ordergoods']['price']}</strong></div>
+						<div style="font-size:14px;color:#999;text-align:right;">x{$row['ordergoods']['total']}</div>
+					</div>
+				</div>
+				<div class="mui-row" style="padding:5px;border-bottom:1px solid #e7e7e7;">
+					<div class="mui-col-sm-4 mui-col-xs-4" style="text-align:left;font-size:14px;">共<b>{$row['ordergoods']['total']}</b>件商品</div>
+					<div class="mui-col-sm-4 mui-col-xs-4" style="text-align:center;font-size:14px;">合计：<b>￥{$row['price']}</b></div>
+					<div class="mui-col-sm-4 mui-col-xs-4" style="text-align:right;font-size:14px;">(含运费<b>￥{$row['dispatchprice']}</b>)</div>
+				</div>
+				<div class="mui-row" style="padding:5px;text-align:right;">
+					<div class="mui-col-sm-12 mui-col-xs-12">
+						{if $row['status'] == 0}
+						<button type="button" class="mui-btn delorder" orderid="{$row['id']}">删除订单</button>
+						<button type="button" class="mui-btn mui-btn-warning payorder" ordersn="{$row['ordersn']}">去付款</button>
+						{/if}
+						{if $row['status'] == 1 && $row['ishexiao'] == 1}
+						<button type="button" class="mui-btn mui-btn-warning hexiaobtn" ordersn="{$row['ordersn']}">立即核销</button>
+						{/if}
+						{if $row['status'] == 2}
+						<button type="button" class="mui-btn mui-btn-warning orderdshouhuo" orderid="{$row['id']}">确认收货</button>
+						{/if}
+					</div>
+				</div>
+			</div>
+			{/loop}
+		{else}
+		<div style="margin-top:40px; text-align:center;">
+			<span class="mui-icon mui-icon-info" style="color:#900;font-size:70px;"></span>
+			<h4>暂无已完成订单</h4>
+		</div>
+		{/if}
+	</div>
+</div>
+<script src="../addons/cy163_goodssales/static/mui/js/jquery.min.js"></script>
+<script src="../addons/cy163_goodssales/static/mui/js/mui.min.js"></script>
+<script>
+	mui.init();	
+	mui('.delorder').each(function () {
+		var orderid = this.getAttribute('orderid');
+		this.addEventListener('tap', function() {
+			var btnArray = ['是', '否'];
+			mui.confirm('确定要删除该订单吗？', '提示', btnArray, function(e) {
+				if (e.index == 0) {
+					mui.ajax("{php echo $this->createMobileUrl('myorder',array('op'=>'delete'))}"+"&id="+orderid,{
+						data:{},
+						dataType:'json',//服务器返回json格式数据
+						type:'post',//HTTP请求类型
+						timeout:10000,//超时时间设置为10秒；
+						headers:{'Content-Type':'application/json'},	              
+						success:function(data){
+							if(data.error == 1){
+								mui.toast(data.message);
+							}else{
+								mui.alert(data.message);
+								history.go(0);
+							}
+						},
+					});
+				}
+			})
+		});
+	});
+	mui('.orderdshouhuo').each(function () {
+		var orderid = this.getAttribute('orderid');
+		this.addEventListener('tap', function() {
+			var btnArray = ['是', '否'];
+			mui.confirm('确定要收货吗？', '提示', btnArray, function(e) {
+				if (e.index == 0) {
+					mui.ajax("{php echo $this->createMobileUrl('myorder',array('op'=>'shouhuo'))}"+"&id="+orderid,{
+						data:{},
+						dataType:'json',//服务器返回json格式数据
+						type:'post',//HTTP请求类型
+						timeout:10000,//超时时间设置为10秒；
+						headers:{'Content-Type':'application/json'},	              
+						success:function(data){
+							if(data.error == 1){
+								mui.toast(data.message);
+							}else{
+								mui.alert(data.message);
+								history.go(0);
+							}
+						},
+					});
+				}
+			})
+		});
+	});
+	mui('.payorder').each(function () {
+		var ordersn = this.getAttribute('ordersn');
+		this.addEventListener('tap', function() {
+			var btnArray = ['是', '否'];
+			mui.confirm('确定要付款吗？', '提示', btnArray, function(e) {
+				if (e.index == 0) {
+					var buyurl = "{php echo $this->createMobileUrl('pay')}"+"&ordersn="+ordersn;
+					window.location.href = buyurl;
+				}
+			})
+		});
+	});
+	mui('.hexiaobtn').each(function () {
+		var ordersn = this.getAttribute('ordersn');
+		this.addEventListener('tap', function() {
+			var imgsrc = encodeURIComponent("{$_W['siteroot']}app/{php echo str_replace('./','',$this->createMobileUrl('myorder',array('op'=>'hexiao')))}");
+			imgsrc += encodeURIComponent('&')+'ordersn='+ordersn
+			$('#qrcode').attr("src","http://qr.liantu.com/api.php?text="+imgsrc);
+			$('.mui-backdrop').show();
+			$('#alertbox').show();
+		});
+	});
+</script>
+</body>
+</html>

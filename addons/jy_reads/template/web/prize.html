@@ -1,0 +1,131 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li><a href="{php echo $this->createWebUrl('activity');}">活动列表</a></li>
+	<li class="active"><a href="#">奖项列表</a></li>
+	<li><a href="{php echo url('platform/reply/post',array('m'=>$this->m))}">添加活动</a></li>
+	<li><a href="{php echo url('platform/reply/post',array('m'=>$this->m,'rid'=>$reply['rid']))}">编辑当前活动</a></li>
+</ul>
+<div style="padding: 15px;">
+	<div class="panel panel-default">
+		<div class="panel-body table-responsive">
+			<table class="table table-hover">
+				<thead class="navbar-inner">
+					<tr>
+						<th align="center" style="width: 20px; text-align: center;">ID</th>
+						<th align="center" style="width: 80px; text-align: center;">集阅读名称</th>
+						<th align="center" style="width: 50px; text-align: center;">奖项名称</th>
+						<th align="center" style="width: 40px; text-align: center;">总数</th>
+						<th align="center" style="width: 40px; text-align: center;">分享显示</th>
+						<th align="center" style="width: 60px; text-align: center;">所需阅读量</th>
+						<th align="center" style="width: 40px; text-align: center;">剩余数量</th>
+						<th style="width: 100px; text-align: center;">操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					{loop $prizes $row}
+					<tr>
+						<td align="center" style="text-align: center;">{$row['id']}</td>
+						<td align="center" style="text-align: center;">{$row['title']}</td>
+						<td align="center" style="text-align: center;">{$row['prizename']}</td>
+						<td align="center" style="text-align: center;">{$row['prizecount']}</td>
+						
+						<td align="center" style="text-align: center;">
+							{if $row['share']==1}
+							显示
+							{/if}
+							{if $row['share']==0}
+							不显示
+							{/if}
+						</td>
+
+						<td align="center" style="text-align: center;">{$row['prizeneed']}</td>
+						<td align="center" style="text-align: center;">{$row['prizerest']}</td>
+						<td style="text-align: center;">
+							<a class="btn btn-default btn-sm qrcode" data-id="{$row['id']}" data-name="{$row['prizename']}" href="javascript:void(0)" title="核销管理">
+								<i class="fa fa-qrcode"></i>
+							</a>
+							<a class="btn btn-default btn-sm verifier" data-id="{$row['id']}" data-name="{$row['prizename']}" href="javascript:void(0)" title="核销人员">
+								<i class="fa fa-user"></i> 核销人员
+							</a>
+							<a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('prize',array('op'=>'delete','prizeid'=>$row['id']))}" title="删除"> 
+								<i class="fa fa-remove"></i>
+							</a>
+						</td>
+					</tr>
+					{/loop}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  	<div class="modal-dialog" role="document">
+    	<div class="modal-content">
+      		<div class="modal-header">
+        		<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        		<h4 class="modal-title" id="modaltitle"></h4>
+      		</div>
+      		<div class="modal-body" id="modalcontent" style="text-align: center;">
+      		</div>
+      		<div class="modal-footer">
+        		<button type="button" class="btn btn-default" data-dismiss="modal">确定</button>
+      		</div>
+    	</div>
+  	</div>
+</div>
+<script src="{MODULE_URL}public/web/js/jquery.qrcode.js" type="text/javascript"></script>
+<script>
+// 保存现场，不然会被和谐
+var $$ = $;
+$(function(){
+	$('.qrcode').click(function(){
+		var id = $(this).data('id');
+		var name = $(this).data('name');
+		$('#modalcontent').html('');
+		var url ='{php echo $this->createWebUrl("prize",array("op"=>"qrcode"))}'
+		$.ajax({
+			  url: url,
+			  data: {'prizeid':id},
+			  success: function(data){
+				  if(data.result){
+					  	$('#modaltitle').text(name+"-核销人员绑定二维码（扫一次绑定，第二次解绑，二维码1小时过期）");
+						$$('#modalcontent').qrcode(data.msg);
+						//alert(data.msg)
+						$('#myModal').modal('show');
+				  }else{
+					  alert(data.msg);
+				  }	
+			  },
+			  error: function(){
+				  alert('网络错误');
+			  },
+			  dataType: 'json'
+		});
+	});
+	$('.verifier').click(function(){
+		var id = $(this).data('id');
+		var name = $(this).data('name');
+		$('#modalcontent').html('');
+		var url ='{php echo $this->createWebUrl("prize",array("op"=>"verifier"))}'
+		$.ajax({
+			url: url,
+			data: {'prizeid':id},
+			success: function(data){
+				  	if(data.result){
+				  		$('#modaltitle').text(name+"-核销人员");
+						$$('#modalcontent').html(data.msg);
+						$('#myModal').modal('show');
+				  	}else{
+					  	alert(data.msg);
+				  	}
+			  },
+			  error: function(){
+				  alert('网络错误');
+			  },
+			  dataType: 'json'
+		});
+	});
+});
+</script>
+{template 'common/footer'}

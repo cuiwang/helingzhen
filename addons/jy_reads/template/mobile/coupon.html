@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+<title>{$coupon['couponname']}</title>
+<style>
+html,body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background: #fff
+}
+#bodybox {
+    position: relative;
+    margin: 0 auto;
+    height: 100%;
+    background: url({MODULE_URL}public/mobile/kaBg.jpg) no-repeat;
+    background-size: 100% 100%;
+    overflow: hidden;
+    max-width: 640px
+}
+.kaDiv{
+    position: absolute;
+    left: 15%;
+    top: 33%;
+    line-height: 24px;
+    width: 70%;
+    color: #4d4b4b;
+    background-color: #fff;
+}
+.titleDiv{
+    background-color: #bf0d1c;
+    padding: 5px 0;
+    color: #fff;
+    padding-left: 10px;
+    margin-bottom: 15px
+}
+.sure{
+    color: #fff;
+    background-color: #bf0d1c;
+    padding: 3px 25px;
+    text-align: center;
+    width: 30%;
+    margin: 10px auto 20px auto
+}
+.txtCon{
+    width: 90%;
+    margin: 10px auto;
+    margin-left: 7%;
+    font-size: 14px
+}
+</style>
+</head>
+<body>
+<div id="bodybox">
+    <div class="kaDiv">
+        <div class="titleDiv">领取成功</div>
+        <div class="conDiv">
+            <div class="txtCon">{$coupon['couponmsg']}</div>
+            <div id="sure" class="sure">确定</div>
+            <div class="txtCon" style="color:red;font-size:.8em;text-align:center;">*卡券已经放入您的微信卡包内,赶紧去使用你的卡券吧</div>
+        </div>
+    </div>
+</div>
+    <script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+    {php $signPackage=$_W['account']['jssdkconfig'];} 
+    <script src="http://libs.baidu.com/jquery/1.10.2/jquery.min.js"></script>
+
+    <script>
+var appid = '{$_W['account']['jssdkconfig']['appId']}';
+var timestamp = '{$_W['account']['jssdkconfig']['timestamp']}';
+var nonceStr = '{$_W['account']['jssdkconfig']['nonceStr']}';
+var signature = '{$_W['account']['jssdkconfig']['signature']}';
+
+wx.config({
+    debug: false,   
+    appId: appid,
+    timestamp: timestamp,
+    nonceStr: nonceStr,
+    signature: signature,
+    jsApiList: ['checkJsApi','onMenuShareTimeline','onMenuShareAppMessage','onMenuShareQQ','onMenuShareWeibo','addCard','openCard','chooseCard',]
+});
+{if $user['status']==3}
+$('#sure').text('查看');
+{/if}
+wx.ready(function () {
+    $('#sure').on('click',function(){
+        wx.addCard({
+            cardList: [
+                {
+                    cardId: "{$coupon['couponcode']}",
+                    cardExt: '{"timestamp":"{$nowtime}","signature":"{$signature}"}'
+                }
+            ],
+            success: function (res) {
+                $.ajax({
+                    type: "POST",
+                    url: "{php echo $this->createMobileurl('coupon',array('op'=>'add','sn'=>$sn))}",
+                    data: {},
+                    dataType: "text",
+                    success: function (data) {
+                        $('#sure').text('查看');
+                    },
+                    error: function (xml, text, thrown) {
+                        alert("出错，请联系管理人员!");
+                    }
+                });
+            },
+            fail: function(err){
+                var temp = $('#sure').text();
+                if(temp!='查看')
+                    alert('领取卡券失败，请联系管理员！');
+            },
+        });
+    });
+});
+</script>
+</body>
+</html>

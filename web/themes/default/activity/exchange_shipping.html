@@ -1,0 +1,162 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li {if $op=='display'}class="active"{/if}><a href="{php echo url('activity/exchange/shipping', array('op'=>'display'));}">实物礼品兑换管理</a></li>
+	{if $op == 'post' && !empty($id)}
+	<li class="active"><a href="{php echo url('activity/exchange/shipping', array('op'=>'post', 'id'=>$id));}">编辑</a></li>
+	{/if}
+</ul>
+{if $op =='display'}
+<div class="main">
+	<div class="panel panel-info">
+		<div class="panel-heading">筛选</div>
+		<div class="panel-body">
+			<form action="./index.php" method="get" class="form-horizontal" role="form">
+			<input type="hidden" name="c" value="activity">
+			<input type="hidden" name="a" value="exchange">
+			<input type="hidden" name="do" value="shipping">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">用户UID</label>
+					<div class="col-sm-6 col-lg-8">
+						<input class="form-control" name="uid" id="" type="text" value="{$_GPC['uid']}">		
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">兑奖日期</label>
+					<div class="col-sm-6 col-lg-8">
+						{php echo tpl_form_field_daterange('time', array('starttime'=>date('Y-m-d', $starttime),'endtime'=>date('Y-m-d', $endtime)));}
+					</div>
+					<div class="pull-right col-xs-12 col-sm-3 col-lg-2">
+						<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+	<div class="table-responsive">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<th style="width:60px;">uid</th>
+					<th style="width:100px;">姓名</th>
+					<th style="width:100px;">标题</th>
+					<th style="width:100px;">图标</th>
+					<th style="width:100px;">收件人</th>
+					<th style="width:120px;">收件人电话</th>
+					<th style="width:100px;">收件人邮编</th>
+					<th style="min-width:100px;">收件地址</th>
+					<th style="width:80px;">状态</th>
+					<th style="text-align:center;min-width:85px; width: 100px;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $item}
+				<tr>
+					<td>{$item['uid']}</td>
+					<td>{$item['realname']}</td>
+					<td>{$item['exchange']['extra']['title']}</td>
+					<td><img src="{$item['exchange']['thumb']}" style="max-width:50px; max-height: 30px;"></td>
+					<td>{$item['name']}</td>
+					<td>{$item['mobile']}</td>
+					<td>{$item['zipcode']}</td>
+					<td>{$item['province']} {$item['city']} {$item['district']} {$item['address']}</td>
+					<td>{php echo activity_shipping_status_title($item['status']);}</td>
+					<td style="text-align:right;">
+						<a href="{php echo url('activity/exchange/shipping',array('op'=>'post','id'=>$item['id']));}" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" title="编辑"><i class="fa fa-edit"></i></a>
+						<a onclick="return confirm('确定要删除当前物品吗？');" href="{php echo url('activity/exchange/shipping',array('op'=>'delete','id'=>$item['id']));}" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" title="删除"><i class="fa fa-times"></i></a>
+					</td>
+				</tr>
+				{/loop}
+			</tbody>
+		</table>
+		{$pager}
+	</div>
+</div>
+<script>
+	require(['bootstrap'],function($){
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+	});
+</script>
+{elseif $op =='post'}
+<div class="main">
+	<form action="./index.php" method="post" class="form-horizontal form" enctype="multipart/form-data" onsubmit="return checkform();" role="form">
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				实物礼品编辑
+			</div>
+			<div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">收货人姓名</label>
+					<div class="col-sm-9">
+						<input type="text" name="realname" class="form-control" value="{$shipping['name']}" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">收货人电话</label>
+					<div class="col-sm-9">
+						<input type="text" name="mobile" class="form-control" value="{$shipping['mobile']}" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">邮寄地址</label>
+					<div class="col-sm-3">
+						<select name="province" id="sel-provance" onChange="selectCity();" class="form-control" >
+							<option value="" selected="true">省/直辖市</option>
+						</select>
+					</div>
+					<div class="col-sm-3">
+						<select name="city" id="sel-city" onChange="selectcounty();" class="form-control">
+							<option value="" selected="true">请选择</option>
+						</select>
+					</div>
+					<div class="col-sm-3">
+						<select name="district" id="sel-area" class="form-control">
+							<option value="" selected="true">请选择</option>
+						</select>
+						<script type="text/javascript" src="./resource/script/cascade.js"></script>
+						<script type="text/javascript">
+							cascdeInit('{$shipping['province']}','{$shipping['city']}','{$shipping['district']}'); //开启地区三级联动
+						</script>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">收货人邮编</label>
+					<div class="col-sm-9">
+						<input type="text" name="zipcode" class="form-control" value="{$shipping['zipcode']}" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">收件地址</label>
+					<div class="col-sm-9">
+						<input type="text" name="address" class="form-control" value="{$shipping['address']}" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">状态</label>
+					<p class="form-control-static col-sm-10">{php echo activity_shipping_status_title($shipping['status']);}</p>
+				</div>
+			</div>
+		</div>
+
+		<div class="form-group">
+			<div class="col-sm-12">
+				<input name="c" type="hidden" value="activity">
+				<input name="a" type="hidden" value="exchange">
+				<input name="do" type="hidden" value="{$do}">
+				<input name="op" type="hidden" value="{$op}">
+				<input name="id" type="hidden" value="{$shipping['id']}">
+				<input name="uniacid" type="hidden" value="{$shipping['uniacid']}">
+				<input name="submit" type="submit" value="保存" class="btn btn-primary">
+				{if intval($shipping['status'])==0}
+				<input name="deliver" type="submit" value="发货" class="btn btn-primary">
+				{/if}
+				<input type="hidden" name="token" value="{$_W['token']}" />
+			</div>
+		</div>
+	</form>
+</div>
+{/if}
+{template 'common/footer'}

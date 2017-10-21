@@ -1,0 +1,306 @@
+{template 'common/header'}
+{template 'common'}
+<script type="text/javascript" src="resource/js/lib/jquery-ui-1.10.3.min.js"></script>
+<ul class="nav nav-tabs">
+	<li {if $operation == 'display'} class="active" {/if}><a href="{php echo $this->createWebUrl('Mposition',array('op' =>'display'))}">职位管理</a></li>
+	<li{if $operation == 'post' && empty($mposition['id'])} class="active" {/if}><a href="{php echo $this->createWebUrl('Mposition',array('op' =>'post'))}">添加职位</a></li>
+	{if !empty($mposition['id']) && $operation== 'post'} <li class="active"><a href="{php echo $this->createWebUrl('Mposition',array('op' =>'post','id'=>$mposition['id']))}">编辑职位</a></li> {/if}
+</ul>
+{if $operation == 'display'}
+<div class="main panel panel-default">
+	<div class="panel-body table-responsive">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<th style="width:80px;">职位名称</th>
+					<th style="width:60px;">性别要求</th>
+					<th style="width:60px;">学历</th>
+					<th style="width:60px;">年龄</th>
+					<th style="width:60px;">工作经验</th>
+					<th style="width:60px;">薪资范围</th>
+					<th style="width:30px;">招聘人数</th>
+					<th style="width:30px;">投递简历</th>
+					<th style="width:30px;">筛选后简历数</th>
+					<th style="width:60px;">发布时间</th>
+					<th style="width:120px;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $item}
+				<tr>
+					<td>{$item['pname']}</td>
+					<td>{if $item['sex']==1}男{else if $item['sex']==2}女{else}不限{/if}</td>
+					<td>{if $item['ed']==1}初中及以上{else if $item['ed']==2}高中及以上{else if $item['ed']==3}中技及以上
+					{else if $item['ed']==4}中专及以上{else if $item['ed']==5}大专及以上{else if $item['ed']==6}本科及以上
+					{else if $item['ed']==7}硕士及以上{else if $item['ed']==8}博士
+					{else}不限{/if}</td>
+					<td>{if $item['minage']==0 && $item['maxage']==0}不限{else}{$item['minage']}~{$item['maxage']}{/if}</td>
+					<td>{if $item['minexper']==0 && $item['maxexper']==0}不限{else if $item['minexper']!=0 && $item['maxexper']==0}{$item['minexper']}年以上{else}{$item['minexper']}~{$item['maxexper']}年{/if}</td>
+					<td>{if $item['minsalary']==0 && $item['maxsalary']==0}面议{else if $item['minsalary']!=0 && $item['maxsalary']==0}{$item['minsalary']}元以上{else}{$item['minsalary']}~{$item['maxsalary']}元{/if}</td>
+					<td>{$item['num']}</td>
+					<td>{$item['deliveries']}</td>
+					<td>{$item['realrem']}</td>
+					<td>{php echo date('Y-m-d',$item['stime'])}</td>
+					<td style="text-align:left;">
+						<a href="{php echo $this->createWebUrl('Mposition', array('op' => 'post', 'id' => $item['id']))}" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="修改"><i class="fa fa-pencil"></i></a>
+						<a href="{php echo $this->createWebUrl('voted', array('pid' => $item['id']))}" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="投递详情"><i class="fa fa-th-large"></i></a>
+						<a onclick="return confirm('确认删除吗？');return false;" href="{php echo $this->createWebUrl('Mposition', array('op' => 'delete', 'id' => $item['id']))}" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="删除"><i class="fa fa-times"></i></a>
+			<!-- 		<a href="{php echo $this->createWebUrl('Mposition', array('op' => 'delete', 'id' => $item['id']))}" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="删除"><i class="fa fa-play"></i></a> -->	
+					<a href="javascript:void(0);" onclick="play({$item[id]},this)" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="{if $item[play]==0}暂停{else}开始{/if}"><i class="{if $item[play]==0}fa fa-pause{else}fa fa-play{/if}" data="{$item[play]}"></i></a>
+					<a href="javascript:void(0);" onclick="refresh({$item[id]},this)" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="刷新"><i class="fa fa-undo"></i></a>
+					</td>
+				</tr>
+				{/loop}
+			</tbody>
+		</table>
+		{$pager}
+	</div>
+</div>
+<script>
+	require(['bootstrap'],function($){
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+	});
+	function refresh(id,obj){
+		$.ajax({
+			type:'post',
+			url:"{php echo $this->createWebUrl('refresh')}",
+			data:{id:id},//可以直接加一个函数名。
+			dataType:'json',
+			success: function (data) { 
+				//alert(data.res);
+				if(data.res==1){
+					//标记或者取消标记成功
+					//改变发布时间
+					//alert(data);
+					$(obj).parent().prev().text(data.time);
+					
+				}
+			
+			
+			}
+			
+			}); 
+
+	}
+	
+	function play(id,obj){
+		var play=$(obj).find("i").attr("data");
+		//alert(playid);
+		$.ajax({
+			type:'post',
+			url:"{php echo $this->createWebUrl('play')}",
+			data:{id:id,play:play},//可以直接加一个函数名。
+			dataType:'json',
+			success: function (data) { 
+				//alert(data.res);
+				if(data.res==1){
+					//标记或者取消标记成功
+					//改变发布时间
+					//alert(data);
+					if(data.play==1){
+						$(obj).find("i").removeClass().addClass("fa fa-play");
+						$(obj).find("i").attr("data","1");
+						$(obj).attr("data-original-title","开始");
+						
+						
+					}else{
+						$(obj).find("i").removeClass().addClass("fa fa-pause");
+						$(obj).find("i").attr("data","0");
+						$(obj).attr("data-original-title","暂停");
+					}
+					//$(obj).parent().prev().text(data.time);
+					
+				}
+			
+			
+			}
+			
+			}); 
+		
+	}
+	
+</script>
+{elseif $operation == 'post'}
+<link type="text/css" rel="stylesheet" href="../addons/recruit/template/mobile/css/uploadify_t.css" />
+<div class="main">
+	<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" onsubmit='return formcheck()'>
+		<input type="hidden" name="id" value="{$item['id']}" />
+		<div class="panel panel-default">
+			<div class="panel-heading">职位详细设置</div>
+			<div class="panel-body">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style='color:red'>*</span>职位名称</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="pname" id="pname" class="form-control" value="{$item['pname']}" />
+				</div>
+			</div>
+		<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">职位类别</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="type" id="type" class="form-control" value="{$item['type']}" />
+				</div>
+			</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">热度</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" name="hot" class="form-control" value="{$item['hot']}" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">性别</label>
+					<div class="col-sm-9 col-xs-12">
+					<select id="sex" class="form-control input-medium" name="sex">
+						<option value="1" data-name="1" {if $item['sex']==1} selected="selected" {/if}>男</option>
+						<option value="2" data-name="2" {if $item['sex']==2} selected="selected" {/if}>女</option>
+						<option value="0" data-name="0" {if $item['sex']==0} selected="selected" {/if}>不限</option>
+					</select>
+					<!-- <span class="help-block">如果您选择了常用快递，则客户可以订单中查询快递信息，如果缺少您想要的快递，您可以联系我们! </span> -->
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">学历</label>
+					<div class="col-sm-9 col-xs-12">
+					<select id="ed" class="form-control input-medium" name="ed">
+						<option value="0" data-name="0" {if $item[ed]==0} selected="selected" {/if}>不限</option>
+						<option value="1" data-name="1" {if $item[ed]==1} selected="selected" {/if}>初中及以上</option>
+						<option value="2" data-name="2" {if $item[ed]==2} selected="selected" {/if}>高中及以上</option>
+						<option value="3" data-name="3" {if $item[ed]==3} selected="selected" {/if}>中技及以上</option>
+						<option value="4" data-name="4" {if $item[ed]==4} selected="selected" {/if}>中专及以上</option>
+						<option value="5" data-name="5" {if $item[ed]==5} selected="selected" {/if}>大专及以上</option>
+						<option value="6" data-name="6" {if $item[ed]==6} selected="selected" {/if}>本科及以上</option>
+						<option value="7" data-name="7" {if $item[ed]==7} selected="selected" {/if}>硕士及以上</option>
+						<option value="8" data-name="8" {if $item[ed]==8} selected="selected" {/if}>博士</option>
+					</select>
+					<!-- <span class="help-block">如果您选择了常用快递，则客户可以订单中查询快递信息，如果缺少您想要的快递，您可以联系我们! </span> -->
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">年龄</label>
+					<div class="col-sm-2 col-xs-6"><input type="text" name="minage" id="minage" class="form-control" value="{$item['minage']}" /></div>
+					<div class="col-sm-1 col-xs-1" style='width:1%;margin:0;padding:6px 0;'>—</div>
+					<div class="col-sm-2 col-xs-6"><input type="text" name="maxage" id="maxage" class="form-control" value="{$item['maxage']}" /></div>
+					<div class="col-sm-1 col-xs-1" style='width:1%;margin:0;padding:6px 0;'>岁</div>
+					<span class="help-block">（不填表示不限）</span>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">工作经验</label>
+					<div class="col-sm-2 col-xs-6"><input type="text" name="minexper" id="minexper" class="form-control" value="{$item['minexper']}" /></div>
+					<div class="col-sm-1 col-xs-1" style='width:1%;margin:0;padding:6px 0;'>—</div>
+					<div class="col-sm-2 col-xs-6"><input type="text" name="maxexper" id="maxexper" class="form-control" value="{$item['maxexper']}" /></div>
+					<div class="col-sm-1 col-xs-1" style='width:1%;margin:0;padding:6px 0;'>年</div>
+					<span class="help-block">（不填表示不限）</span>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">薪资</label>
+					<div class="col-sm-2 col-xs-6"><input type="text" name="minsalary" id="minsalary" class="form-control" value="{$item['minsalary']}" /></div>
+					<div class="col-sm-1 col-xs-1" style='width:1%;margin:0;padding:6px 0;'>—</div>
+					<div class="col-sm-2 col-xs-6"><input type="text" name="maxsalary" id="maxsalary" class="form-control" value="{$item['maxsalary']}" /></div>
+					<div class="col-sm-1 col-xs-1" style='width:1%;margin:0;padding:6px 0;'>元</div>
+					<span class="help-block">（不填表示面议）</span>
+				</div>
+
+			<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">招聘人数</label>
+					<div class="col-sm-6 col-xs-12">
+						<div class="input-group">
+							<input type="text" name="num" id="num" class="form-control" value="{$item['num']}" />
+							<span class="input-group-addon">人</span>
+						</div>
+					</div>
+				</div>
+			<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">关键字</label>
+			<div class="col-sm-4 col-xs-12">
+				<input type="text" name="key" id="key" class="form-control" value="{$item['key']}" />
+			</div>
+				<span class="help-block">关键字之间用逗号隔开：（如：关键字1，关键字2）</span>
+			</div>
+			<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">地点</label>
+			<div class="col-sm-4 col-xs-12">
+				<input type="text" name="place" id="place" class="form-control" value="{$item['place']}" />
+			</div>
+			</div>
+
+			<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">招聘方式</label>
+			<div class="col-sm-4 col-xs-12">
+				<input type="text" name="way" id="way" class="form-control" value="{$item['way']}" />
+			</div>
+			</div>
+		<!-- 	<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">发布和截止时间</label>
+				<div class="col-sm-4 col-xs-6">{php echo tpl_form_field_date('stime', !empty($item['stime']) ? $item['stime'] : date('Y-m-d H:i'), 1)}</div>
+				<div class="col-sm-4 col-xs-6">{php echo tpl_form_field_date('etime', !empty($item['etime']) ? $item['etime'] : date('Y-m-d H:i'), 1)}</div>
+			</div>	 -->		
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style='color:red'>*</span>职位描述</label>
+				<div class="col-sm-9 col-xs-12">
+					<textarea name="descript" class="form-control richtext" cols="7" rows="10">{$item['descript']}</textarea>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">任职资格</label>
+				<div class="col-sm-9 col-xs-12">
+					<textarea name="competence" class="form-control richtext1" cols="7" rows="10">{$item['competence']}</textarea>
+				</div>
+			</div>
+			
+
+<script language='javascript'>
+	require(['jquery', 'util'], function($, u){
+		$(function(){
+			u.editor($('.richtext')[0]);
+			u.editor($('.richtext1')[0]);
+		});
+	});
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+			</div>
+		</div>
+<div class="form-group col-sm-12">
+	<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" onclick='return formcheck()' />
+	<input type="hidden" name="token" value="{$_W['token']}" />
+	</div>
+	</form>
+</div>
+<script language='javascript'>
+	function formcheck(){
+		if($("#pname").isEmpty()){
+			Tip.focus("pname","请填写职位名称!");
+			return false;
+		}
+		return true;
+	}
+	
+	//$(function(){
+	//	$("#common_corp").change(function(){
+	//		var obj = $(this);
+	//		var sel =obj.find("option:selected");
+	//		$("#pname").val(sel.attr("data-name"));
+	//		$("#express_url").val(sel.val() );
+	//	});
+	//	{if !empty($express['id'])}
+	//	$("#common_corp").val(  "{$express['express_url']}");
+	//	{/if}
+		
+	//})
+	</script>
+{/if}
+{template 'common/footer'}

@@ -1,0 +1,189 @@
+<html>
+<head>
+    
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>照片墙</title>
+    <meta name="description" content="照片墙">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="white">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    <link href="../addons/ice_picwall/css/list.css" rel="stylesheet" type="text/css" />
+    <link href="../addons/ice_picwall/css/mdialog.css" rel="stylesheet" type="text/css" />
+    <link href="../addons/ice_picwall/css/bar.css" rel="stylesheet" type="text/css" />
+
+    <style type="text/css">
+        .imgNo
+        {
+            font-size: 20px;
+            color: #CC0000;
+            font-weight: bolder;
+        }
+    </style>
+    <link href="../addons/ice_picwall/css/PicWall.css" rel="stylesheet" type="text/css" />
+    <script src="../addons/ice_picwall/js/isweixin.js?i=1" type="text/javascript"></script>
+    <script type="text/javascript">
+        if (!is_weixin()) {
+            window.location.href = "errorPage.html";
+        }
+        
+    </script>
+</head>
+<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+<script>
+// jssdk config 对象
+jssdkconfig = {php echo json_encode($_W['account']['jssdkconfig']);} || { jsApiList:[] };
+// 是否启用调试
+// jssdkconfig.debug = true;
+// 已经注册了 jssdk 文档中所有的接口
+jssdkconfig.jsApiList = [
+'checkJsApi',
+'onMenuShareTimeline',
+'onMenuShareAppMessage',
+'onMenuShareQQ',
+'onMenuShareWeibo',
+'showOptionMenu',   
+];
+wx.config(jssdkconfig);
+/*
+sharedata = {
+title : "{$sharetitle}",
+link : "{$shareurl}",
+desc : "{$sharecontent}",
+imgUrl :"{$sharephoto}"
+};
+
+sharedata = {
+title : "你好~！",
+//link : "http://mp.weixin.qq.com/s?__biz=MjM5NzQ1MzU2MA==&mid=210537091&idx=1&sn=fcd086bc07f9ccd83fd909fbcacf83f9#rd",
+link : {php echo $this->createWebUrl('Index');},
+desc : "活动开启啦~！",
+imgUrl :"http://mmbiz.qpic.cn/mmbiz/y82GcGicjeKPqaibDHWj0efo5jdNoiaWxaqIUkN4eeEuac3rslMQeHjibpl3vyBbW6PaAeLkjt2s7M3oCiaNfHnJ5Qw/640?wx_fmt=jpeg&tp=webp&wxfrom=5"
+};*/
+wx.ready(function () {
+wx.showOptionMenu();
+wx.onMenuShareAppMessage(sharedata);
+wx.onMenuShareTimeline(sharedata);
+wx.onMenuShareQQ(sharedata);
+wx.onMenuShareWeibo(sharedata);
+});
+</script>
+<body style="background-color: #97CBFF">
+    <div class="wrapper">
+        <div class="point_nav" id="pointNav">
+            <p>
+                在微信对话框内发送 <span class="mark">照片</span>
+            </p>
+            <p>
+                即可将你拍摄的实景保存到 <span id="houseName"></span><span class="mark">照片墙</span></p>
+            <p>
+                请搜索微信号:<span class="mark">{$account['account']}</span>或<span class="mark">{$account['name']}</span>，关注后，才能点赞成功哦！</p>
+        </div>
+        <div class="point_list" id="ulList">
+            <ul id="leftLi">
+            </ul>
+            <ul id="rightLi">
+            </ul>
+        </div>
+        <div class="pop_photo" id="photoDiv" style="display: none;">
+            <div class="photo" id="wrapper">
+                <div id="scroller">
+                    <img src="../addons/ice_picwall/img/L5.jpg" width="468px" height="698px" />
+                </div>
+            </div>
+            <a class="btn_show_close" id="photoClick" onclick="closePOP();" href="javascript:void(0);"><span>关闭</span></a>
+        </div>
+        <div class="pop_mask" id="photoMask" style="display: none;"></div>
+    </div>
+    <div id="popFail">
+        <div class="bk"></div>
+        <div class="cont">
+            <img alt="loading..." src="../addons/ice_picwall/img/loading.gif">
+            正在加载...
+        </div>
+    </div>
+    <!-- <script src="Js/share.js" type="text/javascript"></script> -->
+    <div class="gmu-media-detect" id="gmu-media-detect0"></div>
+</body>
+<input type="hidden" id="hiddpage" value="6" />
+<input type="hidden" id="hiddpageIndex" value="1" />
+<input type="hidden" id="pageTotalSize" value="{$totalSize}" />
+
+<input type="hidden" id="hidOpenId" runat="server" />
+<script src="../addons/ice_picwall/js/jquery-1.8.2.min.js" type="text/javascript"></script>
+
+<script src="../addons/ice_picwall/js/mdialog.js" type="text/javascript"></script>
+<script src="../addons/ice_picwall/js/PicWall.js?a=12" type="text/javascript"></script>
+
+
+
+<script type="text/javascript">
+
+    var pageIndex = parseInt($.trim($("#hiddpageIndex").val()));
+    var photoDiv = document.getElementById('photoDiv');
+    var photoClick = document.getElementById('photoClick');
+    var photoMask = document.getElementById('photoMask');
+    var url = "{php echo $this->createMobileUrl('getPage', array());}";
+    $(function() {
+
+        if (!is_weixin()) {
+            window.location.href = "errorPage.htm";
+        }
+        loadpage(pageIndex,url);
+        //查询问题列表
+        $(window).scroll(function () {
+            if ($(document).scrollTop() <= 0) {
+            }
+            if ($(document).scrollTop() >= $(document).height() - $(window).height()) {
+                if (parseInt($.trim($("#hiddpageIndex").val())) < parseInt($.trim($("#pageTotalSize").val())))
+                	{
+                    	loadpage(parseInt($.trim($("#hiddpageIndex").val())) + 1,url);
+                }	
+            }
+        });
+    });
+
+</script>
+
+
+<script type="text/javascript">
+function del2(PersonalPicWallId, obj) {
+	var likeLink = "{php echo $this->createMobileUrl('likePage', array());}";
+    $.ajax({
+        cache: true,
+        type: "POST",
+        url: likeLink, // 提交的URL 
+        data: { type: "like", personalPicWallId: PersonalPicWallId, OpenId: $("#hidOpenId").val() },
+        async: false,
+        success: function (result) {
+            if (result == "liked") {
+                 alert("您已经点过赞啦！");
+            }
+			//else if (result == "noway") {
+             //   alert("请在从公众号中进入后投票");
+            //     window.location.href='http://mp.weixin.qq.com/s?__biz=MjM5NzQ1MzU2MA==&mid=210537091&idx=1&sn=fcd086bc07f9ccd83fd909fbcacf83f9#rd';
+            //    return;
+            //}
+			//else if (result == "unsub") {
+            //    alert("您需要先关注后才可以投票！");
+            //    window.location.href='http://mp.weixin.qq.com/s?__biz=MjM5NzQ1MzU2MA==&mid=210537091&idx=1&sn=fcd086bc07f9ccd83fd909fbcacf83f9#rd';
+             //   return;
+            //}
+			else if (result == "error") {
+                alert("访问出错");
+                return;
+            }else if(parseInt(result) > 0){
+                $(obj).parent(".hot").find("#likeNum").html(result);
+                alert("点赞成功！");
+            }
+        },
+        error: function (request) {
+            alert("Connection error");
+        }
+    });
+}
+</script>
+
+</html>

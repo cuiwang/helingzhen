@@ -1,0 +1,118 @@
+{template 'header'}
+<form action="{php echo url('mc/cash/wechat');}" method="post" id="fr_ds_from" onsubmit="return checksubmit()">
+    <input type="hidden" name="params" id="params" value="" />
+    <input type="hidden" name="encrypt_code" value="" />
+    <input type="hidden" name="card_id" value="{php echo base64_encode(0);}" />
+    <input type="hidden" name="coupon_id" value="" />
+</form>
+<div class="fr_ds_main">
+    <div class="fr_ds_admire_top">
+        <div class="fr_ds_cover">
+            {if $result['avatar']}
+            <img src="{$result['avatar']}" onerror="this.src='{__IMG__}/100.gif'" />
+            {/if}
+            
+        </div>
+    </div>
+    <div class="fr_ds_name">{$_W['account']['name']}</div>
+    {if $result['sub_title']}
+    <p class="fr_ds_subtitle">{$result['sub_title']}</p>
+    {/if}
+    <ul class="fr_ds_money_list clearfix">
+        {loop $appreciate['quick'] $quick}
+        <li><a href="javascript:;" class="fr_ds_pay" data-money="{$quick}"><i>{$quick}</i><span>元</span></a></li>
+        {/loop}
+    </ul>
+    <p class="fr_ds_other_money"><a href="javascript:;" id="fr_ds_other_pay">其他金额</a></p>
+</div>
+<div class="fr_ds_mask"></div>
+<div class="fr_ds_dialog">
+    <div class="fr_ds_dialog_title">
+        <h4>其他金额</h4>
+        <span class="fr_ds_dialog_close fr_close hairline"></span>
+    </div>
+    <div class="fr_ds_dialog_content">
+        <div class="fr_ds_input_box clearfix">
+            <label for="otherMoney">金额(元)</label>
+            <input type="tel" min="{$appreciate['min']}" max="{$appreciate['max']}" id="otherMoney" placeholder="可填写{$appreciate['min']}-{$appreciate['max']}" />
+            <span id="quickdelete">
+                <span class="fr_close white"></span>
+            </span>
+        </div>
+        <button type="button" disabled id="fr_ds_btn">赞赏</button>
+    </div>
+</div>
+<!-- loading toast -->
+<div id="loadingToast" class="weui_loading_toast" style="display:none;">
+    <div class="weui_mask_transparent"></div>
+    <div class="weui_toast">
+        <div class="weui_loading">
+            <div class="weui_loading_leaf weui_loading_leaf_0"></div>
+            <div class="weui_loading_leaf weui_loading_leaf_1"></div>
+            <div class="weui_loading_leaf weui_loading_leaf_2"></div>
+            <div class="weui_loading_leaf weui_loading_leaf_3"></div>
+            <div class="weui_loading_leaf weui_loading_leaf_4"></div>
+            <div class="weui_loading_leaf weui_loading_leaf_5"></div>
+            <div class="weui_loading_leaf weui_loading_leaf_6"></div>
+            <div class="weui_loading_leaf weui_loading_leaf_7"></div>
+            <div class="weui_loading_leaf weui_loading_leaf_8"></div>
+            <div class="weui_loading_leaf weui_loading_leaf_9"></div>
+            <div class="weui_loading_leaf weui_loading_leaf_10"></div>
+            <div class="weui_loading_leaf weui_loading_leaf_11"></div>
+        </div>
+        <p class="weui_toast_content">加载中</p>
+    </div>
+</div>
+<script>
+function checksubmit() {
+    if ($("#params").val() == '') {
+        return false;
+    }
+    return true;
+}
+$(function(){
+    $(".fr_ds_pay").on('click', function() {
+        $("#loadingToast").show();
+        var fee = $(this).data('money');
+        submit_pay(fee);
+    });
+    $("#fr_ds_other_pay").on('click', function() {
+        $(".fr_ds_dialog, .fr_ds_mask").show();
+        var fr_ds_dialog_width = $(".fr_ds_dialog").width();
+        $(".fr_ds_dialog").css({'margin-left': '-' + (fr_ds_dialog_width / 2) + 'px'});
+        $("#otherMoney").focus();
+    });
+    $(".fr_ds_dialog_close").on('click', function(){
+        $("#otherMoney").val('');
+        $("#fr_ds_btn").prop('disabled', true);
+        $(".fr_ds_dialog, .fr_ds_mask").hide();
+    });
+    
+    $("#otherMoney").keyup(function(){
+        var money = Number($(this).val());
+        if (money >= Number($(this).attr("min")) && money <= Number($(this).attr("max"))) {
+            $(this).val(money);
+            $("#fr_ds_btn").prop('disabled', false);
+        }else{
+            $("#fr_ds_btn").prop('disabled', true);
+        }
+    });
+    $("#fr_ds_btn").on('click', function(){
+        $("#loadingToast").show();
+        var fee = $("#otherMoney").val();
+        submit_pay(fee);
+    });
+    function submit_pay(fee) {
+        $.post('',{fee:fee}, function(res) {
+            $("#loadingToast").hide();
+            if(res.status == 1){
+                $("#params").val(res.params);
+                $("#fr_ds_from").submit();
+            }else{
+                weui.dialog.alert(res.msg);
+            }
+        }, 'JSON');
+    }
+});
+</script>
+{template 'footer'}

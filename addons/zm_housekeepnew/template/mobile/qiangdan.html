@@ -1,0 +1,164 @@
+{template 'header'}
+    <link rel="stylesheet" href="{MODULE_URL}images/css/mobile/style.css">
+    <link rel="stylesheet" href="{MODULE_URL}images/css/mobile/reset.css">
+    <script src="{MODULE_URL}images/js/mobile/font.js"></script>
+    <script src="{MODULE_URL}images/js/mobile/jquery-1.9.1.js"></script>
+    
+<body class="body_grab">
+<div class="grab_animation">
+    <h4>点击抢单按钮开始抢单</h4>
+    {if $a}
+    <?php $a = $a-1?>
+    <div>
+        <h3><p><a href="#"></a></p><p><a href="#"></a></p><p><a href="#"></a></p><i>抢</i></h3>
+    </div>
+    {else}
+
+   <div>
+        <h3><p><a href="#"></a></p><p><a href="#"></a></p><p><a href="#"></a></p><i>抢</i></h3>
+    </div>
+    {/if}
+</div>
+<div class="view" style="display: none">
+    <div id="cheng" style="display: none">
+        <p>恭喜您！</p>
+        <p>已抢到一个订单</p>
+        <a id="cha" href="">查看订单</a>
+    </div>
+    <div id="shi" style="display: none">
+        <p>没有抢到~</p>
+        <p>继续加油哦</p>
+        <span onclick="dd()">关闭</span>
+    </div>
+</div>
+<div class="announcement"><a href="{php echo $this->createMobileUrl('serspeak')}"><span class="iconfont">&#xe6a1;</span><span>{php echo $this->base[sername]}</span></a></div>
+<div class="kyfmcqww">
+{loop $list $k $v}
+
+<div class="payn_2">
+    <div class="payn_2_a bottom_before">
+        <h3>{$v[project_name]}</h3>
+        <div class="orange">
+            <span>+</span><span>{$v[summoney]}</span><span>元</span>
+        </div>
+    </div>
+    <div class="payn_2_b">
+        <div>
+            <span class="iconfont green">&#xe60f;</span><span>{$v[name]}</span>
+        </div>
+        <div>
+            <span class="iconfont orange">&#xe672;</span><span>{$v[addtime]}</span>
+        </div>
+        <div>
+            <span class="iconfont blue">&#xe63d;</span><span>{$v[address]}</span><span></span><span id="xin{$v[id]}"></span>
+        </div>
+        <a class="payn_2_b_a" href="<?php echo $this->createMobileUrl('qiangdanone',array('id'=>$v['id']));?>" >抢单</a>
+        <!--onclick="cc{$v[id]}()"-->
+    </div>
+</div>
+<script type="application/javascript">
+    function cc<?php echo $v['id']?>(){
+        $.post("<?php echo $this->createMobileUrl('qiangdanone',array('id'=>$v['id']));?>",function(data) {
+           if(data!=false){
+               $(".view").css('display','block');
+               $("#cheng").css('display','block');
+               $('#cha').attr('href',"<?php echo $this->createMobileUrl('qdlist');?>");
+        }else{
+               $(".view").css('display','block');
+               $("#shi").css('display','block');
+           }
+        })
+    }
+    function dd(){
+        $(".view").css('display','none');
+        $(".shi").css('display','none');
+    }
+    function calllocation{$v[id]}(response){
+//        console.log(response);return false;
+        if((response.message == 'query ok')){
+            $("#xin"+"<?php echo $v['id'];?>").html(">="+response.result.elements[0].distance+"m");
+        }else if((response.message == 'to元素的值不合法')  ){
+            $("#xin"+"<?php echo $v['id'];?>").html('未获取地理位置');
+        }else if((response.message == '起终点距离超长')){
+            $("#xin"+"<?php echo $v['id'];?>").html('起点至终点距离过长');
+        }
+    }
+</script>
+{/loop}
+</div>
+
+<script>
+    var aMath=$('.payn_2').length
+    $('.grab_animation h3').click(function() {
+        $('.payn_2').hide();
+var out = [];
+//输出个数
+var num = 5;
+setTimeout(function(){
+    while(out.length < num){
+    var temp = (Math.floor(Math.random()*aMath));
+    out.push(temp);
+    $('.payn_2').eq(temp).show();
+}
+$('.grab_animation h3 p a').removeClass('a');
+},2000)
+
+
+    });
+    $('.grab_animation h3').click(function(){
+
+        $('.grab_animation h3 p a').addClass('a');
+
+        $(this).find('i').animate({'font-size':'1.5rem'},300);
+    })
+    $('.view span').click(function(){
+        $('.view').css('display','none')
+        $('.grab_animation h3').find('i').animate({'font-size':'0.833333rem'});
+        $('.grab_animation h3 p a').removeClass('a');
+    })
+
+</script>
+<script type="application/javascript">
+    wx.ready(function () {
+//        wx.hideOptionMenu();
+        wx.getLocation({
+            type: 'gcj02', // 默认为wgs84的gps坐标，如果要返回直接给openLocation用的火星坐标，可传入'gcj02'
+            success: function (res) {
+//                var address = "<?php $list =$this->myGetall($this->_orderg,array('wid'=>$this->_wid,'state'=>1),array('jwd'));$succ = json_encode($list); echo $succ?>";
+                var latitude = res.latitude; // 纬度，浮点数，范围为90 ~ -90
+                var longitude = res.longitude; // 经度，浮点数，范围为180 ~ -180。
+                var speed = res.speed; // 速度，以米/每秒计
+                var accuracy = res.accuracy; // 位置精度
+                $.post("", {jwd:111}, function (data) {
+//                    $("#jwd").val(latitude+','+longitude); //OK
+//                    if (data != null) {
+//                    var  succ = JSON.parse(data);
+                    var succ = JSON.parse(data);
+//                    console.log(succ);return false;
+                    for(i=0;i<succ.length;i++){
+                        $.ajax({
+                            url: "http://apis.map.qq.com/ws/distance/v1/?mode=driving&from="+latitude+','+longitude+"&to="+succ[i].jwd+"&key=G4UBZ-FAKKJ-SA5FB-FGJ77-GSBVO-2DFRQ&output=jsonp&callback=calllocation"+succ[i].id,
+                            type: "GET",
+                            dataType: 'jsonp',
+                            jsonp: 'calllocation'+succ[i].id,
+                            jsonpCallback: 'calllocation'+succ[i].id,
+//                            success: function(data) {
+//                                var fei = JSON.parse(data);
+//                                console.log(data);
+//                            }
+
+                        });
+                    }
+//                    }
+                });
+            }
+        });
+    });
+</script>
+<div class="menu">
+    <a href="{php echo $this->createMobileUrl('Mfront')}"><span class="iconfont">&#xe64e;</span><br><span>返回首页</span></a>
+    <a class='aa' href="{php echo $this->createMobileUrl('qiangdan')}"><span class="iconfont">&#xe615;</span><br><span>抢单中心</span></a>
+    <a href="{php echo $this->createMobileUrl('qdlist')}"><span class="iconfont">&#xe615;</span><br><span>已抢订单</span></a>
+    <a href="{php echo $this->createMobileUrl('mstaffcore')}"><span class="iconfont">&#xe680;</span><br><span>服务中心</span></a>
+</div>
+{template 'footer'}

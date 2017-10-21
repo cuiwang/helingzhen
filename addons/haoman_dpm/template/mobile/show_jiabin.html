@@ -1,0 +1,216 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>{$reply['jiabintitle']}</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=0">
+    <meta name="apple-touch-fullscreen" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="format-detection" content="telephone=no">
+    <link href="../addons/haoman_dpm/img9/vote.css?v=2016112412270424" rel="stylesheet" type="text/css"/>
+    <!-- <link rel="stylesheet" href="../addons/haoman_dpm/mobimg/bottom.css?v=201611241740424" /> -->
+    <style type="text/css">
+        body{
+            background-image: url({$bg});
+            background-repeat: no-repeat;
+            background-size: 100% auto;
+        }
+    </style>
+</head>
+<body>
+<div id="header">
+    <div id="logo"><img src="{if empty($reply['jbtop_url'])}../addons/haoman_dpm/img9/showbg.jpg{else}{php echo tomedia($reply['jbtop_url'])}{/if}"></div>
+    <div id="titles">手机嘉宾展示</div>
+</div>
+<div id="main">
+    <div id="search"><div id="ss"><input type="text" id="st" placeholder="嘉宾名称"></div><div id="sb" class="sb2">查询</div></div>
+    <div id="list" style="margin-bottom: 60px">
+        {loop $jiabin $row}
+        <div class="ml">
+            <div class="sh">
+                <li class="p" style="margin-top: 5px;"><img src="{if empty($row['img'])}../addons/haoman_dpm/img9/0a74c45edd77be27dafb22f6846ba61c.jpg{else}{php echo tomedia($row['img'])}{/if}"></li>
+                <li class="na" style="height:40px;margin: 4px;"><span style="display: inline-block;height: auto">{$row['description']}</span></li>
+                <li class="no" style="height:60px;text-align:left;margin-left: 5px;line-height: 60px;"><img src="{if empty($row['avatar'])}../addons/haoman_dpm/img9/ava_default.jpg{else}{php echo tomedia($row['avatar'])}{/if}" style="height: 44px;width: 44px;border-radius: 100%;"><span style="display: inline-block;margin-left: 10px;">{$row['name']}</span></li>
+            </div>
+        </div>
+       {/loop}
+    </div>
+</div>
+
+<div id="float_bg"></div>
+<div class="zoom">
+    <div class="pinch-zoom"><div class="show_zoom"></div></div>
+    <div class="title_zoom"></div>
+</div>
+<div class="result"></div>
+
+<!-- <div style="width:100%;height:120px;"></div>
+<div class="menulist">
+    <div class="menu-wrap">
+        <div class="menu-container">
+            <div class="menu_item menu_item1"><span></span>
+                <a class="success" data-index="1" href="{php echo $this->createMobileUrl('messagesindex', array('id' => $rid))}"><img alt="" src="../addons/haoman_dpm/mobimg/item1.png">
+                    <s>发消息</s>
+                </a>
+            </div>
+            <div class="menu_item menu_item6"><span></span>
+                <a class="success" data-index="6" href="{php echo $this->createMobileUrl('index', array('id' => $rid))}"><img alt="" src="../addons/haoman_dpm/mobimg/item6.png">
+                    <s>流程</s>
+                </a>
+            </div>
+
+            <div class="menu_item menu_item2"><span></span>
+                <a class="success" data-index="5" href="{php echo $this->createMobileUrl('go_toupiao', array('id' => $rid))}"><img alt="" src="../addons/haoman_dpm/mobimg/item2.png?v=42343">
+                    <s>投票</s>
+                </a>
+            </div>
+
+            <div class="menu_item menu_item4"><span></span>
+                <a class="success" data-index="3" href="{php echo $this->createMobileUrl('qhbIndex', array('id' => $rid))}"><img alt="" src="../addons/haoman_dpm/mobimg/item4.png">
+                    <s>抢红包</s>
+                </a>
+            </div>
+            
+            <div class="menu_item menu_item5">
+                <a class="success" data-index="4" href="{php echo $this->createMobileUrl('mybobing', array('id' => $rid))}"><img alt="" src="../addons/haoman_dpm/mobimg/item5.png">
+                    <s>我的</s>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="clear"></div>
+</div> -->
+<input id="subscribe"  type="hidden"  mane="subscribe" value="1">
+<input id="openid" type="hidden" name="openid" value="{$from_user}"/>
+<input id="latitude" name="latitude" type="hidden" value="">
+<input id="longitude" name="longitude" type="hidden" value="">
+<input id="cid" name="cid" type="hidden" value="0">
+
+
+<script type="text/javascript" src="../addons/haoman_base/base/jquery-2.1.4.min.js"></script>
+<script>
+    var openid  = $("#openid").val();
+    var jiabin_save = "{php echo $this->createMobileUrl("jiabin_save", array('rid' => $rid))}";
+    $('#sb').unbind('click').bind('click',function(){
+
+        var key=$("#st").val();
+        if (key=='') {
+            show('请输入嘉宾名称词！');
+            return;
+        }
+        $.ajax({
+            url : jiabin_save,
+            type : 'post',
+            dataType : "json",
+            async : false,
+            data : {openid:openid,key:key},
+            success : function(data) {
+                if(data.s=='0'){
+                    $('#list').html(data.list);
+                    vote();
+                    // $("#list .p").lazyload();
+                    set_zoom();
+                    loading = false;
+                }
+                if(data.s=='1'){
+                    $('#list').html(data.list);
+                    show('查询不到，感谢支持！');
+                    loading = false;
+                }
+                if(data.s=='2'){location.reload();}
+            },
+            error : function(data, error) {
+                show('系统忙，请稍后！');
+            }
+        });
+    });
+    function show(str){
+        $('.result').html(str);
+        $('.result').show();
+        setTimeout(function(){
+            $('.result').hide();
+        }, 2000);
+    }
+</script>
+<!--<script type="text/javascript" src="../addons/haoman_dpm/img9/vote2.min.js"></script>-->
+<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+<script>
+    wx.config({
+        debug:false,
+        appId: '{$package["appId"]}',
+        timestamp: '{$package["timestamp"]}',
+        nonceStr: '{$package["nonceStr"]}',
+        signature: '{$package["signature"]}',
+        jsApiList: [
+            'getLocation', {if $reply['share_type'] != 2}'onMenuShareTimeline','onMenuShareQQ','onMenuShareQZone','onMenuShareAppMessage','onMenuShareWeibo'{/if}
+    ]
+    });
+    var sharedata = {
+        "imgUrl" : "{$shareimg}",
+        "link" : "{$sharelink}",
+        "desc" : "{$sharedesc}",
+        "title" : "{$sharetitle}"
+    };
+    wx.ready(function () {
+        {if $reply['isallowip']==1}
+        wx.getLocation({
+            type: 'wgs84', // 默认为wgs84的gps坐标，如果要返回直接给openLocation用的火星坐标，可传入'gcj02'
+            success: function (res) {
+
+                var latitude = res.latitude; // 纬度，浮点数，范围为90 ~ -90
+                var longitude = res.longitude; // 经度，浮点数，范围为180 ~ -180。
+                var speed = res.speed; // 速度，以米/每秒计
+                var accuracy = res.accuracy; // 位置精度
+
+
+
+                var submitData = {
+                    lat: latitude,
+                    lon: longitude,
+                    lbsip: "{$reply['allowip']}"
+                };
+
+
+                $.post('{php echo $this->createMobileUrl('getlbs',array('id' => $rid))}', submitData, function(idata) {
+
+                    if (idata.success == 1) {
+
+                    } else {
+                        alert(idata.msg);
+                        location.href = "{php echo $this->createMobileUrl('other', array('id' => $rid,'type'=>2))}";
+
+                    }
+                },"json");
+
+            },
+            fail: function () {
+                alert("获取位置失败,请打开GPS功能！");
+                location.href = "{php echo $this->createMobileUrl('index', array('id' => $rid))}";
+
+            }
+        });
+        {/if}
+
+        {if $reply['is_b_share'] == 2}
+        wx.hideOptionMenu();
+        {else}
+        wx.showOptionMenu();
+        wx.onMenuShareAppMessage(sharedata);
+        wx.onMenuShareTimeline(sharedata);
+        wx.onMenuShareQQ(sharedata);
+        wx.onMenuShareQZone(sharedata);
+        wx.onMenuShareWeibo(sharedata);
+        {/if}
+    });
+
+    wx.error(function (res) {
+        //alert(res.errMsg);
+    });
+</script>
+<div class="power-by" style="position: fixed;bottom: 50px;width: 100%;left: 0px;right: 0px;font-size: 12px;text-align: center;color:#EAB387;">
+    <div class="copyright fixed">{if empty($reply['copyright'])} &copy;{$_W['account']['name']}{else}&copy;{$reply['copyright']}{/if}</div>
+</div>
+{template 'm_footer'}
+
+</body>
+</html>

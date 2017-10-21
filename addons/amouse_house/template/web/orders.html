@@ -1,0 +1,397 @@
+{template 'common/header'}
+<div class='container' style='padding:0 5px 10px;margin:0;width:100%'>
+<ul class="nav nav-tabs">
+  <li {if $op == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('orders',array('op'=>'display'));}">管理订单</a></li>
+</ul>
+
+{if $op =='display'}
+<style>
+i.icon-edit{
+	color: #3b8db2;
+	float: right;
+}
+</style>
+<div class="panel panel-success">
+  <div class="panel-heading">主要业务 >> 嗨修保养 >> 管理订单</div>
+</div>
+<div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+    <form action="./index.php" method="get" class="form-horizontal" role="form">
+        <input type="hidden" name="c" value="site" />
+        <input type="hidden" name="a" value="entry" />
+        <input type="hidden" name="m" value="zqwyx_heixiu" />
+        <input type="hidden" name="do" value="orders" />
+        <input type="hidden" name="op" value="display" />
+        <div class="form-group">
+            <label class="col-xs-13 col-sm-2 col-md-2 col-lg-1 control-label">客户姓名</label>
+            <div class="col-sm-4">
+                <input class="form-control" placeholder="搜索客户姓名" name="username" type="text" value="{$_GPC['username']}">
+            </div>
+            <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">手机号</label>
+            <div class="col-sm-4">
+                <input class="form-control" placeholder="搜索手机号" name="mobile" type="text" value="{$_GPC['mobile']}">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-xs-13 col-sm-2 col-md-2 col-lg-1 control-label">地址</label>
+            <div class="col-sm-4">
+                <input class="form-control" placeholder="搜索地址" name="address" type="text" value="{$_GPC['address']}">
+            </div>
+            <label class="col-xs-13 col-sm-2 col-md-2 col-lg-1 control-label">订单编号</label>
+            <div class="col-sm-4">
+                <input type="text" placeholder="搜索订单编号" value="{$_GPC['ordersn']}" id="" name="ordersn" class="form-control">
+            </div>
+        </div>
+
+		<div class="form-group">
+			<label class="col-xs-13 col-sm-2 col-md-2 col-lg-1 control-label"> 订单状态</label>
+			<div class="col-sm-4">
+                <select name="status" class="form-control">
+                   <option value="" {if $_GPC['status']==''} selected="selected"{/if}>请选择</option>
+                   <option value="0" {if $_GPC['status']=='0'} selected="selected"{/if}>待确认</option>
+                   <option value="-1" {if $_GPC['status'] == -1} selected="selected"{/if}>已关闭</option>
+                   <option value="1" {if $_GPC['status'] == 1 } selected="selected"{/if}>已确认</option>
+                </select>
+			</div>
+            <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">下单时间</label>
+            <div class="col-sm-4">
+                {php echo tpl_form_field_daterange('date',array('start'=>date('Y-m-d', $starttime),'end'=>date('Y-m-d', $endtime)))}
+            </div>
+		</div>
+
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">品牌</label>
+            <div class="col-sm-4">
+                <select id="brandid2" name="brandid" class="form-control">
+                    <option value="0">选择品牌</option>
+                    {loop $brands $row}
+                    <option value="{$row['id']}">{$row['title']}</option>
+                    {/loop}
+                </select>
+            </div>
+            <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">车系</label>
+            <div class="col-sm-4">
+                <select id="seriesid" name="seriesid" class="form-control" >
+                    <option value='0'>请选择汽车车系</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">年款</label>
+            <div class="col-sm-4">
+                <select id="yearsid" name="yearsid" class="form-control">
+                    <option value="0">选择年款</option>
+                </select>
+            </div>
+            <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">活动</label>
+            <div class="col-sm-4">
+                <select id="aid" name="aid" class="form-control" >
+                    <option value='0'>请选择活动</option>
+                    {loop $activitys $activity}
+                    <option value="{$activity['id']}">{$activity['title']}</option>
+                    {/loop}
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="pull-right col-xs-12 col-sm-2 col-lg-1">
+                <button class="btn btn-block"><i class="fa fa-search"></i> 搜索</button>
+            </div>
+        </div>
+		</form>
+	</div>
+</div>
+
+<a href="{php echo $this->createWebUrl('export')}" title="导出数据" class="btn btn-mini btn-primary">
+    <i class="fa fa-print"></i>
+</a>
+
+<div style="padding:15px;">
+	<form id="form2" class="form-horizontal" method="post">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<th style="width:5%;">全选</th>
+					<th>订单号</th>
+					<th>姓名</th>
+					<th>Openid</th>
+					<th>手机号码</th>
+					<th>预约时间</th>
+                    <th>品牌</th>
+                    <th>车系</th>
+                    <th>年款</th>
+                    <th>活动</th>
+					<th>状态</th>
+					<th>操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $v}
+				<tr>
+					<td> <input type="checkbox" value="{$v['id']}" name="delete[]"> </td>
+					<td> {$v['ordersn']} </td>
+					<td title="{$v['username']}"> {$v['username']}</td>
+					<td title="{$v['openid']}"> {$v['openid']}</td>
+					<td title="{$v['mobile']}"> {$v['mobile']} </td>
+					<td title="{$v['appointmenttime']}{$v['timezone']}">
+						{$v['appointmenttime']}{$v['timezone']}
+					</td>
+                    <th title="{$v['btitle']}">{$v['btitle']}</th>
+                    <th title="{$v['serietitle']}">{$v['serietitle']}</th>
+                    <th title="{$v['styletitle']}">{$v['styletitle']}</th>
+                    <th title="{$v['atitle']}"> {php echo cutstr($v['atitle'],10)}</th>
+					<td>{if $v['status'] == 0}<span class="label label-info">待确认</span>{/if}
+						{if $v['status'] == 1}<span class="label label-info">已确认</span>{/if} 
+						{if $v['status'] == -1}<span class="label label-success">已关闭</span>{/if}
+					</td>
+					<td>
+					<a href="{php echo $this->createWebUrl('orders', array('op' => 'detail', 'id' => $v['id']))}" title="详情" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" title="" data-original-title="详情" >
+                        <i class="fa fa-paw"></i>
+                    </a>
+					<a href="{php echo $this->createWebUrl('export2', array('id' => $v['id']))}" title="导出" class="btn btn-default btn-sm">
+                        <i class="fa fa-print"></i>
+                    </a>
+					<a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('orders', array('id' => $v['id'],'op'=>'del'))}" title="删除" class="btn btn-default btn-sm">
+						<i class="fa fa-times"></i>
+                    </a>
+					</td>				
+				</tr>
+				{/loop}
+				<tr>
+                    <td colspan="6">
+                        <input type="checkbox"  onclick="var ck = this.checked;$(':checkbox').each(function(){this.checked = ck});" name=''>
+                        <input class="btn btn-primary" type="submit" value="删除" name="submit" >
+					</td>
+                     <td>
+
+					</td>
+					<td></td> 
+				</tr>
+
+			</tbody>
+		</table>
+        <div style="margin:0 auto;margin-right: auto;vertical-align: middle;text-align: center;" >
+            {$pager}
+        </div>
+		<input type="hidden" name="token" value="{$_W['token']}" />
+        <input type="hidden" value="del" name="op">
+        <input type="hidden" name="c" value="site" />
+        <input type="hidden" name="a" value="entry" />
+        <input type="hidden" name="m" value="heixiu" />
+        <input type="hidden" name="do" value="orders" />
+		</form>
+
+	<script>
+		$(function(){
+            $("#brandid2").change(function() {
+                var brandid = $(this).val();
+                $.get("{php echo $this->createWebUrl('Styles', array('op'=>'getseries'))}&brandid="+brandid,function(data){
+                    $("#seriesid").html(data);
+                });
+            });
+
+            $("#seriesid").change(function() {
+                var seriesid = $(this).val();
+                $.get("{php echo $this->createWebUrl('service', array('op'=>'getYears'))}&styleid="+seriesid,function(data){
+                    $("#yearsid").html(data);
+                });
+            });
+
+		})
+	 
+		 $('#form2').submit(function(){
+			if($(":checkbox[name='delete[]']:checked").size() > 0){
+				return confirm('删除后不可恢复，您确定删除吗？');
+			}
+			return false;
+		}); 
+		
+		/* $(function() {
+			$(".paOriginalNo").click(function() {
+				if (!$(this).hasClass('input')) {
+					$(this).addClass('input').html('<input type="text" value="'+ trimStr($(this).text()) +'" class="form-control input-sm"/>').find('input').focus().blur(function(){
+						var orderid = $(this).parent().attr("orderid"); 
+						var newWxname=$(this).val();
+						
+						var ajaxurl = "{$_W['siteroot']}{php echo $this->createWebUrl('orders',array('op'=>'post'))}";
+						if (newWxname != '') {
+							$.post(ajaxurl, {
+								id:orderid,
+								jsname: trimStr(newWxname)
+							  },
+							  function(data) {
+								 if(data.success){
+									 location.reload(true);
+								 }else if(data.message){
+									// alert(data.message);
+									 message(data.message, '', 'success');
+								 }
+							  }, "json");
+						}
+						$(this).parent().removeClass('input').html($(this).val() + '<i class="fa fa-edit"></i>'); 
+					});
+				}
+			});
+		}); */
+		
+		function trimStr(str){
+			return str.replace(/(^\s*)|(\s*$)/g,"");
+		}
+	</script>
+
+</div>
+{elseif $op == 'detail'}
+<div class="panel panel-success">
+  <div class="panel-heading">主要业务 >> 嗨修保养 >> {if !empty($id) && $op == 'detail'} 查看{/if}订单</div>
+</div>
+<div class="main">
+	<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" onsubmit="return validate(this);">
+	<div class="panel panel-default">
+		<div class="panel-heading">
+		操作订单
+		</div>
+		<div class="panel-body">
+		  <input type="hidden" name="id" value="{$item[id]}">
+
+          <div class="form-group">
+               <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">订单号:</label>
+               <div class="col-sm-4">
+                   <span class="label label-info">{$item['ordersn']} </span>
+               </div>
+               <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">客户姓名:</label>
+               <div class="col-sm-4">
+                   <span class="label label-info">{$item['username']} </span>
+               </div>
+          </div>
+
+
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">手机号:</label>
+            <div class="col-sm-4">
+                <span class="label label-info">{$item['mobile']} </span>
+            </div>
+            <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">车辆品牌:</label>
+            <div class="col-sm-4">
+                <span class="label label-info">{$brandtitle} </span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">车系:</label>
+            <div class="col-sm-4">
+                <span class="label label-info"> {$series} </span>
+            </div>
+            <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">年款:</label>
+            <div class="col-sm-4">
+                <span class="label label-info">{$style}</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">套餐:</label>
+            <div class="col-sm-9">
+                <span class="label label-info">{$meal['title']}--{$meal['content']}</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">参与活动:</label>
+            <div class="col-sm-9">
+                <span class="label label-info">{$activity['title']}--{$activity['content']}</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">总价:</label>
+            <div class="col-sm-4">
+                <span class="label label-info">{$item['price']} 元</span>
+            </div>
+            <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">订单状态:</label>
+            <div class="col-sm-4">
+                <span class="label label-info">
+                  {if $item['status'] == 0}<span class="label label-info">待确认</span>{/if}
+                  {if $item['status'] == 1}<span class="label label-info">已确认</span>{/if}
+                  {if $item['status'] == -1}<span class="label label-success">已关闭</span>{/if}
+                </span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">预约时间:</label>
+            <div class="col-sm-4">
+                <select name="appointmenttime" id="appointmenttime" class="form-control">
+                    {loop $ret $key $value}
+                    <option {if $item['appointmenttime']==$value}selected="selected"{/if} value="{$value}">{$value}</option>
+                    {/loop}
+                </select>
+            </div>
+            <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">预约时段:</label>
+            <div class="col-sm-4">
+                <select name="timezone" id="timezone" class="form-control">
+                    <option {if $item[timezone]=='9:00-12:00'}selected="selected"{/if} value="9:00-12:00">9:00-12:00</option>
+                    <option {if $item[timezone]=='12:00-17:0'}selected="selected"{/if}value="12:00-17:00">12:00-17:00</option>
+                    <option {if $item['timezone']=='17:30-21:00'}selected="selected"{/if}value="12:00-17:00">17:30-21:00</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">车牌号:</label>
+            <div class="col-sm-4">
+                <span class="label label-info"> {$item['carprefix']}{$item['carNo']} </span>
+            </div>
+            <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">微信昵称:</label>
+            <div class="col-sm-4">
+                <span class="label label-info">{$nicknames['nickname']}</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">
+                <span style='color:red'>*</span>指定上门技师:
+            </label>
+            <div class="col-sm-4">
+                <input type="text" name="jsname" class="form-control" value="{$item['jsname']}" />
+            </div>
+            <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">
+                客户预定区域:
+            </label>
+            <div class="col-sm-4">
+                <span class="label label-info">{$item['residecity']}{$item['residedist']} </span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">客户地址:</label>
+            <div class="col-sm-4">
+                <span class="label label-info">{$item['address']} </span>
+            </div>
+            <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">保养类别:</label>
+            <div class="col-sm-4">
+                <span class="label label-info">{if $meal['type']==1}小保养{else}大保养{/if} </span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+            <input type="hidden" name="id" value="{$item[id]}">
+            <input type="hidden" name="token" value="{$_W['token']}" />
+            <div class="col-sm-4">
+                {if $item['status'] != 1}
+                <button type="submit" class="btn btn-primary" onclick="return confirm('确认完成此订单吗？'); return false;" name="finish" onclick="" value="yes">确认订单</button>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <button type="submit" class="btn  label-danger" name="close" onclick="return confirm('确认关闭此订单，确认吗？'); return false;" value="关闭">关闭订单</button>
+                {/if}
+            </div>
+		</div>
+
+	</div>
+	</form>
+</div>
+{/if}	
+</div>
+{template 'tmpl/footer'}

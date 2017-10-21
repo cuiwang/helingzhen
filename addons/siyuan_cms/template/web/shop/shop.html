@@ -1,0 +1,147 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+<li {if $op == 'display'}class="active"{/if}><a href="{php echo url('site/entry/shop',array('op'=>'display','m'=>'siyuan_cms'))}">商家列表</a></li>
+<li {if $op == 'post'}class="active"{/if}><a href="{php echo url('site/entry/shop',array('op'=>'post','m'=>'siyuan_cms'))}">添加商家</a></li>
+</ul>
+<style>
+.table td span{display:inline-block;margin-top:4px;}
+.table td input{margin-bottom:0;}
+</style>
+{if $op == 'display'}
+<form action="" method="post">
+<div class="panel panel-default">
+<div class="table-responsive panel-body">
+<table class="table">
+<thead>
+<tr>
+<th style="width:60px">ID</th>
+<th style="width:60px">排序</th>
+<th style="width:380px">名称</th>
+<th style="width:120px">电话</th>
+<th>微信</th>
+<th>链接</th>
+<th>置顶</th>
+<th>审核</th>
+<th style="width:280px;">操作</th>
+</tr>
+</thead>
+<tbody>
+{loop $list $item}
+<tr>
+<td>{$item['id']}</td>
+<td>{$item['displayorder']}</td>
+<td><span class="cate">{if !empty($item['blei'])}<span class="text-error">[{$fenlei[$item['blei']]['name']}]</span>{/if}{if !empty($item['slei'])}<span class="text-info">[{$fenlei[$item['slei']]['name']}]</span>{/if}</span>
+<a href="{php echo url('site/entry/shop',array('op'=>'post', 'id' => $item['id'],'m'=>'siyuan_cms'))}" style="color:#333;">{$item['name']}</a></td>
+<td>{$item['tel']}</td>
+<td>{$item['weixin']}</td>
+<td><a target="_blank" href="{$_W['siteroot']}app/{php echo $this->createMobileUrl('shop', array('id' => $item['id'],'act' => news, 'weid' => $_W['weid']))}"><button type="button" class="btn btn-primary"><i class="fa fa-paper-plane"></i>访问</button></a>
+</td>
+<td>
+{if $item['ding'] == 1}
+<span class="label label-success">已置顶</span>
+{elseif $item['ding'] == 0}
+<span class="label label-default">未置顶</span>
+{/if}
+</td>
+<td>
+{if $item['status'] == 1}
+<span class="label label-success">已通过</span>
+{elseif $item['status'] == 0}
+<span class="label label-default">未审核</span>
+{/if}
+</td>
+<td>
+{if $item['ding'] == 0}
+<a href="{php echo url('site/entry/shop',array('op'=>'zhiding', 'id' => $item['id'],'m'=>'siyuan_cms'))}" class="btn btn-success btn-sm status" data-id="{$item['id']}"><i class="fa fa-check"></i> 置顶</a>
+{elseif $item['ding'] == 1}
+<a href="{php echo url('site/entry/shop',array('op'=>'quxiao', 'id' => $item['id'],'m'=>'siyuan_cms'))}" class="btn btn-danger btn-sm status" data-id="{$item['id']}"><i class="fa fa-check"></i> 取消</a>
+{/if}
+<a href="{php echo url('site/entry/shop',array('op'=>'post', 'id' => $item['id'],'m'=>'siyuan_cms'))}" title="编辑" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-edit"></i></a>
+<a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo url('site/entry/shop',array('op'=>'delete', 'id' => $item['id'],'m'=>'siyuan_cms'))}" title="删除" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-times"></i></a>
+</td>
+</tr>
+{/loop} </tbody>
+</table>
+</div>
+</div>
+{$pager}
+<input name="submit" type="submit" value="更新排序" class="btn btn-primary col-lg-1">
+<input type="hidden" name="token" value="{$_W['token']}" />
+</form>
+<script type="text/javascript">
+require(['bootstrap'],function($){
+$('.btn').hover(function(){
+$(this).tooltip('show');
+},function(){
+$(this).tooltip('hide');
+});
+});
+</script>
+{elseif $op == 'post'}
+<form class="form-horizontal form" action="" method="post" enctype="multipart/form-data" id="form1">
+<input type="hidden" name="_id" value="{$item[id]}">
+<div class="panel panel-default">
+<div class="panel-heading">
+{if empty($item['id'])}
+添加商家
+{else}
+编辑商家
+{/if}
+</div>
+<div class="panel-body">
+<ul class="nav nav-tabs" id="shop_tabs_wrap">
+<li class="active">
+<a href="javascript:;" rel="base_wrap">基本信息</a>
+</li>
+<li class="">
+<a href="javascript:;" rel="params_wrap">自定义属性</a>
+</li>
+</ul>
+<div class="tab-content">
+<div class="tab-pane active" id="base_wrap">
+{template 'web/shop/shop-base'}
+</div>
+<div class="tab-pane" id="params_wrap">
+{template 'web/shop/shop-params'}
+</div>
+</div>
+<div class="form-group">
+<div class="col-sm-12">
+<input name="submit" type="submit" value="提交" class="btn btn-primary col-lg-1">
+<input type="hidden" name="token" value="{$_W['token']}" />
+</div>
+</div></div>
+</form>
+<script>
+require(['jquery', 'util'], function($, u){
+//绑定tab切换
+$('#shop_tabs_wrap li a').bind('click', function(){
+var id = $(this).attr('rel');
+$('#shop_tabs_wrap li').each(function(){
+$(this).removeClass('active');
+});
+$('.tab-pane').each(function(){
+$(this).hide();
+});
+$('#'+id).show();
+$(this).parent().addClass('active');
+});
+});
+</script>
+<script type="text/javascript">
+require(['jquery', 'util'], function($, u){
+$('#form1').submit(function(){
+if($("input[name=name]").val().length <= 0) {
+u.message('没有填写标题', '', 'error');
+return false;
+}
+if ($("select[id=fenlei_parent]").val() == "0"){
+u.message('请选择分类', '', 'error');
+return false;
+}
+return true;
+});
+});
+</script>
+{/if}
+{template 'common/footer'}

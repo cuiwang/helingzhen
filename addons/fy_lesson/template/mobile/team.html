@@ -1,0 +1,168 @@
+<!--
+ * ============================================================================
+ * ============================================================================
+-->
+{php include $this->template('_header');}
+
+<style type="text/css">
+body {margin:0px; background:#eee; font-family:'微软雅黑'; -moz-appearance:none;}
+a {text-decoration:none;}
+.team_top {height:44px; width:100%;  background:#f8f8f8;  border-bottom:1px solid #e3e3e3;}
+.team_top .title {height:44px; width:auto;margin-left:10px; float:left; font-size:16px; line-height:44px; color:#666;}
+
+.team_list_head {height:20px; width:94%; background:#fff; padding:10px 3%;border-bottom:1px solid #eaeaea;}
+.team_list_head .info {height:20px; width:60%; float:left;  font-size:16px; color:#666; line-height:20px; text-align:left;}
+.team_list_head .info span {font-size:14px; color:#999;}
+.team_list_head .num {height:20px; float:right; text-align:right; font-size:16px; color:#666; line-height:20px; font-size:14px; color:#999;}
+.team_list {height:40px; width:94%; background:#fff; padding:10px 3%; border-bottom:1px #ECE9E9 solid;}
+.team_list .img { width:16%; height:40px; float:left; text-align:left;}
+.team_list .img img {height:40px; width:40px; vertical-align: top;}
+
+.team_list .info {height:40px; width:60%; float:left; border-right:1px solid #eaeaea; font-size:16px; color:#666; line-height:20px; text-align:left;}
+.team_list .info span {font-size:14px; color:#999;}
+.team_list .num {height:40px; width:23%; float:right; text-align:right; font-size:16px; color:#666; line-height:20px;}
+.team_list .num span {font-size:14px; color:#999;}
+.team_tab {height:30px; margin:5px; border:1px solid #0A90C3; border-radius:5px; overflow:hidden;font-size:13px;background:#fff;padding-right: -2px;}
+.team_nav {height:30px;  background:#fff; color:#666; text-align:center; line-height:30px; float:left;}
+.team_navon {color:#fff; background:#0A90C3;}
+.team_no {height:100px; width:100%; margin:50px 0px 60px; color:#ccc; font-size:12px; text-align:center;}
+#team_loading { padding:10px;color:#666;text-align: center;}
+
+</style>
+<div class="team_top">
+    <div class="title"> {$sontitle}</div>
+</div>
+
+<div class="team_tab">
+	{if $level==1 || empty($level)}
+    <div class="team_nav team_navon" style='width:100%'>一级会员</div>
+	{elseif $level==2}
+    <div class="team_nav team_navon" style='width:50%'>二级会员</div>
+	{elseif $level==3}
+    <div class="team_nav team_navon" style='width:33.3%'>三级会员</div>
+	{/if}
+</div>
+<div class="team_list_head">
+        <div class="info">成员信息</div>
+        <div class="num">Ta的佣金/成员</div>
+</div>
+<div id="teamlist">
+	{if empty($teamlist)}
+	<div class="team_no"><span style="line-height:100px; font-size:16px;">Ta的团队还没有任何成员~</span></div>
+	{/if}
+</div>
+<div id="loading" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:9999;"><div class="spinner"><div class="bounce1"></div><div class="bounce2"></div><div class="bounce3"></div></div></div>
+<div style="font-size:.12rem; text-align:center; {if empty($teamlist)}display:none{/if};">
+	<a href="javascript:void(0);" id="btn_Page">点击加载更多</a>
+</div>
+
+
+<script type="text/javascript">
+var i = 1; //设置当前页数，全局变量
+var ajaxurl = "{php echo $this->createMobileUrl('team', array('leval'=>$leval,'mid'=>$mid));}";
+var level = {php echo $level};
+var fxlevel = {php echo $setting['level']};
+var murl = "{php echo $this->createMobileUrl('team');}";
+var loading = document.getElementById("loading");
+$(function () {
+    //根据页数读取数据  
+    function getData(page) {  
+        i++; //页码自动增加，保证下次调用时为新的一页。  
+        $.get(ajaxurl, {page: page}, function (data) {  
+            if (data.length > 0) {
+				loading.style.display = 'none';
+                var jsonObj = JSON.parse(data);
+                insertDiv(jsonObj);  
+            }
+        });  
+       
+    } 
+    //初始化加载第一页数据  
+    getData(1);
+
+    //生成数据html,append到div中  
+    function insertDiv(result) {  
+        var mainDiv =$("#teamlist");
+        var chtml = '';  
+        for (var j = 0; j < result.length; j++) {
+		if(level==1){
+			if(fxlevel>1){
+				chtml += '<div class="team_list" onclick="location.href=\'' + murl + '&level=2&mid=' +result[j].uid+ '\'">';
+			}else{
+				chtml += '<div class="team_list">';
+			}
+            
+		}else if(level==2){
+			if(fxlevel>2){
+				chtml += '<div class="team_list" onclick="location.href=\'' + murl + '&level=3&mid=' +result[j].uid+ '\'">';
+			}else{
+				chtml += '<div class="team_list">';
+			}
+		}else if(level==3){
+			chtml += '<div class="team_list">';
+		}
+			chtml += '	<div class="img"><img src="' +result[j].avatar+ '"></div>';
+			chtml += '	<div class="info">' +result[j].nickname+ '<br><span>' +result[j].addtime+ '</span></div>';
+			chtml += '	<div class="num">+' +result[j].commission+ '<br><span>' +result[j].recnum+ ' 个成员</span></div>';
+			chtml += '</div>'; 
+        }
+		mainDiv.append(chtml);
+		if(result.length==0){
+			document.getElementById("btn_Page").innerHTML="已全部加载完成";
+		}
+    }  
+  
+    //==============核心代码=============  
+    var winH = $(window).height(); //页面可视区域高度   
+  
+    var scrollHandler = function () {  
+        var pageH = $(document.body).height();  
+        var scrollT = $(window).scrollTop(); //滚动条top   
+        var aa = (pageH - winH - scrollT) / winH;  
+        if (aa < 0.02) { 
+            if (i % 1 === 0) {
+                getData(i);  
+                $(window).unbind('scroll');  
+                $("#btn_Page").show();
+            } else {  
+                getData(i);  
+                $("#btn_Page").hide();
+            }  
+        }  
+    }  
+    //定义鼠标滚动事件
+    $(window).scroll(scrollHandler);
+    //继续加载按钮事件
+    $("#btn_Page").click(function () {
+		loading.style.display = 'block';
+        getData(i);
+        $(window).scroll(scrollHandler);
+    });
+  
+});
+</script>
+
+{php echo register_jssdk(false);}
+<script type="text/javascript">
+wx.ready(function(){
+	var shareData = {
+		title: "{$sharelink['title']} - {$setting['sitename']} - {$_W['account']['name']}",
+		desc: "{$sharelink['desc']}",
+		link: "{php echo $shareurl;}",
+		imgUrl: "{php echo $_W['attachurl'];}{$sharelink['images']}",
+		trigger: function (res) {},
+		complete: function (res) {},
+		success: function (res) {},
+		cancel: function (res) {},
+		fail: function (res) {}
+	};
+	wx.onMenuShareTimeline(shareData);
+	wx.onMenuShareAppMessage(shareData);
+	wx.onMenuShareQQ(shareData);
+	wx.onMenuShareWeibo(shareData);
+	wx.onMenuShareQZone(shareData);
+	
+});
+</script>
+
+{php include $this->template('_footer');}

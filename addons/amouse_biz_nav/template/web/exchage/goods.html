@@ -1,0 +1,199 @@
+
+{template 'common/header'}
+<ul class="nav nav-tabs">
+    <li {if $op =='display'}class="active"{/if}><a href="{php echo $this->createWebUrl('goods',array('op'=>'display'));}">管理商品</a>  </li>
+    {if !empty($id) && $op == 'post'}
+    <li class="active"> <a href="{php echo $this->createWebUrl('goods',array('op'=>'post','id'=>$id));}">编辑商品</a> </li>
+    {/if}
+    <li {if $op =='post' && empty($id)}class="active"{/if}><a href="{php echo $this->createWebUrl('goods', array('op' => 'post'));}">添加商品</a></li>
+</ul>
+{if $op == 'display'}
+<div class="panel panel-info">
+    <div class="panel-heading">筛选</div>
+    <div class="panel-body">
+        <form action="./index.php" method="get" class="form-horizontal" role="form">
+            <input type="hidden" name="c" value="site"/>
+            <input type="hidden" name="a" value="entry"/>
+            <input type="hidden" name="m" value="amouse_biz_nav"/>
+            <input type="hidden" name="do" value="goods"/>
+            <input type="hidden" name="op" value="display"/>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">关键字</label>
+                <div class="col-xs-12 col-sm-8 col-lg-9">
+                    <input class="form-control" name="keyword" id="" type="text" value="{$_GPC['keyword']}">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">状态</label>
+                <div class="col-xs-12 col-sm-8 col-lg-9">
+                    <select name="status" class='form-control'>
+                        <option value="1" {if $_GPC['status'] != '0'} selected{/if}>上架</option>
+                        <option value="0" {if $_GPC['status'] == '0'} selected{/if}>下架</option>
+                    </select>
+                </div>
+                <div class="col-xs-12 col-sm-2 col-lg-2">
+                    <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<div class="panel panel-default">
+    <div class="panel-body">
+        <a class='btn btn-default' href="{php echo $this->createWebUrl('goods',array('op'=>'post'))}"><i class='fa fa-plus'></i> 添加商品</a>
+    </div>
+</div>
+<div style="padding:15px;">
+    <form id="form2" class="form-horizontal" method="post">
+        <table class="table">
+            <thead>
+            <tr>
+                <th style="width:30%">商品标题</th>
+                <th style='width:10%;'>价格</th>
+                <th style='width:15%;'>状态(点击可修改)</th>
+                <th style='width:10%;'>是否默认</th>
+                <th style="text-align:center;">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {loop $list $item}
+            <tr>
+                <td>
+                    <a href="{php echo $this->createWebUrl('goods', array('op' => 'post', 'id' => $item['id']))}" style="color:#333;">{$item['title']}
+                    </a>
+                </td>
+                <td>{$item['price']}</td>
+                <td>
+                    <label title="点击自动切换" data="{$item['status']}" class='label label-default {if $item['status']==1}label-success{/if}' onclick="setProperty(this,{$item['id']},'status')">{if $item['status']==1}上架{else}下架{/if}
+                    </label>
+                </td>
+                <td>
+                    {if $item['isdefault']==1}
+                    <i class='fa fa-check' style='color:green'></i>
+                    {/if}
+                </td>
+                <td style="text-align:center;">
+                    <a class='btn btn-default' href="{php echo $this->createWebUrl('goods', array('op' => 'setdefault', 'id' => $item['id']))}"  title='设置默认' onclick="return confirm('确认设置此商品为默认商品吗？');return false;"><i class='fa fa-check'>设置默认</i></a>
+                    <a href="{php echo $this->createWebUrl('goods', array('op' => 'post', 'id' => $item['id'],'page'=>$pindex))}" title="编辑" data-toggle="tooltip"
+                       data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-edit">编辑</i>
+                    </a>
+                    <a onclick="return confirm('此操作不可恢复，确认吗？'); return false;"
+                       href="{php echo $this->createWebUrl('goods', array('op' => 'delete', 'id' => $item['id']))}"
+                       title="删除" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-times">删除</i></a>
+                </td>
+            </tr>
+            {/loop}
+            </tbody>
+        </table>
+    {$pager}
+    </form>
+</div>
+<script type="text/javascript">
+    require(['bootstrap'], function ($) {
+        $('.btn').hover(function () {
+            $(this).tooltip('show');
+        }, function () {
+            $(this).tooltip('hide');
+        });
+    });
+
+    function setProperty(obj, id,type) {
+        $(obj).html($(obj).html() + "...");
+        $.post("{php echo $this->createWebUrl('goods',array('op'=>'setstatus'))}",{id: id,type: type,data: obj.getAttribute("data")},function (d) {
+            $(obj).html($(obj).html().replace("...", ""));
+            if (type == 'status') {
+                $(obj).html(d.data == 1 ? '上架' : '下架');
+            }
+            $(obj).attr("data", d.data);
+            if (d.result == 1) {
+                $(obj).toggleClass("label-info");
+            }
+        }, "json");
+    }
+</script>
+
+{elseif $op == 'post'}
+<div class="clearfix">
+    <form class="form-horizontal form" action="" method="post" enctype="multipart/form-data">
+        <div class="panel panel-default">
+            <div class="panel-heading">{if empty($item['id'])}添加商品{else}编辑商品{/if}</div>
+            <div class="panel-body">
+                <input type="hidden" name="id" value="{$item[id]}">
+                {if !empty($item['id'])}
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">商品连接(点击复制)</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <p class='form-control-static'><a href='javascript:;' title='点击复制连接' id='cp'>{php echo $this->createMobileUrl('detail',array('id'=>$item['id']))}</a></p>
+                    </div>
+                </div>
+                {/if}
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label"><span style='color:red'>*</span>商品名称</label>
+                    <div class="col-sm-8">
+                        <input type="text" name="title" id="title" class="form-control" value="{$item['title']}" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">首页图片</label>
+                    <div class="col-sm-9 col-xs-12">
+                        {php echo tpl_form_field_multi_image('thumbs',$piclist)}
+                        <span class="help-block">建议尺寸: 640 * 1680 </span>
+                            <a href="{amouse_biz_nav_RES}mall/index.html" target="_blank">首页参考设计</a>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">商品详情图</label>
+                    <div class="col-sm-9 col-xs-12">
+                        {php echo tpl_form_field_image('thumb', $item['thumb'])}
+                        <span class="help-block">建议尺寸:640 *3900   </span>
+                        <a href="{amouse_biz_nav_RES}mall/detail.html" target="_blank">商品详情图参考设计</a>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">商品价格</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <div class="input-group form-group">
+                            <input type="text" name="price" id="price" class="form-control" value="{$item['price']}" />
+                            <span class="input-group-addon">元</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">是否默认</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <label class="radio-inline">
+                            <input type="radio" name="isdefault" value="1" {if $item['isdefault']==1}checked{/if} /> 是
+                        </label>
+                        <label class="radio-inline">
+                            <input type="radio" name="isdefault" value="0" {if empty($item['isdefault'])}checked{/if} /> 否
+                        </label>
+                        <span class='help-block'>是否是默认设置，单商品只支持一个</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">是否上架</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <label class="radio-inline">
+                            <input type="radio" name="status" value="1" {if $item['status']==1}checked{/if} />上架
+                        </label>
+                        <label class="radio-inline">
+                            <input type="radio" name="status" value="0" {if empty($item['status'])}checked{/if} />下架
+                        </label>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-sm-12">
+                <input name="submit" type="submit" value="提交" class="btn btn-primary col-lg-1">
+                <input type="hidden" name="token" value="{$_W['token']}"/>
+            </div>
+        </div>
+    </form>
+
+</div>
+{/if}

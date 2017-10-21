@@ -1,0 +1,90 @@
+{php $title="我关注的项目";}
+{php $pagetitle="我的关注";}
+{template 'header'}
+<style>
+.shopcart-main{margin:10px; -webkit-box-shadow:0 1px 2px 1px rgba(0,0,0,0.2); box-shadow:0 1px 2px 1px rgba(0,0,0,0.2); overflow:hidden; background:#FFF;}
+.shopcart-main1{margin:10px; -webkit-box-shadow:0 1px 2px 1px rgba(0,0,0,0.2); box-shadow:0 1px 2px 1px rgba(0,0,0,0.2); overflow:hidden; background:#ffffe1;}
+.shopcart-main .shopcart-hd{height:50px; line-height:50px; background:#f0f0f0; border-bottom:1px solid #cacaca; padding:0 10px;}
+.shopcart-main .shopcart-hd > span{font-size:15px; color:#504040; font-weight:bold;}
+.shopcart-main .shopcart-hd > a.pull-right{text-decoration:none; font-size:28px; color:#C9C9C9; margin-top:10px;}
+.shopcart-main .shopcart-item{height:120px; border-bottom:1px solid #f3f3f4; padding:10px; overflow:hidden;}
+.shopcart-main .shopcart-item img{width:80px; margin-right:10px; float:left;}
+.shopcart-main .shopcart-item .shopcart-item-detail{float:left; display:block; width:170px; overflow:hidden;}
+.shopcart-main .shopcart-item .name{color:#4d4f5d; font-weight:bold; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.shopcart-main .shopcart-item .price{color:#e9342a; font-size:14px; white-space:nowrap; text-overflow:ellipsis;}
+.shopcart-main .shopcart-item .input-group{width:130px; margin-top:5px;}
+.shopcart-main .shopcart-item .input-group .form-control{text-align:center;}
+.shopcart-main .shopcart-item .input-group .btn{background:#EEE;}
+.shopcart-main .shopcart-item .shopcart-item-remove{color:#d5a7a7;}
+.shopcart-main .store-total{height:38px; line-height:38px; padding:0 10px; color:#b9b9b9; font-weight:bold;}
+.shopcart-main .store-total span{color:#e9342a;}
+.shopcart-footer{width:100%; height:40px; line-height:40px; color:#FFF; padding:0 10px; background:#6d7081; position:fixed; bottom:45px; left:0; filter:alpha(opacity=95); opacity:.95; font-weight:bold;}
+.shopcart-footer .btn{margin-top:3px;}
+.shopcart-footer{margin-bottom:30px;}
+</style>
+<div class="shopcart-main img-rounded">
+	<div style='text-align:center;padding:50px 0 50px 0; {if count($list)>0}display:none{/if}' id='cartempty'>
+		<img src='../addons/hx_zhongchou/images/icon_cart_empty.png' /><br/><br/>
+		<span style='color:#adadad'>您暂时没有关注的项目~~</span>
+	</div>
+	{loop $list $item}
+	{php $project = $this->getproject($item['projectid']);}
+	<span id="stock_{$item['id']}" style='display:none'>{$project['id']}</span>
+	<div class="shopcart-item clearfix" id='item_{$item['id']}' style='height:120px;'>
+		<a href="{php echo $this->createMobileUrl('detail', array('id' => $project['id']))}">
+			<img src="{$_W['attachurl']}{$project['thumb']}">
+		</a>
+		<div class="shopcart-item-detail">
+			<a href="{php echo $this->createMobileUrl('detail', array('id' => $project['id']))}"><div class="name">{$project['title']}</div></a>
+			<div class="price">已筹资：<span id="singleprice_{$item['id']}">{$project['finish_price']}</span> 元({php echo floor($project['finish_price']*100/$project['limit_price'])}％)</div>
+			<div class="price">剩余：<span class='singletotalprice' id="goodsprice_{$item['id']}">{php echo $project['deal_days'] - floor((time() - $project['createtime'])/86400)}</span> 天</div>
+			<div class="clearfix">
+				<div style="height:35px; line-height:50px;">
+					<a href="javascript:;" onclick="removeCart({$item['id']})" class="shopcart-item-remove"><i class="fa fa-remove"></i> 删除</a>
+				</div>
+			</div>
+		</div>
+
+	</div>
+	{/loop}
+</div>
+<div style='height:80px;width:100%;'>&nbsp;</div>
+<script type="text/javascript">
+
+function clearCart(){
+	if (confirm('确定要清空收藏夹吗？')) {
+		tip("正在处理数据...");
+		$.getJSON('{php echo $this->createMobileUrl('mycart',array('op'=>'clear'));}', function(s){
+			$(".shopcart-item").remove();
+			$("#cartempty").show();
+			$("#cartfooter").hide();
+			tip_close();
+		});
+	}
+}	
+function removeCart(id){
+	if (confirm('您确定要删除此项目吗？')) {
+		tip("正在处理数据...");
+		var url = "{php echo murl('entry//mycart',array('m'=>'hx_zhongchou','op'=>'remove'), true)}"+ "&id=" + id;
+		$.getJSON(url, function(s){
+			$("#item_" + s.cartid).remove();
+			if($(".shopcart-item").length<=0){
+				$("#cartempty").show();
+				$("#cartfooter").hide();
+			}
+			tip_close();
+			canculate();
+		});
+	}
+}
+function canculate(){
+	var total = 0;
+	$(".singletotalprice").each(function(){
+		total+=parseFloat( $(this).html() );
+	});
+
+	$("#pricetotal").html(total);
+}
+</script>
+{template 'footer'}
+{template 'footerbar'}

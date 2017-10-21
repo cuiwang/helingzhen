@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<link href="{STYLE_PATH}/css/index/main.css" rel="stylesheet">
+	<link href="{STYLE_PATH}/css/index/form.css" rel="stylesheet">
+	<link href="{STYLE_PATH}/css/index/screen-styles.css" rel="stylesheet">
+	<title>活动页</title>
+	<script type="text/javascript" src="{STYLE_PATH}/js/index/jquery-1.8.0.min.js"></script>
+	<script type="text/javascript" src="{STYLE_PATH}/js/index/jquery.form.js"></script>
+	<script type="text/javascript" src="{STYLE_PATH}/js/index/jweixin-1.0.0.js"></script>
+	<script type="text/javascript" src="{STYLE_PATH}/js/index/product.js"></script>
+	<link rel="stylesheet" type="text/css" href="{STYLE_PATH}/css/sweetalert.css?v=3"/>
+	<script type="text/javascript" src="{STYLE_PATH}/js/sweetalert.min.js"></script>
+	{if !empty($settings['debug_mode'])}
+	{php echo register_jssdk(true);}
+	{else}
+	{php echo register_jssdk(false);}
+	{/if}
+	<script type="text/javascript">
+        wx.ready(function () {
+            shareMeta = {
+                imgUrl: "{php echo tomedia($activity['share_thumb'])}",
+                link: "{$activity['share_url']}",
+                desc: "{$activity['share_desc']}",
+                title: "{$activity['share_title']}",
+                success: function () {
+
+                },
+                cancel: function () {
+                    // alert("分享失败，可能是网络问题，一会儿再试试？");
+                }
+            };
+            wx.onMenuShareTimeline(shareMeta);
+            wx.onMenuShareAppMessage(shareMeta);
+            wx.onMenuShareWeibo(shareMeta);
+            wx.onMenuShareQQ(shareMeta);
+            wx.onMenuShareQZone(shareMeta);
+        });
+	</script>
+	
+	
+	<script>
+        $(document).ready(function () {
+			
+			/* Ajax progress */
+            var l = ($(window).width() - 32) / 2;
+            var t = ($(window).height() - 32) / 2;
+            var options = {left: l, top: t};
+            $("#loadingMessage").css(options);
+
+            $("#loadingMessage").ajaxStart(function () {
+                $(this).show();
+            });
+            $("#loadingMessage").ajaxStop(function () {
+                $(this).hide();
+            });
+			/* */
+
+        });
+
+        function showPopupBackground(bgDiv) {
+            var wh = $(document).height();
+            $('#' + bgDiv).css("height", wh);
+            $('#' + bgDiv).show();
+        }
+
+        function hidePopupBackground(bgDiv) {
+            $('#' + bgDiv).hide();
+        }
+
+        function getPopupPostion(divId) {
+
+            var ww = $(window).width();
+            var hh = $(window).height();
+            var w = $('#' + divId).width();
+            var h = $('#' + divId).height();
+            var left = (ww - w) / 2 + "px";
+            var top = (hh - h) / 2 + "px";
+            var options = {left: left, top: top};
+            return options;
+
+        }
+
+        function showPopupWindow(divId) {
+            $('#' + divId).css("width", $('#container').width() - 80);
+            var options = getPopupPostion(divId);
+            $('#' + divId).css(options);
+            $('#' + divId).show();
+        }
+
+        function hidePopupWindow(divId) {
+            $('#' + divId).hide();
+        }
+	</script>
+	<style type="text/css">
+		.border-table {
+			border-collapse: collapse;
+			border: none;
+		}
+		
+		.border-table td {
+			border: solid #000 1px;
+		}
+	</style>
+</head>
+
+<body>
+
+<div id="container">
+	
+	<div id="header">
+		<ul>
+			<li>
+				<a href="{php echo $this->createMobileUrl('index',array('actType'=>'1'))}">
+					<span>优惠券</span>
+				</a>
+			</li>
+			<li class="line">|</li>
+			<li>
+				<a href="{php echo $this->createMobileUrl('index',array('actType'=>'0'))}">
+					<span>抽奖券</span>
+				</a>
+			</li>
+			<li class="line">|</li>
+			<li class="line">
+				<a href="{php echo $this->createMobileUrl('index',array('actType'=>'2'))}">
+					<span>订单</span>
+				</a>
+			</li>
+		</ul>
+		<a href='{$settings[' logo_url']}'>
+		<img src="{php echo tomedia($settings['index_logo'])}" width="100%">
+		</a>
+	</div>
+	
+	<div id="content" style="padding-top:40px;">
+		<table class="order">
+			<tbody>
+			<tr>
+				<th>产品</th>
+				<th width="15%">单价</th>
+				<th width="35%">数量</th>
+				<th width="15%">合计</th>
+			</tr>
+			<tr>
+				<td>{$activity['title']}</td>
+				<td align="center">￥{$activity['pay_money']}</td>
+				<td align="center">1</td>
+				<td align="center">￥{$activity['pay_money']}</td>
+			</tr>
+			</tbody>
+		</table>
+	</div>
+	
+	
+	<form id="receiveForm" method="post" action="{php echo $this->createMobileUrl('give',array('op'=>'give_confirm'))}">
+		<input type="hidden" name="id" value="{$_GPC['id']}">
+		<input type="hidden" name="user_id" value="{$_GPC['user_id']}">
+			<input type="hidden" name="give_info" value="{$_GPC['give_info']}">
+		<table class="form">
+			<tbody>
+			<tr>
+				<td>
+					<h3>用户信息</h3>
+					<table class="order">
+						<tbody>
+						<tr>
+							<td>
+								{if $activity['realname_show']}
+								<p>
+									<b>姓&nbsp;&nbsp;&nbsp;名：</b><input type="text" id="realname" name="realname" class="form-text" style="width:160px;">
+								</p>
+								{/if} {if $activity['tel_show']}
+								<p>
+									<b>电&nbsp;&nbsp;&nbsp;话：</b><input type="text" id="tel" name="tel" class="form-text" style="width:160px;">
+								</p>
+								{/if} {if $activity['wechat_no_show']}
+								<p>
+									<b>微&nbsp;&nbsp;&nbsp;信：</b><input type="text" id="wechat_no" name="wechat_no" class="form-text" style="width:160px;">
+								</p>
+								{/if} {if $activity['addr_show']}
+								<p>
+									<b>地&nbsp;&nbsp;&nbsp;址：</b><input type="text" id="addr" name="addr" class="form-text" style="width:160px;">
+								</p>
+								{/if}
+							</td>
+						</tr>
+						</tbody>
+					</table>
+				
+				</td>
+			</tr>
+			
+			<tr>
+				<td>
+					<input type="submit" name="submit" value="领取" class="form-button">
+					<input type="hidden" name="token" value="{$_W['token']}" />
+				</td>
+			</tr>
+			
+			</tbody>
+		</table>
+	
+	</form>
+	
+	<div id="popupBackground" class="popup-background"></div>
+	
+	<div id="tab">
+		<ul>
+			<li id="tab_home" class="current">
+				<a href="{php echo $this->createMobileUrl('index')}">
+					<b class="home"></b><span>最新活动</span>
+				</a>
+			</li>
+			<li id="tab_history">
+				<a href="{php echo $this->createMobileUrl('history')}">
+					<b class="history"></b><span>历史</span>
+				</a>
+			</li>
+			<li id="tab_my">
+				<a href="{php echo $this->createMobileUrl('my')}">
+					<b class="my"></b><span>我的</span>
+				</a>
+			</li>
+		</ul>
+	</div>
+	
+	<div id="loadingMessage">
+		<img src="{STYLE_PATH}/images/ajax-loader.gif" width="32" height="32"/>
+	</div>
+
+</div>
+</body>
+</html>

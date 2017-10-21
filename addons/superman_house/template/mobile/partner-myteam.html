@@ -1,0 +1,203 @@
+{template 'header'}
+{template 'header-common'}
+<link type="text/css" rel="stylesheet" href="{$_W['siteroot']}addons/superman_house/template/mobile/css/myteam.css">
+{if $op == 'list'}
+<div class="row navbar-fixed-top" style="margin: 10px 0">
+	<div class="col-xs-12">
+		<a href="{php echo $this->createMobileUrl('partner', array('act' => 'myteam', 'op' => 'invitation', 'fromid' => $this->partner['subuid']))}" class="btn btn-primary btn-lg btn-block">邀请团队成员加入</a>
+	</div>
+</div>
+<div style="margin-top: 70px;"></div>
+<div class="margin">
+	{loop $list $item}
+	<div class="row" style="margin-bottom: 10px;">
+		<ul class="new-ul fontcolor">
+			<li class="new-li">
+			经纪人：     <a href="{php echo $this->createMobileUrl('partner', array('act' => 'myteam', 'op' => 'partner_customer', 'id' => $item['id']))}" >{$item['realname']}</a>
+			</li>
+			<li class="new-li">
+				电话：{$item['phone']}
+			</li>
+			<li class="new-li">
+				状态：
+				{if $item['status'] == 1}
+				<span class="label label-success">正常</span>
+				{else}
+				<span class="label label-danger">禁用</span>
+				{/if}
+			</li>
+			<li class="new-li">
+				加入时间：{if $item['createtime']}{php echo date('Y-m-d H:i:s', $item['createtime'])}{/if}
+			</li>
+			{if $this->partner['role']['isadmin']}
+			<li class="new-li">
+				<a href="{php echo $this->createMobileUrl('partner', array('act' => 'myteam', 'op' => 'stat', 'partnerid' => $item['id']))}" title="" data-toggle="tooltip" data-placement="top" class="btn btn-default new_color btn-sm"><i class="fa fa-bar-chart-o" style="padding-right: 5px;"></i>业绩统计</a>
+				{if $item['status'] == 1}
+				<a href="{php echo $this->createMobileUrl('partner', array('act' => 'myteam', 'op' => 'setstatus', 'partnerid' => $item['id'], 'status' => 2))}" title="" data-toggle="tooltip" data-placement="top" class="btn btn-default new_color btn-sm"><i class="fa fa-ban" style="padding-right: 5px;"></i>禁用</a>
+				{else}
+				<a href="{php echo $this->createMobileUrl('partner', array('act' => 'myteam', 'op' => 'setstatus', 'partnerid' => $item['id'], 'status' => 1))}" title="" data-toggle="tooltip" data-placement="top" class="btn btn-default new_color btn-sm"><i class="fa fa-check-circle-o" style="padding-right: 5px;"></i>启用</a>
+				{/if}
+				<a href="{php echo $this->createMobileUrl('partner', array('act' => 'myteam', 'op' => 'delete', 'partnerid' => $item['id']))}" title="" data-toggle="tooltip" data-placement="top" class="btn btn-default new_color btn-sm"><i class="fa fa-times" style="padding-right: 5px;"></i>删除</a>
+			</li>
+			{/if}
+			<hr style="padding-top: 0; padding-bottom: 0">
+		</ul>
+	</div>
+	{/loop}
+	{$pager}
+</div>
+{/if}
+{if $op == 'partner_customer'}
+	{if $customerlist}
+		{loop $customerlist $item}
+		<div class="row" style="margin-bottom: 10px;">
+			<ul class="new-ul fontcolor">
+				<li class="new-li">
+					姓名：{$item['realname']}
+				</li>
+				<li class="new-li">
+					意向楼盘：{$item['house_name']}
+				</li>
+				<li class="new-li">
+					手机：{$item['mobile']}
+				</li>
+				<li class="new-li">
+				</li>
+				<hr style="padding-top: 0; padding-bottom: 0">
+			</ul>
+		</div>
+		{/loop}
+	{else}
+		<div class="row" style="margin: 20px; text-align: center; color: #ccc;">
+			暂无数据
+		</div>
+	{/if}
+{/if}
+{if $op == 'stat'}
+<div class="margin">
+	<form action="" id="stattime" method="post">
+		<input type="hidden" name="i" value="{$_W['uniacid']}">
+		<input name="c" value="entry" type="hidden" />
+		<input name="act" value="myteam" type="hidden" />
+		<input name="do" value="partner" type="hidden" />
+		<input name="partnerid" value="{$_GPC['partnerid']}" type="hidden" />
+		<input type="hidden" name="m" value="superman_house">
+		<div class="card border-1px stat_time_wrap">
+			统计时间:{php echo tpl_form_field_daterange('daterange', $_GPC['daterange']);}
+		</div>
+	</form>
+	<div class="row agent_name_wrap">
+		<div class="col-xs-12">
+			{$partnername}
+		</div>
+	</div>
+	<ul class="list-group stat_list_wrap">
+		{loop $status $k $v}
+			<li class="list-group-item">
+				<a href="{php echo $this->createMobileUrl('partner', array('act' => 'myteam', 'op' => 'customer-list', 'partnerid' => $partnerid, 'partnername' => $partnername, 'statusid' => $k, 'statustitle' => $v['title']))}">
+					<span class="num">{$v['count']}<span class="fa fa-angle-right" aria-hidden="true"></span></span>
+					{$v['title']}
+				</a>
+			</li>
+		{/loop}
+	</ul>
+</div>
+<script type="text/javascript">
+	require(['daterangepicker'], function($){
+		$('.daterange').on('apply.daterangepicker', function(ev, picker) {
+			$('#stattime')[0].submit();
+		});
+	});
+</script>
+{/if}
+{if $op == 'customer-list'}
+<div class="margin">
+	<form action="" id="stattime" method="post">
+		<input type="hidden" name="i" value="{$_W['uniacid']}">
+		<input name="c" value="entry" type="hidden" />
+		<input name="act" value="myteam" type="hidden" />
+		<input name="do" value="partner" type="hidden" />
+		<input name="partnerid" value="{$_GPC['partnerid']}" type="hidden" />
+		<input type="hidden" name="m" value="superman_house">
+		<div class="card border-1px stat_time_wrap">
+			统计时间:{php echo tpl_form_field_daterange('daterange', $_GPC['daterange']);}
+		</div>
+	</form>
+	<div class="row agent_name_wrap">
+		<div class="col-xs-12">
+			{$partnername}
+		</div>
+	</div>
+	<div class="row customer_list_wrap">
+		{loop $list $item}
+		<ul class="new-ul fontcolor">
+			<li class="new-li">
+				姓名：{$item['realname']}
+			</li>
+			<li class="new-li">
+				意向楼盘：{$item['house_name']}
+			</li>
+			<li class="new-li">
+				电话：{$item['mobile']}
+			</li>
+			<li class="new-li">
+				状态：<span class="label label-success">{$statustitle}</span>
+			</li>
+			<li class="new-li">
+				推荐人：<span>{$item['recommender']}</span>
+			</li>
+			<li class="new-li">
+				推荐时间：<span>{$item['recommendtime']}</span>
+			</li>
+			<li class="new-li">
+				<a href="{php echo $this->createMobileUrl('partner', array('act' => 'distribution', 'op' => 'distribut', 'id' => $item['id']))}" class="btn btn-default new_color btn-sm">
+					<i class="fa fa-check"></i>
+					分配
+				</a>
+				<a href="{php echo $this->createMobileUrl('partner', array('act' => 'distribution', 'op' => 'setup', 'id' => $item['id']))}" class="btn btn-default new_color btn-sm">
+					<i class="fa fa-edit"></i>
+					设置
+				</a>
+			</li>
+			<hr />
+		</ul>
+		{/loop}
+	</div>
+	<div class="row">
+		<div class="col-xs-12 text-center">
+			{$pager}
+		</div>
+	</div>
+	<script type="text/javascript">
+		require(['daterangepicker'], function($){
+			$('.daterange').on('apply.daterangepicker', function(ev, picker) {
+				$('#stattime')[0].submit();
+			});
+		});
+	</script>
+</div>
+{/if}
+{if $op == 'invitation'}
+	<div class="card border-1px text-center" style="margin: 0; padding: 10px; margin-bottom: 50px">
+		<span style="font-size: 12px;">请展示以下二维码让团队成员使用微信扫描加入经纪人。</span>
+		<div class="row" style="margin: 10px 0;">
+			<div class="col-xs-2"></div>
+			<div class="col-xs-8">
+				<img src="{$invite_qrcode_url}" class="img-responsive" alt="{$_share['link']}"/>
+			</div>
+			<div class="col-xs-2"></div>
+			<div class="col-xs-12 text-center" style="font-size: 16px; font-weight: bold; padding-top: 10px;"><span>微信扫一扫</span></div>
+			<div class="col-xs-12" style="margin-top: 50px">
+				<a href="javascript:;" class="btn btn-primary btn-lg btn-block" onclick="document.getElementById('mcover').style.display='block';">分享给团队成员</a>
+			</div>
+			<div id="mcover" onclick="document.getElementById('mcover').style.display='';" style="display: none;">
+				<img src="{$_W['siteroot']}addons/superman_house/template/mobile/images/sharer.png">
+			</div>
+			<div class="col-xs-12" style="margin-top: 10px;">
+				<span class="fontcolor">注意：请勿将本页面分享到朋友圈！</span>
+			</div>
+		</div>
+	</div>
+{/if}
+{template 'footer-common'}
+{template 'footer'}

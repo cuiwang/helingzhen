@@ -1,0 +1,168 @@
+﻿{template 'header'}
+<link rel="stylesheet" href="{$_W['siteroot']}addons/siyuan_cms/img/map/css.css" />
+<div class="siyuan_top weui-row">
+<div class="weui-col-15"><a href="javascript:history.go(-1)"><i class="fa fa-angle-left f-32"></i></a></div>
+<div class="weui-col-70">{$set['name']}</div>
+<div class="weui-col-15"><a class="cd-bouncy-nav-trigger" href="#0"><img src="{$_W['siteroot']}addons/siyuan_cms/ui/img/daohang.png"></a></div>
+</div>
+<div class="cd-bouncy-nav-modal">
+<nav>
+<ul class="cd-bouncy-nav">
+{loop $menu $caidan}
+<li><a href="{$caidan['url']}"><img src="{$_W['attachurl']}{$caidan['thumb']}"><p>{$caidan['title']}</p></a></li>
+{/loop}
+</ul>
+</nav>
+<a href="#0" class="cd-close fa fa-power-off">返回</a>
+</div>
+<div style="height:40px;"></div>
+
+<div id="container"> </div> 
+<div id="map-content" class="swiper-container"> 
+<div class="map-content swiper-wrapper" id="JS_expr_content"> 
+{loop $list $row}
+<div class="expr-list-content-dd swiper-slide" data-position="{$row['longitude']},{$row['latitude']}" data-expr_id="{$row['id']}" data-province_name="{$row['district']}" data-region_name="{$row['district']}" data-province_id="{$row['id']}"> 
+<h5 class="expr-content-title-h5"> <strong>{$row['name']}</strong><span class="map-expr-distance" id="JS_expr_distance_{$row['id']}"></span></h5> 
+<div class="expr-content-detail"> 
+<table class="expr-map-table"> 
+<tbody>
+<tr class="map-expr-content-detail-p map-p"> 
+<td class="map-left" valign="top">楼盘均价</td> 
+<td class="map-rightcon" valign="top">{if $row['price']>0}{$row['price']}元/㎡{else}一房一价{/if}</td> 
+</tr>
+<tr class="map-expr-content-detail-p"> 
+<td class="map-left" valign="top"><span style="line-height:22px;">楼盘电话</span></td> 
+<td class="map-rightcon" valign="top"><p>{$row['phone']}</p></td> 
+</tr> 
+</tbody>
+</table> 
+<p class="map-content-consult"> <a href="tel:{$row['phone']}" class="expr-btn border-rights send-address-btn" style="width:40%;"><i class="expr_icon map-icon map-send-addr"></i><span style="display:inline-block;margin-left:-3px;">免费通话</span></a> <a href="tel:{$row['phone']}" class="expr-btn border-rights select-guide" style="width:30%;"><i class="expr_icon map-icon map-send-consult"></i>咨询</a> <a href="javascript:;" data-expr_id="{$row['id']}" class="expr-btn  goto-nav" style="width:30%;"><i class="expr_icon_nav map-icon"></i>定位</a></p> 
+</div> 
+</div> 
+{/loop} 
+
+
+</div> 
+</div>
+<script type="text/javascript">
+function _getWebPageTitle() {
+return window._headerConfig.titleText;
+}  
+</script>
+<script type="text/javascript" src="{$_W['siteroot']}addons/siyuan_cms/img/map/mob.base.min.js"></script>
+<script src="{$_W['siteroot']}addons/siyuan_cms/img/map/swiper.min.js"></script>
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=EAd7b3da78574ca4b6921606cafaaa4b"></script>
+<script>function setSize() {
+  var w = $(window).width(),
+  h = $(window).height();
+  $(".expr-list-content-dd").css({
+    width: w * 0.85 + "px"
+  });
+  $("#container").css({
+    height: h - $("#JS_mll_header").height() + "px"
+  })
+}
+setSize();
+window.onresize = function() {
+  setSize()
+};
+var swiper = new Swiper("#map-content", {
+  slidesPerView: "auto"
+});
+var map = new BMap.Map("container");
+var point = new BMap.Point(116.402544,39.91582);
+map.centerAndZoom(point, 14);
+var navigationControl = new BMap.NavigationControl({
+  anchor: BMAP_ANCHOR_TOP_RIGHT,
+  type: BMAP_NAVIGATION_CONTROL_LARGE
+});
+map.addControl(navigationControl);
+var points = {};
+{loop $list $row}
+points['{$row[id]}'] = '{$row['longitude']},{$row['latitude']}';
+{/loop}
+prePosition = points[1].split(",");
+function addMarkerPoint(points, m) {
+  var x = 0;
+  var currentPoint = [];
+  for (var k in points) {
+    var sortPoint = points[k].split(",");
+    if (k - 1 == m) {
+      currentPoint = sortPoint
+    } else {
+      addMarker(sortPoint, x, m)
+    }
+    x++
+  }
+  addMarker(currentPoint, m, m)
+}
+addMarkerPoint(points, 0);
+function addMarker(point, index, m) {
+  var n = (index == m ? 0 : -45);
+  var myIcon = new BMap.Icon("{$_W['siteroot']}addons/siyuan_cms/img/map/map-icon-marker.png", new BMap.Size(30, 45), {
+    offset: new BMap.Size(0, 45),
+    imageOffset: new BMap.Size(0, n)
+  });
+  point = new BMap.Point(point[0], point[1]);
+  var marker = new BMap.Marker(point, {
+    icon: myIcon
+  });
+  marker.addEventListener("click", attribute);
+  map.addOverlay(marker)
+}
+function attribute(e) {
+  var eve = arguments[0] || window.event;
+  var marker = eve.target || eve.srcElement;
+  var p = marker.getPosition();
+  var allOverlay = map.getOverlays();
+  var currentIndex = 0;
+  for (var j = 0,
+  len = allOverlay.length; j < len; j++) {
+    map.removeOverlay(allOverlay[j])
+  }
+  var point = [p.lng, p.lat];
+  for (var i in points) {
+    if (point.join(",") == points[i]) {
+      currentIndex = parseInt(i);
+      break
+    }
+  }
+  addMarkerPoint(points, currentIndex - 1);
+  swiper.slideTo(currentIndex - 1);
+  var point = new BMap.Point(p.lng, p.lat);
+  map.panTo(point)
+};
+$("#JS_expr_content").on("tap", ".expr-list-content-dd",
+function() {
+  var allOverlay = map.getOverlays();
+  for (var j = 0,
+  len = allOverlay.length; j < len; j++) {
+    map.removeOverlay(allOverlay[j])
+  }
+  var p = $(this).data("position").split(",");
+  addMarkerPoint(points, $(this).index());
+  var point = new BMap.Point(p[0], p[1]);
+  map.panTo(point)
+});
+</script>
+{php echo register_jssdk(false);}
+<script type="text/javascript">
+wx.ready(function () {
+sharedata = {
+title: "{$set['name']}-{$set['ad']}",
+desc: "{$set['name']}-{$set['ad']}",
+link: window.location.href,
+imgUrl: "{$_W['attachurl']}{$set['logo']}",
+success: function (res) {},
+cancel: function(){
+}
+};
+wx.onMenuShareAppMessage(sharedata);
+wx.onMenuShareTimeline(sharedata);
+wx.onMenuShareQQ(sharedata);
+wx.onMenuShareWeibo(sharedata);
+wx.onMenuShareQZone(sharedata);
+});
+</script>
+ </body>
+</html>

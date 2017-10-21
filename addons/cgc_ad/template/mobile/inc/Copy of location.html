@@ -1,0 +1,104 @@
+<script type="text/javascript">
+			$(function(){
+		
+				  // 定位相关
+					var notice_location=$('#notice_location');
+					var mineLocation=function(){
+						notice_location.find('.weui_cell_ft').html('定位中...');
+						// 定位
+						wx.getLocation({
+							success: function (res) {
+								// 根据坐标获取所在城市并跳转
+								$.post("{php echo $_W['siteroot'] . 'app/' . substr($this->createMobileUrl('foo',array('op'=>'location','quan_id'=>$quan_id)), 2)}",{
+									latitude:res.latitude,
+									longitude:res.longitude
+								},function(data) {
+									notice_location.find('.weui_cell_ft').html('重新定位');
+									if(data.status==0){
+										swal({
+											title:'定位失败',
+											text: data.info,
+											type: "warning",
+											showCancelButton: true,
+											confirmButtonText: "重新定位",
+											cancelButtonText: "关闭"
+										}, function(isConfirm){
+											if(isConfirm){
+												mineLocation();
+											}else{
+												notice_location.show();
+											}
+										});
+									}else{
+										
+										if(data.data!=1){
+											notice_location.show();
+										}else{
+											sessionStorage["location"]=true;
+											notice_location.hide();
+										}
+									}
+								});
+							},
+							fail: function(){
+								notice_location.find('.weui_cell_ft').html('重新定位');
+								swal({
+									title:'定位失败',
+									text: '请开启手机定位功能后重试',
+									type: "warning",
+									showCancelButton: true,
+									confirmButtonText: "重新定位",
+									cancelButtonText: "关闭"
+								}, function(isConfirm){
+									if(isConfirm){
+										mineLocation();
+									}else{
+										notice_location.show();
+									}
+								});
+							},
+							cancel: function(){
+								notice_location.find('.weui_cell_ft').html('重新定位');
+								swal({
+									title:'确定放弃定位？',
+									text: '只有{$quan["city"]}范围的人才能抢钱哦~',
+									type: "warning",
+									showCancelButton: true,
+									confirmButtonText: "重新定位",
+									cancelButtonText: "关闭"
+								}, function(isConfirm){
+									if(isConfirm){
+										mineLocation();
+									}else{
+										notice_location.show();
+									}
+								});
+							}
+						});
+					};
+					$(page).find('#notice_location a').click(function(){
+						mineLocation();
+					});
+
+
+					// 调用微信相关接口
+					wx.ready(function(){
+						// 如果当前活动限制区域且我上次定位的区域不等于活动区域时，需触发自动定位
+						alert("{$quan['city']}");
+						{if !empty($quan['city'])}
+						    if (sessionStorage["location"]!=true){
+						    	alert("zzz1");
+							  mineLocation();
+						    } else {
+							 {if empty($member['last_city'])}
+							 alert("zzz2");
+							   mineLocation();
+						     {/if}
+						    }
+						{/if}
+					});
+			 
+
+			//	App.load('index_page','fade');
+			});
+		</script>

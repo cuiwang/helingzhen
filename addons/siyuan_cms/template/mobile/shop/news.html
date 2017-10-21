@@ -1,0 +1,222 @@
+{template 'header'}
+<div class="siyuan_top weui-row">
+<div class="weui-col-15"><a href="javascript:history.go(-1)"><i class="fa fa-angle-left f-32"></i></a></div>
+<div class="weui-col-70">{$set['name']}</div>
+<div class="weui-col-15"><a class="cd-bouncy-nav-trigger" href="#0"><img src="{$_W['siteroot']}addons/siyuan_cms/ui/img/daohang.png"></a></div>
+</div>
+<div class="cd-bouncy-nav-modal">
+<nav>
+<ul class="cd-bouncy-nav">
+{loop $menu $caidan}
+<li><a href="{$caidan['url']}"><img src="{$_W['attachurl']}{$caidan['thumb']}"><p>{$caidan['title']}</p></a></li>
+{/loop}
+</ul>
+</nav>
+<a href="#0" class="cd-close fa fa-power-off">返回</a>
+</div>
+<div style="height:40px;"></div>
+<div class="swiper-container">
+<div class="swiper-wrapper">
+{loop $shop['descimgs'] $row}
+<img src="{$row}" style="width:100%;" class="swiper-slide">
+{/loop}
+</div>
+<div class="swiper-pagination"></div>
+</div>
+<div class="shop_title bottom_line">{$shop['name']}</div>
+<div class="list_tab">
+<ul>
+<li class="width33 cur"><a>介绍</a></li>
+<li class="width33"><a>活动</a></li>
+<li class="width33"><a>评论({$shop['pinglun']})</a></li>
+</ul>
+</div>
+
+<div class="m-box body_1 cur">
+<div class="weui_cells weui_cells_access">
+<a href="tel:{$shop['tel']}" class="weui_cell">
+<div class="weui_cell_bd weui_cell_primary">
+<p>电话 : {$shop['tel']}</p>
+</div>
+<div class="weui_cell_ft"></div>
+</a>
+<a class="weui_cell" href="{php echo $this->createMobileUrl('shop', array('act' => 'shop_map', 'id' => $shop['id']))}">
+<div class="weui_cell_bd weui_cell_primary">
+<p>地址 : {$shop['address']}</p>
+</div>
+<div class="weui_cell_ft">一键导航</div>
+</a>
+<div class="weui_cell" href="javascript:;">
+<div class="weui_cell_bd weui_cell_primary">
+<p>营业 : {$shop['yingye']}</p>
+</div>
+</div>
+{loop $item['kvs'] $kv}
+<div class="weui_cell" href="javascript:;">
+<div class="weui_cell_bd weui_cell_primary">
+<p>{$kv['key']} : {$kv['value']}</p>
+</div>
+</div>
+{/loop}
+</div>
+<div id="news-article">
+{if $shop['ad']}<a href="{$shop['url']}"><img src="{php echo tomedia($shop['ad'])}" style="width:100%;"></a>{/if}
+{$shop['body']}</div>
+</div>
+<div class="m-box body_2">
+<div class="huodong_list">
+<ul id="dvContent">
+{loop $huodong $item}
+<li><a href="{php echo $this->createMobileUrl('huodong', array('act' => 'news', 'id' => $item['id']))}">
+<div class="pic">{if $now < $item['endtime']}<sup class="bm2"></sup>{else}<sup class="bm3"></sup>{/if}<img src="{$_W['attachurl']}{$item['thumb']}"></div>
+<h3>{$item['name']}</h3>
+<div class="clearfix">
+<p class="time"><i class="fa fa-clock-o"></i> {php echo date('m-d H:i', $item['time'])}</p>
+<p class="address"><i class="fa fa-map-marker"></i> {$item['address']}</p></div>
+</a></li>
+{/loop}
+</ul>
+</div>
+</div>
+<div class="m-box body_3">
+{if $user !=='0'}
+<div class="msg-post">
+<input type="text" id="content" name="content" class="comment-input" placeholder="文明上网，理性发言！" />
+<button id="save_btn" onclick="doSave(this)" class="msg-post-button">评论</button>
+</div>
+{/if}
+<div class="comment-sub" id="dvContent">
+<ul>
+{if $reply}
+{loop $reply $key $rep}
+<li class="bottom_line">
+<div class="comment_top">
+<div class="comment-pic">
+<img src="{$rep['avatar']}">
+</div>
+<div class="commenter">
+<div class="comment-name">{$rep['name']}</div>
+<div class="comment-time">{php echo date('m-d H:i', $rep['time'])}</div>
+<span class="reply">{if $user !=='0'}<a onClick="doHuifu({$rep['id']})" id="show-custom">回复</a>{/if}</span></div>
+</div>
+<div class="comment-content">
+<p>{$rep['content']}</p>
+{if !empty($rep['mreply'])}
+<div class="replys">
+<i class="pointTop"></i>
+{loop $rep['mreply'] $mre}
+<div class="replyler">
+<div class="reply_cont">
+<p class="comter"><span class="reply_name">{$mre['name']}</span><span class="remark">：{$mre['content']}</span></p>
+</div>
+</div>
+{/loop}
+</div>
+{/if}
+</div>
+</li>
+{/loop}
+{else}
+<div class="no_pinglun"><img src="{$_W['siteroot']}addons/siyuan_cms/ui/img/null.png"></div>
+{/if}
+<div class='demos-content-padded'><a id="aMore" href="#" class="cont-more">点击加载更多</a></div>
+</ul>
+</div>
+<script language="javascript" type="text/javascript">
+var totalpage = {$total_page}, currentpage = 1;
+if (totalpage < 2) $('#aMore').remove();
+else
+$('#aMore').click(function () {
+$.ajax({ url: '{php echo $this->createMobileUrl("shop", array("act" => "pinglun_list","shopid" => $shop["id"]))}', type: 'POST', data: { currentpage: currentpage + 1}, complete: function (xhr) {
+if (xhr.status == '200') {
+currentpage++;
+if (currentpage > totalpage) $('#aMore').remove($.toast("没有评论了...", "text"));
+$(xhr.responseText).insertBefore('#aMore');
+}
+else $.toast("没有评论了...", "text");
+}
+});
+return false;
+});
+</script>
+<script>
+function doHuifu(t) {
+$(document).on("click", "#show-custom", function() {
+$.prompt({
+title: "请输入回复内容",
+onOK: function(text) {
+$.ajax({
+type:'post',
+dataType:'json',
+url:"{php echo $this->createMobileUrl('shop', array('act' => 'form_pinglun','id' => $id,'num' => $shop['pinglun']))}",
+data:{content:text,pid:t},
+success:function(msg){
+if(msg.status==1){
+$.toast("评论成功", "text");
+window.location.href="{php echo $this->createMobileUrl('shop', array('act' => 'news','id' => $shop['id']))}";
+}else{
+$.toast("未评论成功", "text");
+window.location.href=window.location.href;
+}
+}
+})
+},
+onCancel: function() {
+console.log("取消了");
+},
+});
+});
+}
+function doSave() {
+if(!$("#content").val()) {
+$.toast("请填写评论内容！", "text");
+return;
+}
+$.ajax({
+type:'post',
+dataType:'json',
+url:"{php echo $this->createMobileUrl('shop', array('act' => 'form_pinglun','id' => $id,'num' => $shop['pinglun']))}",
+data:{content:$("#content").val()},
+success:function(msg){
+if(msg.status==1){
+$.toast("评论成功", "text");
+window.location.href="{php echo $this->createMobileUrl('shop', array('act' => 'news','id' => $shop['id']))}";
+}else{
+$.toast("未评论成功", "text");
+window.location.href=window.location.href;
+}
+}
+})
+}
+</script>
+</div>
+<script>
+$(document).ready(function () {
+$(".list_tab li").on("click", function (e) {
+e.preventDefault();
+var i=$(this).index();
+$(".list_tab li").removeClass("cur").eq(i).addClass("cur"),
+$(".m-box").removeClass("cur").eq(i).addClass("cur")
+});
+});
+</script>
+{php echo register_jssdk(false);}
+<script type="text/javascript">
+wx.ready(function () {
+sharedata = {
+title: "{$shop['biaoti']}",
+desc: "{$shop['biaoti']}",
+link: window.location.href,
+imgUrl: "{$_W['attachurl']}{$shop['fenxiang']}",
+success: function (res) {},
+cancel: function(){
+}
+};
+wx.onMenuShareAppMessage(sharedata);
+wx.onMenuShareTimeline(sharedata);
+wx.onMenuShareQQ(sharedata);
+wx.onMenuShareWeibo(sharedata);
+wx.onMenuShareQZone(sharedata);
+});
+</script>
+{template 'footer'}

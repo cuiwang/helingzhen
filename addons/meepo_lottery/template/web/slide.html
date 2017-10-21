@@ -1,0 +1,163 @@
+{template 'common/header'}
+<style type="text/css">
+	
+</style>
+<ul class="nav nav-tabs">
+	<li class="{if $op=='display'}active{/if}" data-son=".nav_list" data-title="分类列表">
+		<a href="{php echo $this->createWebUrl('slide', array('op'=>'display'));}">幻灯片列表</a>
+
+	</li>
+	<li class="{if $op=='add'}active{/if}" data-son=".add_nav" data-title="新增列表">
+		<a href="{php echo $this->createWebUrl('slide', array('op'=>'add'));}">新增幻灯片</a>
+
+	</li>
+	{if $op=='update'}
+	<li class="{if $op=='update'}active{/if}" data-son=".update_nav" data-title="修改分类">
+		<a href="{php echo $this->createWebUrl('slide', array('op'=>'update'));}">修改幻灯片</a>
+
+	</li>
+	{/if}
+</ul>
+<div class="panel panel-default ng-scope">
+	<div class="panel-heading" id="panel-heading">
+	分类列表
+		
+	</div>
+	<div class="panel-body">
+		{if $op=="display"}
+		<div class="nav_list">
+			<table st-table="items" class="table table-striped">
+				<thead>
+					<tr>
+						<th style="width:50px;">图片编号</th>
+						<th style="width:200px;">图片标题</th>
+						<th style="width:200px;">图片缩略图</th>
+						<th style="width:220px;">图片连接地址</th>
+						<th style="width:80px;">状态</th>
+						<th>操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					{loop $slide $row}
+					<tr>
+						<td class="ng-binding">
+							{$row['slide_id']}
+						</td>
+						<td>
+							<a href="#" editable-text="item.title" onbeforesave="updatetitle(item,$data)" class="ng-scope ng-binding editable editable-click">{$row['slide_title']}</a>
+						</td>
+						<td>
+							<img src="{php echo tomedia($row['slide_image_url'])}" style="height:50px;width:50px">
+						</td>
+						<td>
+							<a href="#" editable-text="item.desc" onbeforesave="updatedesc(item,$data)" class="ng-scope ng-binding editable editable-click">{$row['slide_link_url']}</a>
+						</td>
+						
+						<td>
+							<label for="" ng-click="status(item)" class="label label-info">{if $row['slide_status']==0}显示{elseif $row['slide_status']==1}不显示{/if}</label>    
+						</td>
+						<td>
+							<a class="btn btn-default" onclick="return confirm_r();" title="删除表单" href="{php echo $this->createWebUrl('slide', array('op'=>'delete', 'id'=>$row['slide_id']));}">
+								<i class="fa fa-times"></i>
+							</a>
+							<a class="btn btn-default" title="修改" href="{php echo $this->createWebUrl('slide', array('op'=>'update', 'id'=>$row['slide_id']));}">
+								<i class="fa  fa-check-square"></i>
+							</a>
+						</td>
+					</tr>
+					{/loop}
+				</tbody>
+			</table>
+			{$pager}
+		</div>
+		{elseif $op=="add"}
+		<div class="add_slide">
+			<form class="form-horizontal" onsubmit="return checkvalid();" action="{php echo $this->createWebUrl('slide', array('op'=>'add'));}" method="post" enctype="multipart/form-data">
+			  <div class="form-group">
+			    <label for="inputEmail3" class="col-sm-2 control-label">标题</label>
+			    <div class="col-sm-10">
+			      <input type="text" class="form-control" name="title" placeholder="标题">
+			    </div>
+			  </div>
+			  <div class="form-group">
+			    <label for="inputEmail3" class="col-sm-2 control-label">图片链接地址</label>
+			    <div class="col-sm-10">
+			      <input type="text" class="form-control" name="link_url" placeholder="图片链接地址">
+			    </div>
+			  </div>
+			  <div class="form-group">
+			    <label for="inputEmail3" class="col-sm-2 control-label">图片上传</label>
+			    <div class="col-sm-10">
+			      {php echo tpl_form_field_image('image_url')}
+			    </div>
+			  </div>
+			  <div class="form-group">
+				    <label class="col-sm-2 control-label">是否显示</label>
+				    <select name="status">
+					  <option "{if $results['slide_status'] ==0 } selected=selected{/if}" value="0">显示</option>
+					  <option "{if $results['slide_status'] ==1 } selected=selected{/if}" value="1">不显示</option>
+					</select>
+			  </div>
+			  <div class="panel-footer">
+			  		<input type="hidden" value="{$_W['token']}" name="token" />
+			  		<!-- <input type="hidden" name="id" value="<?php echo $slide_id;?>"> -->
+					<input type="submit" name="submit" class="btn btn-sm btn-success" value="新增" />			
+				</div>
+			</form>
+		</div>
+		{elseif $op=='update'}
+		<div class="add_slide">
+			<form class="form-horizontal" onsubmit="return checkvalid();"  action="{php echo $this->createWebUrl('slide', array('op'=>'update'));}" method="post" enctype="multipart/form-data">
+			  <div class="form-group">
+			    <label for="inputEmail3" class="col-sm-2 control-label">标题</label>
+			    <div class="col-sm-10">
+			      <input type="text" class="form-control" value="{$results['slide_title']}" name="title" placeholder="标题">
+			    </div>
+			  </div>
+			  <div class="form-group">
+			    <label for="inputEmail3" class="col-sm-2 control-label">图片链接地址</label>
+			    <div class="col-sm-10">
+			      <input type="text" value="{$results['slide_link_url']}" class="form-control" name="link_url" placeholder="图片链接地址">
+			    </div>
+			  </div>
+			  <div class="form-group">
+			    <label for="inputEmail3" class="col-sm-2 control-label">图片上传</label>
+			    <div class="col-sm-10">
+			      {php echo tpl_form_field_image('image_url',$results['slide_image_url'])}
+			    </div>
+			  </div>
+			  <div class="form-group">
+				    <label class="col-sm-2 control-label">是否显示</label>
+				    <select name="status">
+					  <option "{if $results['slide_status'] ==0 } selected=selected{/if}" value="0">显示</option>
+					  <option "{if $results['slide_status'] ==1 } selected=selected{/if}" value="1">不显示</option>
+					</select>
+			  </div>
+			  <div class="panel-footer">
+			  		<input type="hidden" value="{$_W['token']}" name="token" />
+			  		<input type="hidden" name="id" value="<?php echo $results['slide_id'];?>">
+					<input type="submit" name="submit" class="btn btn-sm btn-success" value="修改" />			
+				</div>
+			</form>
+		</div>
+		{/if}
+	</div>
+</div>
+<script type="text/javascript">
+	function checkvalid(){
+		if ($('input[name="image_url"]').val()==''){
+			util.message('上传幻灯片不能为空','','error');
+			return false;
+		}
+		return true;	
+	};
+	function confirm_r(){
+		var r=confirm("确定要删除吗!");
+		if(r==true){
+			return true;
+		}else{
+			return false;
+		}
+	}
+</script>
+{template 'common/footer'}

@@ -1,0 +1,129 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+    <li class="active"><a href="{php echo $this->createWebUrl('Zone');}">区域管理</a></li>
+    <li><a href="{php echo $this->createWebUrl('Zone', array('op' => 'edit'));}">添加区域</a></li>
+</ul>
+
+<div class="main">
+    {if $op == 'display'}
+    <form class="form-horizontal form" id="form2" action="" method="post">
+        <table class="table table-hover">
+            <thead class="navbar-inner">
+                <tr>
+                    <th>ID</th>
+                    <th>区域</th>
+                    <th>排序</th>
+                    <th>显示</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+            {loop $parents $key $parent}
+                <tr>
+                	<td>{$parent['id']}</td>
+                    <td>{$parent['name']}</td>
+                    <td>{$parent['display']}</td>
+                    <td>{if $parent['isshow'] == 1}<span class="label label-success">显示</span>{else}<span class="label label-default">隐藏</span>{/if}</td>
+                    <td>
+                    	<a href="{php echo $this->createWebUrl('Zone', array('op' => 'edit', 'id' => $parent['id']));}" class="btn btn-primary btn-sm">编辑</a>
+                    	<a class="btn btn-danger" href="javascript:void(0)" onclick="delete_zone({$parent[id]});">删除</a>
+                    </td>
+                </tr>
+                {loop $parent['sub'] $sub}
+                <tr>
+                	<td>{$sub['id']}</td>
+                    <td>&nbsp;&nbsp;&nbsp;&nbsp;|—{$sub['name']}</td>
+                    <td>{$sub['display']}</td>
+                    <td>{if $sub['isshow'] == 1}<span class="label label-success">显示</span>{else}<span class="label label-default">隐藏</span>{/if}</td>
+                    <td>
+                    	<a href="{php echo $this->createWebUrl('Zone', array('op' => 'edit', 'id' => $sub['id']));}" class="btn btn-primary btn-sm">编辑</a>
+                    	<a class="btn btn-danger" href="javascript:void(0)" onclick="delete_zone({$sub[id]});">删除</a>
+                    </td>
+                </tr>
+                {/loop}
+            {/loop}
+            </tbody>
+        </table>
+        {$pager}
+    </form>
+    {/if}
+    
+    {if $op == 'edit'}
+    <form class="form-horizontal" action="" role="form" method="post">
+        <input type="hidden" name="token" value="{$_W['token']}" />
+        <input type="hidden" name="cid" value="{$row['id']}" />
+        
+        <div class="form-group">
+            <label for="inputEmail3" class="col-sm-2 control-label">区域</label>
+            <div class="col-sm-4">
+              <input type="text" name="data[name]" value="{$row['name']}" class="form-control">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="inputPassword3" class="col-sm-2 control-label">{$row['industry']}父级栏目</label>
+            <div class="col-sm-4">
+                <select class="form-control" name="data[parent_id]">
+                    <option value="0">请选择分类</option>
+                    {loop $parents $key $parent}
+                        <option value="{$parent['id']}" {if $row['parent_id'] == $parent['id']} selected {/if}>{$parent['name']}</option>
+                        {loop $parent['sub'] $sub}
+	                      <option value="{$sub['id']}" {if $row['parent_id'] == $sub['id']} selected {/if}>&nbsp;&nbsp;|—{$sub['name']}</option>
+	                    {/loop}
+                    {/loop}
+                    
+                </select>
+            </div>
+        </div>
+
+        
+       <div class="form-group">
+            <label for="inputEmail3" class="col-sm-2 control-label">排序</label>
+            <div class="col-sm-4">
+                <input type="text" name="data[display]" value="{if $row['display']} {$row['display']} {else} 0 {/if}" class="form-control">
+                <em>越小越靠前</em>
+            </div>
+        </div>
+        
+        
+        <div class="form-group">
+            <label for="inputEmail3" class="col-sm-2 control-label">是否显示</label>
+            <div class="col-sm-4">
+              <select class="form-control" name="data[isshow]">
+                <option value="1" {if $row['isshow'] == 1}selected{/if}>是</option>
+                <option value="0" {if $row['isshow'] == 0}selected{/if}>否</option>
+              </select>
+            </div>
+        </div>
+        
+        <div class="form-group">
+          <div class="col-sm-4"> </div>
+        </div>
+      
+        <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+                <input type="submit" class="btn btn-primary" name="save_zone" value="提交">
+            </div>
+        </div>
+    </form>
+    {/if}
+</div>
+<script>
+	function delete_zone(zoneid){
+		if(confirm('确定删除?不可恢复')){
+			$.post(
+				'{php echo $this->createWebUrl("ZoneDeleteAjax");}',
+				{"zoneid":zoneid},
+				function (data){
+					if(data == '-1'){
+						alert('存在子栏目，不可删除');
+						return false;
+					}else{
+						location.reload();
+					}
+				}
+			);
+		}		
+	}
+</script>
+{template 'common/footer'}

@@ -1,0 +1,122 @@
+{loop $list $item}
+<ul class="new_orderlist" id="order_list" style="">
+	<a href="{php echo $this->createMobileUrl('orderdetail',array('id' => $item['id']))}">
+		<li>
+			<h4 class="new_ordername ">{$item['title']}</h4>
+			<div class="new_orderstate new_ordersok">
+				{if $item['status'] == 0}
+				{if $item['paystatus']== 0}
+				待付款
+				{else}
+				等待酒店确认
+				{/if}
+				{else if $item['status'] == -1}
+				{if $item['paystatus']== 0}
+				订单已取消
+				{else}
+				{if $item['paytype'] == 3}
+				订单已取消
+				{else}
+				正在退款中
+				{/if}
+				{/if}
+				{else if $item['status'] == 1}
+				{if $item['paystatus']== 0}
+				待入住
+				{else}
+				待入住
+				{/if}
+				{else if $item['status'] == 2}
+				{if $item['paystatus']== 0}
+				酒店已拒绝
+				{else}
+				已退款
+				{/if}
+				{else if $item['status'] == 4}
+				已入住
+				{else if $item['status'] == 3}
+				已完成
+				{/if}
+			</div>
+			<p class="newprice ">¥<i>{$item['sum_price']}</i></p>
+			<p class="new_ordernb">订单编号：{$item['ordersn']}</p>
+			<p class="new_ordertime">入住日期：{php echo date("Y-m-d",$item['btime'])}</p>
+			<p class="new_ordernb">支付方式：
+				{if $item['paytype']==1}
+				余额支付
+				{elseif $item['paytype']==21}
+				微信支付
+				{elseif $item['paytype']==22}
+				支付宝
+				{elseif $item['paytype']==3}
+				到店付款
+				{/if}
+			</p>
+			<p class="new_ordernb">酒店地址：{$hotel[$item['hotelid']]['address']}</p>
+			<p class="new_ordernb">联系电话：{$hotel[$item['hotelid']]['phone']}</p>
+			<!--    {if $item['paystatus']==0} <div class="new_orderpay" onclick="location.href='{php echo $this->createMobileUrl('orderpay',array('id' => $item['id']))}'">立即支付</div> {/if}-->
+		</li>
+	</a>
+	{if empty($set['refund'])}
+	{if ($item['paytype']==1 || $item['paytype']==21 || $item['paytype']==22) && ($item['status'] == 1 || $item['status'] == 0) || (($item['status'] == 0 || $item['status'] == 1) && $item['paystatus'] == 0)}
+			<button style="border: 1px solid #a9a9a9;background-color: #f5f5f5;width: 70px;padding-left: 3px;margin-left: 80%;">
+					<a class="cancel" href="javascript:;" onclick="return confirm('您确定取消订单吗？');return false;" data-id="{$item['id']}">取消订单</a>
+			</button>
+	{/if}
+	{if $item['paytype'] == 3 && ($item['status'] == 1 || $item['status'] == 0)}
+		<button style="border: 1px solid #a9a9a9;background-color: #f5f5f5;width: 70px;padding-left: 3px;margin-left: 80%;">
+			<a class="cancel" href="javascript:;" onclick="return confirm('您确定取消订单吗？');return false;" data-id="{$item['id']}">取消订单</a>
+		</button>
+	{/if}
+	{/if}
+	{if $item['status'] == 3 && $item['comment'] == 0}
+	<button style="border: 1px solid #a9a9a9;background-color: #f5f5f5;width: 70px;padding-left: 3px;margin-left: 80%;">
+		<a class="comment" href="javascript:;">评论</a>
+	</button>
+	<div style="margin-top: 10px;display: none">
+		<div style="border: 1px solid gray;height: 60px;">
+			<textarea name="comment"></textarea>
+		</div>
+		<button class="sure" style="border: 1px solid #a9a9a9;background-color: #f5f5f5;width: 70px;padding-left: 3px;margin-left: 80%;margin-top: 15px;" data-hotelid="{$item['hotelid']}" data-id="{$item['id']}" >确定</button>
+	</div>
+		{/if}
+		{if $item['status'] == 3 && $item['clerkcomment']==0}
+		<button class="grade" datas=0  style="border: 1px solid #a9a9a9;background-color: #f5f5f5;width: 70px;padding-left: 3px;">
+		<a  href="{php echo $this->createMobileUrl('clerkcomment',array(op=>'list',orderid=>$item['id'],'hotelid'=>$item['hotelid']))}">店员评价</a>
+	</button>
+	{/if}
+
+
+
+</ul>
+{/loop}
+<script>
+	$('.cancel').click(function() {
+		var id = $(this).data('id');
+		$.post("{php echo $this->createMobileUrl('order', array('op' => 'cancel', 'id'  => $item['id']))}", {'op' : 'cancel', 'id' : id}, function(data) {
+			var data = $.parseJSON(data);
+			if (data.message.errno == 0) {
+				alert('订单取消成功');
+				location.reload();
+			}
+		});
+	});
+	$('.comment').click(function() {
+		$('.comment').parent().hide();
+		$(this).parent().next().show();
+		var val = $(this);
+		$('.sure').click(function() {
+			var id = $(this).data('hotelid');
+			var orderid = $(this).data('id');
+			var comment = val.parent().next().children().children().val();
+			$.post("{php echo $this->createMobileUrl('order', array('op' => 'comment'))}", {'op' : 'comment', 'comment' : comment, 'id' : id, 'orderid' : orderid}, function(data) {
+				var data = $.parseJSON(data);
+				console.dir(data);
+				if (data.message.errno == 0) {
+					alert('评论成功');
+					location.reload();
+				}
+			});
+		});
+	});
+</script>

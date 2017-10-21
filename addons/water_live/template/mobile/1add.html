@@ -1,0 +1,356 @@
+{template 'header'}
+<body ontouchstart="" class="platform_mobile modal-open">
+	<div class="qsc-alert" style="display: none;">
+		<i class="info-base64"></i><span id="info"></span>
+	</div>
+	<div class="modal qsc-modal qsc-modal-loading" id="qsc-modal-loading"
+		tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+		aria-hidden="true">
+		<div class="modal-dialog middle">
+			<div class="modal-content">
+				<i class="icon-white icon-loading-base64"><i
+					class="icon-white icon-loading-box-base64 icon-spin"></i></i><span>加载中</span>
+			</div>
+		</div>
+	</div>
+	<div class="modal qsc-modal qsc-modal-loading"
+		id="qsc-modal-loading-new">
+		<div class="modal-dialog middle">
+			<div class="modal-content">
+				<i class="icon-loading-base64"><i
+					class="icon-loading-box-base64 icon-spin"></i></i><span>加载中</span>
+			</div>
+		</div>
+	</div>
+	<div class="content top bottom" id="addsection" data-asyn="0">
+		<div class="mod-publish-form">
+			<form action="{php echo $this->createMobileUrl('add')}" class="qsc-form publishForm" name="publishForm" id="publishForm" novalidate="novalidate">
+				<div id="publishForm-list">
+					<div class="mod-publish-list">
+						<div class="publish-title">
+							<span class="">编辑帖子</span>
+						</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="input-row input-cell">
+						<textarea id="content" name="content" placeholder="在这说点什么吧..." class="control-input" rows="2"></textarea>
+					</div>
+					<style>
+					.input-group-mb img {
+					    height: 20px;
+					    margin: 0 10px 0 10px;
+					    float: right;
+					}
+					</style>
+					<div class="input-row input-cell">
+						<input type="text" id="address" name="address"
+							class="control-input" placeholder="点击右侧图标自动定位"> <span
+							class="input-group-mb dingwei"><img
+							src="../addons/water_live/template/images/dingwei.png"></span>
+					</div>
+					<div class="input-row input-cell">
+						<div id="uploader-100000" class="qsc-uploader clearfix">
+							<div class="uploader-list main-images-list" id="fileList">
+							</div>
+							<div class="webPicPicker webuploader-container">
+								<div class="webuploader-pick" onclick="updatewimg()">
+									<i class="icon icon-plus"></i>图片
+								</div>
+							
+							</div>
+							<div class="webPicPicker webuploader-container">
+								<div class="webuploader-pick" onclick="addvoice()">
+									<i class="icon icon-plus"></i>语音
+								</div>
+							
+							</div>
+						</div>
+					</div>
+					<div class="input-row input-cell clear-group first" style="padding-bottom: 10px;">
+						<span class="control-input" style="color: #0093d5;">温馨提示:<br></span>
+						<span class="control-input" style="font-size: 12px;">1.图片最多可上传9张。</span><br>
+						{if $noteadd > 0}
+						<span class="control-input" style="font-size: 12px;">2.发帖奖励<b style="color: #0093d5;"> {$noteadd} </b>个积分。</span><br>
+						{/if}
+						{if $noteadd < 0}
+						<span class="control-input" style="font-size: 12px;">2.发帖消耗<b style="color: #0093d5;"> {$noteadd} </b>个积分。</span><br>
+						{/if}						
+						{if $info['state'] != 1}
+						<span class="control-input" style="font-size: 12px;">注意：<b style="color: #0093d5;">{$info['msg']}</b></span><br>
+						{/if}
+						<input type="hidden" id="topicid" value="{$topicid}">
+					</div>
+				</div>
+				<div class="form-group">				
+					<div class="footer-btn">
+						<input type="button" name="save-action" onclick="tj()" {if $info['state'] != 1} disabled="disabled" {/if}
+							class="btn btn-lg btn-block" style="background-color: #0093d5;color: #fff;" value="发表">
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+	<link href="../addons/water_live/template/css/addmedia.css" rel="stylesheet">
+<script id="VoiceTemplatePost" type="text/html">
+    <div class="voice-record-bg bz pressnone">
+        <p class="bz clearfix">
+            <span id="actionsheet_cancel" class="fr">取消</span>
+        </p>
+        <!--长按模式录音 start-->
+        <div id="voice-click-box">
+            <div class="abs voice-record-volume-bg">
+                <p class="bz"><span class="voice-record-volume-bg-p-span"></span></p>
+            </div>
+            <div class="voice-record-bt-position clearfix">
+                <div class="voice-record-bt bz rel">
+                    <div class="voice-record-bt-white bz" id="voice-start-button-click" style="cursor:pointer;"><i class="voice-record-bt-white-i"></i></div>
+                </div>
+                <p class="f14" style="margin-top:6px;" id="click-msg-tips">点一下录音</p>
+            </div>
+        </div>
+    </div>
+</script>
+	<link href="../addons/water_live/template/css/layer.css" rel="stylesheet">
+	<script type="text/javascript" src="../addons/water_live/template/js/layer.m2.js"></script>
+	<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js" type="text/javascript"></script>
+    <script>
+        var appid = '{$_W['account']['jssdkconfig']['appId']}';
+        var timestamp = '{$_W['account']['jssdkconfig']['timestamp']}';
+        var nonceStr = '{$_W['account']['jssdkconfig']['nonceStr']}';
+        var signature = '{$_W['account']['jssdkconfig']['signature']}';
+
+        wx.config({
+            debug: false,
+            appId: appid,
+            timestamp: timestamp,
+            nonceStr: nonceStr,
+            signature: signature,
+            jsApiList: [
+                'checkJsApi',
+                'chooseImage',
+                'uploadImage',
+                'startRecord',
+                'stopRecord',
+                'onVoiceRecordEnd',
+                'playVoice',
+                'pauseVoice',
+                'stopVoice',
+                'onVoicePlayEnd',
+                'uploadVoice',
+                'downloadVoice',
+                'translateVoice',
+            ]
+        });
+        
+
+        wx.error(function (res) {
+        });
+        var recsecond = 0;
+    	var voice = {
+    			localId : "",
+    			serverId : ""
+    		};
+    	var images = {
+    			localId: [],
+    			serverId: []
+    		};
+        var addvoicestate = 0;
+    	function addvoice(){
+			var html = $("#VoiceTemplatePost").html();
+
+			wx.startRecord({
+				success : function() {
+					wx.stopRecord();
+					layer.open({
+						shadeClose : false,
+						type : 1,
+						content : html,
+						className : "voice-record-bg",
+						style : "position:fixed;left:0;bottom:0;padding-top:0;height:300px;",
+						end : function() {
+						},
+						success : function() {
+							$("#actionsheet_cancel").click(
+									function() {
+										wx.stopRecord({
+													success : function(res) {
+													}
+												});
+										
+										layer.closeAll()
+									});
+						}
+							})
+				}
+					}); 
+    		
+    	}
+    	
+    	function startaddvoice(){
+    		wx.stopRecord();
+    		wx.startRecord({
+    			success : function() {
+    				wx.onVoiceRecordEnd({
+    					complete : function(res) {
+    						voice.localId = res.localId;
+    						$("#hidrecordTime").val(recsecond);
+    						$("#voice-time-show").html(recsecond + '"');
+    						voice.localId = res.localId;
+    						recsecond = 0;
+    					}
+    				});
+    			},
+    			cancel : function() {
+    				recsecond = 0
+    			},
+    			fail : function(res) {
+    				alert('error');
+    			}
+    		})
+    	}
+    	
+    	function updatewimg () {
+    		var simgs = $("input[name='simgs']");
+    		if(simgs.length >= 9){
+    			tishi('最多上传9张帖子图片哦');
+    			return false;
+    		}
+    		num = 9;
+    		wx.chooseImage({
+    			count: num,
+    			sizeType: ['compressed'], // 可以指定是原图还是压缩图，默认二者都有
+    			sourceType: ['album', 'camera'], // 可以指定来源是相册还是相机，默认二者都有
+    			success: function (res) {
+    				images.localId = res.localIds;
+    				var localIds = res.localIds;
+    				syncUpload(localIds);
+    				//alert('已选择 ' + res.localIds.length + ' 张图片');
+    				//doUpload();
+    			}
+    		});
+    		var syncUpload = function(localIds){
+    			  var localId = localIds.pop();
+    			  var pisnums = 0;
+    			  wx.uploadImage({
+    			    localId: localId,
+    			    isShowProgressTips: 1,
+    			    success: function (res) {
+    			      var serverId = res.serverId+','; // 返回图片的服务器端ID
+	  	    	      $.ajax({
+		     	     		 type:'GET',
+		     	     		 data:{media_ids:serverId},
+		     	     		 url:'{php echo $this->createMobileUrl("Picupload");}',
+		     	     		 success:function(data){
+		     	     			  var json = eval("("+data+")");
+		     		      	  	  if(json.result == 1){
+		     		      	  		var ptitle = '帖子图片';
+			    			        $("#fileList").append('<div id="'+json.imgid+'0" class="WU_FILE_0 file-item thumbnail upload-state-done">'+
+			    			    		  '<a class="fancybox" title="图片预览" rel="fancybox" href="'+json.url+'">'+
+			    			    		  '<img  src="'+json.url+'"></a>'+
+			    			    		  '<input name="simgs" class="main_files_thumb" value="'+json.nameval+'" type="hidden">'+
+			    			    		  '<div class="info">'+ptitle+'</div><div class="file-panel" id="'+json.imgid+'" onclick="delimg(this)"><span>×</span></div></div>');
+		     		       		  }else{
+		     		       			 alert('error'); 
+		     		       		  }
+		     	     		 }
+		     	     	 });
+    			      
+    			      //其他对serverId做处理的代码
+    			      if(localIds.length > 0){
+    			        syncUpload(localIds);
+    			      }
+    			    }
+    			  });
+    		};
+    	};
+        
+</script>
+<script type="text/javascript">
+
+	function delimg(obj){
+		var id = $(obj).attr("ID")+'0';
+		$("#"+id).remove();
+	}
+</script>
+
+<script type="text/javascript" src="../addons/water_live/template/js/publish.min.js"></script>
+
+<script type="text/javascript">
+
+
+	function tj(){
+		
+ 		 var content = checkcontent();
+		 if(!content){
+			 return false;
+		 }
+		 content = $("#content").val().trim();
+		 content = content.replace(/\r\n/g, "");
+		 content = content.replace(/\r/g, "");
+		 content = content.replace(/\n/g, "");
+		 var simgs = $("input[name='simgs']");
+		 var maxl = parseInt(simgs.length);
+		 var arrsimgs = new Array;
+		 
+		 if(maxl > 9){
+			 tishi('最多上传9张图片哦');
+			 return false;
+		 }
+ 		 if(maxl > 0){
+		 	for (var i = 0; i < simgs.length; i++) {
+		 		arrsimgs[i] = simgs[i].value;
+		 	}
+		 }
+ 		var address =  $("#address").val().trim();
+ 		var asyn = $("#addsection").attr("data-asyn");
+ 		if(asyn == 0){
+	       $("#addsection").attr("data-asyn",1);
+		   $.ajax({
+				 type:'POST',
+				 data:{topicid : $("#topicid").val().trim(),content : content,address:address,simgs : arrsimgs},
+				 url:'{php echo $this->createMobileUrl("publish");}',
+				 success:function(data){
+					  var json = eval("("+data+")");
+					  if(json.result == 1){
+						  alertToUrl('发表成功!',json.url);
+					  }else{	 
+						  tishi(json.msg);
+					  }
+					  $("#content").val("");
+    		      	  $("#addsection").attr("data-asyn",0);
+
+				 }
+			 });
+ 		}
+		
+	}
+	
+	  function alertToUrl(info,url) {
+		    tishi(info);
+		    setTimeout("window.location.href='" + url + "'", 800);
+		  }
+	   
+	 function checkcontent(){
+			var content = $("#content").val();
+			if(content.length == 0){
+				 tishi('至少说点什么吧');
+				 return false;
+			}else if(content.length > 800){
+				 tishi('不要超过800字哟，特殊需要请联系管理员');
+				return false;
+			}else{
+				return true;
+			}
+	 }
+	
+	 
+	
+	 function tishi(content){
+		 $("#info").text(content);
+		 $(".qsc-alert").fadeIn(300).delay(1300).fadeOut(700);
+	 }
+</script>	
+
+</body>
+</html>

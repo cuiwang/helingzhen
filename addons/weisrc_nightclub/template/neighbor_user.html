@@ -1,0 +1,184 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li {if $operation == 'post'}class="active"{/if}><a href="{php echo $this->createWebUrl('Neighbor', array('op' => 'post'))}">添加邻座人员</a></li>
+	<li {if $operation == 'display' || empty($operation)}class="active"{/if}><a href="{php echo $this->createWebUrl('Neighbor', array('op' => 'display'))}">管理邻座人员</a></li>
+    <li><a href="{php echo $this->createWebUrl('NeighborFeedback', array('op' => 'post'))}">添加留言</a></li>
+    <li><a href="{php echo $this->createWebUrl('NeighborFeedback', array('op' => 'display'))}">管理留言</a></li>
+</ul>
+{if $operation == 'post'}
+<div class="main">
+    <div style="padding-top: 15px;"></div>
+	<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data">
+		<input type="hidden" name="id" value="{$item['id']}" />
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                基本信息
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">状态</label>
+                    <div class="col-sm-9">
+                        <label for="status1" class="radio-inline"><input type="radio" name="status" value="1" id="status1" {if empty($item) || $item['status'] == 1}checked="true"{/if} /> 显示</label>
+                        <label for="status2" class="radio-inline"><input type="radio" name="status" value="0" id="status2"  {if !empty($item) && $item['status'] == 0}checked="true"{/if} /> 隐藏</label>
+                        <span class="help-block"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">微信昵称</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="nickname" class="form-control" value="{$item['nickname']}"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">OPENID</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="from_user" class="form-control" value="{$item['from_user']}" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">微信头像</label>
+                    <div class="col-sm-9">
+                        {php echo tpl_form_field_image('headimgurl', $headimgurl, '', array('width' => 80, 'height' => 80))}
+                        <span class="help-block" style="color:#f00">建议尺寸80*80</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">微信号</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="weixin" class="form-control" value="{$item['weixin']}"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">联系电话</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="tel" id="tel" value="{$item['tel']}" class="form-control">
+                    </div>
+                </div>
+                {if !empty($item['dateline'])}
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">就座时间</label>
+                    <div class="col-sm-9">
+                        <p class="form-control"><font color=green>{php echo date('Y-m-d H:i', $item['dateline'])}</font></p>
+                    </div>
+                </div>
+                {/if}
+            </div>
+        </div>
+        <div class="form-group col-sm-12">
+            <input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+            <input type="hidden" name="token" value="{$_W['token']}" />
+        </div>
+	</form>
+</div>
+<link type="text/css" rel="stylesheet" href="./resource/style/datetimepicker.css" />
+<script type="text/javascript" src="./resource/script/datetimepicker.js"></script>
+<script type="text/javascript">
+    $("#datepicker_dateline").datetimepicker({
+        format: "yyyy-mm-dd hh:ii",
+        minView: "0",
+        autoclose: true
+    });
+</script>
+<script type="text/javascript" src="./resource/script/kindeditor/kindeditor-min.js"></script>
+<script type="text/javascript" src="./resource/script/kindeditor/lang/zh_CN.js"></script>
+<link type="text/css" rel="stylesheet" href="./resource/script/kindeditor/themes/default/default.css" />
+<script type="text/javascript">
+    var editor = KindEditor.editor({
+        allowFileManager : true,
+        uploadJson : "./index.php?act=attachment&do=upload",
+        fileManagerJson : "./index.php?act=attachment&do=manager",
+        afterUpload : function(url, data) {
+        }
+    });
+    $("#upload-image-headimgurl").click(function() {
+        editor.loadPlugin("image", function() {
+            editor.plugin.imageDialog({
+                tabIndex : 1,
+                imageUrl : $("#upload-image-url-headimgurl").val(),
+                clickFn : function(url) {
+                    editor.hideDialog();
+                    var val = url;
+                    if(url.toLowerCase().indexOf("http://") == -1 && url.toLowerCase().indexOf("https://") == -1) {
+                        var filename = /images(.*)/.exec(url);
+                        if(filename && filename[0]) {
+                            val = filename[0];
+                        }
+                    }
+                    $("#upload-image-url-headimgurl-old").val($("#upload-image-url-headimgurl").val());
+                    $("#upload-image-url-headimgurl").val(val);
+                    $("#upload-image-preview-headimgurl").html('<img src="'+url+'" width="80px;" />');
+                }
+            });
+        });
+    });
+</script>
+{elseif $operation == 'display'}
+<style>
+    .form th {
+        width: 20px;
+    }
+</style>
+<div class="main">
+	<div style="padding-top: 15px;"></div>
+    <div class="panel panel-default">
+        <form action="" method="post" class="form-horizontal form" >
+            <div class="table-responsive panel-body">
+            <table class="table table-hover">
+                <thead class="navbar-inner">
+                <tr>
+                    <th style="width: 8%;">编号</th>
+                    <th style="width: 15%;">微信昵称</th>
+                    <th style="width: 15%;">微信号</th>
+                    <th style="width: 15%;">联系电话</th>
+                    <th style="width: 15%;">就座时间</th>
+                    <th style="width: 10%;">状态</th>
+                    <th style="width: 12%;text-align: right;">编辑/删除</th>
+                </tr>
+                </thead>
+                <tbody id="level-list">
+                {loop $list $item}
+                <tr>
+                    <td>{$item['id']}</td>
+                    <td>
+                        <img width="50px;" src="{php echo tomedia($item['headimgurl'])}" onerror="this.src='{RES}images/default-headimg.jpg'" style="border-radius: 2px;"/>
+                        <br/>
+                        {$item['nickname']}
+                    </td>
+                    <td>
+                        {$item['weixin']}
+                    </td>
+                    <td>
+                        {$item['tel']}
+                    </td>
+                    <td>
+                        <font color=green>{php echo date('Y-m-d H:i', $item['dateline'])}</font><br/>
+                    </td>
+                    <td>
+                        {if $item['status']==1}
+                        <label class='label label-success' >显示</label>
+                        {else}
+                        <label class='label label-danger' >隐藏</label>
+                        {/if}
+                    </td>
+                    <td style="text-align: right;">
+                        <a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('Neighbor', array('op' => 'post', 'id' => $item['id']))}" title="编辑"><i class="fa fa-pencil"></i></a>
+                        <a class="btn btn-default btn-sm" onclick="return confirm('确认删除吗？');return false;" href="{php echo $this->createWebUrl('Neighbor', array('op' => 'delete', 'id' => $item['id']))}" title="删除"><i class="fa fa-times"></i></a>
+                    </td>
+                </tr>
+                {/loop}
+                </tbody>
+                <tfoot>
+                </tfoot>
+            </table>
+            </div>
+            {$pager}
+        </form>
+    </div>
+</div>
+<script type="text/javascript">
+<!--
+	var category = {php echo json_encode($children)};
+//-->
+</script>
+{/if}
+{template 'common/footer'}

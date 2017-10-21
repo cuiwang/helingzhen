@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="keywords" content="" />
+    <meta name="description" content="" />
+    <title>我的收藏</title>
+    {php echo register_jssdk(false);}
+    <link rel="stylesheet" type="text/css" href="{RES}css/style_index.css"/>
+    <link rel="stylesheet" type="text/css" href="{RES}css/swiper.min.css"/>
+    <link rel="stylesheet" href="{RES}font/iconfont.css" />
+    <script type="text/javascript" src="{RES}js/jquery-2.1.4.min.js" ></script>
+    <script type="text/javascript" src="{RES}js/script.js" ></script>
+    <script type="text/javascript" src="{RES}js/swiper.min.js" ></script>
+</head>
+<body>
+<div id="box">
+        <div class="menu" id="menu">
+            <ul>
+                {loop $article $new}
+                <li>
+                    <a href="{php echo $this->createmobileurl('detail',array('id'=>$new['id']))}">
+                        <div class="menuL" style="background-image: url({$new['thumb']});"></div>
+                        <div class="menuR">
+                            <div class="menuR_wz">
+                                <h2>{$new['title']}</h2>
+                                <span class="date"><i class="iconfont">&#xe606;</i>{$new['createtime']}</span>
+                            </div>
+                            <div class="menu_up">
+                                <div class="menu_Part">
+                                    <span><i class="iconfont">&#xe605;</i>{$new['clickNum']}</span>
+                                    <span><i class="iconfont">&#xe600;</i>{$new['zanNum']}</span>
+                                </div>
+                                {if $new['pay_money']>0}
+                                <div class="menoy">
+                                    <span><i class="iconfont">&#xe603;</i>{$new['pay_money']}</span>
+                                </div>
+                                {/if}
+                            </div>
+                        </div>
+                    </a>
+                </li>
+                {/loop}
+            </ul>
+        </div>
+        {if !empty($article)}
+        <div class="still" id="next" onclick="more('mo')">
+            点击加载更多
+        </div>
+        {/if}
+        <input type="hidden" data-page="1" id="page">
+        <!--列表 end-->
+        <!--{$pager}-->
+        <div class="Member_foot">
+            <ul class="clearfix">
+                <li><a class="active" href="{php echo $this->createmobileurl('payred_index')}"><i class="iconfont">&#xe60a;</i>首页</a></li>
+                <li><a href="{php echo $this->createmobileurl('center')}"><i class="iconfont">&#xe609;</i>个人中心</a></li>
+            </ul>
+        </div>
+</body>
+</html>
+<script>
+    $(function() {
+        wx.ready(function () {
+            shareMeta = {
+                imgUrl: "{$shareimg}",
+                link: "{$_W['siteroot']}app/index.php?i={$_W['uniacid']}&c=entry&do=payred_index&m=dg_articlemanage",
+                desc: "{$sharedesc}",
+                title: "{$sharetitle}",
+                success: function () {
+
+                },
+                cancel: function () {
+                    // alert("分享失败，可能是网络问题，一会儿再试试？");
+                }
+            };
+            wx.onMenuShareTimeline(shareMeta);
+            wx.onMenuShareAppMessage(shareMeta);
+            wx.onMenuShareWeibo(shareMeta);
+            wx.onMenuShareQQ(shareMeta);
+            wx.onMenuShareQZone(shareMeta);
+        });
+    });
+</script>
+<script>
+    function more(op){
+        var page=$("#page").data("page");
+        var pindex=++page;
+        var c=op;
+        $.ajax({
+            type:"post",
+            url:"{php echo $this->createmobileurl('collect')}",
+            data:{"page":pindex,op:op},
+            datatype:"json",
+            success:function(data){
+                var article=data.list;
+                if(jQuery.isEmptyObject(article)){
+                    $("#next").html('已加载全部');
+                }else{
+                    for(i=0;i<article.length;i++){
+                        var html='<li><a href='+geturl(article[i].id)+'>';
+                        html+='<div class="menuL" style="background-image: url('+article[i].thumb+');"></div>';
+                        html+='<div class="menuR"><div class="menuR_wz"><h2>'+article[i].title+'</h2>';
+                        html+='<span class="date"><i class="iconfont">&#xe606;</i>'+getLocalTime(article[i].createtime)+'</span></div>';
+                        html+='<div class="menu_up"><div class="menu_Part"><span><i class="iconfont">&#xe605;</i>'+article[i].clickNum+'</span>';
+                        html+='<span><i class="iconfont">&#xe604;</i>'+article[i].zanNum+'</span></div>';
+                        if(article[i].pay_money>0){
+                            html+='<div class="menoy"><span><i class="iconfont">&#xe603;</i>'+article[i].pay_money+'</span></div>';
+                        }
+                        html+=' </div></div></a></li>';
+                        $("#menu > ul").append(html);
+                        $("#page").data("page",pindex);
+                    }
+                }
+            }
+        })
+    }
+    function tabclick(cid,pid){
+        $("#page").data("page","1");
+        $("#lei").remove();
+        var hdiv="<input id='lei' type='hidden' data-cid='"+cid+"' data-pid='"+pid+"'>";
+        $(".menuCon").append(hdiv);
+        $.ajax({
+            type:"post",
+            url:"{php echo $this->createmobileurl('article')}",
+            data:{"ccate":cid,"pcate":pid},
+            datatype:"json",
+            success:function(data){
+                var article=data.list;
+                if(jQuery.isEmptyObject(article)){
+                    $("#next").html('已加载全部');
+                }else{
+                    $("#menu > ul").empty();
+                    for(i=0;i<article.length;i++){
+                        var html='<li><a href='+geturl(article[i].id)+'>';
+                        html+='<div class="menuL" style="background-image: url('+article[i].thumb+');"></div>';
+                        html+='<div class="menuR"><div class="menuR_wz"><h2>'+article[i].title+'</h2>';
+                        html+='<span class="date"><i class="iconfont">&#xe606;</i>'+getLocalTime(article[i].createtime)+'</span></div>';
+                        html+='<div class="menu_up"><div class="menu_Part"><span><i class="iconfont">&#xe605;</i>'+article[i].clickNum+'</span>';
+                        html+=' <span><i class="iconfont">&#xe604;</i>'+article[i].zanNum+'</span></div>';
+                        if(article[i].pay_money>0){
+                            html+='<div class="menoy"><span><i class="iconfont">&#xe603;</i>'+article[i].pay_money+'</span></div>';
+                        }
+                        html+=' </div></div></a></li>';
+                        $("#menu > ul").append(html);
+                    };
+                    $("#next").html("点击加载更多");
+                }
+                $('.menuCon').hide();
+            }
+        })
+    }
+    function getLocalTime(nS) {
+        return new Date(parseInt(nS) * 1000).toLocaleString().replace(/:\d{1,2}$/,' ');
+    }
+    function getstring(str){
+        var string=str;
+        var ec=string;
+        if(string.length>18){
+            ec=string.substring(0,18)+"......";
+        }
+        return ec;
+    }
+    function geturl(url){
+        var murl="{php echo $this->createMobileUrl('detail')}&id="+url;
+        return murl;
+    }
+/*    function geimg(img){
+        var thumb="{php echo tomedia("+img+")}";
+        return img;
+    }*/
+    function none(){
+        $('.menuCon').hide();
+    }
+    $(function(){
+        $(".list li").click(function () {
+            var id=$(this).data('id');
+            $('.tabIn').hide();
+            $.ajax({
+                type:"post",
+                url:"{php echo $this->createmobileurl('char')}",
+                data:{"parentid":id},
+                datatype:"json",
+                success:function(data){
+                    var list=data.list;
+                    $(".menuCon").empty();
+                    var tabIn=$("<div class='tabIn clearfix' id='tab'></div>");
+                    var tul=($("<ul></ul>"));
+                    for(i=0;i<list.length;i++){
+                        var html='<li onclick="tabclick('+list[i].id+','+list[i].parentid+')" data-cid="'+list[i].id+'" data-pid="'+list[i].parentid+'">'+list[i].name+'</li>';
+                        tul.append(html);
+                    }
+                    tabIn.append(tul);
+                    $(".menuCon").append(tabIn);
+                    $('.menuCon').toggle();
+                    $('.tabIn').show();
+                }
+            });
+        });
+    });
+</script>

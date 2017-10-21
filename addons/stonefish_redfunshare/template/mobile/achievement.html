@@ -1,0 +1,119 @@
+<style>
+.panel-box a:link,.panel-box a:visited,.panel-box a:hover,.panel-box a:active {color:{$template['watchtextcolor']}}
+</style>
+<div class="panel-box" id="panel_achievement">
+    <div class="panel-content" id="panel-content" style="{if $myawardnum==0&&$reply['redpacktype']&&$exchange['ismobile']}height:270px;{else}height:240px;{/if}">
+        <span style="line-height:30px;">目前可用兑换 <b style="color:{$template['buttoncolor']};font-size:16px;">{php echo number_format($fans['inpoint']+$fans['sharepoint']-$fans['outpoint'],$reply['redpackv'])} {$reply['danwei']}</b></span><br/>
+		<div id="content">
+		    <hr class="common-hr" />
+			{if $reply['prize_num']}<div style="line-height:25px;width:100%;font-size:12px;">共计 {$reply['prize_num']} 个{$reply['redpack']}！还剩余 {php echo $reply['prize_num']-$fansawardnum} 个{$reply['redpack']}</div>{/if}
+			{if $reply['award_num']}<div style="line-height:25px;width:100%;font-size:12px;">您还有 {php echo $reply['award_num']-$myawardnum} 次兑换机会，请谨慎兑换！</div>{/if}
+			{if $myawardnum==0&&$reply['redpacktype']&&$exchange['ismobile']}
+			<div style="line-height:25px;width:100%;color:{$template['buttoncolor']};font-size:16px;">
+				<b>充值{$isfansname[1]}:{$fans['mobile']}</b>
+			</div>
+			{/if}
+			<div style="text-align:left;">
+			    <div style="width:100%;margin:0 auto;">
+					{if empty($redpack_meun)}
+					<input name="duihuanshu" class="px" id="duihuanshu" value="{php echo number_format($fans['inpoint']+$fans['sharepoint']-$fans['outpoint'],$reply['redpackv'])}" type="text">
+					{else}
+					    {if $reply['redpacktype']==2}
+						    <select name="duihuanshu" id="duihuanshu" class="px" style="line-height:25px;">
+						    {loop $redpack_meun $meun}
+						    {if number_format($fans['inpoint']+$fans['sharepoint']-$fans['outpoint'],$reply['redpackv'])>=$meun['v'] && $meun['v']>=$reply['sharepoint'] && $meun['v']<=$reply['maxsharepoint']}
+					        <option value="{$meun['id']}|{$meun['v']}|{$meun['inprice']}" selected = "selected">{$meun['p']}</option>
+						    {/if}
+						    {/loop}
+						    </select>
+						{else}
+						    <select name="duihuanshu" id="duihuanshu" class="px" style="line-height:25px;">
+						    {loop $redpack_meun $meun}
+						    {if number_format($fans['inpoint']+$fans['sharepoint']-$fans['outpoint'],$reply['redpackv'])>=$meun && $meun>=$reply['sharepoint'] && $meun<=$reply['maxsharepoint']}
+					        <option value="{$meun}" selected = "selected">{$meun}{$reply['danwei']}</option>
+						    {/if}
+						    {/loop}
+						    </select>
+						{/if}					
+					{/if}
+				</div>
+			</div>
+			<div id="result_info_tip"></div>
+			<div class="btn-layout">
+				<button class="btn-confirm2" id="guanbi">我再想想</button>
+				<button class="btn-confirm2" id="duihuan">申请兑换</button>
+            </div>			
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+$("#achievement").click(function(){
+	$("#panel_achievement").show();
+});
+$("#guanbi").click(function(){
+	$("#panel_achievement").hide();
+});
+$("#duihuan").bind("click",function () {
+	$("#duihuan").attr("disabled", true);
+	$("#duihuan,#guanbi").css("background","#CCC").siblings("#duihuan,#guanbi").css("background","#D5D5D5");
+	var btn = $(this);
+	var duihuanshu = $("#duihuanshu").val();
+	if (duihuanshu == '') {
+	    $("#result_info_tip").text("请输入要申请兑换的{$reply['redpack']}的数量");
+		setTimeout(function () { 
+			$("#result_info_tip").text('');
+			$("#duihuan").removeAttr("disabled");
+	        $("#duihuan,#guanbi").css("background","{$template['buttoncolor']}").siblings("#duihuan,#guanbi").css("background","{$template['buttoncolor']}");
+		}, 3000);
+	    return;
+	}
+	if (duihuanshu < {$reply['sharepoint']}) {
+	    $("#result_info_tip").text("申请兑换数不能小于最小数：{$reply['sharepoint']}");
+		setTimeout(function () { 
+			$("#result_info_tip").text('');
+			$("#duihuan").removeAttr("disabled");
+	        $("#duihuan,#guanbi").css("background","{$template['buttoncolor']}").siblings("#duihuan,#guanbi").css("background","{$template['buttoncolor']}");
+		}, 3000);
+	    return;
+	}
+	if (duihuanshu > {$reply['maxsharepoint']}) {
+	    $("#result_info_tip").text("申请兑换数不能大于最大数：{$reply['maxsharepoint']}");
+		setTimeout(function () { 
+			$("#result_info_tip").text('');
+			$("#duihuan").removeAttr("disabled");
+	        $("#duihuan,#guanbi").css("background","{$template['buttoncolor']}").siblings("#duihuan,#guanbi").css("background","{$template['buttoncolor']}");
+		}, 3000);
+	    return;
+	}
+	if (duihuanshu > {php echo number_format($fans['inpoint']+$fans['sharepoint']-$fans['outpoint'],$reply['redpackv'])}) {
+	    $("#result_info_tip").text("您的余额不足");
+		setTimeout(function () { 
+			$("#result_info_tip").text('');
+			$("#duihuan").removeAttr("disabled");
+	        $("#duihuan,#guanbi").css("background","{$template['buttoncolor']}").siblings("#duihuan,#guanbi").css("background","{$template['buttoncolor']}");
+		}, 3000);
+	    return;
+	}
+	var submitData = {
+		duihuanshu: duihuanshu,
+	};
+	$.post('{php echo $this->createMobileUrl('duihuan', array('rid' => $rid))}', submitData, function(data) {
+	if (data.success == 1) {
+		$("#content").html('<hr class="common-hr" /><br>'+data.msg);
+		setTimeout(function () {
+			$("#panel_achievement").hide();
+			window.location.href='{php echo $this->createMobileUrl('dui_huan', array('rid' => $rid))}';
+		},3000)
+		return;
+	}else{
+		$("#result_info_tip").text(data.msg);
+		setTimeout(function () { 
+			$("#result_info_tip").text('');
+			$("#duihuan").removeAttr("disabled");
+	        $("#duihuan,#guanbi").css("background","{$template['buttoncolor']}").siblings("#duihuan,#guanbi").css("background","{$template['buttoncolor']}");
+		}, 3000);
+		return;
+	}
+	},"json")
+});
+</script>

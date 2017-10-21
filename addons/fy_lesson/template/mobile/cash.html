@@ -1,0 +1,112 @@
+<!-- 
+ * 佣金提现
+ * ============================================================================
+-->
+{php include $this->template('_header');}
+<style type="text/css">
+body {margin:0px; background:#efefef; -moz-appearance:none;}
+input {-webkit-appearance:none; outline:none;}
+.balance_img {height:80px; width:80px; margin:30px auto 0px; background:#ffb400; border-radius:40px; color:#fff; font-size:70px; text-align:center; line-height:90px; background-size:80px 80px;}
+.balance_text {height:20px; width:100%; margin-top:16px; text-align:center; line-height:20px; font-size:16px; color:#666;}
+.balance_num {width:100%; margin-top:10px; text-align:center; line-height:24px; font-size:22px; color:#444;}
+.balance_sub {height:44px; width:94%; margin:14px 3% 0px; background:#31cd00; border-radius:4px; text-align:center; font-size:18px; line-height:44px; color:#fff;}
+.cash{width:90%;height:38px;font-size:16px; margin:5px auto; border:1px solid #eee; padding:0px 2%; text-align:center;}
+.disabled { background:#ccc;}
+</style>
+
+<div id="spinners" style="display:none;"><div class="spinner"><div class="bounce1"></div><div class="bounce2"></div><div class="bounce3"></div></div></div>
+<div class="balance_img" style="background-image:url({$member['avatar']});"></div>
+<div class="balance_text">当前可提现佣金</div>
+<div class="balance_num">￥{$member['nopay_commission']}</div>
+<form method="post" action="" onsubmit="return checknum();">
+	<div class="balance_num">
+	   <select name="cash_way" id="cash_way" onchange="selCashType(this.value)" style="width:95%; height:38px; font-size:16px; margin:5px auto; border:1px solid #eee; padding:0px 2%; text-align:center;">
+		{if !empty($setting_cashway)}
+				<option value="">请选择提现方式</option>
+			{loop $setting_cashway $way}
+				{if $way=='credit'}
+				<option value="1">提现到余额</option>
+				{/if}
+				{if $way=='weachat'}
+				<option value="2">提现到微信钱包</option>
+				{/if}
+				{if $way=='alipay'}
+				<option value="3">提现到支付宝</option>
+				{/if}
+			{/loop}
+		{else}
+			<option value="">暂无有效提现方式，请联系管理员</option>
+		{/if}
+	   </select>
+	   <input type="text" name="pay_account" id="pay_account" class="cash" value="{$lastcashlog['pay_account']}" style="display:none;" placeholder="请输入支付宝帐号">
+	   <input type="text" name="cash_num" id="cash_num" class="cash" placeholder="请输入提现金额">
+	</div>
+	<div class="balance_num">
+		<input type="submit" name="submit" class="balance_sub" value="提交申请" />
+		<input type="hidden" name="token" value="{$_W['token']}" />
+	</div>
+</form>
+<script type="text/javascript">
+function checknum(){
+	var cash_way = $("#cash_way").val();
+	var num = $("#cash_num").val();
+	var pay_account = $("#pay_account").val();
+	var total = {php echo $member['nopay_commission']};
+	var cash_lower = {php echo $setting['cash_lower']};
+	if(cash_way==''){
+		alert("请选择提现方式");
+		return false;
+	}
+	if(cash_way==3 && pay_account==''){
+		alert("请输入提现帐号");
+		return false;
+	}
+	if(num=='' || num<=0){
+		alert("请输入提现金额");
+		return false;
+	}
+	if(num > total){
+		alert("您当前可提现额度为"+total+"元");
+		return false;
+	}
+	if(num < cash_lower){
+		alert("当前系统最低提现额度为"+cash_lower+"元");
+		return false;
+	}
+
+	document.getElementById("spinners").style.display = 'block';
+}
+function selCashType(cash_type){
+	if(cash_type==3){
+		document.getElementById("pay_account").style.display = 'block';
+	}else{
+		document.getElementById("pay_account").style.display = 'none';
+	}
+}
+</script>
+
+{php echo register_jssdk(false);}
+<script type="text/javascript">
+wx.ready(function(){
+	var shareData = {
+		title: "{$sharelink['title']} - {$setting['sitename']} - {$_W['account']['name']}",
+		desc: "{$sharelink['desc']}",
+		link: "{php echo $shareurl;}",
+		imgUrl: "{php echo $_W['attachurl'];}{$sharelink['images']}",
+		trigger: function (res) {},
+		complete: function (res) {},
+		success: function (res) {},
+		cancel: function (res) {},
+		fail: function (res) {}
+	};
+	wx.onMenuShareTimeline(shareData);
+	wx.onMenuShareAppMessage(shareData);
+	wx.onMenuShareQQ(shareData);
+	wx.onMenuShareWeibo(shareData);
+	wx.onMenuShareQZone(shareData);
+	
+});
+</script>
+
+
+{php include $this->template('_footer');}

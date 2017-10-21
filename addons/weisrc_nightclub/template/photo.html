@@ -1,0 +1,128 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+    <li {if $mode==0}class="active"{/if}><a href="{php echo $this->createWebUrl('photo')}">相册管理{if $photo_total!=0}({$photo_total}){/if}</a></li>
+    <li {if $mode==1 && $status==0}class="active"{/if}><a href="{php echo $this->createWebUrl('photo', array('mode' => 1))}">待审核{if $photo_nopass_total!=0}({$photo_nopass_total}){/if}</a></li>
+    <li {if $mode==1 && $status==1}class="active"{/if}><a href="{php echo $this->createWebUrl('photo', array('mode' => 1, 'status' => 1))}">已审核{if $photo_pass_total!=0}({$photo_pass_total}){/if}</a></li>
+</ul>
+<style>
+    .album_list{overflow:hidden; padding-top:15px;}
+    .album_list li{border:1px #DDD solid; width:237px; float:left; margin-left:15px; margin-bottom:10px;}
+    .album_list li .album_pic{display:block; width:237px; height:130px; overflow:hidden;}
+    .album_list li .album_pic img{width:237px;}
+    .album_list li .album_main{padding:10px; overflow:hidden;}
+    .album_list li .album_main .album_title{font-size:16px; height:20px; width:217px; overflow:hidden;}
+    .album_list li .album_main .pull-left{color:#999;}
+    .album_manage .table th{width:120px;}
+    .album_manage #albums_head img{margin-right:10px; max-height:70px;}
+</style>
+<link type="text/css" rel="stylesheet" href="./resource/script/kindeditor/themes/default/default.css" />
+<script type="text/javascript" src="./resource/script/kindeditor/kindeditor-min.js"></script>
+<script type="text/javascript" src="./resource/script/kindeditor/lang/zh_CN.js"></script>
+<script type="text/javascript">
+    require(['jquery', 'util'], function($, util){
+        $(function(){
+            var i = 0;
+            $('#selectimage').click(function() {
+                util.uploadMultiPictures(function(list){
+
+                    // your code here
+
+                    for(var i=0; i<list.length; i++){
+
+                        html = '<div class="alert alert-info">' +
+
+                                '<input type="hidden" name="attachment-new[]" value="'+list[i]['filename']+'" />'+
+
+                                '<span class="pull-right"><a href="javascript:;" onclick="var $this = this;if (confirm(\'删除操作不可恢复，确定码？\')){ajaxopen(\'index.php?c=site&a=entry&m=we7_album&do=delete&type=photo&attachment='+list[i]['filename']+'\', function(s) {$($this).parent().parent().remove();})}; return false;">删除</a></span>' +
+
+                                '<div class="photo_preview pull-left"><label class="radio inline"><img src="'+list[i]['url']+'"><div><a href="javascript:;" onclick="ajaxopen(\'index.php?c=site&a=entry&m=we7_album&do=cover&albumid={$album['id']}&thumb='+list[i]['filename']+'\', function(msg){ message(msg)})">设为封面</a></div></label></div>' +
+
+                                '<table class="pull-left">' +
+
+                                '<tr><th>排序</th><td><input type="text" name="displayorder-new[]" value="" class="form-control"></td></tr>' +
+
+                                '<tr><th>标题</th><td><input type="text" name="title-new[]" value="" class="form-control"></td></tr>' +
+
+                                '<tr><th>链接</th><td><input type="text" name="url-new[]" value="" class="form-control"></td></tr>' +
+                                '<tr><th>是否显示</th><td><label for="isshow1[]" class="radio-inline"><input type="radio" name="status-new['+i+']" value="1" id="isshow1[]" checked="true" /> 显示</label><label for="isshow2[]" class="radio-inline"><input type="radio" name="status-new['+i+']" value="0" id="isshow2[]" /> 隐藏</label></td></tr>' +
+
+                        '</table></div>';
+
+                        $('#listimage').append(html);
+
+                    }
+
+                });
+
+            });
+        });
+    });
+</script>
+<style>
+    .photo_list{padding:15px 0;}
+    .photo_list .alert{width:auto; margin-top:10px; overflow:hidden;}
+    .photo_list .photo_preview{width:130px;}
+    .photo_list .photo_preview img{width:130px; margin-bottom:5px;}
+    .photo_list .photo_preview label{padding:0;}
+    .photo_list .photo_preview input[type="radio"]{margin-left:0; margin-right:10px;}
+    .photo_list table{margin-left:40px;}
+    .photo_list table th,.photo_list table td{padding-bottom:5px;}
+    .photo_list table th{width:60px; font-size:14px;}
+    .photo_list table input,.photo_list table select{margin-bottom:0;}
+</style>
+<div class="main">
+    <div class="photo_list">
+        <form method="post" class="form">
+            <input name="token" type="hidden" value="{$_W['token']}" />
+            <input name="albumid" type="hidden" value="{$album['id']}" />
+            <span id="selectimage" class="btn btn-primary"><i class="icon-plus"></i> 上传幻灯片</span>
+            <input type="submit" name="submit" id="selectimage" class="btn" value="保存" /> <span style="color:red;">上传幻灯片后，请保存数据！</span>
+            {if $album['type'] == 0}<div id="listimage"></div>{/if}
+            {loop $photos $item}
+            <div class="alert alert-info">
+                <input type="hidden" value="{$item['attachment']}" name="attachment[{$item['id']}]">
+                <span class="pull-right"><a class="delete" onclick="return confirm('删除操作不可恢复，确定码？'); return false;" href="{php echo $this->createWebUrl('PhotoDelete', array('type' => 'photo', 'id' => $item['id']))}">删除</a></span>
+                <div class="photo_preview pull-left">
+                    <label class="radio-inline">
+                        <img src="{$_W['attachurl']}{$item['attachment']}">
+                    </label>
+                </div>
+                <table class="pull-left">
+                    <tr>
+                        <th>排序</th>
+                        <td>
+                            <input type="text" class="form-control" value="{$item['displayorder']}" name="displayorder[{$item['id']}]">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>标题</th>
+                        <td><input type="text" class="form-control" value="{$item['title']}" name="title[{$item['id']}]"></td>
+                    </tr>
+                    {if !empty($item['nickname'])}
+                    <tr>
+                        <th>上传用户</th>
+                        <td>{$item['nickname']}</td>
+                    </tr>
+                    {/if}
+                    {if !empty($item['from_user'])}
+                    <tr>
+                        <th>OPENID</th>
+                        <td>{$item['from_user']}</td>
+                    </tr>
+                    {/if}
+                    <tr>
+                        <th><label for="">状态</label></th>
+                        <td>
+                            <label for="isshow1[{$item['id']}]" class="radio-inline"><input type="radio" name="status[{$item['id']}]" value="1" id="isshow1[{$item['id']}]" {if empty($item) || $item['status'] == 1}checked="true"{/if} /> 显示</label>
+                            <label for="isshow3[{$item['id']}]" class="radio-inline"><input type="radio" name="status[{$item['id']}]" value="0" id="isshow3[{$item['id']}]"  {if !empty($item) && $item['status'] == 0}checked="true"{/if} /> 隐藏</label>
+                            <span class="help-block"></span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            {/loop}
+            {$pager}
+        </form>
+    </div>
+</div>
+{template 'common/footer'}

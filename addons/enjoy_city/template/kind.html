@@ -1,0 +1,161 @@
+{template 'common/header'}
+<link href="../addons/enjoy_city/public/css/commono.css" rel="stylesheet" type="text/css">
+<ul class="nav nav-tabs">
+  <li {if $operation == 'post'}class="active"{/if}><a href="{php echo $this->createWebUrl('kind', array('op' => 'post'))}">添加分类</a></li>
+  <li {if $operation == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('kind', array('op' => 'display'))}">管理分类</a></li>
+  <a class="btn btn-primary" onclick="return confirm('原分类会自动删除，确定这样做吗？');return false;" style="float: right;" href="{php echo $this->createWebUrl('kind',array('op'=>'cshkind'))}">一键初始化分类</a>
+</ul>
+<script>
+require(['bootstrap'], function ($) {
+  $('.btn').hover(function () {
+    $(this).tooltip('show');
+  }, function () {
+    $(this).tooltip('hide');
+  });
+});
+</script>
+{if $operation == 'post'}
+<div class="main">
+  <form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" id="form1">
+    <div class="panel panel-default">
+      <div class="panel-heading"> 商品分类 </div>
+      <div class="panel-body"> {if !empty($parentid)}
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label">上级分类</label>
+          <div class="col-sm-9 col-xs-12 control-label" style="text-align:left;">{$parent['name']}</div>
+        </div>
+        {/if}
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label">排序</label>
+          <div class="col-sm-9 col-xs-12">
+            <input type="text" name="hot" class="form-control" value="{$kind['hot']}" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style="color:red">*</span>分类名称</label>
+          <div class="col-sm-9 col-xs-12">
+            <input type="text" name="catename" class="form-control" value="{$kind['name']}" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label">分类外链</label>
+          <div class="col-sm-9 col-xs-12">
+            <input type="text" name="wurl" class="form-control" value="{$kind['wurl']}" />
+          </div>
+        </div>
+        {if  !empty($parent) || !empty($kind['parentid'])}
+        {else}
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label">分类图片</label>
+          <div class="col-sm-9 col-xs-12"> {php echo tpl_form_field_image('thumb', $kind['thumb'])} </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label">单独分类示例图片</label>
+          <div class="col-sm-9 col-xs-12"> <img src="../addons/enjoy_city/public/images/test.jpg" alt="" style="width: 300px;height: 300px;"/><font color="red">图片尺寸</font>：<b><font color="#000000">593*593</font></b>。</span> </div>
+        </div>
+        {/if}
+        {if !empty($parentid)}
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label">幻灯片外链</label>
+          <div class="col-sm-9 col-xs-12">
+            <input type="text" name="headurl" class="form-control" value="{$kind['headurl']}" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label">幻灯片</label>
+          <div class="col-sm-9 col-xs-12"> {php echo tpl_form_field_image('headimg', $kind['headimg'])} <span class="help-block">尺寸：640*250px</span> </div>
+        </div>
+        {else}
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label">底部广告外链</label>
+          <div class="col-sm-9 col-xs-12">
+            <input type="text" name="footurl" class="form-control" value="{$kind['footurl']}" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label">分类底部广告</label>
+          <div class="col-sm-9 col-xs-12"> {php echo tpl_form_field_image('footimg', $kind['footimg'])} <span class="help-block">尺寸：640*200px</span> </div>
+        </div>
+        {/if}
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label">是否显示</label>
+          <div class="col-sm-9 col-xs-12">
+            <label class='radio-inline'>
+            <input type='radio' name='enabled' value='0' {if $kind['enabled']==0}checked{/if} />
+            是 </label>
+            <label class='radio-inline'>
+            <input type='radio' name='enabled' value='1' {if $kind['enabled']==1}checked{/if} />
+            否 </label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="form-group col-sm-12">
+      <input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+      <input type="hidden" name="token" value="{$_W['token']}" />
+    </div>
+  </form>
+</div>
+{elseif $operation == 'display'}
+<div class="main">
+  <div class="kind">
+    <form action="" method="post" onsubmit="return formcheck(this)">
+      <div class="panel panel-default">
+        <div class="panel-body table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th style="width:10px;"></th>
+                <th style="width:80px;">显示顺序</th>
+                <th style="width:200px;">分类名称</th>
+                <th style="width:100px;">外链</th>
+                <th style="width:150px;">状态</th>
+                <th style="width:150px;">幻灯片/广告</th>
+                <th style="width:150px;">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+            {loop $kind $row}
+            <tr>
+              <td>{if count($children[$row['id']]) > 0}<a href="javascript:;"><i class="fa fa-chevron-down"></i></a>{/if}</td>
+              <td><input type="text" class="form-control" name="hot[{$row['id']}]" value="{$row['hot']}"></td>
+              <td><img src="{php echo tomedia($row['thumb']);}" width='30' height="30" onerror="$(this).remove()" style='padding:1px;border: 1px solid #ccc;float:left;' />
+                <div class="type-parent">{$row['name']}(父分类ID：{$row['id']}) </div></td>
+              <td> {$row['wurl']} </td>
+              <td> {if $row['enabled']==0} <span class='label label-success'>显示</span> {else} <span class='label label-danger'>隐藏</span> {/if} </td>
+              <td><img src="{php echo tomedia($row['footimg']);}" width='150' onerror="$(this).remove()" style='padding:1px;border: 1px solid #ccc;float:left;' /> </td>
+              <td><a href="{php echo $this->createWebUrl('kind', array('op' => 'post', 'id' => $row['id']))}" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="编辑"><i class="fa fa-edit"></i></a>&nbsp;&nbsp; <a href="{php echo $this->createWebUrl('kind', array('op' => 'delete', 'id' => $row['id']))}" onclick="return confirm('确认删除此分类吗？');return false;" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="删除"><i class="fa fa-times"></i></a> <a class='btn btn-default btn-sm' href="{php echo $this->createWebUrl('kind', array('parentid' => $row['id'], 'op' => 'post'))}" title='添加子分类' ><i class="fa fa-plus"></i></a> </td>
+            </tr>
+            {loop $children[$row['id']] $row}
+            <tr>
+              <td></td>
+              <td><input type="text" class="form-control col-lg-2" name="hot[{$row['id']}]" value="{$row['hot']}">
+              </td>
+              <td><div style="padding-left:50px;height:30px;line-height:30px;background:url('./resource/images/bg_repno.gif') no-repeat -245px -545px;">{$row['name']}(子分类ID：{$row['id']}) </div></td>
+              <td> {$row['wurl']} </td>
+              <td> {if $row['enabled']==0} <span class='label label-success'>显示</span> {else} <span class='label label-danger'>隐藏</span> {/if} </td>
+              <td><img src="{php echo tomedia($row['headimg']);}" width='150' onerror="$(this).remove()" style='padding:1px;border: 1px solid #ccc;float:left;' /> </td>
+              <td><a href="{php echo $this->createWebUrl('kind', array('op' => 'post', 'id' => $row['id'],'parentid'=>$row['parentid']))}" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="编辑"><i class="fa fa-edit"></i></a>&nbsp;&nbsp; <a href="{php echo $this->createWebUrl('kind', array('op' => 'delete', 'id' => $row['id']))}" onclick="return confirm('确认删除此分类吗？');return false;" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="删除"><i class="fa fa-times"></i></a> </td>
+            </tr>
+            {/loop}
+            {/loop}
+            <tr>
+              <td></td>
+              <td colspan="4"><a href="{php echo $this->createWebUrl('kind', array('op' => 'post'))}"><i class="fa fa-plus-sign-alt"></i> 添加新分类</a> </td>
+            </tr>
+            <tr>
+              <td></td>
+              <td colspan="4"><input name="submit" type="submit" class="btn btn-primary" value="提交">
+                <input type="hidden" name="token" value="{$_W['token']}" />
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{/if}
+{template 'footer'}
+{template 'common/footer'} 

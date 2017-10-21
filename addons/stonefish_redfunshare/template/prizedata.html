@@ -1,0 +1,164 @@
+{template 'common/header'}
+<style>
+.label{cursor:pointer;}
+</style>
+<div class="main">
+	{template 'common'}
+    <div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+		<form action="./index.php" method="get" class="form-horizontal" role="form">
+			<input type="hidden" name="c" value="site" />
+			<input type="hidden" name="a" value="entry" />
+        	<input type="hidden" name="m" value="stonefish_redfunshare" />
+        	<input type="hidden" name="do" value="prizedata" />
+        	<input type="hidden" name="rid" value="{$_GPC['rid']}" />
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">粉丝昵称</label>
+				<div class="col-xs-12 col-sm-8 col-lg-4">
+					<input class="form-control" name="nickname" id="" type="text" value="{$_GPC['nickname']}" placeholder="粉丝昵称"> 
+				</div>			
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">真实姓名</label>
+				<div class="col-xs-12 col-sm-8 col-lg-4">
+					<input class="form-control" name="realname" id="" type="text" value="{$_GPC['realname']}" placeholder="真实姓名"> 
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">手机号码</label>
+				<div class="col-xs-12 col-sm-8 col-lg-9">
+					<input class="form-control" name="mobile" id="" type="text" value="{$_GPC['mobile']}" placeholder="手机号码"> 
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-xs-12 col-sm-3 col-lg-6">
+					<select name="xuni" class="form-control" style="float:left">
+                    	<option value="" {if $_GPC['xuni']==''}selected{/if}>全部奖项</option>
+						<option value="2" {if $_GPC['xuni']=='2'}selected{/if}>真实</option>
+                        <option value="1" {if $_GPC['xuni']=='1'}selected{/if}>虚拟</option>
+                	</select>
+				</div>
+				<div class="col-xs-12 col-sm-3 col-lg-4">
+					<select name="zhongjiang" class="form-control" style="float:left">
+                    	<option value="" {if $_GPC['zhongjiang']==''}selected{/if}>全部状态</option>
+                        <option value="1" {if $_GPC['zhongjiang']=='1'}selected{/if}>审核中</option>
+						<option value="2" {if $_GPC['zhongjiang']=='2'}selected{/if}>已兑换</option>						
+                	</select>
+				</div>
+                <div class=" col-xs-12 col-sm-3 col-lg-2">
+					<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+	<div class="row-fluid">
+    	<div class="span8 control-group">
+			<a class="btn btn-warning" href="{php echo $this->createWebUrl('download',array('rid'=>$rid,'zhongjiang'=>$_GPC['zhongjiang'],'xuni'=>$_GPC['xuni'],data=>'prizedata'))}"><i class="fa fa-download"></i> 导出{$statustitle}信息</a>
+			<a class="btn btn-default">共计：{$total}条记录</a>
+        </div>
+    </div>
+</div>
+<div style="position:relative">
+	<div class="panel-body table-responsive">
+		<table class="table table-hover" style="position:relative">
+			<thead class="navbar-inner">
+				<tr>
+					<th style="width:30px;">删？</th>
+					<th style="width:40px;">头像</th>
+					<th style="width:100px;">真实姓名</th>
+					<th style="width:100px;">手机号码</th>
+					<th style="width:100px;">兑换量</th>
+					<th style="width:120px;">申请时间</th>
+					<th style="width:100px;">兑奖状态</th>
+					<th style="width:120px;">兑奖时间</th>
+					<th style="width:100px;">兑奖人</th>
+					<th style="width:150px;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $row}
+				<tr>
+					<td><input type="checkbox" name="uid[]" value="{$row['id']}" class=""></td>
+					<td><img src="{if substr($row['avatar'],-1)=='0'}{php echo rtrim(toimage($row['avatar']), '0').$reply['poweravatar']}{else}{php echo toimage($row['avatar'])}{/if}" width="30"></td>
+					<td><a href="javascript:void(0)" id="{$row['fid']}" class="btn btn-default btn-sm userinfo" style="width:100px;" data-toggle="tooltip" data-placement="top" title="用户兑奖参数项"><i class="fa fa-child"></i> {if !empty($row['realname'])}{$row['realname']}{else}{php echo stripcslashes($row['nickname'])}{/if}</a></td>
+					<td>{$row['mobile']}</td>
+					<td>{$row['outpoint']}{$reply['danwei']}</td>
+					<td>{php echo date('Y/m/d H:i',$row['createtime']);}</td>
+					<td>{if $row['zhongjiang']==1}<span class="label label-warning">审核中
+						{else}<span class="label label-success">已兑换{/if}
+						{if $row['xuni']==0}/真实</span>
+						{else}/虚拟</span>{/if}</td>
+					<td>{if $row['consumetime']}{php echo date('Y/m/d H:i',$row['consumetime']);}{else}审核中{/if}</td>
+					<td>{if $reply['redpacktype'] && $reply['seedredpack']}<a href="javascript:void(0)" id="{$row['id']}" class="btn btn-default btn-sm juheinfo" style="width:80px;" data-toggle="tooltip" data-placement="top" title="接口订单状态">{$row['ticketname']}({$row['error_num']})</a>{else}{$row['ticketname']}{/if}</td>
+					<td>
+						{if $row['fanid']}<a href="./index.php?c=mc&a=notice&do=tpl&id={$row['fanid']}" id="{$row['fanid']}" class="btn btn-success btn-sm sms"> 发送消息</a>{else}<span class="btn btn-default btn-sm sms"> 发送消息</span>{/if} {if $row['zhongjiang']==1}<a class="btn btn-warning btn-sm" href="{php echo $this->createWebUrl('setprizestatus',array('zhongjiang'=>2,'id'=>$row['id'],'pid'=>$row['prizeid'],'rid'=>$row['rid'], 'page' => intval($_GPC['page'])))}"><i class="fa fa-times-circle-o"></i> 确认兑奖</a>{/if}
+						{if $row['zhongjiang']==2}<a class="btn btn-success btn-sm" href="{php echo $this->createWebUrl('setprizestatus',array('zhongjiang'=>1,'id'=>$row['id'],'pid'=>$row['prizeid'],'rid'=>$row['rid'], 'page' => intval($_GPC['page'])))}"><i class="fa fa-check-circle-o"></i> 取消兑奖</a>{/if}
+					</td>
+				</tr>
+				{/loop}
+				<tr>
+					<td><input type="checkbox" name="" onclick="var ck = this.checked;$(':checkbox').each(function(){this.checked = ck});"></td>
+					<td colspan="9"><input name="token" type="hidden" value="{$_W['token']}" /><input type="submit" name="deleteall" class="btn btn-danger" value="删除选中的奖品"></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</div>
+</div>
+{$pager}
+</div>
+<div id="guanbi" class="hide">
+	<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+</div>
+<script>
+	require(['jquery', 'util'], function($, u){
+		$('.userinfo').click(function(){
+			var uid = parseInt($(this).attr('id'));
+			$.get("{php echo url('site/entry/userinfo',array('m' => 'stonefish_redfunshare','rid' => $rid))}&uid=" + uid, function(data){
+				if(data == 'dataerr') {
+					u.message('未找到指定粉丝资料', '', 'error');
+				} else {
+					var obj = u.dialog('粉丝兑奖资料', data, $('#guanbi').html());
+				}
+				obj.modal('show');
+			});
+		});
+		$('.juheinfo').click(function(){
+			var id = parseInt($(this).attr('id'));
+			$.get("{php echo url('site/entry/juheinfo',array('m' => 'stonefish_redfunshare','rid' => $rid))}&id=" + id, function(data){
+				if(data == 'dataerr') {
+					u.message('未找到记录', '', 'error');
+				} else {
+					var obj = u.dialog('订单状态', data, $('#guanbi').html());
+				}
+				obj.modal('show');
+			});
+		});	
+		$("input[name=deleteall]").click(function(){
+		    if($(":checkbox[name='uid[]']:checked").size() > 0){
+			    var check = $(":checkbox[name='uid[]']:checked");
+			    //if(confirm("确认要删除选择的粉丝中奖记录?")){
+		            var id = new Array();
+				    var rid = {$rid};
+		            check.each(function(i){
+			            id[i] = $(this).val();
+		            });
+		            $.post('{php echo $this->createWebUrl('deleteprizedata')}', {idArr:id,rid:rid},function(data){
+			        if (data.errno ==0){
+						u.message(data.error, '{php echo url('site/entry/prizedata',array('m' => 'stonefish_redfunshare','rid' => $rid,'page' => intval($_GPC['page'])))}', 'warning');
+			        }else{
+				        u.message(data.error, '', 'error');
+			        }
+					return false;
+		            },'json');
+		        //}
+		    }else{
+		        u.message('没有选择奖品记录', '', 'error');
+		        return false;
+		    }		    
+	    });
+	});	
+</script>
+{template 'common/footer'}

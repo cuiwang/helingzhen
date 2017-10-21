@@ -1,0 +1,18 @@
+<?php
+/*
+ __________________________________________________
+|  Encode by BajieTeam on we7                      |
+|__________________________________________________|
+*/
+
+/**
+ * 本代码出自一位前辈之手，由于作者被封，无法与其取得联系，如有侵权，请联系本人 QQ 1214512299
+ */
+class SDKRuntimeException extends Exception
+{
+    public function errorMessage()
+    {
+        return $this->getMessage();
+    }
+}
+?>

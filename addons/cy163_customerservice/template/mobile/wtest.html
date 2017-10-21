@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html style="background:#f5f5f5;">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1.0,maximum-scale=1.0,minimum-scale=1,user-scalable=no">
+    <meta content="yes" name="apple-mobile-web-app-capable">
+    <meta content="black" name="apple-mobile-web-app-status-bar-style">
+    <meta content="telephone=no" name="format-detection">
+    <meta content="email=no" name="format-detection">
+    <title>测试workerman</title>
+    <link rel="stylesheet" href="{MD_ROOT}static/css/reset.css"/>
+    <link rel="stylesheet" href="{MD_ROOT}static/css/home.css?v=20170620"/>
+	<link rel="stylesheet" href="{MD_ROOT}static/iconfont/iconfont.css"/>
+	<link rel="stylesheet" href="{MD_ROOT}static/newui/css/swiper-3.3.1.min.css"/>
+    <script>
+        var deviceWidth = document.documentElement.clientWidth;
+        document.documentElement.style.fontSize = deviceWidth / 7.5 + 'px';
+    </script>
+</head>
+<body>
+<div id="res"></div>
+<input type="text" id="con" />
+<button type="button" id="btn">发送</button>
+<div id="online_box" style="font-size:0.28rem;color:green;text-align:center;"></div>
+
+<script src="{MD_ROOT}static/newui/js/socket.io.js"></script>
+<script src="{MD_ROOT}static/newui/js/jquery-3.1.1.min.js"></script>
+<script src="{MD_ROOT}static/newui/js/swiper-3.3.1.jquery.min.js"></script>
+<script src="{MD_ROOT}static/newui/js/notify.js"></script>
+<script type="text/javascript">
+var uid = "{$_W['fans']['from_user']}";
+$(function(){
+	// 连接服务端
+    var socket = io('https://api.qiumipai.com:2120');
+    // 连接后登录
+    socket.on('connect', function(){
+    	socket.emit('login', uid);
+    });
+    // 后端推送来消息时
+    socket.on('new_msg', function(msg){
+         $('#res').append(msg+"<br />");
+    });
+    // 后端推送来在线数据时
+    socket.on('update_online_count', function(online_stat){
+        $('#online_box').html(online_stat);
+    });
+	
+	$("#btn").click(function(){
+		if($("#con").val() == ''){
+			alert('no value in');
+		}else{
+			var sendurl = 'https://api.qiumipai.com:2121/?type=publish&to='+uid;
+			$.ajax({   
+				url:sendurl,   
+				type:'get', 
+				data:{
+					content:$("#con").val(),
+				},
+				dataType:'jsonp',
+				success:function(data){ 
+					alert(data)
+				}
+			});
+		}
+	})
+})
+</script>			
+</body>
+</html>

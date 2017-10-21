@@ -1,0 +1,143 @@
+{template 'common/header'}
+
+{template 'common'}
+
+<div class="main">
+	<ul class="nav nav-tabs">
+		<li{if $_GPC['do'] == 'manage'} class="active"{/if}><a href="{php echo $this->createWebUrl('manage');}">大转盘管理</a></li>
+		<li{if $_GPC['do'] == 'post'} class="active"{/if}><a href="{php echo url('platform/reply/post',array('m'=>'wdl_bigwheel'));}">添加大转盘规则</a></li>
+		<li{if $_GPC['do'] == 'awardlist'} class="active"{/if}><a href="{php echo $this->createWebUrl('awardlist',array('name'=>'bigwheel', 'rid' => $rid));}">中奖名单</a></li>
+	</ul>
+
+    <div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+		<form action="./index.php" method="get" class="form-horizontal" role="form">
+			<input type="hidden" name="c" value="site" />
+			<input type="hidden" name="a" value="entry" />
+        	<input type="hidden" name="m" value="wdl_bigwheel" />
+        	<input type="hidden" name="do" value="awardlist" />
+        	<input type="hidden" name="rid" value="{$_GPC['rid']}" />
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">关键字</label>
+				<div class="col-xs-12 col-sm-8 col-lg-9">
+					<input class="form-control" name="keywords" id="" type="text" value="{$_GPC['keywords']}" placeholder="可查询SN码,手机号"> 
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">状态</label>
+				<div class="col-xs-12 col-sm-8 col-lg-9">
+					<select name="status" class="form-control" style="float:left">
+                    	<option value="" {if $_GPC['status']==''}selected{/if}>全部</option>
+                        <option value="1" {if $_GPC['status']=='1'}selected{/if}>已中奖</option>
+                        <option value="2" {if $_GPC['status']=='2'}selected{/if}>已兑换</option>
+                	</select>
+				</div>
+                <div class=" col-xs-12 col-sm-2 col-lg-2">
+					<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+	<div class="row-fluid">
+		<div class="span8 control-group">
+			<a class="btn btn-default">请选择导出日期</a>
+			{php load()->func('tpl');}
+			{php echo tpl_form_field_daterange('range', $range);}
+			<a class="btn btn-default js-pop"><i class="icon-download-alt"></i>导出SN码和兑奖信息</a>
+			<a class="btn btn-default" href="{php echo $this->createWebUrl('awardlist',array('rid'=>$rid))}">全部</a>
+			<a class="btn btn-default" href="{php echo $this->createWebUrl('awardlist',array('rid'=>$rid,'status'=>1))}">已中奖</a>
+			<a class="btn btn-default" href="{php echo $this->createWebUrl('awardlist',array('rid'=>$rid,'status'=>2))}">已兑换</a>
+        </div>
+    </div>
+	<div class="alert" style="margin-bottom:0;">
+		本次活动奖品总数：{$num1}个　　抽中未兑换：{$num2}个　　抽中已兑换：{$num3}个　　 领取规则 : 先到先得！
+	</div>
+</div>
+	<div style="position:relative">
+		<div class="panel-body table-responsive">
+			<table class="table table-hover" style="position:relative">
+			<thead class="navbar-inner">
+				<tr>
+					<th style="width:50px;">序号</th>
+					<th style="width:150px;">SN码</th>
+					<th style="width:80px;">奖品类别</th>
+					<th style="width:80px;">状态</th>
+					<th style="width:120px">领取者手机号</th>
+					<th style="width:120px;">领取者微信码</th>
+					<th style="width:120px;">领取者昵称</th>
+					<th style="width:120px;">中奖时间</th>
+					<th style="width:120px;">使用时间</th>
+					<th style="width:300px;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $row}
+				<tr>
+					<td>{$row['id']}</td>
+                	<td>{$row['award_sn']}</td>
+					<td>{$row['name']}</td>
+					<td>{if $row['status']==0}<span class="label label-default">未领取</span>
+						{elseif $row['status']==1}<span class="label label-success">已中奖</span>
+						{else}<span class="label label-warning">已兑奖</span>{/if}</td>
+					<td><span class="label label-info phone" data-fans="{$row['from_user']}"}>显示手机号</span></td>
+					<td>{$row['from_user']}</td>
+					<td>
+						{if empty($row['nickname'])}
+						<span class="label label-danger">未完善</span>
+						{else}
+						{$row['nickname']}
+						{/if}
+					</td>
+					<td>{php echo date('Y/m/d H:i',$row['createtime']);}</td>
+					<td>{if $row['consumetime'] == 0}未使用{else}{php echo date('Y/m/d H:i',$row['consumetime']);}{/if}</td>
+					<td>
+						<a class="btn btn-default" href="#" onclick="drop_confirm('确认设置为未中奖?','{php echo $this->createWebUrl('setstatus',array('status'=>0,'id'=>$row['id'],'rid'=>$row['rid']))}');"><i class="fa fa-ban"></i> 未中奖</a>
+						<a class="btn btn-default" href="#" onclick="drop_confirm('确认设置为已中奖?','{php echo $this->createWebUrl('setstatus',array('status'=>1,'id'=>$row['id'],'rid'=>$row['rid']))}');"><i class="fa fa-times-circle-o"></i> 已抽中</a>
+						<a class="btn btn-default" href="#" onclick="drop_confirm('确认设置为已兑奖?','{php echo $this->createWebUrl('setstatus',array('status'=>2,'id'=>$row['id'],'rid'=>$row['rid']))}');"><i class="fa fa-check-circle-o"></i> 已兑奖</a>
+					</td>
+				</tr>
+				{/loop}
+			</tbody>
+		</table>
+	</div>
+</div>
+</div>
+{$pager}
+</div>
+
+<script type="text/javascript">
+	$(".phone").click(function() {
+		$(".phone").addClass('label-teal');
+		$(".phone").text('显示手机号');
+		obj=$(this);
+		obj.text('加载中...');
+		fans=obj.attr('data-fans');
+		$.post("{php echo $this->createWebUrl('getphone',array('rid'=>$rid))}", { fans: fans},
+		function(data){
+			obj.removeClass('label-teal');
+			obj.text(data);
+		});
+
+	});
+		function drop_confirm(msg, url){
+		if(confirm(msg)){
+			window.location = url;
+		}
+	}
+</script>
+<script type="text/javascript">(function ($) {
+	$('.js-pop').click(function() {
+		var starttime = $("[name='range[start]']").val();
+		var endtime = $("[name='range[end]']").val();
+		location.href="{php echo $this->createWebUrl('download',array('rid'=>$rid))}" + 
+		"&starttime=" + starttime +
+		"&endtime=" + endtime;
+	});
+})(jQuery);
+</script>
+
+{template 'common/footer'}

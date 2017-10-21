@@ -1,0 +1,95 @@
+{template 'common/header'}
+{template 'common'}
+<div class="main">
+	<ul class="nav nav-tabs">
+		<li{if $_GPC['do'] == 'manage' || $_GPC['do'] == '' } class="active"{/if}><a href="{php echo $this->createWebUrl('manage');}">管理360全景</a></li>
+<li{if $_GPC['do'] == 'post'} class="active"{/if}><a href="{php echo url('platform/reply/post',array('m'=>'weisrc_pano'));}">添加360全景</a></li>
+	</ul>
+    <div class="panel panel-default account">
+        <div class="panel-body">
+            <p style="margin: 0px"><strong>首页链接： </strong> <a href="javascript:;" title="点击复制Token">{php echo $_W['siteroot'] .'app/index.php?i='.$_W['uniacid'].'&c=entry&do=index&m=weisrc_pano'}</a></p>
+        </div>
+    </div>
+    <script>
+        require(['jquery', 'util'], function($, u){
+            $('.account p a').each(function(){
+                u.clip(this, $(this).text());
+            });
+        });
+    </script>
+    <div class="panel panel-default">
+        <div class="panel-body table-responsive">
+            <table class="table table-hover">
+                <thead class="navbar-inner">
+                <tr>
+                    <th style="width: 10%;">编号</th>
+                    <th style="width: 30%;text-align: center;">全景名称</th>
+                    <th style="width: 30%;text-align: center;">添加时间</th>
+                    <th style="width: 30%;text-align: center;">操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                {loop $list $row}
+                <tr>
+                    <td class="with-checkbox">
+                        {$row['id']}
+                    </td>
+                    <td style="text-align: center;">{$row['name']} </td>
+                    <td style="text-align: center;">
+                        {$row['dateline']}
+                    </td>
+                    <td style="text-align: center;">
+                        <a class="btn btn-default" data-toggle="tooltip" data-placement="top" href="{php echo url('platform/reply/post',array('m'=>'weisrc_pano','rid'=>$row['id']));}" title="编辑">修改</a>
+                        <a class="btn btn-default" data-toggle="tooltip" data-placement="top" href="#" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('delete',array('rid'=>$row['id']))}');" title="删除">删除</a>
+                    </td>
+                </tr>
+                {/loop}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {$pager}
+</div>
+<script>
+$(function(){
+   
+    $(".check_all").click(function(){
+       var checked = $(this).get(0).checked;
+       $("input[type=checkbox]").attr("checked",checked);
+    });
+	$("input[name=deleteall]").click(function(){
+ 
+		var check = $("input:checked");
+		if(check.length<1){
+			err('请选择要删除的记录!');
+			return false;
+		}
+        if( confirm("确认要删除选择的记录?")){
+		var id = new Array();
+		check.each(function(i){
+			id[i] = $(this).val();
+		});
+		$.post('{php echo create_url('site/module', array('do' => 'deleteAll', 'name' => 'weisrc_pano'))}', {idArr:id},function(data){
+			if (data.errno ==0)
+			{
+				location.reload();
+			} else {
+				alert(data.error);
+			}
+
+
+		},'json');
+		}
+
+	});
+});
+</script>
+<script>
+function drop_confirm(msg, url){
+    if(confirm(msg)){
+        window.location = url;
+    }
+}
+</script>
+
+{template 'common/footer'}

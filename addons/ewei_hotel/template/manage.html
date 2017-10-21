@@ -1,0 +1,121 @@
+{template 'common/header'}
+{template 'common'}
+<div class="main">
+	<ul class="nav nav-tabs">
+		<li{if $_GPC['do'] == 'manage' || $_GPC['do'] == '' } class="active"{/if}><a href="{php echo $this->createWebUrl('manage');}">酒店管理</a></li>
+		<li{if $_GPC['do'] == 'post'} class="active"{/if}><a href="{php echo create_url('rule/post',array('module'=>'hotel'));}">添加酒店</a></li>
+	</ul>
+	<div class="panel panel-info">
+		<div class="panel-heading">筛选</div>
+		<div class="panel-body">
+			<form action="./index.php" method="get" class="form-horizontal" role="form">
+				<input type="hidden" name="c" value="site" />
+				<input type="hidden" name="a" value="entry" />
+				<input type="hidden" name="m" value="ewei_hotel" />
+				<input type="hidden" name="do" value="manage" />
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">关键词</label>
+					<div class="col-sm-8 col-lg-9">
+						<input class="form-control" name="keywords" id="" type="keywords" value="{$_GPC['keywords']}">
+					</div>
+					<div class=" col-xs-12 col-sm-2 col-lg-2">
+						<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+					</div>
+				</div>
+				<div class="form-group">
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<div class="panel panel-default">
+		<div class="panel-body">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+			<tr>
+				<th class='with-checkbox' style="width:30px;">
+					<input type="checkbox" class="check_all" />
+				</th>
+				<th style="width:200px;">酒店名称</th>
+				<th style="width:100px;">酒店房间数</th>
+				<th style="width:100px;">酒店电话</th>
+				<th style="width:400px;">操作</th>
+			</tr>
+			</thead>
+			<tbody>
+			{loop $list $row}
+			<tr>
+				<td class="with-checkbox">
+					<input type="checkbox" name="check" value="{$row['id']}"></td>
+				<td>{$row['title']} </td>
+				<td>{$row['roomcount']}</td>
+				<td>{$row['phone']}</td>
+				<td >
+					<a href="{php echo create_url('site/module', array('do' => 'roomlist', 'name' => 'hotel','id'=>$row['id']))}" class="btn" rel="tooltip" title="房型管理"><i class="list-alt"></i>房型管理</a>
+					<a href="{php echo create_url('site/module', array('do' => 'order', 'name' => 'hotel','id'=>$row['id']))}" class="btn" rel="tooltip" title="订单查看"><i class="list-alt"></i>订单查看</a>
+					<a class="btn" rel="tooltip" href="{php echo create_url('rule/post', array( 'module' => 'hotel','id'=>$row['id']))}" title="编辑"><i class="fa fa-edit"></i></a>
+					{if $row['show']==1}
+					<a class="btn btn-default btn-sm" title="接受预订" href="#" onclick="drop_confirm('您确定要开始吗,设置中途不能随时修改!', '{php echo create_url('site / module', array('do' => 'setshow', 'name' => 'hotel','rid'=>$row['id'],'status'=>1))}');"><i class="fa fa-play"></i></a>
+					{elseif $row['show']==2}
+					<a class="btn btn-default btn-sm" title="结束预订" href="#" onclick="drop_confirm('您确定要暂停吗,设置中途不能随时修改!', '{php echo create_url('site / module', array('do' => 'setshow', 'name' => 'hotel','rid'=>$row['id'],'status'=>0))}');"><i class="fa fa-stop"></i></a>
+					{/if}
+					<a class="btn btn-default btn-sm" rel="tooltip" href="#" onclick="drop_confirm('您确定要删除吗?', '{php echo create_url('site / module', array('do' => 'delete', 'name' => 'hotel','rid'=>$row['id']))}');" title="删除"><i class="fa fa-times"></i></a>
+				</td>
+			</tr>
+			{/loop}
+			<tr>
+				<td colspan="7">
+					<input type="button" class="btn btn-primary" name="deleteall" value="删除选择的" />
+				</td>
+			</tr>
+			</tbody>
+		</table>
+	</div>
+</div>
+	{$pager}
+</div>
+<script>
+	require(['bootstrap'],function($){
+		$('.btn').tooltip();
+	});
+</script
+<script>
+	$(function(){
+		$(".check_all").click(function(){
+			var checked = $(this).get(0).checked;
+			$("input[type=checkbox]").attr("checked", checked);
+		});
+		$("input[name=deleteall]").click(function(){
+
+			var check = $("input:checked");
+			if (check.length < 1){
+				err('请选择要删除的记录!');
+				return false;
+			}
+			if (confirm("确认要删除选择的记录?")){
+				var id = new Array();
+				check.each(function(i){
+					id[i] = $(this).val();
+				});
+				$.post('{php echo $this->createWebUrl('deleteAll')}', {idArr:id}, function(data){
+					if (data.errno == 0)
+					{
+						location.reload();
+					} else {
+						alert(data.error);
+					}
+
+
+				}, 'json');
+			}
+		});
+	});</script>
+<script>
+	function drop_confirm(msg, url){
+		if (confirm(msg)){
+			window.location = url;
+		}
+	}
+</script>
+
+{template 'common/footer'}

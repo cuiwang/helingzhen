@@ -1,0 +1,415 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li {if $act == 'display'}class="active"{/if}>
+		<a href="{php echo $this->createWebUrl('product');}">商品列表</a>
+	</li>
+	<li {if $act == 'post' && !$_GPC['id'] && !$_GPC['type']}class="active"{/if}>
+		<a href="{php echo $this->createWebUrl('product', array('act' => 'post'));}">添加商品</a>
+	</li>
+	<li {if $act == 'post' && !$_GPC['id'] && $_GPC['type']=='coupon'}class="active"{/if}>
+		<a href="{php echo $this->createWebUrl('product', array('act' => 'post', 'type' => 'coupon'));}">添加优惠券</a>
+	</li>
+	{if $_GPC['id']}
+	<li {if $act == 'post'}class="active"{/if}>
+		<a href="{php echo $this->createWebUrl('product', array('act' => 'post', 'id' => $id));}">编辑商品</a>
+	</li>
+	{/if}
+	{if $act == 'virtual'}
+	<li class="active">
+		<a href="{php echo $this->createWebUrl('product', array('act' => 'virtual', 'id' => $id));}">编辑虚拟商品</a>
+	</li>
+	{/if}
+</ul>
+<style>
+	.tac {
+		text-align: center;
+	}
+	.nav.nav-tabs {
+		margin-bottom: 20px;
+	}
+	.table>thead>tr>th {
+		vertical-align: bottom;
+		border-bottom: 2px	 solid #ddd;
+		font-size: 14px;
+	}
+	.tac>.btn-sm{
+		position: relative;
+		float: left;
+	}
+	.table>tbody>tr>td {
+		vertical-align: middle !important;
+	}
+</style>
+{if $act == 'display'}
+<div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+		<form action="" method="post" class="form-horizontal" role="form">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 control-label">商品名称</label>
+				<div class="col-sm-8 col-md-8 col-lg-8 col-xs-12">
+					<input class="form-control" name="title" type="text" value="{$_GPC['title']}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 control-label">商品类型</label>
+				<div class="col-sm-8 col-md-8 col-lg-8 col-xs-12">
+					<select name="type" class="form-control">
+						<option value="0">全部</option>
+						{loop $product_types $pt}
+						<option value="{$pt['id']}"{if $pt['id']==$_GPC['type']} selected{/if}>{$pt['name']}</option>
+						{/loop}
+					</select>
+				</div>
+				<div class="pull-right col-xs-12 col-sm-2 col-md-2 col-lg-2">
+					<button class="btn btn-default"><i class="fa fa-search"></i>搜索</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+<form action="" method="post">
+	<div class="panel panel-default">
+		<div class="table-responsive panel-body">
+			<table class="table table-hover">
+				<thead>
+					<th width="10%" class="tac">排序</th>
+					<th width="" class="tac">封面图</th>
+					<th width="25%" class="tac">标题</th>
+					<th width="9%" class="tac">类型</th>
+					<th width="14%" class="tac">价格<!--(竞拍加价)--></th>
+					<th width="13%" class="tac">状态(点击切换)</th>
+					<th width="" class="tac">
+						<a title="点击排序" href="{php echo $this->createWebUrl('product', array('sort' => 'total', 'orderby' => $orderby))}">
+							库存 {if isset($_GPC['sort'])}<span class="glyphicon {if $_GPC['orderby']=='DESC'}glyphicon-arrow-down{else}glyphicon-arrow-up{/if}" aria-hidden="true" style="font-size: 10px;"></span>{/if}
+						</a>
+					</th>
+					<th width="5%" class="tac">销量</th>
+					<!--<th>出售时间</th>-->
+					<!--<th>结束时间</th>-->
+					<!--<th>添加时间</th>-->
+					<!--<th>分享数</th>-->
+					<th width="13%" class="tac">操作</th>
+				</thead>
+				<tbody>
+				{loop $list $item}
+				<tr>
+					<td>
+						<input type="text" class="form-control tac" name="displayorder[{$item['id']}]" value="{$item['displayorder']}">
+					</td>
+					<!--<td>
+						{$item['id']}
+					</td>-->
+					<td style="position: relative">
+						{if $item['cover']}
+						<img src="{$item['cover']}" onerror="this.src='{php echo $this->superman_placeholder}'" height="60px" width="60px;"/>
+						{/if}
+						{if superman_is_redpack($item['type']) && strstr($item['cover'],'addons') !== false}
+						<span style="position: absolute; left: 2px; top: 40%; color:#ffcc00; margin-left: 8px; width: 52px; text-align: center" class="tac">
+								{$item['extend']['redpack_amount']}元
+							</span>
+						{/if}
+					</td>
+					<td class="tac">{$item['title']}</td>
+					<td class="tac">{$item['type_name']}</td>
+					<td class="tac">
+						{$item['prices']}<!--({if isset($item['extend']['auction_credit'])}{$item['extend']['auction_credit']}{else}0{/if})-->
+					</td>
+					<td class="tac">
+						<button type="button" data-id="{$item['id']}" data-isshow="{$item['isshow']}" class="btn btn-default btn-xs {if $item['isshow']==1}btn-success{else}btn-danger{/if} product_isshow" data-loading-text="loading..." autocomplete="off">
+							{if $item['isshow']==1}上架
+							{else}下架
+							{/if}
+						</button>
+						{if $item['end_time'] != 0 && $item['end_time'] < $_W['timestamp']}
+						<a title="已过期商品不可购买，点击编辑" href="{php echo $this->createWebUrl('product',array('act'=>'post','id' => $item['id']));}" class="btn btn-default btn-xs btn-warning" role="button">已过期</a>
+						{/if}
+					</td>
+					<td class="tac">{$item['total']}</td>
+					<td class="tac">{$item['sales']}</td>
+					<td style="overflow: visible;" class="tac">
+							{if $item['isvirtual']}
+							<a href="{php echo $this->createWebUrl('product', array('act' => 'virtual', 'product_id' => $item['id']))}" title="虚拟商品编辑" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm" style="padding: 5px 10px;"><i class="fa fa-tint"></i></a>
+							{/if}
+							<a href="{php echo $this->createWebUrl('product', array('act' => 'post','id' => $item['id']));}" title="编辑" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm" style="padding: 5px 10px;"><i class="fa fa-edit"></i></a>
+							<a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('product', array('act' => 'delete','id' => $item['id']));}" title="删除" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm" style="padding: 5px 10px;"><i class="fa fa-times"></i></a>
+					</td>
+				</tr>
+				{/loop}
+				</tbody>
+			</table>
+		</div>
+		<div class="panel-footer">
+			总共 <strong>{$total}</strong> 条
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-2 text-left">
+			<input name="orderby_submit" type="submit" value="更新排序" class="btn btn-primary" />
+			<input type="hidden" name="token" value="{$_W['token']}" />
+		</div>
+		<div class="col-xs-10 text-right">
+			{$pager}
+		</div>
+	</div>
+</form>
+<script type="text/javascript">
+	require(['jquery','bootstrap', 'util'],function($, u){
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+		$('.product_isshow').click(function(){
+			var t = this;
+			var id = $(t).attr('data-id');
+			var isshow = $(t).attr('data-isshow');
+			var btn = $(t).button('loading');
+			$.ajax({
+				url: "{php echo $this->createWebUrl('product', array('act' => 'setattr'))}",
+				data: 'id='+id+'&field=isshow&value='+isshow,
+				success: function(response){
+					$(t).removeClass('disabled').attr('disabled', false);
+					if (response == 'success') {
+						$(t).removeClass('btn-success').removeClass('btn-danger');
+						if (isshow == 1) {
+							$(t).addClass('btn-danger').attr('data-isshow', '0').html('下架');
+						} else {
+							$(t).addClass('btn-success').attr('data-isshow', '1').html('上架');
+						}
+					} else {
+						u.message(response, '', 'error');
+					}
+				}
+			});
+		});
+	});
+</script>
+{else if $act == 'post'}
+{if $_GPC['type'] == 'coupon'||$item['extend']['coupon']['id']}
+<div class="alert alert-info">
+	因微信卡券的特殊性，请将添加的微信卡券的领取限制设置为1，否则用户兑换一次后可领取多张优惠券；<br>
+	添加的卡券建议关闭分享和转增，如不关闭用户可将优惠券地址分享或转赠给他人，他人无需兑换；<br>
+	并且每件优惠券商品可兑换的次数为1次，因多次兑换后下发的仍为同一优惠券，已领取后无法再次领取；
+</div>
+{/if}
+<form class="form-horizontal form" action="" method="post" enctype="multipart/form-data">
+	<input type="hidden" name="id" value="{$item[id]}">
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			{if empty($item['id'])}
+			添加商品
+			{else}
+			编辑商品
+			{/if}
+		</div>
+		<div class="panel-body">
+			<ul class="nav nav-tabs" id="product_tab">
+				<li class="active" ><a href="#pro_basic">基本属性</a></li>
+				<li><a href="#pro_option">选填属性</a></li>
+				<li><a href="#pro_share">分享属性</a></li>
+				<li><a href="#pro_virtual">虚拟属性</a></li>
+				<li><a href="#pro_checkout">核销属性</a></li>
+			</ul>
+			<div class="tab-content">
+				<div class="tab-pane  active" id="pro_basic">{template 'web/product-base'}</div>
+				<div class="tab-pane" id="pro_option">{template 'web/product-option'}</div>
+				<div class="tab-pane" id="pro_share">{template 'web/product-share'}</div>
+				<div class="tab-pane" id="pro_virtual">{template 'web/product-virtual'}</div>
+				<div class="tab-pane" id="pro_checkout">{template 'web/product-checkout'}</div>
+			</div>
+		</div>
+		<script type="text/javascript">
+		$(function () {
+			window.optionchanged = false;
+			$('#product_tab a').click(function (e) {
+				e.preventDefault();//阻止a链接的跳转行为
+				$(this).tab('show');//显示当前选中的链接及关联的content
+			})
+		});
+		</script>
+	</div>
+	<div class="form-group">
+		<div class="col-sm-12">
+			<input name="submit" type="submit" value="提交" class="btn btn-primary col-lg-1">
+			<input type="hidden" name="token" value="{$_W['token']}" />
+		</div>
+	</div>
+</form>
+<script>
+	require(['jquery', 'util'], function($, u){
+		//商品类型
+		$('select[name=type]').change(function(){
+			//init
+			$('#auction_credit1_wrap').hide();
+			$('#auction_credit2_wrap').hide();
+			$('#auction_time_wrap').hide();
+			$('#redpack_wrap').hide();
+
+			$('#price_wrap').show();
+			$('#credit_wrap').show();
+			$('#time_wrap').show();
+
+			$('input[name=activity_time_limit]').removeAttr('disabled');
+			$('#activity_time_wrap').hide();
+			$('select[name=share_credit_type]').removeClass('disabled');
+			$('input[name=share_credit]').removeClass('disabled');
+			$('.redpack_tips').hide();
+			var type = $(this).val();
+			if (type == 2) { //竞拍
+				$('#auction_credit1_wrap').fadeIn();
+				$('#auction_credit2_wrap').fadeIn();
+				$('#auction_time_wrap').fadeIn();
+				$('#price_wrap').hide();
+				$('#credit_wrap').hide();
+				$('#time_wrap').hide();
+			} else if (type == 5 || type == 6) { //微信红包
+				$('#redpack_wrap').fadeIn();
+				$('select[name=share_credit_type]').attr('disabled', true);
+				$('input[name=share_credit]').attr('disabled', true).val('0');
+				$('.redpack_tips').show();
+			} else if (type == 7) {
+				$('input[name=activity_time_limit]').prop('checked', false).attr('disabled', true);
+				$('#activity_time_wrap').fadeIn();
+			}
+		});
+
+		//积分类型
+		var credit_title = $('select[name=credit_type]').find('option:selected').text();
+		$('select[name=credit_type]').change(function(){
+			credit_title = $('select[name=credit_type]').find('option:selected').text();
+			$('.credit_title').html(credit_title);
+		});
+		$('.credit_title').html(credit_title);
+
+		//出售时间
+		$('input[name=activity_time_limit]').change(function(){
+			var id = $(this).attr('data-id');
+			if ($(this).prop('checked')) {
+				$('#'+id).fadeOut();
+			} else {
+				$('#'+id).fadeIn();
+			}
+		});
+
+		//检查表单提交内容
+		$('form').submit(function(){
+			if ($('select[name=couponid]').length > 0) {
+				if ($('select[name=couponid]').val() == 0) {
+					u.message('请选择微信卡券！', '', 'error');
+					return false;
+				}
+			}
+			var type = $('select[name=type]');
+			var title = $('input[name=title]');
+			if (title.val() == '') {
+				u.message('请输入商品名称！', '', 'error');
+				return false;
+			}
+			var credit = $('input[name=credit]');
+			if (type.val() != 2) {
+                if (credit.val() == '' ) {
+                    u.message('请填写兑换积分！', '', 'error');
+                    return false;
+                }
+                if (credit.val() == 0 ) {
+                    u.message('兑换积分不能设置为0！', '', 'error');
+                    return false;
+                }
+			}
+			var total = $('input[name=total]');
+			if (total.val()=='') {
+				u.message('请填写库存数量！', '', 'error');
+				return false;
+			}
+			return true;
+		});
+	});
+</script>
+{else if $act == 'virtual'}
+<form id="form1" class="form-horizontal form" action="" method="post" enctype="multipart/form-data">
+	<div class="panel panel-default">
+		<div class="panel-heading">添加</div>
+		<div class="panel-body">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">添加虚拟物品信息</label>
+				<div class="col-sm-6 col-md-8 col-xs-12">
+					<textarea class="form-control" rows="8" name="virtual_keys" placeholder=""></textarea>
+					<span class="help-block">
+						每行内容为一条记录，一行一个，一行相当于一个库存，用户兑换成功后会给用户发送一行内容，用户可在订单详情中查看
+						<br>例如：
+						<br>
+						<br>卡号1234567  密码12344
+						<br>卡号1234567  密码12344
+						<br>卡号1234567  密码12344
+					</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+				<div class="col-sm-6 col-md-8 col-xs-12">
+					<input name="submit" type="submit" value="提交" class="btn btn-primary">
+					<input type="hidden" name="token" value="{$_W['token']}" />
+				</div>
+			</div>
+		</div>
+	</div>
+</form>
+<form action="" method="post">
+	<div class="panel panel-default">
+		<div class="table-responsive panel-body">
+			<table class="table">
+				<thead>
+				<tr>
+					<th width="220">物品KEY</th>
+					<th class="tac" width="100">状态</th>
+					<th>头像/昵称</th>
+					<th class="tac" width="170">创建时间</th>
+					<th class="tac" width="170">领取时间</th>
+					<th class="tac" width="80">操作</th>
+				</tr>
+				</thead>
+				<tbody>
+				{loop $list $item}
+				<tr>
+					<td>{$item['key']}</td>
+					<td class="tac">
+						{if $item['status']==1}
+						<button class="btn btn-default btn-xs btn-success product_isshow" autocomplete="off">已领取</button>
+						{else}
+						<button class="btn btn-default btn-xs btn-danger product_isshow" autocomplete="off">未领取</button>
+						{/if}
+					</td>
+					<td>
+						{if $item['member'] != ''}
+						<div class="clear">
+							<div class="pull-left" style="width: 40px;height: 40px; overflow: hidden; border-radius: 50%;">
+								<img src="{php echo tomedia($item['member']['avatar'])}" onerror="this.src='{$_W['siteroot']}/app/resource/images/heading.jpg'" style="width: 100%" />
+							</div>
+							<div class="pull-left" style="line-height: 40px; margin-left: 10px;">
+								{if $item['member']['nickname']!=''}{$item['member']['nickname']}{else}{$item['uid']}{/if}
+							</div>
+						</div>
+						{/if}
+					</td>
+					<td class="tac">
+						{$item['dateline']}
+					</td>
+					<td class="tac">{$item['get_time']}</td>
+					<td class="tac">
+						<a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('product' , array('act' => 'virtual', 'delete' => 1, 'id' => $item['id']));}" title="删除" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-times"></i></a>
+					</td>
+				</tr>
+				{/loop}
+				</tbody>
+			</table>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-12 text-right">
+			{$pager}
+		</div>
+	</div>
+</form>
+{/if}
+{template 'common/footer'}

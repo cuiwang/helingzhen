@@ -1,0 +1,252 @@
+{template 'common/header'}
+
+
+<ul class="nav nav-tabs">
+	<li {if $operation == 'display' && $status == ''}class="active"{/if}>
+	<a href="{php echo $this->createWebUrl('list', array('op' => 'display'))}">充值卡列表</a>
+	</li>
+
+</ul>
+
+{if $operation == 'display'}
+
+<div class="main">
+	<div class="panel panel-info">
+		<div class="panel-heading">筛选</div>
+		<div class="panel-body">
+			<form action="./index.php" method="get" class="form-horizontal" role="form" id="form1">
+				<input type="hidden" name="c" value="site" />
+				<input type="hidden" name="a" value="entry" />
+				<input type="hidden" name="m" value="mcoder_recharge" />
+				<input type="hidden" name="do" value="list" />
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">卡号</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<input class="form-control" name="cardno" id="" type="text" value="{$_GPC['cardno']}" placeholder="可查询卡号">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">卡密</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<input class="form-control" name="cardse" id="" type="text" value="{$_GPC['cardse']}" placeholder="可查询卡密">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">卡金额</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<input class="form-control" name="cardamount" id="" type="text" value="{$_GPC['cardamount']}" placeholder="可查询卡金额">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">卡积分</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<input class="form-control" name="cardintegration" id="" type="text" value="{$_GPC['cardintegration']}" placeholder="可查询卡积分">
+					</div>
+				</div>
+							<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">卡类型</label>
+				<div class="col-sm-8 col-lg-9 col-xs-12">
+					<select name="issecretcard" class="form-control">
+						<option value="">不限</option>
+						<option value="0">普通卡</option>
+						<option value="1">卡密卡</option>
+					</select>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">卡状态</label>
+				<div class="col-sm-8 col-lg-9 col-xs-12">
+					<select name="status" class="form-control">
+						<option value="">不限</option>
+						<option value="1">已使用</option>
+						<option value="0">未使用</option>
+					</select>
+				</div>
+			</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">生成时间</label>
+					<div class="col-sm-4 col-xs-12">
+						{php echo tpl_form_field_daterange('time', array('starttime'=>date('Y-m-d', $starttime),'endtime'=>date('Y-m-d', $endtime)));}
+					</div>
+					<div class="col-sm-4 col-lg-4">
+						<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+						<button name="export" value="export" class="btn btn-default"><i class="fa fa-download"></i> 导出数据</button>
+						</form>
+						<a href="{php echo $this->createWebUrl('getallqrcode')}" class="btn btn-default"><i class="fa fa-qrcode"></i> 一键生成所有二维码</a>
+					</div>
+				</div>
+				<div class="form-group">
+				</div>
+			
+		</div>
+	</div>
+
+	<div class="panel panel-default">
+		<div class="panel-body table-responsive">
+			<form id="form2" class="form-horizontal" method="post">
+			<table class="table table-hover">
+				<thead class="navbar-inner">
+				<tr>
+					<th style="width:3%;">全选</th>
+					<th style="width:50px;">ID</th>
+					<th style="width:180px;">卡号</th>
+					<th style="width:120px;">卡密</th>
+					<th style="width:5%;">卡金额</th>
+					<th style="width:5%;">卡积分</th>					
+					<th style="width:10%;">生成时间</th>
+					<th style="width:5%;">类型</th>
+					<th style="width:5%;">状态</th>
+					<th style="width:5%;">会员ID</th>
+					<th style="width:10%;">使用者</th>
+					<th style="width:7%;">使用时间</th>
+					<th style="width:5%;">二维码</th>
+					<th style="width:10%;text-align: right;">操作</th>
+				</tr>
+				</thead>
+				<tbody>
+				{loop $list $item}
+				<tr>
+					<td>
+						<input type="checkbox" value="{$item['tid']}" name="delete[]">
+					</td>
+					<td>{$item['tid']}</td>
+					<td><span class="label  label-success" style="font-size: 13px;">{$item['cardno']}</span></td>
+					<td><span class="label  label-warning" style="font-size: 13px;">{$item['cardse']}</span></td>
+					<td style="font-weight: bolder;">{$item['cardamount']}</td>
+					<td style="font-weight: bolder;">{$item['cardintegration']}</td>
+<td>{php echo date('Y-m-d H:i:s', $item['addtime'])}</td>
+					<td><span class="label label-{$item['typecss']}" style="font-size: 13px;">{$item['type']}</span></td>					
+					<td><span class="label label-{$item['statuscss']}" style="font-size: 13px;">{$item['status']}</span></td>
+					<td><a href="javascript:void(0)" onclick="javascript:get_member_info({$item['uid']},{$item['jump']});return false"><span class="label label-{$item['statuscss']}" style="font-size: 13px;" >{$item['uid']}</span></a></td>
+					<td>{$item['openid']}</td>
+					<td>{if $item['usedtime']}{php echo date('Y-m-d H:i', $item['usedtime'])}{else}{/if}</td>
+					<td>
+						{if $item['isqrcard']}
+						<a href ="{php echo $_W['siteroot'].'addons/mcoder_recharge/qrcode/'.$item['cardno'].'.png'}" target="_blank"><img style="height: 50px;width:50px;" src="{php echo $_W['siteroot'].'addons/mcoder_recharge/qrcode/'.$item['cardno'].'.png'}"></a>{else}{/if}</td>	
+					
+					<td style="text-align:right;">
+					<a href="javascript:remark({$item['tid']});" 
+						   class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="备注信息" style="margin-right: 10px;"><i class="fa fa-tag" ></i>
+						<a href="{php echo $this->createWebUrl('list', array('tid' => $item['tid'], 'op' => 'getqrcode'))}" 
+						   class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="生成二维码" style="margin-right: 10px;"><i class="fa fa-qrcode" ></i>  
+						<a href="{php echo $this->createWebUrl('list', array('tid' => $item['tid'], 'op' => 'delete'))}" onclick="return confirm('此操作不可恢复，确认删除？');"
+						   class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="删除"><i class="fa fa-times"></i>
+					</td>
+				</tr>
+				{/loop}
+				<tr>
+				    <td colspan="11">
+                    <input type="checkbox"  onclick="var ck = this.checked;$(':checkbox').each(function(){this.checked = ck});" name=''>
+				    <input class="btn btn-primary" type="submit" value="删除" name="submit"></td><td></td><td></td><td></td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+{$pager}
+		<input type="hidden" name="a" value="entry" />
+		<input type="hidden" name="m" value="mcoder_recharge" />
+		<input type="hidden" name="do" value="list" />
+		<input type="hidden" name="op" value="delall" />
+    </form>
+<script>
+	 $('#form2').submit(function(){
+		if($(":checkbox[name='delete[]']:checked").size() > 0){
+			return confirm('删除后不可恢复，您确定删除吗？');
+		}
+		return false;
+	}); 
+	 function fun_getallqrcode(){
+	 	window.location = "{php echo $this->createWebUrl('getallqrcode')}";
+	 	return false;
+	 }
+	 function remark(tid){
+	 	var url = "{php echo $this->createWebUrl('Remark_action',array('op'=>'getRemark'))}&tid="+tid;
+        $.ajax({
+            "url": url,
+            success:function(data){
+                var data = $.parseJSON(data);
+                if(data.message.errno < 0) {
+                    util.message(data.message.message);
+                    return false;
+                }
+				var content = '<textarea name="remark" class="form-control" cols="70" id="remark">' + data.data.remark + '</textarea>';
+		        var footer =
+		        '<button type="button" class="btn btn-default" data-dismiss="modal" onclick="remark_action('+ tid +')">确定</button><button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>';
+		        var dialog = util.dialog('备注信息', content, footer);
+		        dialog.modal('show');
+		    }
+        });
+        return false;
+	 }
+	 function get_member_info(uid,jump){
+	 	var url = "{php echo $this->createWebUrl('GetMemberInfo')}&uid="+uid;
+
+	 	var jumpurl;
+
+	 	if(jump == 1){
+			jumpurl = "{php echo wurl('entry', array('c'=>'mc','a'=>'member','do'=>'credit_stat','type'=>1), true, true)}&uid="+uid;
+		}else if(jump == 2){
+			jumpurl = "{php echo wurl('entry', array('c'=>'mc','a'=>'member','do'=>'credit_record','type'=>credit2), true, true)}&uid="+uid;
+		}else{
+			jumpurl = "{php echo wurl('entry', array('c'=>'mc','a'=>'member','do'=>'credit_record','type'=>credit1), true, true)}&uid="+uid;
+		}
+
+        $.ajax({
+            "url": url,
+            success:function(data){
+                var data = $.parseJSON(data);
+                if(data.message.errno < 0) {
+                    util.message(data.message.message);
+                    return false;
+                }
+				var content = data.data;
+		        var footer =
+		        '<button type="button" class="btn btn-default" onclick=window.location="'+ jumpurl +'">查看充值记录</button><button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>';
+		        var dialog = util.dialog('会员信息', content, footer);
+		        dialog.modal('show');
+		    }
+        });
+        return false;
+	 }
+    function remark_action(tid) {
+    	var remark = $('#remark').val();
+    	//alert(remark);
+        var url = "{php echo $this->createWebUrl('Remark_action',array('op'=>'remarkone'))}&tid="+tid;
+        $.ajax({
+            "url": url,
+            "data":{'remark':remark},
+            success:function(data){
+                var data = $.parseJSON(data);
+                if(data.message.errno < 0) {
+                    util.message(data.message.message);
+                    return false;
+                }
+            }
+        });
+        return false;
+    }
+
+
+
+</script>
+<script type="text/javascript">
+	require(['daterangepicker'], function($){
+		$('.daterange').on('apply.daterangepicker', function(ev, picker) {
+			$('#form1')[0].submit();
+		});
+	});
+</script>
+
+{/if}
+<script>
+	require(['bootstrap'],function($){
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+	});
+</script>
+{template 'common/footer'}

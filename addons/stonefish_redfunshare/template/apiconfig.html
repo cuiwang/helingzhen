@@ -1,0 +1,96 @@
+{template 'common/header'}
+<div class="main">
+	{template 'commonweb'}
+	<div class="alert alert-info">
+	    短信为官方短信和聚会合短信，请选择配置。<br/>1.官方短信请配置绑定论坛账号交易币<br/>2.聚合短信请直接购买套餐(<a href="http://www.juhe.cn/" target="_blank">www.juhe.cn</a>)
+		<div class="span8 control-group" style="margin-top:10px;">
+			<a class="btn btn-{if $api=='mobileofsms'}primary{else}default{/if}" href="{php echo $this->createWebUrl('apiconfig',array('api'=>'mobileofsms'));}"><i class="fa fa-cogs"></i> 验证码配置</a>
+			<a class="btn btn-{if $api=='mobileofpay'}primary{else}default{/if}" style="margin-left:10px;" href="{php echo $this->createWebUrl('apiconfig',array('api'=>'mobileofpay'));}"><i class="fa fa-cogs"></i> 话费配置</a>
+			<a class="btn btn-{if $api=='mobileofflow'}primary{else}default{/if}" style="margin-left:10px;" href="{php echo $this->createWebUrl('apiconfig',array('api'=>'mobileofflow'));}"><i class="fa fa-cogs"></i> 流量配置</a>
+       	</div>
+	</div>
+	<div class="panel panel-default">
+		<div class="panel-heading">{$apiname}中心菜单</div>
+		<div class="panel-body">
+		    <div class="row-fluid">
+    			<div class="span8 control-group">
+					<a class="btn btn-{if $op=='display'}primary{else}default{/if}" href="{php echo $this->createWebUrl('apiconfig',array('api'=>$api));}"><i class="fa fa-cogs"></i> {$apiname}配置</a>
+					<a class="btn btn-{if $op=='apirecord'}primary{else}default{/if}" style="margin-left:10px;" href="{php echo $this->createWebUrl('apiconfig',array('op'=>'apirecord','api'=>$api));}"><i class="fa fa-list"></i> {$apiname}发放记录</a>
+					<a class="btn btn-{if $op=='apiadd'}primary{else}default{/if}" style="margin-left:10px;" href="{php echo $this->createWebUrl('apiconfig',array('op'=>'apiadd','api'=>$api));}"><i class="fa fa-dollar"></i> {$apiname}充值记录</a>
+					{if $_W['role']=='founder'}<a style="margin-left:10px;" class="btn btn-danger addapi" href="javascript:void(0)"><i class="fa fa-plus"></i> {$apiname}充值</a>{/if}
+       	        </div>
+    	    </div>
+    	</div>
+	</div>
+	<form action="" class="form-horizontal form" method="post" enctype="multipart/form-data">
+    <div class="panel panel-default">
+	    <div class="panel-heading">此{$apiname}为聚合接口</div>
+	    <div class="panel-body">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">AppKey</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="key" class="form-control" value="{$apiconfig['key']}" />
+				</div>
+			</div>			
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">{if $api=='mobileofsms'}签名{else}openid{$apiname}{/if}</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="sign" class="form-control" value="{$apiconfig['sign']}" />
+				</div>
+			</div>
+			{if $api=='mobileofsms'}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">模板ID</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" name="tpl_id" class="form-control" value="{$apiconfig['tpl_id']}" />
+				</div>
+			</div>
+			<div class="form-group">
+			    <label class="col-xs-12 col-sm-3 col-md-2 control-label">{$apiname}时效</label>
+			    <div class="col-sm-9 col-xs-12">
+               	    <div class="input-group">
+					    <span class="input-group-addon">{$apiname}时效</span>
+					    <input type="text" name="aging" value="{$apiconfig['aging']}" class="form-control">	
+					    <span class="input-group-addon">秒(如：3分钟内有效,直接输入180即可,超过180秒失效)</span>
+				    </div>
+                </div>
+		    </div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">{$apiname}验证次数</label>
+				<div class="col-sm-9 col-xs-12">
+					<label for="totalcnf1" class="radio-inline"><input type="radio" name="agingrepeat" value="0" id="totalcnf1" {if intval($apiconfig['agingrepeat'])==0} checked="checked" {/if}/> 时效内可重复使用</label>&nbsp;&nbsp;&nbsp;
+					<label for="totalcnf2" class="radio-inline"><input type="radio" name="agingrepeat" value="1" id="totalcnf2" {if intval($apiconfig['agingrepeat'])==1} checked="checked" {/if}/> 只能使用一次</label>
+				</div>
+			</div>
+			{/if}
+	    </div>			
+    </div>
+	<div class="form-group">
+		<div class="col-sm-12">
+			<input name="submit" type="submit" value="保存{$apiname}配置" class="btn btn-primary col-lg-3" />
+			<input type="hidden" name="token" value="{$_W['token']}" />
+		</div>
+	</div>
+	</form>
+</div>
+{if $_W['role']=='founder'}
+<div id="save" class="hide">
+	<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+	<span name="submit" id="submit" class="pull-right btn btn-primary" onclick="$('#form1').submit();">保存</span>
+</div>
+<script type="text/javascript">
+	require(['jquery.ui', 'bootstrap.switch', 'util'], function($, $, u){
+		$('.addapi').click(function(){
+			$.get("{php echo url('site/entry/apiconfig',array('m' => 'stonefish_redfunshare','op'=>'apiaddnum','api'=>$api))}", function(data){
+				if(data == 'dataerr') {
+					u.message('系统出错', '', 'error');
+				} else {
+					var obj = u.dialog('增加{$apiname}{$apidanwei}', data, $('#save').html());
+				}
+				obj.modal('show');
+			});
+		});
+	});
+</script>
+{/if}
+{template 'common/footer'}

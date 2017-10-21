@@ -1,0 +1,326 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li {if $operation == 'post'}class="active"{/if}><a href="{php echo $this->createWebUrl('activity', array('op' => 'post'))}">添加活动</a></li>
+	<li {if $operation == 'display' || empty($operation)}class="active"{/if}><a href="{php echo $this->createWebUrl('activity', array('op' => 'display'))}">管理活动</a></li>
+</ul>
+{if $operation == 'post'}
+<div class="main">
+	<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data">
+		<input type="hidden" name="id" value="{$item['id']}" />
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                基本信息
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">活动名称</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" name="title" value="{$item['title']}"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">封面</label>
+                    <div class="col-sm-9">
+                        {php echo tpl_form_field_image('logo', $item['logo'])}
+                        <span class="help-block" style="color:#f00">建议尺寸300*150</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">活动描述</label>
+                    <div class="col-sm-9">
+                        <textarea name="content" class="form-control richtext-clone">{$item['content']}</textarea>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">开始时间</label>
+                    <div class="col-sm-9">
+                        {php echo tpl_form_field_date('start_time', $starttime, true)}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">结束时间</label>
+                    <div class="col-sm-9">
+                        {php echo tpl_form_field_date('end_time', $endtime, true)}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">联系电话</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="tel" id="tel" value="{$item['tel']}" class="form-control">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">地址</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="address" id="address" value="{$item['address']}" class="form-control">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">置顶</label>
+                    <div class="col-sm-9">
+                        <label for="isfirst1" class="radio-inline"><input type="radio" name="isfirst" value="1" id="isfirst1" {if $item['isfirst'] == 1}checked="true"{/if} /> 是</label>
+                        <label for="isfirst2" class="radio-inline"><input type="radio" name="isfirst" value="0" id="isfirst2"  {if empty($item) || !empty($item) && $item['isfirst'] == 0}checked="true"{/if} /> 否</label>
+                        <span class="help-block"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">状态</label>
+                    <div class="col-sm-9">
+                        <label for="isshow1" class="radio-inline"><input type="radio" name="status" value="1" id="isshow1" {if empty($item) || $item['status'] == 1}checked="true"{/if} /> 显示</label>
+                        <label for="isshow3" class="radio-inline"><input type="radio" name="status" value="0" id="isshow3"  {if !empty($item) && $item['status'] == 0}checked="true"{/if} /> 隐藏</label>
+                        <span class="help-block"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">排序</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="displayorder" class="form-control" value="{if empty($item) || empty($item['displayorder'])}0{else}{$item['displayorder']}{/if}" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="form-group col-sm-12">
+            <input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+            <input type="hidden" name="token" value="{$_W['token']}" />
+        </div>
+	</form>
+    </div>
+</div>
+<link type="text/css" rel="stylesheet" href="./resource/style/datetimepicker.css" />
+<script type="text/javascript" src="./resource/script/datetimepicker.js"></script>
+<script type="text/javascript">
+    $("#datepicker_start_time").datetimepicker({
+        format: "yyyy-mm-dd hh:ii",
+        minView: "0",
+        autoclose: true
+    });
+    $("#datepicker_end_time").datetimepicker({
+        format: "yyyy-mm-dd hh:ii",
+        minView: "0",
+        autoclose: true
+    });
+</script>
+<script type="text/javascript">
+    <!--
+    var category = {php echo json_encode($children)};
+    //-->
+</script>
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=1.4"></script>
+<script type="text/javascript" src="http://api.map.baidu.com/getscript?v=1.4&ak=&services=&t=20140102035142"></script>
+<script type="text/javascript">
+    $(function(){
+        $(".location").change(function(){
+            bmap.searchMapByPCD();
+        });
+    });
+    new PCAS("location_p", "location_c", "location_a", location_p, location_c, location_a);
+    var bmap = {
+        'option' : {
+            'lock' : false,
+            'container' : 'l-map',
+            'infoWindow' : {'width' : 250, 'height' : 100, 'title' : ''},
+            'point' : {'lng' : "{if $item['lng']!='0.0000000000' && !empty($item['lng'])}{$item['lng']}{else}116.735049{/if}", 'lat' : "{if $item['lat']!='0.0000000000' && !empty($item['lat'])}{$item['lat']}{else}23.367896{/if}"}
+        },
+        'init' : function(option) {
+            var $this = this;
+            $this.option = $.extend({},$this.option,option);
+
+            $this.option.defaultPoint = new BMap.Point($this.option.point.lng, $this.option.point.lat);
+            $this.bgeo = new BMap.Geocoder();
+            $this.bmap = new BMap.Map($this.option.container);
+            $this.bmap.centerAndZoom($this.option.defaultPoint, 15);
+            $this.bmap.enableScrollWheelZoom();
+            $this.bmap.enableDragging();
+            $this.bmap.enableContinuousZoom();
+            $this.bmap.addControl(new BMap.NavigationControl());
+            $this.bmap.addControl(new BMap.OverviewMapControl());
+            //添加标注
+            $this.marker = new BMap.Marker($this.option.defaultPoint);
+            $this.marker.setLabel(new BMap.Label('请您移动此标记，选择您的坐标！', {'offset':new BMap.Size(10,-20)}));
+            $this.marker.enableDragging();
+            $this.bmap.addOverlay($this.marker);
+            //$this.marker.setAnimation(BMAP_ANIMATION_BOUNCE);
+            $this.showPointValue($this.marker.getPosition());
+            //拖动地图事件
+            $this.bmap.addEventListener("dragging", function() {
+                $this.setMarkerCenter();
+                $this.option.lock = false;
+            });
+            //缩入地图事件
+            $this.bmap.addEventListener("zoomend", function() {
+                $this.setMarkerCenter();
+                $this.option.lock = false;
+            });
+            //拖动标记事件
+            $this.marker.addEventListener("dragend", function (e) {
+                $this.showPointValue();
+                $this.showAddress();
+                $this.bmap.panTo(new BMap.Point(e.point.lng, e.point.lat));
+                $this.option.lock = false;
+                $this.marker.setAnimation(null);
+            });
+        },
+        'searchMapByAddress' : function(address) {
+            var $this = this;
+            $this.bgeo.getPoint(address, function (point) {
+                if (point) {
+                    $this.showPointValue();
+                    $this.showAddress();
+                    $this.bmap.panTo(point);
+                    $this.setMarkerCenter();
+                }
+            });
+        },
+        'searchMapByPCD' : function(address) {
+            //alert($('#location_p').val()+$('#location_c').val()+$('#location_a').val());
+            var $this = this;
+            $this.option.lock = true;
+            $this.searchMapByAddress($('#location_p').val()+$('#location_c').val()+$('#location_a').val());
+        },
+        'setMarkerCenter' : function() {
+            var $this = this;
+            var center = $this.bmap.getCenter();
+            $this.marker.setPosition(new BMap.Point(center.lng, center.lat));
+            $this.showPointValue();
+            $this.showAddress();
+        },
+        'showPointValue' : function() {
+            var $this = this;
+            var point = $this.marker.getPosition();
+            $('#lng').val(point.lng);
+            $('#lat').val(point.lat);
+        },
+        'showAddress' : function() {
+            var $this = this;
+            var point = $this.marker.getPosition();
+            $this.bgeo.getLocation(point, function (s) {
+                if (s) {
+                    $('#place').val(s.address);
+                    if (!$this.option.lock) {
+                        //cascdeInit(s.addressComponents.province,s.addressComponents.city,s.addressComponents.district);
+                        new PCAS("location_p", "location_c", "location_a", s.addressComponents.province, s.addressComponents.city, s.addressComponents.district);
+                    }
+                }
+            });
+        }
+    };
+    $(function(){
+        var option = {};
+        bmap.init(option);
+    });
+</script>
+{elseif $operation == 'display'}
+<style>
+    .form th {
+        width: 60px;
+    }
+</style>
+<div class="main">
+    <div class="panel panel-info">
+        <div class="panel-heading">筛选</div>
+        <div class="panel-body">
+            <form action="./index.php" method="get" class="form-horizontal" role="form">
+                <input type="hidden" name="c" value="site" />
+                <input type="hidden" name="a" value="entry" />
+                <input type="hidden" name="m" value="weisrc_nightclub" />
+                <input type="hidden" name="do" value="activity" />
+                <input type="hidden" name="op" value="display" />
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label" style="width: 100px;">关键字</label>
+                    <div class="col-sm-2 col-lg-2">
+                        <input class="form-control" name="keyword" id="" type="text" value="{$_GPC['keyword']}" placeholder="请输入活动名称">
+                    </div>
+                    <div class="col-sm-2 col-lg-2">
+                        <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="panel panel-default">
+    <form action="" method="post" class="form-horizontal form">
+    <div class="table-responsive panel-body">
+    <table class="table table-hover">
+        <thead class="navbar-inner">
+        <tr>
+            <th style="width:10%;">显示顺序</th>
+            <th style="width:10%;">图片</th>
+            <th style="width:20%;">名称</th>
+            <th style="width:15%;">时间</th>
+            <!--<th style="width:100px;">地址</th>-->
+            <th style="width:15%;">属性(点击可切换)</th>
+            <th style="width:15%;text-align: right;">报名/留言</th>
+            <th style="width:15%;text-align: right;">编辑/删除</th>
+        </tr>
+        </thead>
+        <tbody id="level-list">
+        {loop $list $item}
+        <tr>
+            <td><input type="text" class="form-control" name="displayorder[{$item['id']}]" value="{$item['displayorder']}"></td>
+            <td style="width: 60px;">
+                <img width="50px;" src="{if (strpos($item['logo'], 'http') === false)}{$_W['attachurl']}{$item['logo']}{else}{$item['logo']}{/if}" onerror="this.src='{RES}images/nopic.jpeg'" style="border-radius: 3px;"/>
+            </td>
+            <td>
+                {$item['title']}<br/>
+                {if !empty($category[$item['pcate']])}<span class="text-error">[{$category[$item['pcate']]['name']}] </span>{/if}{if !empty($children[$item['pcate']][$item['ccate']][1])}<span class="text-info">[{$children[$item['pcate']][$item['ccate']][1]}] </span>{/if}
+            </td>
+            <td>{php echo date('Y-m-d H:i', $item['start_time'])}<br/>{php echo date('Y-m-d H:i', $item['end_time'])}
+            </td>
+            <!--<td>{$item['address']}</td>-->
+            <td>
+                <label data='{$item['isfirst']}' class='label label-default {if $item['isfirst']==1}label-info{/if}' onclick="setProperty(this,{$item['id']},'isfirst')">置顶</label>
+                <label data='{$item['status']}' class='label label-default {if $item['status']==1}label-info{/if}' onclick="setProperty(this,{$item['id']},'status')">显示</label>
+            </td>
+            <td style="text-align: right;">
+                <a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('user', array('op' => 'display', 'activityId' => $item['id']))}" title="报名用户"><i class="fa fa-user"> ({if !empty($user[$item['id']]['count'])}<font color="green">{$user[$item['id']]['count']}</font>{else}0{/if})</i></a>
+
+                <a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('feedback', array('op' => 'display', 'activityId' => $item['id']))}" title="留言"><i class="fa fa-pencil"> ({if !empty($feedback[$item['id']]['count'])}<font color="green">{$feedback[$item['id']]['count']}</font>{else}0{/if})</i></a>
+            </td>
+            <td style="text-align: right;">
+                <a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('activity', array('op' => 'post', 'id' => $item['id']))}" title="编辑"><i class="fa fa-pencil"></i></a>
+                <a class="btn btn-default btn-sm" onclick="return confirm('确认删除吗？');return false;" href="{php echo $this->createWebUrl('activity', array('op' => 'delete', 'id' => $item['id']))}" title="删除"><i class="fa fa-times"></i></a>
+            </td>
+        </tr>
+        {/loop}
+        </tbody>
+        <tfoot>
+        <tr>
+            <td colspan="8">
+                <input name="submit" type="submit" class="btn btn-primary" value="批量更新排序">
+
+                <a target="_blank" href="{php echo '../app/' . $this->createMobileurl('index');}" class="btn btn-primary">预览</a>
+
+                <input type="hidden" name="token" value="{$_W['token']}" />
+            </td>
+        </tr>
+        </tfoot>
+    </table>
+    </div>
+	{$pager}
+    </form>
+    </div>
+</div>
+<script type="text/javascript">
+<!--
+	var category = {php echo json_encode($children)};
+//-->
+</script>
+<script type="text/javascript">
+    <!--
+    function setProperty(obj,id,type){
+        $(obj).html($(obj).html() + "...");
+        $.post("{php echo $this->createWebUrl('setactivityproperty')}"
+            ,{id:id,type:type, data: obj.getAttribute("data")}
+            ,function(d){
+                $(obj).html($(obj).html().replace("...",""));
+                $(obj).attr("data",d.data)
+                if(d.result==1){
+                    $(obj).toggleClass("label-info");
+                }
+            },"json"
+        );
+    }
+    //-->
+</script>
+{/if}
+{template 'common/footer'}

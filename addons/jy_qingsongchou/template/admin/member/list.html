@@ -1,0 +1,143 @@
+{template 'common/header'}
+<!-- <link rel="stylesheet" href="{GARCIA_CSS}emoji.css"> -->
+
+
+<div class="panel panel-info">
+
+    <div class="panel-heading">
+        用户管理
+    </div>
+
+    <div class="panel-body">
+
+      <form class="form-horizontal" method="get">
+         <input type="hidden" name="dopost" value="search">
+         <input type="hidden" name="c" value="{$_GPC['c']}">
+         <input type="hidden" name="a" value="{$_GPC['a']}">
+         <input type="hidden" name="do" value="member">
+         <input type="hidden" name="m" value="jy_qingsongchou">
+         <input type="hidden" name="display" value="list">
+        <div class="form-group">
+           <label for="inputEmail3" class="col-sm-2 control-label">用户名id</label>
+           <div class="col-sm-10">
+             <input type="text"  name='id' class="form-control" id="inputEmail3" placeholder="用户名id">
+           </div>
+         </div>
+         <div class="form-group">
+            <div class="col-sm-10 text-right">
+                    <input type="submit" name="" id="" value="搜索" class="btn btn-info btn-md">
+            </div>
+          </div>
+      </form>
+
+          {template "admin/member/tab"}
+      <div class="tab-content">
+          <div>
+
+  {if $this->sys['is_trans']==0}
+   <div class="text-center" style="padding-bottom:15px;">
+      <a href="{php echo $this->createWebUrl('trans')}" onclick="return confirm('是否进行资金转移?')" class="btn btn-md btn-info">资金转移-6.3版本后用户点击这里吧原本跟微擎挂钩的资金转入到新数据字段里保存。请尽快操作</a>
+   </div>
+   {/if}
+    <table class="table text-center">
+
+                <tr>
+                  <td width="5%">ID</td>
+                  <td width="64px;">头像</td>
+                  <td  width="10%">昵称</td>
+                  <!-- <td>关注</td> -->
+                  <td width="5%">类型</td>
+                  <td width="5%">实名认证</td>
+                  <td width="10%">发起项目数</td>
+                  <td width="10%">支持项目数</td>
+                  <td>余额</td>
+                  <td>操作</td>
+                </tr>
+
+                {loop $list $row}
+                  <tr>
+                    <td>{$row['id']}</td>
+                    <td><img src="{php echo tomedia($row['headimgurl'])}" style="width:100%"></td>
+                    <td>{php echo emoji_unified_to_html(urldecode($row['nickname']))}</td>
+                    <!-- <td>{if $row['subscribe']==0}<button class="btn btn-xs btn-warning">未关注</button>{else}<button class="btn btn-xs btn-success">已关注</button>{/if}</td> -->
+                    <td>{if $row['is_roob']==0} <button class='btn btn-xs btn-info'>用户</button> {else}<button class='btn btn-xs btn-danger'>系统</button>{/if}</td>
+                    <td>{php echo _shiming($row['id'])}</td>
+                    <td>{php echo _fcount($this->weid,$row['id'])}</td>
+                    <td>{php echo _sup($row['id'],$this->weid)}</td>
+                    <td>{$row['wallet']}</td>
+                    <td>
+                        <button type="button" name="button" class="btn btn-xs btn-success"  data-nickname="{php echo urldecode($row['nickname'])}" data-openid="{$row['openid']}" data-toggle="modal" data-target="#myModal">发送信息</button>
+                         <a href="{php echo $this->createWebUrl('member',array('dopost'=>'member_del','id'=>$row['id']))}" onclick="return confirm('确定要删除该用户吗?')" class="btn btn-danger btn-xs">删除</a>
+                         <a href="{php echo $this->createWebUrl('member',array('dopost'=>'member_black','id'=>$row['id']))}" onclick="return confirm('确定要拉黑该用户吗?')" class="btn btn-warning btn-xs">拉黑</a>
+                         <a href="{php echo $this->createWebUrl('member',array('display'=>'views','mid'=>$row['id']))}" class="btn btn-xs btn-info">查看</a>
+                    </td>
+                  </tr>
+                {/loop}
+            </table>
+<div class="text-center">
+  {$pager}
+</div>
+          </div>
+    </div>
+          <div class="col-md-12">
+              <!-- <a href='{php echo $this->createWebUrl("member",array("dopost"=>"upmember"))}' class="btn btn-info btn-md">更新用户数据</a> -->
+          </div>
+    </div>
+</div>
+
+
+
+
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">向[<span class="nickname"></span>]发送信息</h4>
+      </div>
+      <div class="modal-body">
+       <textarea name="name" rows="8" cols="40"  class="form-control msg_msg" ></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary send_msg" >发送</button>
+        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+      require(['bootstrap'],function(){
+        $('#myModal').on('show.bs.modal', function (event) {
+          var b = $(event.relatedTarget);
+          var openid = b.data('openid');
+          var nickname = b.data('nickname');
+          $(".nickname").html(nickname);
+            $(document).on('click','.send_msg',function(){
+                $(".send_msg").attr('disabled',true);
+              $.ajax({
+                 url:"{php echo $this->createWebUrl('member')}",
+                 type:"post",
+                 dataType:'json',
+                 data:{
+                    dopost:'mes_ajax',
+                    msg:$(".msg_msg").val(),
+                    openid:openid
+                 },success:function(msg){
+                      if(msg.errcode==0){
+                        alert('发送成功');
+                        $('#myModal').modal('hide');
+                        window.location.reload();
+                      }else{
+                        alert('发送失败');
+                        $('#myModal').modal('hide');
+                      }
+                    // $(".msg_msg").val(msg);
+                 }
+              })
+            })
+        });
+
+      })
+
+</script>

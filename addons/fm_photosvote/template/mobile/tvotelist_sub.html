@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>{$title}</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+		<link rel="stylesheet" href="{FM_STATIC_MOBILE}public/mui/css/mui.min.css">
+		<style>
+
+			.mui-toast-container{
+				bottom:50%;
+			}
+		</style>
+	</head>
+
+	<body>
+		<!--下拉刷新容器-->
+		<div id="pullrefresh" class="mui-content mui-scroll-wrapper">
+			<div class="mui-scroll">
+
+				<!--数据列表-->
+
+				<ul class="mui-table-view mui-table-view-chevron">
+
+				</ul>
+			</div>
+		</div>
+		<script src="{FM_STATIC_MOBILE}public/mui/js/mui.min.js"></script>
+		<script>
+			mui.init({
+				pullRefresh: {
+					container: '#pullrefresh',
+					down: {
+						callback: pulldownRefresh
+					},
+					up: {
+						contentrefresh: '正在加载...',
+						callback: pullupRefresh
+					}
+				}
+			});
+
+			var data = {php echo json_encode($votes);};
+			var count = 0;
+			/**
+			 * 下拉刷新具体业务实现
+			 */
+			function pulldownRefresh() {
+				setTimeout(function() {
+					mui('#pullrefresh').pullRefresh().endPulldownToRefresh(); //refresh completed
+					var table = document.body.querySelector('.mui-table-view');
+					var cells = document.body.querySelectorAll('.mui-table-view-cell');
+					var i = cells.length, lens = i + 2;
+					if (data.length < lens) {
+						lens = i + data.length;
+					}
+
+					for (var len = lens; i < len; i++) {
+						var li = document.createElement('li');
+						li.className = 'mui-table-view-cell mui-collapse';
+						//li.innerHTML = '<a >';
+						li.innerHTML += '<img class="mui-media-object mui-pull-left" src="'+data[i].avatar+'" style="width: 42px;">';
+						li.innerHTML += '<div class="mui-media-body">'+ data[i].username;
+						li.innerHTML += '<p class="mui-ellipsis">ID:'+ data[i].tuser.uid +'&nbsp;&nbsp;性别：'+data[i].tuser.sex+' &nbsp;&nbsp;排行：'+data[i].paihang.rank+'</p>';
+						li.innerHTML += '</div>';
+						li.innerHTML += '<span class="mui-pull-right mui-badge mui-badge-primary " style="color: #fff;" >'+data[i].votenum+'</span>';
+						//li.innerHTML += '</a>';
+						//下拉刷新，新纪录插到最前面；
+						table.insertBefore(li, table.firstChild);
+					}
+
+				}, 1500);
+			}
+
+			/**
+			 * 上拉加载具体业务实现
+			 */
+			function pullupRefresh() {
+
+
+				setTimeout(function() {
+					var table = document.body.querySelector('.mui-table-view');
+					var cells = document.body.querySelectorAll('.mui-table-view-cell');
+					var i = cells.length, lens = i + 20;
+					if (data.length < lens) {
+						lens = i + data.length;
+					}
+					mui('#pullrefresh').pullRefresh().endPullupToRefresh((lens >= data.length)); //参数为true代表没有更多数据了。
+
+
+					for (var len = lens; i < len; i++) {
+						if (data[i] != 'undefined' || data[i] != null || data[i] != undefined) {
+							var li = document.createElement('li');
+							li.className = 'mui-table-view-cell mui-collapse';
+							//li.innerHTML = '<a href="#">';
+							li.innerHTML = '<img class="mui-media-object mui-pull-left" src="'+data[i].avatar+'" style="width: 42px;">';
+							li.innerHTML += '<div class="mui-media-body">'+ data[i].username;
+							li.innerHTML += '<p class="mui-ellipsis">ID:'+ data[i].tuser.uid +'&nbsp;&nbsp;性别：'+data[i].tuser.sex+' &nbsp;&nbsp;排行：'+data[i].paihang.rank+'</p>';
+							li.innerHTML += '</div>';
+							li.innerHTML += '<span class="mui-pull-right mui-badge mui-badge-primary " style="color: #fff;" >'+data[i].votenum+'</span>';
+							//li.innerHTML += '</a>';
+							table.appendChild(li);
+						}
+					}
+				}, 1500);
+			}
+			if (mui.os.plus) {
+				mui.plusReady(function() {
+					setTimeout(function() {
+						mui('#pullrefresh').pullRefresh().pullupLoading();
+					}, 1000);
+
+				});
+			} else {
+				mui.ready(function() {
+					mui('#pullrefresh').pullRefresh().pullupLoading();
+				});
+			}
+		</script>
+	</body>
+
+</html>

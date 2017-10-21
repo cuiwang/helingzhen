@@ -1,0 +1,120 @@
+{template 'header'}
+<style type="text/css">
+.myoder{margin:10px; -webkit-box-shadow:0 1px 2px 1px rgba(0,0,0,0.2); box-shadow:0 1px 2px 1px rgba(0,0,0,0.2); overflow:hidden; background:#FFF;}
+.myoder .myoder-hd{height:35px; line-height:35px; overflow:hidden; background:#f0f0f0; border-bottom:1px solid #cacaca; padding:0 10px;}
+.myoder .myoder-hd > span{font-size:14px; color:#504040;}
+.myoder .myoder-hd > span.pull-right{font-size:12px; color:#999;}
+.myoder .myoder-detail{min-height:73px; border-bottom:1px solid #f3f3f4; padding:10px; overflow-x:hidden;}
+.myoder .myoder-detail img{width:50px; margin-right:10px; float:left;}
+.myoder .myoder-detail .name a{color:#4d4f5d; display:inline-block; width:200px; font-weight:bold; text-decoration:underline; text-overflow:ellipsis; white-space:nowrap; overflow:hidden;}
+.myoder .myoder-detail .price{font-size:14px;}
+.myoder .myoder-detail .price span{display:inline-block; width:100px;}
+.myoder .myoder-detail .price span.num{width:60px;}
+.myoder .myoder-total{height:65px; padding:5px 10px; color:#b9b9b9; font-weight:bold;}
+.myoder .myoder-total > span{margin-right:5px;}
+.myoder .myoder-total > span .false{color:#e9342a;}
+.myoder .myoder-total > .btn{margin-top:3.5px;}
+.myoder .myoder-express{border-bottom:1px solid #f3f3f4; padding:5px 10px; overflow:hidden; background:#F9F9F9;}
+.myoder .myoder-express > span{display:inline-block; width:50%; float:left;}
+.myoder .myoder-express .express-company{}
+.myoder .myoder-express .express-num{text-align:right;}
+</style>
+<div class="myoder img-rounded">
+	<div class="myoder-hd">
+		<span class="pull-left">订单编号：{$item['ordersn']}</span>
+		<span class="pull-right">{php echo date('Y-m-d H:i', $item['createtime'])}</span>
+	</div>
+	{php $project = $this->getproject($item['pid']);}
+	<div class="myoder-detail">
+		<a href="{php echo $this->createMobileUrl('detail', array('id' => $project['id']))}"><img src="{$_W['attachurl']}{$project['thumb']}" width="160"></a>
+		<div class="pull-left">
+			<div class="name"><a href="{php echo $this->createMobileUrl('detail', array('id' => $project['id']))}">{$project['title']}</a></div>
+			<div class="price">
+				<span>{$item['item_price']} 元</span>
+			</div>
+		</div>
+	</div>
+	<div class="myoder-express">
+		<span class="express-company">状态</span>
+		<span class="express-num">
+		{if $item['paytype'] == 3}
+			{if $item['status'] == -1}
+			<span class="text-muted">订单取消</span>
+			{elseif $item['status'] < 3}
+			<span class="text-danger">货到付款 / 未付款</span>
+			{else}
+			<span class="text-success">已完成</span>
+			{/if}
+		{else}
+			{if $item['status'] == -1}
+			<span class="text-muted">订单取消</span>
+			{elseif $item['status'] == 0}
+			<span class="text-danger">未付款</span>
+			{elseif $item['status'] == 1}
+			<span class="text-warning">已付款</span>
+			{elseif $item['status'] == 2}
+			<span class="text-warning">已发货</span>
+			{else}
+			<span class="text-success">已完成</span>
+			{/if}
+		{/if}
+		</span>
+	</div>
+	<div class="myoder-express">
+		<span class="express-company">配送方式</span>
+		<span class="express-num">{$dispatch['dispatchname']}</span>
+	</div>
+	<div class="myoder-express">
+		<span class="express-company">邮寄地址</span>
+		<span class="express-num">{$address['province']}{$address['city']}{$address['area']}{$address['address']}</span>
+	</div>
+	<div class="myoder-express">
+		<span class="express-company">真实姓名</span>
+		<span class="express-num">{$address['username']}</span>
+	</div>
+	<div class="myoder-express">
+		<span class="express-company">电话号码</span>
+		<span class="express-num">{$address['mobile']}</span>
+	</div>
+	{if ($item['status'] == '2' || $item['status']==3) && !empty($item['expresssn'])}
+	<div class="myoder-express">
+		<span class="express-company">快递: {$item['expresscom']}</span>
+		<span class="express-num">
+			单号: {$item['expresssn']}
+		</span>
+	</div>
+		<div class="myoder-total" style='margin-bottom:10px;'>
+		<a href="http://m.kuaidi100.com/?type={$item['express']}&postid={$item['expresssn']}#input" class="btn btn-success pull-right btn-sm" >查看快递</a>
+	</div>
+	{/if}
+	{if !empty($item['remark'])}
+	<div class="myoder-express" style='margin-top:10px;'>
+		<span class="express-company">订单备注</span>
+	</div>
+	<div style='float:left;margin:10px;overflow:hidden;word-break:break-all;width:100%;'>
+	   {$item['remark']}
+	</div>
+	{/if}
+	<div class="myoder-total">
+		<span>共计：<span class="false">
+					{if $item['dispatchprice']<=0}
+						{$item['price']} 元
+					{else}
+						{$item['price']} 元 (含运费 {$item['dispatchprice']} 元) 
+					{/if}
+					</span>
+		</span>
+		<div style="height:30px;">
+		{if $item['paytype'] != 3}
+		{if $item['status'] == 0}
+		<a href="{php echo $this->createMobileUrl('pay', array('orderid' => $item['id']))}" class="btn btn-info pull-right btn-sm">立即支付</a>
+		{/if}
+		{/if}
+		{if $item['status'] == 2 || ($item['paytype'] == 3 && $item['status'] < 3)}
+		<a href="{php echo $this->createMobileUrl('myorder', array('orderid' => $item['id'], 'op' => 'confirm'))}" class="btn btn-success pull-right btn-sm" onclick="return confirm('点击确认收货前，请确认您的商品已经收到。确定收货吗？'); ">确认收货</a>
+		{/if}
+		</div>
+	</div>
+</div>
+{template 'footer'}
+{template 'footerbar'}

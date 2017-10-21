@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>{$config['title']}</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+	<meta http-equiv="Pragma" content="no-cache">  
+	<meta http-equiv="Cache-Control" content="no-cache">
+	<meta http-equiv="Expires" content="0">
+	<link rel="stylesheet" type="text/css" href="{HT}css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="{HT}css/couponstyle.css">
+	<link rel="stylesheet" type="text/css" href="{HT}css/layer.css">
+	<link rel="stylesheet" type="text/css" href="{HT}css/base.css">
+	<link rel="stylesheet" type="text/css" href="{HT}css/Conn.css">
+</head>
+<body>
+<img src="{php echo tomedia($item['img']);}" class="banner">
+<div class="date white act_top">
+	<div class="date_content width">
+		<div class="date_left">
+				<div class="title">{$item['name']}</div>
+				<div class="five">{$item['desc_img']}</div>
+		</div>
+	</div>
+</div>
+<div class="tax white act_top">
+	<div class="width">
+		营业时间 : {$item['businesshour']}
+	</div>
+</div>
+<div class="white">
+	<div class="address_content width">
+		<div class="dezhou fonts">
+		<i class="iconfont dezhou_address">&#xe614;</i>
+			{if mb_strlen($item['address'], 'utf-8') > 10} {php echo mb_substr($item['address'], 0, 10, 'utf-8').'...'} {else} {$item['address']} {/if}
+		</div>
+		<div class="telephoneas">
+			<a href="tel:{$item['phone']}">
+				<i class="iconfont telephon_icon">&#xe61d;</i>
+			</a>
+		</div>
+	</div>
+</div>
+<div class="receive">
+	领取优惠券
+</div>
+{loop $coupon_list $coupon}
+<div class="immediate red_background">
+	<div class="digital">
+		<span class="ten">{$coupon['discount']}</span>	<span class="renminbi">折</span>
+	</div>
+	<div class="shop_preferential">
+		<div class="shop_top level">{$coupon['title']}</div>
+		<div class="shop_center immediate_red level">{$coupon['desc']}</div> 
+		<div class="shop_bottom level">使用时间：{php echo date("Y.m.d", $coupon['starttime'])}-{php echo date("Y.m.d", $coupon['endtime'])}</div> 
+	</div>
+	<div class="right">
+		<div class="down">
+			<button class="immediate_red grizzly_fonts" onclick="getcoupon({$coupon['id']});">立即领取</button>
+		</div>
+	</div>
+</div>
+{/loop}
+<div class="level heigh footer">
+	版权所有 {$config['copyright']}
+</div>
+<div class="sub_nav white">
+	<ul class="clearfix">
+		<li><a href="{php echo $this->createMobileUrl('halfhome', array('agentid'=>$agentid));}">首页</a></li>
+		<li><a href="{php echo $this->createMobileUrl('halfbus', array('op'=>'register', 'agentid'=>$agentid));}">商家入驻</a></li>
+		<li><a href="{php echo $this->createMobileUrl('halfbus', array('op'=>'login', 'bus_id'=>$bus_id, 'agentid'=>$agentid));}">管理本店</a></li>
+	</ul>
+</div>
+</body>
+<script type="text/javascript" src="{HT}js/jquery-1.8.2.min.js" ></script>
+<script type="text/javascript" src="{HT}js/layer.js" ></script>
+<script type="text/javascript" src="https://res.wx.qq.com/open/js/jweixin-1.0.0.js" ></script>
+<script charset="utf-8" src="http://map.qq.com/api/js?v=2.exp&key={$config['qqmapak']}"></script>
+<script>
+wx.config({
+    debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+    appId: "{$wxapi['appId']}", // 必填，公众号的唯一标识
+    timestamp: '{$wxapi["timestamp"]}', // 必填，生成签名的时间戳
+    nonceStr: '{$wxapi["nonceStr"]}', // 必填，生成签名的随机串
+    signature: '{$wxapi["signature"]}',// 必填，签名，见附录1
+    jsApiList: ['openLocation'] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
+});
+
+$(".dezhou").click(function(){
+	wx.ready(function(){
+		wx.openLocation({
+			latitude: parseFloat("{$item['lat']}"), // 纬度，浮点数，范围为90 ~ -90   37.447442834284
+			longitude: parseFloat("{$item['lng']}"), // 经度，浮点数，范围为180 ~ -180。  116.36114898853
+			name: "{$item['name']}", // 位置名
+			address: "{$item['address']}", // 地址详情说明
+			scale: 14, // 地图缩放级别,整形值,范围从1~28。默认为最大
+			infoUrl: '' // 在查看位置界面底部显示的超链接,可点击跳转
+		});
+	});
+});
+
+function getcoupon(id){
+	$.ajax({
+		type: 'POST',
+		url: "{php echo $this->createMobileUrl('halfbus', array('op'=>'getcouponajax', 'bus_id'=>$bus_id));}",
+		data:{id:id},
+		dataType: 'text',
+		success: function(res){ //0领取失败 插表失败  1领取成功  2已经领取过
+			if(res == '0'){
+				layer.open({
+					content: '发生未知错误领取失败，请重新领取！',
+					style: 'background-color:#E34F63; color:#fff; border:none;',
+					time: 3
+				});
+			}else if(res == '1'){
+				layer.open({
+					content: '领取成功！',
+					style: 'background-color:#E34F63; color:#fff; border:none;',
+					time: 2
+				});
+				var skipurl = "{php echo $this->createMobileUrl('halfuser', array('agentid'=>$agentid))}";
+				setTimeout("location.href='" + skipurl + "&op=display'", 1000);
+			}else if(res == '2'){
+				layer.open({
+					content: '已经领取过了！',
+					style: 'background-color:#E34F63; color:#fff; border:none;',
+					time: 2
+				});
+				var skipurl = "{php echo $this->createMobileUrl('halfuser', array('agentid'=>$agentid))}";
+				setTimeout("location.href='" + skipurl + "&op=display'", 1000);
+			}else if(res == '3'){
+				layer.open({
+					content: '优惠券数量不够，请联系商家！',
+					style: 'background-color:#E34F63; color:#fff; border:none;',
+					time: 2
+				});
+			}
+		}
+	});
+}
+</script>
+</html>

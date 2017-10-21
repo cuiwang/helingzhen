@@ -1,0 +1,26 @@
+<?php
+pdo_query("DROP TABLE IF EXISTS `ims_fy_lesson_article`;
+DROP TABLE IF EXISTS `ims_fy_lesson_blacklist`;
+DROP TABLE IF EXISTS `ims_fy_lesson_cashlog`;
+DROP TABLE IF EXISTS `ims_fy_lesson_category`;
+DROP TABLE IF EXISTS `ims_fy_lesson_collect`;
+DROP TABLE IF EXISTS `ims_fy_lesson_commission_level`;
+DROP TABLE IF EXISTS `ims_fy_lesson_commission_log`;
+DROP TABLE IF EXISTS `ims_fy_lesson_coupon`;
+DROP TABLE IF EXISTS `ims_fy_lesson_evaluate`;
+DROP TABLE IF EXISTS `ims_fy_lesson_history`;
+DROP TABLE IF EXISTS `ims_fy_lesson_member`;
+DROP TABLE IF EXISTS `ims_fy_lesson_member_order`;
+DROP TABLE IF EXISTS `ims_fy_lesson_order`;
+DROP TABLE IF EXISTS `ims_fy_lesson_parent`;
+DROP TABLE IF EXISTS `ims_fy_lesson_playrecord`;
+DROP TABLE IF EXISTS `ims_fy_lesson_qiniu_upload`;
+DROP TABLE IF EXISTS `ims_fy_lesson_recommend`;
+DROP TABLE IF EXISTS `ims_fy_lesson_relation`;
+DROP TABLE IF EXISTS `ims_fy_lesson_setting`;
+DROP TABLE IF EXISTS `ims_fy_lesson_son`;
+DROP TABLE IF EXISTS `ims_fy_lesson_syslog`;
+DROP TABLE IF EXISTS `ims_fy_lesson_teacher`;
+DROP TABLE IF EXISTS `ims_fy_lesson_teacher_income`;
+DROP TABLE IF EXISTS `ims_fy_lesson_vipcard`;
+");

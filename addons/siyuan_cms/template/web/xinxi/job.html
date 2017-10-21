@@ -1,0 +1,223 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+<li {if $op == 'display'}class="active"{/if}><a href="{php echo url('site/entry/xinxi_job',array('op'=>'display','m'=>'siyuan_cms'))}">信息列表</a></li>
+<li {if $op == 'post'}class="active"{/if}><a href="{php echo url('site/entry/xinxi_job',array('op'=>'post','m'=>'siyuan_cms'))}">添加信息</a></li>
+</ul>
+<style>
+.table td span{display:inline-block;margin-top:4px;}
+.table td input{margin-bottom:0;}
+</style>
+{if $op == 'display'}
+
+<div class="main panel panel-default">
+	<div class="panel-body table-responsive">
+		<table class="table table-hover">
+<thead class="navbar-inner">
+	<tr>
+		<th style="width:50px;">ID</th>
+		<th style="width:160px;">招聘职位</th>
+		<th style="width:240px;">企业</th>
+		<th>工资</th>
+		<th style="width:160px;">电话</th><th style="width:160px;">归属地</th><th>置顶</th>
+		<th>黑名单操作</th>
+		<th>查看信息</th>
+		<th>操作</th>
+	</tr>
+</thead>
+<tbody>
+	{loop $list $item}
+	<tr>
+		<td>{$item['id']}</td>
+		<td>{$item['zhiwei']}</td>
+		<td>{$item['qiye']}</td>
+		<td>{$item['gongzi']}</td>
+		<td>{$item['phone']}</td><td><input type='button' value="查询归属地" href="javascript:;" id="save_btn{$item['id']}" onclick="doSave({$item['phone']},{$item['id']})" class="btn btn-info btn-sm"></td><td>{if $item['ding'] == '0'}<a href="{php echo $this->createWebUrl('xinxi_job', array('op' => 'ding', 'status' => 1, 'id' => $item['id']))}" class="btn btn-success btn-xs">设置为置顶</a>{else}<a href="{php echo $this->createWebUrl('xinxi_job', array('op' => 'ding', 'status' => 0, 'id' => $item['id']))}" class="btn btn-danger btn-xs">取消置顶</a>{/if}</td>
+		<td><a target="_blank" href="{php echo $this->createWebUrl('black_list', array('op' => 'edit', 'openid' => $item['openid']))}" class="btn btn-danger btn-xs"><i class="fa fa-check"></i> 加入黑名单</a></td><td><a target="_blank" href="{$_W['siteroot']}app/{php echo $this->createMobileUrl('xinxi_job', array('id' => $item['id'],'act' => news, 'weid' => $_W['weid']))}"><button type="button" class="btn btn-primary"><i class="fa fa-paper-plane"></i>访问</button></a></td>
+		<td style="text-align:left;">
+<a href="{php echo $this->createWebUrl('xinxi_job', array('op' => 'post', 'id' => $item['id']))}" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" title="修改"><i class="fa fa-edit"></i></a>
+<a href="{php echo $this->createWebUrl('xinxi_job', array('op' => 'delete', 'id' => $item['id']))}"class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" title="删除"><i class="fa fa-times"></i></a>
+		</td>
+	</tr>
+	{/loop}
+</tbody>
+		</table>
+		{$pager}
+</div>
+</div>
+<script type="text/javascript">
+function doSave(t,d) {
+$.ajax({
+type:'post',
+dataType:'json',
+url:"{php echo $this->createWebUrl('tool', array('op' => 'tel'))}",
+data:{tel:t},
+success:function(msg){
+if(msg.status==1){
+var txt=document.getElementById('save_btn'+d)
+txt.value=msg.city;
+}else if(msg.status==2){
+util.message('提交成功，请耐心等待授权通过审核！');
+}else{
+util.message('请不要重复提交！');
+}
+}
+})
+}
+</script>
+<script>
+	require(['bootstrap'],function($){
+		$('.btn').hover(function(){
+$(this).tooltip('show');
+		},function(){
+$(this).tooltip('hide');
+		});
+	});
+</script>
+{elseif $op == 'post'}
+<script type="text/javascript">
+var category = {php echo json_encode($children)};
+</script>
+<div class="main">
+<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" onsubmit='return formcheck()'>
+<input type="hidden" name="id" value="{$item['id']}" />
+<div class="panel panel-default">
+<div class="panel-heading">信息设置</div>
+<div class="panel-body">
+<div class="form-group">
+<label class="col-xs-12 col-sm-3 col-md-2 control-label">排序</label>
+<div class="col-sm-1 col-xs-12">
+<input type="text" name="displayorder" class="form-control" value="{$item['displayorder']}" />
+</div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style="color:red">*</span>标题</label>
+<div class="col-sm-9 col-xs-12">
+<input type="text" name="title" class="form-control" value="{$item['title']}" />
+</div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style="color:red">*</span>联系电话</label>
+<div class="col-sm-2 col-xs-12">
+<input type="text" name="phone" class="form-control" value="{$item['phone']}" />
+</div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style="color:red">*</span>联系人</label>
+<div class="col-sm-2 col-xs-12">
+<input type="text" name="name" class="form-control" value="{$item['name']}" />
+</div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style="color:red">*</span>企业名称</label>
+<div class="col-sm-4 col-xs-12">
+<input type="text" name="qiye" class="form-control" value="{$item['qiye']}" />
+</div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-3 col-md-2 control-label">招聘职位</label>
+<div class="col-sm-2 col-xs-12">
+<input type="text" name="zhiwei" class="form-control" value="{$item['zhiwei']}" />
+</div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-3 col-md-2 control-label">招聘人数</label>
+<div class="col-sm-9 col-xs-12">
+<div class="row row-fix">
+<div class="col-sm-2 col-xs-2">
+<div class="input-group">
+<input type="text" name="renshu" class="form-control" value="{$item['renshu']}">
+<span class="input-group-addon">人</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">学历要求</label>
+<div class="col-sm-2 col-xs-12">
+<select class="form-control" name="xueli">
+<option value="不限" {if $item['xueli'] == "不限"}selected="selected"{/if}>不限</option>
+<option value="初中" {if $item['xueli'] == "初中"}selected="selected"{/if}>初中</option>
+<option value="高中及中专" {if $item['xueli'] == "高中及中专"}selected="selected"{/if}>高中及中专</option>
+<option value="大专及本科" {if $item['xueli'] == "大专及本科"}selected="selected"{/if}>大专及本科</option>
+<option value="硕士以上" {if $item['xueli'] == "硕士以上"}selected="selected"{/if}>硕士以上</option>
+</select>
+</div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">薪资待遇</label>
+<div class="col-sm-2 col-xs-12">
+<select class="form-control" name="gongzi">
+<option value="面议" {if $item['gongzi'] == "面议"}selected="selected"{/if}>面议</option>
+<option value="1000-1999元" {if $item['gongzi'] == "1000-1999元"}selected="selected"{/if}>1000-1999元</option>
+<option value="2000-2999元" {if $item['gongzi'] == "2000-2999元"}selected="selected"{/if}>2000-2999元</option>
+<option value="3000-3999元" {if $item['gongzi'] == "3000-3999元"}selected="selected"{/if}>3000-3999元</option>
+<option value="4000元以上" {if $item['gongzi'] == "4000元以上"}selected="selected"{/if}>4000元以上</option>
+</select>
+</div>
+</div>
+
+
+<div class="form-group">
+<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style='color:red'>*</span>信息说明</label>
+<div class="col-sm-4 col-xs-12">
+<textarea style="height:160px;" id='body' name="body" class="form-control" cols="60">{$item['body']}</textarea>
+</div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">图片</label>
+<div class="col-sm-8 col-xs-12">
+<style>
+.multi-img-details{width:100%;float:left;margin-bottom:60px;}
+.multi-img-details .multi-item {height: 80px;float:left;}
+ .multi-item img{height:200px;}
+</style>
+{php echo tpl_form_field_multi_image('pic[]', $item['pic'])}
+</div>
+</div>
+<div class="form-group">
+	<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+	<div class="col-sm-9 col-xs-12">
+		<span class="help-block">原有信息图片只能删减，不能新增。</span>
+	</div>
+</div>
+<!--<div class="form-group">
+<label class="col-xs-12 col-sm-3 col-md-2 control-label">是否显示</label>
+<div class="col-sm-9 col-xs-12">
+<label class='radio-inline'>
+<input type='radio' name='status' value=0' {if $item['status']==0}checked{/if} /> 是
+</label>
+<label class='radio-inline'>
+<input type='radio' name='status' value=1' {if $item['status']==1}checked{/if} /> 否
+</label>
+</div>
+</div>
+</div>
+</div>-->
+<div class="form-group col-sm-12">
+	<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+	<input type="hidden" name="token" value="{$_W['token']}" />
+	</div>
+	</form>
+</div></div>
+<script type="text/javascript">
+require(['jquery', 'util'], function($, u){
+$(function(){
+$('.richtext').each(function() {
+u.editor(this);
+});
+});
+});
+
+require(['jquery', 'util'], function($, u){
+$('#form1').submit(function(){
+if($("input[name=title]").val().length <= 0) {
+u.message('没有填写标题', '', 'error');
+return false;
+}
+return true;
+});
+});
+</script>
+{/if}
+{template 'common/footer'}

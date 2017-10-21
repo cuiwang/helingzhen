@@ -1,0 +1,249 @@
+{template 'default/templates/common/header-base'}
+<link id="barindexCss" rel="stylesheet" href="../addons/meepo_bbs/template/mobile/default/css/barindex.min.384d01f8.css" />
+<link rel="stylesheet" href="../addons/meepo_bbs/template/mobile/default/lib/qqface/css/reset.css">
+
+<body ontouchstart="">
+	<form method="post" action="" enctype="multipart/form-data" id="publish-panel" class="pub-float pub">
+		<div class="pub-con">
+			<div class="pub-wrap section-1px  show">
+				<div class="pub-theme section-1px ">
+					<input maxlength="200" name="title" spellcheck="false" class="ipt-theme" type="text" placeholder="标题，4-25个字" value="{php echo $setting['title']}">
+				</div>
+				<div class="editor-outer">
+					<textarea id="contentText" spellcheck="false" name="content" class="editor" placeholder="内容，10-700个字">{$setting['content']}</textarea>
+				</div>
+				<div class="pub-location text-overflow-ellipsis">
+					<span class="location-text">
+                
+                   <select name="fid" class="" style="border: none;">
+                   <option value="0" style="color:rgb(39, 145, 220)">请选择版块</option>
+                   {loop $cats $cat}
+            		<option value="{$cat['typeid']}" {if $cat['typeid']==$setting['fid']}selected{/if} {if !empty($cat['ch'])}style="color:rgb(39, 145, 220)" disabled{/if}>|{$cat['name']}</option>
+            			{loop $cat['ch'] $ca}
+            				<option value="{$ca['typeid']}" {if $ca['typeid']==$setting['fid']}selected{/if}>--|{$ca['name']}</option>
+            			{/loop}
+            		{/loop}
+            	</select>
+	            	&nbsp;&nbsp;<input id="mian" type="checkbox" name="mian" value='1' checked="true"><a href="{php echo $this->createMobileUrl('forum_post_mian')}">已阅读免责声明</a>
+                </span>
+				</div>
+				<style>
+					.pub-cat {
+						display: -webkit-box;
+						-webkit-box-pack: end;
+						-webkit-box-align: center;
+						-webkit-box-sizing: content-box;
+						padding: 10px 20px;
+						height: 60px;
+						font-size: 16px;
+						background: #fff;
+					}
+					
+					.pub-cat img {
+						width: 40px;
+						height: 40px;
+						border-radius: 20px;
+					}
+					
+					.pub-cat li {
+						float: left;
+						position: relative;
+						margin: 6px 6px 0 0;
+						width: 45px;
+						height: 45px;
+						white-space: nowrap;
+						list-style: none;
+						display: block;
+						float: left;
+					}
+				</style>
+				<!-- <ul class="pub-cat">
+            	
+            	{loop $cats $cat}
+            	<li class="up-pic">
+            		<input type="radio" name="fid" value="{$cat['typeid']}">
+            		<img id="selectCat{$cat['typeid']}" class="{if $cat['typeid']==$setting['fid']}selected{/if}" src="{php echo tomedia($cat['icon'])}" alt="{$cat['name']}"/>
+            	</li>
+            	{/loop}
+            	
+            </ul> -->
+				<div class="pub-line border-1px">
+
+				</div>
+				<ul class="pub-type">
+					<li id="selectPic" class="pic-type active" title="添加图片"></li>
+					<li id="selectFace" class="pub-face" title="添加表情"></li>
+					<li id="selectFace" class="pub-cate" title="添加表情"></li>
+					
+					<li class="pub-flex"></li>
+					<li class="pub-btn ">
+						<button class="pub-publish">发表</button>
+					</li>
+					<li class="loading "></li>
+					<li class="pub-remain ">
+						<p class="pub-remain-wording" style="display:none"></p>
+					</li>
+				</ul>
+				<style>
+					div[id^=rt_rt] {
+						position: absolute !important;
+						top: 0px !important;
+						left: 0px !important;
+						width: 100% !important;
+						height: 100% !important;
+						overflow: hidden !important;
+						opacity: 0;
+					}
+					
+					#pub-pics .up-entry input {
+						position: absolute;
+						right: 0;
+						top: 0;
+						opacity: 0;
+						left: 0px;
+						width: 100%;
+						height: 100%;
+						cursor: pointer;
+					}
+					
+					#pub-pics .up-entry img {
+						float: left;
+						position: relative;
+						margin: 6px 6px 0 0;
+						width: 65px;
+						height: 65px;
+					}
+				</style>
+				<ul class="pub-pics" id="pub-pics">
+					<li class="up-entry">
+						<div id="chooseImage" style="width: 100%;height: 100%;"></div>
+						<input type="file" name="file" id="file" onchange="ajaxFileUpload()" />
+					</li>
+					{loop $setting['thumb'] $key $pic}
+					<li class="up-pic up-error" id="upPic{$key}">
+						<div class="up-mask"></div>
+						<div class="up-progress">
+							<div class="pos" style="-webkit-transition: all 1s ease-out; transition: all 1s ease-out; width: 38px;"></div>
+						</div> <a class="btn-del" href="javascript:void(0)" title="关闭">&nbsp;</a>
+						<div class="clip"><img src="{php echo tomedia($pic)}" style="width: 65px; height: 65px; display: block; margin-left: 0px;"></div>
+						<input type="hidden" name="thumb[]" value="{php echo $pic}">
+					</li>
+					{/loop}
+				</ul>
+
+				<input type="hidden" name="token" value="{$_W['token']}" />
+			</div>
+		</div>
+	</form>
+	<script src="../addons/meepo_bbs/template/mobile/default/lib/qqface/js/jquery.qqFace.js"></script>
+	<script src="../addons/meepo_bbs/template/mobile/default/lib/ajaxfileupload.js"></script>
+	<script type="text/javascript">
+		//查看结果
+		function replace_em(str) {
+			str = str.replace(/\</g, '&lt;');
+			str = str.replace(/\>/g, '&gt;');
+			str = str.replace(/\n/g, '<br/>');
+			str = str.replace(/\[em_([0-9]*)\]/g, '<img src="../addons/meepo_bbs/template/mobile/default/lib/qqface/arclist/$1.gif" border="0" />');
+			return str;
+		}
+	</script>
+	<script type="text/javascript">
+		$(function() {
+			$('.pub-face').qqFace({
+				id: 'pub-faces',
+				assign: 'contentText',
+				path: '../addons/meepo_bbs/template/mobile/default/lib/qqface/arclist/' //表情存放的路径
+			});
+			$(".pub-publish").click(function() {
+				var title = $('input[name=title]').val();
+				if (title == '' || title == 0) {
+					alert('请输入帖子标题！！');
+					return false;
+				}
+				var fid = $('select[name=fid]').val();
+				if (fid == '' || fid == 0) {
+					alert('请选择分类版块！！');
+					return false;
+				}
+				var mian = $('#mian').prop("checked");
+				if (!mian) {
+					alert('对不起，在本版发帖必须阅读并勾选免责协议！');
+					return false;
+				}
+				//contentText
+				var contentText = document.getElementById("contentText").value;
+				contentText = contentText.replace('<br />', '/n');
+				document.getElementById("contentText").value = contentText;
+				$('#publish-panel').submit();
+			});
+			$('#selectPic').click(function() {
+				$('.pub-faces').hide();
+				$('.pub-pics').show();
+				$('#selectPic').addClass("active");
+				$('#selectFace').removeClass("active");
+				$('#selectPlay').removeClass("active");
+				$('#selectFace').removeClass("active");
+			});
+			$('#selectPlay').click(function() {
+				$('.pub-faces').hide();
+				$('.pub-pics').show();
+				$('#selectPlay').addClass("active");
+				$('#selectPic').removeClass("active");
+				$('#selectReply').removeClass("active");
+				$('#selectFace').removeClass("active");
+			});
+			$('#selectReply').click(function() {
+				$('.pub-faces').hide();
+				$('.pub-pics').show();
+				$('#selectReply').addClass("active");
+				$('#selectPic').removeClass("active");
+				$('#selectPlay').removeClass("active");
+				$('#selectFace').removeClass("active");
+			});
+			$('.btn-del').click(function() {
+				$(this).parent().remove();
+			});
+			//contentText
+			function querystring(name) {
+				var result = location.search.match(new RegExp("[\?\&]" + name + "=([^\&]+)", "i"));
+				if (result == null || result.length < 1) {
+					return "";
+				}
+				return result[1];
+			}
+
+			function tomedia(src) {
+				if (src.indexOf('http://') == 0 || src.indexOf('https://') == 0) {
+					return src;
+				} else if (src.indexOf('../addons') == 0 || src.indexOf('../attachment') == 0) {
+					src = src.substr(3);
+					return window.sysinfo.siteroot + src;
+				} else if (src.indexOf('./resource') == 0) {
+					src = src.substr(2);
+					return window.sysinfo.siteroot + 'app/' + src;
+				} else if (src.indexOf('images/') == 0) {
+					return window.sysinfo.attachurl + src;
+				}
+			}
+		});
+	</script>
+	<script>
+		function ajaxFileUpload() {
+			$.ajaxFileUpload({
+				url: "{php echo url('utility/file',array('do'=>'upload','type'=>'image'),true)}",
+				secureuri: false,
+				fileElementId: 'file',
+				dataType: 'json',
+				success: function(dat, status) {
+					$li = $('<li class="up-pic up-over"><input type="hidden" name="thumb[]" value="' + dat.url + '"/><div class="clip "><img src="' + dat.url + '" style="width: 65px; height: 65px; display: block; margin-left: 0px;"></div> <div class="up-mask"></div> <div class="up-progress">  </div> <a class="btn-del" href="javascript:void(0)" onclick="$(this).parent().remove();" title="关闭">&nbsp;</a> </li>')
+					$('#pub-pics').append($li);
+				},
+				error: function(data, status, e) {
+					console.log(e);
+				}
+			})
+		}
+	</script>
+</body>
+
+</html>

@@ -1,0 +1,147 @@
+{template 'header'}
+<link rel="stylesheet" href="{HT}css/Home.css" />
+<body>
+{template 'guanzhu'}
+<!-- 五折内容的开始-->
+<div class="weui_cells weui_cells_access YouHui" style="display:block;" id="jwz">
+	{loop $list $item}
+		<a class="weui_cell" href="{php echo $this->createMobileUrl('halfbus',array('op'=>'shop','agentid'=>$agentid,'bus_id'=>$item['bus_id']));}">
+			<div class="weui_cell_hd">
+				<img src="{php echo tomedia($item['img'])}"   class="ticket_Img">
+			</div>
+			<div class="weui_cell_bd weui_cell_primary">
+				<p style="color: #080808;" class="text_flow">{$item['name']}</p>
+				<p class="text_flow m-p">
+					{$item['desc_img']}
+				</p>
+				<p class="font12">{php echo $this->get_categoryname($item['category_id']);}|{$search_district} <span style="float: right; color: #E34F63;"></span></p>
+			</div>
+			<span class="juli font12" latlng="{$item['lat']}, {$item['lng']}"></span>
+		</a>
+	{/loop}
+</div>
+<!--五折内容的结束-->
+<!-- 尾部的开始-->
+{template 'footer'}
+</body>
+<script type="text/javascript" src="{HT}js/jquery-1.8.2.min.js" ></script>
+<script type="text/javascript" src="{HT}js/yxMobileSlider.js" ></script>
+<script type="text/javascript" src="{HT}js/dropload.min.js" ></script>
+<script src="{HT}js/lyz.delayLoading.min.js" type="text/javascript"></script><!-- 延迟加载的js-->
+<script type="text/javascript" src="https://res.wx.qq.com/open/js/jweixin-1.0.0.js" ></script>
+<script charset="utf-8" src="http://map.qq.com/api/js?v=2.exp&key={$config['qqmapak']}"></script>
+<script>
+var latitude;
+var longitude;
+var dropObj;
+var agentid = "{$agentid}";
+
+wx.config({
+    debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+    appId: "{$wxapi['appId']}", // 必填，公众号的唯一标识
+    timestamp: '{$wxapi["timestamp"]}', // 必填，生成签名的时间戳
+    nonceStr: '{$wxapi["nonceStr"]}', // 必填，生成签名的随机串
+    signature: '{$wxapi["signature"]}',// 必填，签名，见附录1
+    jsApiList: ['checkJsApi', 'openLocation', 'getLocation', 'onMenuShareAppMessage', 'onMenuShareTimeline'] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
+});
+
+wx.ready(function(){
+	wx.getLocation({
+		type : 'gcj02', //默认为wgs84的gps坐标，如果要返回直接给openLocation用的火星坐标，可传入'gcj02'
+		success: function (res) {
+			latitude = res.latitude; // 纬度，浮点数，范围为90 ~ -90
+			longitude = res.longitude; // 经度，浮点数，范围为180 ~ -180。
+			for(var i = 0; i < $('.juli').length; i++){
+				var latlng = $('.juli').eq(i).attr('latlng').split(',');
+				if(latlng[0] > 1 && latlng[1] > 1){
+					$('.juli').eq(i).html(getdistance(latlng[0], latlng[1], latitude, longitude));
+				}   
+			}
+		}
+	});
+});
+
+function getRad(d){ 
+	return d*Math.PI/180.0; 
+} 
+function getdistance(lat1,lng1,lat2,lng2) {
+	var f = getRad((parseFloat(lat1) + parseFloat(lat2))/2); 
+	var g = getRad((parseFloat(lat1) - parseFloat(lat2))/2); 
+	var l = getRad((parseFloat(lng1) - parseFloat(lng2))/2); 
+
+	var sg = Math.sin(g); 
+	var sl = Math.sin(l); 
+	var sf = Math.sin(f); 
+
+	var s,c,w,r,d,h1,h2; 
+	var a = 6378137.0; 
+	var fl = 1/298.257; 
+
+	sg = sg*sg; 
+	sl = sl*sl; 
+	sf = sf*sf; 
+
+	s = sg*(1-sl) + (1-sf)*sl; 
+	c = (1-sg)*(1-sl) + sf*sl; 
+
+	w = Math.atan(Math.sqrt(s/c)); 
+	r = Math.sqrt(s*c)/w; 
+	d = 2*w*a; 
+	h1 = (3*r -1)/2/c; 
+	h2 = (3*r +1)/2/s;
+	
+	return (d*(1 + fl*(h1*sf*(1-sg) - h2*(1-sf)*sg))/1000).toFixed(1)+'km'; 
+}
+
+wx.config({
+    debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+    appId: "{$jssdkconfig['appId']}", // 必填，公众号的唯一标识
+    timestamp: '{$jssdkconfig["timestamp"]}', // 必填，生成签名的时间戳
+    nonceStr: '{$jssdkconfig["nonceStr"]}', // 必填，生成签名的随机串
+    signature: '{$jssdkconfig["signature"]}',// 必填，签名，见附录1
+    jsApiList: ['checkJsApi','openLocation','getLocation','onMenuShareAppMessage','onMenuShareTimeline'] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
+});
+
+wx.ready(function(){
+	wx.checkJsApi({
+		jsApiList: [
+			'getLocation',
+		],
+		success: function (res) {
+			//alert(JSON.stringify(res));
+			// alert(JSON.stringify(res.checkResult.getLocation));
+			if (res.checkResult.getLocation == false) {
+				alert('你的微信版本太低，不支持微信JS接口，请升级到最新的微信版本！');
+				return;
+			}
+		}
+	});
+       
+	wx.onMenuShareAppMessage({
+		title: "{$confing['share_title']}", // 分享标题
+		desc: "{$confing['share_desc']}", // 分享描述
+		link: "{$_W['siteurl']}", // 分享链接
+		imgUrl: "{php echo tomedia($confing['share_img']);}", // 分享图标
+		success: function () { 
+			
+		},
+		cancel: function () { 
+			alert("分享失败，可能是网络问题，一会儿再试试？");
+		}
+	});
+
+	wx.onMenuShareTimeline({
+		title: "{$confing['share_title']}", // 分享标题
+		desc: "{$confing['share_desc']}", // 分享描述
+		link: "{$_W['siteurl']}", // 分享链接
+		imgUrl: "{php echo tomedia($confing['share_img']);}", // 分享图标
+		success: function () {
+			
+		},
+		cancel: function () { 
+			alert("分享失败，可能是网络问题，一会儿再试试？");
+		}
+	});
+});
+</script>
+</html>

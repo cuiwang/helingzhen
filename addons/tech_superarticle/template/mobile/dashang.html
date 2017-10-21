@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{$settings['appid_title']}</title>
+    <meta name="format-detection" content="telephone=no, address=no">
+    <meta name="apple-mobile-web-app-capable" content="yes" /> <!-- apple devices fullscreen -->
+    <meta name="apple-touch-fullscreen" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link href="{$_W['siteroot']}app/resource/css/bootstrap.min.css" rel="stylesheet">
+    <script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+    <script type="text/javascript" src="{$_W['siteroot']}app/resource/js/lib/jquery-1.11.1.min.js"></script>
+    <script src="{$_W['siteroot']}addons/tech_superarticle/public/js/weui.js"></script>
+    <link href="{$_W['siteroot']}addons/tech_superarticle/public/css/weui.min.css" rel="stylesheet">
+    <link href="{$_W['siteroot']}addons/tech_superarticle/public/css/base.css" rel="stylesheet">
+    <link href="{$_W['siteroot']}addons/tech_superarticle/public/css/style.css" rel="stylesheet">
+ <script>      
+    // jssdk config 对象
+    jssdkconfig = {php echo json_encode($_W['account']['jssdkconfig']);} || {};
+    
+    // 是否启用调试
+    jssdkconfig.debug = false;
+    
+    jssdkconfig.jsApiList = [
+        'onMenuShareTimeline',
+        'onMenuShareAppMessage',
+        'onMenuShareQQ',
+    ];
+    </script>
+</head>
+<body>
+<script type="text/javascript">
+window.alert = function(name){
+ var iframe = document.createElement("IFRAME");
+iframe.style.display="none";
+iframe.setAttribute("src", 'data:text/plain,');
+document.documentElement.appendChild(iframe);
+window.frames[0].window.alert(name);
+iframe.parentNode.removeChild(iframe);
+}
+</script>
+<div class="fr_ds_main">
+    <div class="fr_ds_admire_top">
+        <div class="fr_ds_cover"> 
+            <!-- 作者头像 -->
+            <img src="{php echo tomedia($settings['img'])}" />
+        </div>
+    </div>
+    <div class="fr_ds_name">{$article['author']}</div>
+    <p class="fr_ds_subtitle">{$article['title']}</p>   
+    {if $article['dashang']==1}
+        <ul class="fr_ds_money_list clearfix">
+        {loop $article['gratuity_money'] $vo}
+            <li><a href="javascript:;" class="fr_ds_pay" data-money="{$vo}"><i>{$vo}</i><span>元</span></a></li>
+        {/loop}
+        </ul>
+    {/if}
+    {if $article['is_own']==1}
+    <p class="fr_ds_other_money"><a href="javascript:;" id="fr_ds_other_pay">其他金额</a></p>
+    {/if}
+</div>
+<div class="fr_ds_mask"></div>
+<div class="fr_ds_dialog">
+    <div class="fr_ds_dialog_title">
+        <h4>其他金额</h4>
+        <span class="fr_ds_dialog_close fr_close hairline"></span>
+    </div>
+    <div class="fr_ds_dialog_content">
+        <div class="fr_ds_input_box clearfix">
+            <label for="otherMoney">金额(元)</label>
+            <input type="tel" id="otherMoney" placeholder="可填写1-256" />
+            <span id="quickdelete">
+                <span class="fr_close white"></span>
+            </span>
+        </div>
+        <button type="button" disabled id="fr_ds_btn">赞赏</button>
+    </div>
+</div>
+<div id="loadingToast" class="weui_loading_toast" style="display:none;">
+    <div class="weui_mask_transparent"></div>
+    <div class="weui_toast">
+        <div class="weui_loading">
+            <div class="weui_loading_leaf weui_loading_leaf_0"></div>
+            <div class="weui_loading_leaf weui_loading_leaf_1"></div>
+            <div class="weui_loading_leaf weui_loading_leaf_2"></div>
+            <div class="weui_loading_leaf weui_loading_leaf_3"></div>
+            <div class="weui_loading_leaf weui_loading_leaf_4"></div>
+            <div class="weui_loading_leaf weui_loading_leaf_5"></div>
+            <div class="weui_loading_leaf weui_loading_leaf_6"></div>
+            <div class="weui_loading_leaf weui_loading_leaf_7"></div>
+            <div class="weui_loading_leaf weui_loading_leaf_8"></div>
+            <div class="weui_loading_leaf weui_loading_leaf_9"></div>
+            <div class="weui_loading_leaf weui_loading_leaf_10"></div>
+            <div class="weui_loading_leaf weui_loading_leaf_11"></div>
+        </div>
+        <p class="weui_toast_content">加载中</p>
+    </div>
+</div>
+<script>
+$(function(){
+    $(".fr_ds_pay").on('click', function() {
+        $("#loadingToast").show();
+        var money = $(this).data('money');
+        up_money(money);
+    });
+    $("#fr_ds_other_pay").on('click', function() {
+        $(".fr_ds_dialog, .fr_ds_mask").show();
+        var fr_ds_dialog_width = $(".fr_ds_dialog").width();
+        $(".fr_ds_dialog").css({'margin-left': '-' + (fr_ds_dialog_width / 2) + 'px'});
+        $("#otherMoney").focus();
+    });
+    $(".fr_ds_dialog_close").on('click', function(){
+        $("#otherMoney").val('');
+        $("#fr_ds_btn").prop('disabled', true);
+        $(".fr_ds_dialog, .fr_ds_mask").hide();
+    });    
+    $("#otherMoney").keyup(function(){
+        var money = Number($(this).val());
+        if (money >= 1) {
+            $(this).val(money);
+            $("#fr_ds_btn").prop('disabled', false);
+        }else{
+            $("#fr_ds_btn").prop('disabled', true);
+        }
+    });
+    $("#fr_ds_btn").on('click', function(){
+        $("#loadingToast").show();
+        var money = $("#otherMoney").val();
+        up_money(money);
+    });
+    function up_money(money) {
+        $.ajax({
+            url:"{php echo $this->createMobileUrl('Up_pay')}"+"&fee="+money+"&id="+{$id},
+            type:'post',
+            dataType:'json',
+            success:function(res){
+                //alert('打赏'+money+"元");
+                //window.location.href="{php echo $this->createMobileUrl('detail')}"+"&id="+{$id};
+                window.location.href="{php echo $this->createMobileUrl('Pay')}"+"&fee="+money+"&order="+res.order+"&id="+{$id};
+            }
+        });
+    }
+});
+</script>
+<script>require(['bootstrap']);</script>
+<script type="text/javascript">
+    wx.config(jssdkconfig);
+    function preventTouch(event) {
+        event.preventDefault();
+    }
+    document.addEventListener('touchmove', preventTouch);
+    document.addEventListener('WeixinJSBridgeReady', function onBridgeReady() {
+        WeixinJSBridge.call('hideOptionMenu');
+    });
+</script>
+</body>
+</html>

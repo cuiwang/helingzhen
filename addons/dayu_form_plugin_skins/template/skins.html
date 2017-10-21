@@ -1,0 +1,212 @@
+{template 'common/header'}
+{template 'common_css'}
+
+<ul class="nav nav-tabs">
+	{if !empty($skins)}
+	<li {if $operation == 'post' && empty($id)}class="active"{/if}><a href="{php echo $this->createWebUrl('skins', array('op' => 'post'))}"><i class="fa fa-plus-circle"></i> 添加万能表单皮肤</a></li>
+	{/if}
+	<li {if $operation == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('skins', array('op' => 'display'))}">管理万能表单皮肤</a></li>
+    {if $operation == 'post' && !empty($id)}<li class="active"><a href="#">
+    编辑万能表单皮肤
+    </a></li>{/if}
+</ul>
+
+{if $operation == 'post' && $_W['isfounder']}
+<style>
+.progress {position:relative;width:100%;border-radius:3px;}
+.bar {background-color: green; display:block; width:0%; height:20px; border-radius: 3px; }
+.percent {position:absolute; height:20px; display:inline-block; top:0; left:5%; color:#fff }
+</style>
+
+<div class="main">
+
+	{if !in_array($row['name'], array('weui','weui2','weui3','weui4','weuiup','weui_pg','weui_huahua','weui_ju','weui_zhandao'), TRUE)}
+	<form enctype="multipart/form-data"  method="post" name="upbookfrom" id="upbookfrom">
+        <div class="panel panel-default">
+            <div class="panel-heading">上传皮肤文件 - 同名文件将被覆盖，请谨慎命名</div>
+            <div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2">上传皮肤</label>
+					<div class="col-xs-12 col-sm-9">
+						<input type="button" id="uploadbookimg" onClick="$('#upload').click()" class="btn btn-success" value="点击上传皮肤文件" />
+						<input type="file" name="upfile" size="30" id="upload" onChange="upfiles()" style="width:0;height:0;"/>
+					</div>
+				</div>
+			</div>
+		</div>
+	</form>
+	{/if}
+    <form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" id="form1">
+        <div class="panel panel-default">
+            <div class="panel-heading">万能表单皮肤设置</div>
+            <div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">公众号</label>
+                    <div class="col-sm-5">
+						<input type="checkbox" id="selectAll" onclick="var ck = this.checked;$(':checkbox').each(function(){this.checked = ck});">
+						<a class="btn btn-success" style="margin-left: -18px;" onclick="$('#selectAll').click();">全选</a>
+						<span class="btn btn-default" disabled>全选中 或 全部选 则所有公众号都能使用此皮肤</span>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+					<div class="col-sm-9 col-xs-12" style="margin-left:-15px;">
+						{loop $list $uni}
+						{php $subaccount = count($uni['details']);}
+							{loop $uni['details'] $account}
+							<div class="col-sm-3" style="width:20%;">
+								<div class="input-group" style="margin:2px;">
+									<span class="input-group-addon">
+										<label class="checkbox-inline" style="width:10px;"> <input type="checkbox" name="ids[]" {if in_array($account['acid'], $ids)}checked{/if} value="{$account['acid']}" style="margin-top:-12px;"></label>
+									</span>
+									<span class="form-control">{php echo mb_substr($account['name'],0,8,'utf-8')}</span>
+								</div>
+							</div>
+							{/loop}
+						{/loop}
+					</div>
+				</div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">皮肤名称</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="title" class="form-control" value="{$row['title']}" />
+                    </div>
+				</div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">皮肤文件名</label>
+                    <div class="col-sm-9">
+                        <input type="text" id="skinsname" name="skinsname" class="form-control" value="{$row['name']}" readonly>
+                    </div>
+				</div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">皮肤图片</label>
+                    <div class="col-xs-12 col-sm-9">
+                         {php echo tpl_form_field_image('thumb',$row['thumb']);}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">皮肤说明</label>
+                    <div class="col-xs-12 col-sm-9">
+                         <textarea style="height:200px;" class="form-control" name="description" cols="70">{$row['description']}</textarea>
+                    </div>
+                </div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">启用状态</label>
+					<div class="col-xs-12 col-sm-9">
+					<div class="btn-group" data-toggle="buttons">					  
+						<label class="btn btn-default {if empty($row) || $row['status'] == 1}active{/if}"><input type="radio" name="status" value="1" {if empty($row) || $row['status'] == 1}checked="checked"{/if} >启用</label>
+						<label class="btn btn-default {if !empty($row) && $row['status'] == 0}active{/if}"><input type="radio" name="status" value="0" {if !empty($row) && $row['status'] == 0} checked="checked"{/if}>关闭</label>
+					</div>
+					</div>
+				</div>
+                
+		</div>
+		</div>
+		<div class="form-group col-sm-12">
+			<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+			<input type="hidden" name="token" value="{$_W['token']}" />
+		</div>
+    </form>
+</div>
+<script type="text/javascript">
+				
+	function upfiles(){
+		var data = new FormData($('#upbookfrom')[0]);
+		$.ajax({
+			url: '{php echo $this->createWebUrl('upfile')}',
+			type: 'POST',
+			data: data,
+			dataType: 'html',
+			cache: false,
+			processData: false,
+			contentType: false,
+			error: function(msg){ //失败 
+				alert('上传失败，请联系管理员.')
+			}, 
+			success: function(msgurl){ //成功
+				for(var i=0; i<1; i++){
+				$('input[name="skinsname"]').val(msgurl);
+				}
+			}
+		},"json")
+	}
+</script>
+{elseif $operation == 'display' && $_W['isfounder']}
+
+<div class="main">
+{if empty($skins)}
+	<div class="panel panel-info">
+	<div class="panel-heading">万能表单皮肤</div>
+            <div class="panel-body">
+			<form action="" class="form-horizontal form" method="post" enctype="multipart/form-data">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-1 control-label">导入皮肤</label>
+					<div class="col-sm-8">
+					<div class="input-group">
+						<input type="submit" name="export" value="点击这里 导入皮肤数据" class="btn btn-danger">
+					</div>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+{else}
+        <form action="" method="post" onsubmit="return formcheck(this)">
+			<div class="panel panel-default">
+				<div class="panel-body table-responsive">
+					<table class="table table-hover">
+						<thead>
+							<tr>
+								<th style="width:60px;">ID</th>
+								<th style="width:20%;">皮肤名称</th>
+								<th>简介</th>
+								<th style="width:10%;">文件名</th>
+								<th style="width:8%;">状态</th>
+								<th style="width:180px;">操作</th>
+							</tr>
+						</thead>
+						<tbody>
+			{loop $skins $row}
+				<tr {if $row['mode']=='9'}class="success"{elseif $row['mode']=='8'}class="info"{/if}>
+					<td>{$row['id']}</td>
+					<td><div class="type-parent">{$row['title']}</div></td>
+					<td>
+						{$row['description']}
+					</td>
+					<td>
+						{$row['type']}.html
+					</td>
+					<td>
+						<a data="{$row['status']}" href="javascript:;" class="label label-default {if $row['status']==1}label-primary{/if}" onclick="set(this,{$row['id']},'status','dayu_comment_category')">{if $row['status']==1}<i class="fa fa-check-square-o"></i> 启用{else}<i class="fa fa-times-circle-o"></i> 关闭{/if}</a>
+					</td>
+					<td>
+						<a href="{php echo $this->createWebUrl('skins', array('op' => 'post', 'id' => $row['id']))}" class="btn btn-default"><i class="fa fa-edit"></i> 编辑</a>
+						{if !in_array($row['name'], array('weui','weui2','weui3','weui4','weuiup','weui_pg','weui_huahua','weui_ju','weui_zhandao'), TRUE)}<a href="{php echo $this->createWebUrl('skins', array('op' => 'delete', 'id' => $row['id']))}" class="btn btn-danger" onclick="return confirm('确认删除此皮肤吗？一并删除{$row['name']}.html');return false;"><i class="fa fa-remove"></i> 删除</a>{/if}
+					</td>
+				</tr>
+			{/loop}
+			</tbody>
+					</table>
+				</div>
+           </div>
+        </form>
+{$pager}
+</div>
+	<script>
+	function set(obj,id,type,table){
+		$(obj).html($(obj).html() + "...");
+		$.post("{php echo $this->createWebUrl('ajaxset')}",{id:id,type:type,table:table, data: obj.getAttribute("data")},function(d){
+			$(obj).html($(obj).html().replace("...",""));
+				$(obj).html( d.data=='1'?'<i class="fa fa-check-square-o"></i> 启用':'<i class="fa fa-times-circle-o"></i> 关闭');
+
+			$(obj).attr("data",d.data);
+			if(d.result==1){
+				$(obj).toggleClass("label-primary");
+	//			$("#c_"+id).hide();
+			}
+		},"json");
+	}
+	</script>
+{/if}
+{/if}
+{template 'common/footer'}

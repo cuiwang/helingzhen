@@ -1,0 +1,328 @@
+{template 'common/header'}
+
+<ul class="nav nav-tabs">
+  <li {if $foo == 'post'}class="active"{/if}><a href="{php echo $this->createWebUrl('article', array('foo' => 'post'));}">添加文章</a></li>
+  <li {if $foo == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('article', array('foo' => 'display'));}">文章列表</a></li>
+</ul>
+<style>
+  .table td span{display:inline-block;margin-top:4px;}
+  .table td input{margin-bottom:0;}
+</style>
+{if $foo == 'display'}
+<div class="panel panel-info">
+  <div class="panel-heading">筛选</div>
+  <div class="panel-body">
+    <form action="{php echo $this->createWebUrl('article', array('do'=>'article', 'foo'=>'display'))}" method="post" class="form-horizontal" role="form">
+      <div class="form-group">
+        <label class="col-xs-12 col-sm-2 col-md-2 control-label">关键字</label>
+        <div class="col-sm-8 col-md-8 col-lg-8 col-xs-12">
+          <input class="form-control" name="keyword" id="" type="text" value="{$_GPC['keyword']}" placeholder="请输入文章标题关键字">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-xs-12 col-sm-2 col-md-2 control-label">文章分类</label>
+        <div class="col-sm-8 col-md-8 col-lg-8 col-xs-12">
+          <select class="form-control" style="margin-right:15px;" name="cate_1">
+            <option value="0">请选择分类</option>
+            {loop $category $row}
+            {if $row['parentid'] == 0}
+            <option value="{$row['id']}" {if $row['id'] == $_GPC['cate_1']} selected="selected"{/if}>{$row['name']}</option>
+            {/if}
+            {/loop}
+          </select>
+        </div>
+        <div class="pull-right col-xs-12 col-sm-2 col-md-2 col-lg-2">
+          <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="panel panel-default">
+  <div class="table-responsive panel-body">
+    <table class="table">
+      <thead>
+        <tr>
+          <th style="width:50px">排序</th>
+          <th>标题</th>
+          <th style="width:180px;">属性</th>
+          <th style="width:100px; text-align:right;">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {loop $list $item}
+        <tr>
+          <td>{$item['displayorder']}</td>
+          <td>
+            <span class="cate">{if !empty($item['pcate'])}<span class="text-error">[{$category[$item['pcate']]['name']}]</span>{/if}{if !empty($item['ccate'])}<span class="text-info">[{$category[$item['ccate']]['name']}]</span>{/if}</span>
+            <a href="{php echo $this->createWebUrl('article', array('foo' => 'post', 'id' => $item['id']))}" style="color:#333;">{$item['title']}</a>
+          </td>
+          <td>
+            {if $item['ishot']}<span class="label label-success">头条</span>{/if}
+            {if $item['iscommend']}<span class="label label-success">推荐</span>{/if}
+          </td>
+          <td style="text-align:right;">
+            <a href="{php echo $this->createWebUrl('article', array('foo' => 'post', 'id' => $item['id']))}" title="编辑" class="btn btn-default btn-sm"><i class="fa fa-edit"></i></a>
+            <a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('article', array('foo' => 'delete', 'id' => $item['id']))}" title="删除" class="btn btn-default btn-sm"><i class="fa fa-times"></i></a>
+          </td>
+        </tr>
+        {/loop}
+      </tbody>
+    </table>
+    {$pager}
+  </div>
+</div>
+<script type="text/javascript">
+  <!--
+  var category = {php echo json_encode($children)};
+  //-->
+</script>
+{elseif $foo == 'post'}
+<div class="main">
+  <form class="form-horizontal form" action="" method="post" enctype="multipart/form-data" id="form1">
+    <div class="panel panel-default">
+      <div class="panel-heading">文章管理</div>
+      <div class="panel-body">
+        <input type="hidden" name="id" value="{$item[id]}">
+        {if !empty($item)}
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">访问地址</label>
+          <div class="col-sm-8 col-xs-12">
+            <a class="preview_url" href="{php echo $_W['siteroot'] . 'app/' . $this->createMobileUrl('detail', array('id' => $item['id'], 'weid' => $_W['weid']))}" target="_blank">{php echo $this->createMobileUrl('detail', array('id' => $item['id'], 'weid' => $_W['weid']))}</a>
+            <div class="help-block">您可以根据此地址，添加回复规则，设置访问。鼠标移动到链接上可显示本文二维码。注意：本二维码仅供预览，分享不送积分。</div>
+          </div>
+        </div>
+        {/if}
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">标题</label>
+          <div class="col-sm-8 col-xs-12">
+            <input type="text" class="form-control" placeholder="" name="title" value="{$item['title']}">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">内容配图</label>
+          <div class="col-sm-8 col-xs-12">
+            {php echo tpl_form_field_image('thumb', $item['thumb']);}
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">分享缩略图</label>
+          <div class="col-sm-8 col-xs-12">
+            {php echo tpl_form_field_image('sharethumb', $item['sharethumb']);}
+          </div>
+        </div>
+
+
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">文章类别</label>
+          <div class="col-sm-8 col-xs-12">
+            {php echo tpl_form_field_category_2level('category', $parent, $children, $pcate, $ccate)}       
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">选择模板</label>
+          <div class="col-sm-8 col-xs-12">
+            <div class="row row-fix">
+              {template 'article_template'}
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">文章简介</label>
+          <div class="col-xs-12 col-sm-8">
+            <textarea rows="5" class="form-control" name="description">{$item['description']}</textarea>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label"></label>
+          <div class="col-sm-8">
+            <div class="help-block">
+              <label class="checkbox-inline">
+                <input type="checkbox" name="autolitpic" value="1"{if empty($item['thumb'])} checked="true"{/if}>提取内容的第一个图片为缩略图
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">内容</label>
+          <div class="col-xs-12 col-sm-8">
+            <textarea style="height:300px; width:100%" class="richtext" name="content" rows="6" id="reply-add-text" placeholder="点这里输入内容" >
+              {$item['content']}</textarea>
+            <span class="help-block">
+                    小工具:
+                    <a href="http://wxedit.yead.net/" target="_blank" title="新窗口打开">易点微信编辑器</a> &nbsp;
+                    <a href="http://www.135editor.com/" target="_blank" title="新窗口打开">135微信编辑器</a> &nbsp;(利用第三方编辑器，获得更好显示效果)
+                  </span>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel panel-primary">
+      <a data-toggle="collapse" data-parent="#accordion1" href="#collapse1" aria-expanded="true" aria-controls="collapse1">
+        <div class="panel-heading">
+          <h3 class="panel-title">文章属性设置&nbsp;<span class="caret"></span></h3>
+        </div>
+      </a>
+      <div id="collapse1" class="panel-collapse collapse in" role="tabpanel">
+        <div class="panel-body">
+          <div class="form-group">
+            <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">排序</label>
+            <div class="col-sm-8 col-xs-12">
+              <input type="text" class="form-control" placeholder="" name="displayorder" value="{$item['displayorder']}">
+              <span class="help-block">文章的显示顺序，越大则越靠前</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">自定义属性</label>
+            <div class="col-sm-8 col-xs-12">
+              <label class="checkbox-inline"><input type="checkbox" name="option[hot]" value="1" {if $item['ishot']} checked{/if}> 头条[h]</label>
+              <label class="checkbox-inline"><input type="checkbox" name="option[commend]" value="1" {if $item['iscommend']} checked{/if}> 推荐[c]</label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">文章来源</label>
+            <div class="col-sm-8 col-xs-12">
+              <input type="text" class="span3 form-control" placeholder="" name="source" id="input_source_id" value="{$item['source']}" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">文章作者</label>
+            <div class="col-sm-8 col-xs-12">
+              <input type="text" class="form-control" placeholder="" name="author" id="input_author_id" value="{$item['author']}" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">引导关注链接</label>
+            <div class="col-sm-8 col-xs-12">
+              <input type="text" class="span3 form-control" placeholder="" name="follow_url" id="input_follow_url_id" value="{$item['follow_url']}" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">阅读次数</label>
+            <div class="col-sm-8 col-xs-12">
+              <input type="text" class="form-control" placeholder="文章已被阅读次数" name="read_count" value="{$item['read_count']}">
+              <span class="help-block">本数值会随着阅读数增加自动变化。为营造火热气氛，可以人工调大本值。</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel panel-primary">
+      <a data-toggle="collapse" data-parent="#accordion2" href="#collapse2" aria-expanded="true" aria-controls="collapse2">
+        <div class="panel-heading">
+          <h3 class="panel-title">积分设置&nbsp;<span class="caret"></span></h3>
+        </div>
+      </a>
+      <div id="collapse2" class="panel-collapse collapse in" role="tabpanel">
+        <div class="panel-body">
+
+          <div class="form-group">
+            <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">转发送积分</label>
+            <div class="col-sm-8 col-xs-12">
+              <input type="text" class="form-control" placeholder="请填写一个数字, 转发文章送积分数" name="share_credit" value="{$item['share_credit']}">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">点击送积分</label>
+            <div class="col-sm-8 col-xs-12">
+              <input type="text" class="form-control" id="click_credit" placeholder="请填写一个数字, 他人点击送转发者积分" name="click_credit" value="{$item['click_credit']}">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">本文总送分上限</label>
+            <div class="col-sm-8 col-xs-12">
+              <input type="text" class="form-control" id="click_credit" placeholder="请填写一个数字, 超过本值不送积分" name="max_credit" value="{$item['max_credit']}">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">每个用户送分上限</label>
+            <div class="col-sm-8 col-xs-12">
+              <input type="text" class="form-control" id="per_user_credit" placeholder="请填写一个数字, 超过本值不送积分" name="per_user_credit" value="{$item['per_user_credit']}">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-group" id="accordion3" role="tablist" aria-multiselectable="true">
+      <div class="panel panel-primary">
+        <a data-toggle="collapse" data-parent="#accordion3" href="#collapse3" aria-expanded="true" aria-controls="collapse3">
+          <div class="panel-heading">
+            <h3 class="panel-title">
+              跳转设置&nbsp;<span class="caret"></span>
+            </h3>
+          </div>
+        </a>
+
+        <div id="collapse3" class="panel-collapse collapse in" role="tabpanel">
+          <div class="panel-body">
+
+            <div class="form-group">
+              <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">从朋友圈打开<br/>后跳转到</label>
+              <div class="col-sm-8 col-xs-12">
+                <input type="text" class="form-control" placeholder="" name="linkurl" value="{$item['linkurl']}">
+                <span class="help-block">【朋友圈打开本链接送积分】本文转发到朋友圈/好友后，好友打开文章，会跳自动转到本链接指定的地址, 如某个活动页面。
+                  <br>特别说明：自己打开这篇文章的时候，并不会跳转。只有好友打开的时候才会跳转。
+                  <br>链接必须是以http://或是https://开头</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">直接链接</label>
+              <div class="col-sm-8 col-xs-12">
+                <input type="text" class="form-control" placeholder="" name="redirect_url" value="{$item['redirect_url']}">
+                <span class="help-block">【点击本链接不送积分】从列表页点击本文标题后，会直接跳转到本链接指定的地址。链接必须是以http://或是https://开头</span>
+                <span class="help-block">本选项作用：文章列表页中，偶尔有这样的需求：除了列出站内文章，还希望列出一些外部链接。本选项就是用于指定这样的站外链接地址的。</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {template 'recommend'}
+    {template 'advertise'}
+    <div class="form-group">
+      <div class="col-sm-6 col-xs-6">
+        <button type="submit" class="btn btn-primary btn-block" name="submit" value="提交">提交</button>
+        <input type="hidden" name="token" value="{$_W['token']}" />
+      </div>
+    </div>
+  </form>
+</div>
+</div>
+<script type="text/javascript">
+  require(['jquery', 'util'], function($, u){
+    $(function(){
+      $('.richtext').each(function() {
+        u.editor(this);
+      });
+    });
+  });
+
+  require(['jquery', 'util'], function($, u){
+    $('#form1').submit(function(){
+      if($("input[name=title]").val().length <= 0) {
+        u.message('没有填写标题', '', 'error');
+        return false;
+      }
+      return true;
+    });
+  });
+</script>
+{/if}
+{template 'common/footer'}

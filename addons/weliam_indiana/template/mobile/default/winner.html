@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+	{template wxshare}
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>获得者 - {php echo $this->module['config']['sname']}</title>
+    <meta content="app-id=518966501" name="apple-itunes-app">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <meta content="yes" name="apple-mobile-web-app-capable">
+    <meta content="black" name="apple-mobile-web-app-status-bar-style">
+    <meta content="telephone=no" name="format-detection">
+    <link href="../addons/weliam_indiana/secondstatic/css/newcomm.css" rel="stylesheet" type="text/css">
+    <link href="../addons/weliam_indiana/secondstatic/css/newgoods.css" rel="stylesheet" type="text/css">
+    <script src="../addons/weliam_indiana/secondstatic/js/jquery.js"></script>
+</head>
+<body class="g-acc-bg" id="loadingPicBlock" fnav="1" style="zoom: 1;">
+    <input name="hidGoodsID" type="hidden" id="hidGoodsID" value="22023">
+    <div class="g-winner-con clearfix">
+        <div class="m-win-list clearfix">
+            <ul id="winList">
+            	{loop $result $result}
+            	{if $result['status'] == 1}
+                <li class="have-in-hand" codeid="2262904">
+                    <cite>第{$result['periods']}期</cite>
+                    <div class="win-con">
+                        <div class="during-pic">
+                            <a href="{php echo $this->createMobileUrl('detail', array('periodid' => $result['id']))}"><img src="{$goodsimage}"></a>
+                        </div>
+                        <h4 class="orange">进行中<span class="dotting"></span></h4>
+                        <p class="u-progress" title="已完成1%">
+                            <span class="pgbar" style="width:{$result['scale']}%;">
+                                <span class="pging"></span>
+                            </span>
+                        </p>
+                    </div>
+                </li>
+                {elseif $result['status'] == 2}
+                <li codeid="2262903">
+                    <cite>第{$result['periods']}期</cite>
+                    <div class="win-con">
+                        <h4 class="orange">正在揭晓</h4>
+                        <div class="loading-progress">
+                            <span class="loading-pgbar">
+                                <span class="loading-pging"></span>
+                            </span>
+                        </div>
+                        <h5 class="gray9">敬请期待</h5>
+                    </div>
+                </li>
+                {elseif $result['status']>2 && $result['status'] < 8}
+                <li codeid="2262902">
+                    <cite>第{$result['periods']}期</cite>
+                    <dl class="gray9">
+                        <dt><img src="{php echo tomedia($result['avatar']);}"></dt>
+                        <dd class="win-name"><a href="{php echo $this->createMobileUrl('otherpersonal')}&openid={$result['openid']}" class="blue">{$result['nickname']}</a></dd>
+                        <dd class="z-font-size">幸运码：<em class="orange">{$result['code']}</em></dd>
+                        <dd class="z-font-size"> 参与人次：<em class="orange">{$result['partakes']}</em></dd>
+                        <dd class="colorbbb">{php echo date('m-d H:i:s',$result['endtime'])}</dd>
+                    </dl>
+                </li>
+                {/if}
+                {/loop}
+            </ul>
+        </div>
+        <div class="loading clearfix" id="refresh">上拉加载</div>
+    </div>
+    {template 'menu'}
+</body>
+<script>
+	var flag=0;
+	var page = 1;
+	//判断div是否在可视区域
+	  $(document).ready(function () {
+            $(window).scroll(function () {
+                var a = document.getElementById("refresh").offsetTop;
+                if (a >= $(window).scrollTop() && a < ($(window).scrollTop()+$(window).height())&& flag==0) {
+                   document.getElementById('refresh').innerHTML='<b></b>正在加载';
+					flag = 1;
+					down_load();	
+                }
+            });
+        });
+	//下拉加载数据
+	function down_load(){
+		//传值验证返回	
+	    $.post("{php echo $this->createMobileUrl('winner')}",
+	    {
+	    	page:page,
+	    	goodsid:{$goodsid}
+	    },
+	    function(m){
+				if(m==''){
+					document.getElementById('refresh').innerHTML="没有可加载项";
+					flag=1;
+				}else{
+					page = page+1;
+					for(var i=0;i<m.length;i++){
+						var more = '<li><cite>第'+m[i].periods+'期</cite><dl class="gray9"><dt><img src="'+m[i].avatar+'"></dt><dd class="win-name"><a href="{php echo $this->createMobileUrl('otherpersonal')}&openid='+m[i].openid+'" class="blue">'+m[i].nickname+'</a></dd><dd class="z-font-size">幸运码：<em class="orange">'+m[i].code+'</em></dd><dd class="z-font-size"> 参与人次：<em class="orange">'+m[i].partakes+'</em></dd><dd class="colorbbb">'+m[i].endtime+'</dd></dl></li>';
+						$("#winList").append(more);
+						document.getElementById('refresh').innerHTML="上拉加载更多";
+						flag=0;
+						
+					}
+				}
+
+             },"json");
+	}
+</script>
+</html>

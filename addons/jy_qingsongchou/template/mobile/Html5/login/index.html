@@ -1,0 +1,172 @@
+{template 'header'}
+
+<style>
+  #loginForm{
+      display: none;
+  }
+</style>
+<div class="content mod-user-login"  id="phoneForm">
+    <form action="" method="POST" class="" name="phoneForm">
+        <h1 class="qsc-logo_login">
+          <img src="{php echo tomedia($this->sys['logo'])}" alt="">
+        </h1>
+        <div class="qsc-form-group">
+            <div class="form-item">
+               <label class="control-label">国家地区</label>
+                <div class="form-select">
+                    <select name="iso">
+                      <option value="CN" selected="selected">+86 &nbsp; &nbsp; 中国</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-item">
+                <label for="phone" class="control-label">手机号</label>
+                <input type="tel" pattern="[0-9]*" name="mobile" id="phone" class="control-input" placeholder="输入你的手机号" value="">
+            </div>
+        </div>
+
+        <div class="footer-btn">
+          <input type="button" class="btn btn-block btn-primary btn-lg" name="submit"  id="next" value="下一步">
+            <p class="user-agreement">
+              <i class="icon icon-checkbox-sm"></i>
+              <span>已阅读并同意<a href="javascript:void(0)" class="text-success">《{php echo  $this->sys['sitename']}用户注册协议》</a></span>
+            </p>
+            <p class="text-center" style="font-size:14px;color:#999;">
+                {php echo $this->sys['copyright']}
+            </p>
+        </div>
+    </form>
+</div>
+
+<div class="content mod-user-login"  id="loginForm">
+
+      <div class="qsc-form-group">
+          <div class="help-verify">
+              请输入你的手机<strong></strong>收到的5位短信验证码
+              <input type="hidden" name="mobile" id="mobile" value="">
+         </div>
+        <div class="form-item">
+            <label for="verify_sms" class="control-label">验证码</label>
+            <input type="tel" class="control-input" name="sms" id="verify_sms" maxlength="4" placeholder="填写5位短信验证码">
+        </div>
+      </div>
+      <div class="footer-btn">
+          <button type="button" id="submit" class="btn btn-success btn-lg btn-block" disabled >登录</button>
+          <p class="text-center"><a href="javascript:void(0)" class="text-danger" data-toggle="modal" data-target="#modal-resend"></a></p>
+      </div>
+
+
+
+    <div class="login-oauth">
+        <h4 class="title-line">
+            <span>没收到验证码？</span>
+        </h4>
+        <div class="footer-btn clearfix">
+        <a href="javascript:void(0);" class="btn btn-default btn-lg btn-block text-success btn-sms disabled" id="resend"></a>
+    </div>
+  </div>
+</div>
+  {template 'tip'}
+  <script src="{GARCIA_JS}app.js"></script>
+<script>
+  function trim(str){
+  	return str.replace(/(^\s*)|(\s*$)/g, "");
+  }
+   $(function(){
+       $("#verify_sms").bind("input propertychange",function(){
+            if($(this).val().length==4){
+               $("#submit").attr('disabled',false);
+            }else{
+              $("#submit").attr('disabled',true);
+            }
+       });
+       $("#next").bind('click',function(){
+           var phone = $("#phone").val();
+           if(!(/^1[3|4|5|7|8][0-9]\d{4,8}$/.test(trim(phone)))||trim(phone).length !=11){
+              _tips("您的电话输入有误，请重新填写！");
+              return false;
+           }
+
+           $(".help-verify").find('strong').html('+86 '+phone);
+           $("#mobile").val(phone);
+           $("#phoneForm").hide();
+           $("#loginForm").show();
+           _sendMsg(phone);
+
+       });
+       $("#submit").bind('click',function(){
+            var phone = $("#phone").val();
+            var verifysms =  $("#verify_sms").val();
+            // console.log(phone);
+            doneCode(phone,verifysms);
+       })
+   })
+
+
+   function _sendMsg(phone){
+       toSend(phone);
+      onclock(60,phone);
+   }
+
+   function doneCode(phone,code){
+
+         $.ajax({
+            url:base_url,
+            type:"post",
+            dataType:'json',
+            data:{
+              func:'trs',
+              action:'done_re2',
+              phone:phone,
+              code:code,
+              apikey:"{php echo md5('yidajia_app_'.$this->weid)}"
+            },success:function(msg){
+               console.log(jts(msg));
+               if(msg.status_code==1){
+                   _tips('登陆成功');
+                   setInterval(function(){
+                     window.location.href="{php echo $this->createMobileUrl('index')}";
+                   },1000);
+
+               }else{
+                  _tips(msg.msg);
+               }
+            },error:function(msg){
+               console.log('bad');
+            }
+         });
+   }
+
+   function toSend(phone){
+       $.ajax({
+          url:base_url,
+          type:"post",
+          dataType:'json',
+          data:{
+            func:'trs',
+            action:'getcode',
+            phone:phone,
+            apikey:"{php echo md5('yidajia_app_'.$this->weid)}"
+          },success:function(msg){
+             console.log(jts(msg));
+          },error:function(msg){
+             console.log('bad');
+          }
+       });
+   }
+
+   function onclock(i,phone){
+     $("#resend").html('重新发送验证码<small>(稍等'+i+'秒)</small>');
+     var clock = setInterval(function(){
+       i--;
+       if(i<=0){
+          clearInterval(clock);
+          $("#resend").html('点击重新获取短信');
+       }
+
+       $("#resend").find('small').html('(稍等'+i+'秒)');
+     },1000);
+   }
+
+
+</script>

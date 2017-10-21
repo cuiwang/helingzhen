@@ -1,0 +1,480 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns="http://www.012wz.com" versionCode="0.6">
+	<application setting="false">
+		<name><![CDATA[码上微外卖]]></name>
+		<identifie><![CDATA[str_takeout]]></identifie>
+		<version><![CDATA[3.9.9]]></version>
+		<type><![CDATA[business]]></type>
+		<ability><![CDATA[码上微外卖]]></ability>
+		<description><![CDATA[码上微外卖]]></description>
+		<author><![CDATA[微赞]]></author>
+		<url><![CDATA[http://www.012wz.com]]></url>
+	</application>
+	<platform>
+		<subscribes>
+		</subscribes>
+		<handles>
+			<message type="text" />
+		</handles>
+		<rule embed="false" />
+		<card embed="false" />
+		<supports>
+		</supports>
+	</platform>
+	<bindings>
+		<cover>
+			<entry title="微外卖入口" do="index" state="" direct="true" />
+		</cover>
+		<menu>
+			<entry title="系统说明" do="system" state="" direct="true" />
+			<entry title="门店独立帐号" do="account" state="" direct="true" />
+			<entry title="门店数量限制" do="limit" state="" direct="true" />
+			<entry title="参数设置" do="config" state="" direct="true" />
+			<entry title="门店管理" do="store" state="" direct="true" />
+		</menu>
+		<home>
+			<entry title="外卖" do="index" state="" direct="true" />
+		</home>
+		<profile>
+			<entry title="我的外卖" do="myorder" state="" direct="true" />
+		</profile>
+	</bindings>
+	<install><![CDATA[CREATE TABLE IF NOT EXISTS `ims_str_account` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+  `sid` int(10) unsigned NOT NULL DEFAULT '0',
+  `uid` int(10) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_str_address` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+  `uid` int(10) unsigned NOT NULL DEFAULT '0',
+  `realname` varchar(15) NOT NULL,
+  `mobile` varchar(15) NOT NULL,
+  `is_verify` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `address` varchar(50) NOT NULL,
+  `is_default` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `uniacid` (`uniacid`),
+  KEY `uid` (`uid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_str_area` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+  `title` varchar(30) NOT NULL,
+  `displayorder` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `uniacid` (`uniacid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_str_assign_board` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+  `sid` int(10) unsigned NOT NULL DEFAULT '0',
+  `queue_id` int(10) unsigned NOT NULL DEFAULT '0',
+  `uid` int(10) unsigned NOT NULL DEFAULT '0',
+  `mobile` varchar(15) NOT NULL,
+  `openid` varchar(64) NOT NULL,
+  `guest_num` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `number` varchar(20) NOT NULL,
+  `position` int(10) unsigned NOT NULL DEFAULT '0',
+  `status` tinyint(3) unsigned NOT NULL DEFAULT '1',
+  `is_notify` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `createtime` int(10) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `uniacid` (`uniacid`),
+  KEY `sid` (`sid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_str_assign_queue` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+  `sid` int(10) unsigned NOT NULL DEFAULT '0',
+  `title` varchar(20) NOT NULL,
+  `guest_num` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `notify_num` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `starttime` varchar(10) NOT NULL,
+  `endtime` varchar(10) NOT NULL,
+  `prefix` varchar(10) NOT NULL COMMENT '前缀',
+  `status` tinyint(3) unsigned NOT NULL DEFAULT '1',
+  `position` int(10) unsigned NOT NULL DEFAULT '1',
+  `updatetime` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '根据这个时间,判断是否将position重新至0',
+  PRIMARY KEY (`id`),
+  KEY `uniacid` (`uniacid`),
+  KEY `sid` (`sid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_str_clerk` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+  `sid` int(10) unsigned NOT NULL DEFAULT '0',
+  `title` varchar(15) NOT NULL,
+  `nickname` varchar(15) NOT NULL,
+  `openid` varchar(60) NOT NULL,
+  `addtime` int(10) unsigned NOT NULL DEFAULT '0',
+  `is_sys` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `email` varchar(50) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `uniacid` (`uniacid`),
+  KEY `sid` (`sid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_str_config` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+  `version` tinyint(3) unsigned NOT NULL DEFAULT '1',
+  `default_sid` int(10) unsigned NOT NULL DEFAULT '0',
+  `sms` varchar(255) NOT NULL,
+  `notice` varchar(500) NOT NULL,
+  `area_search` tinyint(3) unsigned NOT NULL DEFAULT '1',
+  `num_limit` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '门店数量限制',
+  `paytime_limit` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `uniacid` (`uniacid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_str_dish` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+  `sid` int(10) unsigned NOT NULL DEFAULT '0',
+  `cid` int(10) unsigned NOT NULL DEFAULT '0',
+  `title` varchar(30) NOT NULL,
+  `price` varchar(200) NOT NULL,
+  `unitname` varchar(10) NOT NULL DEFAULT '份',
+  `total` int(10) NOT NULL DEFAULT '0',
+  `sailed` int(10) unsigned NOT NULL,
+  `grant_credit` int(10) unsigned NOT NULL DEFAULT '0',
+  `is_display` tinyint(3) unsigned NOT NULL DEFAULT '1',
+  `thumb` varchar(60) NOT NULL,
+  `recommend` tinyint(3) unsigned NOT NULL DEFAULT '2',
+  `label` varchar(5) NOT NULL,
+  `show_group_price` tinyint(3) unsigned NOT NULL DEFAULT '1',
+  `displayorder` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `description` varchar(500) NOT NULL,
+  `first_order_limit` tinyint(3) unsigned NOT NULL DEFAULT '2',
+  `buy_limit` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_str_dish_category` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+  `sid` int(10) unsigned NOT NULL DEFAULT '0',
+  `title` varchar(20) NOT NULL,
+  `displayorder` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `uniacid` (`uniacid`),
+  KEY `sid` (`sid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_str_dish_comment` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) unsigned NOT NULL,
+  `uid` int(10) unsigned NOT NULL,
+  `oid` int(10) unsigned NOT NULL,
+  `did` int(10) unsigned NOT NULL,
+  `score` tinyint(3) unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `uniacid` (`uniacid`),
+  KEY `oid` (`oid`),
+  KEY `did` (`did`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_str_order` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+  `acid` int(10) unsigned NOT NULL DEFAULT '0',
+  `sid` int(10) unsigned NOT NULL DEFAULT '0',
+  `uid` int(10) unsigned NOT NULL DEFAULT '0',
+  `groupid` int(10) unsigned NOT NULL DEFAULT '0',
+  `order_type` tinyint(3) unsigned NOT NULL DEFAULT '1',
+  `openid` varchar(50) NOT NULL,
+  `username` varchar(20) NOT NULL,
+  `mobile` varchar(15) NOT NULL,
+  `address` varchar(100) NOT NULL,
+  `note` varchar(200) NOT NULL,
+  `price` decimal(10,2) NOT NULL,
+  `num` tinyint(3) unsigned NOT NULL,
+  `delivery_time` varchar(15) NOT NULL,
+  `pay_type` varchar(15) NOT NULL,
+  `dish` varchar(3000) NOT NULL,
+  `addtime` int(10) unsigned NOT NULL DEFAULT '0',
+  `status` tinyint(3) NOT NULL DEFAULT '1',
+  `is_notice` tinyint(3) NOT NULL DEFAULT '0',
+  `comment` tinyint(3) unsigned NOT NULL DEFAULT '2',
+  `print_nums` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `person_num` tinyint(3) unsigned NOT NULL DEFAULT '1',
+  `table_id` int(10) unsigned NOT NULL DEFAULT '0',
+  `table_info` varchar(20) NOT NULL,
+  `delivery_fee` decimal(10,2) unsigned NOT NULL DEFAULT '0.00' COMMENT '外卖配送费',
+  `grant_credit` int(10) unsigned NOT NULL DEFAULT '0',
+  `is_grant` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `is_back` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `is_usecard` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `card_type` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `card_fee` varchar(20) NOT NULL,
+  `card_id` varchar(50) NOT NULL,
+  `reserve_time` int(10) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `uniacid_sid` (`uniacid`,`sid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_str_order_cart` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+  `sid` int(10) unsigned NOT NULL DEFAULT '0',
+  `uid` int(10) unsigned NOT NULL DEFAULT '0',
+  `groupid` int(10) unsigned NOT NULL DEFAULT '0',
+  `num` int(10) unsigned NOT NULL DEFAULT '0',
+  `price` decimal(10,2) unsigned NOT NULL DEFAULT '0.00',
+  `grant_credit` int(10) unsigned NOT NULL DEFAULT '0',
+  `data` varchar(3000) NOT NULL,
+  `addtime` int(10) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `uniacid_sid` (`uniacid`,`sid`),
+  KEY `uid` (`uniacid`,`uid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_str_order_comment` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `oid` int(10) unsigned NOT NULL DEFAULT '0',
+  `uid` int(10) unsigned NOT NULL DEFAULT '0',
+  `uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+  `sid` int(10) unsigned NOT NULL DEFAULT '0',
+  `taste` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `serve` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `speed` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `note` varchar(255) NOT NULL,
+  `addtime` int(10) NOT NULL DEFAULT '0',
+  `status` tinyint(3) unsigned NOT NULL DEFAULT '1',
+  PRIMARY KEY (`id`),
+  KEY `uniacid` (`uniacid`),
+  KEY `sid` (`sid`),
+  KEY `oid` (`oid`),
+  KEY `addtime` (`addtime`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_str_order_log` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+  `sid` int(10) unsigned NOT NULL DEFAULT '0',
+  `oid` int(10) unsigned NOT NULL DEFAULT '0',
+  `note` varchar(255) NOT NULL,
+  `addtime` int(10) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `uniacid` (`uniacid`),
+  KEY `sid` (`sid`),
+  KEY `oid` (`oid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_str_order_print` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+  `sid` int(10) unsigned NOT NULL DEFAULT '0',
+  `pid` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `oid` int(10) unsigned NOT NULL DEFAULT '0',
+  `foid` varchar(50) NOT NULL,
+  `status` tinyint(3) unsigned NOT NULL DEFAULT '2',
+  `print_type` tinyint(3) unsigned NOT NULL DEFAULT '1' COMMENT '打印机品牌1：飞蛾，2：宏信',
+  `addtime` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `addtime` (`addtime`),
+  KEY `foid` (`foid`),
+  KEY `uniacid` (`uniacid`),
+  KEY `pid` (`pid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_str_print` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+  `sid` int(10) unsigned NOT NULL,
+  `name` varchar(20) NOT NULL,
+  `type` tinyint(3) unsigned NOT NULL DEFAULT '1',
+  `print_no` varchar(30) NOT NULL,
+  `key` varchar(30) NOT NULL,
+  `print_nums` tinyint(3) unsigned NOT NULL DEFAULT '1',
+  `qrcode_link` varchar(100) NOT NULL,
+  `print_header` varchar(50) NOT NULL,
+  `print_footer` varchar(50) NOT NULL,
+  `status` tinyint(3) unsigned NOT NULL DEFAULT '1',
+  `print_type` int(10) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `uniacid` (`uniacid`),
+  KEY `sid` (`sid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_str_reply` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+  `sid` int(10) unsigned NOT NULL DEFAULT '0',
+  `rid` int(10) unsigned NOT NULL DEFAULT '0',
+  `type` tinyint(3) unsigned NOT NULL DEFAULT '1',
+  `table_id` int(10) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `uniacid` (`uniacid`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_str_reserve` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+  `sid` int(10) unsigned NOT NULL DEFAULT '0',
+  `time` varchar(15) NOT NULL,
+  `table_cid` int(10) unsigned NOT NULL DEFAULT '0',
+  `addtime` int(10) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `uniacid` (`uniacid`),
+  KEY `sid` (`sid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_str_stat` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `oid` int(10) unsigned NOT NULL DEFAULT '0',
+  `uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+  `sid` int(10) unsigned NOT NULL DEFAULT '0',
+  `dish_id` int(10) unsigned NOT NULL DEFAULT '0',
+  `dish_num` int(10) unsigned NOT NULL DEFAULT '0',
+  `dish_title` varchar(30) NOT NULL,
+  `dish_price` decimal(10,2) unsigned NOT NULL DEFAULT '0.00',
+  `addtime` int(10) NOT NULL DEFAULT '0',
+  `is_complete` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `uniacid` (`uniacid`),
+  KEY `sid` (`sid`),
+  KEY `addtime` (`addtime`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_str_store` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+  `title` varchar(30) NOT NULL,
+  `logo` varchar(100) NOT NULL,
+  `telephone` varchar(15) NOT NULL,
+  `business_hours` varchar(200) NOT NULL,
+  `description` varchar(1000) NOT NULL,
+  `send_price` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `delivery_price` smallint(5) unsigned NOT NULL DEFAULT '0',
+  `delivery_time` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `serve_radius` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `delivery_area` varchar(50) NOT NULL,
+  `thumbs` varchar(1000) NOT NULL,
+  `district` varchar(40) NOT NULL,
+  `address` varchar(50) NOT NULL,
+  `location_x` varchar(15) NOT NULL,
+  `location_y` varchar(15) NOT NULL,
+  `status` tinyint(3) unsigned NOT NULL DEFAULT '1',
+  `displayorder` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `notice_acid` int(10) unsigned NOT NULL DEFAULT '0',
+  `groupid` int(10) unsigned NOT NULL DEFAULT '0',
+  `dish_style` tinyint(3) unsigned NOT NULL DEFAULT '1',
+  `print_type` tinyint(3) unsigned NOT NULL DEFAULT '1',
+  `is_meal` tinyint(3) unsigned DEFAULT '1',
+  `is_takeout` tinyint(3) unsigned NOT NULL DEFAULT '1',
+  `is_assign` tinyint(3) unsigned NOT NULL DEFAULT '2',
+  `is_reserve` tinyint(3) unsigned NOT NULL DEFAULT '2',
+  `is_fast` tinyint(3) unsigned NOT NULL DEFAULT '2',
+  `mobile_verify` varchar(255) NOT NULL,
+  `sns` varchar(255) NOT NULL,
+  `forward_mode` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `comment_status` tinyint(3) unsigned NOT NULL DEFAULT '1',
+  `comment_set` tinyint(3) unsigned NOT NULL DEFAULT '1',
+  `notice` varchar(100) NOT NULL COMMENT '公告',
+  `content` varchar(255) NOT NULL,
+  `area_id` int(10) unsigned NOT NULL DEFAULT '0',
+  `copyright` varchar(255) NOT NULL,
+  `sms` varchar(255) NOT NULL,
+  `assign_mode` tinyint(3) unsigned NOT NULL DEFAULT '1',
+  `store_qrcode` varchar(500) NOT NULL,
+  `assign_qrcode` varchar(500) NOT NULL,
+  `table_qrcode_mode` tinyint(3) unsigned NOT NULL DEFAULT '1',
+  `slide_status` tinyint(3) unsigned NOT NULL DEFAULT '2',
+  `mobile` varchar(11) NOT NULL COMMENT '接收短信的手机',
+  `is_sms` int(10) NOT NULL COMMENT '是否开启短信',
+  `sms_id` varchar(20) NOT NULL COMMENT '短信模板ID',
+  `email` varchar(50) NOT NULL,
+  `code` varchar(50) NOT NULL,
+  `secret` varchar(50) NOT NULL,
+  `email_notice` int(3) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `uniacid` (`uniacid`),
+  KEY `title` (`title`),
+  KEY `area_id` (`area_id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_str_tables` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+  `sid` int(10) unsigned NOT NULL DEFAULT '0',
+  `title` varchar(20) NOT NULL,
+  `cid` int(10) unsigned NOT NULL DEFAULT '0',
+  `guest_num` tinyint(3) unsigned DEFAULT '0',
+  `scan_num` int(10) unsigned NOT NULL DEFAULT '0',
+  `qrcode` varchar(500) NOT NULL,
+  `displayorder` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `status` tinyint(3) unsigned NOT NULL DEFAULT '1',
+  `createtime` int(10) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `uniacid_sid` (`uniacid`,`sid`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_str_tables_category` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+  `sid` int(10) unsigned NOT NULL DEFAULT '0',
+  `title` varchar(20) NOT NULL,
+  `limit_price` varchar(20) NOT NULL,
+  `reservation_price` varchar(20) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `uniacid` (`uniacid`),
+  KEY `sid` (`sid`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_str_tables_scan` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+  `sid` int(10) unsigned NOT NULL DEFAULT '0',
+  `table_id` int(10) unsigned NOT NULL DEFAULT '0',
+  `openid` varchar(50) NOT NULL,
+  `nickname` varchar(50) NOT NULL,
+  `avatar` varchar(255) NOT NULL,
+  `createtime` int(10) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `uniacid` (`uniacid`),
+  KEY `sid` (`sid`),
+  KEY `table_id` (`table_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_str_user_trash` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+  `sid` int(10) unsigned NOT NULL DEFAULT '0',
+  `uid` int(10) unsigned NOT NULL DEFAULT '0',
+  `username` varchar(15) NOT NULL,
+  `mobile` varchar(15) NOT NULL,
+  `addtime` int(10) unsigned NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `uniacid` (`uniacid`),
+  KEY `sid` (`sid`),
+  KEY `uid` (`uid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_str_users` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) unsigned NOT NULL DEFAULT '0',
+  `sid` int(10) unsigned NOT NULL DEFAULT '0',
+  `uid` int(10) unsigned NOT NULL DEFAULT '0',
+  `realname` varchar(20) CHARACTER SET latin1 NOT NULL,
+  `nickname` varchar(20) NOT NULL,
+  `mobile` varchar(15) NOT NULL,
+  `avatar` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `uniacid` (`uniacid`),
+  KEY `sid` (`sid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+]]></install>
+	<uninstall><![CDATA[DROP TABLE IF EXISTS `ims_str_account`;
+DROP TABLE IF EXISTS `ims_str_address`;
+DROP TABLE IF EXISTS `ims_str_area`;
+DROP TABLE IF EXISTS `ims_str_assign_board`;
+DROP TABLE IF EXISTS `ims_str_assign_queue`;
+DROP TABLE IF EXISTS `ims_str_clerk`;
+DROP TABLE IF EXISTS `ims_str_config`;
+DROP TABLE IF EXISTS `ims_str_dish`;
+DROP TABLE IF EXISTS `ims_str_dish_category`;
+DROP TABLE IF EXISTS `ims_str_dish_comment`;
+DROP TABLE IF EXISTS `ims_str_order`;
+DROP TABLE IF EXISTS `ims_str_order_cart`;
+DROP TABLE IF EXISTS `ims_str_order_comment`;
+DROP TABLE IF EXISTS `ims_str_order_log`;
+DROP TABLE IF EXISTS `ims_str_order_print`;
+DROP TABLE IF EXISTS `ims_str_print`;
+DROP TABLE IF EXISTS `ims_str_reply`;
+DROP TABLE IF EXISTS `ims_str_reserve`;
+DROP TABLE IF EXISTS `ims_str_stat`;
+DROP TABLE IF EXISTS `ims_str_store`;
+DROP TABLE IF EXISTS `ims_str_tables`;
+DROP TABLE IF EXISTS `ims_str_tables_category`;
+DROP TABLE IF EXISTS `ims_str_tables_scan`;
+DROP TABLE IF EXISTS `ims_str_user_trash`;
+DROP TABLE IF EXISTS `ims_str_users`;
+]]></uninstall>
+	<upgrade><![CDATA[upgrade.php]]></upgrade>
+</manifest>

@@ -1,0 +1,298 @@
+{template 'header'}
+<div class="page-group">
+	<div class="page superpage_{$do}" id="superpage_{$do}_{$act}" data-share-url="{php echo $this->createMobileUrl('detail', array('id' => $id, 'act' => 'share'))}" data-view-url="{php echo $this->createMobileUrl('detail', array('id' => $id, 'act' => 'view'))}">
+		<!--右上角分享箭头-->
+		<div id="mcover" onclick="document.getElementById('mcover').style.display='';" style="{if isset($_GPC['share'])&&$_GPC['share']=='yes'}display: block;{else}display:none{/if}">
+			<img src="{$_W['siteroot']}addons/superman_creditmall/template/mobile/images/share.png">
+		</div>
+		{if $product['start_time'] && $product['start_time'] > TIMESTAMP}
+		<style>
+			.superpage_detail .bar-tab ~ .content{
+				top: 3.7rem;
+			}
+		</style>
+		<nav class="bar bar-nav countdown_wrap text-center text-overflow font6">
+			距离开始时间还有 <span class="detail_product_countdown countdown" data-id="{$product['id']}" data-starttime="{$product['start_time']}">-天-时-分-秒</span>
+		</nav>
+		{/if}
+		<nav class="bar bar-tab btn_exchange_wrap">
+			<div class="row">
+				{if $product['type']==2}
+				<div class="col-100">
+					<a href="{php echo $this->createMobileUrl('auction', array('id' => $id))}" class="button button-warning button-fill text-center external">
+						<span class="tab-label">参加竞拍</span>
+					</a>
+				</div>
+				{else}
+				<div class="col-60">
+					<p class="credit_color font6">
+						<strong>
+						{if $product['type']==1||$product['type']==8}
+							一口价:
+							{if $product['price']>0}
+								{$product['credit']}{$product['credit_title']} + {$product['price']}元
+							{else}
+								{$product['credit']}{$product['credit_title']}
+							{/if}
+						{else if $product['type']==7}
+							秒杀价:
+							{if $product['price']>0}
+								{$product['credit']}{$product['credit_title']} + {$product['price']}元
+							{else}
+								{$product['credit']}{$product['credit_title']}
+							{/if}
+						{/if}
+						</strong>
+					</p>
+				</div>
+				<div class="col-40 text-right">
+					{if $product['allow_sale']}
+						{if $_W['member']['uid'] && $mycredit['value'] < $product['credit']}
+							<a class="pull-right button button-default button-fill disabled" href="#">
+								<span class="tab-label">{$product['credit_title']}不足</span>
+							</a>
+						{else}
+							{if in_array($product['type'], array(1, 7, 8))}
+							<a href="#" class="pull-right button button-success button-fill btn_exchange" data-url="{php echo $this->createMobileUrl('confirm', array('id' => $id, 'check' => 'yes'))}" data-exchange="{$subscribe['exchange']}" data-subscribe-url="{$subscribe['url']}" data-subscribe-tips="{if $subscribe['tips']}{$subscribe['tips']}{else}关注公众号，兑换更多礼品！{/if}">
+								<span class="tab-label">立即兑换</span>
+							</a>
+							{/if}
+						{/if}
+					{else}
+						{if $product['total'] <= 0}
+							<a class="pull-right button button-danger button-fill" href="#">
+								<span class="tab-label">已兑完</span>
+							</a>
+						{else if $product['start_time'] > $_W['timestamp']}
+							<a class="pull-right button button-danger button-fill" href="#">
+								<span class="tab-label">未开始</span>
+							</a>
+						{else if $product['end_time'] < $_W['timestamp']}
+							<a class="pull-right button button-danger button-fill" href="#">
+								<span class="tab-label">已结束</span>
+							</a>
+						{/if}
+					{/if}
+				</div>
+				{/if}
+			</div>
+		</nav>
+		{if $act == 'display'}
+		{template 'title'}
+		<div class="content infinite-scroll" data-url="{php echo $this->createMobileUrl('detail', array('id' => $id, 'load' => 'infinite'))}" data-distance="50" data-page="1" data-tabs="tab1">
+			<!-- Slider -->
+			<div class="swiper-container" data-space-between='10' data-autoplay="3000">
+				<div class="swiper-wrapper">
+					{if $product['album']}
+					{loop $product['album'] $url}
+					<div class="swiper-slide">
+						<img src="{php echo tomedia($url)}" onerror="this.src='{php echo superman_img_placeholder()}'" alt="">
+					</div>
+					{/loop}
+					{else}
+					<div class="swiper-slide"><img src="{php echo superman_img_placeholder();}" alt=""></div>
+					{/if}
+				</div>
+				<div class="swiper-pagination"></div>
+			</div>
+			<div class="list-block product_top_wrap">
+				<ul>
+					<li class="item-content">
+						<div class="item-inner">
+							<div>
+								{$product['title']}
+							</div>
+							<div class="item-after"></div>
+						</div>
+					</li>
+					<li class="item-content">
+						<div class="item-inner">
+							<div class="row property_wrap no-gutter">
+								<div class="col-33 font7 text-left">
+									库存<span class="credit_color">{$product['total']}</span>件
+								</div>
+								<div class="col-33 font7 text-center">
+									{if $product['sales']>0}已兑换<span class="credit_color">{$product['sales']}</span>件{/if}
+								</div>
+								<div class="col-33 font7 text-right">
+									{if $product['market_price']>0}市场价<span class="credit_color text-delete-line">{$product['market_price']}</span>元{/if}
+								</div>
+							</div>
+						</div>
+					</li>
+				</ul>
+			</div>
+			{if $product['type'] == 2}
+			<div class="list-block">
+				<ul>
+					<li>
+						<a href="{php echo $this->createMobileUrl('auction', array('id' => $id))}" class="item-content item-link external">
+							<div class="item-inner font7 auction_wrap">
+								<div class="item-title">竞拍出价</div>
+								<div class="item-after color-gray font6">
+									{if isset($exchange_list[0])}
+										<img class="avatar" src="{$exchange_list[0]['avatar']}" onerror="this.src='resource/images/heading.jpg'"/>&nbsp;
+										{if $exchange_list[0]['uid']==$_W['member']['uid']}
+											<span>{$exchange_list[0]['nickname']}</span>
+										{else}
+											<span>{php echo superman_hide_nickname($exchange_list[0]['nickname'])}</span>
+										{/if}
+									{else}
+										还没有出价
+									{/if}
+								</div>
+							</div>
+						</a>
+					</li>
+				</ul>
+			</div>
+			<div class="list-block">
+				<ul>
+					<li>
+						<a href="#auction_rule_wrap" class="item-content item-link">
+							<div class="item-inner font7 auction_wrap">
+								<div class="item-title">竞拍规则</div>
+								<div class="item-after color-gray font6">
+									查看
+								</div>
+							</div>
+						</a>
+					</li>
+				</ul>
+			</div>
+			{/if}
+			<div class="list-block">
+				<ul>
+					<li>
+						<a href="#" class="item-content">
+							<div class="item-inner font7">
+								<div class="item-title">商品类型</div>
+								<div class="item-after color-gray">{$product['type_name']}</div>
+							</div>
+						</a>
+					</li>
+				</ul>
+			</div>
+			{if $product['groupid']}
+			<div class="list-block">
+				<ul>
+					<li>
+						<a href="#" class="item-content">
+							<div class="item-inner font7">
+								<div class="item-title">会员组</div>
+								<div class="item-after color-gray">{$product['group']['title']}</div>
+							</div>
+						</a>
+					</li>
+				</ul>
+			</div>
+			{/if}
+			{if $product['start_time'] > 0}
+			<div class="list-block">
+				<ul>
+					<li>
+						<a href="#" class="item-content">
+							<div class="item-inner font7">
+								<div class="item-title">兑换开始时间</div>
+								<div class="item-after color-gray">{php echo date('Y-m-d H:i:s',$product['start_time']);}</div>
+							</div>
+						</a>
+					</li>
+				</ul>
+			</div>
+			{/if}
+			{if $product['end_time'] > 0}
+			<div class="list-block">
+				<ul>
+					<li>
+						<a href="#" class="item-content">
+							<div class="item-inner font7">
+								<div class="item-title">兑换结束时间</div>
+								<div class="item-after color-gray">{php echo date('Y-m-d H:i:s',$product['end_time']);}</div>
+							</div>
+						</a>
+					</li>
+				</ul>
+			</div>
+			{/if}
+			<div class="list-block product_body_wrap">
+				<ul>
+					<li>
+						<div class="buttons-tab">
+							<a href="#tab1" data-tabs="1" class="tab-link active button">商品详情</a>
+							{if $product['type'] == 2}
+							<a href="#tab2" data-tabs="2" class="tab-link button">出价记录</a>
+							{else}
+							<a href="#tab2" data-tabs="2" class="tab-link button">兑换记录</a>
+							{/if}
+						</div>
+						<div class="content-block">
+							<div class="tabs">
+								<div id="tab1" class="tab active">
+									<div class="list-block desc_wrap">
+										{php echo htmlspecialchars_decode($product['description'])}
+									</div>
+								</div>
+								<div id="tab2" class="tab tab2">
+									<div class="list-block exchange_wrap">
+										<ul>
+											{if $exchange_list}
+											{loop $exchange_list $key $li}
+											<li class="item-content">
+												<div class="item-inner font6 {if $key==0}text-strong color-danger{/if}" data-id="{$li['id']}">
+													<div class="auction_user">
+														<div class="item-media text-left">
+															<img class="avatar" src="{$li['avatar']}" onerror="this.src='resource/images/heading.jpg'" alt=""/>
+															<span class="text-overflow" style="display: inline !important;">
+																	{if $_W['member']['uid']==$li['uid']}
+																	{$li['nickname']}
+																	{else}
+																	{php echo superman_hide_nickname($li['nickname'])}
+																	{/if}
+															</span>
+														</div>
+													</div>
+													<div class="auction_credit text-center text-overflow">{$li['credit']}{$li['credit_title']}</div>
+													<div class="auction_time text-right text-overflow">{$li['dateline']}</div>
+												</div>
+											</li>
+											{/loop}
+											{/if}
+										</ul>
+									</div>
+									<div class="nodata font6 text-center color-gray" style="display: none">没有了</div>
+									{if count($exchange_list)==$pagesize}
+									<div class="infinite-scroll-preloader">
+										<div class="preloader"></div>
+									</div>
+									{/if}
+								</div>
+							</div>
+						</div>
+					</li>
+				</ul>
+			</div>
+		</div>
+		{/if}
+		<script>
+			var sharedata = {php echo json_encode($_share)};
+		</script>
+	</div>
+	{if $product['type']==2}
+	<div class="page" id='auction_rule_wrap'>
+		<header class="bar bar-nav">
+			<a class="button button-link button-nav pull-left back">
+				<span class="icon icon-left"></span>
+				返回
+			</a>
+			<h1 class='title'>竞拍规则</h1>
+		</header>
+		<div class="content">
+			<div class="content-padded">
+				{php echo htmlspecialchars_decode($product['extend']['auction_rule'])}
+			</div>
+		</div>
+	</div>
+	{/if}
+</div>
+{template 'footer'}

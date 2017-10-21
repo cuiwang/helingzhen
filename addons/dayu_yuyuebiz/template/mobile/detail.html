@@ -1,0 +1,181 @@
+{template 'headers'}
+<script src="{TEMPLATE_PATH}js/qrcode.js"></script>
+<style>
+body{background-color:#f0f0f0;}
+.am-modal{top:20%;}
+.am-text-ir {color:#333;float:left;margin:0.8rem 0.5rem 0 0;height:35px;width:35px;background: url({if !empty($fans['tag']['avatar'])}{$fans['tag']['avatar']}{else}resource/images/noavatar_middle.gif{/if}) no-repeat left center;-webkit-background-size: 35px auto;background-size: 35px auto;}
+hr{padding:0;line-height:0.5rem;margin:1rem 0;}
+.am-panel-bd p{padding:0;line-height:1rem;margin:0.5rem 0;}
+.am-btn-group .am-btn{font-size:1.3rem}
+.am-panel-hd{height:3.5rem;line-height:2.5rem;}
+.am-panel-footer{height:4.5rem;line-height:3.0rem;}
+
+.am-g .am-form-group, .am-g .am-form-group label{padding:0.5rem 0 0.5rem 1rem;margin:0;line-height:1rem;}
+.am-g .primary, .am-g .primary label{padding:0.5rem 0 0.5rem 0.5rem;margin:0;line-height:2.8rem;}
+.am-g .am-form-group label.am-u-sm-2 {line-height:3rem;}
+
+.am-u-sm-7 img {width:100%;}
+.am-u-sm-4{text-align:right;}
+.am-g .am-form-group .am-u-sm-5:first-child, .am-g .am-form-group:first-child .am-u-sm-7{line-height:500%;padding:0;}
+.am-g .primary .am-u-sm-4{font-size:1.6rem;}
+.am-g .primary .am-u-sm-4{font-size:1.6rem;}
+
+.am-g .am-u-sm-12 p{padding:0;margin:0;line-height:2.5rem}
+.am-table td{font-size:1.5rem}
+#qrcodeCanvas {padding:2rem 0;}
+</style>
+		<header data-am-widget="header" id="header" class="am-header am-topbar-inverse am-header-fixed" {if $setting['listbg']}style="background-color:{$setting['listbg']};"{/if}>
+            <div class="am-header-left am-header-nav">
+              <a href="#" class="am-text-ir am-circle"></a>{$fans['nickname']}
+            </div>
+            <div class="am-header-right lbs am-header-nav">
+              <a href="javascript:void(0);"><span class="am-header-icon iconfont">&#xe618;</span>
+              </a>
+            </div>
+            <div class="am-header-right am-header-nav">
+            {if $row['status'] == 0}<span class="am-badge am-badge-success am-radius am-text-default">等待客服受理</span>
+                {elseif $row['status'] == 1}<span class="am-badge am-badge-warning am-radius am-text-default">已受理</span>
+                {elseif $row['status'] == 2}<span class="am-badge am-radius am-text-default">订单被拒绝</span>
+                {elseif $row['status'] == 3}<span class="am-badge am-badge-success am-radius am-text-default">已完成</span>
+                {elseif $row['status'] == -1}<span class="am-badge am-radius am-text-default">已取消</span>
+            {/if}
+            </div>
+		</header>
+		
+<div class="am-g">
+	<div class="am-u-sm-12 am-text-sm">
+		<p>提交时间：{$row['create']}</p>
+		<p>预约时间：{$row[restime]}</p>
+		<p>受理时间：{$row['yuyuetime']}</p>
+	</div>
+</div>
+			{if $row['kfinfo']}<div class="am-alert" style="margin:1rem" data-am-alert>
+			<button type="button" class="am-close">&times;</button>
+			<p>客服回复：{$row['kfinfo']}</p>
+			</div>
+			{/if}
+<div class="am-g">
+{if $row['paystatus'] == 1 && $row['status'] != -1 && $offline != 9}
+	<div class="am-form-group" style="padding:0;">
+		<div class="am-u-sm-12" style="margin:1rem 0;">
+		{if $row['outtime'] <= TIMESTAMP}
+			<span class="am-btn am-btn-default am-btn-lg am-btn-block">超时未付款，此订单已失效</span>
+		{else}
+			<a href="{php echo $this->createMobileUrl('pay', array('orderid' => $row['rerid'],'weid'=>$weid,'id'=>$id))}" class="am-btn am-btn-primary am-btn-lg am-btn-block">现在去付款 <span class="am-icon iconfont">&#xe619;</span> {$row['price']}</a>
+		{/if}
+		</div>
+	</div>
+{elseif $row['paystatus'] == 2 && $activity['code'] == 1}
+	<div class="am-form-group" style="padding:0;">
+		<div class="am-u-sm-12" style="margin:1rem 0;">
+			<button type="button" class="am-btn am-btn-warning am-btn-lg am-btn-block" data-am-modal="{target: '#my-alert'}">出示二维码</button>
+		</div>
+		<div class="am-modal am-modal-no-btn" tabindex="-1" id="my-alert">
+		<div class="am-modal-dialog">
+		<div class="am-modal-hd">线下二维码核销<a href="javascript: void(0)" class="am-close am-close-spin" data-am-modal-close>&times;</a></div>
+		<div class="am-modal-bd"><div id="qrcodeCanvas"></div></div>
+		<script type="text/javascript">
+        var qrnode = new AraleQRCode({
+          render: 'canvas',
+          correctLevel: 3,
+          text: '{$qrcode}',
+          size: 200,
+          background: '#eeeeee',
+          foreground: '#667766',
+          pdground: '#00aaee',
+          image : '{$qrcodesrc}',
+          imageSize : 50
+        });
+		document.getElementById('qrcodeCanvas').appendChild(qrnode);
+		</script>
+		</div>
+		</div>
+	</div>
+{elseif $row['paystatus'] == 2 && $row['status'] == 0 && $row['status'] == 1}
+	<div class="am-form-group" style="padding:0;">
+		<div class="am-u-sm-12" style="margin:1rem 0;">
+			<input type="submit" class="am-btn am-btn-warning am-btn-lg am-btn-block" value="已支付，请等待客服受理" name="submit" disabled>
+		</div>
+	</div>
+{/if}
+<table class="am-table am-table-striped am-table-bordered am-text-sm" {if $row['status'] == -1 || $row['status'] == 2}style="opacity:0.5; filter: alpha(opacity=90); background-color:#eee;"{/if}>
+    <thead>
+        <tr class="am-text-danger">
+            <th style="width:30%;">订单编号</th>
+            <th>{$row['ordersn']}</th>
+        </tr>
+        {if $row['transid']}<tr class="am-text-danger">
+            <th style="width:30%;">支付单号</th>
+            <th>{$row['transid']}</th>
+        </tr>{/if}
+    </thead>
+    <tbody>
+        <tr>
+            <td>姓名</td>
+            <td>{$row['member']}</td>
+        </tr>
+        <tr>
+            <td>手机</td>
+            <td>{$row['mobile']}</td>
+        </tr>
+        <tr>
+            <td>{$activity['xmname']}</td>
+            <td>{$xiangmu['title']} <span class="am-text-danger am-fr"><i class="am-icon iconfont">&#xe61a;</i> {$xiangmu['price']}</span></td>
+        </tr>
+        {if $row['num'] > 1}<tr>
+            <td>费用合计</td>
+            <td>数量 × {$row['num']}<span class="am-text-danger am-fr"><i class="am-icon iconfont">&#xe61a;</i> {$row['price']}</span></td>
+        </tr>{/if}
+        <tr>
+            <td style="border-bottom: 5px solid #ddd;">付款状态</td>
+            <td style="border-bottom: 5px solid #ddd;">				
+				{if $row['paystatus'] == 1}<span class="am-badge am-badge-danger am-radius am-text-sm">未支付</span>
+                {elseif $row['paystatus'] == 2}<span class="am-badge am-badge-warning am-radius am-text-sm">已支付</span>
+				{/if}
+				<span class="am-fr am-radius am-badge am-badge-{$row['css']}">{$row['paytype']}</span>
+			</td>
+        </tr>
+			{loop $activity['fields'] $fields}
+        <tr>
+            <td>{$fields['title']}</td>
+            <td>
+                {if $fields['type'] == 'image'}
+                <a target="_blank" href="{php echo tomedia($fields['data']);}">点击查看{$fields['title']}</a>
+                 {else}
+                {if !empty($fields['data'])}{$fields['data']}{else}用户未填{/if}
+                {/if}
+			</td>
+        </tr>
+                {/loop}
+    </tbody>
+</table>
+{if $row['status'] == 0}
+{if $row['paystatus'] == 1}
+<script>
+function conf()
+{
+if(confirm("您确定要取消该订单吗？"))
+return true;
+else
+return false;
+}
+</script>
+	<div class="am-form-group" style="margin:0 0 6rem;padding:1rem 0 0rem;">
+		<div class="am-u-sm-12">
+    <form class="form" method="post" id="form" action="">
+	<div style="display:none">
+        <select id="status" name="status" class="form-control">
+             <option value="-1" {if $row['status'] == -1}selected="selected"{/if}>取消我的预约</option>
+        </select>
+	</div>
+    <input type="hidden" name="id" value="{$row['rerid']}" />
+    <button type="submit" name="button" class="am-btn am-btn-warning am-btn-lg am-btn-block" onclick="return conf();">取 消 订 单</button> 
+    <input type="hidden" name="token" value="{$_W['token']}" />
+    </form>
+		</div>
+	</div>
+{/if}
+{/if}
+	
+</div>
+{template 'footers'}

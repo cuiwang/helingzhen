@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{$set['sys'][copyright]}-充值中心</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <link href="{AMOUSE_BIZ_NAV_RES}pig/css/main.css?2016050101" rel="stylesheet">
+    <link href="{AMOUSE_BIZ_NAV_RES}pig/css/load.css?2016050101" rel="stylesheet">
+    {php echo register_jssdk(false);}
+    <script src="{AMOUSE_BIZ_NAV_RES}pig/js/jquery.min.js?2016050101"></script>
+</head>
+
+
+{template 'default/navbar'}
+
+<!--头部菜单    结束-->
+<body >
+<div class="content" >
+    <style>
+        /*充值页面不要底部菜单*/
+        .foot_menu{display: none;}
+    </style>
+    <!--头部菜单    结束-->
+    <!--充值中心-->
+    <div class="pay_tit">
+        <h2>{$set['custom'][credit2txt]}充值中心</h2>
+    </div>
+    <div class="wcard">
+        <div class="">
+            <input type="hidden" name="back" value="" />
+            <div class="pay_msg">
+                <span>充值帐：<span class="red">{$fans['nickname']}</span></span>
+                <span class="ml15">当前{$set['custom'][credit2txt]}：<span class="red">{$credit2} </span></span>
+            </div>
+
+            <div class="p10">
+                <div class="chose_box">
+
+                    {loop $list $item}
+                    <div class="chose_div">
+                        <div class="chose_padding">
+                            <div class="pay_money" dog-num="{$item['title']}" dog-id="{$item['id']}">{$item['title']}{$set['custom'][credit2txt]}</div>
+                        </div>
+                    </div>
+                    {/loop}
+
+                    <div class="clean"></div>
+                </div>
+            </div>
+            <div class="pay_cut"></div>
+        </div>
+        <div class="pay_desc">
+            <h2>{$set['custom'][credit2txt]}说明:</h2>
+            <div class="pay_desc_main">
+               <!-- <p>1.{$set['custom'][credit2txt]}和人民币比例1:1</p>-->
+                <p>1.充值{$set['custom'][credit2txt]}后不可申请退款</p>
+                <p>2.每次充值{$set['custom'][credit2txt]}不小于1元</p>
+                <p>3.{$set['custom'][credit2txt]}可用于个人名片、<span class="blue">群二维码置顶</span>、
+                    <a href="{php echo $this->createMobileUrl('vip')}">开通VIP</a>
+                </p>
+                <span>充值数量：</span><span id="num" class="red">50</span><span>个{$set['custom'][credit2txt]}</span>
+            </div>
+        </div>
+    </div>
+
+</div><!--content  结束-->
+<div class="pay_next_box">
+    <div class="pay_next_money">
+        <span>应付：<span id="amount">50</span>元</span>
+        <input type="hidden" name="num" id="num" value="50" />
+        <input type="hidden" name="regchareid" id="regchareid" value="0" />
+        <input type="hidden" id="logid">
+        <span class="f12">(赠送: <span id="point">250</span> {$set['custom'][credittxt]})</span>
+    </div>
+    <a href="javascript:;" class="pay_next_btn" onclick="next();" id="next">立即充值</a>
+</div>
+<!-- Load JS here for greater good =============================-->
+
+<script src="{AMOUSE_BIZ_NAV_RES}pig/js/common_new.js?1463479867"></script>
+<script src="{AMOUSE_BIZ_NAV_RES}js/jquery.cookie.js?1463479867"></script>
+
+{template 'default/footerbar'}
+ 
+
+<script type="text/javascript">
+    var flag = 0;
+    $(document).ready(function(){
+        $("title").html("{$set['custom'][credit2txt]}充值中心");
+        //检测是否活动
+        var active_length = $(".active_pay").length;
+        if(active_length !== 0){
+            $(".normal_pay").addClass("active_style");
+        };
+        //选取默认金额
+        var default_pay = 20;
+        var chose_length = $(".chose_div").length;
+        for(var i = 0; i<chose_length; i++){
+            var dog_num = $(".pay_money").eq(i).attr("dog-num");
+            var dog_id = $(".pay_money").eq(i).attr("dog-id");
+            if(dog_num == default_pay){
+                $(".chose_div").eq(i).addClass("cur");
+                $('input[name="num"]').val(dog_num);
+                $("#regchareid").val(dog_id);
+                flag = 1;
+            };
+        };
+
+        //算钱和积分
+        function count_money(id,num){
+            $.ajax({
+                type : "POST",
+                url : "{php echo $_W['siteroot'] . 'app/' . substr($this->createMobileUrl('calAmount'), 2)}",
+                data : {id:id},
+                dataType : "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success : function(data){
+                    if(data && data.code==200){
+                        $('#amount').text(data.msg);
+                        $('#point').text(data.price);
+                        $('#num').text(num);
+                        $('input[name="num"]').val(num);
+                        $("#regchareid").val(id);
+                        flag = 1;
+                    }else{
+                        alert(data.msg);
+                        flag = 0;
+                    }
+                },
+                error : function(data){
+                    dialog2('网络出错');
+                }
+            });
+        }
+        //选择金额
+        $(".pay_money").bind("click",function(){
+            var dog_num = $(this).attr("dog-num");
+            var id = $(this).attr("dog-id");
+            $(this).parents(".chose_div").addClass("cur").siblings().removeClass("cur");
+            count_money(id,dog_num);
+        });
+    });
+
+    function init(){
+        $('#num').text("10");
+        $('#amount').text("10");
+        $('#point').text("50");
+    }
+
+    function checkNum(){
+        var num = $('#num').text();
+        if (num == "") {
+            dialog2("请输入充值{$set['custom'][credit2txt]}的数量");
+
+            return false;
+        }
+        var re=/^[0-9]*[1-9][0-9]*$/;
+        if (!re.test(num)) {
+            //alert("只能输入大于10的正整数！");
+
+           // return false;
+        }else {
+            if (num < parseInt("1")) {
+                dialog2("充值数量不能小于1");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function next() {
+        $('#next').attr("disabled",true);
+        if(!checkNum()){
+            $('#next').attr("disabled",false);
+            flag = 0;
+            return;
+        }
+        flag = 1;
+        var money = $("#num").val();
+        var regchareid = $("#regchareid").val();
+        var logid = $("#logid").val();
+        if(regchareid==0){
+            dialog2("请选择充值金额");return ;
+        }
+       // $('#payForm').submit();
+
+        {if $iscash==0}
+            $.ajax({
+                type : "POST",
+                url :"{php echo $_W['siteroot'] . 'app/' . substr($this->createMobileUrl('ajaxOrder'), 2)}",
+                data : {'money':money,'regchareid':regchareid},
+                dataType : "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                beforeSend : function(XMLHttpRequest) {
+                    loadingToast("跳转支付...");
+                },
+                success : function(data){
+                    if(data && data.code==200){
+                        var oid= data.oid;
+                        window.location.href="{php echo $this->createMobileUrl('payment',array(),true)}&orderid="+oid;
+                    }else{
+                        hidemod("loadingToast");
+                        dialog2(data.msg);
+                    }
+                },
+                error : function(data){
+                    hidemod("loadingToast");
+                    dialog2(data.msg);
+                }
+            });
+        {else}
+            $.ajax({
+                type : "POST",
+                url : "{php echo $this->createMobileUrl('pcenter', array('ty' => $_GPC['ty']))}",
+                data : {regchareid:regchareid},
+                dataType : "json",
+                beforeSend : function(XMLHttpRequest) {
+                    loadingToast("跳转支付...");
+                },
+                success : function(res){
+                    if(res.status==200){
+                        $("#logid").val(res.orderid);
+                        window.location.href = res.pay_url;
+                    }else if(res.status == 201) {
+                        dialog2(res.msg);
+                        window.location.href = "{php echo $this->createMobileUrl('index')";
+                    }else{
+                        hidemod("loadingToast");
+                        dialog2(res.msg);
+                    }
+                },
+                error : function(data){
+                    hidemod("loadingToast");
+                    dialog2(data.msg);
+                }
+            });
+        {/if}
+    }
+</script>
+</body>
+</html>

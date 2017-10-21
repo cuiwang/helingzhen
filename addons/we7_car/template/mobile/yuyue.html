@@ -1,0 +1,251 @@
+{template 'header'}
+<link rel="stylesheet" type="text/css" href="../addons/we7_car/style/css/common.css" media="all"/>
+<link rel="stylesheet" type="text/css" href="../addons/we7_car/style/css/reset.css" media="all"/>
+<link type="text/css" rel="stylesheet"
+      href="../web/resource/components/datetimepicker/bootstrap-datetimepicker.min.css"/>
+<script type="text/javascript" src="../web/resource/components/datetimepicker/bootstrap-datetimepicker.min.js"></script>
+
+<style>
+    .list_book dd > div:first-of-type label {
+        width: 80px
+    }
+    ul {
+        padding: 0;
+        margin: 0;
+        overflow: hidden;
+    }
+    img {
+        border: none;
+        display: inline-block;
+        width: 100%;
+    }
+</style>
+
+<div id="bookBody" class="body">
+    <header class="margin-bottom:5px">
+        <ul>
+            <li><img src="{php echo tomedia($reply['topbanner']);}"></li>
+        </ul>
+    </header>
+
+    <section>
+        <div class="pl_10 pr_10">
+            <dl class="list_book list_book_my" style="margin:10px 0">
+                <dd class="tbox">
+                    <div><label>{$reply['title']}</label></div>
+                    <div class="align_right">
+                        <a href="{php echo $this->createMobileUrl('Mybook', array('op'=>'list','yytype'=>$yytype))}">{$pertotal}</a>
+                    </div>
+                </dd>
+            </dl>
+        </div>
+        <div class="pl_10 pr_10">
+            <dl class="list_book list_book_des" style="margin:10px 0">
+                <dd>
+                    <div><label>重要声明</label></div>
+                    <div style="word-break:break-all;word-wrap:nowrap;white-space:normal;padding: 15px 0;">
+                        {$reply['description']}
+                    </div>
+                </dd>
+            </dl>
+        </div>
+        <div class="pl_10 pr_10">
+            <dl class="list_book list_book_contact" style="margin:10px 0">
+                <dd>
+                    <div>
+                        <a href="http://api.map.baidu.com/marker?location={$reply['location_x']},{$reply['location_y']}&title={php echo urlencode('所在位置');}&content={php echo urlencode($reply['description']);}&output=html"">
+                        <span>地址：{$reply['address']}</span>
+                        </a>
+                    </div>
+                    <div style="padding-top: 3px;">
+                        <a href="tel:{$reply['mobile']}">
+                            <span>电话： {$reply['mobile']}</span>
+                        </a>
+                    </div>
+                </dd>
+            </dl>
+        </div>
+
+        <div class="pl_10 pr_10">
+            {if !$pererror || $lid}
+            <form id="form1" action="" method="post" onsubmit="return validate(this);">
+                <dl class="list_book" style="margin:10px 0">
+                    <dt><label>请认真填写表单</label></dt>
+                    <dd class="tbox">
+                        <div><label>联系人:</label></div>
+                        <div>
+                            <input type="text" name="realname" placeholder="请输入您的真实姓名" value="{$carOwnerInfo['car_userName']}">
+                        </div>
+                    </dd>
+                    <dd class="tbox">
+                        <div><label>联系电话：</label></div>
+                        <div>
+                            <input type="tel" name="tel" id="mobile" placeholder="请输入您的电话" value="{$carOwnerInfo['car_mobile']}">
+                        </div>
+                    </dd>
+                    <dd class="tbox">
+                        <div><label>品牌：</label></div>
+                        <div>
+                            <select name="brand" id="brand" onchange="fetchseries(this.value,'series')" class="input-medium" data-rule-required="true">
+                                <option value="0">请选择品牌</option>
+                                {loop $brands $brand}
+                                <option {if ($carOwnerInfo['brand_cn'] == $brand['title'])} selected {/if}
+                                value="{$brand['id']}={$brand['title']}">{$brand['title']}</option>
+                                {/loop}
+                            </select>
+                        </div>
+                    </dd>
+                    <dd class="tbox">
+                        <div><label>车系：</label></div>
+                        <div>
+                            <select name="serie" id="series" onchange="fetchseries(this.value,'types')" class="input-medium" data-rule-required="true">
+                                {loop $eseries $serie}
+                                <option {if ($carOwnerInfo['series_cn'] == $serie['title'])} selected {/if}
+                                value="{$serie['id']}={$serie['title']}">{$serie['title']}</option>
+                                {/loop}
+                                <option value="0">请选择车系</option>
+                            </select>
+                        </div>
+                    </dd>
+                    <dd class="tbox">
+                        <div><label>车型：</label></div>
+                        <div>
+                            <select name="types" id="types" class="input-medium" data-rule-required="true">
+                                {loop $etypes $type}
+                                <option {if ($carOwnerInfo['type_val'] == $type['title'])} selected {/if}
+                                value="{$type['id']}={$type['title']}">{$type['title']}</option>
+                                {/loop}
+                                <option value="0">请选择车型</option>
+                            </select>
+                        </div>
+                    </dd>
+                    <dd class="tbox">
+                        <div><label>预约日期：</label></div>
+                        <div>
+                            <input type="text" name="dateline" id="dateline" readonly="readonly" placeholder="" value="{$order['dateline']}">
+                        </div>
+                    </dd>
+                    {if $ds}
+                    {loop $ds $field}
+                    {if $field['type'] == 'text'}
+                    <dd class="tbox">
+                        <div><label>{$field['title']}:</label></div>
+                        <div>
+                            <input type="text" name="field_{$field['fid']}" placeholder="{$field['value']}" value="{$order['data'][$field['fid']]}">
+                        </div>
+                    </dd>
+                    {elseif $field['type'] == 'select'}
+                    <dd class="tbox">
+                        <div><label>{$field['title']}:</label></div>
+                        <div>
+                            <select name="field_{$field['fid']}" class="input-medium" data-rule-required="true">
+                                <option value="">请选择</option>
+                                {loop $field['option'] $li}
+                                <option {if $order['data'][$field['fid']]==$li}selected{/if} value="{$li}">{$li}</option>
+                                {/loop}
+                            </select>
+                        </div>
+                    </dd>
+                    {/if}
+                    {/loop}
+                    {/if}
+                    <dd class="tbox">
+                        <div><label>备注：</label></div>
+                        <div>
+                            <textarea name="note" placeholder="{$reply['note']}" style="height:80px;"></textarea>
+                        </div>
+                    </dd>
+                </dl>
+                <div style="margin:10px;text-align: center;">
+                    {if $yytype=='1'}
+                    <input type="hidden" name="yytype" value="1">
+                    {elseif $yytype=='2'}
+                    <input type="hidden" name="yytype" value="2">
+                    {/if}
+                    <input type="hidden" name="sid" value="{$reply['id']}">
+                    <input type="hidden" name="lid" value="{$order['id']}">
+                    <input type="hidden" name="token" value="{$_W['token']}"/>
+                    <input type="submit" value="立即预约" name="submit" class="btn_submit" style="margin:10px auto;text-align: center;">
+                </div>
+            </form>
+            {else}
+            <div>
+                <dl class="list_book" style="margin:10px 0;width:100%">
+                    <dd class="tbox">
+                        <div class="align_right">
+                            {$reply['title']}限制每人可预约{$reply['pertotal']}次，您预约了{$pertotal}次，不能再预约了
+                        </div>
+                    </dd>
+                </dl>
+            </div>
+            <div style="margin:10px;text-align: center;height:10px"></div>
+            {/if}
+        </div>
+
+    </section>
+    <div style="height:70px;"></div>
+</div>
+
+{template 'share'}
+
+<script type="text/javascript">
+    $(function () {
+        $("#dateline").datetimepicker({
+            format: "yyyy-mm-dd",
+            minView: "2",
+            autoclose: true
+        });
+    });
+    function toggleshow(obj) {
+        $(".hide").hide();
+        $("#" + obj).parent().parent().find("a").removeClass('on');
+        $("#" + obj).addClass('on');
+        $("." + obj + "_show").show();
+    }
+
+    function fetchseries(bid, type) {
+        var arr = bid.split('=');
+        $.get("index.php?i={$_W['uniacid']}&c=entry&m=we7_car&do=yuyue&op=getseries&ty=" + type + "&bid=" + arr[0],
+                function (data) {
+                    $("#" + type).html(data);
+                });
+    }
+    var flag = 0;
+
+    function validate() {
+        if (flag == 1) {
+            alert('您已经提交过预约信息,请勿重复提交.');
+            return;
+        }
+        if ($.trim($(':text[name="realname"]').val()) == '') {
+            alert('必须填写姓名.');
+            return false;
+        }
+        var regu = /^[0-9]{11}$/;
+        var re = new RegExp(regu);
+        var $phone = $("#mobile");
+        var phone = $phone.val();
+        if (!re.test(phone)) {
+            alert("请输入正确的手机号码!");
+            $phone.focus();
+            return false;
+        }
+
+        if ($("#brand").val() <= '0') {
+            alert('请选择品牌.');
+            return false;
+        }
+        if ($("#series").val() <= '0') {
+            alert('请选择车系.');
+            return false;
+        }
+
+        if ($("#dateline").val() == '') {
+            alert('请选择预约日期.');
+            return false;
+        }
+        flag = 1;
+    }
+</script>
+
+{template 'footer'}

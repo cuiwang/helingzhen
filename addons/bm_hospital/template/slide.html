@@ -1,0 +1,238 @@
+{template 'common/header'}
+<link type="text/css" rel="stylesheet" href="./resource/script/kindeditor/themes/default/default.css" />
+<link type="text/css" rel="stylesheet" href="../addons/bm_hospital/template/css/style1.css" />
+<link type="text/css" rel="stylesheet" href="../addons/bm_hospital/template/css/uploadify_t1.css" />
+
+<script type="text/javascript" src="./resource/script/kindeditor/kindeditor-min.js"></script>
+<script type="text/javascript" src="./resource/script/kindeditor/lang/zh_CN.js"></script>
+<script type="text/javascript">
+
+	$(function(){
+		var i = 0;
+		$('#selectimage').click(function() {
+			var editor = KindEditor.editor({
+				allowFileManager : false,
+				imageSizeLimit : '30MB',
+				uploadJson : './index.php?act=attachment&do=upload'
+			});
+			editor.loadPlugin('multiimage', function() {
+				editor.plugin.multiImageDialog({
+					clickFn : function(list) {
+						if (list && list.length > 0) {
+							for (i in list) {
+								if (list[i]) {
+									html ='<li class="imgbox" style="list-type:none">'+
+	'<a class="item_close" href="javascript:;" onclick="deletepic(this);" title="删除"></a>'+
+	'<span class="item_box"> <img src="'+list[i]['url']+'" style="max-height:100%;"></span>'+
+	'<input type="hidden" name="attachment-new[]" value="'+list[i]['filename']+'" />'+
+'<span class="item_input"><textarea name="description-new[]" class="bewrite" cols="3" rows="4" style="resize: none" placeholder="图片描述..." '+
+'onfocus="$(this).parent().addClass(&#39;on&#39;);" onblur="$(this).parent().removeClass(&#39;on&#39;);"></textarea><i class="shadow hc"></i></span>'+
+'</li>';
+											
+											
+									$('#fileList').append(html);
+									i++;
+								}
+							}
+							editor.hideDialog();
+						} else {
+							alert('请先选择要上传的图片！');
+						}
+					}
+				});
+			});
+		});
+	});
+
+</script>
+<style>
+.photo_list{padding:15px 0;}
+.photo_list .alert{width:auto; margin-top:10px; overflow:hidden;}
+.photo_list .photo_preview{width:130px;}
+.photo_list .photo_preview img{width:130px; margin-bottom:5px;}
+.photo_list .photo_preview label{padding:0;}
+.photo_list .photo_preview input[type="radio"]{margin-left:0; margin-right:10px;}
+.photo_list table{margin-left:40px;}
+.photo_list table th,.photo_list table td{padding-bottom:5px;}
+.photo_list table th{width:60px; font-size:14px;}
+.photo_list table input,.photo_list table select{margin-bottom:0;}
+</style>
+<div class="main">
+<form action="" class="form-horizontal form" method="post" enctype="multipart/form-data">
+	<input type="hidden" name="id" value="{$item['id']}">
+  <h4>幻灯片信息</h4>
+	<table class="tb">
+        <tr>
+        <th>幻灯图片</th>
+        <td><!---批量上传-->
+	<div class="photo_list">
+	<input name="token" type="hidden" value="{$_W['token']}" />
+	<span id="selectimage" class="btn btn-primary"><i class="icon-plus"></i> 上传照片</span><span style="color:red;">
+	<input name="hspiclist" type="hidden" value="{$item['hs_pic']}" />
+	*建议尺寸：宽720像素，高350像素</span>
+    <div id="file_upload-queue" class="uploadify-queue"></div>
+    <ul class="ipost-list ui-sortable" id="fileList">
+
+	{loop $hslists $v}
+    <li class="imgbox" style="list-type:none">
+<a class="item_close" href="javascript:;" onclick="deletepic(this);" title="删除">
+</a>
+<span class="item_box">
+    <img src="{$_W['attachurl']}{$v['attachment']}" style="max-height:100%;">
+</span>
+<input type="hidden" value="{$v['attachment']}" name="attachment[{$v['id']}]">
+<span class="item_input">
+    <textarea class="bewrite" cols="3" name="description[]" rows="4" style="resize: none" placeholder="图片描述..." onfocus="$(this).parent().addClass(&#39;on&#39;);" onblur="$(this).parent().removeClass(&#39;on&#39;);"> {$v['description']}   </textarea>
+    <i class="shadow hc">
+    </i>
+</span>
+</li>
+	{/loop}
+    </ul>
+
+</td>
+
+<!--批量上传结束-->
+        
+        </tr>
+		<tr>
+			<th></th>
+			<td>
+				<button type="submit" class="btn btn-primary span3" name="submit" value="提交">提交</button>
+				<input type="hidden" name="token" value="{$_W['token']}" />
+			</td>
+		</tr>		
+	</table>
+</form>
+<script type="text/javascript">
+ 
+  function deletepic(obj){  
+  
+     if (confirm("确认要删除？")) {
+	          var $thisob=$(obj);
+			  var $liobj=$thisob.parent();
+			  var picurl=$liobj.children('input').val();
+
+	      	$.post('{php echo $this->createMobileUrl('ajaxdelete',array())}',{ pic:picurl},function(m){
+						if(m=='1')
+						{
+							$liobj.remove();
+							}
+						else
+						{
+							alert("删除失败");
+							}
+	        	},"html");	
+				
+	        }
+  }
+
+
+ 
+</script>
+<script language="javascript" type="text/javascript" src="../addons/lxymarry/template/js/dp/WdatePicker.js"></script>
+ 
+            
+<script type="text/javascript" src="./resource/script/cascade.js"></script>
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=1.4"></script>  
+<script type="text/javascript">
+kindeditor($('#word'));
+cascdeInit('{$item['province']}','{$item['city']}','{$item['dist']}'); //开启地区三级联动
+var bmap = {
+	'option' : {
+		'lock' : false,
+		'container' : 'baidumap',
+		'infoWindow' : {'width' : 250, 'height' : 100, 'title' : ''},
+		'point' : {'lng' : 116.403851, 'lat' : 39.915177}
+	},
+	'init' : function(option) {
+		var $this = this;
+		$this.option = $.extend({},$this.option,option);
+		
+		$this.option.defaultPoint = new BMap.Point($this.option.point.lng, $this.option.point.lat);
+		$this.bgeo = new BMap.Geocoder();
+		$this.bmap = new BMap.Map($this.option.container);
+		$this.bmap.centerAndZoom($this.option.defaultPoint, 15);
+		$this.bmap.enableScrollWheelZoom();
+		$this.bmap.enableDragging();
+		$this.bmap.enableContinuousZoom();
+		$this.bmap.addControl(new BMap.NavigationControl());
+		$this.bmap.addControl(new BMap.OverviewMapControl());
+		//添加标注
+		$this.marker = new BMap.Marker($this.option.defaultPoint);
+		$this.marker.setLabel(new BMap.Label('请您移动此标记，选择您的坐标！', {'offset':new BMap.Size(10,-20)}));
+		$this.marker.enableDragging();
+		$this.bmap.addOverlay($this.marker);
+		//$this.marker.setAnimation(BMAP_ANIMATION_BOUNCE);
+		$this.showPointValue($this.marker.getPosition());
+		//拖动地图事件
+		$this.bmap.addEventListener("dragging", function() {
+			$this.setMarkerCenter();
+			$this.option.lock = false;
+		});
+		//缩入地图事件
+		$this.bmap.addEventListener("zoomend", function() {
+			$this.setMarkerCenter();
+			$this.option.lock = false;
+		});
+		//拖动标记事件
+		$this.marker.addEventListener("dragend", function (e) {
+			$this.showPointValue();
+			$this.showAddress();
+			$this.bmap.panTo(new BMap.Point(e.point.lng, e.point.lat));
+			$this.option.lock = false;
+			$this.marker.setAnimation(null);
+		});
+	},
+	'searchMapByAddress' : function(address) {
+		var $this = this;
+		 $this.bgeo.getPoint(address, function (point) {
+			if (point) {
+				$this.showPointValue();
+				$this.showAddress();
+				$this.bmap.panTo(point);
+				$this.setMarkerCenter();
+			}
+		});
+	},
+	'searchMapByPCD' : function(address) {
+		var $this = this;
+		$this.option.lock = true;
+		$this.searchMapByAddress($('#sel-provance').val()+$('#sel-city').val()+$('#sel-area').val());
+	},
+	'setMarkerCenter' : function() {
+		var $this = this;
+		var center = $this.bmap.getCenter();
+		$this.marker.setPosition(new BMap.Point(center.lng, center.lat));
+		$this.showPointValue();
+		$this.showAddress();
+	},
+	'showPointValue' : function() {
+		var $this = this;
+		var point = $this.marker.getPosition();
+		$('#lng').val(point.lng);
+		$('#lat').val(point.lat);
+	},
+	'showAddress' : function() {
+		var $this = this;
+		var point = $this.marker.getPosition();
+		$this.bgeo.getLocation(point, function (s) {
+			if (s) {
+				$('#jw_addr').val(s.address);
+				if (!$this.option.lock) {
+					cascdeInit(s.addressComponents.province,s.addressComponents.city,s.addressComponents.district);
+				}
+			}
+		});
+	}
+};
+$(function(){
+	var option = {};
+	{if !empty($item['lng']) && !empty($item['lat'])}
+	option = {'point' : {'lng' : '{$item['lng']}', 'lat' : '{$item['lat']}'}}
+	{/if}
+	bmap.init(option);
+});
+</script>
+
+{template 'common/footer'}

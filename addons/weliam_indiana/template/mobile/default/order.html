@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>夺宝记录 - {php echo $this->module['config']['sname']}</title>
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, width=device-width">
+	<meta content="telephone=no" name="format-detection">
+    <link href="{WELIAM_INDIANA_STATIC}css/common.css?v=221" rel="stylesheet">
+    <link href="{WELIAM_INDIANA_STATIC}css/user.css?v=21210" rel="stylesheet">
+    <script language="javascript" src="{WELIAM_INDIANA_STATIC}js/jquery.js"></script>
+</head>
+{template wxshare}
+<script>
+   	//自动刷新
+	var id={$id};
+	var flag=0;
+	var openid = '{$openid}';
+	//检测没有数据
+	function all_more(){
+		var re = document.getElementById('all_more');
+		if({$id} == -1){
+			re.innerHTML='没有更多的信息了';
+		}
+	}
+
+	//判断div是否在可视区域
+	  $(document).ready(function () {
+            $(window).scroll(function () {
+                var a = document.getElementById('all_more').offsetTop;
+                if (a >= $(window).scrollTop() && a < ($(window).scrollTop()+$(window).height())&&id!='-1'&&flag=='0') {
+                   document.getElementById('all_more').innerHTML="努力加载中";
+					flag = 1;
+					down_load();	
+                }
+            });
+        });
+//回传数据
+	
+	function down_load(){
+		//传值验证返回	
+	    $.post("{php echo $this->createMobileUrl('order')}",
+	    {
+	    	id:id,
+	    	op:'{$operation}'
+	    },
+	    function(m){
+				if(m==''){
+					document.getElementById('all_more').innerHTML="没有可加载项";
+				}else{
+					if(m.success=='-1'){
+						document.getElementById('all_more').innerHTML='没有更多的信息了';
+					}else{
+						id = m.success;
+						for(var i=0;i<m.list.length;i++){
+							var mes = "getMoreRecru('"+m.list[i].period_number+"','"+'{$_W['openid']}'+"')";
+							var nickmes = '<a href="{php echo $this->createMobileUrl('otherpersonal')}&openid='+m.list[i].openid+'">';
+							
+							if(m.list[i].nickname=='待揭晓</a>'){
+								nickmes = '<a>';
+							}
+							var more = '<li class="w-goodsList-item" id="pro-view-8"><div class="w-goods w-goods-l w-goods-ing m-user-goods"><div class="w-goods-pic"><a href="{php echo $this->createMobileUrl('detail')}&periodid='+m.list[i].id+'"><img src="'+m.list[i].picarr+'" style="width: 90px;"></a></div><div class="w-goods-info"><p class="w-goods-title f-txtabb"><a href="{php echo $this->createMobileUrl('detail')}&periodid='+m.list[i].id+'">(第'+m.list[i].periods+'期)'+m.list[i].title+'</a></p><p class="w-goods-price">总需：'+m.list[i].zong_codes+'份</p><p class="w-goods-price">期号：'+m.list[i].period_number+'</p><div class="m-user-goods-owner m-user-box"><div class="m-user-box-name">获得者：</div><div class="m-user-box-cont">'+nickmes+''+m.list[i].nickname+'</div></div><p class="m-user-goods-code">幸运号码：<span class="txt-impt">'+m.list[i].code+'</span></p><p class="m-user-goods-time">揭晓时间：'+m.list[i].endtime+'</p><div class="m-user-goods-my">本期参与：<span class="txt-impt">'+m.list[i].allcount+'</span>人次<a class="link" href="javascript:;" onclick="'+mes+'"  data-pro="mycode">查看我的号码</a></div></div></div></li>';
+							$("#allmore").append(more);
+							flag = 0;
+							document.getElementById('all_more').innerHTML="上拉加载更多";
+						}
+						}	
+						}
+										
+             },"json");
+	}
+	
+   	function getMoreRecru(pnum,openid) {
+			var ajxurl = "{php echo $this->createMobileUrl('codeajax')}&pnum="+pnum+"&openid="+openid;
+			$.ajax({
+				type: "GET",
+				url: ajxurl,
+				dataType: 'html',
+				success: function(data) {
+					$("#prodibu").after(data);
+				},
+				error:function(){
+					tip("数据加载失败,请重试！",true);
+				}
+			});
+		}
+   	
+		$(document).on('click','#close', function () {
+		    $(".pro-mask").remove();
+		    $(".w-msgbox").remove();
+		});
+		$(document).on('click','#confirmbut', function () {
+			$(".pro-mask").remove();
+		    $(".w-msgbox").remove();
+		});
+	
+</script>
+
+<body onload="all_more()">
+<div class="m-user" id="prodibu">
+    <div class="m-simpleHeader" id="dvHeader">
+        <a href="{php echo $this->createMobileUrl('person')}" data-pro="back" data-back="true" class="m-simpleHeader-back"><i class="ico ico-back"></i></a>
+        <h1>夺宝记录</h1>
+    </div>
+    <div class="m-user-duobaoRecord webkit chrome" id="duobaoRcd_dvWrapper">
+        <div class="w-nav w-nav-hasSplt w-nav-hasBorder" id="dvTab">
+            <div class="w-nav-item {if $operation=='all' || $operation==''}w-nav-item-on{/if}" data-status="9" data-pro="item" id="pro-view-3" onclick="location.href='{php echo $this->createMobileUrl('order',array('op'=>'all'))}'"><span class="w-nav-txt">全部<span class="num"></span></span></div>
+            <div class="w-nav-item {if $operation=='now'}w-nav-item-on{/if}" data-status="1" data-pro="item" id="pro-view-4" onclick="location.href='{php echo $this->createMobileUrl('order',array('op'=>'now'))}'"><span class="w-nav-txt">进行中<span class="num"></span></span></div>
+            <div class="w-nav-item {if $operation=='fin'}w-nav-item-on{/if}" data-status="3" data-pro="item" id="pro-view-5" onclick="location.href='{php echo $this->createMobileUrl('order',array('op'=>'fin'))}'"><span class="w-nav-txt">已揭晓</span><span class="num"></span></div>
+        </div>
+        
+    <div id="pro-view-6"><div data-pro="loading"></div>
+    <ul class="w-goodsList w-goodsList-l m-user-goodsList" id='allmore'>
+    	{loop $p_record $goodsid $goods}
+    	<li class="w-goodsList-item" id="pro-view-8">
+	        <div class="w-goods w-goods-l w-goods-ing m-user-goods">
+	            <div class="w-goods-pic">
+	                <a href="{php echo $this->createMobileUrl('detail', array('periodid' => $goods['id']))}">
+	                    <img src="{php echo tomedia($goods['picarr']);}" style="width: 90px;">
+	                </a>
+	            </div>
+	            <div class="w-goods-info">
+	                <p class="w-goods-title f-txtabb"><a href="{php echo $this->createMobileUrl('detail', array('periodid' => $goods['id']))}">(第{$goods['periods']}期){$goods['title']}</a></p>
+	                <p class="w-goods-price">总需：{$goods['zong_codes']}份</p>
+	                <p class="w-goods-price">期号：{$goods['period_number']}</p>
+	                <div class="m-user-goods-owner m-user-box"><div class="m-user-box-name">获得者：</div><div class="m-user-box-cont">{if $goods['endtime'] > time() || $goods['endtime'] == ''}<a>待揭晓</a>{else}<a href="{php echo $this->createMobileUrl('otherpersonal', array('openid' => $goods['openid']))}">{$goods['nickname']}</a>(本期共参与<strong>{$goods['partakes']}</strong>人次){/if}</div></div>
+	                <p class="m-user-goods-code">幸运号码：<span class="txt-impt">{if $goods['endtime'] > time() || $goods['endtime'] == ''}待揭晓{else}{$goods['code']}{/if}</span></p>
+	                <p class="m-user-goods-time">揭晓时间：{if $goods['endtime'] > time() || $goods['endtime'] == ''}待揭晓{else}{php echo date('Y-m-d H:i:s',$goods['endtime'])}{/if}</p>
+	                <div class="m-user-goods-my">
+	                    本期参与：<span class="txt-impt">{$goods['allcount']}</span>人次<a class="link" href="javascript:;" onclick="getMoreRecru('{$goods['period_number']}','{$_W['openid']}')" data-pro="mycode">查看我的号码</a>
+	                </div>
+	            </div>
+	            <div class="w-goods-shortFunc">               
+	            </div>
+	        </div>
+    	</li>
+    	{/loop}	
+    </ul>
+   <div data-pro="more"><div class="w-more" id="all_more">上拉加载更多</div></div>
+</div>
+
+</body>
+</html>

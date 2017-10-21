@@ -1,0 +1,131 @@
+<!--
+ * ============================================================================
+ * 版权所有 2015-2016 米粒源码，并保留所有权利。
+ * 网站地址: http://www.webmili.com；
+ * ----------------------------------------------------------------------------
+ * 这不是一个自由软件！已购买用户允许对程序代码进行修改和使用，但是不允许对
+ * 程序代码以任何形式任何目的的再发布，作者将保留追究法律责任的权力和最终解
+ * 释权。
+ * ============================================================================
+-->
+{template 'common/header'}
+<style type="text/css">
+.form .alert{width:700px;}
+</style>
+<ul class="nav nav-tabs">
+	<li {if $op=='display'}class="active"{/if}><a href="{php echo $this->createWebUrl('sms')}">短信模版列表</a></li>
+	<li {if $op=='post'}class="active"{/if}><a href="{php echo $this->createWebUrl('sms', array('op'=>'post','tid'=>$_GPC['tid']))}">{if $_GPC['tid']>0}编辑{else}添加{/if}短信模版</a></li>
+	<li><a href="{php echo $this->createWebUrl('setting')}" target="_blank">短信配置</a></li>
+</ul>
+{if $op=='display'}
+<div class="main">
+	<form action="" method="post">
+		<div class="panel panel-default">
+			<div class="panel-body table-responsive">
+				<table class="table table-hover">
+					<thead class="navbar-inner">
+					<tr>
+						<th style="width:15%;">模版标题</th>
+						<th style="width:45%;">模版内容</th>
+						<th style="width:10%;">模版状态</th>
+						<th style="width:20%;">应用场景</th>
+						<th style="width:8%;text-align:right;">操作</th>
+					</tr>
+				</thead>
+				<tbody>
+				{loop $list $item}
+					<tr>
+						<td>{$item['title']}</td>
+						<td>{$item['content']}</td>
+						<td>{if $item['status']==1}<span class="label label-success">开启</span>{else}<span class="label label-danger">关闭</span>{/if}</td>
+						<td>
+							{if $item['userscene']==1}
+								[1]通知用户：用户付款
+							{elseif $item['userscene']==2}
+								[2]通知用户：洗车工已接单
+							{elseif $item['userscene']==3}
+								[3]通知用户：洗车工完成订单
+							{elseif $item['userscene']==4}
+								[4]通知用户：洗车工取消订单
+							{elseif $item['userscene']==5}
+								[5]通知用户：系统取消超时未接订单
+							{elseif $item['userscene']==11}
+								[11]通知洗车工：新预约订单
+							{/if}
+						</td>
+						<td style="text-align:right;">
+							<a href="{php echo $this->createWebUrl('sms', array('op'=>'post','tid'=>$item['id']));}" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="编辑"><i class="fa fa-edit"></i></a>
+							<a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('sms', array('op'=>'del','tid'=>$item['id']));}" title="删除" onclick="return confirm('此操作不可恢复，确认删除？');return false;"><i class="fa fa-times"></i></a>
+						</td>
+					</tr>
+				{/loop}
+				</tbody>
+			 </table>
+		  </div>
+	   </div>
+	   {$pager}
+	</form>
+</div>
+{elseif $op=='post'}
+<div class="main">
+	<form class="form-horizontal form" action="" method="post">
+    	<div class="panel panel-default">
+            <div class="panel-heading">
+                 <span class="text-muted">短信模版</span>
+            </div>
+			<div class="panel-body">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">模版名称</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="title" value="{$template['title']}" class="form-control">
+                    </div>
+                </div>
+				<div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">模版内容</label>
+                    <div class="col-sm-9">
+                        <textarea name="content" class="form-control" style="height:85px;">{$template['content']}</textarea>
+                        <div class="help-block">
+                            [变量使用]订单编号：【ordersn】，服务点名称：【storename】，客户姓名：【username】，客户车牌号码：【carnum】
+                        </div>
+                    </div>
+                </div>
+				<div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">使用场景</label>
+                    <div class="col-xs-12 col-sm-9">
+						 <select class="form-control" name="userscene">
+							 <option value="">请选择...</option>
+							 <option value="1" {if $template['userscene']==1}selected{/if}>通知用户：用户付款</option>
+							 <option value="2" {if $template['userscene']==2}selected{/if}>通知用户：洗车工已接单</option>
+							 <option value="3" {if $template['userscene']==3}selected{/if}>通知用户：洗车工完成订单</option>
+							 <option value="4" {if $template['userscene']==4}selected{/if}>通知用户：洗车工取消订单</option>
+							 <option value="5" {if $template['userscene']==5}selected{/if}>通知用户：系统取消超时未接订单</option>
+							 <option value="11" {if $template['userscene']==11}selected{/if}>通知洗车工：用户付款请及时接单</option>
+							 <option value="12" {if $template['userscene']==12}selected{/if}>通知洗车工：用户取消订单</option>
+					     </select>
+                    </div>
+                </div>
+				<div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">模版状态</label>
+                    <div class="col-sm-9">
+                        <label for="isshow1" class="radio-inline"><input type="radio" name="status" value="1" {if $template['status']==1}checked="true"{/if}> 开启</label>
+                        &nbsp;&nbsp;&nbsp;
+                        <label for="isshow2" class="radio-inline"><input type="radio" name="status" value="0" {if $template['status']==0}checked="true"{/if}> 关闭</label>
+                        <span class="help-block">关闭状态的模版将不执行发送</span>
+                    </div>
+                </div>
+            </div>
+		</div>
+        <div class="form-group col-sm-12">
+			<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+			<input type="hidden" name="token" value="{$_W['token']}" />
+			<input type="hidden" name="tid" value="{$template['id']}" />
+		</div>
+	</form>
+</div>
+{elseif $op=='setting'}
+{/if}
+
+
+
+
+{template 'common/footer'}

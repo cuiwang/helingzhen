@@ -1,0 +1,207 @@
+{template 'head'}
+{php register_jssdk()}
+<div class="weui_cells weui_cells_form margin1">
+<div class="weui_cell">
+<div class="weui_cell_bd weui_cell_primary">
+<div class="weui_uploader">
+<div class="weui_uploader_bd">
+<ul class="weui_uploader_files" id="uploader_files">
+{loop $list $ls}
+<li class='weui_uploader_file' onclick='doDelete(this)' style="background-image:url({$ls['pic']})"></li>
+{/loop}
+</ul>
+<div class="weui_uploader_input_wrp" id="uploader_files_btn">
+<button class="weui_uploader_input" onclick="doSelect()"></button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="weui_cells_tips" style="text-align: center;padding-bottom:5px;">(请一次性多选需要上传的图片，可上传个人作品...)</div></div>
+<div class="weui_cells weui_cells_form margin1">
+<div class="weui_cell">
+<div class="weui_cell_hd">标题</div>
+<div class="weui_cell_bd weui_cell_primary">
+<input class="weui_input padding-left10" type="text" name="title" id="title" placeholder="例：找xx地区行业相关工作" value="{$news['title']}">
+</div>
+</div>
+<div class="weui_cell">
+<div class="weui_cell_hd">职位</div>
+<div class="weui_cell_bd weui_cell_primary">
+<input class="weui_input padding-left10" type="text" name="zhiwei" id="zhiwei" placeholder="例：文员/销售..." value="{$news['zhiwei']}">
+</div>
+</div>
+<div class="weui_cell weui_cell_primary">
+<div class="weui_cell_hd">学历</div>
+<div class="weui_cell_bd">
+<input class="weui_input padding-left10" id="xueli" name="xueli" type="text" placeholder="请选择学历"  value="{$news['xueli']}">
+</div>
+</div>
+<div class="weui_cell weui_cell_primary">
+<div class="weui_cell_hd">薪资</div>
+<div class="weui_cell_bd">
+<input class="weui_input padding-left10"  name="gongzi" id="gongzi" type="text" placeholder="请选择期待薪资" value="{$news['gongzi']}">
+</div>
+</div>
+<div class="weui_cells weui_cells_form margin1">
+<div class="weui_cell">
+<div class="weui_cell_bd weui_cell_primary">
+<textarea name="body" id="body" class="weui_textarea" placeholder="请输入个人求职说明" rows="3" onkeydown='countChar("body","counter");' onkeyup='countChar("body","counter");'>{$news['body']}</textarea>
+<div class="weui_textarea_counter"><span id="counter">0</span>/2000</div>
+</div>
+</div>
+<div class="weui_cells weui_cells_form margin1">
+<div class="weui_cell">
+<div class="weui_cell_hd">姓名</div>
+<div class="weui_cell_bd weui_cell_primary">
+<input class="weui_input padding-left10" type="text" name="name" id="name" placeholder="请输入姓名"  value="{$news['name']}">
+</div>
+</div>
+<div class="weui_cell">
+<div class="weui_cell_hd">手机</div>
+<div class="weui_cell_bd weui_cell_primary">
+<input class="weui_input padding-left10" type="text" onkeyup="if(/\D/.test(this.value)){$.toast('只能输入数字', 'text');this.value='';}" name="phone" id="phone" placeholder="请输入手机号码" value="{$news['phone']}">
+</div>
+</div>
+</div></div>
+<div class='demos-content-padded'>
+<a href="javascript:;" class="weui_btn weui_btn_primary" style="background: {$set['color']};width:96%;margin-top:20px;margin-bottom:20px;border: 0px solid #ebebeb;" id="save_btn" onclick="doUpload(this)">发布</a>
+</div>
+<script type="text/javascript">
+	var images = {
+		localId: [],
+		serverId: [],
+		count:9
+	};
+	function doSelect () {
+		// 判断图片数量
+		if($('#uploader_files li').size() > 9)
+		{
+			//alert("最多上传9张照片");
+			$.toast("最多上传9张照片", "text");
+			return;
+		}
+
+		wx.chooseImage({
+			count: images.count, // 默认9
+			sizeType: ['compressed'], // 可以指定是原图还是压缩图，默认二者都有
+			sourceType: ['album', 'camera'], // 可以指定来源是相册还是相机，默认二者都有
+			success: function (res) {
+				images.localId = res.localIds;
+				//alert('已选择 ' + res.localIds.length + ' 张图片');
+				//$.toast("已选择 " + res.localIds.length + " 张图片", "text");
+				// doUpload();
+				for(var i in res.localIds) {
+					addImg(res.localIds[i]);
+				}
+				images.count -= res.localIds.length;
+				if(!images.count)
+				{
+					$("#uploader_files_btn").hide();
+				}
+			}
+		});
+	};
+	// 添加上传图片
+	function addImg(localId) {
+		var html = "";
+		html += "<li class='weui_uploader_file' onclick='doDelete(this)' style='background-image:url("+localId+")'></li>";
+		//html += "<a><img src='"+localId+"'></a>";
+		//html +="</li>";
+		$("#uploader_files").append(html);
+	}
+
+	/*function doDelete(obj) {
+		if(!confirm('确认删除？')) {
+			return false;
+		}
+		$(obj).remove();
+	}*/
+
+	// 5.3 上传图片
+	function doUpload () {
+if(!$("#title").val() || !$("#phone").val() || !$("#gongzi").val() || !$("#zhiwei").val() || !$("#xueli").val() || !$("#body").val()) {
+			$.toast("信息必须全部填写", "text");
+			return;
+		}
+		$("#save_btn").attr('disabled',true);
+		if (images.localId.length == 0) {
+			doSave(0);
+
+		}else {
+			var i = 0, length = images.localId.length;
+			images.serverId = [];
+			function upload() {
+				wx.uploadImage({
+					localId: images.localId[i],
+					success: function (res) {
+						i++;
+						images.serverId.push(res.serverId);
+						if (i < length) {
+							upload();
+						}
+						else
+						{
+							var media_ids = images.serverId.join(',')
+							doSave(media_ids);
+						}
+					},
+					fail: function (res) {
+						alert(JSON.stringify(res));
+					}
+				});
+			}
+			upload();
+		}
+	};
+
+	function doSave(media_ids) {
+		$("#save_btn").html("发布中...");
+			$.ajax({
+			type:'post',
+				{if $id}
+				url:"{php echo $this->createMobileUrl('xinxi_geren', array('act' => 'edit','id' => $id))}",
+				{else}
+				url:"{php echo $this->createMobileUrl('xinxi_geren', array('act' => 'geren_form'))}",
+				{/if}
+			data:{media_ids:media_ids,title:$("#title").val(),xueli:$("#xueli").val(),gongzi:$("#gongzi").val(),zhiwei:$("#zhiwei").val(),phone:$("#phone").val(),body:$("#body").val(),name:$("#name").val()},
+			success:function(d,s) {
+				$.showLoading('信息发布中...');
+				$("#save_btn").html("发布成功");
+				window.location.href="{php echo $this->createMobileUrl('my')}";	
+			}
+		});
+	}
+</script>
+<script>
+function countChar(textareaName,spanName)
+{  
+ document.getElementById(spanName).innerHTML = 0 + document.getElementById(textareaName).value.length;
+}
+      $("#xueli").select({
+        title: "选择学历",
+        items: ["初中", "高中及中专", "大专及本科", "硕士以上"],
+        onChange: function(d) {
+          console.log(this, d);
+        },
+        onClose: function() {
+          console.log("close");
+        },
+        onOpen: function() {
+          console.log("open");
+        },
+      });
+      $("#gongzi").select({
+        title: "期待薪资",
+        items: ["面议", "1000-1999元", "2000-2999元", "3000-3999元", "4000元以上"],
+        onChange: function(d) {
+          console.log(this, d);
+        },
+        onClose: function() {
+          console.log("close");
+        },
+        onOpen: function() {
+          console.log("open");
+        },
+      });
+    </script>

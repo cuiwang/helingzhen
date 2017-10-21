@@ -1,0 +1,130 @@
+{template 'common/header'}
+<ul class="nav nav-tabs" id="myTab">
+	<li>
+		<a href="?c=home&a=welcome&do=ext&m={php echo $_GPC['m']}">返回</a>
+	</li>
+	<li><a href="{php echo $this->createWebUrl('threadclass');}">主题列表</a></li>
+	<li class="active"><a href="{php echo $this->createWebUrl('manage')}">帖子管理</a></li>
+	<li><a href="{php echo $this->createWebUrl('forum_post',array('id'=>$_GPC['typeid']))}">添加帖子</a></li>
+</ul>
+<div class="panel panel-default">
+    <div class="panel-body">
+        <form action="./index.php" method="get"  class="form-horizontal">
+            <input type="hidden" name="c" value="{php echo $_GPC['c']}"/>
+            <input type="hidden" name="a" value="{php echo $_GPC['a']}"/>
+            <input type="hidden" name="m" value="{php echo $_GPC['m']}"/>
+            <input type="hidden" name="do" value="{php echo $_GPC['do']}"/>
+            <input type="hidden" name="act" value="{php echo $_GPC['act']}"/>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">昵称</label>
+				<div class="col-sm-8 col-lg-9 col-xs-12">
+					<input class="form-control" name="keyword" id="" type="text" value="{$_GPC['keyword']}" placeholder="可查发帖会员">
+				</div>
+			</div>
+			<div class="form-group">
+                <div class="col-sm-offset-2 col-md-offset-2 col-lg-offset-1 col-xs-12 col-sm-10 col-md-10 col-lg-11">
+                    <input name="submit" type="submit" value="搜索" class="btn btn-primary span3" />
+                    <input type="hidden" name="token" value="{$_W['token']}" />
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<style>
+    .table>thead>tr>td, .table>tbody>tr>td, .table>tfoot>tr>td {overflow: visible !important;}
+    .dropdown-menu{min-width:4em;}
+    .table>thead>tr>td, .table>tbody>tr>td, .table>tfoot>tr>td {white-space: normal !important;overflow: visible !important;}
+    .dropdown{display:inline-block !important;}
+    .account-stat-num > div {width: 25%;float: left;font-size: 16px;text-align: center;}
+    .account-stat-num > div span {display: block;font-size: 30px;font-weight: bold;}
+</style>
+<div class="panel panel-default" ng-app="app" ng-controller="formCtrl">
+	<div class="panel-heading">
+		<a class="btn btn-default btn-lg" href="{php echo $this->createWebUrl('manage')}">所有帖子</a>
+		{if !empty($_GPC['typeid'])}
+		<a class="btn btn-default btn-lg " href="{php echo $this->createWebUrl('manage',array('typeid'=>$_GPC['typeid']))}">本版块帖子</a>
+		<a class="btn btn-default btn-lg" href="{php echo $this->createWebUrl('manage',array('typeid'=>$_GPC['typeid'],'tab'=>'wait'))}">待审核帖子</a>
+		<a class="btn btn-default btn-lg" href="{php echo $this->createWebUrl('manage',array('typeid'=>$_GPC['typeid'],'tab'=>'new'))}">最新帖子</a>
+		<a class="btn btn-default btn-lg" href="{php echo $this->createWebUrl('manage',array('typeid'=>$_GPC['typeid'],'tab'=>'hot'))}">最热帖子</a>
+		<a class="btn btn-default btn-lg" href="{php echo $this->createWebUrl('manage',array('typeid'=>$_GPC['typeid'],'tab'=>'top'))}">置顶帖子</a>
+		<a class="btn btn-default btn-lg" href="{php echo $this->createWebUrl('manage',array('typeid'=>$_GPC['typeid'],'tab'=>'jing'))}">加精帖子</a>
+		<a class="btn btn-default btn-lg" href="{php echo $this->createWebUrl('manage',array('typeid'=>$_GPC['typeid'],'tab'=>'lock'))}">锁定帖子</a>
+		{else}
+		<a class="btn btn-default btn-lg" href="{php echo $this->createWebUrl('manage',array('tab'=>'wait'))}">待审核帖子</a>
+		<a class="btn btn-default btn-lg" href="{php echo $this->createWebUrl('manage',array('tab'=>'new'))}">最新帖子</a>
+		<a class="btn btn-default btn-lg" href="{php echo $this->createWebUrl('manage',array('tab'=>'hot'))}">最热帖子</a>
+		<a class="btn btn-default btn-lg" href="{php echo $this->createWebUrl('manage',array('tab'=>'top'))}">置顶帖子</a>
+		<a class="btn btn-default btn-lg" href="{php echo $this->createWebUrl('manage',array('tab'=>'jing'))}">加精帖子</a>
+		<a class="btn btn-default btn-lg" href="{php echo $this->createWebUrl('manage',array('tab'=>'lock'))}">锁定帖子</a>
+		{/if}
+		<a class="btn btn-default btn-lg" href="{php echo $this->createWebUrl('manage',array('tab'=>'system'))}">系统公告帖子</a>
+	</div>
+    <div class="panel-body">
+		<div class="panel-body table-responsive">
+			<table class="table table-hover" style="display:auto;">
+				<thead class="navbar-inner">
+				<tr>
+					<th style="width:25px;">选？</th>
+					<th style="width:120px;">昵称</th>
+					<th style="width:80px;">头像</th>
+					<th style="width:120px;">标题</th>
+					<th style="width:12em;">概述</th>
+					<th style="width:480px;">操作</th>
+				</tr>
+				</thead>
+				<tbody>
+				{loop $lists $li}
+				<tr>
+					<td><input type="checkbox" name="select[]" value="{$li['id']}"></td>
+					<td>{$li['nickname']}</td>
+					<td><img ng-src="{$li['avatar']}" style="width: 50px;border-radius: 25px;height: 50px;"></td>
+					<td>{$li['title']}</td>
+					<td>
+						<label class="label label-info">发帖时间：{php echo date('Y-m-d',$li['createtime'])}</label>
+						<label class="label label-default">标签：{$li['tab']}</label>
+						<label class="label label-success">分类：{$li['ctitle']}</label>
+						<label class="label label-{$li['status_label']}" >状态：{$li['status']}</label>
+					</td>
+					<td >
+						<a class="btn btn-default" href="{$li['detail']}" title="查看/编辑"><i class="fa fa-search"></i></a>
+						<a class="btn btn-default" href="{$li['status_button']}" title="审核"><i class="fa fa-legal"></i></a>
+						<a class="btn btn-success" href="{$li['jing']}">{$li['jingtitle']}</a>
+						<a class="btn btn-info" href="{$li['top']}">{$li['toptitle']}</a>
+						<a class="btn btn-warning" href="{$li['lock']}">{$li['locktitle']}</a>
+						<a class="btn btn-danger" href="{$li['delete']}" title="删除"><i class="fa fa-trash-o"></i></a>
+						<a class="btn btn-primary" href="{$li['commont']}">评论</a>
+						<a class="btn btn-primary" href="{$li['deleteall']}">拉黑</a>
+					</td>
+				</tr>
+				{/loop}
+				</tbody>
+				<tr>
+					<td><input type="checkbox" onclick="var ck = this.checked;$(':checkbox').each(function(){this.checked = ck});"></td>
+					<td colspan="12">
+						<input type="submit" class="btn btn-danger" name="delete" value="删除" />
+						<input type="submit" class="btn btn-pramary" name="upload" value="导出选定数据" />
+						<input type="submit" class="btn btn-pramary" name="uploadall" value="导出所有数据" />
+					</td>
+				</tr>
+			</table>
+		</div>
+		{$pager}
+    </div>
+</div>
+<script>
+	require(['angular', 'jquery', 'util'], function(angular, $, util){
+		var app = angular.module('app', []);
+		app.controller('formCtrl', function($scope,$http){
+			$scope.list = {php echo json_encode($list)};
+			$scope.delete = function (){
+				var select = $scope.select;
+				alert(select);
+			}
+			$scope.submit = function() {
+				$('#form2')[0].submit();
+			};
+		});
+		angular.bootstrap(document, ['app']);
+	});
+</script>
+{template 'common/footer'}

@@ -1,0 +1,176 @@
+{template 'header'}
+<link rel="stylesheet" type="text/css" href="../addons/str_takeout/template/resource/css/main.css">
+<script src="../addons/str_takeout/template/resource/js/dialog.js"></script>
+<style type="text/css">
+	.but-post{display:block;height:30px;line-height:30px;border:none;width:640px;border-radius:3px;font-size:16px;font-weight:bold;color:#fff;background-color:#ff5f32;}
+	.pay_type label{padding:10px 12px 0 3px;}
+</style>
+<div class="container">
+	<section>
+		<ul class="my_order">
+			<li>
+				<a href="{php echo $this->createMobileUrl('store', array('sid' => $order['sid']))}">
+					<div>
+						{if $order['status'] == 1}
+							<div class="ico_status pending"><i></i>待确认</div>
+						{elseif $order['status'] == 2}
+							<div class="ico_status inhand"><i></i>处理中</div>
+						{elseif $order['status'] == 3}
+							<div class="ico_status complete"><i></i>已完成</div>
+						{elseif $order['status'] == 4}
+							<div class="ico_status cancle"><i></i>已取消</div>
+						{/if}
+					</div>
+					<div>
+						<h3 class="highlight">{$store['title']}</h3>
+						<p>{$order['num']}份/￥{$order['price']}</p>
+						<div>{php echo date('Y-m-d H:i', $order['addtime']);} {php echo date('', $order['addtime'])}</div>
+					</div>
+					<div class="w14"><i class="ico_arrow"></i></div>
+				</a>
+			</li>
+		</ul>
+		<div class="detail_tools">
+			<div><a href="javascript:;" id="clerkBtn" class="comm_btn">更改订单状态</a></div>
+		</div>
+		<div class="detail_tools">
+			<div><a href="javascript:;" style="background:#4fb07c" id="printBtn" class="comm_btn">打印订单</a></div>
+		</div>
+		<style type="text/css">
+			.my_menu_list th{width:0;}
+		</style>
+		<table class="my_menu_list">
+			<thead>
+				<tr>
+					<th style="width:430px">美食列表</th>
+					<th style="width:60px">{$order['num']}份</th>
+					<th style="width:150px"><strong class="highlight">￥{$order['price']}</strong></th>
+				</tr>
+			</thead>
+			<tbody>
+				{if !empty($order['dish'])}
+					{loop $order['dish'] $da}
+						<tr>
+							<td>{$da['dish_title']}</td>
+							<td>X{$da['dish_num']}</td>
+							<td>￥{$da['dish_price']}</td>
+						</tr>
+					{/loop}
+				{/if}
+			</tbody>
+		</table>
+		<ul class="box pay_box">
+			<li>订单类型：
+				{if $order['order_type'] == 1}
+					<label class="label label-success">店内点餐</label>
+				{else}
+					<label class="label label-danger">外卖订餐</label>
+				{/if}
+			</li>
+			<li>支付方式：
+				{if empty($order['pay_type'])}
+					<label class="label label-danger">未支付</label>
+				{else}
+					<label class="label label-success">{$pay_types[$order['pay_type']]}</label>
+				{/if}
+			</li>
+			<li>送餐时间：{php echo date('Y-m-d H:i', $order['addtime']);}</li>
+			<li>预定人：{$order['username']}</li>
+			<li>手机：{$order['mobile']}</li>
+			{if $order['order_type'] == 1}
+				<li>桌号：{$order['table_info']}</li>
+				<li>就餐人数：{$order['person_num']} 人</li>
+			{else}
+				<li>送餐地址：{$order['address']}</li>
+				<li>送餐时间：{if $order['delivery_time']}{$order['delivery_time']}{else}尽快送出{/if}</li>
+				<li><span class="text-strong">配送费：{$order['delivery_fee']}元</span></li>
+			{/if}
+			<li>总计：<span class="text-strong">{php echo $order['delivery_fee'] + $order['price']}元</span></li>
+			<li>
+				赠送积分：<span class="text-strong">{$order['grant_credit']}积分</span>
+				{if empty($order['is_grant'])}
+					<label class="label label-danger">未赠送</label>
+				{else}
+					<label class="label label-success">已赠送</label>
+				{/if}
+			</li>
+		</ul>
+		<ul class="box pay_box">
+			<li>备注</li>
+			<li>{if $order['note']}{$order['note']}{else}无{/if}</li>
+		</ul>
+		<div class="my_order_tips">如需取消订单，请与商家联系，谢谢！</div>
+	</section>
+	{template 'footerbar'}
+</div>
+<div class="addres_box" id="clerkBox">
+	<ul class="pay_type">
+		<li>
+			<label><input name="status" type="radio" value="1" class="radio">设为待确认</label>
+			<label><input name="status" type="radio" value="2" class="radio">设为已确认，处理中</label>
+			<label><input name="status" type="radio" value="3" class="radio">设为已完成</label>
+			<label><input name="status" type="radio" value="4" class="radio">设为已取消</label>
+			<label><input name="status" type="radio" value="5" class="radio">设为已付款</label>
+		</li>
+	</ul>
+	<ul>
+		<li class="btns_wrap">
+			<span><a href="javascript:void(0);" class="comm_btn higher disabled" id="cancleClerk">取消</a></span>
+			<span><a href="javascript:void(0);" class="comm_btn higher" id="saveClerk">确认</a></span>
+		</li>
+	</ul>
+</div>
+
+<script type="text/javascript">
+	$(function(){
+		var _clerkBox = $('#clerkBox');
+		var sid = "{$sid}";
+		var id = "{$order['id']}";
+		var url = "{php echo $this->createMobileUrl('manage')}";
+		// 确认订单类型
+		$('#clerkBtn').bind('click', function(){
+			_clerkBox.dialog({title: '确认订单类型'});
+		});
+
+		$('#cancleClerk').bind('click', function(){
+			_clerkBox.dialog('close');
+		});
+
+		$('#saveClerk').bind('click', function(){
+			var status = $('.pay_type :radio:checked').val();
+			if(!status) {
+				alert('请选择订单状态');
+				return false;
+			}
+			$.post("{php echo $this->createMobileUrl('status')}", {'sid' : sid, 'id':id, 'status':status}, function(data){
+				if(data != 'success') {
+					alert(data)
+					return false;
+				}
+				_clerkBox.dialog('close');
+				location.reload();
+				return false;
+			});
+		});
+		$('#printBtn').bind('click', function(){
+			if(!confirm('确定打印订单吗')) {
+				alert('请选择订单状态');
+				return false;
+			}
+			$.post("{php echo $this->createMobileUrl('print')}", {'sid' : sid, 'id':id}, function(data){
+				if(data != 'success') {
+					alert(data)
+					return false;
+				} else {
+					util.message('发送打印指令成功', "{php echo $this->createMobileUrl('manage', array('op' => 'detail', 'id' => $id))}", 'info');
+				}
+				return false;
+			});
+		});
+	});
+	document.addEventListener('WeixinJSBridgeReady', function onBridgeReady() {
+		WeixinJSBridge.call('hideOptionMenu');
+	});
+</script>
+{template 'common'}
+{template 'common/footer'}

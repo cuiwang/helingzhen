@@ -1,0 +1,499 @@
+{template 'common/header'}
+
+<ul class="nav nav-tabs">
+	<li {if $operation == 'display' && $status == ''}class="active"{/if}>
+	<a href="{php echo $this->createWebUrl('shopping', array('op' => 'order','operation' => 'display'))}">全部订单</a></li>
+	<li {if $operation == 'display' && $status == '1' && ( $sendtype=='1' || $sendtype=='0')} class="active"{/if}>
+	<a href="{php echo $this->createWebUrl('shopping', array('op' => 'order','operation' => 'display', 'status' => 1))}">待发货</a></li>
+	<li {if $operation == 'display' && $status == '1' && $sendtype == '2'}class="active"{/if}>
+	<a href="{php echo $this->createWebUrl('shopping', array('op' => 'order','operation' => 'display', 'status' => '1', 'sendtype' => 2))}">待自提</a></li>
+	<li {if $operation == 'display' && $status == '0'}class="active"{/if}>
+	<a href="{php echo $this->createWebUrl('shopping', array('op' => 'order', 'operation' => 'display','status' => 0))}">待付款</a></li>
+	<li {if $operation == 'display' && $status == '2'}class="active"{/if}>
+	<a href="{php echo $this->createWebUrl('shopping', array('op' => 'order', 'operation' => 'display','status' => 2))}">待收货</a></li>
+	<li {if $operation == 'display' && $status == '3'}class="active"{/if}>
+	<a href="{php echo $this->createWebUrl('shopping', array('op' => 'order', 'operation' => 'display','status' => 3))}">已完成</a></li>
+	<li {if $operation == 'display' && $status == '-1'}class="active"{/if}>
+	<a href="{php echo $this->createWebUrl('shopping', array('op' => 'order','operation' => 'display', 'status' => -1))}">已关闭</a></li>
+	{if $operation == 'detail'}<li class="active"><a href="#">订单详情</a></li>   {/if}
+</ul>
+
+{if $operation == 'display'}
+<div class="main">
+<div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+		<form action="" method="post" class="form-horizontal" role="form" id="form1">
+
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">订单号</label>
+				<div class="col-sm-8 col-lg-9 col-xs-12">
+					<input class="form-control" name="keyword" id="" type="text" value="{$_GPC['keyword']}" placeholder="可查询订单号">
+				</div>
+			</div> 
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-4 col-lg-2 control-label">用户信息</label>
+				<div class="col-sm-8 col-lg-9 col-xs-12">
+					<input class="form-control" name="member" id="" type="text" value="{$_GPC['member']}" placeholder="可查询手机号 / 姓名">
+				</div>
+			</div> 
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">支付方式</label>
+				<div class="col-sm-8 col-lg-9 col-xs-12">
+					<select name="paytype" class="form-control">
+						<option value="">不限</option>
+						{loop $paytype $key $type}
+						<option value="{$key}" {if $_GPC['paytype'] == $key} selected="selected" {/if}>{$type['name']}</option>
+						{/loop}
+					</select>
+				</div>
+			</div>
+			<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">下单时间</label>
+					<div class="col-sm-7 col-lg-9 col-xs-12">
+						{php echo tpl_form_field_daterange('time', array('starttime'=>date('Y-m-d', $starttime),'endtime'=>date('Y-m-d', $endtime)));}
+					</div>
+					<div class="col-sm-3 col-lg-4 pull-right"><button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button></div>
+				</div>
+			<div class="form-group">
+			</div>
+		</form>
+	</div>
+	</div>
+
+	<div class="panel panel-default">
+		<div class="panel-body table-responsive">
+			<table class="table table-hover">
+				<thead class="navbar-inner">
+					<tr>
+						<th style="width:80px;">订单号</th>
+						<th style="width:100px;">姓名</th>
+						<th style="width:120px;">电话</th>
+						<th style="width:80px;">支付方式</th>
+						<th style="width:80px;">配送方式</th>
+						<th style="width:50px;">运费</th>
+						<th style="width:100px;">总价</th>
+	<!--				<th style="width:50px;">类型</th>-->
+						<th style="width:80px;">状态</th>
+						<th style="width:150px;">下单时间</th>
+						<th style="width:120px; text-align:right;">操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					{loop $list $item}
+					<tr>
+						<td>{$item['ordersn']}</td>
+						<td>{$item['realname']}</td>
+						<td>{$item['mobile']}</td>
+						<td><span class="label label-{$item['css']}">{$item['paytype']}</span></td>
+						<td>{if empty($item['dispatch'])}自提{else}{$item['dispatch']['dispatchname']}{/if}</td>
+						<td>{$item['dispatchprice']}</td>
+						<td>{$item['price']} 元</td>
+	<!--					<td>{if $item['goodstype']}实物{else}虚拟{/if}</td>-->
+						<td>
+							<span class="label label-{$item['statuscss']}">{$item['status']}</span>
+						<td>{php echo date('Y-m-d H:i:s', $item['createtime'])}</td>
+						<td style="text-align:right;">
+							<a href="{php echo $this->createWebUrl('shopping', array('op' => 'order','operation' => 'detail', 'id' => $item['id']))}" class="btn btn-success btn-sm">查看订单</a>
+							<a href="{php echo $this->createWebUrl('shopping', array('op' => 'order','id' => $item['id'], 'operation' => 'delete'))}" onclick="return confirm('此操作不可恢复，确认删除？');return false;" 
+								class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="删除"><i class="fa fa-times">删除</i>
+							</a>
+						</td>
+					</tr>
+					{/loop}
+				</tbody>
+				<!--tr>
+					<td></td>
+					<td colspan="3">
+						<input name="token" type="hidden" value="{$_W['token']}" />
+						<input type="submit" class="btn btn-primary" name="submit" value="提交" />
+					</td>
+				</tr-->
+			</table>
+		</div>
+	</div>
+</div>
+{$pager}
+<script type="text/javascript">
+	require(['daterangepicker'], function($){
+		$('.daterange').on('apply.daterangepicker', function(ev, picker) {
+			$('#form1')[0].submit();
+		});
+	});
+</script>
+
+{elseif $operation == 'detail'}
+<style type="text/css">
+	.main .form-horizontal .form-group{margin-bottom:0;}
+	.main .form-horizontal .modal .form-group{margin-bottom:15px;}
+	#modal-confirmsend .control-label{margin-top:0;}
+</style>
+<div class="main">
+	<form class="form-horizontal form" action="" method="post" enctype="multipart/form-data" onsubmit="return formcheck(this)">
+		{if $item['transid']}<div  class="alert alert-error"><i class="fa fa-lightbulb"></i> 此为微信支付订单，必须要提交发货状态！</div>{/if}
+		<input type="hidden" name="dispatchid" value="{$dispatch['id']}" />
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				订单信息
+			</div>
+			<div class="panel-body">
+				{if $item['transid']}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">交易号 :</label>
+					<div class="col-sm-9 col-xs-12">
+						<p class="form-control-static">{$item['transid']}</p>
+					</div>
+				</div>
+				{/if}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">价钱 :</label>
+					<div class="col-sm-9 col-xs-12">
+						<p class="form-control-static">{$item['price']} 元 （商品: {$item['goodsprice']} 元 运费: {$item['dispatchprice']} 元)</p>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">配送方式 :</label>
+					<div class="col-sm-9 col-xs-12">
+						<p class="form-control-static">{if empty($dispatch)}自提{else}{$dispatch['dispatchname']}{/if}</p>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">付款方式 :</label>
+					<div class="col-sm-9 col-xs-12">
+						<p class="form-control-static">
+							{if $item['paytype'] == 1}余额支付{/if}
+							{if $item['paytype'] == 2}在线支付{/if}
+							{if $item['paytype'] == 3}货到付款{/if}
+						</p>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">订单状态 :</label>
+					<div class="col-sm-9 col-xs-12">
+						<p class="form-control-static">
+						{if $item['status'] == 0}<span class="label label-info">待付款</span>{/if}
+						{if $item['status'] == 1}<span class="label label-info">待发货</span>{/if}
+						{if $item['status'] == 2}<span class="label label-info">待收货</span>{/if}
+						{if $item['status'] == 3}<span class="label label-success">已完成</span>{/if}
+						{if $item['status'] == -1}<span class="label label-success">已关闭</span>{/if}
+						</p>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">下单日期 :</label>
+					<div class="col-sm-9 col-xs-12">
+						<p class="form-control-static">{php echo date('Y-m-d H:i:s', $item['createtime'])}</p>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">备注 :</label>
+					<div class="col-sm-9 col-xs-12"><textarea style="height:150px;" class="form-control" name="remark" cols="70">{$item['remark']}</textarea></div>
+				</div>
+			</div>
+		</div>
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				用户信息
+			</div>
+			<div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">姓名 :</label>
+					<div class="col-sm-9 col-xs-12">
+						<p class="form-control-static">{$item['realname']}</p>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">手机 :</label>
+					<div class="col-sm-9 col-xs-12">
+						<p class="form-control-static">{$item['mobile']}</p>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">地址 :</label>
+					<div class="col-sm-9 col-xs-12">
+						<p class="form-control-static">{$item['address']}</p>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				商品信息<span class="text-muted"></span>
+			</div>
+			<div class="panel-body table-responsive">
+				<table class="table table-hover">
+					<thead class="navbar-inner">
+					<tr>
+						<th style="width:5%;">ID</th>
+						<th style="width:10%;">商品标题</th>
+						<th style="width:20%;">销售价/成本价</th>
+						<th style="width:10%;">属性</th>
+						<th style="width:5%;">数量</th>
+						<th style="width:10%;">操作</th>
+					</tr>
+					</thead>
+					{loop $item['goods'] $goods}
+					<tr>
+						<td>{$goods['id']}</td>
+						<td>
+							{$goods['title']}
+						</td>
+					
+						<td>{$goods['marketprice']}元 / {$goods['productprice']}元</td>
+						<td>{if $goods['status']==1}<span class="label label-success">上架</span>{else}<span class="label label-error">下架</span>{/if}</td>
+						<td>{$goods['total']}</td>
+						<td>
+							<a href="{php echo $this->createWebUrl('shopping', array('id' => $goods['id'],'op' => 'goods', 'operation' => 'post'))}" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="编辑"><i class="fa fa-edit"></i>编辑</a>&nbsp;&nbsp;
+							<a href="{php echo $this->createWebUrl('shopping', array('id' => $id, 'op' => 'order','operation' => 'delete'))}" onclick="return confirm('此操作不可恢复，确认删除？');return false;" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="删除"><i class="fa fa-times"></i>删除</a>
+						</td>
+					</tr>
+					{/loop}
+					<tr>
+						<td colspan="6" class="text-right">
+							{if empty($item['status'])}
+							<button type="submit" class="btn btn-primary" onclick="return confirm('确认付款此订单吗？'); return false;" name="confrimpay" value="yes">确认付款</button>
+							{elseif $item['status'] == 1}
+							{if !empty($dispatch)}
+							<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modal-confirmsend">确认发货</button>
+							<button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modal-cancelsend">取消发货</button>
+							{/if}
+							{elseif $item['status'] == 2}
+							{if !empty($dispatch)}
+							<button type="button" class="btn btn-danger" name="cancelsend" onclick="$('#modal-cancelsend').modal();" value="yes">取消发货</button>
+							{/if}
+							{elseif $item['status'] == 3}
+							{/if}
+							{if $item['status'] != 3}
+							<button type="submit" class="btn btn-success" onclick="return confirm('确认完成此订单吗？'); return false;" name="finish" value="yes">完成订单</button>
+							{if $item['status'] >= 0}
+							<button type="button" class="btn btn-default" data-toggle="modal" data-target="#modal-close">关闭订单</button>
+							{else}
+							<button type="submit" class="btn btn-default" onclick="return confirm('确认开启此订单吗？'); return false;" name="open" value="yes">开启订单</button>
+							{/if}
+							{/if}
+							<input type="hidden" name="token" value="{$_W['token']}" />
+						</td>
+					</tr>
+				</table>
+			</div>
+		</div>
+		
+		<!-- 关闭原因 -->
+		<div id="modal-close" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" style="width:600px;margin:0px auto;">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button aria-hidden="true" data-dismiss="modal" class="close" type="button">×</button>
+						<h3>关闭订单</h3>
+					</div>
+					<div class="modal-body">
+						<label>关闭订单原因</label>
+						<textarea style="height:150px;" class="form-control" name="reson" autocomplete="off"></textarea>
+						<div id="module-menus"></div>
+					</div>
+					<div class="modal-footer">
+						<button type="submit" class="btn btn-primary" name="close" value="yes">关闭订单</button>
+						<a href="#" class="btn btn-default" data-dismiss="modal" aria-hidden="true">关闭</a>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<!-- 确认发货 -->
+		<div id="modal-confirmsend" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" style="width:600px;margin:0px auto;">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button aria-hidden="true" data-dismiss="modal" class="close" type="button">×</button>
+						<h3>快递信息</h3>
+					</div>
+					<div class="modal-body">
+						<div class="form-group">
+							<label class="col-xs-10 col-sm-3 col-md-3 control-label">是否需要快递</label>
+							<div class="col-xs-12 col-sm-9 col-md-8 col-lg-8">
+								<label for="radio_1" class="radio-inline">
+									<input type="radio" name="isexpress" id="radio_1" value="1" onclick="$('#expresspanel').show();" checked> 是
+								</label>
+								<label for="radio_2" class="radio-inline">
+									<input type="radio" name="isexpress" id="radio_2" value="0" onclick="$('#expresspanel').hide();"> 否
+								</label>
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="col-xs-10 col-sm-3 col-md-3 control-label">快递公司</label>
+							<div class="col-xs-12 col-sm-9 col-md-8 col-lg-8">
+								<select class="form-control" name="express" id="express">
+									<option value="" data-name="">其他快递</option>
+									<option value="shunfeng" data-name="顺丰">顺丰</option>
+									<option value="shentong" data-name="申通">申通</option>
+									<option value="yunda" data-name="韵达快运">韵达快运</option>
+									<option value="tiantian" data-name="天天快递">天天快递</option>
+									<option value="yuantong" data-name="圆通速递">圆通速递</option>
+									<option value="zhongtong" data-name="中通速递">中通速递</option>
+									<option value="ems" data-name="ems快递">ems快递</option>
+									<option value="huitongkuaidi" data-name="汇通快运">汇通快运</option>
+									<option value="quanfengkuaidi" data-name="全峰快递">全峰快递</option>
+									<option value="zhaijisong" data-name="宅急送">宅急送</option>
+									<option value="aae" data-name="aae全球专递">aae全球专递</option>
+									<option value="anjie" data-name="安捷快递">安捷快递</option>
+									<option value="anxindakuaixi" data-name="安信达快递">安信达快递</option>
+									<option value="biaojikuaidi" data-name="彪记快递">彪记快递</option>
+									<option value="bht" data-name="bht">bht</option>
+									<option value="baifudongfang" data-name="百福东方国际物流">百福东方国际物流</option>
+									<option value="coe" data-name="中国东方（COE）">中国东方（COE）</option>
+									<option value="changyuwuliu" data-name="长宇物流">长宇物流</option>
+									<option value="datianwuliu" data-name="大田物流">大田物流</option>
+									<option value="debangwuliu" data-name="德邦物流">德邦物流</option>
+									<option value="dhl" data-name="dhl">dhl</option>
+									<option value="dpex" data-name="dpex">dpex</option>
+									<option value="dsukuaidi" data-name="d速快递">d速快递</option>
+									<option value="disifang" data-name="递四方">递四方</option>
+									<option value="fedex" data-name="fedex（国外）">fedex（国外）</option>
+									<option value="feikangda" data-name="飞康达物流">飞康达物流</option>
+									<option value="fenghuangkuaidi" data-name="凤凰快递">凤凰快递</option>
+									<option value="feikuaida" data-name="飞快达">飞快达</option>
+									<option value="guotongkuaidi" data-name="国通快递">国通快递</option>
+									<option value="ganzhongnengda" data-name="港中能达物流">港中能达物流</option>
+									<option value="guangdongyouzhengwuliu" data-name="广东邮政物流">广东邮政物流</option>
+									<option value="gongsuda" data-name="共速达">共速达</option>
+									<option value="hengluwuliu" data-name="恒路物流">恒路物流</option>
+									<option value="huaxialongwuliu" data-name="华夏龙物流">华夏龙物流</option>
+									<option value="haihongwangsong" data-name="海红">海红</option>
+									<option value="haiwaihuanqiu" data-name="海外环球">海外环球</option>
+									<option value="jiayiwuliu" data-name="佳怡物流">佳怡物流</option>
+									<option value="jinguangsudikuaijian" data-name="京广速递">京广速递</option>
+									<option value="jixianda" data-name="急先达">急先达</option>
+									<option value="jjwl" data-name="佳吉物流">佳吉物流</option>
+									<option value="jymwl" data-name="加运美物流">加运美物流</option>
+									<option value="jindawuliu" data-name="金大物流">金大物流</option>
+									<option value="jialidatong" data-name="嘉里大通">嘉里大通</option>
+									<option value="jykd" data-name="晋越快递">晋越快递</option>
+									<option value="kuaijiesudi" data-name="快捷速递">快捷速递</option>
+									<option value="lianb" data-name="联邦快递（国内）">联邦快递（国内）</option>
+									<option value="lianhaowuliu" data-name="联昊通物流">联昊通物流</option>
+									<option value="longbanwuliu" data-name="龙邦物流">龙邦物流</option>
+									<option value="lijisong" data-name="立即送">立即送</option>
+									<option value="lejiedi" data-name="乐捷递">乐捷递</option>
+									<option value="minghangkuaidi" data-name="民航快递">民航快递</option>
+									<option value="meiguokuaidi" data-name="美国快递">美国快递</option>
+									<option value="menduimen" data-name="门对门">门对门</option>
+									<option value="ocs" data-name="OCS">OCS</option>
+									<option value="peisihuoyunkuaidi" data-name="配思货运">配思货运</option>
+									<option value="quanchenkuaidi" data-name="全晨快递">全晨快递</option>
+									<option value="quanjitong" data-name="全际通物流">全际通物流</option>
+									<option value="quanritongkuaidi" data-name="全日通快递">全日通快递</option>
+									<option value="quanyikuaidi" data-name="全一快递">全一快递</option>
+									<option value="rufengda" data-name="如风达">如风达</option>
+									<option value="santaisudi" data-name="三态速递">三态速递</option>
+									<option value="shenghuiwuliu" data-name="盛辉物流">盛辉物流</option>
+									<option value="sue" data-name="速尔物流">速尔物流</option>
+									<option value="shengfeng" data-name="盛丰物流">盛丰物流</option>
+									<option value="saiaodi" data-name="赛澳递">赛澳递</option>
+									<option value="tiandihuayu" data-name="天地华宇">天地华宇</option>
+									<option value="tnt" data-name="tnt">tnt</option>
+									<option value="ups" data-name="ups">ups</option>
+									<option value="wanjiawuliu" data-name="万家物流">万家物流</option>
+									<option value="wenjiesudi" data-name="文捷航空速递">文捷航空速递</option>
+									<option value="wuyuan" data-name="伍圆">伍圆</option>
+									<option value="wxwl" data-name="万象物流">万象物流</option>
+									<option value="xinbangwuliu" data-name="新邦物流">新邦物流</option>
+									<option value="xinfengwuliu" data-name="信丰物流">信丰物流</option>
+									<option value="yafengsudi" data-name="亚风速递">亚风速递</option>
+									<option value="yibangwuliu" data-name="一邦速递">一邦速递</option>
+									<option value="youshuwuliu" data-name="优速物流">优速物流</option>
+									<option value="youzhengguonei" data-name="邮政包裹挂号信">邮政包裹挂号信</option>
+									<option value="youzhengguoji" data-name="邮政国际包裹挂号信">邮政国际包裹挂号信</option>
+									<option value="yuanchengwuliu" data-name="远成物流">远成物流</option>
+									<option value="yuanweifeng" data-name="源伟丰快递">源伟丰快递</option>
+									<option value="yuanzhijiecheng" data-name="元智捷诚快递">元智捷诚快递</option>
+									<option value="yuntongkuaidi" data-name="运通快递">运通快递</option>
+									<option value="yuefengwuliu" data-name="越丰物流">越丰物流</option>
+									<option value="yad" data-name="源安达">源安达</option>
+									<option value="yinjiesudi" data-name="银捷速递">银捷速递</option>
+									<option value="zhongtiekuaiyun" data-name="中铁快运">中铁快运</option>
+									<option value="zhongyouwuliu" data-name="中邮物流">中邮物流</option>
+									<option value="zhongxinda" data-name="忠信达">忠信达</option>
+									<option value="zhimakaimen" data-name="芝麻开门">芝麻开门</option>
+								</select>
+								<input type='hidden' name='expresscom' id='expresscom' />
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="col-xs-10 col-sm-3 col-md-3 control-label">快递单号</label>
+							<div class="col-xs-12 col-sm-9 col-md-8 col-lg-8">
+								<input type="text" name="expresssn" class="form-control" />
+							</div>
+						</div>
+						<div id="module-menus"></div>
+					</div>
+					<div class="modal-footer">
+						<button type="submit" class="btn btn-primary span2" name="confirmsend" value="yes">确认发货</button>
+						<a href="#" class="btn btn-default" data-dismiss="modal" aria-hidden="true">关闭</a>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<!-- 取消发货 -->
+		<div id="modal-cancelsend" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true" style="width:600px;margin:0px auto;">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button aria-hidden="true" data-dismiss="modal" class="close" type="button">×</button>
+						<h3>取消发货</h3>
+					</div>
+					<div class="modal-body">
+						<label>取消发货原因</label>
+						<textarea style="height:150px;" class="form-control" name="cancelreson" autocomplete="off"></textarea>
+						<div id="module-menus"></div>
+					</div>
+					<div class="modal-footer">
+						<button type="submit" class="btn btn-primary span2" name="cancelsend" value="yes">取消发货</button>
+						<a href="#" class="btn btn-default" data-dismiss="modal" aria-hidden="true">关闭</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</form>
+</div>
+
+<div id="modal-cancelsend" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true" style=" width:600px;">
+	<div class="modal-header"><button aria-hidden="true" data-dismiss="modal" class="close" type="button">×</button><h3>取消发货</h3></div>
+	<div class="modal-body">
+		<table class="tb">
+			<tr>
+				<th><label for="">取消发货原因</label></th>
+				<td>
+					<textarea style="height:150px;" class="span5" name="cancelreson" cols="70" autocomplete="off"></textarea>
+				</td>
+			</tr>
+		</table>
+		<div id="module-menus"></div>
+	</div>
+	<div class="modal-footer"><button type="submit" class="btn btn-primary span2" name="cancelsend" value="yes">取消发货</button><a href="#" class="btn" data-dismiss="modal" aria-hidden="true">关闭</a></div>
+</div>
+
+<script language='javascript'>
+$(function(){
+	{if !empty($express)}
+	$("#express").find("option[data-name='{$express['express_name']}']").attr("selected",true);
+	$("#expresscom").val($("#express").find("option:selected").attr("data-name"));
+	{/if}
+	$("#express").change(function(){
+		var obj = $(this);  
+		var sel = obj.find("option:selected").attr("data-name");
+		$("#expresscom").val(sel);
+	});
+})
+</script>
+{/if}
+<script>
+	require(['bootstrap'],function($){
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+	});
+</script>
+{template 'common/footer'}

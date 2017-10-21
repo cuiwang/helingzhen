@@ -1,0 +1,206 @@
+{template 'weheader'}
+{if $reside}<script src="{MODULE_URL}template/weui/js/city-picker.min.js"></script>{/if}
+{if $isloc}<script type="text/javascript" src="{TEMPLATE_WEUI}js/QQgetLocation.js"></script>{/if}
+<link rel="stylesheet" href="{MODULE_URL}template/weui/style/post.css">
+<style>
+
+.weui_msg .weui_extra_area {margin-bottom: 5px;}
+.weui_extra_area {z-index:0;}
+.record .weui_cells:first-child {margin-top:30px;}
+.record .weui_cells {margin:0;}
+.record img{width:1.2rem;height:1.2rem;}
+.m-img {background-position: top center;padding-bottom: 0;}
+.m-img img{width:100%;height:auto;}
+.m-masker {background-color: rgba(0, 0, 0, 0);position: relative;}
+.weui_cells_title, .weui_label{font-size:14px;}
+select {direction: rtl;}
+select option {direction: ltr;}
+</style>
+
+	{template 'insert/header'}
+
+	{if $activity['isinfo']}
+		{template 'insert/field_address'}
+	{/if}
+
+<form action="{php echo $this->createMobileUrl('dayu_form', array('weid' => $_W['uniacid'], 'id' => $reid))}" class="" enctype="multipart/form-data" method="POST" id="form">
+<input type="hidden" name="repeat" value="<?php echo md5(sha1(time())); ?>">
+
+	{if $activity['paixu']==0}
+		{template 'insert/join'}
+	{/if}
+
+	{if !empty($par['kami']) && pdo_tableexists('dayu_kami')}
+		{template 'insert/field_kami'}
+	{/if}
+	
+	{if !empty($linkage)}
+		{template 'insert/field_linkage'}
+	{/if}
+	
+	<div class="fields">
+	
+	{loop $ds $fields}
+				
+	{if $fields['type'] == 'text'}
+		{template 'insert/field_text'}
+	{/if}
+	
+	{if $fields['type'] == 'photograph'}
+		{template 'insert/field_photograph'}
+	{/if}
+		
+	{if $fields['type'] == 'email'}
+		{template 'insert/field_email'}
+	{/if}
+				
+	{if $fields['type'] == 'number'}
+		{template 'insert/field_number'}
+	{/if}
+				
+	{if $fields['type'] == 'textarea'} 
+		{template 'insert/field_textarea'}
+	{/if}
+				
+	{if $fields['type'] == 'radio' && !empty($fields['loc']) && pdo_tableexists('dayu_form_plugin_radio')}
+	<div class="weui_cells_title"><strong>{$fields['title']}</strong>{if $fields['essential']}<span>*</span>{/if}</div>
+	<div class="weui_cells weui_cells_checkbox">
+		<div class="weui_grids">
+			{php $i=1;}
+			{loop $fields['dayu_radio'] $v}
+				<label class="weui_grid js_grid weui_check_label" for="r{$fields['refid']}{$i}">
+					<div class="weui_grid_icon">
+						<img class="img-radius img-max center" src="{php echo tomedia($v['thumb'])}" alt="{$v['title']}">
+					</div>
+					<p class="weui_grid_label">
+						<span class="left"><input type="radio" class="weui_check" name="field_{$fields['refid']}_{$fields['bind']}" id="r{$fields['refid']}{$i}" value="{$v['title']}" {if $i==1}checked="checked"{/if}><i class="weui_icon_checked"></i></span>
+						<span class="right">{$v['title']}</span>
+					</p>
+				</label>
+			{php $i++;}
+			{/loop}
+		</div>
+	</div>
+	{elseif $fields['type'] == 'radio'}
+	<div class="weui_cells_title">
+		{$fields['title']}
+		{if $fields['essential']}<span class="f-red">*</span>{/if}
+	</div>
+	<div class="weui_cells weui_cells_radio">
+		{php $i=1;}
+		{loop $fields['options'] $v}
+		<label class="weui_cell weui_check_label" for="r{$fields['refid']}{$i}">
+			<div class="weui_cell_bd weui_cell_primary"><p>{$v}</p></div>
+			<div class="weui_cell_ft">
+				<input type="radio" class="weui_check" name="field_{$fields['refid']}_{$fields['bind']}" id="r{$fields['refid']}{$i}" value="{$v}" {if $i==1}checked="checked"{/if}>
+				<span class="weui_icon_checked"></span>
+			</div>
+		</label>
+		{php $i++;}
+		{/loop}
+	</div>
+	{/if}
+				
+	{if $fields['type'] == 'checkbox' && !empty($fields['loc']) && pdo_tableexists('dayu_form_plugin_radio')}
+	<div class="weui_cells_title"><strong>{$fields['title']}</strong>{if $fields['essential']}<span>*</span>{/if}</div>
+	<div class="weui_cells weui_cells_checkbox">
+		<div class="weui_grids">
+			{php $i=1;}
+			{loop $fields['dayu_radio'] $v}
+				<label class="weui_grid js_grid weui_check_label" for="r{$fields['refid']}{$i}">
+					<div class="weui_grid_icon">
+						<img class="img-radius img-max center" src="{php echo tomedia($v['thumb'])}" alt="{$v['title']}">
+					</div>
+					<p class="weui_grid_label">
+						<span class="left"><input type="checkbox" class="weui_check" name="field_{$fields['refid']}_{$fields['bind']}[]" id="r{$fields['refid']}{$i}" value="{$v['title']}" {if $i==1}checked="checked"{/if}><i class="weui_icon_checked"></i></span>
+						<span class="right">{$v['title']}</span>
+					</p>
+				</label>
+			{php $i++;}
+			{/loop}
+		</div>
+	</div>
+	{elseif $fields['type'] == 'checkbox'}
+	<div class="weui_cells_title">
+		{$fields['title']}
+		{if $fields['essential']}<span class="f-red">*</span>{/if}
+	</div>
+	<div class="weui_cells weui_cells_checkbox">
+		{php $i=1;}
+		{loop $fields['options'] $v}
+		<label class="weui_cell weui_check_label" for="c{$fields['refid']}{$i}">
+			<div class="weui_cell_hd">
+				<input type="checkbox" class="weui_check" name="field_{$fields['refid']}_{$fields['bind']}[]" id="c{$fields['refid']}{$i}" value="{$v}" {if $i==1}checked="checked"{/if}>
+				<i class="weui_icon_checked"></i>
+			</div>
+			<div class="weui_cell_bd weui_cell_primary"><p>{$v}</p></div>
+		</label>
+		{php $i++;}
+		{/loop}
+	</div>
+	{/if}
+						
+	{if $fields['type'] == 'select'}
+	<div class="weui_cells weui_cells_form">
+		<div class="weui_cell weui_cell_select weui_select_after">
+			<div class="weui_cell_hd">{$fields['title']}{if $fields['essential']}<span>*</span>{/if}</div>
+			<div class="weui_cell_bd weui_cell_primary">
+				<select class="weui_select" name="field_{$fields['refid']}_{$fields['bind']}">
+				{loop $fields['options'] $v}
+					<option value="{$v}" {if $v == $fields['default']} selected="selected"{/if}>{$v}</option>
+				{/loop}
+				</select>
+			</div>
+		</div>
+	</div>
+	{/if}
+
+	{if $fields['type'] == 'image'}
+		{template 'insert/field_image'}
+	{/if}
+		
+	{if $fields['type'] == 'calendar'}
+		{template 'insert/field_calendar'}
+	{/if}
+		
+	{if $fields['type'] == 'range'}
+		{template 'insert/field_range'}
+	{/if}
+		
+	{if $fields['type'] == 'reside'}
+		{template 'insert/field_reside'}
+	{/if}
+		
+	{/loop}
+	</div>
+	{if $activity['plural']==1}
+	{template 'insert/pics'}
+	{/if}
+	{if $activity['isvoice']==1}
+	{template 'insert/voice'}
+	{/if}
+	{if $activity['paixu']==1}
+	{template 'insert/join'}
+	{/if}
+	
+    <div class="weui_btn_area row">
+	{if !empty($activity['agreement'])}
+		{template 'insert/field_agreement'}
+	{/if}
+		{template 'insert/field_var'}
+		<input type="hidden" name="token" value="{$_W['token']}" />
+        <button class="weui_btn weui_btn_primary" name="submit" type="submit" id="formSubmitBtn">{$submitname}</button>
+    </div>
+</form>
+	{template 'insert/field_footer'}
+	{if !empty($par['comment']) && pdo_tableexists('dayu_comment')}
+	</div>
+        <div class="weui_tab_bd_item">
+            {template 'insert/comment'}
+        </div>
+	{/if}
+</div>
+	{template 'insert/popup'}
+
+	{template 'insert/script'}
+{template 'footers'}

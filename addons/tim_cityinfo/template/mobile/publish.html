@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>我的发布</title>
+<meta charset="utf-8">
+<meta name="viewport" content="initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width">
+<meta name="format-detection" content="telephone=no">
+<meta name="format-detection" content="email=no">
+<meta name="format-detection" content="address=no;">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="stylesheet" type="text/css" href="<?php echo MODULE_URL;?>template/mobile/css/style.css?v=<?php echo time();?>">
+<script type="text/javascript" src="<?php echo MODULE_URL;?>template/mobile/js/jquery.min.js"></script>
+<style>
+	#btn_click{display:block;cursor:pointer;color: #FFF;width: 100%;line-height:44px;height: 44px;background: #FF5B1B;border: none;border-radius: 5px;font-size: 16px;vertical-align: middle;margin-top:30px;}
+</style>
+</head>
+<body>
+<div id="xctmhBox">
+	<div class="top">
+        <div class="tmHeader">
+            <div class="logo">
+            	<a href="<?php echo $this->createMobileUrl('comeIn');?>"><img src="{$_W['attachurl']}{$set['logo']}" alt="" width="60" height="30"></a>
+            </div>
+            <span class="text-icon"><a href="<?php echo $this->createMobileUrl('per');?>">我的</a></span>
+        </div>
+    </div>
+
+	<div class="nav">
+	    <div class="nav_a">
+	        <a href="<?php echo $this->createMobileUrl('comeIn');?>">首页</a>&gt;
+	        <a href="<?php echo $this->createMobileUrl('category',array("cate_id"=>$cate_data['parentid']));?>">{$cate_data['name']}</a>&gt; 
+	        <a class="nav_nourl" href="javascript:;">填写信息</a>
+	    </div>
+	</div>
+
+<form id="postForm" method="post" action="{php echo $this->createMobileUrl('pubsub');}" >
+    <input type="text" name="location" id="location" hidden/>
+    <li class="_item">
+    	<span class="title">标题</span>
+    	<input type="text" name="event_title" id="event-title" value="">
+    </li>
+    <li class="_item miaoshuTarea">
+    	<span class="title">描述</span>
+    	<textarea class="miaoshu" name="event_content" id="event-content" value=""></textarea>
+    </li>
+    <li class="_item">
+    	<span class="title">详细地址</span>
+    	<input  type="text" name="address" id="address" value="{$users['address']}">
+    </li>
+    <li class="_item">
+    	<span class="title">联系人</span>
+    	<input  type="text" name="realname" id="realname" value="{$users['realname']}">
+    </li>
+    <li class="_item">
+    	<span class="title">手机号</span>
+    	<input type="text"  name="mem_tel" id="mem-tel" value="{$users['mem_tel']}">
+    </li>
+    <li class="_item" style="overflow:hidden;height:auto;">
+		<span class="title" style="display:block">上传图片</span>
+		<div id="img" style="float:left;height:auto;padding:10px 0 20px;width:250px">
+ 						<a href="javascript:;" id="upimg" style="vertical-align:top;display: inline-block;width: 78px;height: 58px;background: url(<?php echo MODULE_URL;?>template/mobile/img/mpnew_bg.png) -40px -550px;border: dashed #a2a7ad 1px;font-size: 40px;font-weight: bold;color: #fff;line-height: 58px;text-align: center;overflow: hidden; text-decoration:none;margin-right:5px;"></a>
+ 		</div>
+    </li>
+    <li class="_item" style="margin-top:10px;border-top:1px solid #E7E5E2;height:auto;">
+    	<span class="title">置顶</span>
+    	<select name="is_first" id="first-sel">
+    		<option value="0" >不置顶</option>
+    		<option value="1" >一天</option>
+    		<option value="3" >三天</option>
+    		<option value="7" >七天</option>
+    		<option value="15" >半个月</option>
+    		<option value="30" >30天</option>
+    	</select>
+    	<p id="fukuan" style="margin:0 15px;font-size:14px;"></p>
+    </li>
+    <div class="post  btnPost">
+    	<input type="hidden" value="{$users['mem_id']}" name="mem_id">
+    	<input type="hidden" value="{$cate_id}" name="cate_id">
+    	<input type="hidden" value="" name="short_img" id="short-img">
+    	<input type="hidden" value="" name="starttime" id="starttime">
+    	<input type="hidden" value="" name="is_zd" id="starttime">
+    	<input type="hidden" value="" name="first_fee" id="first-fee">
+    	<input type="hidden" name="token" value="{$_W['token']}" />
+    	<a type="submit" id="btn_click" class="btn btn-primary btn-block" name="submit" value="发布">发布</a>
+    	<button type="submit" style="display:none;" class="btn_post" id="btn_post">发布</button>
+    </div>
+</form>
+
+ 	<div class="footer">
+    	<p>{$set['footer_info']}</p>
+    </div>
+</div>
+{php echo register_jssdk(false);}
+<script type="text/javascript" src="https://webapi.amap.com/maps?v=1.3&key=806b15d8d62650770d0594676691bc44&plugin=AMap.Geocoder"></script>
+<script>
+wx.ready(function () {
+    wx.getLocation({
+          success: function (res) {
+              var latitude = res.latitude; // 纬度，浮点数，范围为90 ~ -90
+              var longitude = res.longitude; // 经度，浮点数，范围为180 ~ -180。
+              var speed = res.speed; // 速度，以米/每秒计
+              var accuracy = res.accuracy; // 位置精度
+            //alert(latitude+' '+longitude);
+            regeocoder([longitude, latitude]);
+          },
+          cancel: function (res) {
+              alert('用户拒绝授权获取地理位置');
+          }
+    });
+  });
+
+    lnglatXY = [longitude, latitude]; //已知点坐标
+    function regeocoder(lnglatXY) {  //逆地理编码
+        var geocoder = new AMap.Geocoder({
+            radius: 1000,
+            extensions: "all"
+        });        
+        geocoder.getAddress(lnglatXY, function(status, result) {
+            if (status === 'complete' && result.info === 'OK') {
+                geocoder_CallBack(result);
+            }
+        });        
+        
+    }
+    function geocoder_CallBack(data) {
+        var address = data.regeocode.formattedAddress; //返回地址描述
+		var city = data.regeocode.addressComponent.district;
+		if (city.indexOf('区')>0) {
+			city = (data.regeocode.addressComponent.city).replace("市", "");
+		}
+		if (city.indexOf('县')>0) {
+			city = city.replace("县", "");
+		}
+        $("#location").val(city);
+        
+    }
+</script>
+<script>
+	$("#first-sel").change(function(){
+    	var dolar = $("#first-sel").val();
+    	var per  = {php echo $set['first_perfee']};
+    	var yhye = <?php if(empty($user['mem_dolar'])){echo 0;}else{echo $user['mem_dolar'];}?>;
+    	var total = (parseInt(dolar)*parseFloat(per)).toFixed(2);
+    	var is_zd;
+    	if(parseFloat(total)>parseFloat(yhye)){is_zd=0;}else{is_zd=1;}
+    	if(parseInt(dolar)!==0){
+    		if(is_zd){
+    			$("#fukuan").html("应付金额：<span style='color:#ff662c'>"+total+"</span>元");
+    		}else { 
+    			$("#fukuan").html("应付金额：<span style='color:#ff662c'>"+total+"</span>元，你的余额仅有<span style='color:#ff662c'>"+yhye+"</span>元");
+    		}
+    		$("#first-fee").val(total);
+    		$("#starttime").val(dolar);
+    	} else { 
+    		$("#fukuan").html("");
+        $("#first-fee").val(total);
+    	}
+    	
+    });
+	$("#btn_click").click(function(){
+        var event_title = $("#event-title").val();
+        var event_content = $("#event-content").val();   
+        var address = $("#address").val();
+        var realname = $("#realname").val();
+        var mem_tel = $("#mem-tel").val();
+        var zd_ok = $("#fukuan").html();
+        if(event_title=="") {
+            alert( "请输入标题!");
+            return ;
+        }
+        if (event_content=="") {
+            alert("请输入描述");
+            return ;
+        }
+        if (address=="") {
+            alert("请输入地址");
+            return ;
+        }
+        if (realname=="") {
+            alert("请输入联系人");
+            return ;
+        }
+        if (zd_ok.indexOf('你的余额仅有')>0) {
+            alert("余额不足");
+            return ;
+        }
+        if (!/^1\d{10}$/.test(mem_tel)) {//
+            alert("请输入正确的电话号码或手机号");
+            return ;
+        }
+        $("#btn_post").click();
+    });
+</script>
+<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+{php echo register_jssdk(false);}
+<script>
+  	
+  	wx.ready(function () {
+    	var images = {
+		    localId: [],
+		    serverId: [],	
+	  	};
+	document.querySelector('#upimg').onclick = function () {
+    //选择图片后开始异步上传到微信服务器，在syncUpload中接受微信服务器返回的资源id，组合后uploadserverid异步上传到服务器，服务器处理后返回图片的路径，客户端js接受图片路径后组合成html，动态插入。
+	    wx.chooseImage({
+		    success: function (res) {
+		        images.localId = res.localIds;
+		        len = images.localId.length;		 
+		        syncUpload(images.localId);    
+		    }
+	    });
+  	};
+						
+  	//异步上传图片到微信服务器
+  	var syncUpload = function(localIds){
+				if (len > 1) {
+					alert('每次只能上传一张图片。');
+					return;
+				}
+      	var localId = localIds.shift();
+      
+      	wx.uploadImage({
+            localId: localId,
+            isShowProgressTips: 1,
+            success: function (res) { 
+                 images.serverId.push(res.serverId);// 返回图片的服务器端ID    
+                 if(len==images.serverId.length){
+                  
+                 //异步上传图片id到服务器
+                  var  serverids = images.serverId.join(',');
+                 
+                  /*alert(serverids);*/
+                  uploadserverid(serverids); 
+                    wx.downloadImage({
+					    serverId: serverids, // 需要下载的图片的服务器端ID，由uploadImage接口获得
+					    isShowProgressTips: 1, // 默认为1，显示进度提示
+					    success: function (res) {
+					         // 返回图片下载后的本地ID
+					    }
+					});         
+                 //销毁数据
+                  images.localId = images.serverId  = [];
+                 }
+                //其他对serverId做处理的代码
+                 if(localIds.length > 0){
+                  syncUpload(localIds);
+                 }
+                 
+            },
+            error: function(){
+              alert("error");
+            }
+      	});
+            
+  	};
+  	
+  	//异步上传图片id到服务器，服务器返回真正的图片地址，js组装后显示在页面上
+  	var uploadserverid = function(serverId){
+ 
+         $.ajax({
+         url: "{php echo $this->createMobileUrl('upload')}",
+         type: "GET",  
+         dataType:'json',       
+         data: "serverid="+serverId,
+         success: function(msg){
+            if(msg==''){
+              alert("上传失败，请重试");
+            }
+			if(msg=='1'){
+              alert("抱歉，全局设置APPID或者appsecret为空！");
+            }
+			if(msg=='2'){
+              alert("抱歉，全局设置APPID或者appsecret填错！");
+            }
+            //拼接html
+            htmlpin(msg);
+         },
+         error:function(){
+            alert("上传失败，请重试");
+         } 
+       });
+  	}
+ 
+	var htmlpin = function(msg){
+		var a = msg.indexOf(",");
+		var pval = $("#event-content").val();
+		if(a>0) {
+			var imgarr = msg.split(",");
+			
+			for(var i=0;i<imgarr.length;i++){
+		 		$("#img").append("<img style='vertical-align:top;height:70px;margin-left:10px;display:inline-block;' id='img0' src='"+"../addons/tim_cityinfo/upimg/"+msg[i]+"'>");
+		 	}
+		 } else { 
+		 	$("#img").append("<img style='vertical-align:top;height:70px;margin-bottom:5px;margin-right:5px;display:inline-block;' id='img0' src='"+"../addons/tim_cityinfo/upimg/"+msg+"'>");
+		 }
+	 	//$("#event-content").val(pval+'<img src="'+"../addons/tim_cityinfo/upimg/"+msg+'">');
+	 	$("#short-img").val(msg);
+	}
+
+});
+</script>

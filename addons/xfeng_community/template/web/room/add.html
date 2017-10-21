@@ -1,0 +1,103 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+    <li {if $op == 'list'} class="active"{/if}>
+        <a href="{php echo $this->createWebUrl('room', array('op' => 'list'));}">房号管理</a>
+    </li>
+    <li {if $op == 'add'} class="active"{/if}>
+        <a href="{php echo $this->createWebUrl('room', array('op' => 'add'));}">导入房号</a>
+    </li>
+</ul>
+
+<div class="panel panel-default">
+  <div class="panel-heading">导入房号数据</div>
+  <div class="panel-body">
+    <div class="alert alert-info" role="alert">
+        默认导入格式:姓名/手机号码/房号。具体请下载模板格式。
+        <p>(<a href="{MODULE_URL}template/upFile/room.xlsx" target="_blank" style="font-size:16px;color:red">点击下载上传房号格式示例</a>)</p>
+    </div>
+    <form class="form-horizontal" action="" method="post" enctype="multipart/form-data" onsubmit="return check(this);" >
+    {if !$user['regionid']}
+     <div class="form-group">
+        <label for="" class="col-sm-2 control-label">选择小区</label>
+        <div class="col-sm-4">
+          <select name='regionid' class="form-control" id="regionid">
+            {loop $regions $region}
+            <option value='{$region['id']}' > {$region['title']}</option>
+            {/loop}
+          </select>
+        </div>
+      </div>
+    {/if}
+      <div class="form-group">
+        <label for="" class="col-sm-2 control-label">房号数据</label>
+        <div class="col-sm-4">
+          <input type="file" name="room" class="form-control" id="room">
+        </div>
+      </div>
+      <div class="form-group">
+            <label for="" class="col-sm-2 control-label"></label>
+            <div class="col-sm-10">
+               <!--<button type="submit" class="btn btn-primary span3" name="submit" value="提交" id="submit">提交</button>-->
+                <button type="button" id="myButton" data-loading-text="正在导入中，请勿关闭和刷新浏览器......" class="btn btn-primary" autocomplete="off">
+                    提交
+                </button>
+                <input type="hidden" name="token" value="{$_W['token']}" />
+            </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script type="text/javascript">
+  function check(form){
+            if (!form['room'].value) {
+                alert('请上传房号表格');
+                return false;
+            }
+            return true;
+        }
+//$(function () {
+//    $("#submit").click(function () {
+//        var room = $("#room").val();
+//        var regionid = $("#regionid option:selected").val();
+//        $.post("{php echo $this->createWebUrl('room',array('op'=> 'add'))}",{room:room,regionid:regionid},function (s) {
+//            if(s.result == 1){
+//                $('#myModal').modal('show');
+//            }
+//        },'json')
+//    })
+//})
+
+</script>
+<script>
+    $('#myButton').on('click', function () {
+        var $btn = $(this).button('loading');
+        var regionid = $("#regionid option:selected").val();
+
+        var formData = new FormData();
+        formData.append('room', $('#room')[0].files[0]);
+        formData.append('regionid', regionid);
+        $.ajax({
+            url : "{php echo $this->createWebUrl('room',array('op'=> 'add'))}",
+            type : "POST",
+            cache: false,
+            data : formData,
+            processData: false,
+            contentType: false,
+            dataType: "json",
+            success : function(data) {
+                if(data.result){
+                    alert(data.content);
+                    setTimeout(function(){
+                        window.location.href="{php echo $this->createWebUrl('room')}";
+                    },000);
+                }
+            },
+            error : function(data) {
+
+            }
+        });
+    })
+</script>
+
+{template 'common/footer'}

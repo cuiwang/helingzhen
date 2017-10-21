@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<title>{$product['pname']}</title>
+<meta name="viewport" content="initial-scale=1.0,maximum-scale=1,user-scalable=no">
+<meta name="apple-touch-fullscreen" content="YES">
+<meta name="apple-mobile-web-app-capable" content="yes">
+</head>
+<body>
+<style type="text/css">
+body{ padding:0; margin:0; background-color:#313131; overflow:hidden; }
+header{ width:100%; height:100%; overflow:hidden; text-align:center;}
+header img{ max-width:100%; max-height:100%; vertical-align:middle; margin:0 auto; text-align:center; }
+a.close{
+	position:fixed;
+	top:0;
+	left:0;
+	color:#fff;
+	text-decoration:none;
+	width:48px;
+	height:48px;
+	display:block;
+}
+.detail h2, .detail div, .detail p{ margin-left:10px; }
+.detail{
+    width: 100%;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+	background-color: rgba(0, 0, 0, 0.7);
+	color:#fff;
+	font-size:15px;
+	line-height:24px;
+	z-index:100;
+	height:85px;
+}
+.detail h2{ font-weight:bold; font-size:15px; margin:10px 0 0 10px;display: inline-block;width: 80%; }
+.detail p{ margin:0 0 10px 10px;}
+.detail span{ position:absolute; top:0; right:0; padding:20px 10px 0 0; cursor:pointer; }
+.detail .content{ border-top: 2px solid #000000; padding-top:10px; overflow-y:auto; height:100%}
+</style>
+<a class="close" href="javascript:void(0);"><img src="../addons/mon_brand/images/back.png" width="48" height="48"></a>
+<div id="header" style="text-align: center; width: 100%; overflow: hidden; height: 653px;">
+<img id="img" src="{$_W['attachurl']}{$product['image']}" style="visibility: visible; width: 100%;"></div>
+<div class="detail" style="height: 85px;">
+<h2>{$product['pname']}</h2>
+<p id="detailDesc" style="display: block;">{$product['pname']}</p>
+<div style="height: 609px; display: none;" id="detailContent" class="content">
+{$product['summary']}
+<br/>
+<br/>
+<br/>
+{$product['intro']}
+ </div>
+<span id="showDetail" style="padding-top: 20px;">详情◥</span>
+</div>
+<div id="activity_id" style="display:none;">2651</div>
+<div id="channel_id" style="display:none;">0</div>
+<script type="text/javascript" src="../addons/mon_brand/js/jquery-1.7.2.min.js"></script>
+
+<script type="text/javascript">
+//显示详情事件
+var isshow = false;
+$('#showDetail').click(function(){
+	if(isshow == false){
+		$(this).html('详情◢').css('padding-top', '8px');
+		$('.detail').css('height', '100%');
+		$('#detailDesc').hide();
+		$('#detailContent').show();
+		isshow = true;
+	}else{
+		$(this).html('详情◥').css('padding-top', '20px');
+		$('.detail').css('height', '85px');
+		$('#detailContent').hide();
+		$('#detailDesc').show();
+		isshow = false;
+	}
+});
+
+// 返回按钮事件
+$(".close").attr("href","javascript:void(0);").click(function(){
+    if ( /(iPhone|iPad|iPod)/i.test(navigator.userAgent) || /MicroMessenger/i.test(navigator.userAgent) ){
+		window.location.href = '{php echo $this->createMobileUrl('brand',array("bid"=>$bid))}';
+    } else {
+    	window.location.href = '{php echo $this->createMobileUrl('brand',array("bid"=>$bid))}';
+    	//window.history.back();
+    }
+});
+
+$(document).ready(function(){
+	var h = document.documentElement.clientHeight;
+
+	loadImage($('#img').attr('src'), imgLoaded);
+	
+	
+
+	$('#detailContent').height($(window).height() - $('.detail').children(':first').height() -20);
+
+	// 内容滑到顶或底部，不能再滑动
+	$("body").bind("touchmove", function(event) {
+		var sh = document.getElementById("detailContent").scrollHeight;
+		var st = $("#detailContent").scrollTop();
+		if(st <= 0){
+			$("#detailContent").scrollTop(1);
+		}
+		if(st >= sh){
+			$("#detailContent").scrollTop((sh-2));
+		}
+	});
+	
+	var activity_id = document.getElementById('activity_id').innerHTML;
+	$.ajax({
+		   type: "get",
+		   url: "/analyseplugin/plugin?activity_id=" + activity_id + "&plugtype=info_list",
+		   dataType: "json",
+		   success: function(msg){
+			   if(msg.result==1){
+				   //alert('操作成功！');
+				}else{
+					//alert("操作失败，" + msg.msg);
+				}
+		   }
+		});
+
+	function imgLoaded() {
+		$('#header').height(h);
+
+		var boxH = h-85; // 70为$('.detail').height()，详情未展开高度
+		var imgH = $('#img').height();
+		
+		if(imgH > 50 && (boxH-imgH)>0){
+			$('#img').css('margin-top', (boxH-imgH)/2);
+		}
+		
+		/*android4.0 height hack*/
+	    if((navigator.userAgent.match(/.*Android\s4\.0.*/i) && !navigator.userAgent.match(/.*Chrome.*/i)) || navigator.userAgent.match(/Apple.*/i) ){
+	        setTimeout(function(){
+		        var boxH = $(window).height()-85;
+		        var imgH = $('#img').height();
+		        if(imgH > 50 && (boxH-imgH)>0){
+		                $('#img').css('margin-top', (boxH-imgH)/2);
+		        }
+	    	},100);
+	    }
+	    /*android4.0 height hack*/
+		$('#img').css("visibility","visible");
+	}
+	
+	function loadImage(url, callback) {
+		
+		var img = new Image();
+		
+		img.src = url;
+		
+		if (img.complete) {
+			callback.call(img);
+			return;
+		}
+		
+		img.onload = function () {
+			callback.call(img);
+		};
+	}
+	
+});
+</script></body></html>

@@ -1,0 +1,186 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+    <li {if $op=='list' } class="active" {/if}>
+        <a href="{php echo $this->createWebUrl('room', array('op' => 'list'));}">房号管理</a>
+    </li>
+    <li {if $op=='add' } class="active" {/if}>
+        <a href="{php echo $this->createWebUrl('room', array('op' => 'add'));}">导入房号</a>
+    </li>
+</ul>
+
+<div class="panel panel-info">
+    <div class="panel-heading">筛选</div>
+    <div class="panel-body">
+        <form action="./index.php" method="get" class="form-horizontal" role="form">
+            <input type="hidden" name="c" value="site" />
+            <input type="hidden" name="a" value="entry" />
+            <input type="hidden" name="m" value="xfeng_community" />
+            <input type="hidden" name="do" value="room" />
+            <div class="form-group">
+                <label for="uploadExcel" class="col-sm-2 control-label">选择小区</label>
+                <div class="col-sm-4">
+                    <select name='regionid' class="form-control">
+                        <option value="">选择小区</option>
+                        {loop $regions $region}
+                        <option value='{$region['id']}' {if $region['id'] == $_GPC['regionid']}selected = 'selected'{/if}> {$region['title']}</option>
+                        {/loop}
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 control-label">房号</label>
+                    <div class="col-sm-4">
+                        <input class="form-control" name="room"  type="text" value="{$_GPC['room']}">
+                    </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-2 col-md-2 control-label">姓名</label>
+                <div class="col-sm-4">
+                    <input class="form-control" name="realname" type="text" value="{$_GPC['realname']}">
+                </div>
+            </div>
+            <div class="form-group">
+                      <label class="col-xs-12 col-sm-2 col-md-2 control-label">是否注册</label>
+                      <div class="col-sm-8 col-md-8 col-lg-4 col-xs-12">
+                        <select name='status' class="form-control">
+                            <option value="0" {if $_GPC['status'] == '0'} selected="selected" {/if}>不限</option>
+                            <option value="1" {if $_GPC['status'] == '1'} selected="selected" {/if}>已注册</option>
+                            <option value="2" {if $_GPC['status'] == '2'} selected="selected" {/if}>未注册</option>
+                        </select>
+                      </div>
+                    </div>
+            <div class="form-group">
+                <label for="" class="col-sm-2 control-label"></label>
+                <div class="col-sm-4">
+                    <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<form action="" class="form-horizontal form" method="post" enctype="multipart/form-data">
+    <div style="padding:15px;">
+        <table class="table table-hover table-condensed">
+            <thead class="navbar-inner">
+                <tr>
+                    <th class="col-sm-1">删？</th>
+                    <th class="col-sm-1">ID</th>
+                    <th class="col-sm-1">业主姓名</th>
+                    <th class="col-sm-2">小区名称</th>
+                    <th class="col-sm-2">地址<span style="color: red;">(与物业费的地址一致)</th>
+                    <th class="col-sm-1">注册码</th>
+                    <th class="col-sm-2">联系电话</th>
+                    <th class="col-sm-1">是否注册</th>
+                    <th class="col-sm-2">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {loop $list $item}
+                <tr>
+                    <td style="width:30px;">
+                        <input type="checkbox" name="rid[]" value="{$item['id']}">
+                    </td>
+                    <td>{$item['id']}</td>
+                    <td>{$item['realname']}</td>
+                    <td>
+                        <?php
+                            $region = $this->region($item['regionid']);
+                            echo $region['title'];
+
+                        ?>
+
+                    </td>
+                    <td>{$item['room']}</td>
+                    <td>{$item['code']}</td>
+                    <td>{$item['mobile']}</td>
+                    <td>
+                        <label data='{$item['status']}' class='label  label-default {if $item['status']==1}label-info{/if}' onclick="verify(this,{$item['id']},'status')">{if $item['status']==1}已注册{else}未注册{/if}</label>
+
+                    </td>
+                    <td>
+                        <a href="{php echo $this->createWebUrl('room',array('op' => 'edit','rid' => $item['id']))}" title="编辑" class="btn btn-default btn-sm"><i class="fa fa-edit" data-toggle="tooltip" data-placement="top"></i>编辑</a>
+                    </td>
+                </tr>
+                {/loop}
+            </tbody>
+        </table>
+        <table class="table table-hover">
+            <tr>
+                <td width="30">
+                    <input type="checkbox" onclick="var ck = this.checked;$(':checkbox').each(function(){this.checked = ck});" />
+                </td>
+                <td class="text-left">
+                    <input name="token" type="hidden" value="{$_W['token']}" />
+                    <input type="submit" class="btn btn-primary span2" name="delete" value="删除" /> &nbsp;
+                    <button type="submit" class="btn btn-success" onclick="return confirm('确认短信通知用户吗？'); return false;" name="sms" value="yes">短信通知</button>
+                    <a class="btn btn-default btn-sm" href="javascript:;" data-toggle="modal" data-target="#room_{$id}"><i class='glyphicon glyphicon-plus'></i>添加房号</a>
+                    <button type="submit" name="export" value="1" class="btn btn-default btn-sm"><i class="glyphicon glyphicon-download-alt"></i>导出房号</button>
+                    <button type="submit" name="update" value="1" class="btn btn-default btn-sm"><i class="glyphicon glyphicon-edit"></i>批量重置注册码</button>
+                    <button class="btn btn-default" type="submit" name="del" value="1"><i class="glyphicon glyphicon-remove-circle"></i>批量删除</button>
+                    <span style="color: red">总人数:{$total}人</span>
+                </td>
+            </tr>
+        </table>
+        {$pager}
+    </div>
+</form>
+<!-- Modal -->
+<div class="modal fade" id="room_{$id}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">添加房号</h4>
+            </div>
+            <form action="" class="form-horizontal form" method="post" enctype="multipart/form-data" onsubmit="return check(this);">
+                <div class="panel panel-default">
+                    <!-- <div class="panel-heading">
+                        <h3 class="panel-title">房号信息</h3>
+                    </div> -->
+                    <div class="panel-body">
+                        <div class="form-group">
+                            <label for="realname" class="col-sm-2 control-label">业主姓名</label>
+                            <div class="col-xs-5">
+                                <input type='text' name='realname' id='realname' class="form-control" placeholder="请输入业主姓名" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="room" class="col-sm-2 control-label">房号名称</label>
+                            <div class="col-xs-5">
+                                <input type='text' name='room' id='room' class="form-control" placeholder="请输入房号信息" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="" class="col-sm-2 control-label">手机号码</label>
+                            <div class="col-sm-5">
+                                <input type='text' name='mobile' id='mobile' class="form-control" placeholder="请输入手机号码" />
+                            </div>
+                        </div>
+                        {if !$user['regionid']}
+                        <div class="form-group">
+                            <label for="uploadExcel" class="col-sm-2 control-label">选择小区</label>
+                            <div class="col-sm-5">
+                                <select name='regionid' class="form-control">
+                                    {loop $regions $region}
+                                    <option value='{$region['id']}' {if $region['id'] == $_GPC['regionid']}selected = 'selected'{/if}> {$region['title']}</option>
+                                    {/loop}
+                                </select>
+                            </div>
+                        </div>
+                        {/if}
+                        <div class="form-group">
+                            <label for="" class="col-sm-2 control-label"></label>
+                            <div class="col-sm-10">
+                                <button type="submit" class="btn btn-primary span3" name="submit" value="提交">提交</button>
+                                <input type="hidden" name="token" value="{$_W['token']}" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{template 'common/footer'}

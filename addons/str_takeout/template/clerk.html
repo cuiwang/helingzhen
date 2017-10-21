@@ -1,0 +1,183 @@
+{template 'common/header'}
+{template 'nav'}
+<div class="alert alert-info">
+	<h4><i class="fa fa-info-circle"></i> 店员说明</h4>
+	1). 添加微信管理员需要您的公众号号为: 认证订阅号 或 认证服务号<br>
+	2). 因为添加管理员是通过粉丝昵称搜索相应管理员的信息,所以添加店员之前,需要 <a href="{php echo url('mc/fans');}" target="_blank">下载粉丝列表</a> & <a href="{php echo url('mc/fans');}" target="_blank">更新粉丝信息</a> & <a href="{php echo url('mc/fangroup');}" target="_blank">更新粉丝分组</a><br>
+	3). 如果您不想使用昵称来搜索粉丝，可通过粉丝id进行搜索
+</div>
+{if $op == 'clerk_post'}
+<div class="clearfix">
+	<form class="form-horizontal form" id="form1" action="" method="post" enctype="multipart/form-data">
+		<input type="hidden" name="openid" value="" id="openid">
+		<div class="panel panel-default">
+			<div class="panel-heading">添加管理员</div>
+			<div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="require"> </span>是否是管理员</label>
+					<div class="col-sm-9 col-xs-12">
+						<label class="radio-inline"><input type="radio" value="1" {if $clerk['is_sys'] == 1}checked{/if} name="is_sys"> 是</label>
+						<label class="radio-inline"><input type="radio" value="0" {if !$clerk['is_sys']}checked{/if} name="is_sys"> 否</label>
+						<div class="help-block">如果设置为是，该店员可在手机端管理订单</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="require"> </span>店员姓名</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" name="title" value="{$clerk['title']}" class="form-control">
+						<div class="help-block">请填写管理员姓名。姓名不能重复</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="require"> </span>邮箱</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" name="email" value="{$clerk['email']}" class="form-control">
+						<div class="help-block">当有新订单时，系统或发送邮件到该邮箱</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="require"> </span>管理员微信昵称</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" name="nickname" value="{$clerk['nickname']}" class="form-control">
+						<div class="help-block">请填写微信昵称。系统根据微信昵称获取该商家对应公众号的openid</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="require"> </span> 或 管理员粉丝编号</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" name="openid" value="{$clerk['openid']}" class="form-control">
+						<div class="help-block">请填写微信编号。系统根据微信编号获取该商家对应公众号的openid</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="form-group col-sm-12">
+			<input name="submit" id="submit" type="submit" value="提交" class="btn btn-primary col-lg-1">
+			<input type="hidden" name="token" value="{$_W['token']}" />
+		</div>
+	</form>
+</div>
+<script>
+	require(['util'], function(u){
+		var acid = '{$notice_acid}';
+		var id = '{$id}';
+		$('#form1').submit(function(){
+			var title = $.trim($(':text[name="title"]').val());
+			if(!title) {
+				u.message('请填写管理员名称');
+				return false;
+			}
+			var nickname = $.trim($(':text[name="nickname"]').val());
+			var openid = $.trim($(':text[name="openid"]').val());
+			var email = $.trim($(':text[name="email"]').val());
+			if(!nickname && !openid && !email) {
+				u.message('请填写管理员微信昵称或粉丝编号或粉丝邮箱');
+				return false;
+			}
+			var is_sys = parseInt($(':radio[name="is_sys"]:checked').val());
+			if(openid || nickname) {
+				$.post('{php echo $this->createWebUrl("manage", array("op" => "fetch_openid"))}', {'acid' : acid, 'nickname' : nickname, 'openid' : openid}, function(data){
+					if(data == 'error') {
+						u.message('请检查管理员微信昵称或粉丝编号是否有效。系统找不到对应的粉丝昵称或粉丝编号<br>你可以尝试下载粉丝和更新粉丝信息');
+						return false;
+					} else {
+						var data = $.parseJSON(data);
+						var param = {
+							'id' : id,
+							'nickname' : data.nickname,
+							'title' : title,
+							'openid' : data.openid,
+							'email' : email,
+							'is_sys' : is_sys
+						}
+						$.post('{php echo $this->createWebUrl("manage", array("op" => "clerk_post"))}', param, function(dat) {
+							if(dat == 'success') {
+								u.message('添加管理员成功', "{php echo $this->createWebUrl('manage', array('op' => 'clerk_list'));}" , 'success');
+							} else {
+								u.message(dat, '', 'success');
+							}
+						});
+						return false;
+					}
+				});
+			} else {
+				var param = {
+					'id' : id,
+					'title' : title,
+					'email' : email,
+					'is_sys' : is_sys
+				}
+				$.post('{php echo $this->createWebUrl("manage", array("op" => "clerk_post"))}', param, function(dat) {
+					if(dat == 'success') {
+						u.message('添加管理员成功', "{php echo $this->createWebUrl('manage', array('op' => 'clerk_list'));}" , 'success');
+					} else {
+						u.message(dat, '', 'success');
+					}
+				});
+			}
+			return false;
+		});
+	});
+</script>
+{else}
+<div class="mian">
+	<form class="form-horizontal" action="" method="post">
+		<div class="form-group" style="margin-bottom:10px;margin-left:-35px">
+			<div class="col-sm-12">
+				<a href="{php echo $this->createWebUrl('manage', array('op' => 'clerk_post'))}" class="btn btn-success col-lg-2" style="margin-left:20px">添加管理员</a>
+				<a href="{php echo url('profile/notify');}" target="_blank" class="btn btn-primary col-lg-2" style="margin-left:20px">设置邮件服务器</a>
+			</div>
+		</div>
+		<div class="panel panel-default">
+			<div class="panel-body table-responsive">
+				<table class="table table-hover">
+					<thead class="navbar-inner">
+						<tr>
+							<th>管理员名称</th>
+							<th>粉丝编号</th>
+							<th>微信昵称</th>
+							<th>邮箱</th>
+							<th>是否是管理员</th>
+							<th>添加时间</th>
+							<th style="width:150px; text-align:right;">操作</th>
+						</tr>
+					</thead>
+					<tbody>
+						{loop $data $item}
+						<tr>
+							<td>{$item['title']}</td>
+							<td>{$item['openid']}</td>
+							<td>{$item['nickname']}</td>
+							<td>{$item['email']}</td>
+							<td>
+								{if $item['is_sys'] == 1}
+									<label class="label label-success">是</label>
+								{else}
+									<label class="label label-danger">否</label>
+								{/if}
+							</td>
+							<td>{php echo date('Y-m-d H:i');}</td>
+							<td style="text-align:right;">
+								<a href="{php echo $this->createWebUrl('manage', array('op' => 'clerk_post', 'id' => $item['id']))}" class="btn btn-default btn-sm" title="编辑" data-toggle="tooltip" data-placement="top"><i class="fa fa-edit"> </i></a>
+								<a href="{php echo $this->createWebUrl('manage', array('op' => 'clerk_del', 'id' => $item['id']))}" class="btn btn-default btn-sm" title="删除" data-toggle="tooltip" data-placement="top" onclick="if(!confirm('删除后将不可恢复，确定删除吗?')) return false;"><i class="fa fa-times"> </i></a>
+							</td>
+						</tr>
+						{/loop}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</form>
+</div>
+{/if}
+<script>
+	$('.btn').hover(function(){
+		$(this).tooltip('show');
+	},function(){
+		$(this).tooltip('hide');
+	});
+</script>
+{template 'common'}
+{template 'common/footer'}

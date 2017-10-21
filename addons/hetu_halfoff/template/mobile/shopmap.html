@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>商户地理位置定位</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <script charset="utf-8" src="http://map.qq.com/api/js?v={$config['qqmapak']}"></script>
+    <style type="text/css">
+        html,
+        body {
+            height: 100%;
+            margin: 0px;
+            padding: 0px
+        }
+        #container {
+            width: 100%;
+            height: 100%
+        }
+        body div {
+            text-indent: 20px;
+            line-height: 22px;
+        }
+        #container {
+		   min-width:100%;
+		   min-height:100%;
+		}
+        #button{
+            background-color: #e24f61;
+            line-height: 25px;
+            height: 30px;
+            font-size: 25px;
+            color: white;
+
+        }
+    </style>
+</head>
+
+<body onload="init()">
+    <div id="container"></div>
+    <div style="height:22px;"></div>
+    <div id="fitBoundsDiv"></div>
+    <div id="centerDiv"></div>
+    <div id="zoomDiv"></div>
+    <div id="containerDiv"></div>
+    <div id="mapTypeIdDiv"></div>
+    <div id="projection"></div>
+    <input type="hidden" id="lag" value="{$lntg}"/>
+    <script type="text/javascript" src="{HT}js/jquery-1.8.2.min.js" ></script>
+    <script type="text/javascript" src="{HT}js/layer.js" ></script>
+    <script type="text/javascript">
+        
+        var lat = $("#lag");
+        function init() {
+                
+            //div容器
+            var container = document.getElementById("container");
+            var centerDiv = document.getElementById("centerDiv");
+            
+            //初始化地图
+            var map = new qq.maps.Map(container, {
+                // 地图的中心地理坐标
+                center: new qq.maps.LatLng({php echo $lntg}),
+                zoom: 13
+            });
+          //创建自定义控件
+           
+           var middleControl = document.createElement("div");
+            middleControl.style.left="45%";
+            middleControl.style.top="45%";
+			middleControl.style.position="relative";
+			middleControl.style.width="36px";
+            middleControl.style.height="36px";
+			middleControl.style.zIndex="100000";
+           middleControl.innerHTML ='<img src="https://www.cdlhome.com.sg/mobile_assets/images/icon-location.png" />';
+		   document.getElementById("container").appendChild(middleControl);
+           
+            var queding = document.createElement("div");
+            queding.style.left="60%";
+            queding.style.top="80%";
+			queding.style.position="relative";
+           
+			queding.style.zIndex="100000";
+           queding.innerHTML ='<button id="button" onclick="map();">确认修改</button>';
+		   document.getElementById("container").appendChild(queding);
+            //返回地图当前中心点地理坐标
+          // centerDiv.innerHTML = "latlng:" + map.getCenter();
+            //当地图中心属性更改时触发事件
+            qq.maps.event.addListener(map, 'center_changed', function() {
+                //centerDiv.innerHTML = "latlng:" + map.getCenter();
+              lat.val(map.getCenter());
+            });
+        }
+        
+        function map(){
+            var lat =$("#lag").val();
+           $.ajax({
+        		type: 'POST',
+        		url: "{php echo $this->createMobileUrl('halfbus', array('op'=>'map', 'bus_id'=>$bus_id,'agentid'=>$agentid,'status'=>1));}",
+        		data:{lat:lat},
+        		dataType: 'JSON',
+        		success: function(res){ //0
+        		  if(res == 1){
+        		      	layer.open({
+    					content: '修改成功！',
+    					style: 'background-color:#E34F63; color:#fff; border:none;',
+    					time: 5000
+    				    });
+                        window.location.href="{php echo $this->createMobileUrl('halfbus', array('op'=>'manager','bus_id'=>$bus_id,'agentid'=>$agentid));}";     
+        		  }else{
+        		      	layer.open({
+    					content: '错误返回！',
+    					style: 'background-color:#E34F63; color:#fff; border:none;',
+    					time: 2
+    				    });
+        		  }
+        		}
+	           });
+
+        }
+    </script>
+</body>
+
+</html>

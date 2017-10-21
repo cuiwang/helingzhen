@@ -1,0 +1,153 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li {if $operation == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('merchant', array('op' => 'display'))}">商户列表</a></li>
+</ul>
+
+<div class="main">
+	<div class="merchant">
+		<div class="panel panel-default">
+			<div class="panel-body table-responsive">
+				<table class="table table-hover">
+					<thead>
+						<tr>
+							<th style="width:10%;">商户名称</th>
+							<th style="width:10%;">手机</th>
+							<th style="width:15%;">状态</th>
+							<th style="width:21%;text-align:right;">操作</th>
+						</tr>
+					</thead>
+					<tbody>
+					{loop $merchant $row}
+					<tr>
+						<td>{$row['name']}</td>
+						<td>{$row['telphone']}</td>
+						<td>
+							{if $row['status']==1}
+								{if !empty($row['expirationtime'])}
+									{if $row['expirationtime'] < TIMESTAMP}
+										<span class='label label-danger'>已于{php echo date('Y-m-d H:i:s',$row['expirationtime'])}到期</span>
+									{else}
+										<span class='label label-success'>将于{php echo date('Y-m-d H:i:s',$row['expirationtime'])}到期</span>
+									{/if}
+								{else}
+									<span class='label label-danger'>暂无到期时间</span>
+								{/if}
+							{else}
+							<span class='label label-danger'>禁止登录</span>
+							{/if}
+						</td>
+						<td style="text-align:right;">
+							<a href="javascript:;" data-toggle="modal" data-target="#merchanturlModal{$row['id']}" class="btn btn-success btn-sm">商户链接</a>
+							<a href="javascript:;" data-toggle="modal" data-target="#myXufeiModal{$row['id']}" class="btn btn-success btn-sm">续费</a>
+							<a href="javascript:;" data-toggle="modal" data-target="#myTableModal{$row['id']}" class="btn btn-info btn-sm">缴费记录</a>
+							{if $row['status']==1}
+								<a href="{php echo $this->createWebUrl('merchant', array('op' => 'delete', 'id' => $row['id']))}" onclick="return confirm('确认禁用吗？');return false;" class="btn btn-danger btn-sm">禁用</a>
+							{else}
+								<a href="{php echo $this->createWebUrl('merchant', array('op' => 'post', 'id' => $row['id']))}" onclick="return confirm('确认审核吗？');return false;" class="btn btn-success btn-sm">审核</a>
+							{/if}
+							<a href="{php echo $this->createWebUrl('merchant', array('op' => 'edit', 'id' => $row['id']))}" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" title="" data-original-title="编辑"><i class="fa fa-pencil"></i></a>
+							<a href="{php echo $this->createWebUrl('merchant', array('op' => 'delete2', 'id' => $row['id']))}" onclick="return confirm('此操作不可恢复，确认删除？');return false;" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" title="" data-original-title="删除"><i class="fa fa-times"></i></a>
+						</td>
+					</tr>
+					{/loop}
+					</tbody>
+				</table>
+				{loop $merchant $row}
+					<div class="modal fade" id="merchanturlModal{$row['id']}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+						<div class="modal-dialog">
+							<div class="modal-content">
+								<div class="modal-header">
+									<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+									<h4 class="modal-title">{$row['name']}链接</h4>
+								</div>
+								<div class="modal-body table-responsive">					
+									<span class="label label-success">{$row['storeurl']}</span>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="modal fade" id="myXufeiModal{$row['id']}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+						<div class="modal-dialog">
+							<div class="modal-content">
+								<div class="modal-header">
+									<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+									<h4 class="modal-title">{$row['name']}续费</h4>
+								</div>
+								<div class="modal-body table-responsive">					
+									<form class="form-horizontal form" action="" method="post">
+										<div class="form-group">
+											<label class="col-xs-12 col-sm-3 col-md-2 control-label">到期时间</label>
+											<div class="col-sm-9 col-xs-12">
+												{php echo tpl_form_field_date('expirationtime',date('Y-m-d H:i:s',$row['expirationtime']),true);}
+											</div>
+										</div>
+										<div class="form-group">
+											<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+											<div class="col-sm-9 col-xs-12">
+												<input name="id" value="{$row['id']}" type="hidden">
+												<input name="op" value="xufei" type="hidden">
+												<input name="submit" value="确定" class="btn btn-primary span3" type="submit"> 
+												<input name="token" value="{$_W['token']}" type="hidden">
+											</div>
+										</div>
+									</form>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="modal fade" id="myTableModal{$row['id']}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+						<div class="modal-dialog modal-lg">
+							<div class="modal-content">
+								<div class="modal-header">
+									<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+									<h4 class="modal-title">{$row['name']}缴费记录</h4>
+								</div>
+								<div class="modal-body table-responsive">					
+									{if $row['orderlist']}
+										<table class="table table-hover table-bordered">
+											<thead class="navbar-inner">
+												<tr>
+													<th style="width:15%;">订单号</th>
+													<th style="width:30%;">缴费类型</th>
+													<th style="width:15%;">金额</th>
+													<th style="width:30%;">时间</th>
+													<th style="width:10%;">状态</th>
+												</tr>
+											</thead>
+											<tbody>
+												{loop $row['orderlist'] $rowrow}
+												<tr>
+													<td>{$rowrow['ordersn']}</td>
+													<td>
+														<span class="label label-warning">
+														{if $rowrow['paytype'] == 1}商户月套餐{/if}
+														{if $rowrow['paytype'] == 2}商户季度套餐{/if}
+														{if $rowrow['paytype'] == 3}商户半年套餐{/if}
+														{if $rowrow['paytype'] == 4}商户年套餐{/if}
+														</span>
+													</td>
+													<td><span class="label label-info">{$rowrow['price']}</span></td>
+													<td>{php echo date("Y-m-d H:i:s",$rowrow['createtime']);}</td>
+													<td>{if $rowrow['status'] == 1}<span class="label label-success">已付款</span>{else}<span class="label label-danger">未付款</span>{/if}</td>
+												</tr>
+												{/loop}
+											</tbody>
+										</table>
+									{else}
+										<table class="table table-hover table-bordered">
+											<thead class="navbar-inner">
+												<tr><th colspan="5">暂无缴费记录</th></tr>
+											</thead>
+										</table>
+									{/if}
+								</div>
+							</div>
+						</div>
+					</div>
+				{/loop}
+				{$pager}
+			</div>
+		</div>
+	</div>
+</div>
+{template 'common/footer'}

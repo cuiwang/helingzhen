@@ -1,0 +1,128 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li class="active"><a href="{php echo $this->createWebUrl('member', array('op' => 'display'))}">会员列表</a></li>
+</ul>
+{if $op=='display'}
+<div class="panel panel-default">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+		<form action="./index.php" method="get" class="form-horizontal" role="form" id="form">
+			<input type="hidden" name="c" value="site" />
+            <input type="hidden" name="a" value="entry" />
+            <input type="hidden" name="m" value="weliam_indiana" />
+            <input type="hidden" name="do" value="member" />
+            <input type="hidden" name="ptype" value="{$ptype}" />
+            <div class="form-group">
+				<label class="col-md-2 control-label">身份</label>
+				<div class="col-sm-8 col-xs-12">
+					<div class="btn-group">
+						<a href="{php echo $this->createWebUrl('member')}&ptype=person" class="btn {if $ptype == 'person' || empty($ptype)}btn-primary{else}btn-default{/if}">真实用户</a>
+						<a href="{php echo $this->createWebUrl('member')}&ptype=machine" class="btn {if $ptype == 'machine'}btn-primary{else}btn-default{/if}">虚拟用户</a>
+					</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-md-2 control-label">关键字类型</label>
+				<div class="col-sm-8 col-xs-12">
+					<select name="type" class="form-control">
+						<option value="2" {if $_GPC['type'] == 2}selected{/if}>手机号</option>
+						<option value="4" {if $_GPC['type'] == 4}selected{/if}>真实姓名</option>
+						<option value="3" {if $_GPC['type'] == 3}selected{/if}>昵称</option>
+					</select>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-md-2 control-label">关键字</label>
+				<div class="col-md-8">
+					<input type="text" class="form-control" name="keyword" id="keyword" value="{$_GPC['keyword']}" />
+				</div>
+				<div class="pull-right col-md-2">
+					<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+<div class="panel panel-default">
+	{if $_GPC['ptype'] == 'person' || empty($_GPC['ptype'])}
+    <table class="table">
+        <thead class="navbar-inner">
+			<tr>
+				<th style="width:50px;">头像</th>
+				<th style="width:100px;">昵称</th>
+				<th style="width:110px;">手机</th>
+				<th style="width:100px;">真实姓名</th>
+				<th style="width:100px;">积分</th>
+				<th style="width:100px;">余额</th>
+				<th style="width:350px;" class="text-center">操作</th>
+			</tr>
+		</thead>
+		<tbody>
+		{loop $members $li}
+			<tr>
+				<td><image src="{php echo tomedia($li['avatar']);}" style="max-width: 48px; max-height: 48px; border: 1px dotted gray"></td>
+				<td>{$li['nickname']}</td>
+				<td>{$li['mobile']}</td>
+				<td>{$li['realname']}</td>
+				<td id="credit1{$li['uid']}"><span class="label label-warning">积分：{$li['credit1']}</span></td>
+				<td id="credit2{$li['uid']}"><span class="label label-primary">余额：{$li['credit2']}</span></td>
+				<td>
+					{if $li['userstatus'] == -1}
+					<a href="{php echo web_url('member/blacklist', array('id' => $li['mid'],'type' => 'out'));}" class="btn btn-warning btn-sm sms" target="_blank">解除黑名单</a>
+					{else}
+					<a href="{php echo web_url('member/blacklist', array('id' => $li['mid'],'type' => 'add'));}" class="btn btn-danger btn-sm sms" target="_blank">加入黑名单</a>
+					{/if}
+					<div class="btn-group">
+						<a href="javascript:;" title="积分" class="btn btn-default modal-trade-credit1" data-type="credit1" data-uid="{$li['uid']}">积分</a>
+						<a href="javascript:;" title="余额" class="btn btn-default modal-trade-credit2" data-type="credit2" data-uid="{$li['uid']}">余额</a>
+						<a href="{php echo url('mc/member/credit_stat',array('uid' => $li['uid'], 'type' => 1))}" title="日志" class="btn btn-success">日志</a>
+						<a href="{php echo $this->createWebUrl('member', array('op' => 'buyre','openid'=>$li['openid']))}" class="btn btn-default" target="_blank">购买记录</a>
+						<a href="{php echo $this->createWebUrl('member', array('op' => 'recharge','openid'=>$li['openid']))}" class="btn btn-default" target="_blank">充值记录</a>
+					</div>
+				</td>
+			</tr>
+		{/loop}
+        </tbody>
+    </table>
+    {/if}
+    {if $_GPC['ptype'] == 'machine'}
+    <table class="table">
+        <thead class="navbar-inner">
+			<tr>
+				<th style="width:100px;">头像</th>
+				<th style="width:100px;">昵称</th>
+				<th style="width:100px;">IP</th>
+				<th style="width:100px;">IP所属地</th>
+				<th style="width:100px;" class="text-center">操作</th>
+			</tr>
+		</thead>
+		<tbody>
+		{loop $members $li}
+			<tr>
+				<td><image src="{php echo tomedia($li['avatar']);}" style="max-width: 48px; max-height: 48px; border: 1px dotted gray"></td>
+				<td>{$li['nickname']}</td>
+				<td>{$li['ip']}</td>
+				<td>{$li['ipaddress']}</td>
+				<td>
+					<div class="btn-group">
+						<a href="{php echo $this->createWebUrl('member', array('op' => 'buyre','openid'=>$li['openid']))}" class="btn btn-default" target="_blank">购买记录</a>
+					</div>
+					<div class="btn-group">
+						<a href="{php echo $this->createWebUrl('member', array('op' => 'machine_edit_display','mid'=>$li['mid']))}" class="btn btn-default" target="_blank">修改资料</a>
+					</div>
+				</td>
+			</tr>
+		{/loop}
+        </tbody>
+    </table>
+    {/if}
+</div>
+{$pager}
+<script>
+	require(['trade', 'bootstrap'], function(trade){
+		trade.init();
+	});
+</script>
+{/if}
+
+{template 'common/footer'}

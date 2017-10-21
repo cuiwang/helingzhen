@@ -1,0 +1,285 @@
+{template 'common/header'}
+<ol class="breadcrumb">
+	<li><a href="./?refresh"><i class="fa fa-home"></i></a></li>
+	<li><a href="{url 'system/welcome'}">系统</a></li>
+	<li class="active">代理商列表</li>
+</ol>
+<ul class="nav nav-tabs">
+	<li {if $do == 'list'}class="active"{/if}><a href="{php echo url('agent/agent/list');}">代理商列表</a></li>
+	<li {if $do == 'add' && !$id}class="active"{/if}><a href="{php echo url('agent/agent/add');}">添加代理商</a></li>
+	<li {if $do == 'record'}class="active"{/if}><a href="{php echo url('agent/agent/record');}">代理商记录</a></li>
+	{if $do == 'edit' && $id}<li class="active"><a href="{php echo url('agent/agent/edit', array('id' => $user['id']))}">编辑代理商</a></li>{/if}
+</ul>
+{if $do == 'list'}
+<div class="clearfix">
+	<div class='alert alert-warning' style='font-size:14px'>
+        代理商入口地址： <a href="{php echo url('agent/agent_login/');}" target='_blank'>{php echo url('agent/agent_login/');}</a>
+    </div>
+	<div class="panel panel-info">
+		<div class="panel-heading">筛选</div>
+		<div class="panel-body">
+			<form action="" method="get" class="form-horizontal" role="form">
+				<input type="hidden" name="c" value="agent">
+				<input type="hidden" name="a" value="agentusers">
+				<input type="hidden" name="do" value="list">
+				<input type="hidden" name="createtime" value="{$_GPC['createtime']}">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">添加时间</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<div class="btn-group">
+							<a href="{php echo filter_url('createtime:0');}" class="btn {if $_GPC['createtime'] == 0}btn-primary{else}btn-default{/if}">不限</a>
+							<a href="{php echo filter_url('createtime:3');}" class="btn {if $_GPC['createtime'] == 3}btn-primary{else}btn-default{/if}">三天内</a>
+							<a href="{php echo filter_url('createtime:7');}" class="btn {if $_GPC['createtime'] == 7}btn-primary{else}btn-default{/if}">一周内</a>
+							<a href="{php echo filter_url('createtime:30');}" class="btn {if $_GPC['createtime'] == 30}btn-primary{else}btn-default{/if}">一月内</a>
+							<a href="{php echo filter_url('createtime:90');}" class="btn {if $_GPC['createtime'] == 90}btn-primary{else}btn-default{/if}">三月内</a>
+						</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">标题</label>
+					<div class="col-sm-8 col-lg-3 col-xs-12">
+						<input class="form-control" name="title" id="" type="text" value="{$_GPC['title']}">
+					</div>
+					<div class="pull-left col-xs-12 col-sm-2 col-lg-2">
+						<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+	<form action="{php echo url('agent/agent/batch_post');}" method="post" class="form-horizontal" role="form">
+		<div class="panel panel-default">
+			<div class="panel-body table-responsive">
+				<table class="table table-hover">
+					<thead>
+						<tr>
+							<th width="80">排序</th>
+							<th width="100">名称</th>
+							<th width="80">账户数</th>
+							<th width="80">公众号数</th>
+							<th width="180">域名</th>
+							<th width="130">手机</th>
+							<th>余额</th>
+							<th>添加时间</th>
+							<th>到期日期</th>
+							<th class="text-right">操作</th>
+						</tr>
+					</thead>
+					<tbody>
+					{loop $users $user}
+						<input type="hidden" name="ids[]" value="{$user['id']}" />
+						<tr>
+							<td>{$user['id']}</td>
+							<td>{$user['name']}</td>
+							<td>{$user['usercount']}</td>
+							<td>{$user['wxusercount']}</td>
+							<td>
+								<input type="text" class="form-control" name="siteurl[]" value="{$user['siteurl']}"/>
+							</td>
+							<td>{$user['mp']}</td>
+							<td>{$user['moneybalance']}</td>
+							<td>{php echo date('Y-m-d H:i', $user['createtime']);}</td>
+							<td>{php echo date('Y-m-d', $user['endtime']);}</td>
+							<td class="text-right">
+								<a href="{php echo url('agent/agent/edit', array('id' => $user['id']));}" class="btn btn-default">编辑</a>
+								<a href="{php echo url('agent/agent/delete', array('id' => $user['id']));}" onclick="if(!confirm('确定删除吗')) return false;" class="btn btn-default">删除</a>
+							</td>
+						</tr>
+					{/loop}
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<div class="form-group">
+			<div class="col-sm-8 col-lg-9 col-xs-12">
+				<input type="submit" class="btn btn-primary" name="submit" value="提交" />
+				<input type="hidden" name="token" value="{$_W['token']}" />
+			</div>
+		</div>
+		{$pager}
+	</form>
+</div>
+{elseif $do == 'record'}
+<div class="clearfix">
+	<div class="panel panel-info">
+		<div class="panel-heading">筛选</div>
+		<div class="panel-body">
+			<form action="" method="get" class="form-horizontal" role="form">
+				<input type="hidden" name="c" value="agent">
+				<input type="hidden" name="a" value="agent">
+				<input type="hidden" name="do" value="record">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">代理商名称</label>
+					<div class="col-sm-8 col-lg-3 col-xs-12">
+						<input class="form-control" name="name" id="" type="text" value="{$_GPC['name']}">
+					</div>
+					<div class="pull-left col-xs-12 col-sm-2 col-lg-2">
+						<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+		<div class="panel panel-default">
+			<div class="panel-body table-responsive">
+				<table class="table table-hover">
+					<thead>
+						<tr>
+							<th width="80">排序</th>
+							<th width="100">名称</th>
+							<th width="80">用途</th>
+							<th width="80">费用</th>
+							<th width="150">时间</th>
+							<th width="130">成功</th>
+							<th class="text-right">操作</th>
+						</tr>
+					</thead>
+					<tbody>
+					{loop $users $user}
+						<input type="hidden" name="ids[]" value="{$user['id']}" />
+						<tr>
+							<td>{$user['id']}</td>
+							<td>{$user['agentid']}</td>
+							<td>{$user['des']}</td>
+							<td>{$user['amount']}</td>
+							<td>{php echo date('Y-m-d H:i:s',$user['times']);}</td>
+							<td>{$user['mp']}</td>
+							<td>{php echo m_kind($user['status']);}</td>
+							<td align='center'>
+								<a href="{php echo url('agent/agent/record', array('id' => $user['id'],'act'=>'pro'))}">确认</a>
+							</td>
+						</tr>
+					{/loop}
+					</tbody>
+				</table>
+			</div>
+		</div>
+		{$pager}
+</div>
+{elseif $do == 'edit'}
+<div class="clearfix">
+	<form action="{php echo url('agent/agent/edit');}" method="post" class="form-horizontal" role="form" id="form1">
+		<input type="hidden" name="id" value="{$user['id']}"/>
+		<div class="panel panel-default">
+			<div class="panel-heading">编辑代理商</div>
+			<div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">代理商名称</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<input type="text" class="form-control" name="name" value="{$user['name']}"/>
+						<div class="help-block">请填写代理商名称</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">手机</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<input type="text" class="form-control" name="mp" value="{$user['mp']}"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">密码</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<input type="password" class="form-control" name="password" value=""/>
+						<div class="help-block">不修改密码请留空</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">站点地址</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<input type="text" class="form-control" name="siteurl" value="{$user['siteurl']}"/>
+						<div class="help-block">比如：a1.yuming.com</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">到期时间</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						{php echo tpl_form_field_date('endtime', $user['endtime']);}
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">账户余额</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<input type="text" class="form-control" name="moneybalance" value="{$user['moneybalance']}"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">备注说明</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+					<textarea name="intro" class="ipt" style="width:300px;height:80px;">{$user['intro']}</textarea>	
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="form-group">
+			<div class="col-sm-8 col-lg-9 col-xs-12">
+				<input type="submit" class="btn btn-primary" name="submit" value="提交" />
+				<input type="hidden" name="token" value="{$_W['token']}" />
+			</div>
+		</div>
+	</form>
+</div>
+{elseif $do == 'add'}
+<div class="clearfix">
+	<form action="{php echo url('agent/agent/add');}" method="post" class="form-horizontal" role="form" id="form1">
+		<input type="hidden" name="id" value="{$user['id']}"/>
+		<div class="panel panel-default">
+			<div class="panel-heading">编辑代理商</div>
+			<div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">代理商名称</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<input type="text" class="form-control" name="name" value="{$user['name']}" placeholder="代理商名称"/>
+						<div class="help-block">请填写代理商名称</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">手机</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<input type="text" class="form-control" name="mp" value="{$user['mp']}" placeholder="手机"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">密码</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<input type="password" class="form-control" name="password" value="" placeholder="密码"/>
+						<div class="help-block">不修改密码请留空</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">站点地址</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<input type="text" class="form-control" name="siteurl" value="{$user['siteurl']}" placeholder="站点地址"/>
+						<div class="help-block">比如：a1.yuming.com</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">到期时间</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						{php echo tpl_form_field_date('endtime', $user['endtime']);}
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">账户余额</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<input type="text" class="form-control" name="moneybalance" value="{$user['moneybalance']}" placeholder="账户余额"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">备注说明</label>
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+					<textarea name="intro" class="ipt" style="width:300px;height:80px;">{$user['intro']}</textarea>	
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="form-group">
+			<div class="col-sm-8 col-lg-9 col-xs-12">
+				<input type="submit" class="btn btn-primary" name="submit" value="提交" />
+				<input type="hidden" name="token" value="{$_W['token']}" />
+			</div>
+		</div>
+	</form>
+</div>
+{/if}
+
+{template 'common/footer'}

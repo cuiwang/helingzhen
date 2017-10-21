@@ -1,0 +1,283 @@
+{template 'default/header'}
+<link rel="stylesheet" href="{MODULE_URL}public/css/style.css" type="text/css" media="all">
+<link rel="stylesheet" href="{MODULE_URL}public/css/index_vux.css" type="text/css" media="all">
+{php $setting = M('setting')->getSetting('system')}
+<div class="bodyarea">
+    <div class="wrap">
+        <div class="headerarea">
+            <header class="imui_header b_c po_fi cf">
+                <div class="imui_hl imui_fhl tl"><a href="javascript:history.back(-1)" class="imui_icon_back"></a></div>
+                <div class="imui_hm tc imui_fhm">
+                    朋友圈
+                </div>
+                <div class="imui_hr imui_fhr tr">
+                    <a href="javascript:openside()" class="imui_icon_side"></a>
+                </div>
+            </header>
+        </div>
+        <div class="mainarea">
+            <div class="body_main" id="space_follow" onscroll="autopage(this)">
+                <div class="imui_nv b_f bo_b size_16 mb10">
+                    <ul class="flex_box">
+                        <li class="flex a"><a href="{php echo $this->createMobileUrl('group_new')}" class="gettab suibian" tab="space_follow">随便看看</a></li>
+                        <!--<li class="flex"><a href="{php echo $this->createMobileUrl('group_new',array('act'=>'myfollow'))}" class="gettab guanzhu" tab="space_follow">我的关注</a></li>-->
+                        <li class="flex"><a href="javascript:callpage('addfeed');initaddfeed();" class="fabu">发布广播</a></li>
+                    </ul>
+                </div>
+                <div class="showpagearea" id="addfeed" style="display:none">
+                    <div class="boxarea">
+                        <header class="box_header b_c cf po_ab flex_box">
+                            <div class="imui_bhl tl flex"><a href="javascript:callpage('addfeed')" class="imui_icon_back"></a></div>
+                            <div class="imui_bhm tc flex">发布广播</div>
+                            <div class="imui_bhr flex"></div>
+                        </header>
+                        <div class="box">
+                            <form method="post" autocomplete="off" id="postform" action="">
+                                <input type="hidden" name="act" value="post"/>
+                                <div class="imui_blocks_title cg">填写广播内容</div>
+                                <div class="imui_blocks b_f size_16">
+                                    <div class="imui_block">
+                                        <div class="imui_block_bd flex">
+                                            <textarea id="postmessage"  name="message" class="imui_textarea autoheight" rows="3"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p class="btn_icon b_l bo_b cl p10">
+                                    <a href="javascript:" onclick="showhiden(this.id)" id="smile">
+                                        <img src="{MODULE_URL}public/images/smile.png" />
+                                    </a>
+                                    <a href="javascript:" onclick="showhiden(this.id)" id="up">
+                                        <img src="{MODULE_URL}public/images/up.png" />
+                                    </a>
+                                </p>
+                                <div id="hidenarea">
+                                    {template 'default/face'}
+                                    <div id="up_area"  class="ha" style="display:none">
+                                        <ul id="imglist" class="post_imglist cl">
+                                            <li class="upimg">
+                                                <a href="javascript:;">
+                                                    +<input type="file" id="filedata" multiple="multiple" accept="image/jpg,image/jpeg,image/png,image/gif"/>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <div class="p15">
+                                    <button type="button" class="imui_btn b_c cf" name="topicsubmit_btn"  id="postsubmit" onclick="sendthreadpost('postform')">
+                                        发布
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <table cellspacing="0" cellpadding="0" id="listtableid" class="feedlist">
+                    {loop $topics['list'] $topic}
+                    {php $user = M('member')->getInfo($topic['openid'])}
+                    <tbody id="autolist_4349">
+                    <tr>
+                        <td>
+                            <div class="feedview b_f">
+                                <div class="feeduser cl">
+                                    <!--<span class="gz cf b_c r">关注</span>-->
+                                    <img src="{php echo $user['avatar']}" class="author">
+                                    <h4>
+                                        <a href="javascript:;" class="gettab user" tab="space">
+                                            {php echo $user['nickname']}
+                                        </a>
+                                        {php $group = M('group')->getInfo($user['groupid'])}
+                                        <span class="cf b_c">{php echo $group['title']}</span>
+                                    </h4>
+                                    <p>
+                                        <span class="cg">{php echo date('Y-m-d H:i',$topic['createtime'])}</span>
+                                    </p>
+                                </div>
+                                <h3 class="pb10">
+                                    {php $class = M('threadclass')->getInfo($topic['fid'])}
+                                    <a href="javascript:;" class="gettab" tab="viewthread">
+                                        {php echo M('common')->replace_em2($topic['content'])}
+                                    </a>
+                                </h3>
+                                {php $topic['thumb'] = unserialize($topic['thumb'])}
+                                {if count($topic['thumb']) > 0}
+                                    <ul class="feedpics feedpics_2 cl">
+                                        {loop $topic['thumb'] $thumb}
+                                        <li>
+                                            <img src="{php echo $thumb}">
+                                        </li>
+                                        {/loop}
+                                    </ul>
+                                {/if}
+                                <!--<div class="feedbtn bo_tl size_14 cm cl tr">
+                                    <a href="" class="showpage zb" id="quickrelay_4349">转播<em class="size_12 cg">(<span id="zb4349">0</span>)</em></a>
+                                    <a href="" class="showpage hf" id="quickreply_4349">回复<em class="size_12 cg">(<span id="hf4349">1</span>)</em></a>
+                                    <a href="javascript:recommend('5998','97b78101','rec5998')" class="za">赞<em class="size_12 cg">(<span id="rec4349">1</span>)</em></a>
+                                </div>-->
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                    {/loop}
+
+                    <tbody id="autolist_ad">
+                    {php $adv = M('adv')->getOne();}
+                    <tr>
+                        <td>
+                            <div class="adpage_guide">
+                                <div class="adposition_bot">
+                                    <p class="adimg">
+                                        <a href="{php echo $adv['link']}">
+                                            <img src="{php echo tomedia($adv['thumb'])}">
+                                        </a>
+                                        <span>{$adv['advname']}</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <a href="javascript:;" class="autopbn cm b_d" rel="{php echo $this->createMobileUrl('group_new',array('page'=>2))}" curpage="1" id="autopbn" tab="" history='' >点击加载更多</a>
+            </div>
+        </div>
+        {template 'default/footerbar'}
+    </div>
+</div>
+<script src="{MODULE_URL}public/upload_file/base64upload.js" type="text/javascript" ></script>
+<script type="text/javascript" >
+    function initaddfeed(){
+        $('#filedata').localResizeIMG({
+            width: 120,
+            quality: 0.8,
+            success: function (result) {
+                console.log(result);
+                var src = result.base64;
+                var html = '<li><span class="del"><a href="javascript:;"><img src="{MODULE_URL}public/images/icon_del.png"></a></span><span class="p_img"><a href="javascript:;"><img style="height:54px;width:54px;" src="'+src+'"></a></span><input type="hidden" name="attachnew[]" value="'+src+'"></li>';
+
+                $('#imglist').append(html);
+                $('.del').click(function(){
+                    $(this).parent().remove();
+                });
+            }
+        });
+    }
+</script>
+<script language="javascript">
+    function sendthreadpost(id){
+        var formobj = $('#'+id);
+        var post = formobj.serialize();
+        popup.open('<img src="{MODULE_URL}public/images/imageloading.gif">');
+        $.post("",post,function(s){
+            if(s.status == 0){
+                setTimeout(function(){
+                    popup.close();
+                    $('#windowarea').html('');
+                },500);
+                window.location.href = "{php echo $_W['siteurl']}";
+            }else{
+                setTimeout(function(){
+                    popup.close();
+                    $('#windowarea').html('');
+                    $.toast(s.message,"forbidden",function(){});
+                },500);
+            }
+        },'json');
+        return false;
+    }
+</script>
+<script language="javascript">
+    var loadstatus = true;
+    function autopage(obj,type){
+        var autopbn = $('.body_main #autopbn');
+        var nextpageurl = autopbn.attr('rel');
+        var tab = autopbn.attr('tab');
+        var history = autopbn.attr('history');
+        var curpage = parseInt(autopbn.attr('curpage'));
+        var totalpage = parseInt(autopbn.attr('totalpage'));
+        var autopagenum = 100;
+        var maxpage = (curpage + autopagenum) > totalpage ? totalpage : (curpage + autopagenum);
+
+        if(type=='click'){
+            getnextpagecontent();
+        }else{
+            if(autopagenum > 0) {
+                var curtop = $('#'+obj.id).scrollTop();
+                if(curtop + $('#'+obj.id).height() + 300 >= $('#'+obj.id)[0].scrollHeight && loadstatus) {
+                    loadstatus = false;
+                    autopbn.text('点击加载更多');
+                    getnextpagecontent();
+                }
+            }
+        }
+
+        function getnextpagecontent(){
+            if(curpage + 1 > totalpage) {
+                $('#'+obj.id).unbind('scroll');
+                autopbn.css('display', 'none');
+                return;
+            }
+            curpage++;
+            var url = nextpageurl + '&t=' + parseInt((+new Date()/1000)/(Math.random()*1000));
+            $.ajax({
+                type : 'GET',
+                url : url,
+                dataType : 'html'
+            }).success(function(s) {
+                s = s.replace(/\n|\r/g, '');
+                var tableobj = $('.body_main #listtableid');
+                tableobj.append(s);
+                autopbn.attr('rel',nextpageurl.replace(/&page=\d+/, '&page=' + (curpage + 1)))
+                autopbn.attr('curpage',curpage)
+                nextpageurl = nextpageurl.replace(/&page=\d+/, '&page=' + (curpage + 1));
+                if(!s) {
+                    autopbn.css('display', 'none');
+                } else {
+                    autopbn.text('点击加载更多');
+                    if($('#'+obj.id+' #autolist_ad').length){
+                        getad();
+                    }
+                }
+                loadstatus = true;
+                if(history=='1'){
+                    var state = {
+                        url: url,
+                        tabid: tab,
+                        html: s
+                    };
+                    history.replaceState(state,null,url);
+                }
+            });
+        }
+    }
+    function getad(){
+        $.ajax({
+            type : 'GET',
+            url : "{php echo $this->createMobileUrl('getadvs')}",
+            dataType : 'html'
+        }).success(function(s) {
+            $('.body_main #listtableid').append(s);
+        }).error(function() {
+            return false;
+        });
+    }
+</script>
+    {template 'default/slider'}
+    <div class="imui_sidebg" onclick="openside();"></div>
+<script language="javascript">
+    addToHomescreen({
+        detectHomescreen: true,
+        startDelay: 5,
+        displayPace: 10,
+        maxDisplayCount: 10,
+    });
+    var bodyheight=document.documentElement.clientHeight;
+    $('body,.mainarea').css('height',bodyheight + 'px');
+</script>
+    <a href="javascript:;" title="返回顶部" class="scrolltop"></a>
+    <div id="dark" style="display:none;"></div>
+    <div id="light" style="display:none;"></div>
+    <div id="windowarea"></div>
+    <a name="bot" id="bot"></a>
+    </body>
+    </html>

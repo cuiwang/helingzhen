@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>{$_W['uniaccount']['name']}</title>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width initial-scale=1.0 maximum-scale=1.0 user-scalable=yes" />
+<link type="text/css" rel="stylesheet" href="{OSSURL}public/mobile/css/mMessageContent.css?v=4.8" />
+<link type="text/css" rel="stylesheet" href="{OSSURL}public/mobile/css/greenStyle.css?v=4.80120" />
+<script type="text/javascript" src="{OSSURL}public/mobile/js/jquery-1.11.3.min.js?v=4.8"></script>
+</head>
+<body>
+<div class="all">
+<style>
+.swiper-slide {
+    text-align:center;
+    background:#000;
+
+    /* Center slide text vertically */
+    display:-webkit-box;
+    display:-ms-flexbox;
+    display:-webkit-flex;
+    display:flex;
+    -webkit-box-pack:center;
+    -ms-flex-pack:center;
+    -webkit-justify-content:center;
+    justify-content:center;
+    -webkit-box-align:center;
+    -ms-flex-align:center;
+    -webkit-align-items:center;
+    align-items:center;
+}
+</style>
+<div class="swiper-container" style="display:none">
+    <div class="swiper-wrapper">
+        <div class="swiper-slide"></div>
+    </div>
+    <!-- Add Pagination -->
+    <div class="swiper-pagination"></div>
+</div>
+
+<div id="BlackBg" class="BlackBg"></div>
+<div id="titlebar" class="header mainColor">
+	<div class="l"><a class="backOff" href="javascript:history.go(-1);"></a></div>
+	<div class="m">
+		
+	    
+	    
+		
+		
+			<span style="font-size: 18px">消息详情</span>   
+		   
+	
+	</div>
+		<div class="r">
+			<a href="#my-menu"></a>
+		</div>
+	</div>
+<div id="titlebar_bg" class="_header"></div>
+		<!-- 回复消息的输入框 start-->
+		<div id="jquery_jplayer_hd" class="jp-jplayer"></div>
+		<div id="discussBg" class="discussBg"></div>
+		<div id="discussText" class="discussText">
+		</div>
+		<!-- 回复消息的输入框 end-->
+		<div class="messageItem">
+			<div class="msgPic">
+				<div class="avatar">
+					<img src="{php echo toimage($member['avatar'])}" alt="">
+				</div>
+			</div>
+			<div class="msgBody">
+				<div class="msgTitle">{$student['s_name']}{if $student['mom'] == $leave['openid']}母亲{else if $student['dad'] == $leave['openid']}父亲{else if $student['own'] == $leave['openid']}学生本人{/if}的留言</div>
+				<div class="msgSender l">{$category[$leave['bj_id']]['sname']}</div>
+				<div class="msgTime l"></div>
+			</div>
+					<input id="photostr" type="hidden" value="" />
+
+		</div>
+		<div class="msgbtn">
+			
+				<div class="div-reply" onclick="showReplyBox();">
+					<div class="btn-huifu">留言回复</div>
+				</div>
+				
+					<div class="div-tel">
+							<div class="btn-mob">
+								<a href="{if !empty($userinfo['mobile'])}tel:{$userinfo['mobile']}{else}tel:{/if}">联系家长</a>
+							</div>
+					</div>
+				
+				
+		</div>
+		<div class="blank"></div>
+		<!-- 回复消息 start -->
+		<div id="replyMessage">
+			<div id="replyTips" class="mainfont tips"><font style="font-size:16px;"></font>回复列表</div>
+			 {loop $list $item}
+			  <ul id="infoList">
+			     <li class="replyItem replyItemborder">
+			          <div class="msgPic l">
+			                <div class="avatar">
+			                     <img src="{if !empty($item['tuid'])}{$members[$item['tuid']]['avatar']}{else}{$members[$item['uid']]['avatar']}{/if}" alt=""></div>
+			          </div>
+			          <div class="msgBody">
+			          <div class="msgTop">
+			                <div class="replyName l">{if !empty($item['tuid'])}{$members[$item['tuid']]['nickname']}{else}{$members[$item['uid']]['nickname']}{/if}</div>
+			                <div class="msgTime r">{if !empty($item['createtime'])}{php echo (date('m-d H:m',$item['createtime']))}{/if}</div>
+			          </div>
+			                <div class="replyContent">{$item['conet']}</div>
+			          </div>
+			     </li>	
+			   </ul>
+			  {/loop}
+		</div>
+		<!-- 回复消息 end -->
+	</div>
+</body>
+<!-- 提示框 -->
+<script type="text/javascript" src="{OSSURL}public/mobile/js/PromptBoxUtil.js?v=4.81022"></script>
+<script type="text/javascript">
+var PB = new PromptBox();
+
+function showReplyBox(){
+	var showBoxHtml='<textarea id="content" rows="" cols="" placeholder="回复......"></textarea>'
+		+'<div id="discussButton" class="discussSend">'
+		+'<button onclick="saveReplyMsg();" class="s" id="discussSend">发送</button>'
+		+'<button onclick="closeReplyBox();" class="c" id="discussCancel">取消</button>'
+		+'</div>';
+	$("#discussText").html(showBoxHtml);
+	$("#discussText").css("display","block");
+	$("#discussBg").css("display","block");
+}
+
+function closeReplyBox(){
+	$("#discussText").css("display","none");
+	$("#discussBg").css("display","none");
+	$("#content").val("");
+}
+
+function saveReplyMsg(){
+
+    var content = $("#content").val();
+	
+	if (content == "" || content == undefined || content == null) {
+        alert('内容不能为空哦！');
+        return false;
+	}
+
+	if(confirm("确认发送留言信息？")){
+		var submitData = {
+			topenid :"{$item['openid']}",
+			openid :"{$openid}",
+			schoolid :"{$schoolid}",
+			weid :"{$weid}",
+			leaveid :"{$lid}",
+			itemid:"{$item['id']}",
+			sid :"{$item['sid']}",
+			tuid :"{$fan['uid']}",
+			uid :"{$item['uid']}",
+			tname :"{$techer['tname']}",
+			bj_id :"{$item['bj_id']}",
+			content : $("#content").val(),
+		};
+	        $.post("{php echo $this->createMobileUrl('indexajax',array('op'=>'savesmsg'))}",submitData,function(data){
+            if(data.result){
+                PB.prompt(data.msg);
+				location.reload();
+            }else{
+                PB.prompt(data.msg);
+            }
+        },'json'); 
+    }
+}
+</script>
+</html>

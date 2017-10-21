@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+{template 'common/header'}
+<html lang="zh-cn">
+    <head>
+        <meta charset="utf-8">
+        <meta name="renderer" content="webkit">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+        <meta content="telephone=no" name="format-detection" /> 
+        <style>
+            body > a:first-child,body > a:first-child img{width: 0px !important; height: 0px !important; overflow: hidden; position: absolute}
+            body{padding-bottom: 0 !important;}
+        </style>
+        <meta id="viewport" name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0">
+        <title>用户中心</title>
+        <link rel="stylesheet" href="{OSSURL}public/mobile/css/weixin.css?{php echo time()}">
+		<link rel="stylesheet" href="{OSSURL}public/mobile/css/reset.css?{php echo time()}">
+		<script src="http://libs.baidu.com/jquery/1.10.2/jquery.min.js"></script>
+        <!-- <script src="{OSSURL}public/mobile/js/jquery.js?{php echo time()}"></script> -->
+		<script src="{OSSURL}public/mobile/js/tx.js?{php echo time()}"></script>
+		<script type="text/javascript" src="{OSSURL}public/mobile/js/swipe.js?{php echo time()}"></script>
+</head>
+<body>
+    <div class="user_info" id="user_info" style="display:none;">
+	   <div>
+                    <ul>
+					    <p>联系方式</p>
+                        <li class="user_name">
+                            <input type="text" placeholder="请输入您的姓名" name ="name" id="name" value="{if !empty($userinfo['name'])}{$userinfo['name']}{/if}">
+                            请填写您的真实姓名
+                        </li>
+                        <li class="user_name">
+                            <input type="text" placeholder="请输入您的手机号" name ="mobile" id="mobile" value="{if !empty($userinfo['mobile'])}{$userinfo['mobile']}{/if}">
+                            请填写您的手机号
+                        </li>						
+                        <div class="btn" id="btn">提交</div>
+                    </ul>
+					<span id="close">×</span>
+	   </div>
+    </div>
+	<div class="suggestion" id="suggestion" style="display:none;">
+	   <div>
+                    <ul>
+					    <h1>意见反馈</h1>
+                        <li class="sugges">
+                            <input type="text" placeholder="输入您的宝贵意见！50字以内！" name ="suggesd" id="suggesd" value="">
+                        </li>				
+                        <div class="btn" id="sugbtn">提交</div>
+                    </ul>
+					<span id="closed">×</span>
+	   </div>
+    </div>
+    <div id="wrap" class="user_list">
+	    <div id="bg"></div>
+        <!-- 修改开始 -->
+        <header id="header">
+            <div style="background-image:url({if !empty($item['avatar'])}{php echo toimage($item['avatar'])}{else}{OSSURL}public/mobile/img/mask_bg2.png{/if})"></div>
+			<p><span  style="font-color:#fff;"class="name">学生</span>:<span class="address">{$students['s_name']}</span></p>
+			<p><span  style="font-color:#fff;"class="name">{if $it['pard']==2}母亲{/if}{if $it['pard']==3}父亲{/if}{if $it['pard']==4}本人{/if}</span>:<span class="address">{if !empty($userinfo['name'])}{$userinfo['name']}{else if !empty($item['realname'])}{$item['realname']}{else}{$item['nickname']}{/if}</span></p>
+        </header>
+		<div class="user_menu">
+                <ul>
+                    <li class="li_share"><a href="{php echo $this->createMobileUrl('mytecher', array('schoolid' => $schoolid, 'bj_id' => $students['bj_id'], 'xq_id' => $students['xq_id']), true)}"><p>老师</p></a></li>
+                    <li class="li_gg"><a href="{php echo $this->createMobileUrl('snoticelist', array('schoolid' => $schoolid), true)}"><p>通知</p></a></li>
+                    <li class="li_rank"><a href="{php echo $this->createMobileUrl('xsqj', array('schoolid' => $schoolid), true)}" id="rank"><p>请假</p></a></li>
+                    <li class="li_qq"><a href="{if !empty($category[$students['bj_id']])}{$category[$students['bj_id']]['qun']}{else}#{/if}" id="A1"><p>Q群</p></a></li>
+                    <li class="li_weixin"><a href="{php echo $this->createMobileUrl('szuoyelist', array('schoolid' => $schoolid), true)}"><p>作业</p></a></li>
+                </ul>
+        </div>
+        <section class="user">
+            <a href="{php echo $this->createMobileUrl('myinfo', array('schoolid' => $schoolid, 'sid' => $students['id']), true)}" class="my_inf">学生基本信息</a>
+            <a href="{php echo $this->createMobileUrl('myclass', array('schoolid' => $schoolid, 'bj_id' => $students['bj_id'], 'xq_id' => $students['xq_id']), true)}" class="my_count">学生在读课程</a>
+            <a href="{php echo $this->createMobileUrl('chaxun', array('schoolid' => $schoolid, 'mobile' => $students['mobile'], 's_name' => $students['s_name']), true)}" class="my_score">学生考试成绩</a>
+            <a href="#" class="lianxi" id="scroll">我的联系方式</a>
+			<a href="{php echo $this->createMobileUrl('jiaoliu', array('schoolid' => $schoolid), true)}" class="feedback">给班主任留言</a>
+			<a href="#" class="feedback" id="feedback">意见与反馈</a>
+        </section>
+    </div>
+	<input type="hidden" value="" id="hidnew" />
+   {php include $this->template('footer');} 
+</body>
+<script>
+                window.onload = function() {
+
+                }
+</script>
+
+<script type="text/javascript">
+	$(function ($) {
+		//弹出
+		$("#scroll").on('click', function () {
+            $('#user_info').show();
+		});
+		$("#close").on('click', function () {
+            $('#user_info').hide();
+		});	
+		$("#feedback").on('click', function () {
+            $('#suggestion').show();
+		});
+		$("#closed").on('click', function () {
+            $('#suggestion').hide();
+		});			
+		//文本框不允许为空---按钮触发
+		$("#btn").on('click', function () {
+		
+			var name = $("#name").val();
+			var mobile = $("#mobile").val();
+			var truthBeTold = window.confirm('确认要修改吗?'); 
+		     data = {
+            'schoolid':"{$schoolid}",
+            'name':name,
+			'mobile':mobile,
+            'json':''
+            }
+
+			reg=/^(13[0123456789]{1}\d{8}$|^15[1235689]{1}\d{8}$|^18[26789]{1}\d{8})|(0[0-9]{1,3}\-?[0-9]{7,8})$/;	
+			if (name == "" || name == undefined || name == null) {
+            alert('请输入您的姓名！');
+            return false;
+			}
+			else {
+				if (mobile == "" || mobile == undefined || mobile == null || !reg.test(mobile)) {
+            alert('手机号有误或为空！');
+            return false;
+				}
+			}
+			if (truthBeTold) {
+
+            $.post("{php echo $this->createMobileUrl('indexajax',array('op'=>'useredit'))}",data,
+			    function(data){
+                    if(data.result){
+					    alert(data.msg);
+                        location.reload();
+                    }else{
+                        alert(data.msg);
+                    }
+                },'json');	
+			} else $('#user_info').hide();	
+		});
+		$("#sugbtn").on('click', function () {
+		
+			var suggesd = $("#suggesd").val();
+			var name = $("#name").val();
+			var truth = window.confirm('确定提交吗?');
+		     data = {
+            'schoolid':"{$schoolid}",
+            'name':name,
+			'suggesd':suggesd,
+			'mobile':mobile,
+            'json':''
+            }
+
+			reg=/^(13[0123456789]{1}\d{8}$|^15[1235689]{1}\d{8}$|^18[26789]{1}\d{8})|(0[0-9]{1,3}\-?[0-9]{7,8})$/;	
+			if (name == "" || name == undefined || name == null) {
+            alert('请先设置您的联系方式哦！');
+            return false;
+			}
+			else {
+			if (suggesd == "" || suggesd == undefined || suggesd == null) {
+            alert('内容不能为空哦，说点什么吧！');
+            return false;
+			}
+			}
+			if (truth) {
+			alert('提交成功！');
+			$('#suggestion').hide();	
+			} else $('#suggestion').hide();	
+		});		
+	});
+</script>
+</html>

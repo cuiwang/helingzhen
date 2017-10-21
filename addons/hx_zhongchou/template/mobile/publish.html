@@ -1,0 +1,342 @@
+{template 'header'}
+{if $operation == 'choose'}
+<div class="wraper"><style type="text/css">
+	body{background:#f4f4f4}
+</style>
+<section class="project_choose">
+	<div class="ul_block">
+		<ul>
+			<li>
+				<a href="{php echo $this->createMobileUrl('publish',array('type'=>1,'op'=>post1))}" class="webkit-box">
+					<i class="protype_icon cp_icon mr10"></i>
+					<div class="text webkit-box-flex">
+						<p class="f16 mb5">回报众筹</p>
+						<span class="f12 f_999">我有一个梦想，有创意项目，有创意产品，点击发布回报众筹</span>
+					</div>
+				</a>
+			</li>
+			<li style="display:none">
+				<a href="" class="webkit-box">
+					<i class="protype_icon gq_icon mr10"></i>
+					<div class="text webkit-box-flex">
+						<p class="f16 mb5">股权众筹</p>
+						<span class="f12 f_999">我有创业梦想，有融资需求，点击发布股权众筹</span>
+					</div>
+				</a>
+			</li>
+		</ul>
+	</div>
+</section>
+</div>
+{else if $operation == 'post1'}
+<div class="wraper">
+<script type="text/javascript" src="{JS_PATH}deal_publish.js"></script>
+<script type="text/javascript" src="{JS_PATH}ajaxupload.js"></script>
+<script type="text/javascript">
+    var MAX_FILE_SIZE = "1MB";
+    var UPLOAD_URL ='./index.php?i='+sysinfo.uniacid+'&j='+sysinfo.acid+'&c=utility&a=file&do=upload&type=image' ;
+	var UPLOAD_SWF='{JS_PATH}plupload/Moxie.swf';
+	var UPLOAD_XAP='{JS_PATH}plupload/Moxie.xap';
+	var ALLOW_IMAGE_EXT= "gif,jpg,jpeg,png,bmp";
+	var MAX_IMAGE_SIZE= "3MB";
+	function get_file_fun(name){
+		$("#"+name).ui_upload({multi:false,
+		FileUploaded:function(ajaxobj){
+ 				if(ajaxobj.error==1)
+				{
+					$.show_tip(ajaxobj.info);
+				}else{
+					{if IMS_VERSION == '0.6'}
+					$("#"+name+"_url").val(ajaxobj.result);
+					$("#"+name+"_image").attr('src',tomedia(ajaxobj.result)).attr({width:"80",height:"80"});
+					{else}
+					$("#"+name+"_url").val(ajaxobj.attachment);
+					$("#"+name+"_image").attr('src',ajaxobj.url).attr({width:"80",height:"80"});
+					{/if}
+					$(".fileupload .text").remove();
+ 				}
+			},Error:function(error){
+			$.show_tip(error.message);
+ 		}});
+	}
+</script>
+<div class="blank15"></div>
+<section class="project_add">
+	<form id="project_form" action="{php echo $this->createMobileUrl('publish',array('type'=>1,'op'=>post1))}" method="post">
+	<div class="ul_block">
+		<ul>
+			<li class="webkit-box">
+				<label class="input_lable">筹款金额</label>
+				<input type="number" placeholder="请输入筹款金额" name="limit_price" class="textbox webkit-box-flex" onkeyup="amount(this);" value="{$project['limit_price']}" />
+				<span>元</span>
+			</li>
+			<li class="webkit-box">
+				<label class="input_lable">筹集天数</label>
+				<input type="number" placeholder="天数范围10~90" name="deal_days" class="textbox webkit-box-flex" value="{$project['deal_days']}" />
+				<span>天</span>
+			</li>
+			<li class="webkit-box">
+				<label class="input_lable">姓名</label>
+				<input type="text" placeholder="请输入您的姓名" name="lianxiren" class="textbox webkit-box-flex" value="{$project['lianxiren']}" />
+			</li>
+			<li class="webkit-box">
+				<label class="input_lable">QQ</label>
+				<input type="text" placeholder="请输入您的QQ号" name="qq" class="textbox webkit-box-flex" value="{$project['qq']}" />
+			</li>
+		</ul>
+		<div class="blank10"></div>
+		<ul>
+			<li class="webkit-box">
+				<input type="text" placeholder="项目标题" name="name" class="textbox webkit-box-flex" value="{$project['title']}" />
+			</li>
+			<li class="textarea webkit-box">
+				<textarea placeholder="项目简介" name="brief" id="intro" class="textareabox webkit-box-flex" style="height:70px;min-height:70px;padding:10px;">{php echo strip_tags($project['brief'])}</textarea>
+			</li>
+			<li class="textarea webkit-box">
+				<textarea placeholder="项目正文内容" name="descript" id="descript" class="textareabox webkit-box-flex" style="padding:10px;" >{php echo strip_tags($project['content'])}</textarea>
+			</li>
+		</ul>
+		<div class="blank10"></div>
+		<ul>
+			<li class="webkit-box">
+				<label class="input_lable">项目分类</label>
+			 	<div class="select_mod">
+					<select id="cate_id" name="cate_id" class="f_select">
+					<option value="0"> --选择分类-- </option>
+					{loop $category $row}
+						<option value="{$row['id']}" {if $project['pcate'] == $row['id']}selected{/if}>{$row['name']}<br /></option>
+					{/loop}
+					</select>
+				</div>
+			</li>
+			<li class="uploadbox">
+				<label class="input_lable mr5">项目封面</label>
+				<div class="blank0"></div>
+				<label class="fileupload f_l mr10">
+					<div class="pic_show">
+						{if empty($project['thumb'])}
+						<div class="text">
+							<i class="icon icon_plus"></i>
+							<span class="f12">上传图片</span>
+						</div>
+						{/if}
+						<img id="image_file_image" src="{php echo tomedia($project['thumb'])}" {if !empty($project['thumb'])}width="80" height="80"{/if} />
+						<input type="button" class="filebox" name="image_file" id="image_file" />
+						<input type="hidden" name="image" value="{$project['thumb']}" id="image_file_url" />
+						<div class="fileuploading"></div>
+					</div>
+				</label>
+				<div class="f12 f_999" style="margin-top:70px;">最佳尺寸：<span class="f_red b">540px*400px</span></div>
+			</li>
+		</ul>
+	</div>
+	<div class="submit_btn_row mod_main">
+		<div class="ui-button theme_color" rel="green" id="savenext">下一步</div>
+		<input type="hidden" value="1" name="ajax" />
+		<input type="hidden" name="project_id" value="{$project['id']}" />
+	</div>
+	</form>
+</section>
+<div class="blank15"></div>
+<script type="text/javascript">
+	$(function(){
+		get_file_fun("image_file");
+	});
+</script>
+</div>
+{else if $operation=='post2'}
+<div class="wraper">
+<script type="text/javascript" src="{JS_PATH}edit_deal_item.js"></script>
+<script type="text/javascript" src="{JS_PATH}ajaxupload.js"></script>
+<script type="text/javascript">
+    var MAX_FILE_SIZE = "3MB";
+    var UPLOAD_URL ='./index.php?i='+sysinfo.uniacid+'&j='+sysinfo.acid+'&c=utility&a=file&do=upload&type=image' ;
+	var UPLOAD_SWF='{JS_PATH}plupload/Moxie.swf';
+	var UPLOAD_XAP='{JS_PATH}plupload/Moxie.xap';
+	var ALLOW_IMAGE_EXT= "gif,jpg,jpeg,png,bmp";
+	var MAX_IMAGE_SIZE= "3MB";
+	function get_file_fun(name){
+		$("#"+name).ui_upload({multi:false,
+			FileUploaded:function(ajaxobj){
+				if($("#image_box .image_item").length>=4) {
+					$.show_tip("最多只能上传4张图片");
+				}
+ 				else if(ajaxobj.error==1) {
+					$.show_tip(ajaxobj.info);
+				}
+				else {
+					{if IMS_VERSION == '0.6'}
+					$("#image_box").append(
+		   				'<div class="image_item">'+
+							'<div class="remove_image bg_red"><i class="fa fa-remove"></i></div>'+
+							'<img src="'+tomedia(ajaxobj.result)+'" width=80 height=80 class="b_radius6" />'+
+							'<input type="hidden" name="image[]" value="'+ajaxobj.result+'"  />'+
+						'</div>'
+					);
+					{else}
+					$("#image_box").append(
+		   				'<div class="image_item">'+
+							'<div class="remove_image bg_red"><i class="fa fa-remove"></i></div>'+
+							'<img src="'+ajaxobj.url+'" width=80 height=80 class="b_radius6" />'+
+							'<input type="hidden" name="image[]" value="'+ajaxobj.attachment+'"  />'+
+						'</div>'
+					);
+					{/if}
+		   			bind_del_image(); // 删除已上传的图片
+		   			hide_imgupload(); // 上传4张图片后，隐藏上传图片按钮
+ 				}
+			},Error:function(error) {
+				$.show_tip(error.message);
+	 		}
+	 	});
+	}
+	
+</script>
+<div class="blank15"></div>
+<section class="project_add {if !empty($pitem['id'])}hide{/if}" id="project_add_item">
+	<div class="ul_block">
+		<ul class="reward_list">
+			{loop $item_list $row}
+			<li class="item_row webkit-box">
+				<a href="{php echo $this->createMobileUrl('Publish',array('op'=>'post2','project_id'=>$project_id,'item_id'=>$row['id']))}" class="webkit-box-flex">
+					<div class="text webkit-box-flex">
+						<p class="f16 mb5">支持&nbsp;<span class="f_red">{$row['price']}</span>&nbsp;元</p>
+						<span class="f12 f_999">{$row['description']}</span>
+					</div>
+				</a>
+				<a href="{php echo $this->createMobileUrl('Publish',array('op'=>'delete_item','project_id'=>$project_id,'item_id'=>$row['id']))}" class="del_item oper_btn bg_red" style="margin-top:8px"><i class="fa fa-remove"></i></a>
+			</li>
+			{/loop}
+		</ul>
+	</div>
+	<div class="reward_add">
+		<a href="javascript:void(0);" onclick="add_reward();">
+			<i class="fa fa-plus-circle"></i>&nbsp;<span>添加回报方式</span>
+		</a>
+	</div>
+	<div class="add_item_btn mod_main" id="submit_deal_btn" url="{php echo $this->createMobileUrl('publish',array('type'=>1,'op'=>post3,'project_id'=>$project_id))}" jump="{php echo $this->createMobileUrl('list')}">
+		<div class="ui-button theme_color">提交审核</div>
+	</div>
+</section>
+<section class="project_add {if empty($pitem['id'])}hide{/if}" id="add_item_form">
+	<form id="project_add_form" action="{php echo $this->createMobileUrl('publish',array('type'=>1,'op'=>post2))}" method="post">
+	<div class="ul_block">
+		<ul>
+			<li class="webkit-box">
+				<label class="input_lable">支持金额</label>
+				<input type="number" placeholder="请输入支持金额" value="{$pitem['price']}" name="price" class="textbox webkit-box-flex" onkeyup="amount(this);" />
+				<span>元</span>
+			</li>
+			<li class="textarea webkit-box">
+				<textarea placeholder="请输入回报内容" name="description" class="textareabox webkit-box-flex">{$pitem['description']}</textarea>
+			</li>
+			<li class="uploadbox">
+				<label class="input_lable mr10">回报说明图<span class="f12 f_999">目前仅允许上传一张</span></label>
+				<div class="blank0"></div>
+				<div>
+					<div id="image_box"></div>
+					<div class="fileupload_box">
+						<label class="fileupload">
+							<div class="pic_show">
+								{if empty($pitem['thumb'])}
+								<div class="text">
+									<i class="icon icon_plus"></i>
+									<span class="f12">上传图片</span>
+								</div>
+								{/if}
+								<img id="image_file_image" src="{php echo tomedia($pitem['thumb'])}" {if !empty($pitem['thumb'])}width="80px" height="80px" {/if} />
+								<input type="button" class="filebox" name="image_file" id="image_file" value="" />	
+								<div class="fileuploading"></div>
+							</div>
+						</label>
+					</div>
+				</div>
+			</li>
+			<li class="webkit-box">
+				<label class="input_lable mr10">是否配送</label>
+				<div class="list_con webkit-box-flex">
+					<input type="radio" name="is_delivery" value="0" {if $pitem['return_type'] == 2}checked="checked"{/if} class="mt" style="display:inline-block;margin-top:-3px" onclick="ischeck(this);" />
+					<span class="mr10">否</span>
+					<input type="radio" name="is_delivery" value="1" {if $pitem['return_type'] == 1}checked="checked"{/if} class="mt" style="display:inline-block;margin-top:-3px" onclick="ischeck(this);" />
+					<span>是</span>
+				</div>
+			</li>
+			<li class="webkit-box {if $pitem['return_type'] == 2}hide{/if}" id="limit_user_box">
+				<label class="input_lable mr5">运费</label>
+				<input type="number" value="{$pitem['delivery_fee']}" name="delivery_fee" class="textbox webkit-box-flex" />
+				<span>元</span>
+			</li>
+			<li class="webkit-box">
+				<label class="input_lable mr10">是否限购</label>
+				<div class="list_con webkit-box-flex">
+					<input type="radio" name="is_limit_user" value="0" {if $pitem['limit_num'] == 0 || empty($pitem['limit_num'])}checked="checked"{/if} class="mt" style="display:inline-block;margin-top:-3px" onclick="ischeck(this);" />
+					<span class="mr10">否</span>
+					<input type="radio" name="is_limit_user" value="1" {if $pitem['limit_num'] != 0}checked="checked"{/if} class="mt" style="display:inline-block;margin-top:-3px" onclick="ischeck(this);" />
+					<span>是</span>
+				</div>
+			</li>
+			<li class="webkit-box  {if $pitem['limit_num'] == 0 || empty($pitem['limit_num'])}hide{/if}" id="limit_user_box">
+				<label class="input_lable mr5">限购人数</label>
+				<input type="number" placeholder="请输入限购人数" value="{$pitem['limit_num']}" name="limit_user" class="textbox webkit-box-flex" />
+				<span>人</span>
+			</li>
+			<li class="webkit-box">
+				<label class="input_lable mr10">回报时间</label>
+				<span class="f_666">项目成功后</span>
+				<input type="number" placeholder="请输入天数" value="{$pitem['repaid_day']}" name="repaid_day" class="textbox webkit-box-flex" />
+				<span>天</span>
+			</li>
+		</ul>
+	</div>
+	<div class="add_item_btn two_btn webkit-box mod_main">
+		<div class="ui-button ui_button_l theme_color">保存</div>
+		<div class="ui_button bg_red" id="cancel_add" onclick="cancel_add();">返回</div>
+	</div>
+	<div class="blank0"></div>
+	<input type="hidden" name="project_id" value="{$project_id}" />
+	<input type="hidden" name="item_id" value="{$pitem['id']}" />
+	<input type="hidden" name="ajax" value="1" />
+	</form>
+</section>
+<div class="blank15"></div>
+<script type="text/javascript">
+	{if !empty($pitem['id'])}
+	$(function(){
+		get_file_fun('image_file');
+	});
+	{/if}
+	function add_reward(){
+		if($(".item_row").length>=10){
+			$.show_tip("回报项目不能超过10个");
+			return false;
+		}
+		$("#add_item_form").fadeIn(300);
+		$("#project_add_item").hide();
+		get_file_fun('image_file');
+	}
+	function cancel_add(){
+		$("#add_item_form").hide();
+		$("#project_add_item").fadeIn(300);
+	}
+	function ischeck(obj) {
+		if($(obj).val()==0){
+			$(obj).parent().parent().next().hide();
+		}
+		else{
+			$(obj).parent().parent().next().show().css("display","-webkit-box");
+		}
+	}
+</script>
+<script type="text/javascript">
+	$("#project_add_form").find(".ui-button").bind("click",function(){
+		if($("input[name='price']").val()<=0){
+			$.show_tip("请输入正确的价格");
+			return false;
+		}
+		ajax_form("#project_add_form");
+	});
+</script>
+</div>
+{/if}
+{template 'footerbar'}
+{template 'footer'}

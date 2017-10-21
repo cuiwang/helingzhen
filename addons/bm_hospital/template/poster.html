@@ -1,0 +1,169 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li {if $op == 'post'}class="active"{/if}><a href="{php echo $this->createWebUrl('poster',array('op' => 'post'))}">添加</a></li>
+	<li {if $op == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('poster',array('op' => 'display'))}">管理</a></li>
+</ul>
+<style>
+.table td span{display:inline-block;margin-top:4px;}
+.table td input{margin-bottom:0;}
+</style>
+{if $op == 'display'}
+<div class="main">
+	<div class="search">
+		<form action="site.php" method="get">
+		<input type="hidden" name="act" value="module" />
+		<input type="hidden" name="do" value="slide" />
+		<input type="hidden" name="name" value="site" />
+		<table class="table table-bordered tb">
+			<tbody>
+				<tr>
+					<th>关键字</th>
+					<td>
+						<input class="span6" name="keyword" id="" type="text" value="{$_GPC['keyword']}">
+					</td>
+				</tr>
+				 <tr class="search-submit">
+					<td colspan="2"><button class="btn pull-right span2"><i class="icon-search icon-large"></i> 搜索</button></td>
+				 </tr>
+			</tbody>
+		</table>
+		</form>
+	</div>
+	<div style="padding:15px;">
+		<table class="table table-hover table-striped">
+			<thead class="navbar-inner">
+				<tr>
+					<th width="150px;">序号</th>
+					<th>科室名称</th>
+					<th>选用相册</th>
+					<th style="width:85px; text-align:right;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $item}
+				<tr>
+					<td>{$item['id']}</td>
+					<td>{$item['department_name']}</td>
+					<td>{$item['thurl']}</td>
+					<td style="text-align:right;">
+						<a href="{php echo $this->createWebUrl('poster',array('op' => 'post','id' => $item['id']))}" title="编辑" class="btn btn-mini"><i class="icon-edit"></i></a>
+						<a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('poster',array('op' => 'delete', 'id' => $item['id']))}" title="删除" class="btn btn-mini"><i class="icon-remove"></i></a>
+					</td>
+				</tr>
+				{/loop}
+			</tbody>
+		</table>
+	</div>
+</div>
+<script type="text/javascript">
+<!--
+	var category = {php echo json_encode($children)};
+//-->
+</script>
+{elseif $op == 'post'}
+<link rel="stylesheet" href="./resource/script/kindeditor/themes/default/default.css" type="text/css" />
+<script type="text/javascript" src="./resource/script/kindeditor/kindeditor-min.js"></script>
+<script type="text/javascript" src="./resource/script/kindeditor/lang/zh_CN.js"></script>
+<link rel="stylesheet" type="text/css" href="../addons/vgover/template/css/uploadify_t.css" media="all" />
+<div class="main">
+	<form class="form-horizontal form" action="" method="post" enctype="multipart/form-data" onsubmit="return formcheck(this)">
+		<input type="hidden" name="id" value="{$item[id]}">
+		<h4></h4>
+		<table class="tb">
+			<tr>
+				<th><label for="">科室名称</label></th>
+				<td>
+					<select name='department_id'>
+						<option value='-1'>请选择</option>
+						{loop $depms $depm}
+						<option value='{$depm['id']}' {if $item['department_id'] == $depm['id']}selected{/if}>{$depm['department']}</option>
+						{/loop}
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th><label for="">相册</label></th>
+				<td>
+					<input type="text" class="span6" placeholder="" name="thurl" value="{$item['thurl']}">（注：链接需加http://）
+				</td>
+			</tr>
+			<tr>
+				<th>
+					<label for="">标题</label>
+				</th>
+				<td>
+					<input type="text" class="span6" placeholder="" name="title" value="{$item['title']}">
+				</td>
+			</tr>
+			<tr>
+				<th>
+					<label for="">缩略图</label>
+				</th>
+				<td>
+					<div id="upimg_main">
+						<div id="file_upload" class="uploadify" style='background: white;'>
+							<span class="btn btn-file">
+								<span class="fileupload-new" id="file_upload-button">选择图片</span>
+							</span>
+						</div>
+						<ul class="ipost-list ui-sortable" id="fileList">
+							{loop $thumbs $row}
+							<li class="imgbox">
+								<a class="thumb_close" href="javascript:void(0)" title="删除"></a>
+								<input type="hidden" value="{$row}" name="thumb[]">			
+								<span class="item_box">
+									<img src="{$row}"></span>
+							</li>
+							{/loop}
+						</ul>
+						<div id="file_upload_queue" class="uploadifyQueue"></div>
+					</div>
+				</td>
+			</tr>
+		
+		</table>
+
+		<table class="tb">
+			<tr>
+				<th></th>
+				<td>
+					<button type="submit" class="btn btn-primary span3" name="submit" value="提交">提交</button>
+					<input type="hidden" name="token" value="{$_W['token']}" />
+				</td>
+			</tr>
+		</table>
+	</form>
+</div>
+<script type="text/javascript">
+<!--
+	var category = {php echo json_encode($children)};
+	kindeditor($('.richtext-clone'));
+//-->
+</script>
+<script type="text/javascript">
+var editor = KindEditor.editor({
+	allowFileManager : true,
+	uploadJson : "./index.php?act=attachment&do=upload",
+	fileManagerJson : "./index.php?act=attachment&do=manager",
+	 
+	});
+	$("#file_upload-button").click(function() {
+		editor.loadPlugin("image", function() {
+		editor.plugin.imageDialog({
+			imageUrl : $("#upload-image-url-thumb").val(),
+			clickFn : function(url) {
+				editor.hideDialog();
+				var filename = /images(.*)/.exec(url);
+					html='<li class="imgbox"><a class="thumb_close" href="javascript:void(0)" title="删除"></a><input type="hidden" value="'+url+'" name="thumb[]"><span class="item_box"><img src="'+url+'"></span></li>';
+					$("#fileList").append(html);
+			}
+		});
+	});
+});
+        $("a.thumb_close").live("click ", function (n) {
+           $(this).parent().remove();
+        });
+
+</script>
+{/if}
+{template 'common/footer'}

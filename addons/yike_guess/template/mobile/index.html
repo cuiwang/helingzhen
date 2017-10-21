@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
+    <title>{if empty($set['shop']['name'])}易客竞猜{else}{$set['shop']['name']}{/if}</title>
+
+    <link href="http://yike-red.b0.upaiyun.com/lib/ionic/css/ionic.min.css" rel="stylesheet">
+    <link href="{$site}addons/yike_guess/template/mobile/lib/swiper/swiper-3.2.7.min.css" rel="stylesheet">
+    <link href="{$site}addons/yike_guess/template/mobile/css/style.css" rel="stylesheet">
+
+    <!-- IF using Sass (run gulp sass first), then uncomment below and remove the CSS includes above
+    <link href="css/ionic.app.css" rel="stylesheet">
+    -->
+
+
+
+    <!-- cordova script (this will be a 404 during development) -->
+    <script src="cordova.js"></script>
+      <script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+      <script src="http://yike-red.b0.upaiyun.com/lib/jquery/jquery.js"></script>
+
+      <script>
+      var STATIC_PATH = '{$site}addons/yike_guess/template/mobile/';
+      var WX_ID = "{$_W['account']['uniacid']}";
+      var UID = "{$_W['member']['uid']}";
+      var WX_API_URL = "{$_W['siteroot']}app/index.php";
+      var openid = "{$user['openid']}";
+	  var classify = {php echo json_encode($classify)};
+      var banner = {php echo json_encode($banner)};
+      var guess = {php echo json_encode($guess)};
+      var follow = {php echo json_encode($follow)};
+
+      <?php
+
+//      if (empty($_W['shopshare'])) {
+
+        $_W['shopshare'] = array(
+                'title'=>empty($set['share']['title'])?$set['shop']['name']:$set['share']['title'],
+                'imgUrl'=>empty($set['share']['icon'])?tomedia($set['shop']['logo']):tomedia($set['share']['icon']),
+                'desc'=>empty($set['share']['desc'])?$set['shop']['description']:$set['share']['desc'] ,
+                'link'=>$set['share']['url']
+      );
+//      }
+      ?>
+      window.shareData = {php echo json_encode($_W['shopshare'])};
+      window.shareData.link=window.shareData.link=='' ? window.location.href :window.shareData.link;
+      window.shareData.link = window.shareData.link + '&superior_id=' + UID;
+      console.log(window.shareData.link);
+      window.shareData.success = function(data) {
+          $.ajax({
+              url: 'http://'+location.host+'/app/index.php?i='+WX_ID+'&c=entry&m=yike_guess&do=share_task',
+              dataType: 'jsonp',
+              processData: false,
+              type: 'get',
+              success: function (data) {
+              },
+              error: function (i, data) {
+              }
+          });
+      };
+
+      jssdkconfig = {php echo json_encode($_W['account']['jssdkconfig']);} || { jsApiList:[] };
+      {if $trigger}
+        window.shareData.trigger =function(e){
+          wx.cancel();
+        };
+        {/if}
+          jssdkconfig.debug = false;
+          jssdkconfig.jsApiList = ['checkJsApi','onMenuShareTimeline','onMenuShareAppMessage','onMenuShareQQ','onMenuShareWeibo','showOptionMenu', 'previewImage'		];
+          wx.config(jssdkconfig);
+          wx.ready(function () {
+            wx.showOptionMenu();
+            wx.onMenuShareAppMessage(window.shareData);
+            wx.onMenuShareTimeline(window.shareData);
+          });
+            console.log(window.shareData);
+    </script>
+
+
+
+    <script src="{$site}addons/yike_guess/template/mobile/lib/jquery/jquery.lazyload.js"></script>
+    <script src="{$site}addons/yike_guess/template/mobile/lib/swiper/swiper-3.2.7.min.js"></script>
+
+
+    <script src="http://yike-red.b0.upaiyun.com/lib/leancloud/av-mini.js"></script>
+    <script src="http://yike-red.b0.upaiyun.com/lib/ionic/js/ionic.bundle.min.js"></script>
+
+    <script src="{$site}addons/yike_guess/template/mobile/lib/yike/app.js"></script>
+
+    <!-- your app's js -->
+    <!--<script src="{$site}addons/yike_guess/template/mobile/js/app.js"></script>-->
+    <script src="{$site}addons/yike_guess/template/mobile/js/services.js"></script>
+  </head>
+
+  <body ng-app="starter">
+    <!--
+      The nav bar that will be updated as we navigate between views.
+    -->
+    <ion-nav-bar class="bar-stable">
+      <!--<ion-nav-back-button>-->
+      <!--</ion-nav-back-button>-->
+    </ion-nav-bar>
+    <!--
+      The views will be rendered in the <ion-nav-view> directive below
+      Templates are in the /templates folder (but you could also
+      have templates inline in this html file if you'd like).
+    -->
+    <ion-nav-view></ion-nav-view>
+  </body>
+</html>

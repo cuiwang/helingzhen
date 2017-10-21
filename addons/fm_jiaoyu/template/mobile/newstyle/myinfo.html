@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<meta charset="utf-8">
+<meta name="renderer" content="webkit">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+<meta content="telephone=no" name="format-detection" /> 
+<style>
+body > a:first-child,body > a:first-child img{ width: 0px !important; height: 0px !important; overflow: hidden; position: absolute}
+body{padding-bottom: 0 !important;}
+</style>
+<meta id="viewport" name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0">
+<title>学生信息</title>
+{php echo register_jssdk();}
+<link rel="stylesheet" href="{OSSURL}public/mobile/css/resetnew.css">
+<script type="text/javascript" src="{MODULE_URL}public/mobile/js/jquery-1.11.3.min.js?v=4.9"></script>
+<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+<script type="text/javascript" src="{OSSURL}public/mobile/js/PromptBoxUtil.js?v=4.80309"></script>			
+</head>
+<body>
+	<input type="hidden" id="bigImage" name="bigImage"/>
+    <div id="wrap" class="user_inf" style="padding-bottom:75px;">
+        <dl>
+            <dt onclick="uploadImg(this);">
+            <label>头像&nbsp;点击修改</label>
+                 <span  class="potot" style="background-image:url({if !empty($students['icon'])}{php echo toimage($students['icon'])}{else}{OSSURL}public/mobile/img/mask_bg2.png{/if})"></span>
+            </dt>
+            <dd>
+                <label>学生姓名</label>
+                <div>{$students['s_name']}</div>
+            </dd>
+            <dd>
+                <label>学号</label>
+                <div>{$students['numberid']}</div>
+            </dd>
+            <dd>
+                <label>性别</label>
+                <div>{if $students['sex'] ==1}男{/if}{if $students['sex'] ==2}女{/if}</div>
+            </dd>
+            <dd>
+                <label>年级</label>
+                <div>{if !empty($category[$students['xq_id']])}{$category[$students['xq_id']]['sname']}{/if}</div>
+            </dd>			
+-           <dd>
+                <label>就读班级</label>
+                <div>{if !empty($category[$students['bj_id']])}{$category[$students['bj_id']]['sname']}{/if}</div>
+            </dd>
+            <dd>
+                <label>报名预留电话</label>
+                <div>{$students['mobile']}</div>
+            </dd>
+            <dd>
+                <label>家庭地址</label>
+                <div>{$students['area_addr']}</div>
+            </dd>
+        </dl>
+        <a class="help" href="javascript:void(0)">如有问题，请联系老师修改哦～</a>
+    </div>
+	{php include $this->template('footer');}
+</body>
+<script>
+var PB = new PromptBox();
+WeixinJSHideAllNonBaseMenuItem();
+/**微信隐藏工具条**/
+function WeixinJSHideAllNonBaseMenuItem(){
+	if (typeof wx != "undefined"){
+		wx.ready(function () {
+			
+			wx.hideAllNonBaseMenuItem();
+		});
+	}
+}
+var images = {
+	    localId: [],
+	    serverId: []
+};
+
+function uploadImg(){
+
+	wxChooseImage();
+}
+
+/**
+ * 微信选择图片
+ */
+function wxChooseImage(){
+	wx.chooseImage({
+		success: function (res) {
+			images.localId = res.localIds;
+			var obj=new Image();
+			obj.src=res.localIds[0];
+			imagesUploadWx();
+		}
+	});
+};
+
+function imagesUploadWx() {
+	      wx.uploadImage({
+	        localId: images.localId[0],
+	        isShowProgressTips:1,//// 默认为1，显示进度提示
+	        success: function (res) {
+	        	$("#bigImage").val(res.serverId);
+				saveImage();
+	        },
+	        fail: function (res) {
+	          alert(JSON.stringify(res));
+	        }
+	      });
+};
+
+function saveImage() {
+	PB.prompt("头像上传中，请稍等~","forever");
+	var url = "{php echo $this->createMobileUrl('indexajax',array('op'=>'changeimg'))}";
+	var submitData = {
+			bigImage:$("#bigImage").val(),
+			sid:"{$it['sid']}",
+	};
+	$.post(url, submitData, function(data) {
+		if (data.result) {
+			PB.prompt(data.msg);
+			location.reload();
+		} else {
+			PB.prompt(data.msg);
+		}
+	},'json');
+}
+</script>
+</html>

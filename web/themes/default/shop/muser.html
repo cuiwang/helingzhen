@@ -1,0 +1,286 @@
+{template 'common/header'}
+<ol class="breadcrumb">
+	<li><a href="./?refresh"><i class="fa fa-home"></i></a></li>
+	<li><a href="{url 'system/welcome'}">系统</a></li>
+	<li class="active">用户列表</li>
+</ol>
+<ul class="nav nav-tabs">
+    {if $_W['isfounder']}
+     <li {if $do == 'mlist'}class="active"{/if}><a href="{php echo url('shop/muser/mlist');}">用户列表</a></li>
+     {if $do == 'addmod'}<li class="active"><a href="#">授权设置</a></li>{/if}
+    <li {if $do == 'payset'}class="active"{/if}><a href="{php echo url('shop/mpayset/payset');}">支付设置</a></li> 
+    <li {if $do == 'mkset'}class="active"{/if}><a href="{php echo url('shop/mkdel/mkset');}">相关设置</a></li>   
+    {/if}
+</ul>
+{if $do == 'post'}
+<div class="panel panel-default">
+  <div class="panel-heading">用户信息</div>
+  <div class="panel-body">
+   <form action="{php echo url('shop/mrecharge')}" class="form-horizontal form" method="post" enctype="multipart/form-data" target="_blank">
+  <div class="form-group">
+    <label for="inputEmail3" class="col-sm-2 control-label">充值金额：</label>
+    <div class="col-sm-10">
+      <input class="form-control" name="recharge_number" type="text" placeholder="充值金额" value="10"  style="width:30%">
+      
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="inputPassword3" class="col-sm-2 control-label">支付方式：</label>
+    <div class="col-sm-10">
+    {if false}
+      <input type="radio" name="pay_type" value="alipay" >
+      <label for="pay">支付宝</label>{/if}
+      <input type="radio" name="pay_type" value="yunpay" checked>
+      <label for="pay">云支付</label>
+    </div>
+    
+  </div>
+
+  <div class="form-group">
+     <div class="col-sm-10" style="margin-left:20%;">
+     <button type="button" class="btn btn-warning buy">确认充值</button>
+     </div>
+  </div>
+</form>
+  </div>              
+</div>
+<div class="modal fade" id="myModal" data-backdrop="static" style="top: 25%">
+
+    <div class="modal-dialog">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+
+                <h4 class="modal-title">充值提醒</h4>
+
+            </div>
+
+            <div class="modal-body" style="line-height: 30px;text-indent: 2em;font-size: 16px;font-weight: bold">
+
+                请在新弹出的第三方支付平台完成支付，即可自动充值到帐户，未完成支付前请不要关闭本窗口。<br/>
+            </div>
+
+            <div class="modal-footer">
+
+                <button type="button" class="btn btn-warning done">完成支付</button>
+
+            </div>
+
+        </div><!-- /.modal-content -->
+
+    </div><!-- /.modal-dialog -->
+
+</div>
+<script>
+require(['bootstrap'],function($){
+	$("button.buy").on("click",function(){
+	
+				$("button.buy").removeAttr("disabled");
+	
+				$('#myModal').modal('show');
+	
+				$("form.form").action = "{php echo url('shop/mrecharge')}";
+	
+				$("form.form").submit();
+	
+			});
+});
+</script>
+{elseif $do == 'mlist'}
+ <div class="panel panel-default">
+
+                    <table class="table table-hover">
+
+                        <thead>
+
+                        <tr>
+
+                            <th style="width: 5%;text-align: center">id</th>
+
+                            <th>用户名</th>
+
+                            <th>注册时间</th>
+
+                            <th style="width: 20%">当前积分</th>
+
+                           {if $_W['isfounder']}<th style="width: 30%">操作</th>{/if} 
+
+                        </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                        {loop $list $item}
+
+                        <tr>
+
+                            <td style="text-align: center">{$item["uid"]}</td>
+
+                            <td>{$item["username"]}</td>
+
+                            <td>{php echo date('Y-m-d H:i:s',$item["joindate"])}</td>
+                            
+                            {php $memberprcie=pdo_fetch("SELECT * FROM ".tablename('buymod_members')." where uid=:uid",array(':uid' => $item["uid"]));}
+
+                            <td>￥{$memberprcie["credit"]}</td>
+
+                            <td >
+
+                                <div class="btn-group text-left">
+
+                                    <a class="btn btn-default btn-sm" href="{php echo url('shop/mRecord/paylist',array('uid'=>$item[uid]))}" title="充值记录"><i class="fa fa-share"></i>充值记录</a>
+
+                                    <a class="btn btn-default btn-sm" href="{php echo url('shop/mRecord/modlist',array('uid'=>$item[uid]))}" title="消费记录"><i class="fa fa-share"></i>消费记录</a>
+
+                                    <a class="btn btn-default btn-sm" href="{php echo url('shop/maddmod/addmod',array('uid'=>$item[uid]))}" title="消费记录"><i class="fa fa-edit"></i>授权</a>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                        {/loop}
+
+                        </tbody>
+
+                    </table>
+
+                    <div style="margin: 10px">{$pager}</div>
+
+                </div>
+
+            </section>
+
+        </aside>
+
+    </div>
+
+</div>
+
+{elseif $do == 'addmod'}
+<div class="panel panel-default">
+
+  <div class="panel-heading">授权</div>
+
+  <div class="panel-body">
+
+    <form class="form-horizontal" action="" method="POST">
+    <input type="hidden" name="uid" class="form-control" id="uid" value="{$uid}">
+
+  <div class="form-group">
+
+    <label for="inputEmail3" class="col-sm-2 control-label">积分：</label>
+
+    <div class="col-sm-10">
+
+      <input type="text" name="credit" class="form-control" id="credit" value="0">
+
+    </div>
+
+  </div>
+
+  <div class="form-group">
+
+    <label for="inputPassword3" class="col-sm-2 control-label">该用户名下公众号：</label>
+
+    <div class="col-sm-10">
+
+      <select class="col-xs-12 col-sm-3 col-md-2"  name="weid" id="weid" style="width:10%;" >
+      <option value="">选择公众号</option>
+     {loop $gzh $row}
+     {php $gzhname=pdo_fetch("SELECT * FROM " . tablename('uni_account')."where uniacid=".$row['uniacid']);}
+                <option value="{$row['uniacid']}">{$gzhname['name']}</option>
+      {/loop}
+    </select>	
+
+    </div>
+
+  </div>
+
+  <div class="form-group">
+
+    <label for="inputPassword3" class="col-sm-2 control-label">授权模块：</label>
+
+    <div class="col-sm-10">
+<select class="col-xs-12 col-sm-3 col-md-2"  name="module" id="module" style="width:10%;" >
+      <option value="">选择模块</option>
+     {loop $modules $row}
+      {if !$row['issystem']}
+                <option value="{$row['name']}">{$row['title']}</option>
+       {/if}
+      {/loop}
+    </select>	
+    </div>
+
+  </div>
+
+  <div class="form-group">
+
+    <label for="inputEmail3" class="col-sm-2 control-label">到期时间：</label>
+
+    <div class="col-sm-10">
+
+      {php echo tpl_form_field_date('endtime');}
+    </div>
+
+  </div>
+  <div class="form-group">
+
+    <div class="col-sm-offset-2 col-sm-10">
+
+      <input type="submit" name="submit" class="btn btn-info" value="提交" />
+
+      <input type="hidden" name="token" value="{$_W['token']}" />
+
+    </div>
+
+  </div>
+
+</form>
+
+  </div>
+
+</div>
+{elseif $do == 'list'}
+
+<div class="rule panel panel-default">
+    <div class="panel-heading">用户名称：{$user['username']}<span style="margin-left:35px;">积分：{$member['credit']}</span></div>
+	<div class="table-responsive panel-body">
+	<table class="table table-hover">
+		<thead class="navbar-inner">
+			<tr>
+				<th >模块名称</th>
+				<th>状态</th>
+                <th >对应公众号id</th>
+				<th >购买时间</th>
+				<th >到期时间</th>
+				{if $_W['isfounder']}<th >操作</th>{/if}
+			</tr>
+		</thead>
+		<tbody>
+			{loop $modules $row}
+			<tr>
+				<td>{$row['name']}</td>
+				<td>{if $row['status']=='1'}<span style="color:#093;">已购买</span>{/if}{if $row['status']=='2'}<span style="color:#F00;">到期禁用</span>{/if}</td>
+                <td>{$row['weid']}</td>
+				<td>{php echo date('Y-m-d',$row['starttime']);}</td>
+				<td>{php echo date('Y-m-d',$row['endtime']);}</td>
+				<td>
+                {if $_W['isfounder']}
+                <a href="{php echo url('shop/mmodset', array('id' => $row['id']))}" class="btn btn-default btn-sm" title="禁用" data-toggle="tooltip" data-placement="top" ><i class="fa fa-edit">禁用</i></a>
+                {/if}
+                </td>
+			</tr>
+			{/loop}
+		</tbody>
+	</table>
+	</div>
+</div>
+{$pager}
+{/if}
+{template 'common/footer'}

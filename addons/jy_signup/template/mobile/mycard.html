@@ -1,0 +1,148 @@
+<!DOCTYPE html><html>
+<head>
+<meta charset="utf-8">
+<title>我的电子券</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0">
+<link rel="stylesheet" type="text/css" href="../addons/jy_signup/css/header.css">
+{template style}
+<style>
+.no-data {
+    width:79px;
+    height:99px;
+    margin:70px auto;
+    background:url(../addons/jy_signup/images/no_data.png) no-repeat;
+    background-size:79px 99px;
+}
+.ticketCon{width: 88%;border: 1px solid #ccc;margin:0 auto 10px auto;border-radius: 10px;padding: 3%;max-width: 480px}
+.ticketCon>img{width: 100%}
+.ticketCon-title{overflow: hidden;margin-top: 6px;height: 30px}
+.ticketCon-title>div:first-child{float: left;width: 70%;overflow: hidden; text-overflow: ellipsis; white-space: nowrap;line-height: 30px}
+.ticketCon-title>div:last-child{float: right;width: 30%;text-align: right;line-height: 30px}
+.yiduiBtn{
+    color: #fff;
+    background-color: #ccc;
+    padding: 15px;
+    cursor: pointer;
+    border-radius: 3px
+}
+.duiBtn{
+    color: #fff;
+    padding: 15px;
+    cursor: pointer;
+    border-radius: 3px
+}
+.erweimaDiv{
+    display: none;
+    text-align: center;
+    margin-top: 20px;
+}
+.erweimaDiv>img{width: 60%}
+</style>
+</head>
+<body>
+    <header>
+      <a href="javascript:history.go(-1)"><div class="navbar-btn floL"><img class="icon-back" src="../addons/jy_signup/images/header-back.png"></div></a>
+      <a href="{php echo $this->createMobileUrl('geren')}"><div class="navbar-btn floR"><img class="icon-back" src="../addons/jy_signup/images/header-person.png"></div></a>
+      <h1 class="latecolorbg">{if !empty($sitem['aname'])}{$sitem['aname']}{else}我的电子券{/if}</h1>
+    </header>
+
+    <div id="wrapper">
+        <div class="container" style="margin-top:15px;">
+            {if empty($hd)}
+            <div class="no-data"></div>
+            {template footer}
+            {else}
+            <!-- begin -->
+            {loop $hd $row}
+            <div class="ticketCon">
+                {php $thumb = unserialize($row['thumb']);}
+                <img {if !empty($thumb[0])} src="{$_W['attachurl']}{$thumb[0]}" {else} src="../addons/jy_signup/images/pic.jpg"{/if}/>
+                <div class="ticketCon-title">
+                    <div>{$row['hdname']}</div>
+                    {if $row['status']==0}
+                    <div><span class="yiduiBtn">已兑换</span></div>
+                    {else}
+                    <div>
+                        {if !empty($row['enabled'])}
+                        <span class="duiBtn latecolorbg" onclick="qrcode({$row['id']},{$row['cardid']})">兑换</span>
+                        {/if}
+                    </div>
+                    {/if}
+                </div>
+                <div id="code_{$row['id']}" class="erweimaDiv"></div>
+            </div>
+
+            {/loop}
+            <!-- end -->
+            {template footer}
+            {/if}
+        </div>
+    </div>
+
+    <script type="text/javascript" src="../addons/jy_signup/js/jquery.js"></script>
+    <script type="text/javascript" src="../addons/jy_signup/js/jquery.qrcode.js"></script>
+
+    <script>
+        function qrcode(hdid,cardid)
+        {
+            jQuery('#code_'+hdid).html("");
+            jQuery(function(){
+                jQuery('#code_'+hdid).qrcode("{php echo $_W['siteroot'].'app/'.substr($this->createMobileUrl('hexiao'),2).'&id='}"+hdid+"&cardid="+cardid);
+            });
+        }
+    </script>
+    <script>
+    $(".duiBtn").bind("click",function(){
+        $(this).parent().parent().parent().find(".erweimaDiv").eq(0).slideToggle();
+
+    });
+    </script>
+    {if $weixin==1}
+    <script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+
+    {php $signPackage=$_W['account']['jssdkconfig'];}
+    <script>
+
+        var appid = '{$_W['account']['jssdkconfig']['appId']}';
+        var timestamp = '{$_W['account']['jssdkconfig']['timestamp']}';
+        var nonceStr = '{$_W['account']['jssdkconfig']['nonceStr']}';
+        var signature = '{$_W['account']['jssdkconfig']['signature']}';
+
+        wx.config({
+            debug: false,
+            appId: appid,
+            timestamp: timestamp,
+            nonceStr: nonceStr,
+            signature: signature,
+            jsApiList: ['checkJsApi','onMenuShareTimeline','onMenuShareAppMessage','onMenuShareQQ','onMenuShareWeibo',]
+        });
+    </script>
+    <script type="text/javascript">
+        var params = {
+            {if empty($sitem['sharetitle'])}
+            title:"活动管理",
+            {else}
+            title: "{$sitem['sharetitle']}",
+            {/if}
+            {if empty($sitem['sharedesc'])}
+            desc: "活动管理!",
+            {else}
+            desc: "{$sitem['sharedesc']}",
+            {/if}
+            link: "{php echo $_W['siteroot'].'app/'.substr($this->createMobileUrl('index'),2)}",
+            {if empty($sitem['sharelogo'])}
+            imgUrl: "{$_W['siteroot']}addons/jy_signup/icon.jpg",
+            {else}
+            imgUrl: "{$_W['attachurl']}{$sitem['sharelogo']}",
+            {/if}
+        };
+        wx.ready(function () {
+            wx.showOptionMenu();
+            wx.onMenuShareAppMessage.call(this, params);
+            wx.onMenuShareTimeline.call(this, params);
+        });
+    </script>
+    {/if}
+
+</body>
+</html>

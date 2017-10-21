@@ -1,0 +1,81 @@
+    <div class="panel panel-primary">
+      <a data-toggle="collapse" data-parent="#accordion2" href="#collapse4" aria-expanded="true" aria-controls="collapse4">
+        <div class="panel-heading">
+          <h3 class="panel-title">文章推荐&nbsp;<span class="caret"></span></h3>
+        </div>
+      </a>
+      <div id="collapse4" class="panel-collapse collapse in" role="tabpanel">
+        <div class="panel-body">
+          <div class="row">
+            {php $options = array('user'=>'自定义', 'rand'=>'随机');}
+            {if empty($recommendation)}
+              {php $recommendation = range(1,10); $item['recommendation_source']='rand';}
+            {/if}
+            <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">推荐类型</label>
+            {loop $options $o=>$v}
+            <div class="radio col-xs-2">
+              <label>
+                <input type="radio" name="recommendation_source" value="{$o}" {if $o==$item['recommendation_source']}checked{/if}>
+                {$v}
+              </label>
+            </div>
+            {/loop}
+          </div>
+          <br/>
+          {php $seq = 0; }
+          {loop $recommendation $rec}
+          {php $seq++; }
+          <div class="row row-rec">
+              <div class="col-xs-1">
+                <span class="control-label">第{$seq}篇</span>
+              </div>
+              <div class="col-xs-3">
+                <input type="text" name="rec-title[]" class="row-title form-control" placeholder="百度首页" value="{$rec['title']}">
+              </div>
+              <div class="col-xs-5">
+                <input type="text" name="rec-url[]" class="row-url form-control" placeholder="http://www.baidu.com/" value="{$rec['url']}">
+              </div>
+              <div class="col-xs-3">
+                <div class="input-group">
+                  <input type="text" class="search-keyword form-control" placeholder="文章ID或关键词">
+                  <span class="input-group-btn">
+                    <button class="btn btn-default search-article" type="button">搜索</button>
+                  </span>
+                </div>
+              </div>
+            </div>
+            {/loop}
+          </div>
+      </div>
+      </div>
+      <script>
+$(function(){
+  $(".search-article").on('click', function() {
+    var row = $(this).closest('.row');
+    var keyword = row.find('.search-keyword').val();
+    var httpurl ="{php echo wurl('site/entry/ajaxSearch', array('m'=>'xc_article'))}" + "&search-keyword=" + keyword;
+    if (keyword.length <= 0) {
+      alert('请输入文章ID或关键词进行搜索');
+      return;
+    }
+    $.getJSON(httpurl,function(data){
+      if(data.err == 0){
+        row.find('.row-title').val(data.title);
+        row.find('.row-url').val(data.url);
+      } else {
+        alert('找不到包含'+keyword+'的内容');
+      }
+    });
+  });
+  {if $item['recommendation_source']=='rand'}
+  $(".row-rec").hide();
+  {/if}
+  $("input[name='recommendation_source']").on('click', function() {
+    if ($(this).val() == 'user') {
+      $(".row-rec").show();
+    } else {
+      $(".row-rec").hide();
+    }
+  });
+});
+      </script>

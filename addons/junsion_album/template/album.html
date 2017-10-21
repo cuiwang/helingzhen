@@ -1,0 +1,369 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li class="active"><a href="{php echo $this->createWebUrl('album')}">相册管理</a></li>
+    <li><a href="{php echo $this->createWebUrl('comment')}">评论列表</a></li>
+</ul>
+<style>
+td{
+	text-align: center;
+	white-space: normal !important;
+}
+th{
+	text-align: center;
+}
+</style>
+<link href="{RES}css/photoswipe.css" type="text/css" rel="stylesheet">
+<script type="text/javascript" src="{RES}js/klass.min.js"></script>
+<script type="text/javascript"
+	src="{RES}js/code.photoswipe-3.0.5.min.js"></script>
+{if $op == 'display'}
+<div class="main">
+	<div style="padding:15px;background: white;">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<th style="width: 50px;">序号</th>
+					<th style="width:100px;">粉丝</th>
+					<th style="width:100px;">相册标题</th>
+					<th style="width:100px;">相册模板</th>
+					<th style="width:210px;">相册音乐</th>
+					<th style="width:270px;">相片</th>
+					<th style="width: 80px;">点击数</th>
+					<th style="width: 80px;">分享数</th>
+					<th style="width: 80px;">点赞数</th>
+					<th style="width: 80px;">打赏额</th>
+					<th style="width: 80px;">状态</th>
+					<th style="width: 165px;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+					{loop $list $k $item}
+				<tr>
+					<td>{php echo $k+1+($pindex-1)*$psize}</td>
+					<td><img src="{$item['avatar']}" style="width: 80px;height: 80px;"><br>{$item['nickname']}</td>
+					<td>{$item['title']}</td>
+					<td>{$item['style_name']}</td>
+					<td><audio src="{php echo toimage($item['music_url'])}" controls="controls"></audio></td>
+					<td>
+						{php $kk = 0;}
+						{loop unserialize($item['pics']) $kk $p}
+						{if $kk <= 2}
+						<a href="{$p}" class="aimg"><img src="{$p}" style="width: 80px;height: 80px;"></a>
+						{/if}
+						{/loop}
+						{if $kk>2}<p>共{php echo $kk+1}张相片</p>{/if}
+					</td>
+					<td>{$item['clicknum']}</td>
+					<td>{$item['sharenum']}</td>
+					<td>{$item['goodnum']}</td>
+					<td>{$item['money']}</td>
+					<td>
+						<label class="label {if !$item['a_status']}label-success{else}label-default{/if} is_ok" data-id="{$item['id']}">{if !$item['a_status']}正常{else}禁用{/if}</label>
+						<label style="margin-top: 5px;display: inline-block;" class="label {if $item['opening']}label-success{else}label-danger{/if} is_ok2" data-id="{$item['id']}">{if $item['opening']}公开{else}隐私{/if}</label>
+					</td>
+					<td>
+						<a href="{php echo $this->createWebUrl('album', array('id' => $item['id'],'op'=>'post'))}" class="btn btn-sm btn-default">编辑</a>
+						<a target="_blank" href="{php echo $_W['siteroot'].'app'.substr($this->createMobileUrl('album', array('aid' => base64_encode($item['id']))),1)}" class="btn btn-sm btn-primary">访问</a>
+						<a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('album', array('op' => 'del','id' => $item['id']))}" title="删除" class="btn btn-sm btn-danger"><i class="fa fa-remove"></i></a>
+						<a style="margin-top: 5px;" target="_blank" href="{php echo $this->createWebUrl('comment', array('aid' => $item['id']))}" class="btn btn-sm btn-warning">评论({$item['c']})</a>
+						<a style="margin-top: 5px;" target="_blank" href="{php echo $this->createWebUrl('feedback', array('aid' => $item['id']))}" class="btn btn-sm btn-info">反馈({$item['b']})</a>
+					</td>
+				</tr>
+				
+				{/loop}
+			</tbody>
+		</table>
+		{$pager}
+	</div>
+<script>
+$(function(){
+	$(".is_ok").click(function(){
+		var that = $(this);
+		var id = $(this).attr('data-id');
+		$.ajax({
+			type:'post',
+			url:"{php echo $this->createWebUrl('check')}",
+			data:{id:id},
+			success:function(data){
+				if(data == 1){
+					if(that.hasClass('label-success')){
+						that.removeClass('label-success');
+						that.addClass('label-default');
+						that.html("禁用");
+					}else{
+						that.removeClass('label-default');
+						that.addClass('label-success');
+						that.html("正常");
+					}
+				}
+			}
+		});
+	});
+	$(".is_ok2").click(function(){
+		var that = $(this);
+		var id = $(this).attr('data-id');
+		$.ajax({
+			type:'post',
+			url:"{php echo $this->createWebUrl('check2')}",
+			data:{id:id},
+			success:function(data){
+				if(data == 1){
+					if(that.hasClass('label-success')){
+						that.removeClass('label-success');
+						that.addClass('label-danger');
+						that.html("隐私");
+					}else{
+						that.removeClass('label-danger');
+						that.addClass('label-success');
+						that.html("公开");
+					}
+				}
+			}
+		});
+	});
+});
+
+(function(window, PhotoSwipe) {
+	document.addEventListener('DOMContentLoaded', function() {
+		var options = {}, instance = PhotoSwipe.attach(window.document
+				.querySelectorAll('.table a.aimg'), options);
+	}, false);
+}(window, window.Code.PhotoSwipe));
+</script>	
+	
+</div>
+{elseif $op == 'post'}
+{php load()->func('tpl')}
+<form action="" method="post" class="form form-horizontal" onsubmit="return checksubmit()">
+
+	<input type="hidden" name="id" value="{$item['id']}">
+
+<div class="panel panel-default">
+
+	<div class="panel-body">
+		<div class="form-group">
+             <label class="col-xs-12 col-sm-3 col-md-2 control-label">粉丝昵称</label>
+             <div class="col-sm-9">
+              <input type="text" class="form-control" name="nickname" readonly="readonly"  id="nickname" value="{$item['nickname']}">
+             </div>
+       </div>
+		<div class="form-group">
+             <label class="col-xs-12 col-sm-3 col-md-2 control-label">相册标题</label>
+             <div class="col-sm-9">
+              <input type="text" class="form-control" name="title" id="title" value="{$item['title']}">
+             </div>
+       </div>
+
+<style>
+.closec {float: right;font-size: 21px;font-weight: 700;line-height: 1;color: #000;text-shadow: 0 1px 0 #fff;filter: alpha(opacity=20);opacity: .2;}
+</style>
+<div class="form-group">
+  <label class="col-xs-12 col-sm-3 col-md-2 control-label">相册模板</label>
+  <div class="col-sm-9 col-xs-12">
+    <input type='hidden' id='cardid' name='styleid' value="{$style_now['id']}"  class="form-control" readonly /> 
+     <div class='input-group'>
+     
+     <input type="text" name="card" maxlength="30" value="{$style_now['title']}" id="card" class="form-control" readonly />    
+         <div class='input-group-btn'>
+             <button class="btn btn-default" type="button" onclick="popwin = $('#modal-module-menusc1').modal();">选择模板</button>
+             <button class="btn btn-danger" type="button" onclick="$('#cardid').val('');$('#card').val('');">清除选择</button>
+         </div>
+     </div>
+     <div id="modal-module-menusc1"  class="modal fade" tabindex="-1">
+         <div class="modal-dialog" style='width: 920px;'>
+             <div class="modal-content">
+                 <div class="modal-header"><button aria-hidden="true" data-dismiss="modal" class="closec" type="button">×</button><h3>选择模板</h3></div>
+                 <div class="modal-body" >
+                     <div class="row">
+                         <div class="input-group">
+                             <input type="text" class="form-control" name="keywordc" value="" id="search-kwdc1" placeholder="请输入模板名称" />
+                             <span class='input-group-btn'><button type="button" class="btn btn-default" onclick="search_cards();">搜索</button></span>
+                         </div>
+                     </div>
+                     <div id="module-menusc1" style="padding-top:5px;"></div>
+                   </div>
+                   <div class="modal-footer"><a href="#" class="btn btn-default" data-dismiss="modal" aria-hidden="true">关闭</a></div>
+               </div>
+           </div>
+       </div>
+   </div>
+</div>
+<script>
+function search_cards() {
+	$("#module-menusc1").html("正在搜索....")
+	$.get('{php echo $this->createWebUrl('album',array('op'=>'style'));}', {
+		keywordc: $.trim($('#search-kwdc1').val())
+	}, function(dat){
+		$('#module-menusc1').html(dat);
+	});
+}
+function select_card(o) {
+	$("#cardid").val(o.id);
+	$("#card").val( o.title);
+	
+	$(".closec").click();
+}
+</script>
+<style>
+.cloes {float: right;font-size: 21px;font-weight: 700;line-height: 1;color: #000;text-shadow: 0 1px 0 #fff;filter: alpha(opacity=20);opacity: .2;}
+</style>
+<div class="form-group">
+   <label class="col-xs-12 col-sm-3 col-md-2 control-label">音乐链接</label>
+   <div class="col-sm-9 col-xs-12">
+    <input type='hidden' id='roleid' name='musicid' value="{$music['id']}" />
+    <div class='input-group'>
+    
+        <input type="text" name="role" maxlength="30" value="{$music['title']}" id="role" class="form-control" readonly />
+        <div class='input-group-btn'>
+            <button class="btn btn-default" type="button" onclick="popwin = $('#modal-module-menus1').modal();">选择音乐</button>
+            <button class="btn btn-danger" type="button" onclick="$('#roleid').val('');$('#role').val('');">清除选择</button>
+        </div>
+    </div>
+    <div id="modal-module-menus1"  class="modal fade" tabindex="-1">
+        <div class="modal-dialog" style='width: 920px;'>
+            <div class="modal-content">
+                <div class="modal-header"><button aria-hidden="true" data-dismiss="modal" class="cloes" type="button">×</button><h3>选择音乐</h3></div>
+                <div class="modal-body" >
+                    <div class="row">
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="keyword" value="" id="search-kwd1" placeholder="请输入音乐名称" />
+                            <span class='input-group-btn'><button type="button" class="btn btn-default" onclick="search_roles();">搜索</button></span>
+                        </div>
+                    </div>
+                    <div id="module-menus1" style="padding-top:5px;"></div>
+                 </div>
+                 <div class="modal-footer"><a href="#" class="btn btn-default" data-dismiss="modal" aria-hidden="true">关闭</a></div>
+             </div>
+         </div>
+     </div>
+ </div>
+</div>
+
+<script>
+function search_roles() {
+	$("#module-menus1").html("正在搜索....")
+	var id = {$_GPC['id']};
+	
+	$.get('{php echo $this->createWebUrl('album',array('op'=>'sel_music'));}', {
+		keyword: $.trim($('#search-kwd1').val())
+	}, function(dat){
+		$('#module-menus1').html(dat);
+	});
+}
+function select_role(o) {
+	$("#roleid").val(o.id);
+	$("#role").val( o.title );
+    
+	$(".cloes").click();
+}
+
+(function(window, PhotoSwipe) {
+	document.addEventListener('DOMContentLoaded', function() {
+		var options = {}, instance = PhotoSwipe.attach(window.document
+				.querySelectorAll('a.aimg'), options);
+	}, false);
+}(window, window.Code.PhotoSwipe));
+</script>
+<style>
+.aitem{
+	display: inline-block;	
+	position: relative;
+	    margin-right: 20px;
+}
+.aitem .aclose{
+	font-size: 30px;
+    position: absolute;
+    top: -23px;
+    right: -6px;
+    color: red;
+}
+.aitem .aimg img{
+	width: 200px;
+}
+</style>
+   		<div class="form-group">
+             <label class="col-xs-12 col-sm-3 col-md-2 control-label">当前相册图片</label>
+             <div class="col-sm-9">
+              	{loop $pics $p}
+              	<div class="aitem">
+              		<a class='aclose' onclick="$(this).parent().remove();$(this).next().next().remove()">x</a>
+              		<a href="{$p}" class="aimg"><img src="{$p}" ></a>
+              		<input type="hidden" name='pics[]' value="{$p}">
+              	</div>
+              	{/loop}
+             </div>
+       </div>
+       
+   		<div class="form-group">
+             <label class="col-xs-12 col-sm-3 col-md-2 control-label">增加图片相册</label>
+             <div class="col-sm-9">
+              {php echo tpl_form_field_multi_image('pics','')}
+             </div>
+       </div>
+   
+   		<div class="form-group">
+             <label class="col-xs-12 col-sm-3 col-md-2 control-label">点击数</label>
+             <div class="col-sm-9">
+              <input type="number" class="form-control" name="clicknum" id="clicknum" value="{$item['clicknum']}">
+             </div>
+       </div>
+       <div class="form-group">
+             <label class="col-xs-12 col-sm-3 col-md-2 control-label">分享数</label>
+             <div class="col-sm-9">
+              <input type="number" class="form-control" name="sharenum" id="sharenum" value="{$item['sharenum']}">
+             </div>
+       </div>
+   
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">状态</label>
+            <div class="col-sm-9">
+				<label><input type="radio" name="status" {if $item['a_status'] == 0}checked="checked"{/if} value="0"> 启用</label>
+				<label style="margin-left: 10px;"><input type="radio" name="status" {if $item['a_status']}checked="checked"{/if} value="1"> 禁用</label>
+			</div>
+		</div>
+
+        <div class="form-group">
+             <label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+             <div class="col-sm-1">
+             	<button class="btn btn-primary" type="submit" name="submit" id="edit_ablum" value="提交">提交</button>
+             	<input type="hidden" name="token" value="{$_W['token']}">
+             </div>
+             <div class="col-sm-1">
+             	<button class="btn btn-default" onclick="history.go(-1)">返回</button>
+             </div>
+       </div>
+
+	</div>
+
+</div>
+
+<script>
+$(function(){
+	$("#edit_ablum").click(function(){
+		var title = $("#title").val();
+		if(!title){
+			alert("请输入相册标题");
+			return false;
+		}
+		var sharenum = parseInt($("#sharenum").val());
+		if(sharenum < 0){
+			alert("分享数不能为负数");
+			return false;
+		}
+		var clicknum = parseInt($("#clicknum").val());
+		if(clicknum < 0){
+			alert("点击数不能为负数");
+			return false;
+		}
+	});
+	
+});
+
+
+</script>
+
+</form>
+
+
+{/if}
+{template 'common/footer'}

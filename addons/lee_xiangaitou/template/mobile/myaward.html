@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta name="viewport" content=" initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black">
+	<meta name="format-detection" content="telephone=no">
+	<title>{$xgt['title']}</title>
+	{php echo register_jssdk(false);} <!-- 放到其他引入的 js 之前 -->
+	<link rel="stylesheet" type="text/css" href="../addons/lee_xiangaitou/template/mobile/css/common.css" media="all" />
+	<script>
+		wx.ready(function () {
+			sharedata = {
+				title: "{$xgt['share_title']}",
+				desc: "{$xgt['share_content']}",
+				link: "{$_W['siteroot']}app/{php echo substr($this->createMobileUrl('index',array('xgtid'=>$xgtid)),2);}",
+				imgUrl: "{$_W['attachurl']}{$xgt['share_icon']}",
+				success: function(){
+					
+				},
+				cancel: function(){
+					
+				}
+			};
+			wx.onMenuShareAppMessage(sharedata);
+			wx.onMenuShareTimeline(sharedata);
+			wx.onMenuShareQQ(sharedata);
+			wx.onMenuShareWeibo(sharedata);
+		});
+	</script>
+	<script type="text/javascript" src="../addons/lee_xiangaitou/template/mobile/js/jquery.min.js"></script>
+	<script type="text/javascript">	
+		//获取窗口的高度 
+		var windowHeight; 
+		//获取窗口的宽度 
+		var windowWidth; 
+		//获取弹窗的宽度 
+		var popWidth; 
+		//获取弹窗高度 
+		var popHeight; 
+		function init(){ 
+			windowHeight=$(window).height(); 
+			windowWidth=$(window).width(); 
+			popHeight=$(".brwindow").height(); 
+			popWidth=$(".brwindow").width(); 
+		} 
+		//关闭窗口的方法 
+		function closeWindow(){ 
+			$(".brtitle img").click(function(){ 
+			$(this).parent().parent().hide("slow"); 
+			}); 
+		} 
+		//定义弹出居中窗口的方法 
+		function popCenterWindow(){ 
+			init(); 
+			//计算弹出窗口的左上角Y的偏移量 
+			var popY=(windowHeight-popHeight)/2; 
+			var popX=(windowWidth-popWidth)/2;
+			//设定窗口的位置 
+			$("#center").css("top",popY).css("left",popX).css("z-index",'99999').slideToggle("slow"); 
+			closeWindow(); 
+		}
+		
+		function alertwin(obj) {
+			var obj = $(obj);
+			var remark = obj.attr("remark");
+			var saveInfotip ="<center><br/><div><br/><br/><label>姓名：</label><input type='hidden' id='remark' value='"+ remark +"'/><input type='text' id='realname' value='{$user['realname']}'/><br/><br/><label>手机：</label><input type='text' id='mobile' value='{$user['mobile']}'/><br/><br/><label>地址：</label><input type='text' id='address' value='{$user['address']}'/><br/><br/><button class='button' onclick='getaward()'>确认</button></div><br/><br/></center>";
+			document.getElementById("tipcontent").innerHTML = saveInfotip;	
+			popCenterWindow();
+		}
+		
+		function getaward() {
+			
+			var xgtid = "{$xgtid}";
+			var uid = "{$uid}";
+			var remark = document.getElementById("remark").value;
+			var realname = document.getElementById("realname").value;
+			var mobile = document.getElementById("mobile").value;
+			var address = document.getElementById("address").value;
+			$.post("{$_W['siteroot']}app/{php echo substr($this->createMobileUrl('saveInfoServlet'),2);}",{"xgtid":xgtid,"uid":uid,"realname":realname,"mobile":mobile,"address":address,"remark":remark},function(data){
+				//alert(data);
+				if(data.ret==1){
+					var tip ="<br/><br/>保存成功！<br/><br/>";			
+					document.getElementById("tipcontent").innerHTML = tip;
+					setTimeout('gotosub()', 2000);				
+				}else{
+					alert("下手慢了，已被人领走");
+				}
+			},"json");
+		}
+		function gotosub(){	
+			window.location.href="{$xgt['follow_url']}";	
+		}
+	</script>	
+	<style type="text/css">
+		body { 
+			background:#b9282b;
+	   }
+	   .container { text-align:left }
+	   table { width:100%;}
+	   table td { font-size:12px;width:auto;}
+	</style>
+</head>
+<body>  
+    <div class='container block white'>
+        <p style='font-size:18px/1.5em'><b>中奖记录</b><p>
+       
+        <table style="text-align:center;">
+			<thead>
+				<tr>
+					<td>序号</td>
+					<td>奖项</td>            
+					<td>奖品名称</td>   
+					<td>状态</td>				
+					<td>获奖时间</td>
+				</tr>
+			</thead>
+            <tbody>
+            {php $n=1;}
+            {loop $awards $award}
+            <tr>
+                <td style="padding-top:20px">{$n}</td>
+                <td style="padding-top:20px">{$award['award_level']}</td>
+                <td style="padding-top:20px">{$award['award_name']}</td>
+				<td style="padding-top:20px">{if $award['status'] == 1}<button onclick="alertwin(this)" remark="{$award['remark']}" class="button">申请领奖</button>{else if $award['status'] == 2}等待审核{else if $award['status'] == 3}已领奖{/if}</td>
+                <td style="padding-top:20px">{php echo date("Y-m-d s:i",$award['createtime'])}</td>
+            </tr>
+            {php $n++;}
+            {/loop}
+			</tbody>
+        </table>
+         
+    </div>
+    <br/>
+	<br/>
+     <div style='text-align:center;'> 
+      <a href="{$_W['siteroot']}app/{php echo substr($this->createMobileUrl('index',array('xgtid'=>$xgtid)),2);}"><img src="../addons/lee_xiangaitou/template/mobile/images/btn_return.jpg"/></a>
+	</div>
+	<div class="brwindow" id="center"> 
+		<div id="brtitle" class="brtitle"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAaCAYAAACpSkzOAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACTSURBVEhL7dNtCoAgDAZgb60nsGN1tPLVCVNHmg76kQ8E1mwv+GG27cestQ4PvTZ69SFocBGpWa8+zHt/Up+IN+MhgLlUmnIE1CpBQB2COZibfpnXhHFaIZkYph0SOeeK/QJ8o7KOek84fkCWSBtfL+Ny2MPpCkPFMH6PWEhWhKncIyEk69VfiUuVhqJefds+YcwNbEwxGqGIFWYAAAAASUVORK5CYII=" alt="关闭" /><span id="titlename"></span>请完善信息以便您领奖。</div> 
+		<div >
+			<div style="width:100%;text-align:center" id="tipcontent"></div>
+		</div> 
+	</div>	
+</body>
+</html>

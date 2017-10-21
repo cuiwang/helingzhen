@@ -1,0 +1,148 @@
+{php $min_cid = pdo_fetchcolumn("SELECT min(id) FROM ".tablename('site_category')." LIMIT 1")}
+		{if !empty($_W['styles']['copyright'])}
+			{if IMS_VERSION > 0.6}
+				{php $quickmenu = pdo_fetch("SELECT html, params FROM ".tablename('site_page')." WHERE uniacid = :uniacid AND type = '2' AND status = '1'", array(':uniacid' => $_W['uniacid']));}
+				{php $quickmenu['params'] = json_decode($quickmenu['params'], true)}
+					{if $controller == 'home' && $action == 'home'}
+						{php $_ishomepage = true;}
+					{/if}
+					{if $controller == 'home' && $action == 'page'}
+						{php $_ispage = true;}
+					{/if}
+					{if $controller == 'site' && $action == 'site' && ($do == 'list' || $do == 'detail')}
+						{php $_isarticle = true;}
+					{/if}
+					<div class="row" style="padding: 0; margin: 0; {if ($_ishomepage && $quickmenu['params']['position']['homepage']) || ($_ispage && $quickmenu['params']['position']['page']) || ($_isarticle && $quickmenu['params']['position']['article'])}margin-bottom: 47px;{/if}">
+						<div class="col-xs-12 text-center" style="padding-left: 0; padding-right: 0; padding-bottom:5px; color: #ccc; font-size: 12px;">
+							{$_W['styles']['copyright']}
+						</div>
+					</div>
+			{else}
+				<div class="row" style="padding: 0; margin: 0;">
+					<div class="col-xs-12 text-center" style="padding-left: 0; padding-right: 0; padding-bottom:5px; color: #ccc; font-size: 12px;">
+						{$_W['styles']['copyright']}
+					</div>
+				</div>
+			{/if}
+		{/if}
+		{if empty($footer_off)}
+			{if !empty($_W['page']['footer'])}
+				<div class="text-center footer" style="margin:0 0; width:100%; text-align:center; word-break:break-all;">
+					{$_W['page']['footer']}
+				</div>
+			{/if}
+		{/if}
+		{if !empty($_W['quickmenu']['menus']) && empty($_W['quickmenu']['disabled'])}
+			<?php include_once template($_W['quickmenu']['template'], TEMPLATE_INCLUDEPATH);?>
+		{/if}
+		{data func="site_quickmenu"}{/data}
+		<script>require(['bootstrap']);</script>
+	</div>
+	<style>
+		h5{color:#555;}
+	</style>
+<?php
+	$_share['title'] = !empty($_share['title']) ? $_share['title'] : $_W['account']['name'];
+	$_share['imgUrl'] = !empty($_share['imgUrl']) ? $_share['imgUrl'] : '';
+	if(isset($_share['content'])){
+		$_share['desc'] = $_share['content'];
+		unset($_share['content']);
+	}
+	$_share['desc'] = !empty($_share['desc']) ? $_share['desc'] : '';
+	$_share['desc'] = preg_replace('/\s/i', '', str_replace('	', '', cutstr(str_replace('&nbsp;', '', ihtmlspecialchars(strip_tags($_share['desc']))), 60)));
+	if(empty($_share['link'])) {
+		$_share['link'] = '';
+		$query_string = $_SERVER['QUERY_STRING'];
+		if(!empty($query_string)) {
+			//加上分享人的uid
+			parse_str($query_string, $query_arr);
+			$query_arr['u'] = $_W['member']['uid'];
+			$query_string = http_build_query($query_arr);
+			$_share['link'] = $_W['siteroot'].'app/index.php?'. $query_string;
+		}
+	}
+?>
+	<script type="text/javascript">
+
+	wx.config(jssdkconfig);
+
+	var $_share = {php echo json_encode($_share);};
+
+	if(typeof sharedata == 'undefined'){
+		sharedata = $_share;
+	} else {
+		sharedata['title'] = sharedata['title'] || $_share['title'];
+		sharedata['desc'] = sharedata['desc'] || $_share['desc'];
+		sharedata['link'] = sharedata['link'] || $_share['link'];
+		sharedata['imgUrl'] = sharedata['imgUrl'] || $_share['imgUrl'];
+	}
+
+	function tomedia(src) {
+		if(typeof src != 'string')
+			return '';
+		if(src.indexOf('http://') == 0 || src.indexOf('https://') == 0) {
+			return src;
+		} else if(src.indexOf('../addons') == 0 || src.indexOf('../attachment') == 0) {
+			src=src.substr(3);
+			return window.sysinfo.siteroot + src;
+		} else if(src.indexOf('./resource') == 0) {
+			src=src.substr(2);
+			return window.sysinfo.siteroot + 'app/' + src;
+		} else if(src.indexOf('images/') == 0) {
+			return window.sysinfo.attachurl+ src;
+		}
+	}
+
+	if(sharedata.imgUrl == ''){
+		var _share_img = $('body img:eq(0)').attr("src");
+		if(_share_img == ""){
+			sharedata['imgUrl'] = window.sysinfo.attachurl + 'images/global/wechat_share.png';
+		} else {
+			sharedata['imgUrl'] = tomedia(_share_img);
+		}
+	}
+
+	if(sharedata.desc == ''){
+		var _share_content = util.removeHTMLTag($('body').html());
+		if(typeof _share_content == 'string'){
+			sharedata.desc = _share_content.replace($_share['title'], '')
+		}
+	}
+
+	wx.ready(function () {
+		wx.onMenuShareAppMessage(sharedata);
+		wx.onMenuShareTimeline(sharedata);
+		wx.onMenuShareQQ(sharedata);
+		wx.onMenuShareWeibo(sharedata);
+	});
+	{if $controller == 'site' && $action == 'site'}
+		$('#category_show').click(function(){
+			$('.head .order').toggleClass('hide');
+			return false;
+		});
+		//文章点击和分享加积分
+		{if !empty($_GPC['u'])}
+			var url = "{php echo url('site/site/handsel/', array('id' => $detail['id'], 'action' => 'click', 'u' => $_GPC['u']), true);}";
+			$.post(url, function(dat){});
+		{/if}
+		sharedata.success = function(){
+			var url = "{php echo url('site/site/handsel/', array('id' => $detail['id'], 'action' => 'share'));}";
+			$.post(url, function(dat){});
+		}
+	{/if}
+	</script>
+	<script>
+		require(['jquery'],function(){
+			$(function(){
+				if($('.quick')!=null && $('.quick')!=''){
+					var h = $('.quick').height()+'px';
+					$('body').css("padding-bottom",h);
+				}else{
+					$('body').css("padding-bottom", "0");
+				}
+			})
+		});
+	</script>
+	{$_W['setting']['copyright']['statcode']}
+</body>
+</html>

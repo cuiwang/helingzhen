@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<link href="{STYLE_PATH}/css/main.css" rel="stylesheet">
+	<link href="{STYLE_PATH}/css/form.css" rel="stylesheet">
+	<link href="{STYLE_PATH}/css/screen-styles.css" rel="stylesheet">
+	<link type="text/css" rel="stylesheet" media="all" href="{STYLE_PATH}/css/jtabs.css">
+	<title>{$activity['title']}</title>
+	<script type="text/javascript" src="{STYLE_PATH}/js/jquery-1.8.0.min.js"></script>
+	<script type="text/javascript" src="{STYLE_PATH}/js/jquery.form.js"></script>
+	<script type="text/javascript" src="{STYLE_PATH}/js/jquery.jtabs.js"></script>
+	<script type="text/javascript" src="{STYLE_PATH}/js/coupon.js"></script>
+	<script>
+        $(document).ready(function () {
+			/* Ajax progress */
+            var l = ($(window).width() - 32) / 2;
+            var t = ($(window).height() - 32) / 2;
+            var options = {
+                left: l,
+                top: t
+            };
+            $("#loadingMessage").css(options);
+
+            $("#loadingMessage").ajaxStart(function () {
+                $(this).show();
+            });
+            $("#loadingMessage").ajaxStop(function () {
+                $(this).hide();
+            });
+			/* */
+
+        });
+
+        function showPopupBackground(bgDiv) {
+            var wh = $(document).height();
+            $('#' + bgDiv).css("height", wh);
+            $('#' + bgDiv).show();
+        }
+
+        function hidePopupBackground(bgDiv) {
+            $('#' + bgDiv).hide();
+        }
+
+        function getPopupPostion(divId) {
+
+            var ww = $(window).width();
+            var hh = $(window).height();
+            var w = $('#' + divId).width();
+            var h = $('#' + divId).height();
+            var left = (ww - w) / 2 + "px";
+            var top = (hh - h) / 2 + "px";
+            var options = {
+                left: left,
+                top: top
+            };
+            return options;
+
+        }
+
+        function showPopupWindow(divId) {
+            $('#' + divId).css("width", $('#container').width() - 80);
+            var options = getPopupPostion(divId);
+            $('#' + divId).css(options);
+            $('#' + divId).show();
+        }
+
+        function hidePopupWindow(divId) {
+            $('#' + divId).hide();
+        }
+	
+	</script>
+	
+	{php echo register_jssdk(false);}
+	<script type="text/javascript">
+        wx.ready(function()
+        {
+            shareMeta =
+                {
+                    imgUrl : "{php echo tomedia($activity['share_thumb'])}",
+                    link : "{$activity['share_url']}",
+                    desc : "{$activity['share_desc']}",
+                    title : "{$activity['share_title']}",
+                    success : function()
+                    {
+                        get_info();
+
+                    },
+                    cancel : function()
+                    {
+                        // alert("分享失败，可能是网络问题，一会儿再试试？");
+                    }
+                };
+
+            shareMetb =
+                {
+                    imgUrl : "{php echo tomedia($activity['share_thumb'])}",
+                    link : "{$activity['share_url']}",
+                    desc : "{$activity['share_desc']}",
+                    title : "{$activity['share_title']}",
+                    success : function()
+                    {
+                    },
+                    cancel : function()
+                    {
+                        // alert("分享失败，可能是网络问题，一会儿再试试？");
+                    }
+                };
+            wx.showAllNonBaseMenuItem();
+            wx.onMenuShareTimeline(shareMeta);
+            wx.onMenuShareAppMessage(shareMetb);
+            wx.onMenuShareWeibo(shareMeta);
+            wx.onMenuShareQQ(shareMeta);
+            wx.onMenuShareQZone(shareMeta);
+
+        });
+
+        function get_info(){
+            $.ajax({
+                url:'{php echo $this->createMobileUrl("result",array('op'=>"post",'id'=>$_GPC['id'],'ticket'=>$_GPC['ticket']))}',
+                type:'POST',
+                dataType:'json',
+                data:{},
+                success:function(data){
+                    if(data.code == 1){
+                        alert(data.msg);
+                        window.location.href =window.location.href;
+                    }  else {
+                        alert(data.msg);
+                    }
+                },
+                error:function(){
+                    alert('服务器报错');
+                }
+            });
+        }
+	
+	</script>
+	
+</head>
+
+<body>
+
+<div id="container">
+	
+	<div id="content">
+		
+		<div class="wrapper-img">
+			<img src="{php echo tomedia($activity['logo'])}">
+		</div>
+		
+		<div class="wrapper-form">
+			
+			<input type="hidden" id="apply_id" name="apply_id" value="374751">
+			
+			<table class="form">
+				<tbody>
+				{php $share_timeline=false;}
+				{loop $record $item}
+				{php $share_timeline=($share_timeline || $item['yq_type']==2)?true:false;}
+				<tr>
+					<td>
+						<h3 class="title" style="padding:0;">抽奖码：{$item['cj_code']}</h3>
+						{if  $item['zj_status']==1 && $item['hx_status']==1  && $settings['hx_status']}
+						<font  color=red>已核销</font>
+						{else if $item['zj_status']==1}
+						<font  color=red>已中奖</font>
+						{if $settings['hx_status']}
+						<button id="{$item['id']}" type="button"class="award btn btn-primary" style="width:auto;">核销</button>
+						{/if}
+						{else if $item['zj_status']==0}
+						<font  color=red style="display:none">未开奖</font>
+						{/if}
+					</td>
+				</tr>
+				{/loop}
+				
+				<tr>
+					<td>
+					
+					</td>
+				</tr>
+				
+				<tr>
+					<td>
+						<div class="description" style="width:100%;">
+							 {php echo htmlspecialchars_decode($activity['model3_desc'])}
+							
+						</div>
+					</td>
+				</tr>
+				
+			
+				</tbody>
+			</table>
+		
+		</div>
+	</div>
+	
+	<div id="tab">
+		<ul>
+			<li id="tab_home" class="current">
+				<a href="{php echo $this->createMobileUrl('index')}">
+					<b class="home"></b><span>最新活动</span>
+				</a>
+			</li>
+			<li id="tab_history">
+				<a href="{php echo $this->createMobileUrl('history')}">
+					<b class="history"></b><span>历史</span>
+				</a>
+			</li>
+			<li id="tab_my">
+				<a href="{php echo $this->createMobileUrl('my')}">
+					<b class="my"></b><span>我的</span>
+				</a>
+			</li>
+		</ul>
+	</div>
+</div>
+</body>
+</html>

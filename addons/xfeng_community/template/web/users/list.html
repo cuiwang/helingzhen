@@ -1,0 +1,106 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+    <li class="active">
+        <a href="#">用户管理</a>
+    </li>
+</ul>
+<div class="main">
+    <div class="panel panel-default">
+        <div class="panel-body">
+        <div class="alert alert-warning" role="alert">
+        注意： 
+        <p>1.商家管理员,不分物业、小区,是根据定位显示附近商家。（在小区设置->lbs定位设置距离）</p>
+        <p>2.超市管理员,分所属物业和独立小区,添加操作员时,只选择物业,超市商品在该物业下的所有小区所见。如选择物业后又选择小区,只在该小区下所见。</p>
+        <p>3.其他管理员,也分所属物业和独立小区。</p>
+        </div>
+            <div style="padding:15px;">
+                <table class="table table-hover">
+                    <thead class="navbar-inner">
+                        <tr>
+                            <th style="width:5%;">uid</th>
+                            <th style="width:5%;">用户名</th>
+                            <th style="width:10%;">所属物业</th>
+                            <th style="width:6%;">所属小区</th>
+                            <th style="width:5%;">状态</th>
+                            <th style="width:25%;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {loop $permission $user}
+                        <tr>
+                            <td>{$user['uid']}</td>
+                            <td>{$member[$user['uid']]['username']}</td>
+                            <td>{$user['title']}</td>
+                            <td>{$user['region_title']}</td>
+                            <td><label data="{$member[$user['uid']]['status']}" class='label label-default {if $member[$user['uid']]['status']==2}label-info{else}{/if}' onclick="setProperty(this,{$user['uid']},'status')">{if $member[$user['uid']]['status']==2}启用{else}禁用{/if}</label></td>
+                            <td>
+                                <span>
+                                    <a href="#" onclick="addUser({$user['uid']})" title="" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm" data-original-title="编辑">
+                                        <i class='glyphicon glyphicon-edit'></i>
+                                    编辑</a>
+                                </span>
+                                <span>
+                                    <a href="{php echo $this->createWebUrl('users',array('op' => 'menu','id' => $user['id']));}" title="" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm" data-original-title="设置权限">
+                                        <i class='glyphicon glyphicon-plus'></i>
+                                    设置权限</a>
+                                </span>
+                                <span>
+                                    <a href="{php echo $this->createWebUrl('users',array('op' => 'commission','id' => $user['id']));}" title="" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm" data-original-title="设置权限">
+                                        <i class='glyphicon glyphicon-plus'></i>
+                                    设置分成</a>
+                                </span>
+                                <span>
+                                    <a onclick="return confirm('删除操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('users',array('op'=>'delete','uid'=>$user['uid']))}" title="" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm" data-original-title="删除"><i class="fa fa-times"></i>删除</a>
+                                </span>
+                                <span>
+                                    <a href="{php echo $this->createWebUrl('users',array('op' => 'list','uuid' => $user['uid']));}" title="" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm" data-original-title="子管理员">
+                                        <i class='glyphicon glyphicon-th-list'></i>
+                                    子管理员</a>
+                                </span>
+                                
+                            </td>
+                        </tr>
+                        {/loop}
+                    </tbody>
+                </table>
+                {$pager}
+            </div>
+            <a class="btn btn-default btn-sm" href="#" onclick="addUserPanel(this)"><i class='glyphicon glyphicon-plus'></i>添加操作员</a>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+function addUserPanel() {
+    require(['util'], function(util) {
+        util.ajaxshow("{php echo $this->createWebUrl('users',array('op' => 'add'));}", '添加操作员', {
+            'width': 800
+        });
+    });
+}
+function addUser(id) {
+    var id = id;
+    require(['util'], function(util) {
+        util.ajaxshow("{php echo $this->createWebUrl('users',array('op' => 'add'));}&uid="+id, '修改操作员', {
+            'width': 800
+        });
+    });
+}
+function setProperty(obj,uid,type){
+        $(obj).html($(obj).html() + "...");
+        $.post("{php echo $this->createWebUrl('users',array('op' => 'set'))}"
+            ,{uid:uid,type:type, data: obj.getAttribute("data")}
+            ,function(d){
+                $(obj).html($(obj).html().replace("...",""));
+                if(type=='status'){
+                 $(obj).html( d.data=='2'?'启用':'禁用');
+                }
+                $(obj).attr("data",d.data);
+                if(d.result==1){
+                    $(obj).toggleClass("label-info");
+                }
+            }
+            ,"json"
+        );
+    }
+</script>
+{template 'common/footer'} 

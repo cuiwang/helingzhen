@@ -1,0 +1,161 @@
+{template 'header'}
+<link href="{MODULE_URL}template/css/css.css" rel="stylesheet" />
+<link href="{MODULE_URL}template/css/stylesheet.css" rel="stylesheet" />
+<style type="text/css">
+.list {
+border-radius: 8px;
+}
+.list {
+background: #fafafa;
+padding: 10px;
+margin: 5px;
+}
+.list .hd {
+border-bottom: 1px #DDD dotted;
+margin-bottom: 5px;
+padding-bottom: 5px;
+}
+.list .content {
+color: #545454;
+line-height: 25px;
+}
+.list .reply {
+background: #FFF;
+border-top: 2px #769cdc solid;
+padding: 10px;
+margin-top: 10px;
+overflow: hidden;
+}
+.list .content .author {
+color: #999;
+text-align: right;
+margin-top: 10px;
+}
+</style>
+{if $op == 'display'}
+<a href="{php echo $this->createMobileUrl('homemaking',array('op'=>'post'))}" class="top_menu">
+    <img src="{MODULE_URL}template/image/fb.png" />发布+
+</a>
+<div class="top_menu_shadow"></div>
+{if empty($list)}
+<div class="list img-rounded" >没有任家政服务信息</div>
+{/if}
+<div id='list' style="margin-bottom:80px;">
+{loop $list $item}
+<div class="list img-rounded">
+	<div class="hd">
+		<span class="title">{if intval($item['status'])==0}<p class="text-danger">未解决</p>{elseif intval($item['status'])==1}<p class="text-success">已解决</p>{else}<p class="text-warning">已撤销</p>{/if}</span>
+		<span class="date">{php echo date('Y-m-d H:i:s', $item['createtime']);}</span>
+	</div>
+	<div class="content">
+		<p><span class="label label-info">{$item['servicesmallcategory']}</span></p>
+		<p><span class="label alert-info">家政需求:</span>{$item['requirement']}</p>
+		<p><span class="label alert-info">备注说明:</span>{$item['remark']}</p>
+		<p><span class="label alert-info">联系手机:</span>{$item['mobile']}</p>
+	</div>
+</div>
+{/loop}
+</div>
+<div style="display:none;left: 0px;top: 0px;width: 100%;height: 100%;overflow: hidden;position: fixed;background: rgba(0, 0, 0, 0.5);" id="layer">
+
+</div>
+{if count($list)>9} 
+<div style="margin-top:20px;margin-bottom:70px;text-align:center;font-size:16px;" id='view' >查看更多</div>
+{/if}
+<script>
+var page = 2;
+$(function() {
+    $("#view").click(function() {
+        $('#layer').show();
+        obj=$(this);
+        $(this).html('正在加载中...')
+        $.get("{php echo $this->createMobileUrl('homemaking',array('op'=>'more'))}&page="+page, function(result){
+                    if(result!=''){
+                        $('#list').append(result);
+                        page++;    
+                        obj.html('查看更多');
+                    }else{
+                        obj.html('没有更多信息了');
+                    }
+                    $('#layer').hide();
+            });
+        });
+});
+</script>
+{/if}
+{if $op == 'post'}
+<form class="form-horizontal img-rounded" role="form" method="post" onsubmit="return checkInfo(this);">
+	<input type="hidden" name="id" value="{$item['id']}">
+	<div class="panel panel-default">
+  		<div class="panel-body">
+			<div class="form-group" >
+				<label for="servicesmallcategory" class="col-sm-2 control-label" >家政服务</label>
+				<div class="col-sm-10" >
+					<select class="form-control" id="cate_2" name="servicesmallcategory" autocomplete="off" style='margin-top:10px;'>
+						{loop $categories $key $category}
+						<option value="{$category['name']}" {if $category['name'] == $item['servicesmallcategory']} selected="selected"{/if}>{$category['name']}</option>
+						{/loop}
+					</select>
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="status" class="col-sm-2 control-label" >联系方式</label>
+				<div class="col-sm-10">
+					<label for="contacttype1" class="radio-inline">
+						<input type="radio" name="contacttype" id="contacttype1" value="1" {if $item['contacttype']==1 || empty($item['contacttype'])}checked='checked'{/if} />随时联系
+						<input type="hidden" name="contactdesc[1]" value="随时联系"/>
+					</label>
+					<label for="contacttype2" class="radio-inline">
+						<input type="radio" name="contacttype" id="contacttype2" value="2" {if $item['contacttype']==2}checked='checked'{/if} />白天联系
+						<input type="hidden" name="contactdesc[2]" value="白天联系"/>
+					</label>
+					<label for="contacttype3" class="radio-inline">
+						<input type="radio" name="contacttype" id="contacttype3" value="3" {if $item['contacttype']==3}checked='checked'{/if} />晚上联系
+						<input type="hidden" name="contactdesc[3]" value="晚上联系"/>
+					</label>
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="requirement" class="col-sm-2 control-label">需求</label>
+				<div class="col-sm-10">
+					<textarea  class="form-control" name="requirement" id='requirement'rows='5'>{$item['requirement']}</textarea>
+				</div>
+			</div>
+			<div class="form-group">
+				<label for="remark" class="col-sm-2 control-label">备注</label>
+				<div class="col-sm-10">
+					<textarea id="remark"  class="form-control" name="remark" rows='5'>{$item['remark']}</textarea>
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-sm-10">
+					<button type="submit" name="submit" value="yes" class="btn btn-primary" style="width:100%;">提交</button>
+					<input type="hidden" name="token" value="{$_W['token']}" />
+				</div>
+			</div>
+		</div>
+	</div>	
+</form>
+{/if}
+<br><br><br>
+
+<script type="text/javascript">
+function checkInfo(form) {
+		if (!form['requirement'].value) {
+			alert('请输入您的需求信息。');
+			return false;
+		}
+		// if (!form['remark'].value) {
+		// 	alert('请输入备注。');
+		// 	return false;
+		// }
+		// if (!form['contacttype'].value) {
+		// 	alert('请选择联系方式。');
+		// 	return false;
+		// }
+		return true;
+	}
+
+
+</script>
+{template 'footer'}

@@ -1,0 +1,403 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+    {if !empty($config['extra']['brands']) && $this->perm_check($true_module.'.mendian.brands',$user_perm)}
+    <li><a href="{php echo $this->createWebUrl('mendian.brands', array('op' => 'display'))}">品牌管理</a></li>
+    {/if}
+    {if !empty($config['extra']['md_fenlei']) && $this->perm_check($true_module.'.mendian.md_fenlei',$user_perm)}
+    <li><a href="{php echo $this->createWebUrl('mendian.md_fenlei', array('op' => 'display'))}">商家分类管理</a></li>
+    {/if}
+    <li {if $foo == 'mendian'}class="active"{/if}><a href="{php echo $this->createWebUrl('mendian.mendian')}">商家管理</a></li>
+    {if !empty($config['extra']['dianyuan']) && $this->perm_check($true_module.'.mendian.dianyuan',$user_perm)}
+    <li><a href="{php echo $this->createWebUrl('mendian.dianyuan', array('op' => 'display'))}">店员管理</a></li>
+    {/if}
+
+    {if $foo == 'edit'}
+        <li class="active"><a href="{php echo $this->createWebUrl('mendian.mendian',array('foo'=>'edit','id'=>$id));}">{if !empty($id)}编辑{else}添加{/if}商家</a></li>
+    {/if}
+
+</ul>
+<div class="main">
+    {if $foo =="mendian"}
+    <div class="panel panel-info">
+        <div class="panel-heading">筛选</div>
+
+        <div class="panel-body">
+
+            <form action="./index.php" method="get" class="form-horizontal" role="form">
+
+                <input type="hidden" name="c" value="site" />
+                <input type="hidden" name="a" value="entry" />
+                <input type="hidden" name="m" value="{MD}" />
+                <input type="hidden" name="do" value="mendian.mendian" />
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">关键字</label>
+                    <div class="col-xs-12 col-sm-8 col-lg-9">
+                        <input class="form-control" name="keyword" id="" type="text" value="{$_GPC['keyword']}" placeholder="请输入商家关键字">
+                    </div>
+                </div>
+
+                {if !empty($config['extra']['brands'])}
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">品牌选择</label>
+                    <div class="col-xs-12 col-sm-8 col-lg-9">
+                        <select name="brand_id" class="form-control">
+                            <option value="0">请选择品牌</option>
+                            {loop $brands $row}
+                            <option value="{$row['id']}" {if $row['id']==$_GPC['brand_id']}selected{/if}>{$row['name']}</option>
+                            {/loop}
+                        </select>
+                    </div>
+                </div>
+                {/if}
+
+                {if !empty($config['extra']['md_fenlei'])}
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">商家分类选择</label>
+                    <div class="col-xs-12 col-sm-8 col-lg-9">
+                        <select name="mdcateid" class="form-control">
+                            <option value="0">请选择商家分类</option>
+                            {loop $md_fenlei $row}
+                            <option value="{$row['id']}" {if $row['id']==$_GPC['mdcateid']}selected{/if}>{$row['name']}</option>
+                            {/loop}
+                        </select>
+                    </div>
+                </div>
+                {/if}
+
+                <div class="form-group">
+
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">商家显示状态</label>
+
+                    <div class="col-xs-12 col-sm-8 col-lg-9">
+                        <select class="form-control" name="status">
+                            <option value="0" {if empty($status)} selected  {/if}>请选择商家显示状态</option>
+                            <option value="1" {if $status==1} selected  {/if}>启用</option>
+                            <option value="2" {if $status==2} selected  {/if} >禁用</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class=" col-xs-12 col-sm-2 col-lg-2">
+
+                        <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            {if !empty($condition)}<span style="color:red">【符合搜索条件】</span>{/if} 商家详细数据  |  总数:{$total}
+            {if $this->perm_check('edit',$user_perm,$perm_route)}
+            <a href="{php echo $this->createWebUrl('mendian.mendian',array('foo'=>'edit'))}" class="btn btn-info btn-sm" style="margin-left: 30px;margin-top: 1px">添加新商家</a>
+            {/if}
+        </div>
+        <div class="panel-body table-responsive">
+
+            <form action="" method="post" onsubmit="">
+
+                <table class="table table-hover">
+
+                    <thead class="navbar-inner">
+
+                    <tr>
+                        <th  style="width:10%;">排序</th>
+                        <th  style="width:15%;">商家名称</th>
+                        <th style="width:15%;">商家电话</th>
+                        <th style="width:15%;">商家地址</th>
+                        <th style="width:15%;">所属区域</th>
+                        <th style="width:10%;">商家状态</th>
+                        <th style="width:20%;">操作</th>
+                    </tr>
+
+                    </thead>
+                    <tbody id="main">
+                    {loop $list $item}
+
+                    <tr>
+                        <td class="left">
+                            <input style="width: 70px" type="text" name="displayorder[{$item['id']}]" value="{$item['displayorder']}">
+                        </td>
+                        <td style="white-space:normal; word-break:break-all;overflow:hidden">
+                            <p>{$item['mendianname']}</p>
+                        </td>
+                        <td style="white-space:normal; word-break:break-all;overflow:hidden">
+                            <p>{$item['tel']}</p>
+                        </td>
+                        <td style="white-space:normal; word-break:break-all;overflow:hidden">
+                            <p>{$item['address']}</p>
+                        </td>
+                        <td style="white-space:normal; word-break:break-all;overflow:hidden">
+                            {$item['province']}-{$item['city']}
+                        </td>
+                        <td style="white-space:normal; word-break:break-all;overflow:hidden">
+                            <p>{if !empty($item['status'])}<div class="btn btn-success btn-sm">显示</div>{else}<div class="btn btn-default btn-sm">不显示</div>{/if}</p>
+                        </td>
+                        <td style="white-space:normal; word-break:break-all;overflow:hidden">
+							<span>
+                                {if !empty($config['extra']['dianyuan']) && $this->perm_check($true_module.'.mendian.dianyuan',$user_perm)}
+								<a href="{php echo $this->createWebUrl('mendian.dianyuan',array('foo'=>'dianyuan','mendianid'=>$item['id']));}"><div class="btn btn-default btn-sm">店员</div></a>&nbsp;
+                                {/if}
+                                {if $this->perm_check('edit',$user_perm,$perm_route)}
+                                <a href="{php echo $this->createWebUrl('mendian.mendian',array('foo'=>'edit','id'=>$item['id']));}"><div class="btn btn-info btn-sm">编辑</div></a>&nbsp;
+								{/if}
+                                {if $this->perm_check('del',$user_perm,$perm_route)}
+                                <a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('mendian.mendian',array('foo'=>'del','id'=>$item['id']));}"><div class="btn btn-danger btn-sm">删除</div></a>
+							    {/if}
+                            </span>
+                        </td>
+                    </tr>
+                    {/loop}
+                    <tr>
+                        <td></td>
+                        <td colspan="6">
+                            <input name="submit" type="submit" class="btn btn-primary" value="提交">
+                            <input type="hidden" name="token" value="{$_W['token']}" />
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                {$pager}
+            </form>
+        </div>
+
+    </div>
+
+    {/if}
+
+    {if $foo == 'edit'}
+    <form action="" method="post" class="form-horizontal form"
+          enctype="multipart/form-data">
+        <input type="hidden" name="id" value="{$item['id']}" />
+        <div class="panel panel-info">
+
+            <div class="panel-heading">
+                {if !empty($id)}编辑<span style="font-weight: 600"> [ {$item['mendianname']} ] </span>{else}添加{/if}商家基本信息
+            </div>
+            <div class="panel-body">
+                {if !empty($id) && $this->perm_check($true_module.'.mendian.dianyuan.view',$user_perm)}
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+                    <div class="col-sm-7 col-xs-12">
+                        <a href="{php echo $this->createWebUrl('mendian.dianyuan', array('foo' => 'dianyuan','mendianid' =>$id))}"><div class="btn btn-success">管理该商家的店员</div></a>
+                    </div>
+                </div>
+                {/if}
+
+                {if !empty($config['extra']['brands'])}
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">商家所属品牌</label>
+                    <div class="col-sm-7 col-xs-12">
+                        {if empty($id) && empty($_GPC['brand_id'])}
+                        <select name="brand_id" class="form-control">
+                            <option value="0">请选择品牌</option>
+                            {loop $brands $row}
+                            <option value="{$row['id']}" {if $row['id']==$item['brand_id']}selected{/if}>{$row['name']}</option>
+                            {/loop}
+                        </select>
+                        <span style="color:red">请谨慎选择品牌，选择后无法修改</span>
+                        {else}
+                        <label>{$item['brand']}</label>
+                        <input type="hidden" name="brand_id" value="{$brand_id}" />
+                        {/if}
+                    </div>
+                </div>
+                {/if}
+
+                {if !empty($config['extra']['brands'])}
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">商家所属类型</label>
+                    <div class="col-sm-7 col-xs-12">
+                        <select name="mdcateid" class="form-control">
+                            <option value="0">请选择类型</option>
+                            {loop $md_fenlei $row}
+                            <option value="{$row['id']}" {if $row['id']==$item['mdcateid']}selected{/if}>{$row['name']}</option>
+                            {/loop}
+                        </select>
+                    </div>
+                </div>
+                {/if}
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">商家名称</label>
+                    <div class="col-sm-7 col-xs-12">
+                        <input type="text" name="mendianname" class="form-control"
+                               value="{$item['mendianname']}" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">商家宣传图</label>
+                    <div class="col-sm-7 col-xs-12">
+                        {php echo tpl_form_field_image('thumb', $item['thumb']);}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">商家图册</label>
+                    <div class="col-sm-7 col-xs-12">
+                        {php echo tpl_form_field_multi_image('tuce', $item['tuce']);}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">商家电话</label>
+                    <div class="col-sm-7 col-xs-12">
+                        <input type="text" name="tel" class="form-control"
+                               value="{$item['tel']}" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">导航地址</label>
+                    <div class="col-sm-7 col-xs-12">
+                        {php $location=array('lng'=>$item['lng'],'lat'=>$item['lat'])}
+
+                        {php echo tpl_form_field_coordinate('location',$location);}
+                    </div>
+                </div>
+
+                <div class="form-group offline" id="address_div" >
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+                    <div class="col-sm-7 col-xs-12">
+                        <span id="address2" >{$item['province']} {$item['city']} {$item['dist']} {$item['town']} {$item['street']}</span>
+                        <input type="hidden" name="province" id="province" value="{$item['province']}" />
+                        <input type="hidden" name="city" id="city" value="{$item['city']}" />
+                        <input type="hidden" name="dist" id="dist" value="{$item['dist']}" />
+                        <input type="hidden" name="town" id="town" value="{$item['town']}" />
+                        <input type="hidden" name="street" id="street" value="{$item['street']}" />
+                    </div>
+                </div>
+
+                <div class="form-group offline">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">详细地址</label>
+                    <div class="col-sm-7 col-xs-12">
+                        <input type="text" name="address" id="address" class="form-control" value="{$item['address']}" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">商家备注</label>
+                    <div class="col-sm-7 col-xs-12">
+                        <input type="text" name="beizhu" class="form-control"
+                               value="{$item['beizhu']}" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-success">
+
+            <div class="panel-heading">
+                更多信息
+            </div>
+            <div class="panel-body">
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">商家负责人</label>
+                    <div class="col-sm-7 col-xs-12">
+                        <input type="text" name="manager" class="form-control"
+                               value="{$item['manager']}" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">商家负责人电话</label>
+                    <div class="col-sm-7 col-xs-12">
+                        <input type="text" name="manager_tel" class="form-control"
+                               value="{$item['manager_tel']}" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">商家邮箱</label>
+                    <div class="col-sm-7 col-xs-12">
+                        <input type="text" name="mail" class="form-control"
+                               value="{$item['mail']}" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">商家详细描述</label>
+                    <div class="col-sm-7 col-xs-12">
+                        {php echo tpl_ueditor('description',$item['description'])}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-default">
+
+            <div class="panel-heading">
+                显示设置
+            </div>
+            <div class="panel-body">
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">是否显示</label>
+                    <div class="col-sm-7 col-xs-12">
+                        <label for="enabled1" class="radio-inline"><input type="radio" name="status" value="1" id="enabled1" {if !empty($item['status']) && $item['status'] == 1}checked="true"{/if} /> 是</label>
+                        &nbsp;&nbsp;&nbsp;
+                        <label for="enabled2" class="radio-inline"><input type="radio" name="status" value="0" id="enabled2"  {if empty($item['status']) || $item['status'] == 0}checked="true"{/if} /> 否</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+                    <div class="col-sm-9 col-xs-12">
+                        <input name="submit" type="submit" value="提交" class="btn btn-primary span3">
+                        <input type="hidden" name="token" value="{$_W['token']}" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+    <script charset="utf-8" src="http://map.qq.com/api/js?v=2.exp"></script>
+    <script>
+
+        var lat='';
+        var lng='';
+        {if !empty($item['lat'])}
+        lat={$item['lat']};
+        lng={$item['lng']};
+        {/if}
+
+        function check_lat_lng() {
+            var temp_lat=$("input[name='location[lat]']").val();
+            var temp_lng=$("input[name='location[lng]']").val();
+            if(temp_lat!=lat || temp_lng!=lng)
+            {
+                var latLng = new qq.maps.LatLng(temp_lat,temp_lng);
+                geocoder.getAddress(latLng);
+                lat=temp_lat;
+                lng=temp_lng;
+            }
+        }
+
+        var geocoder = new qq.maps.Geocoder({
+            complete: function (result) {
+                $('#province').val(result.detail.addressComponents.province);
+                $('#city').val(result.detail.addressComponents.city);
+                $('#dist').val(result.detail.addressComponents.district);
+                $('#town').val(result.detail.addressComponents.town);
+                $('#street').val(result.detail.addressComponents.street);
+
+                var address = result.detail.addressComponents.province + ' ' + result.detail.addressComponents.city + ' ' + result.detail.addressComponents.district + ' ' + result.detail.addressComponents.town + ' ' + result.detail.addressComponents.street;
+                $('#address2').html(address);
+            }
+        });
+
+
+        setInterval(function(){
+            check_lat_lng();
+        },500);
+
+    </script>
+    {/if}
+
+</div>
+
+{php echo $this->webnotice()}
+{template 'common/footer'}

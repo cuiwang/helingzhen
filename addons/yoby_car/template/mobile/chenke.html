@@ -1,0 +1,276 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>拼车-乘客行程</title>
+ <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+ <base href="{php echo $this->yobyurl}">
+  <link rel="stylesheet" href="weui/weuix.min.css"/>
+      <script src="weui/zepto.min.js"></script><script src="weui/swipe.js"></script>
+     
+<script>
+ $(function(){
+
+ $('#search_input').focus(function(){//获得焦点
+ var $weuiSearchBar = $('#search_bar');
+$weuiSearchBar.addClass('weui_search_focusing');
+$('#search-fixed').addClass('search-fixed');
+ });
+ $('#search_input').blur(function(){//失去焦点
+  var $weuiSearchBar = $('#search_bar');
+                    $weuiSearchBar.removeClass('weui_search_focusing');
+                    $('#search-fixed').removeClass('search-fixed');
+                    if($(this).val()){
+                        $('#search_text').hide();
+                    }else{
+                        $('#search_text').show();
+                    }
+ });
+  $('#search_input').focus(function(){
+ var $searchShow = $("#search_show");
+                    if($(this).val()){
+                        $searchShow.show();
+                    }else{
+                        $searchShow.hide();
+                    }
+ }); 
+   $('#search_cancel').tap(function(){
+   $("#search_show").hide();
+                    $('#search_input').val('');
+ }); 
+  $('#search_clear').tap(function(){
+$("#search_show").hide();
+                    $('#search_input').val('');
+ });
+   
+	$('#f').submit(function(){
+  var touser = $('#search_input').val();
+  if(empty(touser)){
+    $.alert("亲,查找关键字不能为空");
+    return false;
+  }
+});   
+   
+});
+
+
+ </script> 
+</head>
+
+<body ontouchstart style="">
+<?php
+ $swipe = pdo_fetchall("SELECT *  FROM ".tablename('yoby_car_ad') ." WHERE weid =". $this->weid." and isok=0  ORDER BY  orderby desc ");
+if(!empty($swipe)){
+?>
+<div  class="slide" id="slide1">
+<ul >
+<?php 
+
+foreach($swipe as  $v1){
+
+echo "<li><a href='".$v1['url']."'><img src='".tomedia($v1['img'])."'  style='height:300px;'></a><div class='slide-desc'>".$v1['title']."</div></li>";
+
+}
+
+
+
+ ?>
+
+
+</ul>
+
+
+</div>
+
+<?php } ?>
+ <div class="weui_cells_title tcenter">输入出发地,目的地搜索</div>
+<div  id='search-fixed'>
+        
+        <div class="weui_search_bar" id="search_bar">
+            <form id="f" class="weui_search_outer" action="{$_W['siteroot']}app/index.php" method="get">
+                <div class="weui_search_inner">
+                    <i class="weui_icon_search"></i>
+                    <input type="search" class="weui_search_input" id="search_input"  name="keyword" placeholder="输入关键字" value="{$_GPC['keyword']}" />
+                    <input type="hidden" name="c" value="entry" />    		
+		<input type="hidden" name="do" value="chenke" />
+		<input type="hidden" name="i" value="{$_GPC['i']}" />
+		<input type="hidden" name="m" value="yoby_car" />
+		
+                    <a href="javascript:" class="weui_icon_clear" id="search_clear"></a>
+                </div>
+                <label for="search_input" class="weui_search_text" id="search_text">
+                    <i class="weui_icon_search"></i>
+                    <span>搜索出发地或目的地</span>
+                </label>
+            </form>
+            <a href="javascript:" class="weui_search_cancel" id="search_cancel">取消</a>
+        </div>
+        
+    </div> 
+     <?php  
+            if(empty($list)){
+            echo '<div class="weui_msg"><p><i class="icon icon-18 f22 f-green"></i>暂无数据</p></div> ';
+            
+            }else{
+           
+            
+   if(!empty($_GPC['keyword'])){
+ echo '<div class="weui_cells_title">搜索<span class="f-red">'.$_GPC['keyword'].'</span>的数据列表</div>';
+ }          
+            ?>
+            
+<div class="weui_panel weui_panel_access">
+             <?php   foreach($list as  $v){ 
+             
+             ?>
+            <div class="weui_panel_bd ">
+                <div class="weui_media_box weui_media_text">
+                    <h5 class=""><span class="icon icon-65 f-green"></span>出发地: {$v['address1']}&nbsp;&nbsp;<span class="icon icon-5 f-green"></span>目的地: {$v['address2']}</h5>
+                   
+                    <p class="f13 blod " style="color:#999;line-height:20px;">出行时间:{$v['sendtime']}<br>
+                    联系人:{if $v['isok']==1}<label class="ui-label-s">已认证</label>{/if} {$v['title']} ({if $v['sex']==1}男{else}女{/if})  &nbsp;&nbsp;
+                    出行人数:{$v['num']}人 &nbsp;&nbsp;
+                   联系方式:<a href="tel:{$v['phone']}"> <span class="icon icon-94 f-green"></span></a><br>
+                  <?php if(time()>strtotime($v['sendtime'])){echo "<span class='icon icon-19 f-red'></span><span class='f-red'>出行已过期</span>";} ?>
+                    </p>
+                    <p class="weui_media_desc">备注:{if !empty($v['beizhu'])}{$v['beizhu']}{/if}</p>
+                </div>
+               
+            </div>
+            <a class="weui_panel_ft " href="{$_W['siteroot']}app/index.php?i={$weid}&c=entry&do=view&m=yoby_car&id={$v['id']}"><span class="icon icon-87 f-green"></span>详情&nbsp;<span class="right" style="padding-right:20px">{php echo $this->timeline($v['createtime'])}</span></a>
+            <div class="bg-gray" style="margin-top:-5px;padding-top:15px;"></div>
+             <?php
+             
+ } ?>
+        </div>
+  {$pager}
+    <div class="weui_cells_title" style="margin-top:35px">&nbsp;</div>      
+        <?php  } ?>
+<div class="weui_tab tab-bottom" style="height:55px;">
+            
+            <div class="weui_tabbar ">
+                <a href="{$_W['siteroot']}app/index.php?i={$weid}&c=entry&do=chenke&m=yoby_car" class="weui_tabbar_item weui_bar_item_on">
+                    <div class="weui_tabbar_icon">
+                        <i class="icon icon-54 f24 f-green "></i>
+                    </div>
+                    <p class="weui_tabbar_label">乘客行程</p>
+                </a>
+                <a href="{$_W['siteroot']}app/index.php?i={$weid}&c=entry&do=chezhu&m=yoby_car" class="weui_tabbar_item">
+                    <div class="weui_tabbar_icon">
+                         <i class="icon icon-55 f24"></i>
+                    </div>
+                    <p class="weui_tabbar_label">车主行程</p>
+                </a>
+                <a href="{$_W['siteroot']}app/index.php?i={$weid}&c=entry&do=fabu&m=yoby_car" class="weui_tabbar_item">
+                    <div class="weui_tabbar_icon">
+                         <i class="icon icon-107 f24"></i>
+                    </div>
+                    <p class="weui_tabbar_label">发布行程</p>
+                </a>
+                  <a href="{$_W['siteroot']}app/index.php?i={$weid}&c=entry&do=gl&m=yoby_car" class="weui_tabbar_item ">
+                    <div class="weui_tabbar_icon">
+                         <i class="icon icon-37 f24 "></i>
+                    </div>
+                    <p class="weui_tabbar_label">个人中心</p>
+                </a>              
+            </div>
+        </div> 
+
+      
+<script type="text/javascript" src='http://res.wx.qq.com/open/js/jweixin-1.0.0.js'></script>
+	<?php
+$wx = $_W['account']['jssdkconfig'];
+$wx['url'] ='http://'.$_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] ;
+?> 
+<script>
+ $(function(){
+  $('#slide1').swipeSlide({
+//autoSwipe:true,//自动切换默认是
+//continuousScroll:true,//默认否
+}); 
+
+ 
+})
+    var appIdstr = "{$wx['appId']}";
+    var timestampstr = "{$wx['timestamp']}";
+    var nonceStrstr = "{$wx['nonceStr']}";
+    var signaturestr = "{$wx['signature']}";
+wx.config({
+	debug: false,
+	appId: appIdstr,
+	timestamp: timestampstr,
+	nonceStr: nonceStrstr,
+	signature: signaturestr,
+		jsApiList: [
+		'checkJsApi',
+		'onMenuShareTimeline',
+		'onMenuShareAppMessage','showMenuItems','hideOptionMenu'
+	]
+});
+wx.ready(function () {
+  var shareData = {
+     title:"{$share_title}",
+    desc: "{$share_desc}",
+    link:"{$wx['url']}" ,
+    imgUrl:"{$share_icon}",
+    type:'', // 分享类型,music、video或link，不填默认为link 分享给朋友
+    dataUrl:'', // 如果type是music或video，则要提供数据链接，默认为空 分享给朋友
+  };
+wx.hideOptionMenu();
+	wx.showMenuItems({
+			menuList: [
+			'menuItem:share:timeline', 
+			'menuItem:share:appMessage',
+			'menuItem:copyUrl',
+			],
+		});
+//分享给朋友
+wx.onMenuShareAppMessage({
+      title: shareData.title,
+      desc: shareData.desc,
+      link: shareData.link,
+      imgUrl:shareData.imgUrl,
+      type: shareData.type,
+    dataUrl: shareData.dataUrl,
+      trigger: function (res) {//菜单
+        
+      },
+      success: function (res) {//成功
+        
+      },
+      cancel: function (res) {//取消
+        
+      },
+      fail: function (res) {//失败
+        alert(JSON.stringify(res));
+      },
+      complete:function(res){//完成
+      
+      },
+    });	
+
+//分享到朋友圈
+    wx.onMenuShareTimeline({
+      title:shareData.desc,
+      link:shareData.link,
+      imgUrl:shareData.imgUrl,
+      trigger: function (res) {
+        
+      },
+      success: function (res) {   
+            
+      },
+      cancel: function (res) {
+       
+      },
+      fail: function (res) {
+        alert(JSON.stringify(res));
+      },
+      complete:function(res){//完成
+      	 //alert('完成');
+      },
+    });	
+
+});
+</script></body>
+</html>

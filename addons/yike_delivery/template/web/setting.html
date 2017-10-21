@@ -1,0 +1,209 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+    <li {if $op == 'buy'} class="active" {/if}><a href="{php echo $this->createWebUrl('setting', array('op'=>'buy'));}">购买接口设置</a></li>
+    <li {if $op == 'notice'} class="active" {/if}><a href="{php echo $this->createWebUrl('setting', array('op'=>'notice'));}">提醒及模板消息设置</a></li>
+</ul>
+{if $op == 'buy'}
+<div class="main">
+    <div class="panel panel-default">
+        <div class='panel-body'>
+            <form action="" method="post" class="form-horizontal form" enctype="multipart/form-data">
+                <input type="hidden" name="id" value="{$item['id']}"/>
+                <input type="hidden" name="c" value="site"/>
+                <input type="hidden" name="a" value="entry"/>
+                <input type="hidden" name="m" value="yike_delivery"/>
+                <input type="hidden" name="do" value="setting"/>
+                <input type="hidden" name="op" value="buy"/>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">接口示例</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <span class='help-block'>基于微赞：http://您的域名/app/index.php?地址（参考微赞url地址）</span>
+                        <span class='help-block'>非微赞：http://完整地址</span>
+                    </div>
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">购买接口</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <input type="text" name="url" id="url" class="form-control" value="" />
+                        {if !empty($url['url'])}
+                        <span class='help-block'>已设置的接口:{$url['url']}</span>
+                        {/if}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+                    <div class="col-sm-9 col-xs-12">
+                        <input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1"/>
+                        <input type="hidden" name="token" value="{$_W['token']}"/>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{elseif $op == 'notice'}
+<div class="main">
+    <form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" >
+        <input type='hidden' name='setid' value="{$set['id']}" />
+        <input type='hidden' name='op' value="notice" />
+        <div class="panel panel-default">
+            <style type='text/css'>
+                .multi-item { height:110px;}
+                .img-thumbnail { width:100px;height:100px}
+                .img-nickname { position: absolute;bottom:0px;line-height:25px;height:25px;
+                    color:#fff;text-align:center;width:90px;bottom:55px;background:rgba(0,0,0,0.8);left:5px;}
+                .multi-img-details { padding:5px;}
+            </style>
+            <div class='panel-body'>
+                <div class='alert alert-info'>
+                    请将公众平台模板消息所在行业选择为： IT科技/互联网|电子商务
+                </div>
+            </div>
+            <div class='panel-heading'>
+                卖家通知
+            </div>
+            <div class='panel-body'>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">订单生成通知</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <input type="text" name="notice[new]" class="form-control" value="{$set['notice']['new']}" />
+                        <div class="help-block">通知公众平台模板消息编号: OPENTM205213550 </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+                    <div class="col-sm-9 col-xs-12">
+                        <div class='input-group'>
+                            <input type="text" id='salers' name="salers" maxlength="30" value="{loop $salers $saler} {$saler['nickname']}; {/loop}" class="form-control" readonly />
+                            <div class='input-group-btn'>
+                                <button class="btn btn-default" type="button" onclick="popwin = $('#modal-module-menus').modal();">选择通知人</button>
+                            </div>
+                        </div>
+                        <div class="input-group multi-img-details" id='saler_container'>
+                            {loop $salers $saler}
+                            <div class="multi-item saler-item" openid='{$saler['openid']}'>
+                            <img class="img-responsive img-thumbnail" src='{$saler['avatar']}' onerror="this.src='./resource/images/nopic.jpg'; this.title='图片未找到.'">
+                            <div class='img-nickname'>{$saler['nickname']}</div>
+                            <input type="hidden" value="{$saler['openid']}" name="openids[]">
+                            <em onclick="remove_member(this)"  class="close">×</em>
+                            {/loop}
+                        </div>
+                        <span class='help-block'>订单生成后商家通知，可以制定多个人，如果不填写则不通知</span>
+                        <div id="modal-module-menus"  class="modal fade" tabindex="-1">
+                            <div class="modal-dialog" style='width: 920px;'>
+                                <div class="modal-content">
+                                    <div class="modal-header"><button aria-hidden="true" data-dismiss="modal" class="close" type="button">×</button><h3>选择通知人</h3></div>
+                                    <div class="modal-body" >
+                                        <div class="row">
+                                            <div class="input-group">
+                                                <input type="text" class="form-control" name="keyword" value="" id="search-kwd" placeholder="请输入粉丝昵称/姓名/手机号" />
+                                                <span class='input-group-btn'><button type="button" class="btn btn-default" onclick="search_members();">搜索</button></span>
+                                            </div>
+                                        </div>
+                                        <div id="module-menus" style="padding-top:5px;"></div>
+                                    </div>
+                                    <div class="modal-footer"><a href="#" class="btn btn-default" data-dismiss="modal" aria-hidden="true">关闭</a></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">通知方式</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <label class="checkbox-inline">
+                            <input type="checkbox" value="0" name='notice[newtype][]' {if in_array(0,$newtype)}checked{/if} /> 下单通知
+                        </label>
+                        <label class="checkbox-inline">
+                            <input type="checkbox" value="1" name='notice[newtype][]' {if in_array(1,$newtype)}checked{/if} /> 付款通知
+                        </label>
+                        <label class="checkbox-inline">
+                            <input type="checkbox" value="2" name='notice[newtype][]' {if in_array(2,$newtype)}checked{/if} /> 买家确认收货通知
+                        </label>
+                        <div class="help-block">通知商家方式</div>
+                    </div>
+                </div>
+            </div>
+            </div>
+            <div class='panel-heading'>
+                买家通知
+            </div>
+            <div class='panel-body'>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">订单生成通知</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <input type="text" name="notice[submit]" class="form-control" value="{$set['notice']['submit']}" />
+                        <div class="help-block">公众平台模板消息编号: OPENTM205213550 请和卖家订单生成通知使用同一模板</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">订单发货通知</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <input type="text" name="notice[send]" class="form-control" value="{$set['notice']['send']}" />
+                        <div class="help-block">公众平台模板消息编号:  OPENTM202243318  </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">订单完成通知</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <input type="text" name="notice[finish]" class="form-control" value="{$set['notice']['finish']}" />
+                        <div class="help-block">公众平台模板消息编号:  OPENTM202314085  </div>
+                    </div>
+                </div>
+
+                <div class="form-group"></div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+                    <div class="col-sm-9 col-xs-12">
+                        <input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1"  />
+                        <input type="hidden" name="token" value="{$_W['token']}" />
+                    </div>
+                </div>
+            </div>
+            <script language='javascript'>
+                function search_members() {
+                    if ($.trim($('#search-kwd').val()) == '') {
+                        Tip.focus('#search-kwd', '请输入关键词');
+                        return;
+                    }
+                    $("#module-menus").html("正在搜索....");
+                    $.get('{php echo $this->createWebUrl('query')}', {
+                        keyword: $.trim($('#search-kwd').val())
+                    }, function (dat) {
+                        $('#module-menus').html(dat);
+                    });
+                }
+                function select_member(o) {
+
+                    if ($('.multi-item[openid="' + o.openid + '"]').length > 0) {
+                        return;
+                    }
+                    var html = '<div class="multi-item" openid="' + o.openid + '">';
+                    html += '<img class="img-responsive img-thumbnail" src="' + o.avatar + '" onerror="this.src=\'./resource/images/nopic.jpg\'; this.title=\'图片未找到.\'">';
+                    html += '<div class="img-nickname">' + o.nickname + '</div>';
+                    html += '<input type="hidden" value="' + o.openid + '" name="openids[]">';
+                    html += '<em onclick="remove_member(this)"  class="close">×</em>';
+                    html += '</div>';
+                    $("#saler_container").append(html);
+                    refresh_members();
+                }
+
+                function remove_member(obj) {
+                    $(obj).parent().remove();
+                    refresh_members();
+                }
+                function refresh_members() {
+                    var nickname = "";
+                    $('.multi-item').each(function () {
+                        nickname += " " + $(this).find('.img-nickname').html() + "; ";
+                    });
+                    $('#salers').val(nickname);
+                }
+
+            </script>
+        </div>
+    </form>
+</div>
+{/if}
+{template 'common/footer'}

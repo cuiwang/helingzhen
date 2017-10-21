@@ -1,0 +1,485 @@
+{if $operation == 'display'}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1.0,maximum-scale=1.0,minimum-scale=1,user-scalable=no">
+    <meta content="yes" name="apple-mobile-web-app-capable">
+    <meta content="black" name="apple-mobile-web-app-status-bar-style">
+    <meta content="telephone=no" name="format-detection">
+    <meta content="email=no" name="format-detection">
+    <title>商品管理</title>
+    <link rel="stylesheet" href="{MD_ROOTN}/messi/css/reset.css"/>
+    <link rel="stylesheet" href="{MD_ROOTN}/messi/iconfont/iconfont.css"/>
+	<link rel="stylesheet" href="{MD_ROOTN}/jqueryweui/css/weui.min.css"/>
+	<link rel="stylesheet" href="{MD_ROOTN}/jqueryweui/css/jquery-weui.min.css"/>
+	<link rel="stylesheet" href="{MD_ROOTN}/messi/css/common.css"/>
+	<link rel="stylesheet" href="{MD_ROOTN}/messi/css/mygoods.css"/>
+	<script>
+        var deviceWidth = document.documentElement.clientWidth;
+        document.documentElement.style.fontSize = deviceWidth / 7.5 + 'px';
+    </script>
+</head>
+
+<body style="background:#f5f5f5;">
+<div id="header">
+	<div class="goback iconfont" onclick="history.go(-1);">&#xe612;</div>
+	<div class="title textellipsis1 text-c">商品管理</div>
+	<div class="empty"></div>
+</div>
+
+<div class="orderlist">
+	{if $list}
+		<div class="append">
+			{loop $list $row}
+			<div class="item">
+				<div class="top text-r">{if $row['status'] == 1}已审核{else}未审核{/if}</div>
+				<div class="goods">
+					<div class="img"><img src="{php echo tomedia($row['thumb']);}" /></div>
+					<div class="goodsmsg">
+						<div class="title textellipsis2">{$row['title']}</div>
+						<div class="pricenum">
+							<div class="price">￥{$row['normalprice']}</div>
+							<div class="num text-r"></div>
+						</div>
+					</div>
+				</div>
+				<div class="btns">
+					<a href="{php echo $this->createMobileUrl('merchantgoods',array('op'=>'post','id'=>$row['id']))}" class="pay text-c">编辑</a>
+					<a href="javascript:;" onclick="delgoods({$row['id']});" class="text-c">删除</a>
+				</div>
+			</div>
+			{/loop}
+		</div>
+		<div class="load text-c hide">数据加载中</div>
+	{else}
+		<div class="noorder text-c">( ⊙ o ⊙ )啊哦，没有更多商品啦~</div>
+	{/if}
+</div>
+<script type="text/javascript" src="{MD_ROOTN}/messi/js/jquery-3.1.1.min.js"></script>
+<script type="text/javascript" src="{MD_ROOTN}/jqueryweui/js/fastclick.js"></script>
+<script type="text/javascript" src="{MD_ROOTN}/jqueryweui/js/jquery-weui.min.js"></script>
+<script type="text/javascript">
+$(function(){
+	FastClick.attach(document.body);
+})
+function delgoods(orderid){
+	$.confirm("确定要删除该商品吗？", function() {
+		$.ajax({
+			url:"{php echo $this->createMobileUrl('merchantgoods',array('op'=>'delete'))}",   
+			type:'post', 
+			data:{
+				id:orderid,
+			},
+			dataType:'json',
+			success:function(data){
+				if (data.error == 1) {
+					$.alert(data.msg);
+				}else{
+					$.alert(data.msg,function(){
+						history.go(0);
+					});
+				}
+			}
+		});
+	}, function() {
+
+	});
+}
+//滚动加载
+var loading = false;  //状态标记
+var count = 2;
+$(document.body).infinite().on("infinite", function() {
+	if(loading) return;
+	loading = true;
+	if(count < {$allpage}){
+		$('.load').removeClass('hide');
+		setTimeout(function() {			
+			$.ajax({
+				url:"{php echo $this->createMobileUrl('merchantgoods')}",
+				data:{
+					page:count,
+					isajax:1,
+				},
+				dataType:'html',
+				type:'post',        
+				success:function(data){
+					if(data != ''){
+						$('.orderlist .append').append(data);
+						count++;
+					}
+					loading = false;
+				},
+			});
+		}, 500);   //模拟延迟
+	}else{
+		$('.load').text('全部数据已经加载完毕');
+	}
+});
+</script>
+</body>
+</html>
+{/if}
+
+{if $operation == 'post'}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1.0,maximum-scale=1.0,minimum-scale=1,user-scalable=no">
+    <meta content="yes" name="apple-mobile-web-app-capable">
+    <meta content="black" name="apple-mobile-web-app-status-bar-style">
+    <meta content="telephone=no" name="format-detection">
+    <meta content="email=no" name="format-detection">
+    <title>商品管理</title>
+	<link rel="stylesheet" href="{MD_ROOTN}/messi/css/reset.css"/>
+    <link rel="stylesheet" href="{MD_ROOTN}/messi/iconfont/iconfont.css"/>
+	<link rel="stylesheet" href="{MD_ROOTN}/jqueryweui/css/weui.min.css"/>
+	<link rel="stylesheet" href="{MD_ROOTN}/jqueryweui/css/jquery-weui.min.css"/>
+	<link rel="stylesheet" href="{MD_ROOTN}/messi/css/common.css"/>
+	{php echo register_jssdk(false);}
+	<script>
+        var deviceWidth = document.documentElement.clientWidth;
+        document.documentElement.style.fontSize = deviceWidth / 7.5 + 'px';
+    </script>
+</head>
+
+<body style="background:#f5f5f5;">
+<div id="header">
+	<div class="goback iconfont" onclick="history.go(-1);">&#xe612;</div>
+	<div class="title textellipsis1 text-c">商品管理</div>
+	<div class="empty text-c"></div>
+</div>
+
+<form action="{php echo $this->createMobileUrl('merchantgoods',array('op'=>'post'))}" method="post" class="form-horizontal" id="goodsform" style="background:#fff;">
+<input type="hidden" name="id" value="{$item['id']}" />
+<div class="weui-cells weui-cells_form">
+	<div class="weui-cell">
+		<div class="weui-cell__hd"><label class="weui-label">商品名称</label></div>
+		<div class="weui-cell__bd">
+			<input class="weui-input" placeholder="请填写商品名称" type="text" value="{$item['title']}" name="title">
+		</div>
+	</div>
+	
+	<div class="weui-cell">
+		<div class="weui-cell__hd"><label class="weui-label">价格（元）</label></div>
+		<div class="weui-cell__bd">
+			<input class="weui-input" placeholder="0.00" type="text" value="{$item['normalprice']}" name="normalprice">
+		</div>
+		<div class="weui-cell__hd"><label class="weui-label">库存</label></div>
+		<div class="weui-cell__bd">
+			<input class="weui-input" placeholder="例如：1" type="number" value="{$item['total']}" name="total">
+		</div>
+	</div>
+	
+	<div id="options">
+		{loop $options $p}		
+		<div class="weui-cell">
+			<div class="weui-cell__hd"><label class="weui-label">规格名称</label></div>
+			<div class="weui-cell__bd">
+				<input class="weui-input" name="option_title[]" type="text" value="{$p['title']}">
+				<input name="option_id[]"  placeholder="请填写规格名称" type="hidden" value="{$p['id']}">
+			</div>
+		</div>
+		<div class="weui-cell">
+			<div class="weui-cell__hd"><label class="weui-label">价格（元）</label></div>
+			<div class="weui-cell__bd">
+				<input class="weui-input" placeholder="0.00" type="text" name="option_normalprice[]" value="{$p['normalprice']}">
+			</div>
+			<div class="weui-cell__hd"><label class="weui-label">库存</label></div>
+			<div class="weui-cell__bd">
+				<input class="weui-input" placeholder="例如：1" type="number" name="option_stock[]" value="{$p['stock']}">
+			</div>
+		</div>
+		{/loop}
+	</div>
+	
+	<div class="weui-cell">
+		<div class="weui_cells_tips">
+			<span id="R_add_mod" style="color:#718DE7;font-size:14px;">添加规格</span>
+			<span id="R_remove_mod" style="opacity: 1;color:#CC0000;font-size:14px;margin-left:10px;">删除规格</span>
+		</div>
+	</div>
+		
+	<div class="weui-cell">
+        <div class="weui-cell__bd">
+          <div class="weui-uploader">
+            <div class="weui-uploader__hd">
+				<p class="weui-uploader__title">可上传多张商品图片，第1张作为商品封面</p>
+            </div>
+            <div class="weui-uploader__bd">
+				<ul class="weui-uploader__files" id="uploaderFiles">
+					{loop $piclist $pl}
+					<li class="weui-uploader__file" style="background-image:url({php echo tomedia($pl);})">
+						<i onclick="delpics($(this));" style="cursor:pointer;background:#900;color:#fff;float:right;">删除</i>
+						<input type="hidden" name="thumbs[]" value="{$pl}" />
+					</li>
+					{/loop}
+				</ul>
+				<div class="weui-uploader__input-box" id="upload"></div>
+            </div>
+          </div>
+        </div>
+    </div>
+	
+	<div class="weui-cell">
+        <div class="weui-cell__bd">
+          <textarea class="weui-textarea" name="description" placeholder="请输入商品简介" rows="3">{$item['description']}</textarea>
+        </div>
+    </div>
+	
+	<div class="weui-cell">
+        <div class="weui-cell__bd">
+          <div class="weui-uploader">
+            <div class="weui-uploader__hd">
+				<p class="weui-uploader__title">商品详情图片可上传多张商品图片</p>
+            </div>
+            <div class="weui-uploader__bd">
+				<ul class="weui-uploader__files" id="uploaderFilesdes">
+					{loop $piclistdetail $pl}
+					<li class="weui-uploader__file" style="background-image:url({php echo tomedia($pl);})">
+						<i onclick="delpics($(this));" style="cursor:pointer;background:#900;color:#fff;float:right;">删除</i>
+						<input type="hidden" name="thumbsdes[]" value="{$pl}" />
+					</li>
+					{/loop}
+				</ul>
+				<div class="weui-uploader__input-box" id="uploaddes"></div>
+            </div>
+          </div>
+        </div>
+    </div>
+	
+	<div class="weui-cell">
+		<div class="weui-cell__hd"><label class="weui-label">运费（元）</label></div>
+		<div class="weui-cell__bd">
+			<input class="weui-input" type="number" placeholder="0.00" value="{$item['yunfei']}" name="yunfei">
+		</div>
+		<div class="weui-cell__hd"><label class="weui-label">排序</label></div>
+		<div class="weui-cell__bd">
+			<input class="weui-input" type="number" placeholder="例如：1" value="{$item['displayorder']}" name="displayorder">
+		</div>
+	</div>
+	
+	<div class="weui-cell weui-cell_switch">
+        <div class="weui-cell__bd">允许帮我卖</div>
+        <div class="weui-cell__ft">
+			<label for="isdistribution" class="weui-switch-cp">
+				<input id="isdistribution" class="weui-switch-cp__input" name="isdistribution[]" {if $item['isdistribution'] == 1}checked="checked"{/if} type="checkbox">
+				<div class="weui-switch-cp__box"></div>
+			</label>
+        </div>
+    </div>
+	
+	<div class="weui-cell">
+		<div class="weui-cell__hd"><label class="weui-label">佣金（元）</label></div>
+		<div class="weui-cell__bd">
+			<input class="weui-input" type="text" placeholder="0.00" value="{$item['fenxiaoprice']}" name="fenxiaoprice">
+		</div>
+	</div>
+	
+	<div class="weui-cell weui-cell_switch">
+        <div class="weui-cell__bd">开通核销</div>
+        <div class="weui-cell__ft">
+			<label for="ishexiao" class="weui-switch-cp">
+				<input id="ishexiao" class="weui-switch-cp__input" name="ishexiao[]" {if $item['ishexiao'] == 1}checked="checked"{/if} type="checkbox">
+				<div class="weui-switch-cp__box"></div>
+			</label>
+        </div>
+    </div>
+	<div class="weui-cell">
+		<div class="weui_cells_tips">
+			<span id="R_remove_mod" style="opacity: 1;color:#CC0000;font-size:14px;margin-left:10px;">开通核销后，扫描客户出示的二维码可完成订单。</span>
+		</div>
+	</div>
+	
+	<div class="weui-cell weui-cell_switch">
+        <div class="weui-cell__bd">开启全局核销</div>
+        <div class="weui-cell__ft">
+			<label for="isallhexiao" class="weui-switch-cp">
+				<input id="isallhexiao" class="weui-switch-cp__input" name="isallhexiao[]" {if $item['isallhexiao'] == 1}checked="checked"{/if} type="checkbox">
+				<div class="weui-switch-cp__box"></div>
+			</label>
+        </div>
+    </div>
+	<div class="weui-cell">
+		<div class="weui_cells_tips">
+			<span id="R_remove_mod" style="opacity: 1;color:#CC0000;font-size:14px;margin-left:10px;">开启全局核销后，别的商家也将可以扫描客户出示的二维码可完成订单。</span>
+		</div>
+	</div>
+	
+	{if $cservicelist}
+	<div class="weui-cells__title">选择客服</div>
+	<div class="weui-cells weui-cells_checkbox">
+	  {loop $cservicelist $cc}
+	  <label class="weui-cell weui-check__label" for="ctype{$cc['id']}">
+		<div class="weui-cell__bd"><p>{$cc['name']}</p></div>
+		<div class="weui-cell__hd">
+		  <input class="weui-check" name="cservice[]" id="ctype{$cc['id']}" value="{$cc['id']}" {if in_array($cc['id'],$goodscservice)}checked="checked"{/if} type="checkbox">
+		  <i class="weui-icon-checked"></i>
+		</div>
+	  </label>
+	  {/loop}
+	</div>
+	{/if}
+</div>
+<div style="padding:0.25rem;">
+	<input class="weui-btn weui-btn_primary" name="submit" type="submit" value="确定" />
+</div>
+<input type="hidden" name="token" value="{$_W['token']}" />
+</form>
+<script type="text/javascript" src="{MD_ROOTN}/messi/js/jquery-3.1.1.min.js"></script>
+<script type="text/javascript" src="{MD_ROOTN}/jqueryweui/js/fastclick.js"></script>
+<script type="text/javascript" src="{MD_ROOTN}/jqueryweui/js/jquery-weui.min.js"></script>
+<script type="text/javascript" src="{MD_ROOTN}/messi/js/jquery.form.js"></script>
+<script>
+$("#goodsform").ajaxForm({
+	type: "POST",
+	dataType:"json",
+	success: function(data) {
+		if(data.error == 1){
+			$.alert(data.msg);
+		}else{
+			$.alert(data.msg,function(){
+				history.go(-1);
+			});
+		}
+	},
+});
+var images = {
+	localIds: [],
+};
+$(function() {
+	FastClick.attach(document.body);
+	
+	var html = '<div class="weui-cell">'+
+					'<div class="weui-cell__hd"><label class="weui-label">规格名称</label></div>'+
+					'<div class="weui-cell__bd">'+
+						'<input class="weui-input" name="option_title[]" placeholder="请填写规格名称" type="text">'+
+						'<input name="option_id[]" type="hidden">'+
+					'</div>'+
+				'</div>'+
+				'<div class="weui-cell">'+
+					'<div class="weui-cell__hd"><label class="weui-label">价格（元）</label></div>'+
+					'<div class="weui-cell__bd">'+
+						'<input class="weui-input" type="text" placeholder="0.00" name="option_normalprice[]">'+
+					'</div>'+
+					'<div class="weui-cell__hd"><label class="weui-label">库存</label></div>'+
+					'<div class="weui-cell__bd">'+
+						'<input class="weui-input" type="number" placeholder="例如：1" name="option_stock[]">'+
+					'</div>'+
+				'</div>';
+	
+	$("#R_add_mod").click(function(){
+		$("#options").append(html);
+	});
+	
+	$("#R_remove_mod").click(function(){
+		$("#options").children(".weui-cell:last-child").remove();
+		$("#options").children(".weui-cell:last-child").remove();
+	});
+	
+	$('#upload').click(function(){
+		wx.chooseImage({
+			count: 3, // 最多选3张
+			sizeType: ['compressed'], // 可以指定是原图还是压缩图，默认二者都有
+			sourceType: ['album', 'camera'], // 可以指定来源是相册还是相机，默认二者都有
+			success: function(res) {
+				images.localIds = res.localIds; // 返回选定照片的本地ID列表，localId可以作为img标签的src属性显示图片
+				var i = 0; var length = images.localIds.length;
+				var upload = function() {
+					wx.uploadImage({
+						localId:'' + images.localIds[i],
+						isShowProgressTips: 1,
+						success: function(res) {
+							var serverId = res.serverId;
+							$.ajax({   
+								 url:"{php echo $this->createMobileUrl('getmedia')}",   
+								 type:'post', 
+								 data:{
+									media_id:serverId,
+									tarwidth:420,
+									tarheight:420,
+								 },
+								 dataType:'json',
+								 success:function(data){   
+									if (data.error == 1) {
+										$.alert(data.message);
+									} else {
+										var imagehtml = '<li class="weui-uploader__file" style="background-image:url('+data.imgurl+')">'
+											+'<i onclick="delpics($(this));" style="cursor:pointer;background:#900;color:#fff;float:right;">删除</i>'
+											+'<input type="hidden" name="thumbs[]" value="'+data.realimgurl+'" />'
+										+'</li>';
+										$('#uploaderFiles').append(imagehtml);
+									}  
+								 }
+							});
+							//如果还有照片，继续上传
+							i++;
+							if (i < length) {
+								upload();
+							}
+						}
+					});                    
+				};
+				upload();
+			}
+		});
+	});
+	
+	
+	$('#uploaddes').click(function(){
+		wx.chooseImage({
+			count: 3, // 最多选3张
+			sizeType: ['compressed'], // 可以指定是原图还是压缩图，默认二者都有
+			sourceType: ['album', 'camera'], // 可以指定来源是相册还是相机，默认二者都有
+			success: function(res) {
+				images.localIds = res.localIds; // 返回选定照片的本地ID列表，localId可以作为img标签的src属性显示图片
+				var i = 0; var length = images.localIds.length;
+				var upload = function() {
+					wx.uploadImage({
+						localId:'' + images.localIds[i],
+						isShowProgressTips: 1,
+						success: function(res) {
+							var serverId = res.serverId;
+							$.ajax({   
+								 url:"{php echo $this->createMobileUrl('getmedia')}",   
+								 type:'post', 
+								 data:{
+									media_id:serverId,
+									tarwidth:0,
+									tarheight:0,
+								 },
+								 dataType:'json',
+								 success:function(data){   
+									if (data.error == 1) {
+										$.alert(data.message);
+									} else {
+										var imagehtmldes = '<li class="weui-uploader__file" style="background-image:url('+data.imgurl+')">'
+											+'<i onclick="delpics($(this));" style="cursor:pointer;background:#900;color:#fff;float:right;">删除</i>'
+											+'<input type="hidden" name="thumbsdes[]" value="'+data.realimgurl+'" />'
+										+'</li>';
+										$('#uploaderFilesdes').append(imagehtmldes);
+									}  
+								 }
+							});
+							//如果还有照片，继续上传
+							i++;
+							if (i < length) {
+								upload();
+							}
+						}
+					});                    
+				};
+				upload();
+			}
+		});
+	});
+	
+});
+function delpics(obj){
+	obj.parents("li").remove();
+}
+</script>
+</body>
+</html>
+{/if}

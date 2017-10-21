@@ -1,0 +1,95 @@
+{php $title=$quan['aname']}
+{template 'inc/header'}	
+<link rel="stylesheet" href="../addons/cgc_ad/css/vip_css.css"/>
+<body  ontouchstart>
+<div class="bg-white">
+<div class="tc pt2 mb1"><img src="../addons/cgc_ad/images/money_pic.png" width="26%" /></div>
+<div class="tc small lh1-8">我的vip等级：vip{$member['vip_name']},已充值 {$member['vip_recharge']} 元</div>
+<div class="tc small lh1-8">最大可抢红包：{$member['vip_rob']}元</div>
+<form id="recharge_form" action="{php echo $_W['siteroot'] . 'app/' . substr($this->createMobileUrl('vip_recharge',array('op'=>'post','quan_id'=>$quan['id'])), 2)}" method="post">
+<div class="weui_cells">
+        <div class="weui_cell weui_cell_select">
+            <div class="weui_cell_bd weui_cell_primary">
+                <select class="weui_select" name="vip_id">
+                	{loop $vip_rules $rule_item}
+                      {if $rule_item['vip_recharge']>$member['vip_recharge']}
+                	<option value="{$rule_item['id']}"><span class="mr-5">充值金额</span>  {$rule_item['vip_recharge']}元-vip等级：vip{$rule_item['vip_name']}</option>
+                	  {/if}
+                	{/loop}
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+</form>
+<div class="mg10">
+	<a id="payBtn" href="javascript:;" class="weui_btn weui_btn_warn">充值</a>
+</div>
+<article class="weui_article">
+<div class="tc"><b class="big">vip等级说明</b></div>
+<section class="small">
+	{loop $vip_rules $rule_item}
+	  <p>
+	  
+         {$rule_item['remark']}
+       
+	  </p>
+
+	{/loop}
+</section>
+</article>
+
+{if empty($config['pay_type']) || $config['pay_type'] == 0}
+<!-- 微信支付表单 -->
+<form id="pay_wechat" action="{php echo url('mc/cash/wechat');}" method="post">
+	<input id="pay_wechat_params" type="hidden" name="params" value="" />
+</form>
+{else if $config['pay_type'] == 1}
+<!-- 云支付表单 -->
+<form id="pay_yun" action="{php echo $_W['siteroot'] . 'addons/'.$this->modulename.'/yunpay/yunpay.php';}" method="post">
+	<input id="WIDout_trade_no" type="hidden" name="WIDout_trade_no" value="" /> <input id="WIDsubject" type="hidden" name="WIDsubject" value="" /> <input id="WIDtotal_fee" type="hidden" name="WIDtotal_fee" value="" /> <input id="WIDbody" type="hidden" name="WIDbody" value="" /> <input id="WIDre_url" type="hidden" name="WIDre_url" value="" /> <input id="WIDno_url" type="hidden" name="WIDno_url" value="" /> <input id="uniacid" type="hidden" name="uniacid" value="" />
+</form>
+{/if}
+<script src="{MODULE_URL}/js/sweetalert/sweetalert.min.js"></script>
+<script src="{MODULE_URL}/js/jquery-weui.js"></script>
+	<script>
+			$(function(){
+					var form = $('#recharge_form');
+					$('#payBtn').on('click',function(){
+						$.showLoading();
+						$.post(form.attr('action'), form.serialize(),function(resp) {
+							if(resp.status==0){
+								//$.hideLoading();
+								$('#toast_loading').hide();
+							    swal(resp.info,'','error');
+							}else{
+							
+								if(resp.data){									
+									{if empty($config['pay_type'])}
+									$('#pay_wechat_params').val(resp.data);
+									$('#pay_wechat').submit();
+									{else if $config['pay_type'] == 1}
+									var data = jQuery.parseJSON(resp.data);
+									$('#WIDout_trade_no').val(data.WIDout_trade_no);
+									$('#WIDsubject').val(data.WIDsubject);
+									$('#WIDtotal_fee').val(data.WIDtotal_fee);
+									$('#WIDbody').val(data.WIDbody);
+									$('#WIDno_url').val(data.WIDno_url);
+									$('#WIDre_url').val(data.WIDre_url);
+									$('#uniacid').val(data.uniacid);
+									$('#pay_yun').submit();
+									{else if $config['pay_type'] == 2}
+									  var data = jQuery.parseJSON(resp.data);
+									  window.location.href='{php echo $_W['siteroot'] . 'app/' . substr($this->createMobileUrl('vip_payment',array('op'=>'display','quan_id'=>$quan['id'])), 2)}&tid='+data.WIDout_trade_no;
+									{/if}
+								
+								}
+							}
+								$.hideLoading();
+						});
+					});
+
+			});
+		</script>
+</body>
+</html>

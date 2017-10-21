@@ -1,0 +1,308 @@
+{template 'common/header'}
+<style>
+#addtimes{
+	position:fixed;
+	top:10%;
+	left:32%;
+}
+#for{
+	z-index: 0;
+}
+
+</style>
+<ul class="nav nav-tabs">
+	<li {if $operation == 'user'}class="active"{/if}><a href="{php echo $this->createWebUrl('act', array('op' => 'user'))}">参与用户</a></li>
+	<li {if $operation == 'hblog'}class="active"{/if}><a href="{php echo $this->createWebUrl('act', array('op' => 'hblog'))}">红包记录</a></li>
+	<li {if $operation == 'oldact'}class="active"{/if}><a href="{php echo $this->createWebUrl('act', array('op' => 'oldact'))}">往期红包数据</a></li>	
+</ul>
+<script>
+	require(['bootstrap'],function($){
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+	});
+</script>
+{if $operation == 'user' || $operation == 'search'}
+<div class="panel panel-default">
+  <div class="panel-body">
+  <form action="./index.php" method="get" class="form-horizontal" role="form" id="form1">
+        <input type="hidden" name="c" value="site" />
+        <input type="hidden" name="a" value="entry" />
+        <input type="hidden" name="m" value="zofui_hby" />
+        <input type="hidden" name="do" value="act" />
+        <input type="hidden" name="op" value="search" />		
+		<div class="col-xs-8">
+			<div class="input-group">
+			  <input type="text" class="form-control" id="for" name="for" placeholder="请输入用户ID或者昵称关键字"/>
+			  <span class="input-group-btn">
+				<button class="btn btn-default" type="submit" ><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
+			  </span>
+			</div>
+		</div>
+	</form>
+  </div>
+</div>
+<div class="main">
+	<div class="category">
+		<form action="" method="post" onsubmit="return formcheck(this)">
+			<div class="panel panel-default">
+				<div class="panel-body table-responsive">
+					<table class="table table-hover">
+						<thead>
+							<tr>
+								<th class="col-xs-1">用户id</th>
+								<th class="col-xs-1">上级ID</th>								
+								<th class="col-xs-1">昵称</th>
+								<th class="col-xs-1">头像</th>
+								<th class="col-xs-1">剩余次数</th>
+								<th class="col-xs-1">是否关注</th>
+								<th class="col-xs-1">操作</th>								
+							</tr>
+						</thead>
+						<tbody>
+						{loop $userinfo $item}
+						<tr>
+							<td class="id">{$item['id']}</td>
+							<td>{$item['parentid']}</td>
+							<td class="tnickname">{$item['nickname']}</td>
+							<td><img src="{$item['headimgurl']}" height="30px"></td>
+							<td>{if $item['times'] == -1}{php echo $this->module['config']['times']}{else}{$item['times']}{/if}</td>							
+							<td>
+								{if $item['subscribe']==1}
+								<span class='label label-success'>关注</span>
+								{else}
+								<span class='label label-danger'>未关注</span>
+								{/if}
+							</td>
+							<td>
+								<a class="btn btn-info btn-sm addtimes"  title="">增加点击次数</a>
+							</td>
+						</tr>
+						{/loop}
+
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</form>
+		{$pager}
+	</div>
+</div>
+
+{elseif $operation == 'hblog' || $operation == 'hbsearch'}
+<div class="panel panel-default">
+  <div class="panel-body">
+  <form action="./index.php" method="get" class="form-horizontal" role="form" id="form1">
+        <input type="hidden" name="c" value="site" />
+        <input type="hidden" name="a" value="entry" />
+        <input type="hidden" name="m" value="zofui_hby" />
+        <input type="hidden" name="do" value="act" />
+        <input type="hidden" name="op" value="hbsearch" />		
+		<div class="col-xs-8">
+			<div class="input-group">
+			  <input type="text" class="form-control" id="for" name="for" placeholder="请输入用户ID"/>
+			  <span class="input-group-btn">
+				<button class="btn btn-default" type="submit" ><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
+			  </span>
+			</div>
+		</div>
+	</form>
+  </div>
+</div>
+
+<div class="main">
+	<div class="category">
+		<form action="" method="post" onsubmit="return formcheck(this)">
+			<div class="panel panel-default">
+				<div class="panel-body table-responsive">
+					<table class="table table-hover">
+						<thead>
+							<tr>
+								<th class="col-xs-1">用户id</th>							
+								<th class="col-xs-1">昵称</th>
+								<th class="col-xs-1">头像</th>
+								<th class="col-xs-1">红包金额</th>
+								<th class="col-xs-1">发放时间</th>							
+							</tr>
+						</thead>
+						<tbody>
+						{loop $hbinfo $item}
+						<tr>
+							<td>{$item['id']}</td>
+							<td>{$item['nickname']}</td>
+							<td><img src="{$item['headimgurl']}" height="30px"></td>
+							<td>{$item['money']}</td>							
+							<td>{php echo date('m-d H:i',$item['time'])}</td>
+						</tr>
+						{/loop}
+
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</form>
+		{$pager}
+	</div>
+</div>	
+{elseif $operation == 'oldact' || $operation == 'oldsearch'}
+<div class="panel panel-default">
+  <div class="panel-body">
+  <form action="./index.php" method="get" class="form-horizontal" role="form" id="form1">
+        <input type="hidden" name="c" value="site" />
+        <input type="hidden" name="a" value="entry" />
+        <input type="hidden" name="m" value="zofui_hby" />
+        <input type="hidden" name="do" value="act" />
+        <input type="hidden" name="op" value="oldact" />		
+		<div class="col-xs-4">
+			<div class="input-group">
+						<select class="form-control" name="actid">
+						{loop $oldactinfo $item}
+							<option value="{$item['id']}">活动ID：{$item['id']}</option>
+						{/loop}
+						</select>
+			  <span class="input-group-btn">
+				<button class="btn btn-default" type="submit" ><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
+			  </span>
+			</div>
+		</div>
+	</form>
+  </div>
+</div>
+<div class="main">
+	<div class="category">
+			<div class="panel panel-default">
+				<div class="panel-body table-responsive">
+					<table class="table table-hover">
+						<thead>
+							<tr>
+								<th class="col-xs-2">活动ID</th>
+								<th class="col-xs-2">初始化时间</th>
+								<th class="col-xs-2">总计金额</th>
+								<th class="col-xs-2">剩余金额</th>						
+							</tr>
+						</thead>
+						<tbody>
+						<tr>
+							<td>{$thisactinfo['id']}</td>
+							<td>{php echo date('Y-m-d H:i',$thisactinfo['time'])}</td>
+							<td>{$thisactinfo['money']}</td>
+							<td>{$thisactinfo['lastmoney']}</td>
+
+						</tr>
+
+						</tbody>
+					</table>
+				</div>
+			</div>
+	</div>
+</div>
+<div class="main">
+	<div class="category">
+		<form action="" method="post" onsubmit="return formcheck(this)">
+			<div class="panel panel-default">
+				<div class="panel-body table-responsive">
+					<table class="table table-hover">
+						<thead>
+							<tr>
+								<th class="col-xs-1">用户id</th>							
+								<th class="col-xs-1">昵称</th>
+								<th class="col-xs-1">头像</th>
+								<th class="col-xs-1">红包金额</th>
+								<th class="col-xs-1">发放时间</th>							
+							</tr>
+						</thead>
+						<tbody>
+						{loop $hbinfo $item}
+						<tr>
+							<td>{$item['id']}</td>
+							<td>{$item['nickname']}</td>
+							<td><img src="{$item['headimgurl']}" height="30px"></td>
+							<td>{$item['money']}</td>							
+							<td>{php echo date('m-d H:i',$item['time'])}</td>
+						</tr>
+						{/loop}
+
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</form>
+		{$pager}
+	</div>
+</div>		
+{/if}
+
+
+	<div id="addtimes" style="width:600px;margin:0px auto;display:none">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button aria-hidden="true" data-dismiss="modal" class="closemodal close" type="button">×</button>
+					<h3>增加点击次数</h3>
+				</div>
+				<div class="modal-body">
+					<input type="hidden" class="lookid" name="lookid" value="">
+					<div class="panel panel-default">
+						<div class="panel-body">
+							<span class="looknickname" style="word-wrap:break-word;word-break:normal;"></span>
+						</div>
+					</div>
+					<div class="panel panel-default send">
+						<div class="panel-body">
+							<input type="text" name="times" class="form-control times" placeholder="请输入要增加的次数(数字)" />
+						</div>
+					</div>										
+					<div class="modal-footer">
+						<a class="btn btn-primary sendmessage" >确认</a>
+						<a href="#" class="closemodal btn btn-default " data-dismiss="modal" aria-hidden="true">关闭</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+<script>
+
+		$('.addtimes').click(function(){
+			var nickname = $(this).parent().parent().find('.tnickname').text();
+			var id = $(this).parent().parent().find('.id').text();			
+			$('.looknickname').text(nickname);
+			$('.lookid').val(id);
+			$('#addtimes').show();
+		});
+		$('.closemodal').click(function(){
+			$('#addtimes').hide();
+		});
+		
+		//发送信息
+		$('.sendmessage').click(function(){
+			var times = $('.times').val();
+			var id = $('.lookid').val();
+			$.ajax({
+				url : "{php echo $this->createWebUrl('act',array('op'=>'addtimes'))}",
+				type : 'post',
+				data : {type : 'addtimes' , times : times ,id : id},
+				datatype : 'html',
+				success : function(data){
+					if(data){
+						alert('增加成功');
+						window.location.href =  "{php echo $this->createWebUrl('act',array('op'=>'user','page'=>$_GPC['page']))}";						
+					}else{
+						alert('增加失败');
+					}
+				},
+			})
+		});	
+
+
+require(['jquery', 'util'], function($, u){
+	$(function(){
+		u.editor($('.richtext')[0]);
+	});
+});
+</script>
+
+{template 'common/footer'}

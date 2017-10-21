@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta  charset="utf-8">
+<meta  name="viewport"  content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>商品介绍</title>
+{php echo register_jssdk();}
+<link  rel="stylesheet"  href="../addons/feng_auction/template/css/css.css">
+<script  src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js" type="text/javascript"></script>
+</head>
+<body  style="background:#f6f6f8;">
+<section  class="wrap">
+	<dt  class="pri_img2" style="width: 100%;height: 14rem;"> <a  href="javascirpt:;"  title="{$goods['title']}"><img  src="{$_W['attachurl']}{$goods['picarr']}"  alt="{$goods['title']}"></a></dt>
+  <section  class="prize_detail"  id="info" style="padding: 0 1rem 0;">
+    <dl  class="prize2">
+      <dd  class="pri_info2">
+        <h3  class="pri_tit"><a  href="javascirpt:;"  title="{$goods['title']}">{$goods['title']}</a></h3>
+        <p  class="total">{if $goods['pos']==0 && time() >$goods['end_time']}已流拍{else}当前价：￥{$goods['st_price']}{/if}</p>
+        <div  class="join_num">
+          <div  class="bar">
+            <div  style="width:{$goods['bili']}%;"  class="bar_in"></div>
+          </div>
+          <span  class="att_num" id="LeftTime"></span> <span  class="remain_num">出价次数：<span  class="fc">{$goods['pos']}</span>次</span> </div>
+        {if empty($goods['q_uid'])}
+        {if time() < $goods['start_time']}
+        <a  href="#"  title="拍卖未开始"  class="chk_btnn"  style="display:">拍卖未开始</a>
+        {else}{if time() >$goods['end_time'] && $goods['pos']==0}
+                <a  href="#"  title="拍卖已流拍"  class="chk_btnn"  style="display:">拍卖已流拍</a>
+        {else}{if $goods['pos']!=0 && time() >$goods['end_time']}
+         <a  href="#"  title="拍卖已结束"  class="chk_btnn"  style="display:">拍卖已结束</a>
+         {else}
+        <a  href="{php echo $this->createMobileUrl('exchange', array('id' => $goods['id']))}"  title="我要出价"  class="chk_btn"  style="display:">我要出价</a>
+ </div>
+        {/if}
+        {/if}
+        {/if}
+        {/if}
+               <a style="background-color:#66CC00;display:block;position:relative;width: 45%;float: left;" href="{php echo $this->createMobileUrl('index')}" class="chk_btn"  id="giftinfo">本场其他拍品</a>
+        <a style="background-color:#66CC00;display:block;position:relative;width: 45%;float: right;" href="{$kf_url}" class="chk_btn"  id="giftinfo">联系客服</a>
+        <div style="clear: both;">
+      </dd>
+    </dl>
+  </section>
+ 
+  <section  class="white_box">
+    <div  class="record_list"  id="gift">
+      <h3>最近参与记录</h3>
+      <span  class="ico_clock"></span>
+    <div  class="date"><span  class="dot"></span></div>
+      <ul>
+        {loop $list $gid $lists}
+        <li><span  class="dot"><i></i></span>
+          <p><span  class="fc"><a  style="color:#ee433e;"  href="">{$lists['nickname']}</a></span> 出价<span  class="fc">{$lists['price']}元</span></p>
+          <span  class="time">{php echo date('Y-m-d H:i:s',$lists['createtime'])}</span> 
+        </li>
+        {/loop} 
+      </ul>
+    </div>
+  </section>
+  <section  class="nav_bar"><a href="#" class="item"  id="giftinfo"> <strong class="item_txt">商品介绍</strong></a></section>
+  <style type="text/css">
+ .detail-content{line-height:20px;}
+ .detail-content img{width:100%;}
+ .detail-div{margin-top:10px; background:#FFF; overflow:hidden; padding:10px; border:1px #DDD solid;}
+  </style>
+  <div class="detail-div img-rounded detail-content" style="word-break:break-all">
+    {$goods['content']}
+  </div>
+</section>
+</body>
+<script>
+function FreshTime()
+{
+    var str ='{php echo date('Y-m-d H:i:s',$goods['start_time'])}';
+    str = str.replace(/-/g,"/");
+    var starttime= new Date(str);//开始时间
+    var strr ='{php echo date('Y-m-d H:i:s',$goods['end_time'])}';
+    strr = strr.replace(/-/g,"/");
+    var endtime=new Date(strr);//结束时间
+    var nowtime = new Date();//当前时间
+    if (nowtime > starttime) {
+        var lefttime=parseInt((endtime.getTime()-nowtime.getTime())/1000); 
+        d=parseInt(lefttime/3600/24);
+        h=parseInt((lefttime/3600)%24);
+        m=parseInt((lefttime/60)%60);
+        s=parseInt(lefttime%60);
+       
+        document.getElementById("LeftTime").innerHTML="时间剩余："+d+"天"+h+"时"+m+"分"+s+"秒";
+        if(lefttime<=0){
+        document.getElementById("LeftTime").innerHTML="拍卖已结束";
+        clearInterval(sh);
+        }
+    }else{
+        document.getElementById("LeftTime").innerHTML="拍卖未开始";
+        clearInterval(sh);
+    }
+}
+FreshTime()
+var sh;
+sh=setInterval(FreshTime,1000);
+</script>
+<script>
+	function close() {
+	    wx.closeWindow();
+	};
+</script>
+<script type="text/javascript">
+	wx.ready(function (){
+	var shareData = {
+		title: "{$share_data['share_title']}",
+		desc: "{$share_data['share_desc']}",
+		link: "{$to_url}",
+		imgUrl: "{$_W['attachurl']}{$share_data['share_image']}",
+	};
+//分享朋友
+	wx.onMenuShareAppMessage({
+	    title: shareData.title,
+	  	desc: shareData.desc,
+	  	link: shareData.link,
+	  	imgUrl:shareData.imgUrl,
+	  	trigger: function (res) {
+	  	},
+	  	success: function (res) {
+	    	window.location.href =adurl;
+	  	},
+	  	cancel: function (res) {
+	  	},
+	  	fail: function (res) {
+	    	alert(JSON.stringify(res));
+	  	}
+	});
+//朋友圈
+	wx.onMenuShareTimeline({
+	  	title: shareData.title+"---"+shareData.desc,
+	  	link: shareData.link,
+	  	imgUrl:shareData.imgUrl,
+	  	trigger: function (res) {
+	  	},
+	  	success: function (res) {
+	    	window.location.href =adurl;
+	  	},
+	  	cancel: function (res) {
+	  	},
+	  	fail: function (res) {
+	    	alert(JSON.stringify(res));
+	  	}
+	});
+});
+</script>
+</html>

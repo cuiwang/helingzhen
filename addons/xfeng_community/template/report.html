@@ -1,0 +1,203 @@
+
+{template 'common/header'}
+{template 'nav'}
+{php load()->func('tpl')}
+<div class="main">
+{if $op == 'post'}
+	<ul class="nav nav-tabs">
+		<li><a href="{php echo $this->createWebUrl('report', array('op' => 'display','regionid'=>$_GPC['regionid']));}">管理</a></li>
+		<li class="active"><a href="{php echo $this->createWebUrl('report', array('op' => 'post','regionid'=>$_GPC['regionid'], 'id'=>$item['id']));}">编辑</a></li>
+	</ul>
+	<form action="" class="form-horizontal form" method="post">
+		<div class="panel panel-default">
+		  <div class="panel-heading">
+		    <h3 class="panel-title">投诉信息</h3>
+		  </div>
+		  <div class="panel-body">
+		    <div class="form-group">
+			    <label for="" class="col-sm-2 control-label">状态</label>
+			    <div class="col-sm-10">
+			        <select name="status" class="form-control">
+						<option value="0" {if $item['status'] == 0}selected{/if}>未解决</option>
+						<option value="1" {if $item['status'] == 1}selected{/if}>已解决</option>
+					</select>
+			    </div>
+			</div>
+			<div class="form-group">
+			    <label for="" class="col-sm-2 control-label">投诉类型</label>
+			    <div class="col-sm-10">
+			        <select name="category" class="form-control">
+					{loop $categories  $category}
+						<option value="{$category['name']}" {if $category['name'] == $item['category']} selected{/if}>{$category['name']}</option>
+					{/loop}
+					</select>
+			    </div>
+			</div>
+			<div class="form-group">
+			    <label for="" class="col-sm-2 control-label">投诉人</label>
+			    <div class="col-sm-10">
+			        <input type="text" value="{$item['realname']}" class="form-control" readonly="readonly"/>
+			    </div>
+			</div>
+			<div class="form-group">
+			    <label for="" class="col-sm-2 control-label">投诉时间</label>
+			    <div class="col-sm-10">
+			       <input type="text" value="{php echo date('Y-m-d h:i:s', $item['createtime'])}" class="form-control" readonly="readonly"/>
+			    </div>
+			</div>
+			<div class="form-group">
+			    <label for="" class="col-sm-2 control-label">投诉内容</label>
+			    <div class="col-sm-10">
+			       <textarea readonly="readonly" style="height:100px;" class="form-control" name="content" cols="70" id="content" >{$item['content']}</textarea>
+			    </div>
+			</div>
+			 {if $item['img']}
+            <div class="form-group">
+                <label for="" class="col-sm-2 control-label">投诉图片</label>
+                <div class="col-sm-10">
+                     {loop $item['img'] $value}
+                        <img src="{$value['src']}" style="width: 60px; height: 60px;border:1px solid white;" />
+                     {/loop}
+                </div>
+            </div>
+            {/if}
+			<div class="form-group">
+			    <label for="" class="col-sm-2 control-label">处理结果</label>
+			    <div class="col-sm-10">
+			       <textarea style="height:100px;" class="form-control" name="resolve" cols="70" id="resolve" >{$item['resolve']}</textarea>
+					<span class="help-block">填写处理结果后，默认为已解决该投诉</span>
+			    </div>
+			</div>
+			<div class="form-group">
+			    <label for="" class="col-sm-2 control-label">处理人</label>
+			    <div class="col-sm-10">
+			       <input type="text" value="{$item['resolver']}" name="resolver" class="form-control"/>
+					<span class="help-block">此处为该投诉的经办人，可以为空</span>
+			    </div>
+			</div>
+			<div class="form-group">
+				<label for="" class="col-sm-2 control-label"></label>
+				<div class="col-sm-4">
+			    	<button type="submit" class="btn btn-primary btn-block" name="submit" value="提交">提交</button>
+					<input type="hidden" name="id" value="{$item['id']}">
+					<input type="hidden" name="regionid" value="{$_GPC['regionid']}" />
+					<input type="hidden" name="token" value="{$_W['token']}" />
+				</div>
+			</div>
+		  </div>
+		</div>
+	</form>
+{elseif $op == 'display'}
+	<ul class="nav nav-tabs">
+		<li class="active"><a href="{php echo $this->createWebUrl('report', array('op' => 'display','regionid'=>$_GPC['regionid']));}">管理</a></li>
+	</ul>
+	<div class="panel panel-info">
+        <div class="panel-heading">筛选</div>
+        <div class="panel-body">
+            <form action="" method="post" class="form-horizontal" role="form">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 control-label">投诉类型</label>
+                    <div class="col-sm-3 col-md-3 col-lg-3 col-xs-3">
+                        <select name="category" class="form-control">
+								{loop $categories $category}
+									<option value="{$category['name']}" {if $category['name']==$_GPC['category']} selected{/if}>{$category['name']}</option>
+								{/loop}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 control-label">投诉日期</label>
+                    <div class="col-sm-8 col-md-8 col-lg-8 col-xs-12">
+                         {php echo tpl_form_field_daterange('birth', array('starttime' => $item['starttime'],'endtime' => $item['endtime']));}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 control-label">状态</label>
+                    <div class="col-sm-8 col-md-8 col-lg-8 col-xs-12">
+                       <label for="ipt_status1" class="radio-inline">
+							<input class="ipt_status1" name="status" id="ipt_status1" type="radio" value="0" 
+							{if @in_array(0, $status) || empty($status)}checked='checked'{/if} />未处理
+						</label>
+						<label for="ipt_status2" class="radio-inline">
+							<input class="ipt_status2" name="status" id="ipt_status2" type="radio" value="1" 
+							{if @in_array(1, $status)}checked='checked'{/if} />已处理
+						</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="pull-right col-xs-12 col-sm-2 col-md-2 col-lg-2">
+                        <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+	<div style="padding:15px;">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<th style="width:100px;">投诉类型</th>
+					<th style="width:70px;">投诉人</th>
+					<th style="width:120px;">投诉人手机</th>
+					<th style="width:100px;">投诉时间</th>
+					<th style="width:130px;">处理结果</th>
+					<th style="width:100px;">处理人</th>
+					<th style="width:100px;">处理时间</th>
+					<th style="width:100px;">状态</th>
+					<th style="width:130px;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $item}
+				<tr>
+					<td>{$item['category']}</td>
+					<td>{$item['realname']}</td>
+					<td>{$item['mobile']}</td>
+					<td>{php echo date('Y-m-d', $item['createtime']);}</td><!-- 
+					<td>{php echo cutstr(htmlspecialchars_decode($item['content']), 35, true)}</td> -->
+					<td>{php echo cutstr(htmlspecialchars_decode($item['resolve']), 35, true)}</td>
+					<td>{php echo cutstr(htmlspecialchars_decode($item['resolver']), 35, true)}</td>
+					<td>{if $item[resolvetime]}{php echo date('Y-m-d', $item[resolvetime]);}{/if}</td>
+					<td>{if $item['status'] ==1 }<span class="label label-success">已解决</span>{/if}{if $item['status'] == 0 }<span class="label label-info">未解决</span>{/if}{if $item['status'] == 2 }<span class="label label-error">已取消</span>{/if}</td>
+					<td>
+						<span>
+							<a href="{php echo $this->createWebUrl('report',array('op'=>'post','id'=>$item['id'], 'regionid' => $regionid));}"><i class='glyphicon glyphicon-edit'></i>查看</a>
+						</span>
+						&nbsp;&nbsp;
+						<span>
+							<a onclick="return confirm('删除操作不可恢复，确认吗？')" href="{php echo $this->createWebUrl('report',array('op'=>'delete','id'=>$item['id'], 'regionid' => $regionid));}"><i class='glyphicon glyphicon-remove-circle'></i>删除</a>
+						</span>
+					</td>
+				</tr>
+				{/loop}
+			</tbody>
+		</table>
+		{$pager}
+	</div>
+	<link type="text/css" rel="stylesheet" href="./resource/style/daterangepicker.css" />
+	<script type="text/javascript" src="./resource/script/daterangepicker.js"></script>
+	<script type="text/javascript">
+		$('#date-range').daterangepicker({
+			format: 'YYYY-MM-DD',
+			startDate: $(':hidden[name=starttime]').val(),
+			endDate: $(':hidden[name=endtime]').val(),
+			locale: {
+				applyLabel: '确定',
+				cancelLabel: '取消',
+				fromLabel: '从',
+				toLabel: '至',
+				weekLabel: '周',
+				customRangeLabel: '日期范围',
+				daysOfWeek: moment()._lang._weekdaysMin.slice(),
+				monthNames: moment()._lang._monthsShort.slice(),
+				firstDay: 0
+			}
+		}, function(start, end){
+			$('#date-range .date-title').html(start.format('YYYY-MM-DD') + ' 至 ' + end.format('YYYY-MM-DD'));
+			$(':hidden[name=starttime]').val(start.format('YYYY-MM-DD'));
+			$(':hidden[name=endtime]').val(end.format('YYYY-MM-DD'));
+		});
+	</script>
+{/if}
+</div>
+{template 'common/footer'}

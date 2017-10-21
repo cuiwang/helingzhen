@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>优惠券信息</title>
+    <link rel="stylesheet" href="http://wx.katim.me/app/resource/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{HT}css/coupon.css">
+    <script src="http://wx.katim.me/app/resource/js/lib/jquery-1.11.1.min.js"></script>
+    <script src="http://cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="{HT}js/layer.js" ></script>
+	<script type="text/javascript" src="https://res.wx.qq.com/open/js/jweixin-1.0.0.js" ></script>
+	<style type="text/css">
+		#mcover {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(0, 0, 0, 0.7);
+			display: none;
+			z-index: 20000;
+		}
+		#mcover img {
+			position: fixed;
+			right: -15px;
+			top: 5px;
+			width: 360px!important;
+			height: 580px!important;
+			z-index: 20001;
+		}
+	</style>
+  </head>
+<body>
+	<div id="mcover" style="display:none;" onclick="weChat();">
+		<img src="{HT}images/share.png" alt=""/>
+	</div>
+	<style type="text/css" media="screen">
+		body{background-color: #91ba27;}
+	</style>
+	<div class="top">
+		<div class="pull-left"><i class="icon-left-w"></i></div>
+	</div>
+	<div class="sdetail">
+		<div class="sdetail-pic">
+			<img src="{php echo tomedia($item['busimg'])}" alt="" width="64" height="64"/>
+		</div>
+		<div class="sdetail-box">
+		<h3>{$item['busname']}</h3>
+		<p class="t1">{$item['title']}</p>
+		<p><a class="sbtn" data-toggle="modal" data-target="#myModal" href="#" onclick="showqrcode();">立即使用</a></p>
+		<p class="t2">{$item['desc']}</p>
+		<p class="t3">有效期：{php echo date("Y.m.d", $item['starttime'])}-{php echo date("Y.m.d", $item['endtime'])}</p>
+		</div>
+		<div class="sdetail-list">
+			<ul class="list-unstyled">
+				<li><a href="{php echo $this->createMobileUrl('halfuser', array('op'=>'coupondesc', 'agentid'=>$agentid, 'bus_id'=>$bus_id, 'id'=>$id));}">优惠券详情</a></li>
+				<li><a href="{php echo $this->createMobileUrl('halfbus', array('op'=>'shop', 'bus_id'=>$bus_id, 'agentid'=>$agentid));}">商家主页</a></li>
+				<li><a href="{php echo $this->createMobileUrl('halfuser', array('op'=>'display', 'agentid'=>$agentid));}">个人中心</a></li>
+				<!-- <li><a href="javascript:void(0);" onclick="showShare();">赠送给朋友</a></li> -->
+			</ul>
+		</div>
+	</div>
+	
+	<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	  <div class="modal-dialog" role="document">
+		<div class="modal-content">
+		  <div class="modal-body">
+			<div class="sdetail">
+				<div class="sqx"><a data-dismiss="modal" aria-label="Close" href="#">取消</a></div>
+				<div class="sdetail-box">
+					<h3>{$item['busname']}</h3>
+					<p class="t1">{$item['title']}</p>
+				</div>
+				<div class="sdetail-cord">
+					<div class="img">
+						<img src="http://qr.liantu.com/api.php?&text={$code_link}"/>
+					</div>
+					<p>请在付款时出示此卷</p>
+				</div>
+			</div>
+		  </div>
+		</div>
+	  </div>
+	</div>
+{template 'banquan'}
+</body>
+<script>
+	var agentid = "{$agentid}";
+	var bus_id = "{$bus_id}";
+	var id = "{$id}";
+	$(function(){ 
+		$("#identifier").modal();  
+	});
+	$(".pull-left").click(function(){
+		var url = "{php echo $this->createMobileUrl('halfuser')}";
+		setTimeout("location.href='" + url + "&agentid="+agentid+"&op=mycoupon'", 500);
+	});
+	//使核销二维码自动消失
+	var qrid;
+	function showqrcode(){
+		qrid = window.setInterval(function(){ 
+				qrcode(); 
+			}, 1000); 
+	}
+	function qrcode(){
+		//alert('进入qrcode');
+		var url_src = "{php echo $this->createMobileUrl('halfuser', array('op'=>'qrcode', 'bus_id'=>$bus_id, 'id'=>$id));}";
+		$.ajax({
+			type: 'POST',
+			url: url_src,
+			data:{},
+			dataType: 'text',
+			success: function(res){
+				//alert(res);
+				//return;
+				if(res == 1){ //已核销
+					window.clearInterval(qrid);
+					$('#myModal').modal('hide');
+					layer.open({
+					    content: '核销成功！',
+					    style: 'background-color:#E34F63; color:#fff; border:none;',
+					    time: 2
+					});
+					var url = "{php echo $this->createMobileUrl('halfuser')}";
+					setTimeout("location.href='" + url + "&op=display&agentid="+agentid+"'", 2000);
+				}
+			}
+		});
+	}
+	
+	wx.config({
+		debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+		appId: "{$jssdkconfig['appId']}", // 必填，公众号的唯一标识
+		timestamp: '{$jssdkconfig["timestamp"]}', // 必填，生成签名的时间戳
+		nonceStr: '{$jssdkconfig["nonceStr"]}', // 必填，生成签名的随机串
+		signature: '{$jssdkconfig["signature"]}',// 必填，签名，见附录1
+		jsApiList: ['checkJsApi','onMenuShareAppMessage','onMenuShareTimeline'] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
+	});
+	wx.ready(function(){
+		wx.checkJsApi({
+			jsApiList: [
+				'getLocation',
+			],
+			success: function (res) {
+				//alert(JSON.stringify(res));
+				// alert(JSON.stringify(res.checkResult.getLocation));
+				if (res.checkResult.getLocation == false) {
+					alert('你的微信版本太低，不支持微信JS接口，请升级到最新的微信版本！');
+					return;
+				}
+			}
+		});
+		   
+		wx.onMenuShareAppMessage({ //获取“分享给朋友”按钮点击状态及自定义分享内容接口
+			title: "{$item['title']}", // 分享标题 --优惠券名称
+			desc: "{$item['desc']}", // 分享描述 --优惠说明
+			link: "{$item['sharelink']}", // 分享链接
+			imgUrl: "{php echo tomedia($item['busimg']);}", // 分享图标 商家图片
+			success: function () { //分享成功跳转页面
+				var url = "{php echo $this->createMobileUrl('halfcoupon')}";
+				setTimeout("location.href='" + url + "&op=sharecoupon&agentid="+agentid+"&bus_id="+bus_id+"&id="+id+"'", 500);
+			},
+			cancel: function () {
+				alert("分享失败，可能是网络问题，一会儿再试试？");
+			}
+		});
+
+		// wx.onMenuShareTimeline({ //获取“分享到朋友圈”按钮点击状态及自定义分享内容接口
+			// title: "{$confing['share_title']}", // 分享标题
+			// desc: "{$confing['share_desc']}", // 分享描述
+			// link: "{$_W['siteurl']}", // 分享链接
+			// imgUrl: "{php echo tomedia($confing['share_img']);}", // 分享图标
+			// success: function () {
+
+			// },
+			// cancel: function () { 
+			 // alert("分享失败，可能是网络问题，一会儿再试试？");
+			// }
+		// });  
+	});
+	
+	function weChat(){
+		$("#mcover").css("display", "none");  // 点击弹出层，弹出层消失
+	}
+	
+	function showShare(){
+		$("#mcover").show();
+	}
+</script>
+</html>

@@ -1,0 +1,174 @@
+{template 'common/header'}
+
+ <div class="panel panel-info">
+    <div class="panel-heading">筛选</div>
+    <div class="panel-body">
+      <div class="container"></div>
+		 <form id="xp" Details="{$Details}"  zz="{$zz}" zz-url="/"  method="post" class="form-horizontal" role="form">
+			<select name="sou" class="form-control" style="width:10%;">
+			  <option value="a" {if $_GPC['sou']=='a'}selected{/if}>订单号</option>
+			  <option value="b" {if $_GPC['sou']=='b'}selected{/if}>昵称</option>
+			</select>
+            <div class="form-group">
+                <div class="col-sm-8 col-lg-9">
+                    <input class="form-control" name="boxs" value='{$_GPC['boxs']}' id="order_name" type="text" >
+                </div>
+                <div class=" col-xs-12 col-sm-2 col-lg-2">
+                    <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+                </div>
+            </div>
+            <div class="form-group">
+            </div>
+        </form>
+    </div>
+	<div class="row clearfix">
+		<div class="col-md-12 column">
+			<table class="table table-hover table-bordered">
+				<thead>
+					<tr style="text-align:center;">
+						<th style="width:240px;">
+							openid
+						</th>
+						<th style="width:100px;">
+							昵称
+						</th>
+						<th style="width:300px;">
+							订单号
+						</th>
+						<th>
+							奖励
+						</th>
+						<th style="width:140px;">
+							时间
+						</th>
+						<th>
+							操作
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					<?php foreach ($mation as $key => $value) : ?>
+					<tr>
+						<td title="{$value['openid']}">
+							{$value['openid']}
+						</td>
+						<td title="{$value['nickname']}">
+							{$value['nickname']}
+						</td>
+						<td title="{$value['order_name']}">
+							{$value['order_name']}
+						</td>
+						<td title="{$value['mation']}">
+							{$value['mation']}&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+							<span>
+<?php
+        if ($value['state'] == '0') {
+                echo '奖励已发';
+        }else{
+                echo "<span id='".$value['id']."'><button onclick=sh(".$value['id'] .")>奖励发送</button></span>";
+        }
+ ?>  
+							</span>
+						</td>
+						<td title="<?php echo date('Y-m-d H:i', $value['addtime']) ?>">
+							<?php echo date('Y-m-d H:i', $value['addtime']) ?>
+						</td>
+						<td>
+						<a class="tan_a" aid="{$value['id']}" >图片上传详情</a>
+&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+	<a href="./index.php?c=mc&a=member&username={$value['openid']}&" target="_blank">领取者详情</a>
+						</td>
+					</tr>
+					<?php endforeach; ?>
+
+				</tbody>
+			</table>
+			{$pager}
+		</div>
+	</div>
+
+	</div>
+	<div class="su_zzc" style="position: fixed; top:0;left:0;width:100%;height: 100%;background-color: rgba(0,0,0,.6);z-index: 9999;display:none;">
+		<div style="width:1000px;height:800px;position:absolute;top:0;left:0;right:0;bottom:0;margin:auto;">
+			<div class="img_zz" style="width:100%;height:750px;overflow-y: auto;padding:20px 30px;position:relative;border-radius: 10px;background-color:white;">
+			<div style="position:relative;width:100%;height:50px;">
+				<button style="position:absolute;top:0px;right:0px; width:150px" type="button" class="btn btn btn-danger" c="l">关闭</button>
+			</div>
+			<span id="xiangp"></span>
+			<span id="jd" Lookup="{$Lookup}" ></span>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript">
+		$(function(){
+			//显示遮罩层
+			$('.tan_a').click(function(){
+				var zz = $(".form-horizontal").attr("zz");// web zz
+				var mation_id = $(this).attr("aid");//id
+				var _url = $(".form-horizontal").attr("zz-url");// /
+                                var Details = $('#xp').attr('Details');
+
+				$('.su_zzc').fadeIn(500);
+                                    $.post(Details,{mation_id:mation_id},function(data){
+                                            $('#xiangp').html(data.imgs);
+                                    },'json');
+                                    /*
+                                    $.ajax({
+                                        url: zz,
+                                        type : 'post',
+                                        data : {"id":mation_id},
+                                        cache : false,
+                                        contentType : false,
+                                        processData : false,
+                                        success : function(data){
+                                           // console.log(data);
+                                        },
+                                   });*/
+
+
+				// $.post(zz,{"id":mation_id},function(jtdata){
+				// 	console.log(jtdata);
+					
+				// 	// var arr = data.split("</html>");
+				// 	// var _data =JSON.parse(arr[arr.length-1]);
+				// 	// for(var i=0;i<_data.length;i++){
+				// 	// 	$('.img_zz').append('<div style="float: left;margin-right: 30px;width:280px;margin-bottom:20px;"><img style="width:280px" src="'+_url+'app/'+_data[i]+'" /></div>')
+				// 	// }
+				// 	// console.log(_data);
+				// })
+			})
+
+
+			//隐藏遮罩层
+			$('button[c="l"]').on("click",function(){
+				$('.su_zzc').fadeOut(400);
+				// $('.img_zz').html("");
+			});
+
+		})
+		//图片详情
+		function jiluBox0(order_name,id) {		
+			var Details = $('#xp').attr('Details');
+			$.post(Details,{order_name:order_name, id:id},function(data){alert(data.imgs);
+				//console.log(data);
+				$('#xiangp').html(data.imgs);
+			},'json');
+		}
+		// sh(5,90,null,null,&quot;\u83b7\u5f971\u79ef\u5206&quot;,0,&quot;Q&quot;)
+		function sh(id) {//todo ,uid,openid,order,mation,mode,nickname
+			var Lookup = $('#jd').attr('Lookup');
+                        $.post(Lookup,
+                            {jt_id:id, kai:'ok'},function(data){
+                                if (data.res == 1) {
+                                    $("#"+id).html('奖励已发');
+                                } else {
+                                    alert(data.msg);
+                                }
+                            
+			},'json');
+		}
+
+	</script>
+
+
+{template 'common/footer'}

@@ -1,0 +1,189 @@
+<html lang="en" style="font-size: 76.12px;">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="UTF-8">
+<title>{$activity['title']}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="format-detection" content="telephone=no">
+<script type="text/javascript" src="{STYLE_PATH}/js/rem.js"></script>
+<script type="text/javascript" src="{STYLE_PATH}/js/jquery-1.4.2.js"></script>
+<link rel="stylesheet" href="{STYLE_PATH}/css/reset.css">
+<script type="text/javascript" src="{STYLE_PATH}/js/hostAll.js"></script>
+<script type="text/javascript" src="{STYLE_PATH}/js/jihecode.js"></script>
+{php echo register_jssdk(false);}
+<script type="text/javascript">
+	wx.ready(function()
+	{
+		shareMeta =
+		{
+			imgUrl : "{php echo tomedia($activity['share_thumb'])}",
+			link : "{$activity['share_url']}",
+			desc : "{$activity['share_desc']}",
+			title : "{$activity['share_title']}",
+			success : function()
+			{
+                	get_info();
+           
+			},
+			cancel : function()
+			{
+				// alert("分享失败，可能是网络问题，一会儿再试试？");
+			}
+		};
+		
+		shareMetb =
+		{
+			imgUrl : "{php echo tomedia($activity['share_thumb'])}",
+			link : "{$activity['share_url']}",
+			desc : "{$activity['share_desc']}",
+			title : "{$activity['share_title']}",
+			success : function()
+			{
+			},
+			cancel : function()
+			{
+				// alert("分享失败，可能是网络问题，一会儿再试试？");
+			}
+		};
+		wx.showAllNonBaseMenuItem();
+		wx.onMenuShareTimeline(shareMeta);
+		wx.onMenuShareAppMessage(shareMetb);
+		wx.onMenuShareWeibo(shareMeta);
+		wx.onMenuShareQQ(shareMeta);
+		wx.onMenuShareQZone(shareMeta);
+		
+	});
+	
+	function get_info(){
+		return;
+		$.ajax({
+			url:'{php echo $this->createMobileUrl("result",array('op'=>"post",'id'=>$_GPC['id'],'ticket'=>$_GPC['ticket']))}',	
+			type:'POST',
+			dataType:'json',
+			data:{},
+			success:function(data){				
+				if(data.code == 1){			
+			        alert(data.msg);
+				    window.location.href =window.location.href;					
+				}  else {
+					alert(data.msg);
+				}
+			},
+		      error:function(){
+		          alert('服务器报错');
+		      }
+		});
+  	}
+	
+</script>
+</head>
+<body>
+	<img style="width: 100%;" src="{php echo tomedia($activity['logo'])}" alt="">
+	<dl class="matchTop" style="margin-top: -3rem;">
+		<dt>
+			<img src="{php echo tomedia($user['headimgurl'])}" alt="">
+		</dt>
+		<dd>
+			<span>
+				姓名：
+				<i>{$user['nickname']}</i>
+			</span>
+			<span>
+				手机：
+				<i>{$user['tel']}</i>
+			</span>
+		</dd>
+	</dl>
+	<div class="jiheCodeInfoBtn">
+		<span class="guize">邀好友拿抽奖码</span>
+	</div>
+	<div class="jiheCode">
+		<div class="jiheCodeInfo">
+			<h1>我的抽奖码</h1>
+			{php $share_timeline=false;}
+			{loop $record $item}
+			{php $share_timeline=($share_timeline || $item['yq_type']==2)?true:false;}
+			<div class="countWrap">
+				<div class="pic"></div>
+				<div class="jiheCodeNum">
+					<div class="jiheCodeNumInfo">
+						<span>{if strstr($item['cj_code'],$activity['code_prefix'])}{$item['cj_code']}{else}{php echo $activity['code_prefix'].str_pad($item['cj_code'],6,"0",STR_PAD_LEFT)}{/if}</span>
+						报名奖励
+					    {if  $item['zj_status']==1 && $item['hx_status']==1  && $settings['hx_status']}			
+						<font  color=red>已核销</font>			
+						{else if $item['zj_status']==1}						
+						<font  color=red>已中奖</font>
+						{if $settings['hx_status']}
+						 <button id="{$item['id']}" type="button"class="award btn btn-primary" style="width:auto;">核销</button>
+						 {/if}
+						 {else if $item['zj_status']==0}
+						 <font  color=red style="display:none">未开奖</font>	
+						 {/if}
+					</div>
+					<p class="jiheCodeNumTime">{php echo date('Y-m-d H:i:s',$item['createtime'])}</p>
+				</div>
+			</div>
+			{/loop}
+			<div class="pic"></div>
+			<div class="jiheCodeNumBtn"></div>
+		</div>
+
+
+	</div>
+	<div class="no" style="display: none;">2</div>
+	 <img class="line" style="display: block; width: 85%; margin: 0 auto; padding: 2.2rem 0 1rem;" src="{STYLE_PATH}/images/anmanLine.png" alt="">
+	<a href="{$activity['share_url']}">
+	<img class="line" style="display:block;width:85%;margin:0 auto;padding: 0 0 1rem;" 
+	src="{php echo tomedia($activity['model2_pic'])}" alt="">
+	</a>
+
+	<img class="line" style="display: block; width: 85%; margin: 0 auto; padding: 0 0 2.2rem;" src="{STYLE_PATH}/images/anmanLine.png" alt="">
+	<!-- 弹窗 -->
+
+	<div class="haveMoreCodeIn" style="display: none;">
+		<div class="haveMoreCodeCon">
+			<div class="haveMoreCodeBtn"></div>
+			<div class="pWrap">
+				<p class="haveMoreCodeInContent">
+					点击右上角，选择
+					<strong>「发送给朋友」</strong>
+					邀请好友，好友报名成功，您即可额外获得
+					<strong>「一个抽奖码」</strong>
+					！
+				</p>
+				<img src="{STYLE_PATH}/images/_shareAppMessage.jpg" alt="">
+			</div>
+
+		</div>
+	</div>
+	<div class="guanlian" style="display: none;"></div>
+	<div class="anmanTips">
+		温馨提示：
+		<br>
+		<span>
+			1.点击上方「邀好友拿抽奖码」，每成功邀请1位好友，即多奖励1个抽奖码；
+			<br>
+			2.本活动报名截止时间： {php echo date('Y年m月d日 H:i', $activity['end_time'])}；
+			<br>
+			3.开奖日期：{php echo date('Y年m月d日 H:i', $activity['kj_time'])}；
+		</span>
+	</div>
+	<div style="text-align: center; color: #fff">
+		<span style="font-size: 0.9rem;"></span>
+	</div>
+	<div class="mask1">
+		<div class="alert1" style="margin: 40% auto;">
+			<p>
+				哇！恭喜您有机会获得
+				<br>
+				<span></span>
+				个抽奖码
+			</p>
+			<div class="fanPaiBtn">
+				<a href="javascript:;">翻牌赢取抽奖码</a>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

@@ -1,0 +1,152 @@
+{template 'header'}
+<style>
+.btn input[type="radio"]{
+    clip: rect(0, 0, 0, 0);
+    pointer-events: none;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: -5px;
+    top: 0;
+}
+</style>
+<div class="content top bottom" style="padding-bottom:100px;">
+    <form method="post" action="" class="user-withdraw-form" id="user-withdraw-form" onsubmit="return _h()">
+      <input type="hidden" value="withdraw" name="dopost">
+        <input type="hidden" value="{$mid}" name="mid">
+        <input type="hidden" value="{php echo sha1($mid.$this->weid.time())}" name="token">
+        <div class="qsc-form-group">
+          <h5 class="form-title">选择你要提现的金额</h5>
+          <div class="form-item form-radio withdraw-radio" data-toggle="buttons">
+            <label for="balance-withdraw" class="btn btn-balance active">
+            <input type="radio" id="balance-withdraw" name="withdraw" value="" checked="checked">
+
+                <i class="icon icon-pay bank-balance"></i>
+            <span><span class="money_bar">{$wallket}</span> 元<small>余额提现</small></span>
+            </label>
+          </div>
+        </div>
+        <div class="balance-withdraw">
+            <div class="qsc-form-group">
+              <div class="form-item">
+                  <label for="money" class="control-label">提现金额</label>
+                  <input type="tetx" onkeyup="value=value.replace(/[^\d.]/g,'')" id="money" name="money" class="control-input" placeholder="当前余额 {$wallket} 元" data-value="{$wallket}" value="" maxlength="10">
+              </div> 
+            </div>
+            <div class="form-item form-radio" id="payt" data-toggle="buttons">
+              {if $this->sys['weixn_width']==1}
+                <label for="bank-weixin" class="btn ">
+                    <input type="radio" id="bank-weixin" name="payType" value="0" >
+                    <i class="icon icon-pay bank-weixin"></i>
+                    <span>微信</span>
+                </label>
+                {/if}
+                {loop $_banklist $row}
+                <label for="bank-{$row['bank']}-{$row['id']}" class="btn ">
+                    <input type="radio" id="bank-{$row['bank']}-{$row['id']}" name="payType" value="{$row['id']}">
+                    <i class="icon icon-pay bank-{$row['bank']}"></i>
+                    <span>{php echo _bankname($row['bank'])}<small>尾号 {php echo substr($row['cardNo'],strlen($row['cardNo'])-4)} ({$row['holder']})</small></span>
+                </label>
+                {/loop}
+            </div>
+            <div class="qsc-form-group">
+              <div class="qsc-list-group" style="padding-bottom:0;">
+                  <a href="{php echo $this->createMobileUrl('member',array('display'=>'bank'))}" class="list-item list-thumb list-thumb-sm">
+                      <strong>
+                      <i class="icon icon-plus-green"></i>添加新银行卡</strong><span style="top:20px;"><i class="list-arrow"></i>
+                      </span>
+                  </a>
+              </div>
+            </div>
+        </div>
+        <div class="project-support_bar balance-withdraw_bar">
+            <div class="help-block">如果你需要将{php echo $this->sys['sitename']}账户余额提现到银行卡，将扣除提现总额的 {php echo $this->sys['tixian_suilv']}%，该费用为平台服务费.</div>
+            <div class="support_bar_total">实际到账：<strong>0</strong> 元</div>
+            <div class="support_bar_btn">
+                <button type='submit' class="btn btn-primary btn-block btn-lg" id="tixian" disabled>申请提现</button>
+            </div>
+        </div>
+    </form>
+</div>
+{template 'tip'}
+<script>
+
+    $(function(){
+      var payt = $("#payt");
+      payt.find('label').bind('click',function(){
+          // alert($("input[name='payType']").val());
+          $(this).addClass('active').siblings().removeClass('active');
+            __jishu();
+      })
+    })
+    function  _h(){
+       $("#tixian").attr('disabled',true);
+      // //  alert($("#payt input[name='payType']:checked").val());
+      var payType = $("input[name='payType']:checked").val();
+     var r= /^[0-9]+(\.[0-9]+)?$/;
+            var value = $("#money").val();
+      if(payType==undefined){
+          _tips('请选择提现方式');
+           $("#tixian").attr('disabled',false);
+          return false;
+      }
+
+          if(!r.test(value)){
+             _toast('请输入正确数字');
+                 return false;
+         }
+      return true
+    }
+   $(function(){
+         $("#money").keyup(function(){
+              __jishu();
+         });
+   });
+
+   function __jishu(){
+     var payType = $("input[name='payType']:checked").val();
+    var z= /^[0-9]*$/;
+    var value = $("#money").val();
+        value = value==''?'ppc':parseFloat(value);
+    var d_value =$("#money").attr('data-value');
+        d_value = parseFloat(d_value);
+
+     $(".support_bar_total").find('strong').html(0);
+     if(value<1){
+       _toast('提现不能少于一元');
+     }else if(isNaN(value)&&value!='ppc'){
+         _toast('请输入数字');
+     }else if(value>d_value){
+        _toast('不能大于提现总额');
+     }else if(value=='ppc'){
+       $("#tixian").attr('disabled',true);
+     }
+
+     else{
+       if(payType!=undefined){
+         if(payType==0){
+           $(".support_bar_total").find('strong').html(value.toFixed(2));
+         }else{
+           $(".support_bar_total").find('strong').html((value-(value*{php echo $this->sys['tixian_suilv']/100})).toFixed(2));
+         }
+
+       }else{
+         $(".support_bar_total").find('strong').html(value.toFixed(2));
+       }
+       var a = $("input[name='payType']:checked").val();
+      //  alert(a);
+       $("#tixian").attr('disabled',false);
+     }
+
+   }
+  function _toast(txt){
+    var sp = $("#toast-default").find('span');
+    $("#toast-default").show();
+    sp.html(txt);
+    $("#tixian").attr('disabled',true);
+    setTimeout(function(){
+      $("#toast-default").hide();
+    },1000)
+  }
+
+</script>

@@ -1,0 +1,115 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="viewport" content="width=device-width,height=device-height,inital-scale=1.0,maximum-scale=1.0,user-scalable=no;"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+    <meta name="format-detection" content="telephone=no"/>
+    <style type="text/css">
+        .page {
+            max-width: 640px;
+            margin: -10px auto 10px;
+        }
+        .page_title {
+            margin: 0px 5px !important;
+        }
+        .page_title .weui_btn {
+            float: left;
+            width: 30%;
+            margin: 5px;
+            line-height: 60px;
+        }
+        .clear {
+            clear: both;
+        }
+        .weui_btn:first-child {
+            position: relative;
+            top: 10px;
+        }
+    </style>
+    <title>赞赏{$_W['account']['name']}</title>
+    <link rel="stylesheet" type="text/css" href="{RES}css/weui.css">
+    <link rel="stylesheet" type="text/css" href="{RES}css/example.css">
+    <script type="text/javascript">var _speedMark = new Date(), _loadTime = '';</script>
+    <script src="{RES}js/jquery.min.js"></script>
+</head>
+<body>
+<div class="page cell">
+
+    <div class="hd">
+        <h1 class="page_title"><img src="{php echo tomedia('headimg_'.$account['acid'].'.jpg');}?time={php echo time()}" style="height: 50px;width: 50px;" /></h1>
+        <p class="page_desc" style="font-size:18px;font-weight:bold;">{$account['name']}</p>
+        <p class="page_desc">{$detail['admiretxt']}</p>
+    </div>
+    <div class="hd">
+        <h1 class="page_title">
+            {loop $adsets $adset}
+            <a href="javascript:;" class="weui_btn weui_btn_plain_primary" data-price="{$adset['price']}"><span style="font-size:18px;font-weight:bold;">{$adset['price']}</span>元
+            </a>
+            {/loop}
+        </h1>
+    </div>
+
+    <div class="clear"></div>
+
+
+</div>
+</body>
+
+<script type="text/javascript">
+
+    $(function(){
+        initCall();
+    });
+
+
+    function onBridgeReady() {
+        WeixinJSBridge.invoke(
+                'getBrandWCPayRequest',<?php echo $jsApiParameters; ?>, function(res){
+            if(res.err_msg == "get_brand_wcpay_request:ok" ) {
+                $.ajax({
+                    type : "POST",
+                    url :"{php echo $this->createMobileUrl('paySuccess',array('price'=>$price,'aid'=>$artid),true)}",
+                    dataType : "json",
+                    async : false,
+                    contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                    success : function(data){
+                        alert(data.code);
+                        if(data && data.code==200){
+                            alert('恭喜您支付成功!') ;
+                           // window.location.href="{php echo $this->createMobileUrl('detail',array('aid'=>$artid),true)}";
+                        }else{
+                            alert(data.msg);
+                            return;
+                        }
+                    },
+                    error : function(data){
+                        alert('网络出错');
+                    }
+                });
+            } else{
+                if(res.err_msg=='get_brand_wcpay_request:cancel'){
+                    alert("用户取消支付");
+                }else if(res.err_msg=='get_brand_wcpay_request:fail'){
+                    alert("支付失败");
+                }
+               // window.location.href="{php echo $this->createMobileUrl('admire',array('artid'=>$artid),true)}";
+            }
+        });
+    }
+
+    function initCall(){
+        if (typeof WeixinJSBridge == "undefined"){
+            if( document.addEventListener ){
+                document.addEventListener('WeixinJSBridgeReady', onBridgeReady, false);
+            }else if (document.attachEvent){
+                document.attachEvent('WeixinJSBridgeReady', onBridgeReady);
+                document.attachEvent('onWeixinJSBridgeReady', onBridgeReady);
+            }
+        }else{
+            onBridgeReady();
+        }
+    }
+
+</script>
+</html>

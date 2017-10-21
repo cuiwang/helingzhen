@@ -1,0 +1,441 @@
+<!--
+ * ============================================================================
+ * 版权所有 2015-2016 米粒源码，并保留所有权利。
+ * 网站地址: http://www.webmili.com；
+ * ----------------------------------------------------------------------------
+ * 这不是一个自由软件！已购买用户允许对程序代码进行修改和使用，但是不允许对
+ * 程序代码以任何形式任何目的的再发布，作者将保留追究法律责任的权力和最终解
+ * 释权。
+ * ============================================================================
+-->
+{template 'common/header'}
+<ul class="nav nav-tabs">
+    <li><a href="{php echo $this->createWebUrl('store');}">返回服务点管理</a></li>
+	<li {if $op=='display'}class="active"{/if}><a href="{php echo $this->createWebUrl('order', array('storeid'=>$storeid));}">订单管理</a></li>
+	{if $op=='detail'}
+	<li {if $op=='detail'}class="active"{/if}><a href="{php echo $this->createWebUrl('order', array('op'=>'detail','id'=>$_GPC['id'],'storeid'=>$storeid));}">订单详情</a></li>
+	{/if}
+	<li><a href="{php echo $this->createWebUrl('goods', array('op' => 'display', 'storeid'=>$_GPC['storeid']))}">服务项目</a></li>
+</ul>
+{if $operation == 'display'}
+<div class="main">
+    <div class="panel panel-info">
+        <div class="panel-heading">筛选&nbsp;&nbsp;&nbsp;<a class="btn btn-success" href="javascript:;">服务点：{$store['title']}</a></div>
+        <div class="panel-body">
+            <form action="./index.php" method="get" class="form-horizontal" role="form">
+                <input type="hidden" name="c" value="site" />
+                <input type="hidden" name="a" value="entry" />
+                <input type="hidden" name="m" value="cash_car" />
+                <input type="hidden" name="do" value="order" />
+                <input type="hidden" name="op" value="display" />
+                <input type="hidden" name="storeid" value="{$storeid}" />
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label" style="width:100px;">订单编号</label>
+                    <div class="col-sm-2 col-lg-3">
+                        <input class="form-control" name="ordersn" id="" type="text" value="{$_GPC['ordersn']}">
+                    </div>
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">客户手机</label>
+                    <div class="col-sm-2 col-lg-3">
+                        <input class="form-control" name="tel" id="" type="text" value="{$_GPC['tel']}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label" style="width:100px;">订单状态</label>
+                    <div class="col-sm-8 col-lg-3 col-xs-12">
+                        <select name="status" class="form-control">
+                            <option value="">不限</option>
+							<option value="1" {if $_GPC['status'] == 1} selected="selected" {/if}>待接单</option>
+							<option value="2" {if $_GPC['status'] == 2} selected="selected" {/if}>已接单</option>
+                            <option value="3" {if $_GPC['status'] == 3} selected="selected" {/if}>已完成</option>
+                            <option value="-1" {if $_GPC['status'] == -1} selected="selected" {/if}>已取消</option>
+                        </select>
+                    </div>
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">客户姓名</label>
+                    <div class="col-sm-2 col-lg-3">
+                        <input class="form-control" name="username" id="" type="text" value="{$_GPC['username']}">
+                    </div>
+                </div>
+                <div class="form-group">
+				    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label" style="width:100px;">洗车师傅</label>
+                    <div class="col-sm-8 col-lg-3 col-xs-12">
+                        <select name="worker" class="form-control">
+                            <option value="">不限</option>
+							{loop $worker $w}
+                            <option value="{$w[openid]}" {if $_GPC['worker'] == $w['openid']} selected="selected" {/if}>{$w[name]}</option>
+							{/loop}
+                        </select>
+                    </div>
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label" style="width: 100px;">下单时间</label>
+                    <div class="col-sm-8 col-lg-3 col-xs-12">
+                        {php echo tpl_form_field_daterange('time', array('starttime'=>date('Y-m-d', $starttime),'endtime'=>date('Y-m-d', $endtime)));}
+                    </div>
+                    <div class="col-sm-3 col-lg-3" style="width: 18%;">
+                        <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <style>
+        .page-nav {
+            margin: 0;
+            width: 100%;
+            min-width: 800px;
+        }
+
+        .page-nav > li > a {
+            display: block;
+        }
+
+        .page-nav-tabs {
+            background: #EEE;
+        }
+
+        .page-nav-tabs > li {
+            line-height: 40px;
+            float: left;
+            list-style: none;
+            display: block;
+            text-align: -webkit-match-parent;
+        }
+
+        .page-nav-tabs > li > a {
+            font-size: 14px;
+            color: #666;
+            height: 40px;
+            line-height: 40px;
+            padding: 0 10px;
+            margin: 0;
+            border: 1px solid transparent;
+            border-bottom-width: 0px;
+            -webkit-border-radius: 0;
+            -moz-border-radius: 0;
+            border-radius: 0;
+        }
+
+        .page-nav-tabs > li > a, .page-nav-tabs > li > a:focus {
+            border-radius: 0 !important;
+            background-color: #f9f9f9;
+            color: #999;
+            margin-right: -1px;
+            position: relative;
+            z-index: 11;
+            border-color: #c5d0dc;
+            text-decoration: none;
+        }
+
+        .page-nav-tabs >li >a:hover {
+            background-color: #FFF;
+        }
+
+        .page-nav-tabs > li.active > a, .page-nav-tabs > li.active > a:hover, .page-nav-tabs > li.active > a:focus {
+            color: #576373;
+            border-color: #c5d0dc;
+            border-top: 2px solid #4c8fbd;
+            border-bottom-color: transparent;
+            background-color: #FFF;
+            z-index: 12;
+            margin-top: -1px;
+            box-shadow: 0 -2px 3px 0 rgba(0, 0, 0, 0.15);
+        }
+    </style>
+    <input type="hidden" name="storeid" value="{$storeid}" />
+    <ul class="page-nav page-nav-tabs" style="background:none;float: left;margin-left: 0px;padding-left: 0px;border-bottom:1px #c5d0dc solid;">
+        <li{if empty($_GPC['status'])} class="active"{/if}>
+        <a href="{php echo $this->createWebUrl('order', array('op' => 'display', 'status' => 0, 'storeid' => $storeid))}">全部订单({$order_count_all})</a>
+        </li>
+        <li{if $_GPC['status']==2} class="active"{/if}>
+        <a href="{php echo $this->createWebUrl('order', array('op' => 'display', 'status' => 2, 'storeid' => $storeid))}">已付款订单({$order_count_pay})</a>
+        </li>
+        <li{if $_GPC['status']==3} class="active"{/if}>
+        <a href="{php echo $this->createWebUrl('order', array('op' => 'display', 'status' => 3, 'storeid' => $storeid))}">已完成订单({$order_count_finish})</a>
+        </li>
+        <li{if $_GPC['status']==-1} class="active"{/if}>
+        <a href="{php echo $this->createWebUrl('order', array('op' => 'display', 'status' => -1, 'storeid' => $storeid))}">已取消订单({$order_count_cancel})</a>
+        </li>
+    </ul>
+    <div class="panel panel-default">
+        <form action="" method="post" class="form-horizontal form" >
+        <input type="hidden" name="storeid" value="{$storeid}" />
+        <div class="table-responsive panel-body">
+            <table class="table table-hover">
+                <thead class="navbar-inner">
+                <tr>
+                    <th style="width:12%;">订单编号</th>
+                    <th style="width:9%;">姓名</th>
+                    <th style="width:10%;">电话</th>
+                    <th style="width:7%;">总价</th>
+                    <th style="width:14%;">支付方式</th>
+                    <th style="width:7%;">订单状态</th>
+                    <th style="width:15%;">下单时间</th>
+                    <th style="width:10%; text-align:right;">查看/删除/拉黑</th>
+                </tr>
+                </thead>
+                <tbody>
+                {loop $list $item}
+                <tr>
+                    <td>{$item['ordersn']}</td>
+                    <td>{$item['username']}</td>
+                    <td>{$item['tel']}</td>
+                    <td>{$item['totalprice']} 元</td>
+                    <td>
+                        <span class="label label-info">
+						{if empty($item['usecard'])}
+						   {if $item['paytype'] == 1}余额支付
+						   {elseif $item['paytype'] == 2}在线支付
+						   {elseif $item['paytype'] == 3}现金付款
+						   {else}无{/if}
+						{else}
+						   {if $item['paytype'] == 0 && $item['usecard']}洗车卡支付
+						   {elseif $item['paytype'] == 1 && $item['usecard']}洗车卡+余额支付{/if}
+						{/if}
+						</span>
+                    </td>
+                    <td>
+                        {if $item['status'] == 0}<span class="label label-danger">未付款</span>{/if}
+						{if $item['status'] == 1}<span class="label label-warning">待接单</span>{/if}
+                        {if $item['status'] == 2}<span class="label label-success">已接单</span>{/if}
+                        {if $item['status'] == 3 && $item['is_evaluate']==0}<span class="label label-success">待评价</span>{/if}
+						{if $item['status'] == 3 && $item['is_evaluate']==1}<span class="label label-success">已评价</span>{/if}
+                        {if $item['status'] == -1}<span class="label label-default">已取消</span>{/if}
+                    </td>
+                    <td>{php echo date('Y-m-d H:i:s', $item['dateline'])}</td>
+                    <td style="text-align:right;">
+                        <a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('order', array('op' => 'detail', 'id' => $item['id'], 'storeid' => $item['storeid']))}" title="查看订单"><i class="fa fa-pencil"></i></a>
+                        <a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('order', array('op' => 'delete', 'id' => $item['id'], 'storeid' => $item['storeid']))}" title="删除订单" onclick="return confirm('此操作不可恢复，确认删除？');return false;"><i class="fa fa-times"></i></a>
+                        {if !empty($blacklist[$item['from_user']])}
+                        <a class="btn btn-default btn-sm" style="color:red;" href="{php echo $this->createWebUrl('order', array('op' => 'black', 'id' => $item['id'], 'storeid' => $item['storeid']))}" title="拉黑名单"><i class="fa fa-trash"></i></a>
+                        {else}
+                        <a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('order', array('op' => 'black', 'id' => $item['id'], 'storeid' => $item['storeid']))}" title="拉黑名单"><i class="fa fa-trash"></i></a>
+                        {/if}
+                    </td>
+                </tr>
+                {/loop}
+                </tbody>
+            </table>
+            {$pager}
+        </div>
+    </div>
+    </form>
+</div>
+{elseif $operation == 'detail'}
+<div class="main">
+	<form class="form-horizontal form" action="" method="post" enctype="multipart/form-data">
+		<input type="hidden" name="id" value="{$item[id]}">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                订单信息
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">订单编号</label>
+                    <div class="col-sm-9">
+                        <p class="form-control-static">{$item['ordersn']}</p>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">总价</label>
+                    <div class="col-sm-9">
+                        <p class="form-control-static">{$item['totalprice']} 元</p>
+                    </div>
+                </div>
+				{if $item['totalintegral']>0}
+				<div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">获赠积分</label>
+                    <div class="col-sm-9">
+                        <p class="form-control-static">{$item['totalintegral']} 积分</p>
+                    </div>
+                </div>
+				{/if}
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">付款方式</label>
+                    <div class="col-sm-9">
+                        <p class="form-control-static">
+                        {if empty($item['usecard'])}
+						   {if $item['paytype'] == 1}余额支付
+						   {elseif $item['paytype'] == 2}在线支付
+						   {elseif $item['paytype'] == 3}现金付款
+						   {else}无{/if}
+						{else}
+						   {if $item['paytype'] == 0 && $item['usecard']}洗车卡支付
+						   {elseif $item['paytype'] == 1 && $item['usecard']}洗车卡+余额支付{/if}
+						{/if}
+                        </p>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">订单状态</label>
+                    <div class="col-sm-9">
+                        <p class="form-control-static">
+                        {if $item['status'] == 0}<span class="label label-danger">未支付</span>{/if}
+						{if $item['status'] == 1}<span class="label label-warning">待接单</span>{/if}
+                        {if $item['status'] == 2}<span class="label label-success">已接单</span>{/if}
+                        {if $item['status'] == 3 && $item['is_evaluate']==0}<span class="label label-success">待评价</span>{/if}
+						{if $item['status'] == 3 && $item['is_evaluate']==1}<span class="label label-success">已评价</span>{/if}
+                        {if $item['status'] == -1}<span class="label label-default">已取消</span>{/if}
+                        </p>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">下单日期</label>
+                    <div class="col-sm-9">
+                        <p class="form-control-static">
+                        {php echo date('Y-m-d H:i:s', $item['dateline'])}
+                        </p>
+                    </div>
+                </div>
+				<div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">姓名</label>
+                    <div class="col-sm-9">
+                        <p class="form-control-static">
+                        {$item['username']}
+                        </p>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">手机</label>
+                    <div class="col-sm-9">
+                        <p class="form-control-static">
+                        {$item['tel']}
+                        </p>
+                    </div>
+                </div>
+				<div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">预约日期</label>
+                    <div class="col-sm-9">
+                        <p class="form-control-static">
+                        {php echo date("Y-m-d",$item['meal_date']);}&nbsp;{$item['meal_time']}
+                        </p>
+                    </div>
+                </div>
+				<div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">车牌号码</label>
+                    <div class="col-sm-9">
+                        <p class="form-control-static">
+                        {$item['mycard']}
+                        </p>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">地址</label>
+                    <div class="col-sm-9">
+                        <p class="form-control-static">
+                        {$item['address']}
+                        </p>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">备注</label>
+                    <div class="col-sm-9">
+                        <textarea style="height:50px;" class="form-control" name="remark" cols="70" readonly>{$item['remark']}</textarea>
+                    </div>
+                </div>
+				<div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">洗车师傅</label>
+                    <div class="col-sm-9">
+                        <p class="form-control-static">
+                        {$item['worker']['name']}，{$item['worker']['mobile']}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-default" style="display:none;">
+            <div class="panel-heading">
+                订单处理
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">订单处理</label>
+                    <div class="col-sm-3">
+                        <select name="sign" class="form-control">
+                            <option value="0"{if $item['sign'] == 0} selected{/if}>未处理</option>
+                            <option value="1"{if $item['sign'] == 1} selected{/if}>已处理</option>
+                            <option value="-1"{if $item['sign'] == -1} selected{/if}>已拒绝</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">店家回复</label>
+                    <div class="col-sm-9">
+                        <textarea style="height:50px;" class="form-control" name="reply" cols="70">{$item['reply']}</textarea>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+                    <div class="col-sm-9">
+                        <button type="submit" class="btn btn-primary span2" onclick="return confirm('确认提交吗'); return false;" name="confrimsign" value="完成">提交</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                商品信息
+            </div>
+            <div class="table-responsive panel-body">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<!-- <th>ID</th> -->
+					<th style="width:15%;">商品标题</th>
+                    <!-- <th style="width:15%;">图片</th>
+					<th style="width:10%;">特价</th> -->
+                    <th style="width:10%;">价格</th>
+                    <!-- <th style="width:10%;">单位</th> -->
+					<!-- <th style="width:15%;">数量</th> -->
+					<!-- <th style="text-align:right;">操作</th> -->
+					<th style="width:15%;">服务评价</th>
+					<th style="width:40%;">评价内容</th>
+					<th style="width:20%;">洗车照片</th>
+				</tr>
+			</thead>
+			{loop $item['goods'] $row}
+			<tr>
+				<!-- <td>{$row['id']}</td> -->
+                <td>{if !empty($category[$row['pcate']])}<span class="text-error">[{$category[$row['pcate']]['name']}] </span>{/if}{$row['title']}</td>
+                <!-- <td>
+                    <img src="{$_W['attachurl']}{$row['thumb']}" width="50" />
+                </td>
+				<td style="background:#f2dede;">
+                    {if $row['isspecial'] == 2}[特价]{$row['marketprice']}元{else if $row['isspecial'] == 3}[会员]{$row['marketprice']}元{/if}</td> -->
+                <td>{$row['price']}元</td>
+                <!-- <td>
+                    {$row['unitname']}
+                </td> -->
+				<!-- <td>{$goodsid[$row['id']]['total']}</td> -->
+				<!-- <td style="text-align:right;">
+					<a href="{php echo $this->createWebUrl('goods', array('id' => $row['id'], 'op' => 'post', 'storeid' => $storeid))}">编辑</a>&nbsp;&nbsp;<a href="{php echo $this->createWebUrl('goods', array('id' => $row['id'], 'op' => 'delete', 'storeid' => $storeid))}" onclick="return confirm('此操作不可恢复，确认删除？');return false;">删除</a>
+				</td> -->
+				<td>{if $row['evaluate']['grade']==1}<span class="label" style="background-color:#FB5B5B;">好评</span>
+				    {elseif $row['evaluate']['grade']==2}<span class="label" style="background-color:#D99810;">中评</span>
+					{elseif $row['evaluate']['grade']==3}<span class="label" style="background-color:#555555;">差评</span>{/if}
+				</td>
+				<td>{$row['evaluate']['content']}</td>
+				<td>
+				{if !empty($item['images'])}
+				   {loop $item['images'] $img}
+				   <a href="{$_W['attachurl']}{$img}" target="_blank"><img src="{$_W['attachurl']}{$img}" style="width:50px;height:50px;"></a>
+				   {/loop}
+				{else}
+				暂无照片
+				{/if}
+				</td>
+			</tr>
+			{/loop}
+		</table>
+        </div>
+        </div>
+        <div class="form-group col-sm-12">
+		    {if $item['status'] == 0}
+            <button type="submit" class="btn span2" name="close" onclick="return confirm('确认取消此订单吗？'); return false;" value="取消">取消订单</button>
+            {/if}
+            {if $item['status'] == 2}
+			<button type="submit" class="btn btn-primary span2" onclick="return confirm('确认完成此订单吗？'); return false;" name="finish" onclick="" value="完成">完成订单</button>
+            {/if}
+            <input type="hidden" name="token" value="{$_W['token']}" />
+        </div>
+	</form>
+</div>
+{/if}
+{template 'common/footer'}

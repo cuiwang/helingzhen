@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+    <meta name="format-detection" content="telephone=no, email=no">
+    <title>{$seller['title']}</title>
+    <link href="{MODULE_URL}/css/seller/global.css" rel="stylesheet">
+    <link rel="stylesheet" href="{MODULE_URL}/css/seller/index.css">
+    <script language="javascript" src="{MODULE_URL}/js/seller/zepto.min.js"></script>
+    <script type="text/javascript" src="{MODULE_URL}/js/seller/swiper-3.3.1.min.js"></script>
+    <script src="{MODULE_URL}/js/seller/global.js"></script>
+    <script src="{MODULE_URL}/js/seller/picLazyLoad.min.js"></script>
+    <script src="{MODULE_URL}/js/seller/place.js" type="text/javascript"></script>
+    <style>
+        body {-webkit-user-select: inherit; -moz-user-select: inherit; user-select: inherit;}
+        .pagination{display:inline-block;padding-left:0;margin:20px auto;border-radius:4px;text-align: center;width:100%;}
+        .pagination>li{display:inline-block;}
+        .pagination>li>a,.pagination>li>span{font-size:14px;position:relative;float:left;padding:6px 12px;margin-left:-1px;line-height:1.42857143;color:#666;text-decoration:none;background-color:#fff;border:1px solid #ddd}
+        .pagination>li:first-child>a,.pagination>li:first-child>span{margin-left:0;border-top-left-radius:4px;border-bottom-left-radius:4px}
+        .pagination>li:last-child>a,.pagination>li:last-child>span{border-top-right-radius:4px;border-bottom-right-radius:4px}
+        .pagination>li>a:hover,.pagination>li>span:hover,.pagination>li>a:focus,.pagination>li>span:focus{color:#2a6496;background-color:#eee;border-color:#ddd}
+        .pagination>.active>a,.pagination>.active>span,.pagination>.active>a:hover,.pagination>.active>span:hover,.pagination>.active>a:focus,.pagination>.active>span:focus{z-index:2;cursor:default;background-color:#EFEFEF;}
+        .pagination>.disabled>span,.pagination>.disabled>span:hover,.pagination>.disabled>span:focus,.pagination>.disabled>a,.pagination>.disabled>a:hover,.pagination>.disabled>a:focus{color:#777;cursor:not-allowed;background-color:#fff;border-color:#ddd}.pagination-lg>li>a,.pagination-lg>li>span{padding:10px 16px;font-size:18px}.pagination-lg>li:first-child>a,.pagination-lg>li:first-child>span{border-top-left-radius:6px;border-bottom-left-radius:6px}.pagination-lg>li:last-child>a,.pagination-lg>li:last-child>span{border-top-right-radius:6px;border-bottom-right-radius:6px}.pagination-sm>li>a,.pagination-sm>li>span{padding:5px 10px;font-size:12px}.pagination-sm>li:first-child>a,.pagination-sm>li:first-child>span{border-top-left-radius:3px;border-bottom-left-radius:3px}.pagination-sm>li:last-child>a,.pagination-sm>li:last-child>span{border-top-right-radius:3px;border-bottom-right-radius:3px}.pager{padding-left:0;margin:20px 0;text-align:center;list-style:none}.pager li{display:inline}.pager li>a,.pager li>span{display:inline-block;padding:5px 14px;background-color:#fff;border:1px solid #ddd;border-radius:15px}.pager li>a:hover,.pager li>a:focus{text-decoration:none;background-color:#eee}.pager .next>a,.pager .next>span{float:right}.pager .previous>a,.pager .previous>span{float:left}.pager .disabled>a,.pager .disabled>a:hover,.pager .disabled>a:focus,.pager .disabled>span{color:#777;cursor:not-allowed;background-color:#fff}
+    </style>
+    <script>
+        var rcmd_url = window.location.href;
+        function getRad(d) {
+            return d * Math.PI / 180.0;
+        }
+        function getdistance(lat1, lng1, lat2, lng2) {
+
+            var f = getRad((parseFloat(lat1) + parseFloat(lat2)) / 2);
+            var g = getRad((parseFloat(lat1) - parseFloat(lat2)) / 2);
+            var l = getRad((parseFloat(lng1) - parseFloat(lng2)) / 2);
+
+            var sg = Math.sin(g);
+            var sl = Math.sin(l);
+            var sf = Math.sin(f);
+
+            var s, c, w, r, d, h1, h2;
+            var a = 6378137.0;
+            var fl = 1 / 298.257;
+
+            sg = sg * sg;
+            sl = sl * sl;
+            sf = sf * sf;
+
+            s = sg * (1 - sl) + (1 - sf) * sl;
+            c = (1 - sg) * (1 - sl) + sf * sl;
+
+            w = Math.atan(Math.sqrt(s / c));
+            r = Math.sqrt(s * c) / w;
+            d = 2 * w * a;
+            h1 = (3 * r - 1) / 2 / c;
+            h2 = (3 * r + 1) / 2 / s;
+
+            return (d * (1 + fl * (h1 * sf * (1 - sg) - h2 * (1 - sf) * sg)) / 1000).toFixed(2) + 'km';
+        }
+        $(function () {
+            $('.heimaolazyload').picLazyLoad({
+                threshold: 100,
+                placeholder: '/themes/default/images/blank.png'
+            });
+            var focusDiv = null;
+            var fixednum_extend = {
+                format: function (txt) {
+                    txt = parseInt(txt);
+                    if (isNaN(txt) || txt <= 0) {
+                        txt = '';
+                    }
+                    return txt;
+                },
+                finish: function () {
+                    if (focusDiv.find('span').text().length == 0) {
+                        focusDiv.find('span').removeClass("notEmpty");
+                        focusDiv.find('span').html(focusDiv.find('span').attr("placeholder"));
+                        $(".nextBtn").removeClass('notReady');
+                    } else {
+                        $(".nextBtn").addClass('notReady');
+                    }
+                    focusDiv.find('span').removeClass('hover');
+                    return true;
+                }
+            };
+            $(".numInput").on("click", function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                focusDiv = $(this);
+                var spanObj = focusDiv.find('span');
+                if (spanObj.html() == spanObj.attr("placeholder")) {
+                    spanObj.addClass("notEmpty");
+                    spanObj.html('');
+                }
+
+                spanObj.addClass("hover");
+                $(document.body).trigger("fixednum_view:focus", focusDiv);
+                $(document.body).trigger("fixednum_view:show", "<span>" + spanObj.attr("placeholder") + "</span>");
+            });
+            $('.fixednumMask').on("touchend", function (e) {
+                e.preventDefault();
+                fixednum_extend.finish();
+            });
+            $(".validateBtn").click(function () {
+                var result = $(".numInput").find('span').html();
+                if (result == "") {
+                    wptAlert("核销码不存在，请重新扫描。");
+                }
+                else {
+                    main.validate('163', result);
+                }
+                return false;
+            });
+            $('.SaoMaBtn,.maInput').click(function () {
+                wx.scanQRCode({
+                    needResult: 1, // 默认为0，扫描结果由微信处理，1则直接返回扫描结果，
+                    scanType: ["qrCode", "barCode"], // 可以指定扫二维码还是一维码，默认二者都有
+                    success: function (res) {
+                        var result = res.resultStr; // 当needResult 为 1 时，扫码返回的结果
+                        if (result == "") {
+                            wptAlert("核销码不存在，请重新扫描。");
+                        }
+                        else {
+                            main.validate('163', result);
+                        }
+                        return false;
+                    }
+                });
+            });
+
+            $(".xq_adress .fl").click(function () {
+                wx.openLocation({
+                    latitude: 44.010222, // 纬度，浮点数，范围为90 ~ -90
+                    longitude: 89.587568, // 经度，浮点数，范围为180 ~ -180。
+                    name: '掌上奇台', // 位置名
+                    address: '奇台县健康路388号古城商业街', // 地址详情说明
+                    scale: 15, // 地图缩放级别,整形值,范围从1~28。默认为最大
+                    infoUrl: window.location.href // 在查看位置界面底部显示的超链接,可点击跳转
+                });
+            })
+            $('#erweima').click(function () {
+                $(".erweima").css('display', 'block');
+            });
+            $('.popup-mask').click(function () {
+                $(".erweima").css('display', 'none');
+            });
+            var imgsSrc = [];
+
+            function reviewImage(src) {
+                if (typeof window.WeixinJSBridge != 'undefined') {
+                    WeixinJSBridge.invoke('imagePreview', {
+                        'current': src,
+                        'urls': imgsSrc
+                    });
+                }
+            }
+
+            $(".wenzhangtuimg").each(function () {
+                var n = $(this).data("src");
+                if (n) {
+                    imgsSrc.push(n);
+                }
+            });
+            $(".wenzhangtuimg").click(function () {
+                var src = $(this).data("src");
+                reviewImage(src);
+            })
+            //var yanurl = "/home/yanzheng?i=1&f=http%3A%2F%2Fdemo.chwlsq.com%2Fstore%2Fcdetails%3Fi%3D1%26id%3D163";
+            $(".scsj").click(function () {
+                var t = $(this).data("guanzhu");
+                if (t == 0) {
+                    wptAlert("您还没有绑定手机号码，请先绑定手机号码。", function () {
+                       // wptRedirect(yanurl);
+                    });
+                    return false;
+                }
+                else if (t == 1) {
+
+                                $(".scsj").attr("data-guanzhu", "2");
+                                $("#btnsc").text('取消关注');
+                                $("#scicon").addClass('active');
+                                $("#guanzhunum").html(parseInt($("#guanzhunum").html()) + 1)
+                                //webToast("关注成功","middle",1000);
+
+                }
+                else if (t == 2) {
+                    $(document).off('wptConfirm_view:sure').one('wptConfirm_view:sure', function () {
+
+                                    $(".scsj").attr("data-guanzhu", "1");
+                                    $("#btnsc").text('关注商家');
+                                    $("#scicon").removeClass('active');
+                                    $("#guanzhunum").html(parseInt($("#guanzhunum").html()) - 1)
+                                    //webToast("取消成功","middle",1000);
+
+                    });
+                    wptConfirm('亲，您确定要取消关注该商家么？');
+                }
+            });
+        })
+    </script>
+</head>
+
+<body>
+
+<header class="page-header"><a class="arrow-wrap" href="javascript:window.history.back(-1);"> <span
+        class="arrow-left"></span><i class="fanhuib">返回</i> </a>
+    <div class="page-headertext">商家详情</div>
+
+</header>
+<!-- 商家主图 -->
+<div class="indexBox" style="height:215px;position:relative;">
+    <section class="container marquee-box2"><img class="laba" src="{MODULE_URL}/images/seller/laba.png"
+                                                 style="height:16px;width:16px;float:left;margin:7px 3% 0 0;">
+        <marquee class="marquees" scrollamount="4" style="width:91%;">
+            <h3 class="bai">商家公告&nbsp;:</h3>
+            <span class="bai">测试平台</span>
+        </marquee>
+    </section>
+    {if !empty($seller['thumb'])}
+    {php $seller['thumb']=iunserializer($seller['thumb']);}
+    <section class="container banner-swiper" style="height:215px;">
+        <div class="list-guanggaowei list-guanggaowei-horizontal" style="height:215px;">
+            <div class="swiper-wrapper" style="height: 215px; transform: translate3d(-3840px, 0px, 0px); transition-duration: 1000ms;">
+                {php $i=0;}
+                {loop $seller['thumb'] $d}
+                <div class="swiper-slide swiper-slide-active" data-swiper-slide-index="{$i}" style="width: 1920px;"><img src="{php echo tomedia($d)}" height="215"></div>
+                {php $i++;}
+                {/loop}
+            </div>
+        </div>
+    </section>
+    {/if}
+
+    <div class="xq_shangjialogo fl"><img src="{php echo tomedia($seller['headimgurl'])}"></div>
+    <!--<div class="xq_guznhu"><span style="margin-right:5px;">人气：71</span> <span>关注：<em id="guanzhunum">1</em></span></div>-->
+</div>
+<script type="text/javascript">
+    var bannerSwiper = new Swiper('.banner-swiper .list-guanggaowei', {
+        loop: true,
+        speed: 1000,
+        autoplay: 2000,
+        autoplayDisableOnInteraction: false,
+        pagination: '.banner-swiper .swiper-pagination'
+    })
+</script>
+<div class="xq_shangjianame clearfix" style="height:58px;">
+    <div class="fl" style="position:absolute;left:72px;top:6px;width:77%;">
+        <h3>{$seller['title']}</h3>
+        <!--<div class="scsj" data-guanzhu="1"><i id="scicon"></i><span id="btnsc">关注商家</span></div>-->
+        <div class="haoping">
+            <div class="star-wraper">
+                <div class="rate-star-gray" style="margin-top:0px;">
+                    <div id="rate-real" style="width: 100.00%;" class="rate-star-real"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="xq_adress clearfix">
+    <div class="leftbox"></div>
+    <div class="rightbox"></div>
+    <p class="fl" data-lat="44.010222,89.587568">{$seller['addr']}</p>
+    <div class="lxsj"><a href="tel:{$seller['tel']}" class="ddhbtn"><span class="dhimgs"></span><span
+            class="bddh">拨打电话</span></a>
+        <span class="sjnumb">{$seller['business_date']}营业</span></div>
+</div>
+
+
+<div class="xq_jieshao">
+    <div class="xq_tuijian">
+        <h1>商家介绍</h1>
+    </div>
+    <div class="w962">
+        <div class="content h100px">
+            {php $seller['detail']=str_replace("\r\n", '<br/>', $seller['detail']);}
+            {php $seller['detail']=str_replace("\n", '<br/>', $seller['detail']);}
+            {php $seller['detail']=htmlspecialchars_decode($seller['detail'])}
+            {$seller['detail']}
+        </div>
+        <a class="ck"><span class="dwn">查看全部介绍</span>
+            <div class="ddown"><img src="{MODULE_URL}/images/seller/ddown.png" width="15" height="8"></div>
+        </a> <a class="cka" style="display:none"><span class="upa">收起</span>
+        <div class="ddown"><img src="{MODULE_URL}/images/seller/dup.png" width="15" height="8"></div>
+    </a></div>
+    <script>
+        //点击显示更多生活服务的信息
+        $(function () {
+            $(".ck").click(function () {
+                $(".w962 .content").removeClass("h100px").addClass("auto");
+                $(this).hide();
+                $(this).next(".cka").show();
+            });
+            if (parseInt($(".xq_jieshao .content").css("height")) > 150) {
+                $(".xq_jieshao .content").addClass("h100px");
+                $(".ck").show();
+            }
+            $(".cka").click(function () {
+                $(".w962 .content").removeClass("auto").addClass("h100px");
+                $(this).prev(".ck").show();
+                $(this).hide();
+            });
+        });
+    </script>
+</div>
+
+<div class="qiangfuli" style="position:relative;">
+    <div><!-- list -->
+        {loop $list $item}
+        {if !empty($item['summary'])}
+        {php $item['content']=$item['summary'];}
+        {/if}
+        {if !empty($item['content'])}
+        {php $item['content']=str_replace("\r\n", '<br/>', $item['content']);}
+        {php $item['content']=str_replace("\n", '<br/>', $item['content']);}
+        {php $item['content']=htmlspecialchars_decode($item['content'])}
+        {/if}
+        <div class="l">
+            <a href="{php echo $_W['siteroot'] . 'app/' . substr($this->createMobileUrl('detail',array('quan_id'=>$quan_id,'id'=>$item['id'],'model'=>$item['model'])), 2)}"><span class="kanqiang">查看&gt;</span>
+                <p class="qiangtxt">
+                    <span style="color:#ed414a;">[</span>{if !empty($item['content'])}{$item['content']}{else}{$item['title']}{/if}<span
+                        style="color:#ed414a;">]</span><b
+                        style="color:#ed414a;font-family:impact;font-weight:normal;font-size:16px;margin-right:2px;margin-left:8px;">{$item['total_amount']}</b>元福利等你来抢！<img
+                        src="{MODULE_URL}/images/seller/qhongbao.png" width="20" height="20" style="display:inline-block;"></p>
+            </a>
+        </div>
+        {/loop}
+    </div>
+    <div  style="position:relative;height: 20px;">
+        {$pager}
+    </div>
+    
+   
+</div>
+
+
+
+<!--二维码点击-->
+<div class="erweima" style="display:none;">
+    <div class="popup-mask"></div>
+    <div class="popup">
+        <div class="popup-head">
+            <h3 class="popup-title"> 长按添加 <strong class="balanced" style="font-weight:bold">XXX</strong> 的微信号 </h3>
+        </div>
+        <div class="popup-body">
+            <img alt="" src="{MODULE_URL}/images/seller/32_1702282059489811150.jpg" style="max-width:100%;max-height:200px;">
+            <div style="text-align:center;color:#999;font-size:16px;line-height: 40px;">
+                客服电话：<span><a href="tel:123">XXX</a></span>
+            </div>
+        </div>
+    </div>
+</div>
+<link rel="stylesheet" type="text/css" href="{MODULE_URL}/css/seller/kefu.css">
+<div class="kefupopup-container layui-m-anim-scale">
+    <div class="kefupopup-mask"></div>
+    <div class="kefupopup"><span class="focusclick"></span>
+        <div class="kefupopup-head">
+            <h3 class="kefupopup-title">长按关注 <strong class="kefucolor" style="font-weight:bold">XXX</strong> 公众号
+            </h3>
+        </div>
+        <div class="kefupopup-body"><img src="{MODULE_URL}/images/seller/1701150832320452979.jpg"
+                                         style="max-width:100%;max-height:200px;">
+            <p style="text-align:center;color:#999;font-size:16px;"><a href="tel:0512-68360531"><img
+                    src="{MODULE_URL}/images/seller/iphone_ser.png">0512-68360531</a></p>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $(function () {
+        $(".focusclick,.kefupopup-mask").click(function () {
+            $(".kefupopup-container").removeClass("kefupopup-show");
+        })
+    })
+</script>
+
+<div class="wptConfirm">
+    <div class="wptMask"></div>
+    <div class="dialog">
+        <div class="tip">
+            <div class="msg"></div>
+        </div>
+        <div class="btns">
+            <div class="btn-confirm sure btn-green">确定</div>
+            <div class="btn-cancel">取消</div>
+        </div>
+    </div>
+</div>
+<div class="wptLoading">
+    <div class="wptMask"></div>
+    <div class="weui_toast">
+        <div class="weui_loading">
+            <img src="{MODULE_URL}/images/seller/loading(1).gif">
+        </div>
+        <p class="weui_toast_content">数据加载中</p>
+    </div>
+</div>
+<div class="wptMultiConfirm">
+    <div class="wptMask"></div>
+    <div class="dialog">
+        <div class="tip">
+            <div class="msg"></div>
+        </div>
+        <div class="btns">
+            <div class="btn-cancel">取消</div>
+        </div>
+    </div>
+</div>
+<div class="wptAlert">
+    <div class="wptMask"></div>
+    <div class="dialog">
+        <div class="tip">
+            <div class="msg"></div>
+        </div>
+        <div class="btns">
+            <div class="btn-confirm">朕知道了</div>
+        </div>
+    </div>
+</div>
+<style type="text/css">
+    .fixednumMask {
+        position: fixed;
+        width: 100%;
+        opacity: 0;
+        top: 0px;
+        bottom: 0px;
+        background-color: #000;
+        display: none;
+        z-index: 999;
+    }
+
+    .fixednumMain {
+        position: fixed;
+        bottom: -410px;
+        left: auto;
+        z-index: 1199;
+        background: #F0F0F0;
+        width: 100%;
+        display: none;
+    }
+
+    .fixednumMain .tipBanner {
+        height: 42px;
+        width: 100%;
+        background: #F0F0F0;
+        border-top: 1px solid #cacaca;
+        font-size: 16px;
+    }
+
+    .fixednumMain .tipBanner span.title,
+    .fixednumMain .priceBanner span.title {
+        line-height: 42px;
+        float: left;
+        text-indent: 10px;
+        min-width: 65px
+    }
+
+    .fixednumMain .tipBanner .last,
+    .fixednumMain .priceBanner .editTxt {
+        float: left;
+        width: 60%;
+        height: 30px;
+        line-height: 30px;
+        margin: 6px 0;
+        color: #7596D9;
+        text-indent: 4px;
+        overflow: hidden;
+        font-size: 20px;
+        font-family: "Helvetica neue", Verdana, Geneva, sans-serif;
+    }
+
+    .fixednumMain .tipBanner .close {
+        float: right;
+        width: 42px;
+        height: 42px;
+        background-image: url(/themes/default/res/close.png);
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-size: 28px;
+    }
+
+    .fixednumMain .tipBanner .finish {
+        float: right;
+        width: 42px;
+        height: 42px;
+        background-size: 30px;
+        line-height: 40px;
+        font-size: 16px;
+        color: #04BE02;
+    }
+
+    .fixednumMain .priceBanner {
+        background: #fff;
+        height: 42px;
+        line-height: 42px;
+        font-size: 16px;
+        width: 100%;
+        position: relative;
+    }
+
+    .fixednumMain .priceBanner .editTxt .hover {
+        border-right: 2px solid red;
+    }
+
+    .fixednumMain .priceBanner .tips {
+        color: #999;
+        font-size: 14px;
+        margin-right: 10px;
+        overflow: hidden;
+        height: 42px;
+        position: absolute;
+        right: 0;
+        top: 0
+    }
+
+    .fixednumMain .priceBanner .tips .clearPrice {
+        width: 20px;
+        height: 42px;
+        background-image: url(/themes/default/res/clearPrice.png);
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 16px;
+    }
+
+    .fixednumMain .btnBanner {
+        margin: 0 auto;
+        width: 96%;
+        padding: 10px 0px;
+        display: table;
+    }
+
+    .fixednumMain .btnBanner .confirmBtn,
+    .fixednumMain .btnBanner .fixedPrice,
+    .fixednumMain .btnBanner .changePrice {
+        background: #06BE04;
+        padding: 2.5% 0;
+        border-radius: 4px;
+        width: 66%;
+        text-align: center;
+        font-size: 18px;
+        color: #fff;
+        border: none;
+        float: left;
+        height: 24px;
+        line-height: 24px;
+    }
+
+    .fixednumMain .btnBanner .fixedPrice,
+    .fixednumMain .btnBanner .changePrice {
+        background: #01B7F0;
+        width: 32%;
+        float: left;
+        margin-right: 2%;
+        font-size: 14px;
+        height: 24px;
+        line-height: 24px;
+    }
+
+    .fixednumMain .btnBanner .changePrice.sub {
+        background: #06BC07;
+        width: 15%;
+        margin-right: 2%;
+        margin-left: 0;
+        background-image: url(/themes/default/res/subIcon.png);
+        background-size: 20px;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+    .fixednumMain .btnBanner .changePrice.add {
+        background: #06BC07;
+        width: 15%;
+        margin-right: 0;
+        margin-left: 2%;
+        background-image: url(/themes/default/res/addIcon.png);
+        background-size: 20px;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+    .fixednumMain .btnBanner .confirmBtn:only-child {
+        padding: 10px 0;
+        width: 100%;
+    }
+
+    .fixednumMain .agreeBanner {
+        margin: 0 auto;
+        width: 96%;
+        padding-bottom: 8px;
+        font-size: 12px;
+        text-align: right;
+        color: #878787;
+        display: table;
+    }
+
+    .fixednumMain .numkey {
+        width: 100%;
+        background: #fff;
+        display: table;
+    }
+
+    .fixednumMain .numkey ul {
+        padding: 0;
+        margin: 0;
+    }
+
+    .fixednumMain .numkey ul,
+    .fixednumMain .numkey li {
+        text-decoration: none;
+        list-style: none;
+        vertical-align: middle;
+    }
+
+    .fixednumMain .numkey ul li {
+        width: 33.1%;
+        border-bottom: 1px solid #b3b3b3;
+        border-right: 1px solid #b3b3b3;
+        height: 50px;
+        float: left;
+        font-size: 28px;
+        font-family: "Helvetica neue", Verdana, Geneva, sans-serif;
+        text-align: center;
+        background: #fff;
+    }
+
+    .fixednumMain .numkey ul li:nth-child(3n) {
+        border-right: none;
+    }
+
+    .fixednumMain .numkey ul li.delete {
+        background-image: url(/themes/default/res/backspace.png);
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 30px;
+        background-color: #D1D5DA;
+    }
+
+    .fixednumMain .numkey ul li.othernum {
+        background-color: #D1D5DA;
+        line-height: 50px;
+    }
+
+    .fixednumMain .numkey ul li div {
+        color: #000;
+    }
+
+    .fixednumMain .numkey ul li span {
+        position: relative;
+        font-size: 12px;
+        top: -18px;
+        color: #000;
+    }
+</style>
+<script type="text/javascript">
+    var focusEditTxt;
+
+    //格式化数字
+    function number_format(n) {
+        var ns = n.toString();
+        var mm = ns.match(/\d{1,3}(?=(\d{3})+$)/g);
+        if (mm == null) return ns;
+        mm.push(ns.replace(mm.join(""), ""));
+        return mm.join(",");
+    }
+
+    function showFixednum_view(txt, type, fixedPrice, increase, bidMoney, bidbzj, multiWins, targetMoney) {
+        maskIsHide = false;
+        if (txt.length > 16) {
+            $(".tipBanner .title").css("font-size", "12px");
+        } else {
+            $(".tipBanner .title").css("font-size", "16px");
+        }
+        $(".tipBanner .title").html(txt);
+        $(".fixednumMask").show().animate({
+            opacity: 0.382
+        }, 100);
+
+        $(".fixednumMain").show().animate({
+            bottom: '0px'
+        }, 100, 'ease-in-out');
+    }
+
+    function hideFixednum_view() {
+        maskIsHide = true;
+        $(".fixednumMain .tips").html('');
+        $(".fixednumMain").animate({
+            bottom: '-400px'
+        }, 150, function () {
+            $(".fixednumMain, .fixednumMask").hide();
+        });
+    }
+
+    $(function () {
+        $(document).on('fixednum_view:focus', function (e, editObj) {
+            focusEditTxt = $(editObj);
+        });
+
+        $(document).on('fixednum_view:hide', function (e) {
+            hideFixednum_view();
+        });
+
+        $(document).on('fixednum_view:show', function (e, txt, type, fixedPrice, increase, bidMoney, bidbzj, multiWins, targetMoney) {
+            showFixednum_view(txt, type, fixedPrice, increase, bidMoney, bidbzj, multiWins, targetMoney);
+        });
+
+
+        $(".fixednumMain").on("click", function (e) {
+            e.preventDefault();
+        });
+
+        $(".fixednumMain .agreeBanner span").on("touchend", function () {
+            if ($(this).attr("url")) {
+                window.location.href = $(this).attr("url");
+            }
+        });
+
+        $(".fixednumMain .close, .tipBanner .finish, .fixednumMask").on("touchend", function (e) {
+            e.preventDefault();
+            if ($(this).hasClass("finish")) {
+                if (typeof fixednum_extend != 'undefined') {
+                    if (typeof fixednum_extend.finish == 'function') {
+                        if (!fixednum_extend.finish()) {
+                            return;
+                        }
+                    }
+                }
+            } else {
+                if (typeof fixednum_extend != 'undefined') {
+                    if (typeof fixednum_extend.cancel == 'function') {
+                        if (!fixednum_extend.cancel()) {
+                            return;
+                        }
+                    }
+                }
+            }
+            hideFixednum_view();
+        });
+
+        $(".fixednumMain .numkey ul li").on("touchstart", function () {
+            if ($(this).html() == '00' || $(this).html() == '' || $(this).html() == '.') {
+                $(this).css({"background-color": "#FFF"});
+            } else {
+                $(this).css({"background-color": "#D1D5DA"});
+            }
+        });
+
+        $(".fixednumMain .numkey ul li.num").on("touchend", function () {
+            var clickNum = $(this).find("div").html();
+            if (clickNum == null) {
+                clickNum = $(this).html();
+            }
+
+            var content = focusEditTxt.find('span').html() + clickNum;
+            if (typeof fixednum_extend != 'undefined') {
+                if (typeof fixednum_extend.tip == 'function') {
+                    $(".fixednumMain .tips").html(fixednum_extend.tip(content));
+                }
+
+                if (typeof fixednum_extend.format == 'function') {
+                    content = fixednum_extend.format(content);
+                }
+            }
+            focusEditTxt.find('span').html(content);
+
+            if (clickNum.length == 1 && clickNum != ".") {
+                $(this).css({"background-color": "#FFF"});
+            } else {
+                $(this).css({"background-color": "#D1D5DA"});
+            }
+        });
+
+        $(".fixednumMain .numkey ul li.delete").on("touchend", function () {
+            var content = focusEditTxt.find('span').html();
+            var content = content.substr(0, content.length - 1);
+
+            if (typeof fixednum_extend != 'undefined') {
+                //tip函数直接返回需要显示的描述，无描述需返回''
+                if (typeof fixednum_extend.tip == 'function') {
+                    $(".fixednumMain .tips").html(fixednum_extend.tip(content));
+                }
+
+                if (typeof fixednum_extend.format == 'function') {
+                    content = fixednum_extend.format(content);
+                }
+            }
+            focusEditTxt.find('span').html(content);
+
+            $(this).css({"background-color": "#D1D5DA"});
+        });
+
+    });
+</script>
+<div class="fixednumMask"></div>
+<div class="fixednumMain">
+    <div class="tipBanner"><span class="title"></span>
+        <div class="finish">完成</div>
+    </div>
+    <div class="numkey">
+        <ul>
+            <li class="num">
+                <div>1</div>
+                <span></span></li>
+            <li class="num">
+                <div>2</div>
+                <span>ABC</span></li>
+            <li class="num">
+                <div>3</div>
+                <span>DEF</span></li>
+            <li class="num">
+                <div>4</div>
+                <span>GHI</span></li>
+            <li class="num">
+                <div>5</div>
+                <span>JKL</span></li>
+            <li class="num">
+                <div>6</div>
+                <span>MNO</span></li>
+            <li class="num">
+                <div>7</div>
+                <span>PQRS</span></li>
+            <li class="num">
+                <div>8</div>
+                <span>TUV</span></li>
+            <li class="num">
+                <div>9</div>
+                <span>WXYZ</span></li>
+            <li class="num othernum">00</li>
+            <li class="num" style="line-height: 50px;">0</li>
+            <li class="delete"></li>
+        </ul>
+    </div>
+</div>
+
+<script type="text/javascript" src="{MODULE_URL}/images/seller/company.js"></script>
+
+
+</body>
+</html>

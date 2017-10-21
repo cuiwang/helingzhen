@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>账户管理</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Bootstrap -->
+<script src="../addons/cy163_goodssales/static/admin/js/jquery.min.js"></script>
+<script src="../addons/cy163_goodssales/static/admin/bootstrap/js/bootstrap.min.js"></script>
+<link rel="stylesheet" type="text/css" href="../addons/cy163_goodssales/static/admin/bootstrap/css/bootstrap.min.css" />
+<link rel="stylesheet" type="text/css" href="../addons/cy163_goodssales/static/admin/css/admin.css" />
+<style>
+ .panel{margin-bottom:20px;background-color:#fff;border:1px solid transparent;border-radius:4px;-webkit-box-shadow:0 1px 1px rgba(0,0,0,.05);box-shadow:0 1px 1px rgba(0,0,0,.05)}
+ .panel-body{padding:15px}
+ .panel-heading{padding:10px 15px;border-bottom:1px solid transparent;border-top-left-radius:3px;border-top-right-radius:3px}
+ .panel-info{border-color:#bce8f1}
+ .panel-info>.panel-heading{color:#31708f;background-color:#d9edf7;border-color:#bce8f1}
+ .panel-info>.panel-heading+.panel-collapse>.panel-body{border-top-color:#bce8f1}
+ .panel-info>.panel-heading .badge{color:#d9edf7;background-color:#31708f}
+ #accountname,#accountrealname,#bankname{display:none;}
+</style>
+</head>
+
+<body>
+<div id="container">
+	<div class="panel panel-info">
+		<div class="panel-body">
+			您当前的账户余额为<span class="label label-success">{$account}</span>
+			<button class="btn btn-primary" data-toggle="modal" data-target="#confirmtixian" type="button">提现</button>
+		</div>
+	</div>
+	
+	<div class="panel panel-info">
+		<div class="panel-heading">注意事项</div>
+		<div class="panel-body">
+			<p>一、提现金额可以随时申请，提现到个人支付宝，到账快。</p>
+
+			<p>二、为什么不能将顾客下单的款项直接打到您自己的支付宝或者微信上呢？</p>
+
+			<p>因为支付接口都是需要申请的，申请难度非常大，限制非常多，99%的商家是申请不下来的。</p>
+		</div>
+	</div>
+	
+	<div class="panel panel-info">
+		<div class="panel-heading">收入明细</div>
+		<div class="panel-body">
+			<table class="table table-bordered table-hover">		
+				<thead>
+					<tr>
+						<th style="width:80px;">金额</th>
+						<th style="width:100px;">到账时间</th>
+						<th style="width:50px;">备注</th>
+					</tr>
+				</thead>
+				<tbody>
+					{loop $list $item}
+					<tr>
+						<td><span style="color:green;">+{$item['price']}</span></td>
+						<td>{php echo date('Y-m-d H:i:s', $item['time'])}</td>
+						<td>{$item['remark']}</td>
+					</tr>
+					{/loop}
+				</tbody>
+			</table>
+			<div class="pagination">{$pager}</div>
+		</div>
+	</div>
+</div>
+
+
+<!-- 提现 -->
+<div id="confirmtixian" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="confirmtixianLabel" aria-hidden="true">
+	<form action="./index.php" method="get" class="form-horizontal" id="form1" style="margin:0 auto;">
+	<input type="hidden" name="c" value="entry" />
+	<input type="hidden" name="m" value="cy163_goodssales" />
+	<input type="hidden" name="do" value="admindotixian" />
+	<input type="hidden" name="i" value="{$_W['uniacid']}" />
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+		<h3 id="confirmtixianLabel">提现</h3>
+	</div>
+	<div class="modal-body">
+		<div class="control-group">
+			<label class="control-label">支付类型</label>
+			<div class="controls">
+				<label for="isshow1" class="radio inline"><input type="radio" name="paytype" value="支付宝" id="isshow1" onclick="txtype(1);"> 支付宝</label>
+				<label for="isshow3" class="radio inline"><input type="radio" name="paytype" value="银行卡" id="isshow3" onclick="txtype(3);"> 银行卡</label>
+			</div>
+		</div>
+		
+		<div class="control-group" id="bankname">
+			<label class="control-label">银行名称</label>
+			<div class="controls">
+				<input type="text" name="bankname" class="form-control" />
+			</div>
+		</div>
+		
+		<div class="control-group" id="accountname">
+			<label class="control-label">账户</label>
+			<div class="controls">
+				<input type="text" name="alipayaccount" class="form-control" />
+			</div>
+		</div>
+		
+		<div class="control-group" id="accountrealname">
+			<label class="control-label" >姓名</label>
+			<div class="controls">
+				<input type="text" name="alipayname" class="form-control" />
+			</div>
+		</div>
+
+		<div class="control-group">
+			<label class="control-label">提现金额</label>
+			<div class="controls">
+				<input type="text" name="alipayfee" placeholder="您本次最多可提现{$account}元" class="form-control" />
+			</div>
+		</div>
+	</div>
+	<div class="modal-footer">
+		<button class="btn" data-dismiss="modal" aria-hidden="true">关闭</button>
+		<button class="btn btn-primary" type="submit" name="confirmsend" value="yes">确认提现</button>
+	</div>
+	</form>
+<script type="text/javascript">
+function txtype(val){
+	if(val == 1){
+		$("#bankname").hide();
+		$("#accountname").show();
+		$("#accountname label").text("支付宝账户");
+		$("#accountrealname").show();
+		$("#accountrealname label").text("真实姓名");
+	}
+	if(val == 3){
+		$("#bankname").show();
+		$("#accountname").show();
+		$("#accountname label").text("银行卡号");
+		$("#accountrealname").show();
+		$("#accountrealname label").text("持卡人姓名");
+	}
+}
+</script>
+</div>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<form action="" method="post">
+	<div class="panel panel-default">
+		<div class="table-responsive panel-body">
+			<table class="table">
+				<thead>
+					<tr>
+						<th style="width:80px">排序</th>
+						<th>名称</th>
+						<th>是否显示</th>
+						<th>操作</th>
+					</tr>
+				</thead>
+				<tbody id="list_wrap">
+                    {loop $list $item}
+					<tr>
+						<input type="hidden" class="form-control text-center" name="id[]" value="{$item['id']}">
+						<td>
+							<input type="text" class="form-control text-center" name="displayorder[]" value="{$item['displayorder']}">
+						</td>
+						<td class="text-center" style="width:150px;">
+							<input type="text" class="form-control" name="title[]" value="{$item['title']}">
+						</td>
+						<td class="text-left" style="width:130px;">
+							<input type="checkbox" value="{$item['isshow']}" data-field="isshow" data-id="{$item['id']}" class="isdisplay" name="isshow[]" {if $item['isshow'] == 1}checked{/if}/>
+						</td>
+						<td>
+							<a href="javascript:;" class="del_item_link tip" data-toggle="tooltip" onclick="delItem(this)" title="删除" data-id="{$item['id']}"><i class='fa fa-remove'></i></a>
+						</td>
+					</tr>
+                    {/loop}
+				</tbody>
+				<tbody>
+					<tr>
+						<td colspan="3">
+							<button type="button" class="btn btn-warning add_item_link"title="添加">
+								<span class="glyphicon glyphicon-plus" aria-hidden="true"></span> 添加
+							</button>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+	{$pager}
+	<input name="submit" type="submit" value="提交" class="btn btn-primary col-lg-1">
+    <input type="hidden" name="token" value="{$_W['token']}" />
+</form>
+<style>
+.del_item_link {
+	color: #f00;
+}
+</style>
+<script type="text/javascript">
+	require(['bootstrap.switch', 'util'], function($, u){
+		var load_bootstrap_switch = function() {
+			$(':checkbox').bootstrapSwitch();
+			$('.isdisplay').on('switchChange.bootstrapSwitch', function(e, state){
+				$this = $(this);
+				var id = $this.attr('data-id');
+				var field = $this.attr('data-field');
+				var value = this.checked ? 1 : 0;
+				if (id) {
+					$.post(location.href, {setattr: 1, id: id, field: field, value: value}, function(resp){
+						if(resp != 'success') {
+							u.message(resp);
+						}
+					});
+				}
+			});
+		};
+		load_bootstrap_switch();
+
+		$('.add_item_link').click(function(){
+			$.ajax({
+				url: location.href+'&addtype=1',
+				success:function(response) {
+					$('#list_wrap').append(response);
+					load_bootstrap_switch();
+				}
+			});
+		});
+
+		window.delItem = function(obj) {
+			var id = $(obj).attr('data-id');
+			if (!id) {	//new
+				$(obj).parent().parent().remove();
+				return;
+			}
+			$.ajax({
+				'url': location.href+'&deletetype=1&id='+id,
+				success:function(response) {
+					if (response == 'success') {
+						$(obj).parent().parent().remove();
+					} else {
+						u.message(response, '', 'error');
+					}
+				}
+			});
+		};
+	});
+</script>

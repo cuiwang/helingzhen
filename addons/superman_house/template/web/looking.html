@@ -1,0 +1,206 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li {if $act == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('looking', array('act' => 'display'));}">看房团列表</a></li>
+	<li {if $act == 'post' && !$_GPC['_id']}class="active"{/if}><a href="{php echo $this->createWebUrl('looking', array('act' => 'post'));}">添加看房团</a></li>
+	{if $act == 'post' && $_GPC['_id']}<li class="active"><a href="{php echo $this->createWebUrl('looking', array('act' => 'post', '_id' => $id));}">编辑看房团</a></li>{/if}
+	<li {if $act == 'userlist'}class="active"{/if}><a href="{php echo $this->createWebUrl('looking', array('act' => 'userlist', '_id' => $id));}">报名会员</a></li>
+</ul>
+
+<style>
+	.table td span{display:inline-block;margin-top:4px;}
+	.table td input{margin-bottom:0;}
+	.alreadypay {background-color: #5cb85c; color: #ffffff; padding: 0 2px; border-radius: 2px;}
+	.neverpay {background-color: #d9534f; color: #ffffff; padding: 0 2px; border-radius: 2px;}
+</style>
+{if $act == 'display'}
+<div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+		<form action="./index.php" method="get" class="form-horizontal" role="form">
+			<input type="hidden" name="c" value="site" />
+			<input type="hidden" name="a" value="entry" />
+			<input type="hidden" name="do" value="looking" />
+			<input type="hidden" name="act" value="display" />
+			<input type="hidden" name="m" value="superman_house" />
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 control-label">看房团名称</label>
+				<div class="col-sm-8 col-md-8 col-lg-8 col-xs-12">
+					<input class="form-control" name="name" type="text" value="{$_GPC['name']}">
+				</div>
+				<div class="pull-right col-xs-12 col-sm-2 col-md-2 col-lg-2">
+					<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+
+<div class="panel panel-default">
+	<div class="table-responsive panel-body">
+		<table class="table">
+			<thead>
+			<tr>
+				<th style="width:50px">排序</th>
+				<th>名称</th>
+				<th>状态</th>
+				<th>报名截止时间</th>
+				<th>出发时间</th>
+				<th>集合地点</th>
+				<th>报名人数</th>
+				<th style="width:120px;">操作</th>
+			</tr>
+			</thead>
+			<tbody>
+			{loop $list $item}
+			<tr>
+				<td>{$item['displayorder']}</td>
+				<td>{$item['name']}</td>
+				<td>
+					{if $item['status'] == 1 && $item['regdeadline'] > TIMESTAMP}<span class="label label-success">进行中</span>
+					{elseif $item['status'] == 2 || $item['regdeadline'] < TIMESTAMP}<span class="label label-danger">已结束</span>
+					{/if}
+				</td>
+				<td>{php echo date('Y-m-d H:i', $item['regdeadline'])}</td>
+				<td>{php echo date('Y-m-d H:i', $item['viewtime'])}</td>
+				<td>{$item['gatheraddress']}</td>
+				<td>{$item['user_total']}</td>
+				<td>
+					<a href="{php echo $this->createWebUrl('looking', array('act' => 'post', '_id' => $item['id']))}" title="编辑" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-edit"></i></a>
+					<a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('looking', array('act' => 'delete', '_id' => $item['id']))}" title="删除" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-times"></i></a>
+				</td>
+			</tr>
+			{/loop} </tbody>
+		</table>
+	</div>
+	<div class="panel-footer">
+		总共 <strong>{$total}</strong> 条
+	</div>
+</div>
+{$pager}
+<script type="text/javascript">
+	require(['bootstrap'],function($){
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+	});
+</script>
+{elseif $act == 'post'}
+<script type="text/javascript" src="resource/js/lib/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="resource/js/lib/jquery-ui-1.10.3.min.js"></script>
+<form class="form-horizontal form" action="" method="post" enctype="multipart/form-data">
+	<input type="hidden" name="_id" value="{$item[id]}">
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			{if empty($item['id'])}
+				添加看房团
+			{else}
+				编辑看房团
+			{/if}
+		</div>
+		<div class="panel-body">
+			<ul class="nav nav-tabs" id="look_tabs_wrap">
+				<li class="active">
+					<a href="javascript:;" rel="base_wrap">基本信息</a>
+				</li>
+				<li class="">
+					<a href="javascript:;" rel="house_wrap">楼盘信息</a>
+				</li>
+			</ul>
+			<div class="tab-content">
+				<div class="tab-pane active" id="base_wrap">
+					{template 'web/looking-base'}
+				</div>
+				<div class="tab-pane" id="house_wrap">
+					{template 'web/looking-house'}
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="form-group">
+		<div class="col-sm-12">
+			<input name="submit" type="submit" value="提交" class="btn btn-primary col-lg-1">
+			<input type="hidden" name="token" value="{$_W['token']}" />
+		</div>
+	</div>
+</form>
+<script>
+	require(['jquery', 'util'], function($, u){
+		//绑定tab切换
+		$('#look_tabs_wrap li a').bind('click', function(){
+			var id = $(this).attr('rel');
+			$('#look_tabs_wrap li').each(function(){
+				$(this).removeClass('active');
+			});
+			$('.tab-pane').each(function(){
+				$(this).hide();
+			});
+			$('#'+id).show();
+			$(this).parent().addClass('active');
+		});
+
+		//检查表单提交内容
+		$('form').submit(function(){
+			var name = $('input[name=name]');
+			if (name.val() == '') {
+				u.message('请输入看房团名称', '', 'error');
+				return false;
+			}
+			return true;
+		});
+	});
+</script>
+{elseif $act == 'userlist'}
+<script type="text/javascript" src="resource/js/lib/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="resource/js/lib/jquery-ui-1.10.3.min.js"></script>
+	<!--<input type="hidden" name="do" value="userlist" />-->
+		<div class="panel-body">
+			<div class="panel panel-info">
+				<div class="panel-heading">筛选</div>
+				<div class="panel-body">
+					<form action="./index.php" method="get" class="form-horizontal" role="form">
+						<input type="hidden" name="c" value="{$_GPC['c']}">
+						<input type="hidden" name="a" value="{$_GPC['a']}">
+						<input type="hidden" name="do" value="looking" />
+						<input type="hidden" name="act" value="userlist" />
+						<input type="hidden" name="m" value="superman_house">
+						<div class="form-group">
+							<label class="col-xs-12 col-sm-3 col-md-2 control-label">看房团</label>
+							<div class="col-sm-6 col-md-8 col-lg-8 col-xs-12">
+								<select class="form-control" name="lookid">
+									<option value="-1">全部</option>
+									{loop $lookings $looking}
+									<option {if $_GPC['lookid'] == $looking['id']}selected{/if} value="{$looking['id']}">{$looking['name']}</option>
+									{/loop}
+								</select>
+							</div>
+							<button class="btn btn-default" style="margin-left: 10px;">
+								<i class="fa fa-search"></i> 搜索
+							</button>
+						</div>
+					</form>
+				</div>
+			</div>
+			<div class="tab-pane" id="user_wrap">
+				{template 'web/looking-user'}
+			</div>
+		</div>
+<script>
+	require(['jquery', 'util'], function($, u){
+		//绑定tab切换
+		$('#look_tabs_wrap li a').bind('click', function(){
+			var id = $(this).attr('rel');
+			$('#look_tabs_wrap li').each(function(){
+				$(this).removeClass('active');
+			});
+			$('.tab-pane').each(function(){
+				$(this).hide();
+			});
+			$('#'+id).show();
+			$(this).parent().addClass('active');
+		});
+	});
+</script>
+{/if}
+{template 'common/footer'}

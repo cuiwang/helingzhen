@@ -1,0 +1,183 @@
+{template 'common/header'}
+ <ul class="nav nav-tabs">
+    <li {if $op == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('propertyfree', array('op' => 'display'))}">费用列表</a></li>
+    <li {if $op == 'add'}class="active"{/if}><a href="{php echo $this->createWebUrl('propertyfree', array('op' => 'add'))}">费用导入</a></li>
+</ul>
+<div class="main">
+<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data">
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">查询费用数据</h3>
+  </div>
+  <div class="panel-body">
+    <header class="panel-heading font-bold mypanelhead">
+        <a href="{php echo $this->createWebUrl('propertyfree',array('op' => 'add'))}" class="btn btn-s-sm text-sm btn-danger navbar-right">
+            导入费用数据
+        </a>
+    </header>
+    <hr>
+    <div class="form-group">
+            <label for="" class="col-sm-2 control-label">请选择数据月份</label>
+            <div class="col-xs-2">
+            <select class="form-control" id="sel_index">
+                <option value="{if $_GPC['protime']}{$_GPC['protime']}{else}0{/if}">{if $_GPC['protime']}{$_GPC['protime']}{else}选择月份{/if}</option>
+                {loop $list $item}
+                    <option value="{$item['protime']}">{$item['protime']}</option>
+                {/loop}
+            
+            </select>
+            </div>
+            <div class='col-xs-2'>
+                <a href="#modal" data-toggle="modal" id="d_month" class="btn btn-danger btn-sm m-l">
+                    删除该月数据
+                </a>
+            </div>
+            <div class="col-sm-3 text-right" style='margin-left:250px;margin-top:-30px'>
+                <div class="input-group" >
+                    <input type="text" class="input-sm form-control" id="search_keywords" placeholder="输入姓名或手机号搜索">
+                    <span class="input-group-btn">
+                        <button class="btn btn-sm btn-default" id="the_search" type="button">搜索一下</button>
+                    </span>
+                </div>
+            </div>
+            <form action="" class="form-horizontal" method="post" enctype="multipart/form-data">
+            <div {if $_GPC['style']}style="margin-top:50px;display:block"{else}style="margin-top:50px;display:none"{/if}>
+                <table class="table mytable table-striped">
+                    <thead>
+                        <tr>
+                            <th style="width:30px;"><input type="checkbox" id="checkAll" name="checkAll"></th>
+                            <th>手机号码</th>
+                            <th>业主姓名</th>
+                            <th>业主房号</th>
+                            <th>物业费</th>
+                            <th>停车费</th>
+                            <th>公摊水费</th>
+                            <th>公摊电费</th>
+                            <th>是否缴费</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {loop $rows $row}
+                        <tr>
+                            <td style="width:30px;"><input type="checkbox" id="pid" name="pid[]" value='{$row['id']}'></td>
+                            <td>{$row['mobile']}</td>
+                            <td>{$row['username']}</td>
+                            <td>{$row['homenumber']}</td>
+                            <td>{$row['profree']}</td>
+                            <td>{$row['tcf']}</td>
+                            <td>{$row['gtsf']}</td>
+                            <td>{$row['gtdf']}</td>
+                            <td>{if $row['status']}<span class="label label-success">已缴费</span>{else}<span class="label label-danger">未缴费</span>{/if}</td>
+                        </tr>
+                    {/loop}   
+                    </tbody>
+                </table>
+            </div>
+            {if $_GPC['protime']}
+            <div style="margin-left:20px;">
+                <button type="submit" class="btn btn-success" onclick="return confirm('确认短信通知用户吗？'); return false;" name="sms" value="yes">短信通知</button>
+                <button type="submit" class="btn btn-success" onclick="return confirm('确认微信通知用户吗？'); return false;" name="wechat" value="yes">微信通知</button>
+                <input type="hidden" name="token" value="{$_W['token']}" />
+            </div>
+            {/if}
+            </form>
+            <div style="text-align:center;">
+                {if $_GPC['style']}{$pager}{/if}
+                <ul class="pagination pagination-sm"> </ul>
+            </div>
+    </div>
+    <div class="modal fade" id="modal" style="top:150px;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h4 class="modal-title">确认删除</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <div class="col-sm-12">删除该月数据后，业主将无法查询到该月的费用信息。删除后您可以在导入费用数据中，重新添加导入。</div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-info myfont">确认删除</button>
+                    <button type="button" class="btn btn-white myfont" data-dismiss="modal" id="upcancel">取消</button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-backdrop result-modal" style="display:none;" id="masker"></div>
+        <div class="result-msg bg-info" id="result"></div>
+  </div>
+  </div>
+</form>
+</div>
+<script type="text/javascript">
+$(function() {
+    $(".btn-info").click(function() {
+        var select_vale = $("#sel_index option:selected").val();
+        $.ajax({
+            type: 'POST',
+            dataType: 'json',
+            url: "{php echo $this->createWebUrl('propertyfree',array('op' => 'delete'))}",
+            data: {
+                'month': select_vale
+            },
+            success: function(msg) {
+                if (msg.status == 1) {
+                    // $("#upcancel").click();
+                    // $("#result").text(msg.info).show();
+                    // $("#masker").show();
+                    // setTimeout(function() {
+                        window.location.href = "{php echo $this->createWebUrl('propertyfree',array('op' => 'display'))}";
+                    // }, 1000);
+                } else {
+                    $("#upcancel").click();
+                    $("#result").text(msg.info).show();
+                    $("#masker").show();
+                    setTimeout(function() {
+                        window.location.href = "{php echo $this->createWebUrl('propertyfree',array('op' => 'display'))}";
+                    }, 1000);
+                }
+            }
+        });
+    });
+
+    $("#d_month").click(function() {
+        var the_value = $("#sel_index option:selected").val();
+        if (the_value == 0) {
+            alert('请选择需要删除的月份');
+            return false;
+        }
+    });
+
+    $("#the_search").click(function() {
+        var key_words = $("#search_keywords").val();
+        if (key_words == '') {
+            alert('请输入电话号码或者姓名');
+            return false;
+        } else {
+            window.location.href = "{php echo $this->createWebUrl('propertyfree',array('op' => 'display'))}" +'&searchword='+ key_words + "&style=1";
+        }
+    });
+
+    $("#sel_index").change(function() {
+        var change_value = $("#sel_index option:selected").val();
+        if (change_value != '0') {
+            window.location.href = "{php echo $this->createWebUrl('propertyfree',array('op' => 'display'))}" +'&protime='+ change_value + "&style=1";
+        } else {
+            window.location.href = "{php echo $this->createWebUrl('propertyfree',array('op' => 'display'))}";
+        }
+    });
+
+})
+$(function() {
+         $("#checkAll").click(function() {
+             $('input[name="pid[]"]').attr("checked",this.checked); 
+         });
+    });
+</script>
+
+{template 'common/footer'}
+

@@ -1,0 +1,994 @@
+{template 'common/header'}
+
+<style>
+    .nameSpan{display: inline-block;width: 18%}
+    .leftW{margin-left: 10%}
+    #gbin1-list{margin-bottom: 10px}
+</style>
+
+<ul class="nav nav-tabs">
+    <li{if $op == 'display'} class="active"{/if}><a href="{php echo $this->createWebUrl('huodong');}">活动管理</a></li>
+    {if $a!='shenhe' && $a!='report' &&  $this->perm_check('edit',$user_perm,$perm_route)}
+    <li{if $op == 'add'} class="active"{/if}><a href="{php echo $this->createWebUrl('huodong',array('op'=>'add','id'=>$_GPC['id']));}">添加活动</a></li>
+    {if $op == 'shua'}<li class="active"><a href="{php echo $this->createWebUrl('huodong',array('op'=>'shua','id'=>$_GPC['id']));}">活动刷量</a></li>{/if}
+    {/if}
+</ul>
+<div class="main">
+    {if $op == 'shua'}
+    <div class="main">
+        <form action="" method="post" class="form-horizontal form" enctype="multipart/form-data">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    活动刷量
+                </div>
+                <div class="panel-body">
+                    <div class="form-group">
+                        <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">刷量人数</label>
+                        <div class="col-sm-5">
+                            <input type="text" name="num" class="form-control" value="{$category['num']}" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-body">
+                    <div class="form-group">
+                        <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">刷量开始时间</label>
+                        <div class="col-sm-5">
+                            {php echo tpl_form_field_date('starttime','',true);}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-body">
+                    <div class="form-group">
+                        <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">刷量结束时间</label>
+                        <div class="col-sm-5">
+                            {php echo tpl_form_field_date('endtime','',true);}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group col-sm-12">
+                    <input type="hidden" name="token" value="{$_W['token']}" />
+                    <input type="hidden" name="id" value="{$id}" />
+                    <input type="submit" class="btn btn-primary col-lg-1" name="submit" value="提交" />
+                </div>
+
+            </div>
+        </form>
+    </div>
+    {/if}
+    {if $op =="display"}
+    <div class="panel panel-info">
+        <div class="panel-heading">筛选</div>
+
+        <div class="panel-body">
+
+            <form action="./index.php" method="get" class="form-horizontal" role="form">
+
+                <input type="hidden" name="c" value="site" />
+                <input type="hidden" name="a" value="entry" />
+                <input type="hidden" name="m" value="{MD}" />
+                {if $a=='shenhe'}
+                <input type="hidden" name="do" value="huodong.shenhe" />
+                {else if $a=='report'}
+                <input type="hidden" name="do" value="huodong.report" />
+                {else}
+                <input type="hidden" name="do" value="huodong" />
+                {/if}
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">关键字</label>
+                    <div class="col-xs-12 col-sm-8 col-lg-9">
+                        <input class="form-control" name="keyword" id="" type="text" value="{$_GPC['keyword']}">
+                    </div>
+                </div>
+
+                <div class="form-group">
+
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">活动所属分类</label>
+
+                    <div class="col-xs-12 col-sm-8 col-lg-9">
+
+                        <select class="form-control" name="cateid">
+
+                            <option value="0" {if empty($_GPC['cateid'])} selected  {/if}>请选择所属活动分类</option>
+
+                            {loop $cate $r}
+
+                            <option value="{$r['id']}" {if $_GPC['cateid']==$r['id']} selected  {/if}>{$r['name']}</option>
+
+                            {/loop}
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+                {if $a!='shenhe' && $a!='report'}
+                <div class="form-group">
+
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">活动发布者类型</label>
+
+                    <div class="col-xs-12 col-sm-8 col-lg-9">
+
+                        <select class="form-control" name="type">
+
+                            <option value="0" {if empty($type)} selected  {/if}>请选择活动发布者类型</option>
+
+                            <option value="1" {if $type==1} selected  {/if}>用户</option>
+
+                            <option value="2" {if $type==2} selected  {/if} >商家</option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+                <div class="form-group">
+
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">活动显示状态</label>
+
+                    <div class="col-xs-12 col-sm-8 col-lg-9">
+
+                        <select class="form-control" name="status">
+
+                            <option value="0" {if empty($status)} selected  {/if}>请选择活动显示状态</option>
+
+                            <option value="1" {if $status==1} selected  {/if}>显示</option>
+
+                            <option value="2" {if $status==2} selected  {/if} >隐藏</option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+                {else if $a=='shenhe'}
+                <div class="form-group">
+
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">活动审核状态</label>
+
+                    <div class="col-xs-12 col-sm-8 col-lg-9">
+
+                        <select class="form-control" name="status">
+
+                            <option value="0" {if empty($status)} selected  {/if}>请选择活动审核状态</option>
+
+                            <option value="3" {if $status==3} selected  {/if}>待审核</option>
+
+                            <option value="4" {if $status==4} selected  {/if} >审核不通过</option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+                {else}
+                <div class="form-group">
+
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">举报受理状态</label>
+
+                    <div class="col-xs-12 col-sm-8 col-lg-9">
+
+                        <select class="form-control" name="status">
+
+                            <option value="0" {if empty($status)} selected  {/if}>请选择举报受理状态</option>
+
+                            <option value="1" {if $status==1} selected  {/if}>举报成功</option>
+
+                            <option value="2" {if $status==2} selected  {/if}>举报不成功</option>
+
+                            <option value="3" {if $status==3} selected  {/if}>未受理</option>
+
+                            <option value="4" {if $status==4} selected  {/if} >所有</option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+                {/if}
+
+
+
+                <div class="form-group">
+                    <div class=" col-xs-12 col-sm-2 col-lg-2">
+
+                        <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="panel panel-default">
+        <div class="panel-heading">{if !empty($condition) || !empty($condition_mr)}<span style="color:red">【符合搜索条件】</span>{/if}活动详细数据  |  总数:{php echo $total}</div>
+        <div class="panel-body table-responsive">
+
+            <form action="" method="post" enctype="multipart/form-data">
+                {if $a!='shenhe' && $a!='report'}
+                <table class="table table-hover">
+
+                    <thead class="navbar-inner">
+
+                    <tr>
+                        <th  style="width:4%;">排序</th>
+                        <th  style="width:15%;">活动标题</th>
+                        <th  style="width:12%;">活动时间</th>
+                        <th style="width:12%;">活动地址</th>
+                        <th style="width:10%;">所属区域</th>
+                        <th  style="width:7%;">发布者</th>
+                        <th  style="width:8%;">活动类型</th>
+                        <th style="width:20%;">操作</th>
+                    </tr>
+
+                    </thead>
+                    <tbody id="main">
+                    {loop $list $item}
+
+                    <tr>
+                        <td>
+                            <input type="text" name="displayorder[{$item['id']}]" style="width:90%" value="{$item['displayorder']}" />
+                        </td>
+                        <td style="white-space:normal; word-break:break-all;overflow:hidden">
+                            <p>{$item['hdname']}</p>
+                        </td>
+                        <td style="white-space:normal; word-break:break-all;overflow:hidden">
+                            <p>{$item['time']}</p>
+                        </td>
+                        <td style="white-space:normal; word-break:break-all;overflow:hidden">
+                            <p>{$item['address']}</p>
+                        </td>
+                        <td>
+                            {$item['province']}-{$item['city']}
+                        </td>
+                        <td>
+                            {if !empty($item['mid'])}<div class="btn btn-success btn-sm">用户</div>{else}<div class="btn btn-default btn-sm">商家</div>{/if}
+                        </td>
+                        <td>
+                            {if empty($item['isshow'])}不显示{else}
+                            {if $item['endtime']<time()}已结束{/if}
+                            {if $item['starttime']>time()}未开始{/if}
+                            {if $item['starttime']<=time() && $item['endtime']>time()}进行中{/if}{/if}
+                        </td>
+                        <td style="white-space:normal;word-break:break-all">
+							<span>
+                                {if $this->perm_check('baoming.baoming.edit',$user_perm)}
+								<a target="_blank" href="{php echo $this->createWebUrl('baoming',array('op'=>'add','id'=>$item['id']));}"><div class="btn btn-default btn-sm">报名人员</div></a>&nbsp;
+                                {/if}
+                                {if $this->perm_check('edit',$user_perm,$perm_route)}
+								<a href="{php echo $this->createWebUrl('huodong',array('op'=>'add','id'=>$item['id']));}"><div class="btn btn-info btn-sm">编辑</div></a>&nbsp;
+                                {/if}
+                                {if $this->perm_check('del',$user_perm,$perm_route)}
+								<a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('huodong',array('op'=>'del','id'=>$item['id']));}"><div class="btn btn-danger btn-sm">删除</div></a>
+							    {/if}
+                            </span>
+                        </td>
+                    </tr>
+                    {/loop}
+                    {if $this->perm_check('edit',$user_perm,$perm_route)}
+                    <tr>
+                        <td colspan="8">
+                            <a href="{php echo $this->createWebUrl('huodong', array('op' => 'add'))}"><div class="btn btn-success btn-sm">添加活动</div></a>
+                        </td>
+                    </tr>
+                    {/if}
+                    <tr>
+                        <td colspan="8">
+                            <input type="hidden" name="token" value="{$_W['token']}" />
+                            <input type="submit" class="btn btn-primary" name="submit" value="提交" />
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                {/if}
+                {if $a=='shenhe'}
+                <table class="table table-hover">
+
+                    <thead class="navbar-inner">
+
+                    <tr>
+                        <th  style="width:4%;">排序</th>
+                        <th  style="width:15%;">活动标题</th>
+                        <th  style="width:12%;">活动时间</th>
+                        <th style="width:12%;">活动地址</th>
+                        <th style="width:10%;">所属区域</th>
+                        <th  style="width:7%;">审核状态</th>
+                        <th  style="width:8%;">活动类型</th>
+                        <th style="width:20%;">操作</th>
+                    </tr>
+
+                    </thead>
+                    <tbody id="main">
+                    {loop $list $item}
+
+                    <tr>
+                        <td>
+                            <input type="text" name="displayorder[{$item['id']}]" style="width:90%" value="{$item['displayorder']}" />
+                        </td>
+                        <td style="white-space:normal; word-break:break-all;overflow:hidden">
+                            <p>{$item['hdname']}</p>
+                        </td>
+                        <td style="white-space:normal; word-break:break-all;overflow:hidden">
+                            <p>{$item['time']}</p>
+                        </td>
+                        <td style="white-space:normal; word-break:break-all;overflow:hidden">
+                            <p>{$item['address']}</p>
+                        </td>
+                        <td>
+                            {$item['province']}-{$item['city']}
+                        </td>
+                        <td>
+                            {if $item['isshow']==4}<div class="btn btn-danger btn-sm">审核不通过</div>{else}<div class="btn btn-default btn-sm">待审核</div>{/if}
+                        </td>
+                        <td>
+                            {if empty($item['isshow'])}不显示{else}
+                            {if $item['endtime']<time()}已结束{/if}
+                            {if $item['starttime']>time()}未开始{/if}
+                            {if $item['starttime']<=time() && $item['endtime']>time()}进行中{/if}{/if}
+                        </td>
+                        <td style="white-space:normal;word-break:break-all">
+
+                            <span>
+                                {if $this->perm_check('huodong.huodong.edit',$user_perm)}
+								<a href="{php echo $this->createWebUrl('huodong',array('op'=>'add','id'=>$item['id']));}" target="_blank"><div class="btn btn-info btn-sm">查看详情</div></a>&nbsp;
+                                {/if}
+                                {if $this->perm_check('edit',$user_perm,$perm_route)}
+								<a onclick="return confirm('此操作不可恢复，确认将该信息审核通过吗？'); return false;" href="{php echo $this->createWebUrl('huodong',array('op'=>'shenhe_edit','id'=>$item['id']));}"><div class="btn btn-success btn-sm">审核通过</div></a>
+							    {if $item['isshow']==3}
+                                <a onclick="return confirm('确认将该信息审核不通过吗？'); return false;" href="{php echo $this->createWebUrl('huodong',array('op'=>'shenhe_edit2','id'=>$item['id']));}"><div class="btn btn-default btn-sm">审核不通过</div></a>
+                                {/if}
+                                {/if}
+                                {if $this->perm_check('del',$user_perm,$perm_route)}
+								<a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('huodong',array('op'=>'shenhe_del','id'=>$item['id']));}"><div class="btn btn-danger btn-sm">删除</div></a>
+							    {/if}
+                            </span>
+                        </td>
+                    </tr>
+                    {/loop}
+                    <tr>
+                        <td colspan="8">
+                            <input type="hidden" name="token" value="{$_W['token']}" />
+                            <input type="submit" class="btn btn-primary" name="submit" value="提交" />
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                {/if}
+                {if $a=='report'}
+                <table class="table table-hover">
+
+                    <thead class="navbar-inner">
+
+                    <tr>
+                        <th  style="width:4%;">排序</th>
+                        <th  style="width:15%;">活动标题</th>
+                        <th  style="width:12%;">活动时间</th>
+                        <th style="width:25%;">举报内容</th>
+                        <th  style="width:7%;">举报状态</th>
+                        <th  style="width:8%;">活动类型</th>
+                        <th style="width:20%;">操作</th>
+                    </tr>
+
+                    </thead>
+                    <tbody id="main">
+                    {loop $list $item}
+
+                    <tr>
+                        <td>
+                            <input type="text" name="displayorder[{$item['id']}]" style="width:90%" value="{$item['displayorder']}" />
+                        </td>
+                        <td style="white-space:normal; word-break:break-all;overflow:hidden">
+                            <p>{$item['hdname']}</p>
+                        </td>
+                        <td style="white-space:normal; word-break:break-all;overflow:hidden">
+                            <p>{$item['time']}</p>
+                        </td>
+                        <td style="white-space:normal; word-break:break-all;overflow:hidden">
+                            <p>{$item['report']}</p>
+                        </td>
+                        <td>
+                            {if $item['report_status']==1}<div class="btn btn-success btn-sm">举报成功</div>{else if $item['report_status']==2}<div class="btn btn-default btn-sm">举报不成功</div>{else}<div class="btn btn-danger btn-sm">未受理</div>{/if}
+                        </td>
+                        <td>
+                            {if empty($item['isshow'])}不显示{else}
+                            {if $item['endtime']<time()}已结束{/if}
+                            {if $item['starttime']>time()}未开始{/if}
+                            {if $item['starttime']<=time() && $item['endtime']>time()}进行中{/if}{/if}
+                        </td>
+                        <td style="white-space:normal;word-break:break-all">
+
+                            <span>
+                                {if $this->perm_check('huodong.huodong.edit',$user_perm)}
+								<a href="{php echo $this->createWebUrl('huodong',array('op'=>'add','id'=>$item['id']));}" target="_blank"><div class="btn btn-info btn-sm">查看详情</div></a>&nbsp;
+                                {/if}
+                                {if empty($item['report_status'])}
+                                    {if $this->perm_check('edit',$user_perm,$perm_route)}
+                                    <a onclick="return confirm('此操作不可恢复，确认将该举报信息审核为举报成功吗？举报成功后即将将该活动变更为不显示！'); return false;" href="{php echo $this->createWebUrl('huodong',array('op'=>'report_edit','id'=>$item['report_id']));}"><div class="btn btn-success btn-sm">举报成功</div></a>
+                                    <a onclick="return confirm('确认将该举报信息审核为举报不成功吗？'); return false;" href="{php echo $this->createWebUrl('huodong',array('op'=>'report_edit2','id'=>$item['report_id']));}"><div class="btn btn-default btn-sm">举报不成功</div></a>
+                                    {/if}
+                                {/if}
+                                {if $this->perm_check('del',$user_perm,$perm_route)}
+								<a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('huodong',array('op'=>'report_del','id'=>$item['report_id']));}"><div class="btn btn-danger btn-sm">删除</div></a>
+							    {/if}
+                            </span>
+                        </td>
+                    </tr>
+                    {/loop}
+                    <tr>
+                        <td colspan="8">
+                            <input type="hidden" name="token" value="{$_W['token']}" />
+                            <input type="submit" class="btn btn-primary" name="submit" value="提交" />
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                {/if}
+                {$pager}
+            </form>
+        </div>
+
+    </div>
+
+    {/if}
+
+    {if $op == 'add'}
+    <form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" onsubmit="return check()">
+        <input type="hidden" name="id" value="{$item['id']}" />
+        {if !empty($item['id'])}
+        <div class="panel panel-default">
+
+            <div class="panel-heading">
+                快捷操作
+            </div>
+            <div class="panel-body clearfix welcome-container">
+                <div class="shortcut clearfix">
+                    {if $this->perm_check('baoming.baoming.edit',$user_perm)}
+                    <a href="{php echo $this->createWebUrl('baoming',array('op'=>'add','id'=>$item['id']));}" target="_blank">
+                        <img src="../addons/{MD}/images/member_icon.png">
+                        <span>报名人员</span>
+                    </a>
+                    {/if}
+
+                    <a target="_blank" href="{php echo $_W['siteroot'].'app/'.substr($this->createMobileUrl('preview',array('id'=>$this->pencode($item['id']))),2);}">
+                        <img src="../addons/{MD}/images/hd_icon.png">
+                        <span>预览活动</span>
+                    </a>
+
+                    <a href="{php echo $this->createWebUrl('huodong',array('op'=>'top','id'=>$item['id']));}">
+                        <img src="../addons/{MD}/images/top_icon.png">
+                        <span>置顶活动</span>
+                    </a>
+
+                    {if $this->perm_check('stat.stat.view',$user_perm)}
+                    <a target="_blank" href="{php echo $this->createWebUrl('stat',array('hdid'=>$item['id']));}">
+                        <img src="../addons/{MD}/images/stat_icon.png">
+                        <span>统计分析</span>
+                    </a>
+                    {/if}
+
+                    {if !empty($item['isindex']) && $item['isindex'] == 1}
+                    <a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('huodong',array('op'=>'index','id'=>$item['id']));}" >
+                        <img src="../addons/{MD}/images/indexshow2_icon.png">
+                        <span>首页不显示</span>
+                    </a>
+                    {else}
+                    <a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('huodong',array('op'=>'index','id'=>$item['id']));}">
+                        <img src="../addons/{MD}/images/indexshow_icon.png">
+                        <span>在首页显示</span>
+                    </a>
+                    {/if}
+
+                    {if $item['isshow']==0}
+                    <a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('huodong',array('op'=>'isshow','id'=>$item['id']));}" >
+                        <img src="../addons/{MD}/images/show_icon.png">
+                        <span>显示该活动</span>
+                    </a>
+                    {/if}
+
+                    {if $item['isshow']==1}
+                    <a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('huodong',array('op'=>'isshow','id'=>$item['id']));}" >
+                        <img src="../addons/{MD}/images/show2_icon.png">
+                        <span>隐藏该活动</span>
+                    </a>
+                    {/if}
+
+                    {if $this->perm_check('del',$user_perm,$perm_route)}
+                    <a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('huodong',array('op'=>'del','id'=>$item['id']));}">
+                        <img src="../addons/{MD}/images/del_icon.png">
+                        <span>删除活动</span>
+                    </a>
+                    {/if}
+
+
+                </div>
+
+            </div>
+        </div>
+        {/if}
+        <div class="panel panel-info">
+
+            <div class="panel-heading">
+                {if !empty($id)}编辑{else}新建{/if}活动
+            </div>
+            <div class="panel-body">
+                {if !empty($item['id'])}
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">访问地址</label>
+                    <div class="col-sm-8 col-xs-12">
+                        <a href="{php echo $_W['siteroot'] . 'app/' .substr($this->createMobileUrl('detail', array('id' => $this->pencode($item['id']), 'weid' => $weid)),2)}" target="_blank">{php echo $_W['siteroot'] . 'app/' .substr($this->createMobileUrl('detail', array('id' => $this->pencode($item['id']), 'weid' => $weid)),2)}</a>
+                    </div>
+                </div>
+                {/if}
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">活动排序</label>
+                    <div class="col-sm-7 col-xs-12">
+                        <input type="text" name="displayorder" class="form-control" value="{$item['displayorder']}" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">活动标题</label>
+                    <div class="col-sm-7 col-xs-12">
+                        <input type="text" name="hdname" class="form-control" value="{$item['hdname']}" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">活动介绍图</label>
+                    <div class="col-sm-7 col-xs-12">
+                        {php echo tpl_form_field_multi_image('thumb', $item['thumb']);}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">活动类型</label>
+                    <div class="col-sm-7 col-xs-12">
+                        {loop $hdcate $row}
+                        <label  class="radio-inline"><input type="radio" name="hdcateid" value="{$row['id']}" {if $row['id']==$item['hdcateid']}checked{/if}/>{$row['name']}&nbsp;</label>
+                        {/loop}
+                    </div>
+                </div>
+                {if empty($item['mid'])}
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">活动发布者</label>
+                    <div class="col-sm-7 col-xs-12">
+                        <label>商家发布</label>
+                    </div>
+                </div>
+                <div class="form-group" >
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">活动适用门店</label>
+                    <div class="col-sm-7 col-xs-12" id="mds" >
+                        {loop $mendian $m}
+                        <label  class="radio-inline"><input type="checkbox" name="mendian_ids[]" value="{$m['id']}" {if in_array($m['id'],$mendian_ids)}checked{/if}>{$m['mendianname']}&nbsp;&nbsp;&nbsp;</label>
+                        {/loop}
+                    </div>
+                </div>
+                {else}
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">活动发布者</label>
+                    <div class="col-sm-7 col-xs-12">
+                        <label>用户发布</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">活动发布者</label>
+                    <div class="col-sm-7 col-xs-12">
+                        <label>{$item['realname']}</label>
+                    </div>
+                </div>
+                {/if}
+
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">活动联系人电话</label>
+                    <div class="col-sm-7 col-xs-12">
+                        <input type="text" name="lx_mobile" class="form-control" value="{$item['lx_mobile']}" />
+                        <span>但不填写的时候则，商家显示商家的电话，个人用户显示个人中心绑定的电话</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">活动时间区间</label>
+                    <div class="col-sm-7 col-xs-12">
+                        {php echo tpl_form_field_daterange('time2', array('start'=>date('Y-m-d',$item['starttime']),'end'=>date('Y-m-d',$item['endtime'])));}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">活动时间</label>
+                    <div class="col-sm-7 col-xs-12">
+                        <input type="text" name="time" class="form-control"
+                               value="{$item['time']}" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">报名截止时间</label>
+                    <div class="col-sm-7 col-xs-12">
+                        {php echo tpl_form_field_date('deadline', date('Y-m-d H:i',$item['deadline']) , true);}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">活动举办地类型</label>
+                    <div class="col-sm-7 col-xs-12">
+                        <label  class="radio-inline" onclick="offline()"><input type="radio" name="address_type" value="1" {if !empty($item['address']) && $item['address'] != '线上活动'}checked="true"{/if} /> 线下活动</label>
+                        &nbsp;&nbsp;&nbsp;
+                        <label  class="radio-inline" onclick="online()"><input type="radio" name="address_type" value="0"  {if empty($item['address']) || $item['address'] == '线上活动'}checked="true"{/if} /> 线上活动</label>
+                    </div>
+                </div>
+
+
+                <div class="form-group offline">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">导航地址</label>
+                    <div class="col-sm-7 col-xs-12" id="abcde">
+                        {php $location=array('lng'=>$item['lng'],'lat'=>$item['lat'])}
+
+                        {php echo tpl_form_field_coordinate('location',$location);}
+                    </div>
+                </div>
+
+
+                <div class="form-group offline" id="address_div" style="display: none">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+                    <div class="col-sm-7 col-xs-12">
+                        <span id="address2" ></span>
+                        <a class="btn btn-sm btn-default" id="address_btn" onclick="change_address()" >运用此地址</a>
+                    </div>
+                </div>
+
+                <div class="form-group offline">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">活动地址</label>
+                    <div class="col-sm-7 col-xs-12">
+                        <input type="text" name="address" id="address" class="form-control" value="{$item['address']}" />
+                        <input type="hidden" name="province" id="province" value="" />
+                        <input type="hidden" name="city" id="city" value="" />
+                        <input type="hidden" name="dist" id="dist" value="" />
+                        <input type="hidden" name="town" id="town" value="" />
+                        <input type="hidden" name="street" id="street" value="" />
+                    </div>
+                </div>
+
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">活动描述</label>
+                    <div class="col-sm-7 col-xs-12">
+                        {php echo tpl_ueditor('description',$item['description'])}
+                        <span class="help-block">
+                                小工具:
+                                <a href="http://wxedit.yead.net/" target="_blank" title="新窗口打开">易点微信编辑器</a> &nbsp;
+                                <a href="http://www.135editor.com/" target="_blank" title="新窗口打开">135微信编辑器</a> &nbsp;(利用第三方编辑器，获得更好显示效果)
+                             </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-primary">
+
+            <div class="panel-heading">
+                价格设置 <span style="margin-left: 20px;font-weight: bold;font-size: 13px">注:如果金额为0代表无需门票，如果名额不设置，默认为不限制</span>
+            </div>
+            <div class="panel-body">
+                {loop $item['price'] $p}
+                <div class="form-group" data-priceid="{$p['id']}">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">价格配置</label>
+                    <div class="col-sm-7 col-xs-12">
+                        <div class="input-group" >
+                            <div class="input-group-addon">费用名称</div>
+                            <input class="form-control price_name" type="text" name="price_name" value="{$p['pricename']}"/>
+                            <div class="input-group-addon">费用金额</div>
+                            <input class="form-control price" type="text" name="price" value="{$p['price']}"/>
+                            <div class="input-group-addon">元</div>
+                            <div class="input-group-addon">名额限制</div>
+                            <input class="form-control price_num" type="text" name="price_num" value="{$p['num']}" />
+                            <div class="input-group-addon">人</div>
+                            <div class="input-group-addon" onclick="del_price(this)"  data-id="{$item['id']}" style="background-color: #fb6b5b;color: #fff;font-weight: bold">删除</div>
+                        </div>
+                    </div>
+                </div>
+                {/loop}
+                <div class="form-group" data-priceid="">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">价格配置</label>
+                    <div class="col-sm-7 col-xs-12">
+                        <div class="input-group" >
+                            <div class="input-group-addon">费用名称</div>
+                            <input class="form-control price_name" type="text" name="price_name" />
+                            <div class="input-group-addon">费用金额</div>
+                            <input class="form-control price" type="text" name="price" />
+                            <div class="input-group-addon">元</div>
+                            <div class="input-group-addon">名额限制</div>
+                            <input class="form-control price_num" type="text" name="price_num" />
+                            <div class="input-group-addon">人</div>
+                            <div class="input-group-addon" onclick="del_price(this)"  data-id="{$item['id']}" style="background-color: #fb6b5b;color: #fff;font-weight: bold">删除</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group" id="price">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label"></label>
+                    <div class="col-sm-5">
+                        <input id="price_price" type="hidden" name="price_price" />
+                        <div class="help-block"><span class="btn btn-success" onclick="new_price()">添加新设置</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-success">
+
+            <div class="panel-heading">
+                更多设置
+            </div>
+            <div class="panel-body">
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">报名后可否退款</label>
+                    <div class="col-sm-7 col-xs-12">
+
+                        <label for="enabled1" class="radio-inline"><input type="radio" name="tk" value="1" id="enabled1" {if !empty($item['tk']) && $item['tk'] == 1}checked="true"{/if} /> 可以</label>
+                        &nbsp;&nbsp;&nbsp;
+                        <label for="enabled2" class="radio-inline"><input type="radio" name="tk" value="0" id="enabled2"  {if empty($item['tk']) || $item['tk'] == 0}checked="true"{/if} /> 不可以</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">选中后可否取消报名</label>
+                    <div class="col-sm-7 col-xs-12">
+                        <label for="enabled3" class="radio-inline"><input type="radio" name="qx" value="1" id="enabled3" {if !empty($item['qx']) && $item['qx'] == 1}checked="true"{/if} /> 可以</label>
+                        &nbsp;&nbsp;&nbsp;
+                        <label for="enabled4" class="radio-inline"><input type="radio" name="qx" value="0" id="enabled4"  {if empty($item['qx']) || $item['qx'] == 0}checked="true"{/if} /> 不可以</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">报名后是否需要审核入选</label>
+                    <div class="col-sm-7 col-xs-12">
+                        <label for="enabled5" class="radio-inline"><input type="radio" name="shenhe" value="1" id="enabled5" {if !empty($item['shenhe']) && $item['shenhe'] == 1}checked="true"{/if} /> 需要</label>
+                        &nbsp;&nbsp;&nbsp;
+                        <label for="enabled6" class="radio-inline"><input type="radio" name="shenhe" value="0" id="enabled6"  {if empty($item['shenhe']) || $item['shenhe'] == 0}checked="true"{/if} /> 不需要</label>
+                        <br>
+                        <span style="color:red;"> 备注:如果入选人数达到活动可参与人数上限，则即使用户付款/报名后也无法直接入选成功，建议开启不需要审核功能时，设置可入选人数为无限</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">活动参与人数数量</label>
+                    <div class="col-sm-7 col-xs-12">
+                        {$item['num']}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">活动人气（喜欢）</label>
+                    <div class="col-sm-7 col-xs-12">
+                        <input type="text" name="sc" class="form-control" value="{$item['sc']}" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">活动浏览量</label>
+                    <div class="col-sm-7 col-xs-12">
+                        <input type="text" name="pv" class="form-control" value="{$item['pv']}" />
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+
+            <div class="panel-heading">
+                显示设置
+            </div>
+            <div class="panel-body">
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">是否显示在首页</label>
+                    <div class="col-sm-7 col-xs-12">
+                        <label  class="radio-inline"><input type="radio" name="isindex" value="1" {if !empty($item['isindex']) && $item['isindex'] == 1}checked="true"{/if} /> 是</label>
+                        &nbsp;&nbsp;&nbsp;
+                        <label  class="radio-inline"><input type="radio" name="isindex" value="0"  {if empty($item['isindex']) || $item['isindex'] == 0}checked="true"{/if} /> 否</label>
+                    </div>
+                </div>
+
+                {if $item['isshow']==3 || $item['isshow']==4}
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">是否审核</label>
+                    <div class="col-sm-7 col-xs-12">
+                        <label  class="radio-inline"><input type="radio" name="isshow" value="1" id="isshow" {if !empty($item['isshow']) && $item['isshow'] == 1}checked="true"{/if} /> 审核通过</label>
+                        &nbsp;&nbsp;&nbsp;
+                        <label  class="radio-inline"><input type="radio" name="isshow" value="3" id="isshow"  {if !empty($item['isshow']) && $item['isshow'] == 3}checked="true"{/if} /> 待审核</label>
+                        &nbsp;&nbsp;&nbsp;
+                        <label  class="radio-inline"><input type="radio" name="isshow" value="4" id="isshow"  {if !empty($item['isshow']) && $item['isshow'] == 4}checked="true"{/if} /> 审核不通过</label>
+                    </div>
+                </div>
+                {else}
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">是否显示</label>
+                    <div class="col-sm-7 col-xs-12">
+                        <label  class="radio-inline"><input type="radio" name="isshow" value="1" id="isshow" {if !empty($item['isshow']) && $item['isshow'] == 1}checked="true"{/if} /> 是</label>
+                        &nbsp;&nbsp;&nbsp;
+                        <label  class="radio-inline"><input type="radio" name="isshow" value="0" id="isshow"  {if empty($item['isshow']) || $item['isshow'] == 0}checked="true"{/if} /> 否</label>
+                    </div>
+                </div>
+                {/if}
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+                    <div class="col-sm-9 col-xs-12">
+                        <input name="submit" type="submit" value="提交" class="btn btn-primary span3">
+                        <input type="hidden" name="token" value="{$_W['token']}" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </form>
+    <script charset="utf-8" src="http://map.qq.com/api/js?v=2.exp"></script>
+    <script>
+        var lat='';
+        var lng='';
+        {if !empty($item['lat'])}
+            lat={$item['lat']};
+            lng={$item['lng']};
+        {/if}
+
+        {if $item['address']=='线上活动' || empty($id)}
+            online();
+        {else}
+            offline();
+        {/if}
+
+        function change_address() {
+            var address=$('#address2').html();
+            $('#address').val(address);
+        }
+
+        function online() {
+            $('.offline').hide();
+            $('#address').val('线上活动');
+        }
+
+        function offline() {
+            $('.offline').show();
+            $('#address_div').hide();
+            if($('#address').val()=='线上活动')
+            {
+                $('#address').val('');
+            }
+        }
+
+        function check_lat_lng() {
+            var temp_lat=$("input[name='location[lat]']").val();
+            var temp_lng=$("input[name='location[lng]']").val();
+            if(temp_lat!=lat || temp_lng!=lng)
+            {
+                var latLng = new qq.maps.LatLng(temp_lat,temp_lng);
+                geocoder.getAddress(latLng);
+                lat=temp_lat;
+                lng=temp_lng;
+            }
+        }
+
+        var geocoder = new qq.maps.Geocoder({
+            complete: function (result) {
+                $('#province').val(result.detail.addressComponents.province);
+                $('#city').val(result.detail.addressComponents.city);
+                $('#dist').val(result.detail.addressComponents.district);
+                $('#town').val(result.detail.addressComponents.town);
+                $('#street').val(result.detail.addressComponents.street);
+
+                var address = result.detail.addressComponents.province + ' ' + result.detail.addressComponents.city + ' ' + result.detail.addressComponents.district + ' ' + result.detail.addressComponents.town + ' ' + result.detail.addressComponents.street;
+                $('#address2').html(address);
+                $('#address_div').show();
+            }
+        });
+
+
+        function check() {
+            var p='';
+            $('.price_name').each(function () {
+                var temp_price_name=$(this).val();
+                if(temp_price_name)
+                {
+                    var temp_price_set=$(this).parent().parent().parent();
+                    var temp_price=$(temp_price_set).find('.price').val();
+                    if(temp_price!=="")
+                    {
+                        var temp_priceid=$(temp_price_set).data('priceid');
+                        p=p+temp_priceid+".|."+temp_price_name+".|."+temp_price;
+                        var temp_num=$(temp_price_set).find('.price_num').val();
+                        if(temp_num>0)
+                        {
+                            p=p+".|."+temp_num;
+                        }
+                        p=p+"^~^";
+                    }
+                }
+
+            });
+            $('#price_price').val(p);
+        }
+
+        function new_price(){
+            {php $item['id']=intval($item['id'])}
+            $("#price").before('<div class="form-group" data-priceid=""> <label class="col-xs-12 col-sm-3 col-md-2 control-label">价格配置</label> <div class="col-sm-7 col-xs-12"> <div class="input-group" > <div class="input-group-addon">费用名称</div> <input class="form-control price_name" type="text" name="price_name" /> <div class="input-group-addon">费用金额</div> <input class="form-control price" type="text" name="price" /> <div class="input-group-addon">元</div> <div class="input-group-addon">名额限制</div><input class="form-control price_num" type="text" name="price_num" /><div class="input-group-addon">人</div><div class="input-group-addon" onclick="del_price(this)" data-id="'+{$item['id']}+'" style="background-color: #fb6b5b;color: #fff;font-weight: bold">删除</div></div></div></div>');
+        }
+
+        setInterval(function(){
+            check_price_all();
+            check_price_num_all();
+            check_lat_lng();
+        },500);
+
+        function check_price_all() {
+            $(".price").each(function(){
+                var val=$(this).val();
+                var v=check_price(val);
+
+                $(this).val(v);
+            });
+        }
+        function check_price_num_all() {
+            $(".price_num").each(function(){
+                var val=$(this).val();
+                var v=check_price_num(val);
+
+                $(this).val(v);
+            });
+        }
+        function check_price(val) {
+            var v=val;
+            v = v.replace(/[^\d.]/g,""); //清除"数字"和"."以外的字符
+            v = v.replace(/^\./g,""); //验证第一个字符是数字而不是
+            v = v.replace(/\.{2,}/g,"."); //只保留第一个. 清除多余的
+            v = v.replace(".","$#$").replace(/\./g,"").replace("$#$",".");
+            v = v.replace(/^(\-)*(\d+)\.(\d\d).*$/,'$1$2.$3'); //只能输入两个小数
+            return v;
+        }
+        function check_price_num(val) {
+            var v = val;
+            if(v)
+            {
+                v = v.replace(/[^\d]/g, ""); //清除"数字"以外的字符
+                return v;
+            }
+        }
+
+        function del_price(obj) {
+            var self=obj;
+            var id=$(self).data('id');
+            var priceid=$(self).parent().parent().parent().data('priceid');
+            if(!id || id==0 || !priceid)
+            {
+                $(self).parent().parent().parent().remove();
+            }
+            else {
+                $.post("{php echo $_W['siteroot'].'web/'.substr($this->createWebUrl('huodong',array('op'=>'del_price')),2)}"+"&priceid="+priceid+"&hdid="+id,function(data){
+                    if (data == 1) {
+                        $(self).parent().parent().parent().remove();
+                    }
+                    else if(data ==2)
+                    {
+                        if(confirm("已有人报名该价位的活动（建议不要删除），仍确定要删除吗？"))
+                        {
+                            $(self).parent().parent().parent().remove();
+                        }
+                    }
+                    else
+                    {
+                        alert("删除失败！"+data);
+                    }
+                })
+            }
+        }
+    </script>
+    {/if}
+</div>
+
+{php echo $this->webnotice()}
+{template 'common/footer'}
+

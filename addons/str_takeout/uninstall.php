@@ -1,0 +1,27 @@
+<?php
+pdo_query("DROP TABLE IF EXISTS `ims_str_account`;
+DROP TABLE IF EXISTS `ims_str_address`;
+DROP TABLE IF EXISTS `ims_str_area`;
+DROP TABLE IF EXISTS `ims_str_assign_board`;
+DROP TABLE IF EXISTS `ims_str_assign_queue`;
+DROP TABLE IF EXISTS `ims_str_clerk`;
+DROP TABLE IF EXISTS `ims_str_config`;
+DROP TABLE IF EXISTS `ims_str_dish`;
+DROP TABLE IF EXISTS `ims_str_dish_category`;
+DROP TABLE IF EXISTS `ims_str_dish_comment`;
+DROP TABLE IF EXISTS `ims_str_order`;
+DROP TABLE IF EXISTS `ims_str_order_cart`;
+DROP TABLE IF EXISTS `ims_str_order_comment`;
+DROP TABLE IF EXISTS `ims_str_order_log`;
+DROP TABLE IF EXISTS `ims_str_order_print`;
+DROP TABLE IF EXISTS `ims_str_print`;
+DROP TABLE IF EXISTS `ims_str_reply`;
+DROP TABLE IF EXISTS `ims_str_reserve`;
+DROP TABLE IF EXISTS `ims_str_stat`;
+DROP TABLE IF EXISTS `ims_str_store`;
+DROP TABLE IF EXISTS `ims_str_tables`;
+DROP TABLE IF EXISTS `ims_str_tables_category`;
+DROP TABLE IF EXISTS `ims_str_tables_scan`;
+DROP TABLE IF EXISTS `ims_str_user_trash`;
+DROP TABLE IF EXISTS `ims_str_users`;
+");

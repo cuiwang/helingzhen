@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>个人资料</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black">
+	<meta name="format-detection" content="telephone=no" />
+	<!--标准mui.css-->
+	<link rel="stylesheet" href="../addons/cy163_goodssales/static/mui/css/mui.min.css">
+	{php echo register_jssdk(false);}
+</head>
+<body>
+<header class="mui-bar mui-bar-nav">
+	<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left" onclick="history.go(-1);"></a>
+	<h1 class="mui-title">个人资料</h1>
+</header>
+<div class="mui-content">
+	<ul class="mui-table-view">		
+		<li class="mui-table-view-cell" style="padding:15px 15px;" id="chooseImage">
+			<a class="mui-navigate-right">头像
+				<span class="mui-badge" style="background:#fff;">
+					{if $member['avatar']}
+						<img class="mui-media-object mui-pull-right" id="avatar" src="{$member['avatar']}" style="border-radius:42px;">
+					{else}
+						<img class="mui-media-object mui-pull-right" id="avatar" src="../addons/cy163_goodssales/static/img/autoface.jpg" style="border-radius:42px;">
+					{/if}
+				</span>
+			</a>
+		</li>
+
+		<li class="mui-table-view-cell" id="nickname">
+			<a class="mui-navigate-right">昵称
+				<span class="mui-badge" id="nicknamevalue">{$member['nickname']}</span>
+			</a>
+		</li>
+		
+		<li class="mui-table-view-cell" {if $member['hasrealname'] == 0}id="realname"{else}onclick="mui.toast('真实姓名只能修改1次');"{/if}>
+			<a class="mui-navigate-right">真实姓名
+				<span class="mui-badge" id="realnamevalue">{if $member['realname']}{$member['realname']}{else}未填写{/if}</span>
+			</a>
+		</li>
+		
+		<li class="mui-table-view-cell" id="telphone">
+			<a class="mui-navigate-right">手机号码
+				<span class="mui-badge" id="telphonevalue">{if $member['telphone']}{$member['telphone']}{else}未填写{/if}</span>
+			</a>
+		</li>
+		
+		<li class="mui-table-view-cell">
+			<a class="mui-navigate-right" href="#gender">性别
+				<span class="mui-badge" id="gendervalue">{if $member['gender']}{$member['gender']}{else}未填写{/if}</span>
+			</a>
+		</li>
+	</ul>
+</div>
+
+<div id="gender" class="mui-popover mui-popover-action mui-popover-bottom">
+	<ul class="mui-table-view">
+		<li class="mui-table-view-cell">
+			<a href="#">男</a>
+		</li>
+		<li class="mui-table-view-cell">
+			<a href="#">女</a>
+		</li>
+	</ul>
+	<ul class="mui-table-view">
+		<li class="mui-table-view-cell">
+			<a href="#gender">取消</a>
+		</li>
+	</ul>
+</div>
+<script src="../addons/cy163_goodssales/static/mui/js/jquery.min.js"></script>
+<script src="../addons/cy163_goodssales/static/mui/js/mui.min.js"></script>
+<script>
+	mui.init();
+	mui('body').on('shown', '.mui-popover', function(e) {
+		//console.log('shown', e.detail.id);//detail为当前popover元素
+	});
+	mui('body').on('hidden', '.mui-popover', function(e) {
+		//console.log('hidden', e.detail.id);//detail为当前popover元素
+	});
+	var info = document.getElementById("info");
+	mui('body').on('tap', '.mui-popover-action li>a', function() {
+		var a = this,parent;
+		//根据点击按钮，反推当前是哪个actionsheet
+		for (parent = a.parentNode; parent != document.body; parent = parent.parentNode) {
+			if (parent.classList.contains('mui-popover-action')) {
+				break;
+			}
+		}
+		//关闭actionsheet
+		mui('#' + parent.id).popover('toggle');
+		if(a.innerHTML != '取消'){
+			$.ajax({
+				url:"{php echo $this->createMobileUrl('changeprofile')}",   
+				type:'post', 
+				data:{
+					gender:a.innerHTML,
+					changetype:'gender',
+				},
+				dataType:'json',
+				success:function(data){
+					if (data.error == 1) {
+						mui.alert(data.message, '警告');
+					}else{
+						mui.toast(data.message);
+						$('#gendervalue').text(a.innerHTML);
+					}
+				}
+			});
+		}
+	})
+	document.getElementById("nickname").addEventListener('tap', function(e) {
+		e.detail.gesture.preventDefault();
+		var btnArray = ['取消','确定'];
+		mui.prompt('', '请输入昵称', '修改昵称', btnArray, function(e) {
+			if (e.index == 1) {
+				$.ajax({
+					url:"{php echo $this->createMobileUrl('changeprofile')}",   
+					type:'post', 
+					data:{
+						nickname:e.value,
+						changetype:'nickname',
+					},
+					dataType:'json',
+					success:function(data){
+						if (data.error == 1) {
+							mui.alert(data.message, '警告');
+						}else{
+							mui.toast(data.message);
+							$('#nicknamevalue').text(e.value);
+						}
+					}
+				});
+			}
+		})
+	});
+	{if $member['hasrealname'] == 0}
+	document.getElementById("realname").addEventListener('tap', function(e) {
+		e.detail.gesture.preventDefault(); //修复iOS 8.x平台存在的bug，使用plus.nativeUI.prompt会造成输入法闪一下又没了
+		var btnArray = ['取消','确定'];
+		mui.prompt('真实姓名只有一次修改机会，请谨慎操作', '请输入真实姓名', '修改真实姓名', btnArray, function(e) {
+			if (e.index == 1) {
+				$.ajax({
+					url:"{php echo $this->createMobileUrl('changeprofile')}",   
+					type:'post', 
+					data:{
+						realname:e.value,
+						changetype:'realname',
+					},
+					dataType:'json',
+					success:function(data){
+						if (data.error == 1) {
+							mui.alert(data.message, '警告');
+						}else{
+							mui.toast(data.message);
+							$('#realnamevalue').text(e.value);
+						}
+					}
+				});
+			}
+		})
+	});
+	{/if}
+	document.getElementById("telphone").addEventListener('tap', function(e) {
+		e.detail.gesture.preventDefault(); //修复iOS 8.x平台存在的bug，使用plus.nativeUI.prompt会造成输入法闪一下又没了
+		var btnArray = ['取消','确定'];
+		mui.prompt('', '请输入手机号码', '修改手机号码', btnArray, function(e) {
+			if (e.index == 1) {
+				$.ajax({
+					url:"{php echo $this->createMobileUrl('changeprofile')}",   
+					type:'post', 
+					data:{
+						telphone:e.value,
+						changetype:'telphone',
+					},
+					dataType:'json',
+					success:function(data){
+						if (data.error == 1) {
+							mui.alert(data.message, '警告');
+						}else{
+							mui.toast(data.message);
+							$('#telphonevalue').text(e.value);
+						}
+					}
+				});
+			}
+		})
+	});
+</script>
+<script type="text/javascript">
+$(function(){
+	$('#chooseImage').click(function(){
+		wx.chooseImage({
+			count: 1, // 默认9
+			sizeType: ['compressed'], // 可以指定是原图还是压缩图，默认二者都有
+			sourceType: ['album', 'camera'], // 可以指定来源是相册还是相机，默认二者都有
+			success: function(res) {
+				var localIds = res.localIds; // 返回选定照片的本地ID列表，localId可以作为img标签的src属性显示图片
+				// 上传照片
+				wx.uploadImage({
+					localId: '' + localIds,
+					isShowProgressTips: 1,
+					success: function(res) {
+						serverId = res.serverId;
+						$.ajax({   
+							 url:"{php echo $this->createMobileUrl('getmedia')}",   
+							 type:'post', 
+							 data:{
+								media_id:serverId,
+								tarwidth:132,
+								tarheight:132,
+							 },
+							 dataType:'json',
+							 success:function(data){   
+								if (data.error == 1) {
+									mui.alert(data.message, '警告');
+								} else {
+									var imgurl = data.imgurl;
+									$.ajax({
+										url:"{php echo $this->createMobileUrl('changeprofile')}",   
+										type:'post', 
+										data:{
+											avatar:imgurl,
+											changetype:'avatar',
+										},
+										dataType:'json',
+										success:function(data){
+											if (data.error == 1) {
+												mui.alert(data.message, '警告');
+											}else{
+												mui.toast(data.message);
+												$('#avatar').attr('src',imgurl);
+											}
+										}
+									});
+								}  
+							 }
+						});
+					}
+				});
+			}
+		});
+	});
+})
+</script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+{template 'common/header'}
+{template 'coupon_nav'}
+
+<style>
+	.label{line-height: 2}
+	.danger{position: relative}
+</style>
+<div class="clearfix" id="memberProperty">
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				设置优惠券派发活动中的会员属性
+			</div>
+			<div class="panel-body">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">新用户</label>
+				<div class="col-sm-9 col-xs-12">
+					<select name="newmember" v-model="param.newmember" class="form-control">
+						<option v-for="num in nums" v-show="num < param.oldmember">{{num}}</option>
+					</select>
+					<span class="help-block">单位为月，成为会员不超过该月，并且只消费过一次或没消费的用户。</span>
+				</div>
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">老用户</label>
+				<div class="col-sm-9 col-xs-12">
+					<select name="oldmember" v-model="param.oldmember"  class="form-control">
+						<option v-for="num in nums" v-if="param.newmember < num">{{num}}</option>
+					</select>
+					<span class="help-block">单位为月，成为会员超过该月的用户。</span>
+				</div>
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">沉寂用户</label>
+				<div class="col-sm-9 col-xs-12">
+					<select name="activitymember" v-model="param.activitymember" class="form-control">
+						<option v-for="num in nums">{{num}}</option>
+					</select>
+					<span class="help-block">单位为月，在月份内没有消费的用户。</span>
+				</div>
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">活跃用户</label>
+				<div class="col-sm-9 col-xs-12">
+					<select name="quietmember" v-model="param.quietmember" class="form-control">
+						<option v-for="num in nums">{{num}}</option>
+					</select>
+					<span class="help-block">单位为月，在月份内消费超过2次的用户。</span>
+				</div>
+			</div>
+		</div>
+		<div class="form-group">
+			<div class="col-sm-9 col-xs-12">
+				<button type="submit" class="btn btn-primary" @click = "submit">提交</button>
+			</div>
+		</div>
+</div>
+<script>
+	require({
+		paths: {
+			'vue': 'https://unpkg.com/vue@2.2.6/dist/vue',
+		}
+	})
+	require(['vue'], function(Vue){
+		var nums = {php echo $nums};
+		var property = {php echo $property};
+		var newmember = property.newmember;
+		var oldmember = property.oldmember;
+		var activitymember = property.activitymember;
+		var quietmember = property.quietmember;
+		var app = new Vue({
+			el: '#memberProperty',
+			data: {
+				param: {
+					newmember: newmember,
+					oldmember: oldmember,
+					activitymember: activitymember,
+					quietmember: quietmember,
+				},
+				nums: nums,
+			},
+			methods: {
+				submit() {
+					console.log(this.param.newmember);
+					if (!this.param.newmember && !this.param.oldmember && !this.param.activitymember && !this.param.quietmember) {
+						util.message('请填写完整信息！');
+						return;
+					}
+					$.post("{php echo $this->createWeburl('memberproperty', array('op' => 'display'));}", {param:this.param}, function(data){
+						data = $.parseJSON(data);
+						console.dir(data);
+						if (data.message.errno != '0') {
+							util.message(data.message.message, '', 'error');
+						} else {
+							util.message('添加成功', data.redirect, 'success');
+						}
+					});
+				}
+			}
+		})
+	})
+</script>

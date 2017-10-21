@@ -1,0 +1,1030 @@
+{template 'common/header'}
+
+<ul class="nav nav-tabs">
+
+    <li {if empty($op)} class="active" {/if}><a href="{php echo $this->createWebUrl('help');}">问题管理</a></li>
+
+    {if $this->perm_check('cate_view',$user_perm,$perm_route)}
+
+    <li {if $op=='cate'} class="active" {/if}><a href="{php echo $this->createWebUrl('help',array('op'=>'cate'));}">分类管理</a></li>
+
+    {/if}
+
+    {if $this->perm_check('stat',$user_perm,$perm_route)}
+
+    <li {if $op=='stat'} class="active" {/if}><a href="{php echo $this->createWebUrl('help',array('op'=>'stat'));}">统计分析</a></li>
+
+    {/if}
+
+    {if $op=='addhelp_cate'}<li class="active" ><a href="{php echo $this->createWebUrl('help',array('op'=>'addhelp_cate','id'=>$id));}">{if !empty($id)}编辑{else}新增{/if}问题分类</a></li>{/if}
+    {if $op=='addhelp'}<li class="active" ><a href="{php echo $this->createWebUrl('help',array('op'=>'addhelp','id'=>$id));}">{if !empty($id)}编辑{else}新增{/if}问题</a></li>{/if}
+
+</ul>
+
+
+
+{if empty($op)}
+
+<div class="panel panel-info">
+
+    <div class="panel-heading">问题筛选</div>
+
+
+
+    <div class="panel-body">
+
+
+
+        <form action="./index.php" method="get" class="form-horizontal" role="form">
+
+
+
+            <input type="hidden" name="c" value="site" />
+
+            <input type="hidden" name="a" value="entry" />
+
+            <input type="hidden" name="m" value="{MD}" />
+
+            <input type="hidden" name="do" value="help" />
+
+
+
+            <div class="form-group">
+
+                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">关键字</label>
+
+                <div class="col-xs-12 col-sm-8 col-lg-9">
+
+                    <input class="form-control" name="keyword" type="text" value="{$_GPC['keyword']}" placeholder="请输入问题关键字">
+
+                </div>
+
+            </div>
+
+
+
+            <div class="form-group">
+
+                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">问题所属分类</label>
+
+                <div class="col-xs-12 col-sm-8 col-lg-9">
+
+                    <select class="form-control" name="cateid">
+
+                        <option value="0" {if empty($_GPC['cateid'])} selected  {/if}>请选择所属分类</option>
+
+                        {loop $cate $r}
+
+                        <option value="{$r['id']}" {if $_GPC['cateid']==$r['id']} selected  {/if}>{$r['title']}</option>
+
+                        {/loop}
+
+                    </select>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="form-group">
+
+                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">问题状态</label>
+
+                <div class="col-xs-12 col-sm-8 col-lg-9">
+
+                    <select class="form-control" name="status">
+
+                        <option value="0" {if empty($status)} selected  {/if}>请选择问题状态</option>
+
+                        <option value="1" {if $status==1} selected  {/if}>启用</option>
+
+                        <option value="2" {if $status==2} selected  {/if} >禁用</option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="form-group">
+
+                <div class=" col-xs-12 col-sm-2 col-lg-2">
+
+
+
+                    <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+
+
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<div class="panel panel-default">
+
+
+
+
+
+
+
+    <div class="panel-heading">
+
+        {if !empty($condition)}<span style="color:red">【符合搜索条件】</span>{/if}问题详细数据  |  总数:{$total}
+
+        {if $this->perm_check('edit',$user_perm,$perm_route)}
+
+        <a href="{php echo $this->createWebUrl('help',array('op'=>'addhelp'))}" class="btn btn-info btn-sm" style="margin-left: 30px;margin-top: 1px">添加新问题</a>
+
+        {/if}
+
+        <div style="clear: both"></div>
+
+    </div>
+
+
+
+    <div class="panel-body table-responsive">
+
+
+
+        <form action="" method="post" onsubmit="">
+
+
+
+            <table class="table table-hover">
+
+
+
+                <thead class="navbar-inner">
+
+
+
+                <tr>
+
+                    <th style="width:1%;" class="row-first"></th>
+
+
+
+                    <th style="width:10%;" class="row-first">ID</th>
+
+
+
+                    <th style="width:10%;">问题排序</th>
+
+
+
+                    <th style="width:20%;">问题标题</th>
+
+
+
+                    <th style="width:15%;">所属分类</th>
+
+
+
+                    <th style="width:14%;">状态</th>
+
+
+
+                    {if $this->perm_check('edit',$user_perm,$perm_route) || $this->perm_check('del',$user_perm,$perm_route)}
+
+                    <th style="width:20%;">操作</th>
+
+                    {/if}
+
+
+
+                </tr>
+
+
+
+                </thead>
+
+
+
+                <tbody id="main">
+
+
+
+                {loop $list $row}
+
+
+
+                <tr class="selectedTr">
+
+
+
+                    <td><input  style="display:none" type="checkbox" name="ids[]" value="{$row['id']}" /></td>
+
+
+
+                    <td>{$row['id']}</td>
+
+
+                    <td>
+
+                        <input style="width:80px" type="text" name="displayorder[{$row['id']}]" value="{$row['displayorder']}">
+
+                    </td>
+
+
+
+
+
+                    <td style="white-space:normal;word-break:break-all">{$row['title']}</td>
+
+
+
+                    <td style="white-space:normal;word-break:break-all">{$row['catetitle']}</td>
+
+
+
+                    <td style="white-space:normal;word-break:break-all">{if !empty($row['status'])}启用{else}<span style="color: red">禁用</span>{/if}</td>
+
+                    {if $this->perm_check('edit',$user_perm,$perm_route) || $this->perm_check('del',$user_perm,$perm_route)}
+
+                    <td>
+
+                        {if $this->perm_check('edit',$user_perm,$perm_route)}
+
+                        <a href="{php echo $this->CreateWebUrl('help',array('op'=>'addhelp','id'=>$row['id']))}" ><div class="btn btn-info btn-sm">编辑</div></a>
+
+                        {/if}
+
+                        {if $this->perm_check('del',$user_perm,$perm_route)}
+
+                        <a href="{php echo $this->CreateWebUrl('help',array('op'=>'delhelp','id'=>$row['id']))}" onclick="return confirm('确认删除此问题吗？');return false;"><div class="btn btn-danger btn-sm">删除</div></a>
+
+                        {/if}
+
+                    </td>
+
+                    {/if}
+
+
+
+                </tr>
+
+
+
+                {/loop}
+                <tr>
+
+                    {if $this->perm_check('edit',$user_perm,$perm_route) || $this->perm_check('del',$user_perm,$perm_route)}
+
+                    <td colspan="7">
+
+                    {else}
+
+                    <td colspan="6">
+
+                    {/if}
+
+                        <input name="submit" type="submit" class="btn btn-primary" value="提交">
+
+                        <input type="hidden" name="token" value="{$_W['token']}" />
+
+                    </td>
+
+                </tr>
+
+
+
+                </tbody>
+
+
+
+            </table>
+
+
+
+
+
+        </form>
+
+
+
+    </div>
+
+
+
+</div>
+
+{$pager}
+
+{/if}
+
+{if $op=='cate'}
+
+<div class="panel panel-info">
+
+    <div class="panel-heading">问题筛选</div>
+
+
+
+    <div class="panel-body">
+
+
+
+        <form action="./index.php" method="get" class="form-horizontal" role="form">
+
+
+
+            <input type="hidden" name="c" value="site" />
+
+            <input type="hidden" name="a" value="entry" />
+
+            <input type="hidden" name="m" value="{MD}" />
+
+            <input type="hidden" name="do" value="help" />
+
+            <input type="hidden" name="op" value="cate" />
+
+
+
+            <div class="form-group">
+
+                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">关键字</label>
+
+                <div class="col-xs-12 col-sm-8 col-lg-9">
+
+                    <input class="form-control" name="keyword" type="text" value="{$_GPC['keyword']}" placeholder="请输入分类关键字">
+
+                </div>
+
+            </div>
+
+
+
+            <div class="form-group">
+
+                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">问题分类状态</label>
+
+                <div class="col-xs-12 col-sm-8 col-lg-9">
+
+                    <select class="form-control" name="status">
+
+                        <option value="0" {if empty($status)} selected  {/if}>请选择问题分类状态</option>
+
+                        <option value="1" {if $status==1} selected  {/if}>启用</option>
+
+                        <option value="2" {if $status==2} selected  {/if} >禁用</option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="form-group">
+
+                <div class=" col-xs-12 col-sm-2 col-lg-2">
+
+
+
+                    <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+
+
+
+                </div>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<div class="panel panel-default">
+
+
+
+
+
+
+
+    <div class="panel-heading">
+
+        {if !empty($condition)}<span style="color:red">【符合搜索条件】</span>{/if}问题分类详细数据  |  总数:{$total}
+
+        {if $this->perm_check('cate_edit',$user_perm,$perm_route)}
+
+        <a href="{php echo $this->createWebUrl('help',array('op'=>'addhelp_cate'))}" class="btn btn-info btn-sm" style="margin-left: 30px;margin-top: 1px">添加新问题分类</a>
+
+        {/if}
+
+        <div style="clear: both"></div>
+
+    </div>
+
+
+
+    <div class="panel-body table-responsive">
+
+
+
+        <form action="" method="post" onsubmit="">
+
+
+
+            <table class="table table-hover">
+
+
+
+                <thead class="navbar-inner">
+
+
+
+                <tr>
+
+                    <th style="width:1%;" class="row-first"></th>
+
+
+
+                    <th style="width:10%;" class="row-first">ID</th>
+
+
+
+                    <th style="width:10%;">分类排序</th>
+
+
+
+                    <th style="width:20%;">分类标题</th>
+
+
+
+                    <th style="width:14%;">状态</th>
+
+
+
+                    {if $this->perm_check('cate_edit',$user_perm,$perm_route) || $this->perm_check('cate_del',$user_perm,$perm_route)}
+
+                    <th style="width:20%;">操作</th>
+
+                    {/if}
+
+
+
+                </tr>
+
+
+
+                </thead>
+
+
+
+                <tbody id="main">
+
+
+
+                {loop $list $row}
+
+
+
+                <tr class="selectedTr">
+
+
+
+                    <td><input  style="display:none" type="checkbox" name="ids[]" value="{$row['id']}" /></td>
+
+
+
+                    <td>{$row['id']}</td>
+
+
+
+                    <td>
+
+                        <input style="width:80px" type="text" name="displayorder[{$row['id']}]" value="{$row['displayorder']}">
+
+                    </td>
+
+
+
+                    <td style="white-space:normal;word-break:break-all">{$row['title']}</td>
+
+
+
+                    <td style="white-space:normal;word-break:break-all">{if !empty($row['status'])}启用{else}<span style="color: red">禁用</span>{/if}</td>
+
+                    {if $this->perm_check('cate_edit',$user_perm,$perm_route) || $this->perm_check('cate_del',$user_perm,$perm_route)}
+
+                    <td>
+
+                        {if $this->perm_check('cate_edit',$user_perm,$perm_route)}
+
+                        <a href="{php echo $this->CreateWebUrl('help',array('op'=>'addhelp_cate','id'=>$row['id']))}" ><div class="btn btn-info btn-sm">编辑</div></a>
+
+                        {/if}
+
+                        {if $this->perm_check('cate_del',$user_perm,$perm_route)}
+
+                        <a href="{php echo $this->CreateWebUrl('help',array('op'=>'delhelp_cate','id'=>$row['id']))}" onclick="return confirm('确认删除此问题分类吗？');return false;"><div class="btn btn-danger btn-sm">删除</div></a>
+
+                        {/if}
+
+                    </td>
+
+                    {/if}
+
+
+
+                </tr>
+
+
+
+                {/loop}
+
+                <tr>
+
+                    {if $this->perm_check('cate_edit',$user_perm,$perm_route) || $this->perm_check('cate_del',$user_perm,$perm_route)}
+
+                    <td colspan="6">
+
+                    {else}
+
+                    <td colspan="5">
+
+                    {/if}
+
+                        <input name="submit" type="submit" class="btn btn-primary" value="提交">
+
+                        <input type="hidden" name="token" value="{$_W['token']}" />
+
+                    </td>
+
+                </tr>
+
+
+
+                </tbody>
+
+
+
+            </table>
+
+
+
+
+
+        </form>
+
+
+
+    </div>
+
+
+
+</div>
+
+{$pager}
+
+{/if}
+{if $op=='addhelp'}
+<div class="main">
+
+    <form action="" method="post" class="form-horizontal form" enctype="multipart/form-data">
+
+        <div class="panel panel-default">
+
+            <div class="panel-heading">
+
+                {if empty($id)}新增{else}编辑{/if}问题
+
+            </div>
+
+
+
+            <div class="panel-body">
+
+                <div class="form-group">
+
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">问题排序</label>
+
+                    <div class="col-sm-5">
+
+                        <input type="text" name="displayorder" class="form-control" value="{$item['displayorder']}" />
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="panel-body">
+
+                <div class="form-group">
+
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">问题名称</label>
+
+                    <div class="col-sm-5">
+
+                        <input type="text" name="title" class="form-control" value="{$item['title']}" />
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="form-group">
+
+                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">问题所属分类</label>
+
+                <div class="col-sm-5">
+
+                    <select class="form-control" name="cateid">
+
+                        <option value="0" {if empty($item['cateid'])} selected  {/if}>请选择所属分类</option>
+
+                        {loop $cate $r}
+
+                        <option value="{$r['id']}" {if $item['cateid']==$r['id']} selected  {/if}>{$r['title']}</option>
+
+                        {/loop}
+
+                    </select>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="panel-body">
+
+                <div class="form-group">
+
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">问题描述</label>
+
+                    <div class="col-sm-5">
+
+                        {php echo tpl_ueditor('content',$item['content'])}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="panel-body">
+
+                <div class="form-group">
+
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">状态</label>
+
+                    <div class="col-sm-5">
+
+                        <label for="enabled3" class="radio-inline"><input type="radio" name="status" value="1" id="enabled3" {if !empty($item['status']) && $item['status'] == 1}checked="true"{/if} /> 是</label>
+
+                        &nbsp;&nbsp;&nbsp;
+
+                        <label for="enabled4" class="radio-inline"><input type="radio" name="status" value="0" id="enabled4"  {if empty($item['status']) || $item['status'] == 0}checked="true"{/if} /> 否</label>
+
+                        <span class="help-block">如果禁用，则当前问题不能显示</span>
+
+                    </div>
+
+
+
+                </div>
+
+            </div>
+
+
+
+            <div class="form-group col-sm-12">
+
+                <input type="hidden" name="token" value="{$_W['token']}" />
+
+                <input type="hidden" name="id" value="{$item['id']}" />
+
+                <input type="submit" class="btn btn-primary col-lg-1" name="submit" value="提交" />
+
+            </div>
+
+
+
+        </div>
+
+    </form>
+
+</div>
+{/if}
+
+{if $op=='addhelp_cate'}
+
+<div class="main">
+
+    <form action="" method="post" class="form-horizontal form" enctype="multipart/form-data">
+
+        <div class="panel panel-default">
+
+            <div class="panel-heading">
+
+                {if empty($id)}新增{else}编辑{/if}问题分类
+
+            </div>
+
+
+
+            <div class="panel-body">
+
+                <div class="form-group">
+
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">问题分类排序</label>
+
+                    <div class="col-sm-5">
+
+                        <input type="text" name="displayorder" class="form-control" value="{$item['displayorder']}" />
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="panel-body">
+
+                <div class="form-group">
+
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">问题分类名称</label>
+
+                    <div class="col-sm-5">
+
+                        <input type="text" name="title" class="form-control" value="{$item['title']}" />
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="panel-body">
+
+                <div class="form-group">
+
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">问题分类描述</label>
+
+                    <div class="col-sm-5">
+
+                        {php echo tpl_ueditor('content',$item['content'])}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="panel-body">
+
+                <div class="form-group">
+
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">状态</label>
+
+                    <div class="col-sm-5">
+
+                        <label for="enabled3" class="radio-inline"><input type="radio" name="status" value="1" id="enabled3" {if !empty($item['status']) && $item['status'] == 1}checked="true"{/if} /> 是</label>
+
+                        &nbsp;&nbsp;&nbsp;
+
+                        <label for="enabled4" class="radio-inline"><input type="radio" name="status" value="0" id="enabled4"  {if empty($item['status']) || $item['status'] == 0}checked="true"{/if} /> 否</label>
+
+                        <span class="help-block">如果禁用，则当前分类的所有问题都不能显示</span>
+
+                    </div>
+
+
+
+                </div>
+
+            </div>
+
+
+
+            <div class="form-group col-sm-12">
+
+                <input type="hidden" name="token" value="{$_W['token']}" />
+
+                <input type="hidden" name="id" value="{$item['id']}" />
+
+                <input type="submit" class="btn btn-primary col-lg-1" name="submit" value="提交" />
+
+            </div>
+
+
+
+        </div>
+
+    </form>
+
+</div>
+
+{/if}
+{if $op=='stat'}
+<div class="main">
+
+    <form action="" method="post" class="form-horizontal form"
+          enctype="multipart/form-data">
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                统计报表
+            </div>
+            <div class="panel-body">
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">问题总阅读数</label>
+                    <div class="col-sm-9 col-xs-12">
+                        {$total} 次
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">阅读问题的用户数</label>
+                    <div class="col-sm-9 col-xs-12">
+                        {php echo count($peo)} 人
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </form>
+
+    <div id="main" style="height:400px;width:80%;margin-left:10%;padding-top:50px"></div>
+    <div id="main2" style="height:400px;width:80%;margin-left:10%;padding-top:50px"></div>
+
+    <!-- ECharts单文件引入 -->
+    <script src="http://echarts.baidu.com/build/dist/echarts.js"></script>
+    <script type="text/javascript">
+        // 路径配置
+        require.config({
+            paths: {
+                echarts: 'http://echarts.baidu.com/build/dist'
+            }
+        });
+
+        // 使用
+        require(
+                [
+                    'echarts',
+                    'echarts/chart/pie', // 使用柱状图就加载pie模块，按需加载
+                    'echarts/chart/funnel'
+                ],
+                function (ec) {
+                    // 基于准备好的dom，初始化echarts图表
+                    var myChart = ec.init(document.getElementById('main'));
+                    var myChart2 = ec.init(document.getElementById('main2'));
+
+                    var option = {
+                        title : {
+                            text: '问题阅读排行数据',
+                            subtext: '统计报表',
+                            x:'center'
+                        },
+                        tooltip : {
+                            trigger: 'item',
+                            formatter: "{a} <br/>{b} : {c} ({d}%)"
+                        },
+                        legend: {
+                            orient : 'vertical',
+                            x : 'left',
+                            data:[
+                                {loop $list $item}
+                                '{$item['title']}',
+                                {/loop}
+                    ]
+                },
+                    toolbox: {
+                        show : true,
+                                feature : {
+                            mark : {show: false},
+                            dataView : {show: false, readOnly: false},
+                            magicType : {
+                                show: true,
+                                        type: ['pie', 'funnel'],
+
+                                        option: {
+                                    funnel: {
+                                        x: '25%',
+                                                width: '50%',
+                                                funnelAlign: 'left',
+                                                max: 1548
+                                    }
+                                }
+                            },
+                            restore : {show: true},
+                            saveAsImage : {show: true}
+                        }
+                    },
+                    calculable : true,
+                            series : [
+                        {
+                            name:'问题阅读排行数据',
+                            type:'pie',
+                            radius : '55%',
+                            center: ['50%', '60%'],
+                            data:[
+                                {loop $list $item}
+                                {value:{$item['num']}, name:'{$item['title']}'},
+                                {/loop}
+                    ]
+                }
+                    ]
+                };
+
+                    var option2 = {
+                        title : {
+                            text: '分类阅读排行数据',
+                            subtext: '统计报表',
+                            x:'center'
+                        },
+                        tooltip : {
+                            trigger: 'item',
+                            formatter: "{a} <br/>{b} : {c} ({d}%)"
+                        },
+                        legend: {
+                            orient : 'vertical',
+                            x : 'left',
+                            data:[
+                                {loop $list2 $item}
+                                '{$item['title']}',
+                                {/loop}
+                    ]
+                },
+                    toolbox: {
+                        show : true,
+                                feature : {
+                            mark : {show: false},
+                            dataView : {show: false, readOnly: false},
+                            magicType : {
+                                show: true,
+                                        type: ['pie', 'funnel'],
+
+                                        option: {
+                                    funnel: {
+                                        x: '25%',
+                                                width: '50%',
+                                                funnelAlign: 'left',
+                                                max: 1548
+                                    }
+                                }
+                            },
+                            restore : {show: true},
+                            saveAsImage : {show: true}
+                        }
+                    },
+                    calculable : true,
+                            series : [
+                        {
+                            name:'分类阅读排行数据',
+                            type:'pie',
+                            radius : '55%',
+                            center: ['50%', '60%'],
+                            data:[
+                                {loop $list2 $item}
+                                {value:{$item['num']}, name:'{$item['title']}'},
+                                {/loop}
+                    ]
+                }
+                    ]
+                };
+
+
+
+                    // 为echarts对象加载数据
+                    myChart.setOption(option);
+                    myChart2.setOption(option2);
+                }
+        );
+    </script>
+</div>
+{/if}
+
+
+
+{php echo $this->webnotice()}
+
+{template 'common/footer'}

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<title>{$school['title']}</title>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width initial-scale=1.0 maximum-scale=1.0 user-scalable=yes" />
+<link type="text/css" rel="stylesheet" href="{OSSURL}public/mobile/css/mMessageContent.css?v=4.8" />
+<link type="text/css" rel="stylesheet" href="{OSSURL}public/mobile/css/greenStyle.css?v=4.80120" />
+<script type="text/javascript" src="{MODULE_URL}public/mobile/js/jquery-1.11.3.min.js?v=4.8"></script>
+</head>
+<body>
+<div class="all">
+<div id="BlackBg" class="BlackBg"></div>
+<div id="titlebar" class="header mainColor">
+	<div class="l"><a class="backOff" style="background:url({OSSURL}public/mobile/img/ic_arrow_left_48px_white.svg) no-repeat;background-size: 55% 55%;background-position: 50%;" href="javascript:history.go(-1);"></a></div>
+	<div class="m"><span style="font-size: 18px">消息详情</span></div>
+	<div class="r"><a href="#my-menu"></a></div>
+</div>
+<div id="titlebar_bg" class="_header"></div>
+		<!-- 回复消息的输入框 start-->
+{php include $this->template('face');}
+		<!-- 回复消息的输入框 end-->
+		<div class="messageItem">
+			<div class="msgPic">
+				<div class="avatar">
+					<img src="{php echo tomedia($member['avatar'])}" alt="">
+				</div>
+			</div>
+			<div class="msgBody">
+				<div class="msgTitle">{$student['s_name']}{if $student['mom'] == $leave['openid']}母亲{else if $student['dad'] == $leave['openid']}父亲{else if $student['own'] == $leave['openid']}学生本人{/if}的留言</div>
+				<div class="msgSender l">{$category[$leave['bj_id']]['sname']}</div>
+				<div class="msgTime l"></div>
+			</div>
+			<input id="photostr" type="hidden" value="" />
+		</div>
+		<div class="msgbtn">			
+			<div class="div-reply" onclick="showReplyBox();">
+				<div class="btn-huifu">留言回复</div>
+			</div>				
+			<div class="div-tel">
+				<div class="btn-mob">
+					<a href="{if !empty($userinfo['mobile'])}tel:{$userinfo['mobile']}{else}tel:{/if}">联系家长</a>
+				</div>
+			</div>
+		</div>
+		<div class="blank"></div>
+		<!-- 回复消息 start -->
+		<div id="replyMessage">
+			<div id="replyTips" class="mainfont tips"><font style="font-size:16px;"></font>回复列表</div>
+			 {loop $list $item}
+			  <ul id="infoList">
+			     <li class="replyItem replyItemborder">
+			          <div class="msgPic l">
+			                <div class="avatar">
+			                     <img src="{if !empty($item['teacherid'])  || !empty($row['tuid'])}{php echo tomedia($techer['thumb'])}{else}{php echo tomedia($item['avatar'])}{/if}" alt=""></div>
+			          </div>
+			          <div class="msgBody">
+			          <div class="msgTop">
+			                <div class="replyName l">{if !empty($item['teacherid'])  || !empty($row['tuid'])}{$techer['tname']}{else}{$item['nickname']}{/if}</div>
+			                <div class="msgTime r">{if !empty($item['createtime'])}{php echo (date('m-d H:m',$item['createtime']))}{/if}</div>
+			          </div>
+			                <div class="replyContent">{$item['conet']}</div>
+			          </div>
+			     </li>	
+			   </ul>
+			  {/loop}
+		</div>
+		<!-- 回复消息 end -->
+	</div>
+{php include $this->template('port');}	
+</body>
+<!-- 提示框 -->
+<script type="text/javascript" src="{OSSURL}public/mobile/js/PromptBoxUtil.js?v=4.81022"></script>
+<script type="text/javascript">
+var PB = new PromptBox();
+icon_replace($(".replyContent"));
+function saveReplyMsg(){
+
+    var content = $.trim($("#content_txt").val());
+	
+	if (content == "" || content == undefined || content == null) {
+        jTips('内容不能为空哦！');
+        return false;
+	}
+	jConfirm("确认发送留言信息？", "删除确定对话框", function (isConfirm) {
+		if(isConfirm){
+			jTips('发送中');
+			var submitData = {
+				topenid :"{$item['openid']}",
+				openid :"{$openid}",
+				schoolid :"{$schoolid}",
+				weid :"{$weid}",
+				leaveid :"{$lid}",
+				itemid:"{$item['id']}",
+				sid :"{$item['sid']}",
+				tid :"{$techer['id']}",
+				tuid :"{$fan['uid']}",
+				uid :"{$item['uid']}",
+				tname :"{$techer['tname']}",
+				bj_id :"{$item['bj_id']}",
+				content : content,
+			};
+				$.post("{php echo $this->createMobileUrl('indexajax',array('op'=>'savesmsg'))}",submitData,function(data){
+				if(data.result){
+					jTips(data.msg);
+					$("#discussText").css("display","none");
+					$("#discussBg").css("display","none");					
+					location.reload();
+				}else{
+					jTips(data.msg);
+				}
+			},'json'); 
+		}
+	});	
+}
+</script>
+{php include $this->template('newfooter');}
+</html>

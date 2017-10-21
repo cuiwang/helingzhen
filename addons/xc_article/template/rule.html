@@ -1,0 +1,101 @@
+<style>
+  .reply-news-list-cover img {
+    width:100%;
+    max-height:200px;
+    overflow:hidden;
+  }
+  .reply-news-list {
+    width:500px;
+  }
+  .reply-news-list-first {
+  }
+</style>
+<div id="form" class="alert alert-block alert-new ">
+	<h4 class="alert-heading">选择要展示的文章</h4>
+	<table width="100%" class="tb">
+		<tr>
+			<th>自动填充内容</th>
+			<td>
+				<label for="radio_2" class="radio inline"><input type="radio" name="isfill" id="radio_2" value="1" {if $isfill == 1} checked{/if} /> 是</label>
+				<label for="radio_3" class="radio inline"><input type="radio" name="isfill" id="radio_3" value="0" {if $isfill == 0} checked{/if} /> 否</label>
+				<span class="help-block">设置此项后，如果手动未指定内容或是未满八条则由系统自动填充最新内容。</span>
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2">
+				<div class="reply-news-edit-button col-lg-12 col-sm-12">
+          <a href="javascript:;" class="btn btn-default" data-toggle="modal" data-target="#xmodal-module-menus">选择要展示的文章</a>
+				</div>
+			</td>
+		</tr>
+		<tr>
+			<td id="entry" colspan="2">
+			{loop $reply $index $row}
+				<div class="alert alert-info reply-news-list {if $index == 0}reply-news-list-first{/if}" id="preview_0">
+					<div class="reply-news-list-cover">
+            {if !empty($article[$row['articleid']]['thumb'])}
+						<img alt="img" src="{php echo toimage($article[$row['articleid']]['thumb'])}">
+            {/if}
+					</div>
+					<div class="reply-news-list-detail">
+						<div class="title"><span class="pull-right"><a onclick="return confirm('此操作不可恢复，确定删除吗？');return false;" href="{php echo $this->createWebUrl('delete', array('id' => $row['id'], 'rid' => $row['rid']))}">删除</a></span>{$article[$row['articleid']]['title']}</div>
+						<div class="content">{php echo cutstr(strip_tags($article[$row['articleid']]['content']), 50)}</div>
+					</div>
+				</div>
+			{/loop}
+			</td>
+		</tr>
+	</table>
+</div>
+
+
+<div id="xmodal-module-menus" class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" >
+  <div class="modal-dialog" style="width:60%;margin:200px auto;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title" id="myModalLabel">搜索</h4>
+      </div>
+      <div class="modal-body row">
+        <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">搜索关键字</label>
+        <div class="col-xs-12 col-sm-4 col-md-6 col-lg-8">
+          <input class="form-control" type="text" name="keyword" value="" id="search-kwd" />
+        </div>
+        <div class="col-xs-12 col-sm-4 col-md-3 col-lg-2 ">
+          <button class="form-control btn btn-primary" type="button" class="btn" onclick="search_entries();">搜索</button>
+        </div>
+        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" id="module-menus"></div>
+      </div>
+      <div class="modal-footer"><a href="#" class="btn" data-dismiss="modal" aria-hidden="true">关闭</a></div>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+	var popwin;
+	function search_entries() {
+		var kwd = $.trim($('#search-kwd').val());
+		$.post('{php echo $this->createWebUrl('query');}', {keyword: kwd}, function(dat){
+			$('#module-menus').html(dat);
+		});
+	}
+	function select_entry(o) {
+    var img = o.thumb ? (o.thumb.indexOf('http://') < 0 ? '<img src="{$_W['attachurl']}'+o.thumb+'" alt="">' : '<img src="'+o.thumb+'" alt="">') : '';
+		var html = '<div id="preview_'+$('#entry div.alert').size()+'" class="alert alert-info reply-news-list">' +
+					'<div class="reply-news-list-cover">' + img + '</div>' +
+					'<div class="reply-news-list-detail"><div class="title">'+o.title+'</div>' +
+					'<div class="content">'+o.description+'</div></div></div>' +
+					'<input type="hidden" name="ids[]" value="'+o.id+'"/>';
+		var obj = $(html);
+		if ($('#entry div.alert').size() >= 8) {
+			popwin.modal('hide');
+			message('超过图文规则最大显示条数！');
+			return false;
+		}
+		if ($('#entry div').size() == 0) {
+			obj.addClass('reply-news-list-first');
+		}
+		$('#entry').append(obj);
+    console.log(obj);
+	}
+</script>

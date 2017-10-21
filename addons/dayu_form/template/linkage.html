@@ -1,0 +1,133 @@
+{template 'common/header'}
+
+<div class="alert alert-info info">
+	<i class="fa fa-info-circle"></i>
+	当前表单: {$activity['title']}
+</div>
+<ul class="nav nav-tabs">
+	<li {if $operation == 'post' && empty($id)}class="active"{/if}><a href="{php echo $this->createWebUrl('linkage', array('op' => 'post','reid' => $reid))}">添加联动</a></li>
+	<li {if $operation == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('linkage', array('op' => 'display','reid' => $reid))}">管理联动</a></li>
+    {if $operation == 'post' && !empty($id)}<li class="active"><a href="#">
+    编辑联动
+    </a></li>{/if}
+</ul>
+
+{if $operation == 'post'}
+
+<div class="main">
+
+    <form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" id="form1">
+        <div class="panel panel-default">
+            <div class="panel-heading">联动详细设置</div>
+            <div class="panel-body">
+
+				{if !empty($parentid)}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">上级联动</label>
+					<div class="col-sm-9">
+						<input type="text" name="displayorder" class="form-control" value="{$parent['title']}" disabled />
+					</div>
+				</div>
+				{/if}
+				<div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">排序</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="displayorder" class="form-control" value="{$linkage['displayorder']}" />
+                    </div>
+				</div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">联动名称</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="title" class="form-control" value="{$linkage['title']}" />
+                    </div>
+				</div>
+                
+		</div>
+		</div>
+		<div class="form-group col-sm-12">
+			<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+			<input type="hidden" name="token" value="{$_W['token']}" />
+		</div>
+    </form>
+</div>
+<script type="text/javascript" src="../web/resource/components/colorpicker/spectrum.js"></script>
+<link type="text/css" rel="stylesheet" href="../web/resource/components/colorpicker/spectrum.css" />
+<script type="text/javascript">
+<!--
+	$(function(){
+		colorpicker();
+	});
+//-->
+</script>
+{elseif $operation == 'display'}
+
+<div class="main">
+    <div class="panel panel-info">
+	<div class="panel-heading">联动标题</div>
+	<div class="panel-body">
+		<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" id="form1">
+            <div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">一级联动标题</label>
+				<div class="col-xs-12 col-sm-8 col-lg-9">
+					<input class="form-control" name="la1" type="text" value="{$la['l1']}">
+				</div>
+			</div>
+            <div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">二级联动标题</label>
+				<div class="col-xs-12 col-sm-8 col-lg-9">
+					<input class="form-control" name="la2" type="text" value="{$la['l2']}">
+				</div>
+			</div>
+			<div class="form-group col-sm-12">
+				<input type="hidden" name="token" value="{$_W['token']}" />
+				<input type="submit" name="submit" value="保存" class="btn btn-primary col-lg-1" />
+			</div>
+		</form>
+	</div>
+</div>
+        <form action="" method="post" onsubmit="return formcheck(this)">
+			<div class="panel panel-default">
+				<div class="panel-body table-responsive">
+					<table class="table table-hover">
+						<thead>
+							<tr>
+								<th style="width:30px;"></th>
+								<th style="width:80px;">排序</th>
+								<th>联动名称</th>
+								<th style="width:180px;">操作</th>
+							</tr>
+						</thead>
+						<tbody>
+			{loop $linkage $row}
+				<tr>
+					<td>{if count($children[$row['id']]) > 0}<a href="javascript:;"><i class="fa fa-star"></i></a>{/if}</td>
+					<td><input type="text" class="form-control" name="displayorder[{$row['id']}]" value="{$row['displayorder']}"></td>
+					<td><div class="type-parent"><span class="text-primary">{$row['title']}</span>&nbsp;&nbsp;
+					{if empty($row['parentid'])}
+					<a href="{php echo $this->createWebUrl('linkage', array('parentid' => $row['id'], 'op' => 'post', 'reid' => $reid))}" class="btn btn-sm btn-primary"><i class="fa fa-plus-circle"></i> 添加子联动</a>
+					{/if}
+					</div></td>
+					<td><a href="{php echo $this->createWebUrl('linkage', array('op' => 'post', 'id' => $row['id'], 'reid' => $reid))}" class="btn btn-default"><i class="fa fa-edit"></i> 编辑</a>&nbsp;&nbsp;<a href="{php echo $this->createWebUrl('linkage', array('op' => 'delete', 'id' => $row['id']))}" class="btn btn-default" onclick="return confirm('确认删除此联动吗？');return false;"><i class="fa fa-remove"></i> 删除</a></td>
+				</tr>
+				{loop $children[$row['id']] $row}
+				<tr>
+					<td></td>
+					<td><input type="text" class="form-control" name="displayorder[{$row['id']}]" value="{$row['displayorder']}"></td>
+					<td><div class="type-child"><i class="fa fa-sort-amount-desc"></i> {$row['title']}</div></td>
+					<td><a href="{php echo $this->createWebUrl('linkage', array('op' => 'post', 'id' => $row['id'], 'parentid' => $row['parentid'], 'reid' => $reid))}" class="btn btn-default" title="编辑"><i class="fa fa-edit"></i> 编辑</a>&nbsp;&nbsp;<a href="{php echo $this->createWebUrl('linkage', array('op' => 'delete', 'id' => $row['id']))}" class="btn btn-default" onclick="return confirm('确认删除此联动吗？');return false;" title="删除"><i class="fa fa-remove"></i> 删除</a></td>
+				</tr>
+				{/loop}
+			{/loop}
+			</tbody>
+					</table>
+				</div>
+           </div>
+		<div class="form-group col-sm-12">
+						<a href="{php echo $this->createWebUrl('linkage', array('op' => 'post', 'reid' => $reid))}" class="btn btn-default btn-primary"><i class="fa fa-plus-circle"></i> 添加新联动</a>
+						<span class="pull-right"><input name="submit" type="submit" class="btn btn-primary" value="更新联动排序"></span>
+						<input type="hidden" name="token" value="{$_W['token']}" />
+		</div>
+        </form>
+</div>
+{/if}
+{template 'common/footer'}

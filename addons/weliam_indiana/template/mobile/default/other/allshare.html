@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<meta name = "format-detection" content = "telephone=no">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>分享 - {php echo $this->module['config']['sname']}</title>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="stylesheet" href="{WELIAM_INDIANA_STATIC}components/light/light7.min.css">
+    <link rel="stylesheet" href="{WELIAM_INDIANA_STATIC}components/weui/weui.css">
+    <link href="{WELIAM_INDIANA_STATIC}css/increase/comm.css" rel="stylesheet" type="text/css">
+    <link href="{WELIAM_INDIANA_STATIC}css/increase/common.css" rel="stylesheet" type="text/css">
+    <link href="{WELIAM_INDIANA_STATIC}yungou/single.css" rel="stylesheet" type="text/css">
+    <link href="{WELIAM_INDIANA_STATIC}css/main.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.4.0/css/font-awesome.min.css" >
+    {php echo register_jssdk();}
+    <script type='text/javascript' src='{WELIAM_INDIANA_STATIC}js/jquery.js' charset='utf-8'></script>
+    <script type='text/javascript' src='{WELIAM_INDIANA_STATIC}js/global.js' charset='utf-8'></script>
+    <script type='text/javascript' src='{WELIAM_INDIANA_STATIC}js/laytpl.js' charset='utf-8'></script>
+    <script type='text/javascript' src="{WELIAM_INDIANA_STATIC}js/swipe.js" charset='utf-8'></script>
+    <script type='text/javascript' src="{WELIAM_INDIANA_STATIC}js/weliam.js" charset='utf-8'></script>
+	<script type='text/javascript' src='{WELIAM_INDIANA_STATIC}components/light/light7.min.js' charset='utf-8'></script>
+	<script type='text/javascript' src='{WELIAM_INDIANA_STATIC}components/light/light7-city-picker.js' charset='utf-8'></script>
+</head>
+<body>
+{template 'common/wxshare'}
+
+	<div class="page-group">
+	<div class="page page-current" id="share-list">
+	{template 'common/suspend'}
+
+    	<!-- 栏目导航 -->
+		  <nav class="g-snav u-nav" style="position: fixed;top: 0;z-index: 999;" id="select_type">
+			  <div class="g-snav-lst"><a id="allshare_sel" data-val="allshare">中奖晒单</a></div>
+			  <div class="g-snav-lst"><a id="speech_sel" data-val="speech" {if $op == 'speech'}class="nav-crt"{/if}>讨论圈</a></div>
+		  </nav>
+		  <div class="content infinite-scroll native-scroll" data-distance="0">
+		  	<!-- 晒单列表 -->
+		  	<section style="margin-top: 36px;" id='share_section'>	
+		      <!-- 分享信息开始 -->
+		      
+		      <!-- 分享信息结束-->
+		    </section>
+		    <div class="infinite-scroll-preloader" id="loading">上拉加载更多</div>
+		  </div>
+		</div>
+	</div>
+</body>
+
+<script type="text/html" id="sharelist">
+	{{# for(var i = 0, len = d.data.length; i < len; i++){ }}
+		<div class="cSingleCon" id="loadingPicBlock">
+		    <div id="postBox10" class="cSingleCon2">
+        <div class="cSingleInfo">
+        <dl class="fl">
+	        <a href="#">
+	           	<img src="{{ d.data[i].avatar }}">
+	            <b></b>
+	        </a>
+        </dl>
+        <div class="cSingleR m-round" id="299176" onclick="location.href='{php echo $this->createMobileUrl('share_detail')}&id={{d.data[i].id}}&op={{d.data[i].op}}'">
+        	<ul>
+            <li>
+                <em class="blue" uweb="1010740776">{{ d.data[i].nickname }}</em>
+                <span><strong class="c9">：</strong>{{ d.data[i].title }}</span> 
+                <h5>{{ d.data[i].createtime }}</h5>
+            </li>
+            <li>
+              <p>{{ d.data[i].detail }}</p>
+            </li>
+            {{# if(d.data[i].thumbs != ''){ }}
+            <li class="maxImg">
+            	{{# for(var j = 0, lens = d.data[i].thumbs.length; j < lens; j++){ }}
+            		<img src="{{ d.data[i].thumbs[j] }}">
+            	{{# } }}
+            </li>
+            {{# } }}
+            <li>
+            	{{# if(d.data[i].praise == 1){ }}
+            	<dd  onclick="$.toast('已经赞过了');return false;"><i class="fa fa-heart">
+            	{{# }else{ }}
+            	<dd  onclick="zan({{d.data[i].id}});" data-status='no' id='zan_dd_{{ d.data[i].id }}'><i class="fa fa-heart-o" id='zan_i_{{ d.data[i].id }}'>
+            	{{# } }}
+              	</i><strong id='zan_count_{{ d.data[i].id }}'>{{ d.data[i].count }}</strong>人羡慕嫉妒</dd>
+              <dd><i class="fa fa-comments-o"></i><strong>{{ d.data[i].speechcount }}</strong>条评论</dd>
+            </li>
+            </ul>
+              <b class="z-arrow"></b>
+            </div>
+          </div>
+        </div>    
+        <div id="postBox20" class="cSingleCon2" style="display:none;"></div>
+        <div id="postBox30" class="cSingleCon2" style="display:none;"></div>
+      </div>
+	{{# } }}
+</script>
+<script>
+	$(function() {
+		'use strict';
+		//商品列表页
+		$(document).on("pageInit", "#share-list", function(e, id, page) {			
+			/***********加载商品数据方法***********/
+			var share_page = 0;			//初始页
+			var page_num = 5;		//加载数量
+			var flag_load = 0;		//标记参数
+			
+			var op = '{$type}';	//默认加载类型
+			var goodsid = '{$goodsid}';
+			function addShareItems(page,pagenum,op,goodsid){
+				document.getElementById('loading').innerHTML = '<div id="postLoading" class="loading loading2" ><div class="preloader" ></div>正在加载</div>';	//开启加载动态
+				$('#'+op+'_sel').addClass('nav-crt');
+				var AjaxUrl = "{php echo $this->createMobileUrl('allshare')}"+"&op="+ op +"&page="+ page +"&pagenum=" + pagenum + "&goodsid=" + goodsid;
+				$.ajax({
+					type: "POST",
+					url: AjaxUrl,
+					dataType: 'json',
+					beforeSend: function(XMLHttpRequest) {},
+					success: function(data) {
+						if (data.status==2 && data.data.length > 0) {
+							var gettpl = document.getElementById('sharelist').innerHTML;
+							laytpl(gettpl).render(data, function(html){
+							    $("#share_section").append(html);
+							   if(data.data.length < page_num){
+									document.getElementById('loading').innerHTML = '<div id="postLoading" class="loading loading2" >加载完毕</div>';
+									flag_load = 1;		//刷新数据完成
+								}else{
+									 document.getElementById('loading').innerHTML = '<div id="postLoading" class="loading loading2" >上拉加载更多</div>';		//关闭加载动态
+								}
+							});
+						} else {
+							document.getElementById('loading').innerHTML = '<div id="postLoading" class="loading loading2" >加载完毕</div>';
+							flag_load = 1;		//刷新数据完成
+						}
+					},
+					error: function() {
+						$('.error').show();
+					}
+				});
+				
+			}
+			addShareItems(share_page,page_num,op,goodsid);	//第一次进入加载
+			
+			$('#select_type').find('a').click(function(){
+				$('#allshare_sel').removeClass('nav-crt');
+				$('#speech_sel').removeClass('nav-crt');
+				op = $(this).attr('data-val');
+				$('#share_section').html('');
+				
+				share_page = 0;			//重定义页数
+				flag_load = 0;			//重定义标记
+				
+				addShareItems(share_page,page_num,op,goodsid);
+			});
+			
+			$(page).on('infinite','.infinite-scroll', function() {
+				share_page++;
+				if(flag_load == 0){
+					addShareItems(share_page,page_num,op,goodsid);
+				}
+			});
+		});
+		$.init();
+	});
+	
+	function zan(id){
+		//点赞
+		$.post("{php echo $this->createMobileUrl('speech',array('op'=>'zan'))}&id="+id,{},function(data){
+			if(data.status == 2){
+				if($('#zan_dd_'+id).attr('data-status') == 'no'){
+					$('#zan_count_'+id).html(data.data);
+					$('#zan_i_'+id).attr('class','fa fa-heart');
+					$('#zan_dd_'+id).attr('data-status','yes');
+					$.toast(data.msg);
+				}else{
+					$.toast('已经赞过了');return false;
+				}
+			}else{
+				$.toast(data.msg);
+			}
+		},'json');
+	}
+</script>
+</html>

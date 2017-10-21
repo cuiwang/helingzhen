@@ -1,0 +1,165 @@
+{template 'header'}
+<div class="top-header"> <a herf="/" style="background: url('{php echo tomedia($act[slogo])}') no-repeat; background-size: contain;" class="logo"> {$act[title]}</a>
+  <form action="{php echo $this->createMobileUrl('search')}" method="post" class="search-form">
+    <div class="mui-input-row">
+      <input type="search" id="search-input" class="suggest-input" data-tpl="suggest-tpl" name="search" autocomplete="off" placeholder="输入关键词查询" data-suggestleft="0" data-suggestbottom="0" data-suggestright="0" data-suggestmargintop="5" data-focuscolor="#000" data-blurcolor="#999">
+      <input type="hidden" name="token" value="{$_W[token]}"/>
+      <button class="mui-icon mui-icon-search search-btn"></button>
+    </div>
+  </form>
+  <div class="top-extend"> <a href="{$act[bonus]}" class="jx-png"> </a> </div>
+</div>
+<div class="">
+  <script type="tpl" id="suggest-tpl"><ul>
+<%for(var i in list){%>
+<li class="mui-ellipsis">
+<a href="<%=list[i].url%>" target="_blank">
+<img src="<%=list[i].icon%>">&nbsp;<%=list[i].key%></a><span><%=list[i].type%></span>
+</li>
+<%}%></ul></script>
+  <div class="company-header company-header-5"> <a {if $op=='sflist'}class="active"{/if} href="{php echo $this->createMobileUrl('flist',array('op'=>'sflist'))}"> 商家 </a> <a {if $op=='gflist'}class="active"{/if} href="{php echo $this->createMobileUrl('flist',array('op'=>'gflist'))}"> 个人 </a> <a {if $op=='wflist'}class="active"{/if} href="{php echo $this->createMobileUrl('flist',array('op'=>'wflist'))}"> 美女 </a> <a {if $op=='mflist'}class="active"{/if} href="{php echo $this->createMobileUrl('flist',array('op'=>'mflist'))}"> 帅哥 </a> <a {if $op=='rflist'}class="active"{/if} href="{php echo $this->createMobileUrl('flist',array('op'=>'rflist'))}"> 排行 </a> </div>
+  <ul class="company-list" id="list" data-api="" data-page="1">
+    <ul class="mui-table-view mui-table-view-chevron">
+      {if $op=='sflist'}
+      {loop $sflist $item}
+      <li data-wx="{if empty($item['wei_num'])}{$act['weixin']}{else}{$item['wei_num']}{/if}" data-bossqr="{if empty($item['wei_ewm'])}{php echo tomedia($act['ewm'])}{else}{php echo tomedia($item['wei_ewm'])}{/if}" data-id="F{$item['id']}" data-desc="{$item['wei_intro']}" _click="wechatDialog"> <img src="{if empty($item['wei_avatar'])}{php echo tomedia($act['icon'])}{else}{php echo tomedia($item['wei_avatar'])}{/if}" class="company-icon">
+        <div class="company-info">
+          <h4>{if empty($item['wei_name'])}{$item['title']}{else}{$item['wei_name']}{/if}</h4>
+          <span class="mui-ellipsis">{if empty($item['wei_intro'])}{if empty($item[intro])}暂无简介，敬请期待{else}{$item[intro]}{/if}{else}{$item['wei_intro']}{/if}</span> </div>
+        <div class="mui-btn" style="border:0;border-radius: 0;box-shadow: 3px 3px 2px gray;color:#FFF;background: #E34F63">加TA</div>
+      </li>
+      {/loop}
+      {else}
+      {loop $flist $item}
+      <li data-wx="{if empty($item['cweixin'])}{$act['weixin']}{else}{$item['cweixin']}{/if}" data-bossqr="{if empty($item['cewm'])}{php echo tomedia($act['ewm'])}{else}{php echo tomedia($item['cewm'])}{/if}" data-id="{$item['uid']}" data-desc="{$item['descript']}" _click="wechatDialog"> <img src="{if empty($item['cavatar'])}{php echo tomedia($act['icon'])}{else}{php echo tomedia($item['cavatar'])}{/if}" class="company-icon">
+        <div class="company-info">
+          <h4>{$item['cnickname']}</h4>
+          <span class="mui-ellipsis">{if empty($item[descript])}暂无简介，敬请期待{else}{$item[descript]}{/if}</span> </div>
+        <div class="mui-btn" style="border:0;border-radius: 0;box-shadow: 3px 3px 2px gray;color:#FFF;background: #E34F63">加TA</div>
+      </li>
+      {/loop}
+      {/if}
+    </ul>
+  </ul>
+  <div id="loading" style="text-align: center;margin:10px auto;border:1px solid #DDD;background:#EFEFEF;padding:10px;display:none">loading... </div>
+</div>
+<script id="wechat-dialog" type="tpl">
+<style>.qrdialog{font-size:.78rem}.qrquote{font-size:1.5rem}.numlist{display:list-item;list-style-type:disc;margin-left:20px}</style>
+<Div class="qrdialog">
+<%if(bossqr){%><img src="<%=bossqr%>" style="box-shadow: 0px 0px 3px #fff;margin:10px auto;width: 80%;max-width:640px;display:block">
+<%if(desc){%>
+<div style="padding:5px 10px;margin:5px 0;color:#999;text-align:center"><span class="qrquote">“</span><%=desc%><span class="qrquote">”</span></div>
+<%}%>
+<%}else{%><div style="color:gray;text-align:center;border:1px solid #DDD;padding:10px;margin:10px;background:#EEE">暂时没有二维码！</div>
+<%}%>
+<%if(wx){%><div class="list">1、长按识别二维码，或添加微信：<b><%=wx%></b></div><div class="list">2、添加时请注明来自：<b>{$act[title]}</b></div><div class="list"> 3、编号：<span style="color:red"><%=id%></span></div>
+<%}%></div></script>
+<script>
+initEvents.push(function () {
+  var wechatDialogTpl = mzTpl($('#wechat-dialog').html());
+  window.wechatDialog = function (e) {
+    var that = $(e.target ? e.target : e);
+    for (var i = 0; i < 2; i++) {
+      if (!that.data('wx')) {
+        that = $(that.parent());
+      }
+    }
+    var data = {
+      wx: $(that).data('wx'),
+      bossqr: $(that).data('bossqr'),
+      id: $(that).data('id'),
+      desc: $(that).data('desc')
+    };
+    showMessage(wechatDialogTpl(data));
+    if (data.id) {
+      // collect click log
+      window.API.post('wechat_click', data, function (data) {});
+    }
+  }
+});
+</script>
+<script>
+initEvents.push(function () {
+  var stop = true;
+
+  function loadList() {
+    var element = $('#list');
+    var apiUrl = element.data('api');
+    var apiPage = parseInt(element.data('page'), 1);
+    if (!stop || !apiPage) {
+      return;
+    }
+    $(window).off('scroll', scrollList);
+    stop = false;
+    $('#loading').show();
+    apiUrl = apiUrl.replace('_page_', apiPage + 1);
+    element.data('page', 0);
+    $.get(apiUrl, function (data) {
+      stop = true;
+      if ($.trim(data)) {
+        element.data('page', ++apiPage).append(data);
+        setTimeout(function () {
+          $(window).on('scroll', scrollList);
+        }, 1000);
+        $("img[data-lazy]").lazyload();
+      }
+      else {
+        $('#loading').html('已经全部加载完毕!');
+      }
+    });
+  }
+
+  function scrollList() {
+    if ($(window).scrollTop() + 150 >= $(document).height() - $(window).height()) {
+      loadList();
+    }
+  }
+  var flashId = 0;
+  setInterval(function () {
+    if (flashId++ == 1) {
+      flashId = 0;
+      $('#free-flash').css({
+        color: 'white'
+      });
+      $('#free-btn').addClass('mui-btn-green').removeClass('mui-btn-blue');
+    }
+    else {
+      $('#free-flash').css({
+        color: 'red'
+      });
+      $('#free-btn').removeClass('mui-btn-green').addClass('mui-btn-blue');
+    }
+  }, 500);
+  $(window).on('scroll', scrollList);
+});
+</script>
+<script src="../addons/enjoy_city/public/js/_v1_global.js"></script>
+<script usetime="9.743ms">
+function onBridgeReady() {
+  WeixinJSBridge.call(hideWXMenu == 1 ? 'hideOptionMenu' : 'showOptionMenu');
+}
+if (typeof WeixinJSBridge == "undefined") {
+  if (document.addEventListener) {
+    document.addEventListener('WeixinJSBridgeReady', onBridgeReady, false);
+  }
+  else if (document.attachEvent) {
+    document.attachEvent('WeixinJSBridgeReady', onBridgeReady);
+    document.attachEvent('onWeixinJSBridgeReady', onBridgeReady);
+  }
+}
+else {
+  try {
+    onBridgeReady();
+  }
+  catch (e) {}
+}
+setTimeout(function () {
+  document.getElementById('countjs').innerHTML = '<img src="http://img.users.51.la/18746113.asp" style="display: none" >';
+  var url = "//api.share.baidu.com/s.gif?r=" + encodeURIComponent(document.location.href),
+    img = new Image;
+  img.src = url;
+}, 0);
+</script>
+<div style="height:40px;"></div>
+<div class="suggest-list"></div>
+</body></html>

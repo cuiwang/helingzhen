@@ -1,0 +1,135 @@
+<!-- 
+ * 确认下单
+-->
+{php include $this->template('_header');}
+{if $op=='display'}
+<link href="{MODULE_URL}template/mobile/style/confirm.css?v=20170419" rel="stylesheet" />
+
+<div id="spinners" style="display:none;"><div class="spinner"><div class="bounce1"></div><div class="bounce2"></div><div class="bounce3"></div></div></div>
+<form id="orderForm" method="post" action="{php echo $this->createMobileUrl('addtoorder');}">
+	<div class="addorder_good">
+		<div class="ico"><img src="{$teacherphoto}" /></div>
+		<div class="shop">{$lesson['teacher']}讲师</div>
+		<div class="good" data-totalmaxbuy="992">
+			<div class="img" onclick="location.href = '{$lessonurl}'">
+				<img src="{$_W['attachurl']}{$lesson['images']}" alt=""/>
+			</div>
+			<div class="info" onclick="location.href = '{$lessonurl}'">
+				<div class="inner">
+					<div class="name">{$lesson['bookname']}</div>     
+				</div>
+			</div>
+			<div class="price">
+				<div class="pnum">￥<span class="marketprice">{$lesson['price']}</span></div>
+			</div>
+		</div>
+		{if $setting['is_invoice']}
+		<input type="text" name="invoice" placeholder="如需开具发票，请输入发票抬头">
+		{/if}
+	</div>
+	{if $lesson['validity']>0}
+	<div class="addorder_price" style="margin-top:16px;">
+		<div class="price" style="border:none;">
+			<div class="line" style="line-height:32px;">
+				有效期<span style="color:red;">自购买日起<strong>{$lesson['validity']}</strong>天</span>
+			</div>
+		</div>
+	</div>
+	{/if}
+	<div class="addorder_price" style="margin-top:16px;">
+		<div id="useCoupon" class="price" style="border:none;">
+			<div class="line" style="line-height:32px;">
+				我要使用优惠码<span>&gt;</span>
+			</div>
+		</div>
+		<div id="coupon">
+			<div class="coupon-code">
+				<input type="text" name="coupon" placeholder="请输入课程优惠码">
+			</div>
+			<div class="price" style="border:none;">
+				<div class="line" style="line-height:32px;">
+					<span id="verify" class="verify">验证优惠码</span>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="addorder_price">
+		<div class="price" style="border:none;">
+			<div class="line" style="line-height:33px;">课程金额<span>￥<span class="goodsprice">{$lesson['price']}</span></span></div>
+			{if $vipCoupon>0}
+			<div class="line" style="line-height:33px;">VIP优惠<span>-￥<span class="goodsprice">{$vipCoupon}</span></span></div>
+			{/if}
+			<div class="line" id="coupon-div" style="line-height:33px;display:none;">课程优惠码抵扣<span>-￥<span class="goodsprice" id="amount"></span></span></div>
+		</div>
+	</div>
+	<div class="addorder_pay">
+		<input type="hidden" name="id" value="{$lesson['id']}"/>
+		<div class="paysub" onclick="subForm()">提交订单</div>
+		<span>需付：￥<b id="total" class="totalprice">{$price}</b>元</span>
+	</div>
+</form>
+{/if}
+<script type="text/javascript">
+function subForm(){
+	document.getElementById("spinners").style.display = 'block';
+	document.getElementById("orderForm").submit();
+}
+$("#useCoupon").click(function(){
+	$("#coupon").toggle(500);
+});
+$("#verify").click(function(){
+	var code = $("input[name=coupon]").val();
+	var amountArea = document.getElementById("amount");
+	var couponDiv = document.getElementById("coupon-div");
+	var totalArea = document.getElementById("total");
+	if(code == ''){
+		amountArea.innerHTML = 0;
+		couponDiv.style.display = 'none';
+		totalArea.innerHTML = <?php echo $price; ?>;
+		alert("请输入课程优惠码");
+		return false;
+	}
+	$.ajax({
+		type: "POST",
+		url: "{php echo $this->createMobileUrl('verify', array('type'=>1))}",
+		data: {code:code,price:<?php echo $price; ?>},
+		dataType: "json",
+		success: function(data){
+			if(data.code == 0){
+				amountArea.innerHTML = data.amount;
+				couponDiv.style.display = 'block';
+				totalArea.innerHTML = data.total;
+			}else{
+				amountArea.innerHTML = 0;
+				couponDiv.style.display = 'none';
+				totalArea.innerHTML = <?php echo $price; ?>;
+				alert(data.msg);
+			}
+		}
+	});
+});
+</script>
+{php echo register_jssdk(false);}
+<script type="text/javascript">
+wx.ready(function(){
+	var shareData = {
+		title: "{$sharelink['title']} - {$setting['sitename']} - {$_W['account']['name']}",
+		desc: "{$sharelink['desc']}",
+		link: "{php echo $shareurl;}",
+		imgUrl: "{php echo $_W['attachurl'];}{$sharelink['images']}",
+		trigger: function (res) {},
+		complete: function (res) {},
+		success: function (res) {},
+		cancel: function (res) {},
+		fail: function (res) {}
+	};
+	wx.onMenuShareTimeline(shareData);
+	wx.onMenuShareAppMessage(shareData);
+	wx.onMenuShareQQ(shareData);
+	wx.onMenuShareWeibo(shareData);
+	wx.onMenuShareQZone(shareData);
+	
+});
+</script>
+
+{php include $this->template('_footer');}

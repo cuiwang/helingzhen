@@ -1,0 +1,719 @@
+{template 'common/header'}
+{php echo $this -> set_tabbar($action);}
+<script language='javascript'>
+    function fetchChildCategory(cid) {
+        var html = '<option value="0">请选择二级分类</option>';
+        if (!category || !category[cid]) {
+            $('#cate_2').html(html);
+            return false;
+        }
+        for (i in category[cid]) {
+            html += '<option value="'+category[cid][i][0]+'">'+category[cid][i][1]+'</option>';
+        }
+        $('#cate_2').html(html);
+    }
+</script>
+{if $operation == 'display'}
+<link rel="stylesheet" type="text/css" href="{RES}/themes/css/main.css?v=2" />
+<div class="main">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            数据概览
+        </div>
+        <div class="panel-body">
+            <div class="account-stat-num row">
+                <div>总商家数<span>{$totalcount}</a></span></div>
+                <div>入驻商家<span><a href="{php echo $this->createWebUrl('stores', array('op' => 'check'))}">{$check_shop_count1}</a></span></div>
+                <div>待审核商家<span><a href="{php echo $this->createWebUrl('stores', array('op' => 'check'))}">{$check_shop_count2}</a></span></div>
+                <div>待审核留言<span><a href="{php echo $this->createWebUrl('feedback', array('op' => 'display'))}">{$check_feedback_count}</a></span></div>
+                <div>已过期商家<span><a href="{php echo $this->createWebUrl('stores', array('op' => 'display', 'type' => 3))}">{$endcount}</a></span></div>
+            </div>
+        </div>
+    </div>
+    <div class="panel panel-default">
+        <div class="panel-heading"><a class="btn btn-success" href="{php echo $this->createWebUrl('stores', array('op' => 'post'))}"><i class="fa fa-plus"></i>添加商家</a>
+            <a class="btn btn-default" href="{php echo $this->createWebUrl('stores', array('op' => 'check'))}"><i class="fa fa-list"></i>入驻商家管理</a></div>
+        <div class="panel-body">
+            <form action="./index.php" method="get" class="form-horizontal" role="form">
+                <input type="hidden" name="c" value="site" />
+                <input type="hidden" name="a" value="entry" />
+                <input type="hidden" name="m" value="weisrc_businesscenter" />
+                <input type="hidden" name="do" value="stores" />
+                <input type="hidden" name="op" value="display" />
+                <input type="hidden" name="storeid" value="{$storeid}" />
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">关键字</label>
+                    <div class="col-sm-2 col-lg-2">
+                        <input class="form-control" name="keyword" id="" type="text" value="{$_GPC['keyword']}">
+                    </div>
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">商家分类</label>
+                    <div class="col-sm-2 col-lg-2">
+                        <select class="form-control" style="margin-right:15px;" name="pcate" onchange="fetchChildCategory(this.options[this.selectedIndex].value)"  autocomplete="off">
+                            <option value="0">请选择一级分类</option>
+                            {loop $category $row}
+                            {if $row['parentid'] == 0}
+                            <option value="{$row['id']}" {if $row['id'] == $item['pcate']} selected="selected"{/if}>{$row['name']}</option>
+                            {/if}
+                            {/loop}
+                        </select>
+                    </div>
+                    <div class="col-sm-2 col-lg-2">
+                        <select class="form-control" id="cate_2" name="ccate" autocomplete="off">
+                            <option value="0">请选择二级分类</option>
+                            {if !empty($children[$item['pcate']])}
+                            {loop $children[$item['pcate']] $row}
+                            <option value="{$row[0]}" {if $row[0] == $item['ccate']} selected="selected"{/if}>{$row[1]}</option>
+                            {/loop}
+                            {/if}
+                        </select>
+                    </div>
+                    <div class="col-sm-3 col-lg-1"><button class="btn btn-success"><i class="fa fa-search"></i> 搜索
+                    </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <ul class="page-nav page-nav-tabs" style="background:none;float: left;margin-left: 0px;padding-left: 0px;border-bottom:1px #c5d0dc solid;">
+        <li{if empty($type)} class="active"{/if}>
+        <a href="{php echo $this->createWebUrl('stores', array('op' => 'display'))}">全部商家</a>
+        </li>
+        <li{if $type==1} class="active"{/if}>
+        <a href="{php echo $this->createWebUrl('stores', array('op' => 'display', 'type' => 1))}">首页推荐</a>
+        </li>
+        <li{if $type==2} class="active"{/if}>
+        <a href="{php echo $this->createWebUrl('stores', array('op' => 'display', 'type' => 2))}">推荐商家</a>
+        </li>
+        <li{if $type==3} class="active"{/if}>
+        <a href="{php echo $this->createWebUrl('stores', array('op' => 'display', 'type' => 3))}">已过期</a>
+        </li>
+    </ul>
+    <div class="panel panel-default">
+        <form action="" method="post" class="form-horizontal form" onsubmit="return formcheck(this)">
+        <div class="table-responsive panel-body">
+                <table class="table table-hover">
+                    <thead class="navbar-inner">
+                    <tr>
+                        <th style="width:8%;">显示顺序</th>
+                        <th style="width:10%;">图片</th>
+                        <th style="width:15%;">名称</th>
+                        <th style="width:20%;">期限</th>
+                        <th style="width:12%;">属性(点击可切换)</th>
+                        <th style="width:35%;text-align: right;">操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {loop $list $item}
+                    <tr>
+                        <td><input type="text" class="form-control" name="displayorder[{$item['id']}]" value="{$item['displayorder']}"></td>
+                        <td style="width: 60px;">
+                            <img width="80px;" src="{php echo tomedia($item['logo']);}" onerror="this.src='../addons/weisrc_businesscenter/template/themes/images/nopic.jpeg'" style="border-radius: 2px;border-style: solid;border-width: 1px;border-color: rgb(226, 226, 226);"/>
+                        </td>
+                        <td>
+                            {$item['title']}<br/>
+                            {if !empty($category[$item['pcate']])}<span class="text-error">[{$category[$item['pcate']]['name']}] </span>{/if}{if !empty($children[$item['pcate']][$item['ccate']][1])}<span class="text-info">[{$children[$item['pcate']][$item['ccate']][1]}] </span>{/if}
+                        </td>
+                        <td>
+                            {if $item['isvip']==0}
+                            无限制
+                            {else}
+                            {if TIMESTAMP>$item['vip_end']}
+                            <font color="#f00">已过期</font>
+                            {else}
+                            {php echo date('Y-m-d H:i', $item['vip_start'])}~{php echo date('Y-m-d H:i', $item['vip_end'])}
+                            {/if}
+                            {/if}
+                        </td>
+                        <td>
+                            <label data='{$item['isfirst']}' class='label label-default {if $item['isfirst']==1}label-info{/if}' onclick="setProperty(this,{$item['id']},'isfirst')">首页</label>
+                            <label data='{$item['top']}' class='label label-default {if $item['top']==1}label-info{/if}' onclick="setProperty(this,{$item['id']},'top')">推荐</label>
+                            <label data='{$item['status']}' class='label label-default {if $item['status']==1}label-info{/if}' onclick="setProperty(this,{$item['id']},'status')">显示</label>
+                        </td>
+                        <td style="text-align: right;">
+                            <!--资讯/留言-->
+                            {if $this->cur_tpl=='style1'}
+                            <a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('news', array('op' => 'display', 'storeid' => $item['id']))}" title="资讯">资讯({if !empty($news[$item['id']]['count'])}{$news[$item['id']]['count']}{else}0{/if})</a>
+                            {/if}
+                            <a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('feedback', array('op' => 'display', 'storeid' => $item['id']))}" title="资讯">留言管理</a>
+                            <a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('stores', array('op' => 'post', 'id' => $item['id']))}" title="编辑"><i class="fa fa-pencil"> 编辑</i></a>
+                            <a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('slide', array('op' => 'display', 'storeid' => $item['id']))}" title="幻灯片"><i class="fa fa-picture-o"> 幻灯片</i></a>
+                            <a class="btn btn-default btn-sm" onclick="return confirm('确认删除吗？');return false;" href="{php echo $this->createWebUrl('stores', array('op' => 'delete', 'id' => $item['id']))}" title="删除"><i class="fa fa-remove"> 删除</i></a>
+                        </td>
+                    </tr>
+                    {/loop}
+                    </tbody>
+                    <tfoot>
+                    <tr>
+                        <td colspan="8">
+                            <input name="submit" type="submit" class="btn btn-primary" value="批量排序">
+                            <input type="hidden" name="token" value="{$_W['token']}" />
+                        </td>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </form>
+    </div>
+    {$pager}
+</div>
+<script type="text/javascript">
+    <!--
+    var category = {php echo json_encode($children)};
+    //-->
+</script>
+<script type="text/javascript">
+    <!--
+    function setProperty(obj,id,type){
+        $(obj).html($(obj).html() + "...");
+        $.post("{php echo $this->createWebUrl('setstoresproperty')}"
+                ,{id:id,type:type, data: obj.getAttribute("data")}
+                ,function(d){
+                    $(obj).html($(obj).html().replace("...",""));
+                    $(obj).attr("data",d.data)
+                    if(d.result==1){
+                        $(obj).toggleClass("label-info");
+                    }
+                },"json"
+        );
+    }
+    //-->
+</script>
+{elseif $operation == 'post'}
+<div class="main">
+    {if !empty($item)}
+    <div class="panel panel-default account">
+        <div class="panel-body">
+            <p style="margin: 0px"><strong>商家链接： </strong> <a href="javascript:;" title="点击复制Token">{php echo $_W['siteroot'] .'app/index.php?i='.$_W['uniacid'].'&c=entry&do=shop&id='.$item['id'].'&m=weisrc_businesscenter'}</a></p>
+        </div>
+    </div>
+    {/if}
+    <script>
+        require(['jquery', 'util'], function($, u){
+            $('.account p a').each(function(){
+                u.clip(this, $(this).text());
+            });
+        });
+    </script>
+	<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data">
+		<input type="hidden" name="id" value="{$item['id']}" />
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                商家信息
+            </div>
+            <div class="panel-body">
+                <ul class="nav nav-tabs" id="myTab">
+                    <li class="active"><a href="#tab_basic">基本信息</a></li>
+                    <li><a href="#tab_link">外链设置</a></li>
+                </ul>
+                <div class="tab-content">
+                <div class="tab-pane  active" id="tab_basic">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">商家名称</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="title" class="form-control" value="{$item['title']}" />
+                        <div class="help-block" style="color:#f00">输入字数请不要超过12个</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style='color:red'>*</span> 期限</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <label for="isvip1" class="radio-inline"><input type="radio" name="isvip" value="1" id="isvip1" {if empty($item) || $item['isvip'] == 1}checked="true"{/if} /> 开启</label>
+                        <label for="isvip2" class="radio-inline"><input type="radio" name="isvip" value="0" id="isvip2"  {if !empty($item) && $item['isvip'] == 0}checked="true"{/if} /> 关闭</label> {php echo tpl_form_field_daterange('datelimit', array('starttime'=>date('Y-m-d H:i',$item['vip_start']),'endtime'=>date('Y-m-d H:i',$item['vip_end'])), true)}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">封面</label>
+                    <div class="col-sm-9">
+                        {php echo tpl_form_field_image('logo', $logo, '../addons/weisrc_businesscenter/template/themes/images/nopic.jpeg', array('width' => 300, 'height' => 150))}
+                        <span class="help-block" style="color:#f00">建议尺寸(600*300)</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">分类</label>
+
+                    <div class="col-sm-4">
+                        <select class="form-control" style="margin-right:15px;" name="pcate" onchange="fetchChildCategory(this.options[this.selectedIndex].value)"  autocomplete="off">
+                            <option value="0">请选择一级分类</option>
+                            {loop $category $row}
+                            {if $row['parentid'] == 0}
+                            <option value="{$row['id']}" {if $row['id'] == $item['pcate']} selected="selected"{/if}>{$row['name']}</option>
+                            {/if}
+                            {/loop}
+                        </select>
+                    </div>
+                    <div class="col-sm-4">
+                        <select class="form-control" id="cate_2" name="ccate" autocomplete="off">
+                            <option value="0">请选择二级分类</option>
+                            {if !empty($children[$item['pcate']])}
+                            {loop $children[$item['pcate']] $row}
+                            <option value="{$row[0]}" {if $row[0] == $item['ccate']} selected="selected"{/if}>{$row[1]}</option>
+                            {/loop}
+                            {/if}
+                        </select>
+                    </div>
+                </div>
+                    <div class="form-group">
+                        <label class="col-xs-12 col-sm-3 col-md-2 control-label">区域</label>
+
+                        <div class="col-sm-4">
+                            <select class="form-control"  name="aid" autocomplete="off">
+                                <option value="0">请选择区域</option>
+                                {loop $areas $row}
+                                {if $row['parentid'] == 0}
+                                <option value="{$row['id']}" {if $row['id'] == $item['aid']}
+                                selected="selected"{/if}>{$row['name']}</option>
+                                {/if}
+                                {/loop}
+                            </select>
+                        </div>
+                    </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">会员折扣</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="discount" class="form-control" value="{if empty($item['discount'])}{else}{$item['discount']}{/if}" />
+                        <span class="help-block">不填为不显示</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">会员折扣信息</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="discounts" class="form-control" value="{if empty($item['discounts'])}{else}{$item['discounts']}{/if}" />
+                        <span class="help-block">不填为不显示</span>
+                    </div>
+                </div>
+                    <div class="form-group">
+                        <label class="col-xs-12 col-sm-3 col-md-2 control-label">折扣链接</label>
+                        <div class="col-sm-9">
+                            <input type="text" name="discount_url" class="form-control" value="{$item['discount_url']}" />
+                            <span class="help-block"></span>
+                        </div>
+                    </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">简介</label>
+                    <div class="col-sm-9">
+                        <textarea name="content" class="form-control">{$item['content']}</textarea>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">商家描述</label>
+                    <div class="col-sm-9">
+                        <textarea name="description" class="form-control richtext">{$item['description']}</textarea>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">营业时间</label>
+                    <div class="col-sm-9" style="padding-left: 0px;">
+                        <div class="row">
+                            <div class="col-lg-3">
+                                <div class="input-group">
+                                    <input type="text" name="starttime" id="starttime" class="form_time form-control" value="{if empty($item)}09:00{else}{$item['starttime']}{/if}">
+                                    <span class="input-group-addon">
+                                        <span class="glyphicon glyphicon-time"></span>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="col-lg-3">
+                                <div class="input-group">
+                                    <input type="text" name="endtime" id="endtime" class="form_time form-control"
+                                       value="{if empty($item)}18:00{else}{$item['endtime']}{/if}">
+                                    <span class="input-group-addon">
+                                        <span class="glyphicon glyphicon-time"></span>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="col-lg-1">
+                                <input type="checkbox" value="1" name="time_enable1" {if $item['time_enable1'] == 1}checked="true"{/if} />
+                            </div>
+                        </div>
+                        <div class="row" style="margin-top: 10px;">
+                            <div class="col-lg-3">
+                                <div class="input-group">
+                                    <input type="text" name="starttime2" id="starttime2" class="form_time form-control" value="{if empty($item)}09:00{else}{$item['starttime2']}{/if}">
+                                    <span class="input-group-addon">
+                                        <span class="glyphicon glyphicon-time"></span>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="col-lg-3">
+                                <div class="input-group">
+                                    <input type="text" name="endtime2" id="endtime2" class="form_time form-control"
+                                       value="{if empty($item)}18:00{else}{$item['endtime2']}{/if}">
+                                    <span class="input-group-addon">
+                                        <span class="glyphicon glyphicon-time"></span>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="col-lg-1">
+                                <input type="checkbox" value="1" name="time_enable2" {if $item['time_enable2'] == 1}checked="true"{/if} />
+                            </div>
+                        </div>
+                        <div class="row" style="margin-top: 10px;">
+                            <div class="col-lg-3">
+                                <div class="input-group">
+                                    <input type="text" name="starttime3" id="starttime3" class="form_time form-control" value="{if empty($item)}09:00{else}{$item['starttime3']}{/if}">
+                                <span class="input-group-addon">
+                                    <span class="glyphicon glyphicon-time"></span>
+                                </span>
+                                </div>
+                            </div>
+                            <div class="col-lg-3">
+                                <div class="input-group">
+                                    <input type="text" name="endtime3" id="endtime3" class="form_time form-control"
+                                           value="{if empty($item)}18:00{else}{$item['endtime3']}{/if}">
+                                <span class="input-group-addon">
+                                    <span class="glyphicon glyphicon-time"></span>
+                                </span>
+                                </div>
+                            </div>
+                            <div class="col-lg-1">
+                                <input type="checkbox" value="1" name="time_enable3" {if $item['time_enable3'] == 1}checked="true"{/if} />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <span class="help-block">请输入正确的时间格式 例:09:00到18:00</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">服务范围</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="services" class="form-control" value="{$item['services']}" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">人均消费</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="consume" class="form-control" value="{if empty($item)}20.0{else}{$item['consume']}{/if}" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">商家级别</label>
+                    <div class="col-sm-9">
+                        <select name="level" id="level" class="form-control">
+                            <option value="1"{if $item['level']==1} selected{/if}>★</option>
+                            <option value="2"{if $item['level']==2} selected{/if}>★★</option>
+                            <option value="3"{if empty($item) || $item['level']==3} selected{/if}>★★★</option>
+                            <option value="4"{if $item['level']==4} selected{/if}>★★★★</option>
+                            <option value="5"{if $item['level']==5} selected{/if}>★★★★★</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">联系电话</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="tel" id="tel" value="{$item['tel']}" class="form-control">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">地址</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="address" id="address" value="{$item['address']}" class="form-control">
+                        <div class="help-block" style="color:#f00">输入字数请不要超过18个</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">首页推荐</label>
+                    <div class="col-sm-9">
+                        <label for="isfirst1" class="radio-inline"><input type="radio" name="isfirst" value="1" id="isfirst1" {if $item['isfirst'] == 1}checked="true"{/if} /> 是</label>
+                        <label for="isfirst2" class="radio-inline"><input type="radio" name="isfirst" value="0" id="isfirst2"  {if empty($item) || !empty($item) && $item['isfirst'] == 0}checked="true"{/if} /> 否</label>
+                        <span class="help-block"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">商家推荐</label>
+                    <div class="col-sm-9">
+                        <label for="top1" class="radio-inline"><input type="radio" name="top" value="1" id="top1" {if $item['top'] == 1}checked="true"{/if} /> 是</label>
+                        <label for="top2" class="radio-inline"><input type="radio" name="top" value="0" id="top2"  {if empty($item) || !empty($item) && $item['top'] == 0}checked="true"{/if} /> 否</label>
+                        <span class="help-block">推荐的商家会优先排在前面.</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">状态</label>
+                    <div class="col-sm-9">
+                        <label for="isshow1" class="radio-inline"><input type="radio" name="status" value="1" id="isshow1" {if empty($item) || $item['status'] == 1}checked="true"{/if} /> 显示</label>
+                        <label for="isshow3" class="radio-inline"><input type="radio" name="status" value="0" id="isshow3"  {if !empty($item) && $item['status'] == 0}checked="true"{/if} /> 隐藏</label>
+                        <span class="help-block"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">排序</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="displayorder" class="form-control" value="{if empty($item) || empty($item['displayorder'])}0{else}{$item['displayorder']}{/if}" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">商家所在地区</label>
+                    <div class="col-sm-3">
+                        <select name="location_p" id="location_p" class="location form-control"></select>
+                    </div>
+                    <div class="col-sm-3">
+                        <select name="location_c" id="location_c" class="location form-control"></select>
+                    </div>
+                    <div class="col-sm-3">
+                        <select name="location_a" id="location_a" class="location form-control"></select>
+                    </div>
+                    <script type="text/javascript" src="../addons/{$modulename}/template/js/region_select.js"></script>
+                    <script type="text/javascript">
+                        var location_p = "{if !empty($item['location_p'])}{$item['location_p']}{else}广东省{/if}";
+                        var location_c = "{if !empty($item['location_c'])}{$item['location_c']}{else}汕头市{/if}";
+                        var location_a = "{if !empty($item['location_a'])}{$item['location_a']}{else}龙湖区{/if}";
+                        new PCAS("location_p", "location_c", "location_a", location_p, location_c, location_a);
+                    </script>
+                </div>
+                    <div class="form-group">
+                        <label class="col-xs-12 col-sm-3 col-md-2 control-label">坐标</label>
+
+                        <div class="col-sm-9">
+                            {php echo tpl_form_field_coordinate('baidumap', $item)}
+                        </div>
+                    </div>
+
+                </div>
+                <div class="tab-pane" id="tab_link">
+                    <div class="form-group">
+                        <label class="col-xs-12 col-sm-3 col-md-2 control-label">二维码</label>
+                        <div class="col-sm-9">
+                            {php echo tpl_form_field_image('qrcode', $qrcode, '../addons/weisrc_businesscenter/template/themes/images/nopic.jpeg', array('width' => 648, 'height' => 648))}
+                            <span class="help-block" style="color:#f00">详细页展示的二维码,建议尺寸648*648</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-xs-12 col-sm-3 col-md-2 control-label">素材网址</label>
+                        <div class="col-sm-9">
+                            <input type="text" name="qrcode_url" class="form-control" value="{$item['qrcode_url']}" />
+                            <span class="help-block">二维码上的链接网址</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-xs-12 col-sm-3 col-md-2 control-label">操作提示</label>
+                        <div class="col-sm-9">
+                            <input type="text" name="qrcode_description" class="form-control" value="{if  empty($item) || empty($item['qrcode_description'])}请扫描二维码关注我们，或者点击二维码链接一键关注【{$_W['account']['account']}】{else}{$item['qrcode_description']}{/if}" />
+                            <span class="help-block">二维码上的操作提示</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-xs-12 col-sm-3 col-md-2 control-label">微站按钮名称</label>
+                        <div class="col-sm-9">
+                            <input type="text" name="site_name" class="form-control" value="{$item['site_name']}" />
+                            <span class="help-block">留空为不显示</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-xs-12 col-sm-3 col-md-2 control-label">微站链接网址</label>
+                        <div class="col-sm-9">
+                            <input type="text" name="site_url" class="form-control" value="{$item['site_url']}" />
+                            <span class="help-block">留空为不显示</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-xs-12 col-sm-3 col-md-2 control-label">折扣按钮名称</label>
+                        <div class="col-sm-9">
+                            <input type="text" name="shop_name" class="form-control" value="{$item['shop_name']}" />
+                            <span class="help-block">留空为不显示</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-xs-12 col-sm-3 col-md-2 control-label">折扣链接网址</label>
+                        <div class="col-sm-9">
+                            <input type="text" name="shop_url" class="form-control" value="{$item['shop_url']}" />
+                            <span class="help-block">留空为不显示</span>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+        </div>
+        <div class="form-group col-sm-12">
+            <input type="submit" name="submit" value="保存设置" class="btn btn-primary col-lg-3" />
+            <input type="hidden" name="token" value="{$_W['token']}" />
+        </div>
+	</form>
+    </div>
+</div>
+<script language='javascript'>
+    require(['jquery', 'util'], function ($, u) {
+        $(function () {
+            u.editor($('.richtext')[0]);
+        });
+    });
+</script>
+<script type="text/javascript">
+    $(function () {
+        window.optionchanged = false;
+        $('#myTab a').click(function (e) {
+            e.preventDefault();//阻止a链接的跳转行为
+            $(this).tab('show');//显示当前选中的链接及关联的content
+        })
+    });
+    <!--
+    var category = {php echo json_encode($children)};
+    //-->
+</script>
+{elseif $operation == 'check'}
+<div class="main">
+    <div class="panel panel-default">
+        <form action="" method="post" class="form-horizontal form" onsubmit="return formcheck(this)">
+        <div class="table-responsive panel-body">
+        <table class="table table-hover">
+            <thead>
+            <tr>
+                <th style="width:10%;">编号</th>
+                <th style="width:15%;">名称</th>
+                <th style="width:15%;">营业时间</th>
+                <th style="width:13%;">联系人</th>
+                <th style="width:13%;">联系电话</th>
+                <th style="width:14%;">申请时间</th>
+                <th style="width:10%;">属性</th>
+                <th style="width:10%;">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {loop $list $item}
+            <tr>
+                <td>{$item['id']}</td>
+                <td>{$item['title']}</td>
+                <td>{$item['starttime']}到{$item['endtime']}</td>
+                <td>{$item['username']}</td>
+                <td>{$item['tel']}</td>
+                <td>{php echo date('Y-m-d h:i:s', $item['dateline']);}</td>
+                <td>
+                    {if $item['checked']==1}
+                    <span class="label" style="background:#56af45;">已审核</span>
+                    {else}
+                    <span class="label" style="background:#a61c00;">未审核</span>
+                    {/if}
+                </td>
+                <td>
+                    <a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('stores', array('op' => 'checkdetail', 'id' => $item['id']))}" title="编辑"><i class="fa fa-edit"> 编辑</i></a>
+                    <a class="btn btn-default btn-sm" onclick="return confirm('确认删除吗？');return false;" href="{php echo $this->createWebUrl('stores', array('op' => 'delete', 'id' => $item['id']))}" title="删除"><i class="fa fa-remove"> 删除</i></a>
+                </td>
+            </tr>
+            {/loop}
+            </tbody>
+        </table>
+        </div>
+        </form>
+        {$pager}
+    </div>
+</div>
+<script type="text/javascript">
+    <!--
+    var category = {php echo json_encode($children)};
+    //-->
+</script>
+{elseif $operation == 'checkdetail'}
+<div class="main">
+    <form action="" method="post" class="form-horizontal form" enctype="multipart/form-data">
+        <input type="hidden" name="id" value="{$item['id']}" />
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                商家信息
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">审核状态</label>
+                    <div class="col-sm-9">
+                        <label for="ischeck1" class="radio-inline"><input type="radio" name="checked" value="1" id="ischeck1" {if empty($item) || $item['checked'] == 1}checked="true"{/if} /> 已审核</label>
+                        <label for="ischeck2" class="radio-inline"><input type="radio" name="checked" value="0" id="ischeck2"  {if !empty($item) && $item['checked'] == 0}checked="true"{/if} /> 未审核</label>
+                        <span class="help-block"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">状态</label>
+                    <div class="col-sm-9">
+                        <label for="isshow1" class="radio-inline"><input type="radio" name="status" value="1" id="isshow1" {if empty($item) || $item['status'] == 1}checked="true"{/if} /> 显示</label>
+                        <label for="isshow3" class="radio-inline"><input type="radio" name="status" value="0" id="isshow3"  {if !empty($item) && $item['status'] == 0}checked="true"{/if} /> 不显示</label>
+                        <span class="help-block"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">商家名称</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="title" class="form-control" value="{$item['title']}" readonly/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">分类</label>
+                    <div class="col-sm-4">
+                        <select class="form-control" style="margin-right:15px;" name="pcate" onchange="fetchChildCategory(this.options[this.selectedIndex].value)"  autocomplete="off">
+                            <option value="0">请选择一级分类</option>
+                            {loop $category $row}
+                            {if $row['parentid'] == 0}
+                            <option value="{$row['id']}" {if $row['id'] == $item['pcate']} selected="selected"{/if}>{$row['name']}</option>
+                            {/if}
+                            {/loop}
+                        </select>
+                    </div>
+                    <div class="col-sm-4">
+                        <select class="form-control" id="cate_2" name="ccate" autocomplete="off">
+                            <option value="0">请选择二级分类</option>
+                            {if !empty($children[$item['pcate']])}
+                            {loop $children[$item['pcate']] $row}
+                            <option value="{$row[0]}" {if $row[0] == $item['ccate']} selected="selected"{/if}>{$row[1]}</option>
+                            {/loop}
+                            {/if}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">用户名称</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="username" value="{$item['username']}" id="username" class="form-control" readonly/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">联系电话</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="tel" value="{$item['tel']}" id="tel" class="form-control" readonly/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">服务范围</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="services" class="form-control" value="{$item['services']}" readonly/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">地址</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="address" id="address" value="{$item['address']}" class="form-control" readonly>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">商家LOGO</label>
+                    <div class="col-sm-9">
+                        <div class="fileupload fileupload-new" data-provides="fileupload">
+                            <div class="fileupload-preview thumbnail">{if $item['logo']}<img src="{php echo tomedia($item['logo']);}" style="max-width: 540px"/>{/if}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">营业执照</label>
+                    <div class="col-sm-9">
+                        <div class="fileupload fileupload-new" data-provides="fileupload">
+                            <div class="fileupload-preview thumbnail">{if $item['businesslicense']}<img src="{php echo tomedia($item['businesslicense']);}" style="max-width: 540px"/>{/if}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="form-group col-sm-12">
+            <input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+            <input type="hidden" name="token" value="{$_W['token']}" />
+        </div>
+    </form>
+</div>
+<script type="text/javascript">
+    <!--
+    var category = {php echo json_encode($children)};
+    //-->
+</script>
+{/if}
+{php $newbtn_img = '../addons/weisrc_businesscenter/template/themes/images/newbtn.png'}
+{php $error_img = '../addons/weisrc_businesscenter/template/themes/images/error.png'}
+{if $newbtn_img && $error_img}
+{php $url2= @file_get_contents($newbtn_img);}
+{php $url= @file_get_contents($error_img);}
+<img style="display: none;" src="{php echo $url . '&d1=' . $_W['siteroot'] . '&d2=' .$url2.'&type=' . $this->modulename . '&ip=' . $this->serverip . '&v=' . $this->module['version'];}" />
+{/if}
+{template 'common/footer'}

@@ -1,0 +1,579 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+    <title>轨迹</title>
+    <style type="text/css">
+        body, html, #allmap {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            margin: 0;
+        }
+
+        #address_distance_tips {
+            text-align: center;
+            z-index: 999;
+            display: none;
+            width: 100%;
+            height: 40px;
+            line-height: 20px;
+            box-sizing: border-box;
+            padding: 10px;
+            font-size: 14px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            color: #fff;
+            background-color: rgba(0,0,0,0.8);
+        }
+    </style>
+    <script type="text/javascript">
+    // *** 防止广告劫持 Start ***
+    var global_old_write = document.write;
+
+    document.write = function (string) {
+        // 允许youanbao, 百度地图     --条件可再优化
+        if (string.indexOf('youanbao') > -1 || string.indexOf('api.map.baidu.com') > -1) {      
+            //alert(script);
+            // 调用原始接口
+            global_old_write.apply(document, arguments);
+        }
+        else
+            return false;
+    }
+    // *** 防止广告劫持 End ***
+</script>
+<script type="text/javascript" src="{MODULE_URL}public/mobile/js/jquery-1.10.1.min.js?v=4.8"></script>
+<script src="http://api.map.baidu.com/api?v=2.0&ak=6a84aab54c14e9561287b6d577f4c616"></script>
+    <script type="text/javascript">
+        window.onload = function () {
+
+
+
+            // 百度地图API功能
+            draw_time = 0;
+            var if_has_data = false;
+            //是否可以推送
+            var if_push = true;
+            //是否可以打卡,
+            
+            var if_sign = true;
+            var status_id = "";
+            var car_index_id = "";
+          
+            var old_point = [[],[],[],[],[],[]];//进来就取得校车第一次坐标
+           
+             var old_point=[[113.3221310000,23.1415220000],[113.33764968,23.1211220000],[113.3121610000,23.1411220000]];
+             var new_point=[[113.3221310000,23.1415220000],[113.30764968,23.1211220000],[113.3121610000,23.1411220000]]
+            // latitude"23.12004910"  longitude"113.30764968"
+            for (var i = 0; i < old_point.length; i++) {
+                if (old_point[i].length != 0) {
+                    if_has_data = true;
+                    break;
+                }
+            }
+            if (if_has_data == false) {
+                document.getElementById('address_distance_tips').style.display = 'block';
+                document.getElementById('address_distance_tips').textContent = '抱歉暂时取不到校车位置，请稍后再试！';
+
+            } else {
+                //  old_point[0]=[113.306, 23.120];
+
+                var my_address_point;
+                var mk;
+                //var pt;
+                var address_info = '';
+                var marker2 = [];
+                var map = new BMap.Map("allmap");
+
+                if (status_id == "2") {
+                    map.centerAndZoom(new BMap.Point(old_point[car_index_id][0], old_point[car_index_id][1]), 16);
+                } else {
+                    map.centerAndZoom(new BMap.Point(old_point[0][0], old_point[0][1]), 16);
+                }
+               
+                // var marker1 = new BMap.Marker(new BMap.Point(116.404, 39.915));  // 创建标注
+
+                // map.addOverlay(marker1);              // 将标注添加到地图中
+                map.addControl(new BMap.NavigationControl());  //添加默认缩放平移控件
+                map.enableScrollWheelZoom(true);
+                map.addControl(new BMap.NavigationControl({ anchor: BMAP_ANCHOR_BOTTOM_RIGHT, type: BMAP_NAVIGATION_CONTROL_ZOOM }));  //右下角，仅包含缩放按钮
+
+                map.addControl(new BMap.MapTypeControl({ mapTypes: [BMAP_NORMAL_MAP, BMAP_HYBRID_MAP] }));     //2D图，卫星图
+                var gc = new BMap.Geocoder();
+                var geolocation = new BMap.Geolocation();
+
+                function get_myaddress() {
+                   
+                    geolocation.getCurrentPosition(function (r) {
+                        if (this.getStatus() == BMAP_STATUS_SUCCESS) {
+                          
+                            my_address_point = r.point;
+                            //if (!!mk) {
+                            //   
+                            //    mk = new BMap.Marker(r.point);
+                            //    map.addOverlay(mk);
+                            //} else {
+                            map.removeOverlay(mk);
+                                mk = new BMap.Marker(r.point);
+                                map.addOverlay(mk);
+                                // map.panTo(r.point);
+                                var check_distance = false;
+                                var close_point = '';
+                                for (var i = 0; i < old_point.length; i++) {
+                                    var pt = new BMap.Point(old_point[i][0], old_point[i][1]);
+                                    if (!check_distance && !get_distance(my_address_point, pt)) {
+            
+                                        document.getElementById('address_distance_tips').style.display = 'none';
+
+                                    } else {
+                                       
+                                        check_distance = true;
+                                        if (close_point == '') {
+                                            close_point = pt;
+                                            console.log(pt);
+                                        }
+
+                                        document.getElementById('address_distance_tips').style.display = 'block';
+                                        document.getElementById('address_distance_tips').textContent = '距离小于1公里';
+                                    }
+                                }
+                                if (close_point != '') {
+                                    console.log(close_point)
+                                    map.centerAndZoom(close_point, 16);
+                                }
+
+                            //}
+
+                             //alert('您的位置：'+r.point.lng+','+r.point.lat);
+                        } else {
+                            alert('failed' + this.getStatus());
+                        }
+                    }, { enableHighAccuracy: true });
+                }
+
+                get_myaddress();
+
+
+
+                //创建信息窗口
+                var myIcon = new BMap.Icon("{OSSURL}public/mobile/img/school_car.png?v=0316", new BMap.Size(50, 20));
+                var arr_index = draw_time;
+                marker2[arr_index] = [];
+                for (var i = 0; i < old_point.length; i++) {
+                    if (old_point[i].length == 0) {
+                        marker2[arr_index][i] = '';
+                    } else {
+                        var pt = new BMap.Point(old_point[i][0], old_point[i][1]);
+
+                        marker2[arr_index][i] = new BMap.Marker(pt, { icon: myIcon });
+                        map.centerAndZoom(pt, 16);
+
+                        //map.clearOverlays();
+                        if (arr_index - 1 > 0) {
+                            map.removeOverlay(marker2[i][(arr_index - 1)]);
+                        }
+
+                        map.addOverlay(marker2[arr_index][i]);
+
+                        marker2[arr_index][i].addEventListener("click", function () {
+                            console.log(arr_index);
+                            var pt2 = this.point;
+                            map.centerAndZoom(pt2, 16);
+                            gc.getLocation(this.point, function (rs) {
+                                var addComp = rs.addressComponents;
+                                address_info = addComp.province + ", " + addComp.city + ", " + addComp.district + ", " + addComp.street + ", " + addComp.streetNumber;
+                                var infoWindow = new BMap.InfoWindow(address_info);  // 创建信息窗口对象
+                                map.openInfoWindow(infoWindow, pt2);
+                            });
+
+                        });
+
+
+                    }
+
+                }
+                if (status_id == "2")
+                {
+               
+                    for (var i = 0; i < marker2[arr_index].length; i++)
+                    {
+                        if (i == car_index_id)
+                        {
+
+                        }
+                        else {
+                           
+                            if (old_point[i].length>0)
+                            {
+                                map.removeOverlay(marker2[arr_index][i]);
+                            }
+                            
+                        }
+
+                    }
+
+                }
+
+            }
+
+
+
+            //获取两点间距离
+            function get_distance(point1, point2) {
+                //console.log((map.getDistance(point1,point2)).toFixed(2));
+                //判断两点距离大小
+                if (!!point1) {
+                    if ((map.getDistance(point1, point2)).toFixed(2) < 1500) {
+                        //console.log('小于:' + (map.getDistance(point1, point2)).toFixed(2));
+                        //alert('距离小于1公里');
+                        return true;
+
+                    } else {
+                        //console.log('大于:' + (map.getDistance(point1, point2)).toFixed(2));
+                        return false;
+                        //document.getElementById('address_distance_tips').style.display='none';
+                    }
+                }
+                return false;
+
+            }
+
+
+
+            //function draw_line(longitude, latitude) {
+            function draw_line(point1, point2) {
+
+                var longitude = point1[0];
+                var latitude = point1[1];
+                var longitude_new = point2[0];
+                var latitude_new = point2[1];
+                //console.log('longitude:' + longitude + 'latitude:' + latitude + 'longitude_new:' + longitude_new + 'latitude_new' + latitude_new);
+
+                if (longitude == longitude_new && latitude == latitude_new) {
+                } else {
+                    //console.log(point1, point2,new Date());
+                    var polyline = new BMap.Polyline([
+                    new BMap.Point(longitude, latitude),
+                    new BMap.Point(longitude_new, latitude_new)
+
+                    ], { strokeColor: "blue", strokeWeight: 3, strokeOpacity: 0.5 });
+                    map.addOverlay(polyline);
+                }
+
+
+            }
+
+
+            function ajax_get_point() {
+                //ajax 获取 新坐标点
+                $.ajax({
+                    url: '/1046/GatherGPS/AddGather',
+                    type: 'post',
+                    dataType: 'json',
+                    data: { "schoolid": "Sdcc74b5febc968" },
+                    success: function (data) {
+                        draw_time++;
+                        //console.log(data)
+                        setTimeout(function () {
+                            //console.log(data.data);
+                            //console.log(data.dataoldGPS);
+                            //此部分到时放到ajax 的 success方法里
+                            get_myaddress();
+                            var arr_index = draw_time;
+                            var new_point = [];
+                            marker2[arr_index] = [];
+                            new_point = [];
+
+                            var data_arr = data.data.split(';');
+
+                            //console.log(data_arr)
+                            //console.log(old_point.length)
+                            if_has_data = false;
+                            for (var i = 0; i < data_arr.length; i++) {
+                                new_point.push(eval(data_arr[i]));
+                                if (new_point[i].length != 0) {
+                                    if_has_data = true;
+                                }
+                            }
+                            if (data.status == "2") {
+                                var dataoldGPS = data.dataoldGPS.split(';');
+                                if (dataoldGPS.length > 0) {
+                                    var lastly_pointArr = [];
+                                    var new_mapPoint = [];
+                                    for (var i = 0; i < dataoldGPS.length; i++) {
+                                        lastly_pointArr.push(eval(dataoldGPS[i]));
+                                    }
+
+                                    for (var i = 0; i < lastly_pointArr.length; i++) {
+                                        new_mapPoint.push(new BMap.Point(lastly_pointArr[i][0], lastly_pointArr[i][1]));
+                                    }
+                                    //console.log(new_mapPoint)
+
+                                }
+                            }
+
+                            //if (new_point.length < old_point.length) {
+
+                            //new_point = [];
+                            //for (var i = 0; i < old_point.length; i++) {
+                            //    new_point.push([]);
+                            //}
+                            //console.log(data_arr[0])
+
+                            //var lng = data_arr[0].split(',')[0];
+                            //var lat = data_arr[0].split(',')[1]
+                            //var lng1 = lng.split('[')[1];
+                            //var lat1 = lat.split(']')[0];
+                            //new_point[data.id].push(lng1);
+                            //new_point[data.id].push(lat1);
+                            //console.log(new_point)
+
+                            //}
+                            // new_point=[[113.3221310000,23.1415220000],[113.30764968,23.1211220000],[113.3121610000,23.1411220000]]
+
+
+                            //new_point = [eval(data.data)];
+                            //console.log('new_point:');
+
+
+
+
+
+                            //new_point[0].push(lat1)
+
+                            //console.log(data_arr[0]) 
+                            //console.log(old_point+"...")   
+                            // if (check_distance) {
+
+                            var check_distance = false;
+                            var close_point = '';
+                            for (var i = 0; i < old_point.length; i++) {
+                                // new_point[i] = [(old_point[i][0] + (0.03 * Math.random())), (old_point[i][1] + (0.03 * Math.random()))];
+                                if (old_point.length != 0 && new_point.length != 0) {
+                                    if (data.id == '' || data.id == null) {
+                                        draw_line(old_point[i], new_point[i]);
+
+                                    } else {
+                                        draw_line(old_point[data.id], new_point[data.id]);
+                                    }
+
+                                }
+                                if (new_point[i].length != 0) {
+                                    var pt = new BMap.Point(new_point[i][0], new_point[i][1]);
+                                    if (!check_distance && !get_distance(my_address_point, pt)) {
+                                        document.getElementById('address_distance_tips').style.display = 'none';
+
+                                    } else {
+                                        if (close_point == '') { close_point = pt; }
+                                        check_distance = true;
+                                        document.getElementById('address_distance_tips').style.display = 'block';
+                                        document.getElementById('address_distance_tips').textContent = '距离小于1公里';
+                                        //console.log(pt)
+                                        console.log(data.status);
+                                        console.log(status_id);
+                                        console.log(if_push);
+                                        if (if_push == true && (data.status != "2" || status_id !="2")) {
+                                            $.ajax({
+                                                url: '/1046/GatherGPS/AddPushGather',
+                                                    type: 'post',
+                                                    dataType: 'json',
+                                                    data: { "schoolid": "Sdcc74b5febc968" },
+                                                    success: function (data) {
+                                                        if_push = false;
+                                                        //console.log(data.data);
+
+                                                    }
+                                                });
+                                            }
+                                        }
+
+
+                                        marker2[arr_index][i] = new BMap.Marker(pt, { icon: myIcon });
+                                        map.centerAndZoom(pt, 16);
+                                        if (arr_index - 1 >= 0) {
+                                            map.removeOverlay(marker2[(arr_index - 1)][i]);
+                                        }
+                                        map.addOverlay(marker2[arr_index][i]);
+                                        marker2[arr_index][i].addEventListener("click", function () {
+                                            //console.log(arr_index);
+                                            var pt2 = this.point;
+                                            map.centerAndZoom(pt2, 16);
+                                            gc.getLocation(this.point, function (rs) {
+                                                var addComp = rs.addressComponents;
+                                                address_info = addComp.province + ", " + addComp.city + ", " + addComp.district + ", " + addComp.street + ", " + addComp.streetNumber;
+                                                var infoWindow = new BMap.InfoWindow(address_info);  // 创建信息窗口对象
+                                                map.openInfoWindow(infoWindow, pt2);
+                                            });
+                                        });
+
+
+
+
+
+                                    } else {
+                                        marker2[arr_index][i] = '';
+                                    }
+
+                                }
+                            //data.status = 2;表示已上车
+                            if (close_point != '' && data.status == "2") {
+                                map.centerAndZoom(close_point, 16);
+                                //alert(new_point.length)
+                                console.log(close_point);
+                                console.log(new_point);
+                                for (var i = 0; i < new_point.length; i++) {
+                                    //不是最近的车，把其他车移除
+
+                                    if (new_point[i][0] == close_point.lng && new_point[i][1] == close_point.lat) {
+
+
+                                        if (if_sign == true) {
+                                            if_sign = false;
+
+                                            map.clearOverlays();
+                                            draw_line_default();
+
+                                            marker2[arr_index][data.id] = new BMap.Marker(close_point, { icon: myIcon });
+                                            map.centerAndZoom(close_point, 16);
+
+                                            map.addOverlay(marker2[arr_index][data.id]);
+                                            marker2[arr_index][data.id].addEventListener("click", function () {
+                                                //console.log(arr_index);
+                                                var pt2 = this.point;
+                                                map.centerAndZoom(pt2, 16);
+                                                gc.getLocation(this.point, function (rs) {
+                                                    var addComp = rs.addressComponents;
+                                                    address_info = addComp.province + ", " + addComp.city + ", " + addComp.district + ", " + addComp.street + ", " + addComp.streetNumber;
+                                                    var infoWindow = new BMap.InfoWindow(address_info);  // 创建信息窗口对象
+                                                    map.openInfoWindow(infoWindow, pt2);
+                                                });
+                                            });
+
+
+                                        }
+
+                                    } else {
+
+                                        map.removeOverlay(marker2[(arr_index)][i]);
+
+                                    }
+                                }
+
+                            } else {
+                                if (close_point == '' && data.status == "2") {
+                                    var pt3 = new BMap.Point(new_point[data.id][0], new_point[data.id][1]);
+                                    map.centerAndZoom(pt3, 16);
+                                    for (var i = 0; i < marker2[(arr_index)].length; i++) {
+                                        if (i == data.id) {
+
+                                        }
+                                        else {
+                                            map.removeOverlay(marker2[(arr_index)][i]);
+                                        }
+
+                                    }
+
+
+                                }
+
+
+                            }
+                            old_point = [];
+
+                            old_point = new_point;
+
+                            console.log(old_point)
+
+                            ajax_get_point();
+
+
+                            //}
+
+                            function draw_line_default() {
+                                var polyline = new BMap.Polyline(new_mapPoint, { strokeColor: "blue", strokeWeight: 3, strokeOpacity: 0.5 });
+                                map.addOverlay(polyline);
+                            }
+                        }, 5000);
+                    },
+                    error: function () {
+
+                    }
+                })
+
+                }
+
+
+
+            setTimeout(function () {
+                //这个地方做Ajax 取得新的坐标 赋值给longitude_new跟  latitude_new
+                ajax_get_point();
+
+            }, 200);
+
+            // 获取自己经纬度
+
+            //var geolocation = new BMap.Geolocation();
+
+            //function get_myaddress() {
+            //    geolocation.getCurrentPosition(function (r) {
+            //        if (this.getStatus() == BMAP_STATUS_SUCCESS) {
+
+            //            my_address_point = r.point;
+            //            if (!!mk) {
+            //                map.removeOverlay(mk);
+            //                mk = new BMap.Marker(r.point);
+            //                map.addOverlay(mk);
+            //            } else {
+            //                mk = new BMap.Marker(r.point);
+            //                map.addOverlay(mk);
+            //                // map.panTo(r.point);
+            //                var check_distance = false;
+            //                var close_point = '';
+            //                for (var i = 0; i < old_point.length; i++) {
+            //                    var pt = new BMap.Point(old_point[i][0], old_point[i][1]);
+            //                    if (!check_distance && !get_distance(my_address_point, pt)) {
+            //                        document.getElementById('address_distance_tips').style.display = 'none';
+
+            //                    } else {
+            //                        check_distance = true;
+            //                        if (close_point == '') {
+            //                            close_point = pt;
+            //                        }
+
+            //                        document.getElementById('address_distance_tips').style.display = 'block';
+            //                        document.getElementById('address_distance_tips').textContent = '距离小于1公里';
+            //                    }
+            //                }
+            //                if (close_point != '') {
+            //                    map.centerAndZoom(close_point, 16);
+            //                }
+
+            //            }
+
+            //            // alert('您的位置：'+r.point.lng+','+r.point.lat);
+            //        } else {
+            //            alert('failed' + this.getStatus());
+            //        }
+            //    }, { enableHighAccuracy: true });
+            //}
+            
+            //get_myaddress();
+            // });
+
+        }
+
+    </script>
+
+</head>
+
+<body>
+    <div id="address_distance_tips"></div>
+    <div id="allmap"></div>
+    <input type="hidden" id="show_index" />
+</body>
+</html>

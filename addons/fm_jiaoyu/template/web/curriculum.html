@@ -1,0 +1,256 @@
+{template 'public/header'}
+{template 'public/comhead'}
+{if $operation == 'display'}
+<script>
+require(['bootstrap'],function($){
+	$('.btn,.tips').hover(function(){
+		$(this).tooltip('show');
+	},function(){
+		$(this).tooltip('hide');
+	});
+});
+</script>
+<div class="main">
+    <style>
+        .form-control-excel {
+            height: 34px;
+            padding: 6px 12px;
+            font-size: 14px;
+            line-height: 1.42857143;
+            color: #555;
+            background-color: #fff;
+            background-image: none;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+            box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+            -webkit-transition: border-color ease-in-out .15s,-webkit-box-shadow ease-in-out .15s;
+            -o-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+            transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+        }
+    </style>
+    <div class="panel panel-info">
+        <div class="panel-heading">筛选</div>
+        <div class="panel-body">
+            <form action="./index.php" method="get" class="form-horizontal" role="form">
+                <input type="hidden" name="c" value="site" />
+                <input type="hidden" name="a" value="entry" />
+                <input type="hidden" name="m" value="fm_jiaoyu" />
+                <input type="hidden" name="do" value="curriculum" />
+				<input type="hidden" name="schoolid" value="{$schoolid}" />
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label" style="width: 100px;">关键字</label>
+                    <div class="col-sm-2 col-lg-2">
+                        <input class="form-control" name="keyword" id="" type="text" value="{$_GPC['keyword']}">
+                    </div>
+                    <div class="col-sm-2 col-lg-2">
+                        <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+						<a class="btn btn-primary" href="{php echo $this->createWebUrl('curriculum', array('op' => 'post', 'schoolid' => $schoolid))}"><i class="fa fa-plus"></i> 添加成绩信息</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <form action="" method="post" class="form-horizontal form" enctype="multipart/form-data">
+                <input type="hidden" name="leadExcel" value="true">
+                <input type="hidden" name="c" value="site" />
+                <input type="hidden" name="a" value="entry" />
+                <input type="hidden" name="m" value="fm_jiaoyu" />
+                <input type="hidden" name="do" value="UploadExcel" />
+                <input type="hidden" name="ac" value="curriculum" />
+				<input type="hidden" name="schoolid" value="{$schoolid}" />
+
+                <a class="btn btn-primary" href="javascript:location.reload()"><i class="fa fa-refresh"></i> 刷新</a>
+                <input name="viewfile" id="viewfile" type="text" value="" style="margin-left: 40px;" class="form-control-excel" readonly>
+                <a class="btn btn-primary"><label for="unload" style="margin: 0px;padding: 0px;">上传...</label></a>
+                <input type="file" class="pull-left btn-primary span3" name="inputExcel" id="unload" style="display: none;"
+                       onchange="document.getElementById('viewfile').value=this.value;this.style.display='none';">
+                <input type="submit" class="btn btn-primary" name="btnExcel" value="导入数据">
+                <a class="btn btn-primary" href="../addons/fm_jiaoyu/public/example/example_curriculum.xls">下载导入模板</a>
+            </form>
+        </div>
+    </div>
+    <div class="panel panel-default">
+        <div class="table-responsive panel-body">
+        <form action="" method="post" class="form-horizontal form" enctype="multipart/form-data">
+		<input type="hidden" name="schoolid" value="{$schoolid}" />
+        <table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+                    <th class='with-checkbox' style="width: 20px;"><input type="checkbox" class="check_all" /></th>
+					<th style="width:5%">学号</th>
+					<th style="width:6%">姓名</th>
+					<th style="width:4%;">性别</th>
+					<th style="width:5%;">年龄</th>
+                    <th style="width:8%;">手机</th>
+					<th style="width:8%;">学期</th>
+					<th style="width:8%;">班级</th>
+                    <th style="width:8%;">期号</th>
+					<th style="width:8%;">科目</th>
+                    <th style="width:8%;">成绩</th>					
+					<th style="text-align:right; width:8%;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $item}
+				<tr>
+                    <td class="with-checkbox"><input type="checkbox" name="check" value="{$item['id']}"></td>
+					<td>
+                       {$item['sid']}
+                    </td>
+					<td>{if !empty($students[$item['sid']])}{$students[$item['sid']]['name']}{/if}</td>	
+					<td>{if $students[$item['sid']]['sex'] == 1}<span class="label label-success">男</span>{else}<span class="label label-success">女</span>{/if}</td>
+					<td>
+                        <span class="label label-success">{php echo (date('Y',TIMESTAMP) - date('Y',$students[$item['sid']]['birthdate']))}岁</span>
+                    </td>
+					<td>
+                        {if !empty($students[$item['sid']])}{$students[$item['sid']]['mobile']}{/if}
+                    </td>
+                    <td>
+                        {if !empty($category[$item['xq_id']])}{$category[$item['xq_id']]['sname']}{/if}
+                    </td>
+                    <td>
+                        {if !empty($category[$item['bj_id']])}{$category[$item['bj_id']]['sname']}{/if}
+                    </td>	
+                    <td>
+                        {if !empty($category[$item['km_id']])}{$category[$item['km_id']]['sname']}{/if}
+                    </td>					
+                    <td>
+                        {if !empty($category[$item['qh_id']])}{$category[$item['qh_id']]['sname']}{/if}
+                    </td>					
+					<td>{$item['curriculum']}</td> 									
+					<td style="text-align:right;">
+						<a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('curriculum', array('id' => $item['id'], 'op' => 'post', 'schoolid' => $schoolid))}" title="编辑"><i class="fa fa-pencil"></i></a>&nbsp;&nbsp;<a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('curriculum', array('id' => $item['id'], 'op' => 'delete', 'schoolid' => $schoolid))}" onclick="return confirm('此操作不可恢复，确认删除？');return false;" title="删除"><i class="fa fa-times"></i></a>
+					</td>
+				</tr>
+				{/loop}
+			</tbody>
+			<tr>
+				<td colspan="10">
+					<input name="token" type="hidden" value="{$_W['token']}" />
+					<!--input type="submit" class="btn btn-primary" name="submit" value="批量更新排序" /-->
+                    <input type="button" class="btn btn-primary" name="btndeleteall" value="批量删除" />
+				</td>
+			</tr>
+		</table>
+        {$pager}
+    </form>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+<!--
+	var category = {php echo json_encode($children)};
+//-->
+$(function(){
+    $(".check_all").click(function(){
+        var checked = $(this).get(0).checked;
+        $("input[type=checkbox]").attr("checked",checked);
+    });
+
+    $("input[name=btndeleteall]").click(function(){
+        var check = $("input[type=checkbox][class!=check_all]:checked");
+        if(check.length < 1){
+            alert('请选择要删除的学生!');
+            return false;
+        }
+        if(confirm("确认要删除选择的学生?")){
+            var id = new Array();
+            check.each(function(i){
+                id[i] = $(this).val();
+            });
+            var url = "{php echo $this->createWebUrl('curriculum', array('op' => 'deleteall', 'schoolid' => $schoolid))}";
+            $.post(
+                url,
+                {idArr:id},
+                function(data){
+                    alert(data.error);
+                    location.reload();
+                },'json'
+            );
+        }
+    });
+
+});
+</script>
+{elseif $operation == 'add'}
+<div class="main">
+<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data">
+        <input type="hidden" name="sid" value="{$it['id']}" />
+		<input type="hidden" name="schoolid" value="{$schoolid}" />
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                录入成绩
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">学生姓名:</label>
+                    <div class="col-sm-9" style="color:red;">
+                       {$item['s_name']}
+                    </div>
+                </div>
+				<div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">所在班级:</label>
+                    <div class="col-sm-9" style="color:red;">
+                        {if !empty($category[$item['bj_id']])}{$category[$item['bj_id']]['sname']}{/if}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">选择学期</label>
+                    <div class="col-sm-9">
+                        <select class="form-control" style="margin-right:15px;" name="xueqi" onchange="fetchChildBj(this.options[this.selectedIndex].value)"  autocomplete="off" class="form-control">
+                            <option value="0">请选择班级</option>
+                            {loop $xueqi $it}
+                            <option value="{$it['sid']}" {if $row['sid'] == $it['xueqi']} selected="selected"{/if}>{$it['sname']}</option>
+                            {/loop}
+                        </select>
+                    </div>
+                </div>	
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">选择期号</label>
+                    <div class="col-sm-9">
+                        <select class="form-control" style="margin-right:15px;" name="qh" onchange="fetchChildKm(this.options[this.selectedIndex].value)"  autocomplete="off" class="form-control">
+                            <option value="0">请选择期号</option>
+                            {loop $qh $it}
+                            <option value="{$it['sid']}" {if $row['sid'] == $it['qh']} selected="selected"{/if}>{$it['sname']}</option>
+                            {/loop}
+                        </select>
+                    </div>
+                </div>					
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">选择科目</label>
+                    <div class="col-sm-9">
+                        <select class="form-control" style="margin-right:15px;" name="km" onchange="fetchChildKm(this.options[this.selectedIndex].value)"  autocomplete="off" class="form-control">
+                            <option value="0">请选择科目</option>
+                            {loop $km $it}
+                            <option value="{$it['sid']}" {if $row['sid'] == $it['km']} selected="selected"{/if}>{$it['sname']}</option>
+                            {/loop}
+                        </select>
+                    </div>
+                </div>					
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">考试分数</label>
+                    <div class="col-sm-9">
+                        <div class="input-group">
+                            <input type="text" name="curriculum" class="form-control" value="{$item['my_curriculum']}" />
+                        </div>
+                    </div>
+                </div>	
+			   
+            </div>
+        </div>
+        <div class="form-group col-sm-12">
+            <input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+            <input type="hidden" name="token" value="{$_W['token']}" />
+        </div>
+    </form>
+</div>	
+<script type="text/javascript">
+    <!--
+    var category = {php echo json_encode($children)};
+    //-->
+</script>
+{/if}
+{template 'public/footer'}

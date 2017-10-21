@@ -1,0 +1,129 @@
+<!--
+ * ============================================================================
+ * ============================================================================
+-->
+{php include $this->template('_header');}
+<style type="text/css">
+body {margin:0px; background:#eee; font-family:'微软雅黑'; -moz-appearance:none;}
+a {text-decoration:none;}
+
+.log_list {height:82px; padding:10px; background:#fff;margin-top:5px;}
+.log_list .left {height:82px; width:100%; float:left; color:#999; margin-right:-20%;font-size:14px;}
+.log_list .left .inner { width:70%; height:82px;margin-right:-20%;overflow:hidden;}
+.log_list .left span {color:#666; font-size:13px; line-height:28px;}
+.log_list .right {height:82px; width:30%; float:right; font-size:14px; text-align:right; line-height:25px; margin-left:-20%;}
+.log_list .right span {color:#f90;}
+.log_no {height:100px; width:100%; margin:50px 0px 60px; color:#ccc; font-size:12px; text-align:center;}
+#log_loading { padding:10px;color:#666;text-align: center;}
+</style>
+
+<div id="container">
+	{if empty($list)}
+	<div class="log_no"><span style="line-height:18px;font-size:16px;margin-top:40px;display:inline-block;">您还没有收入提现记录哦~</span></div>
+	{/if}
+</div>
+<div id="loading" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:9999;"><div class="spinner"><div class="bounce1"></div><div class="bounce2"></div><div class="bounce3"></div></div></div>
+<div style="font-size:.12rem;text-align:center;margin-top:.1rem;{if empty($list)}display:none;{/if}">
+	<a href="javascript:void(0);" id="btn_Page">点击加载更多</a>
+</div>
+
+<script type="text/javascript">
+var i = 1; //设置当前页数，全局变量
+var ajaxurl   = "{php echo $this->createMobileUrl('lessoncashlog');}";
+var loading = document.getElementById("loading");
+$(function () {
+    //根据页数读取数据  
+    function getData(page) {  
+        i++; //页码自动增加，保证下次调用时为新的一页。  
+        $.get(ajaxurl, {page: page }, function (data) {  
+            if (data.length > 0) {
+				loading.style.display = 'none';
+                var jsonObj = JSON.parse(data);
+                insertDiv(jsonObj);  
+            }
+        });  
+       
+    } 
+    //初始化加载第一页数据  
+    getData(1);
+
+    //生成数据html,append到div中  
+    function insertDiv(result) {  
+        var mainDiv =$("#container");
+        var chtml = '';
+        for (var j = 0; j < result.length; j++) {
+			if(result[j].status==0){
+				var stustyle = ' style="color:#EA1B1B;"';
+			}else if(result[j].status==1){
+				var stustyle = ' style="color:#0EB90E;"';
+			}else if(result[j].status==-1){
+				var stustyle = ' style="color:#ABABAB;"';
+			}
+            chtml += '<div class="log_list">';  
+            chtml += '	<div class="left">'; 
+			chtml += '		<div class="inner"><span>申请时间: ' + result[j].addtime + '</span><br><span>审核时间: ' + result[j].disposetime + '</span><br><span>备注: ' + result[j].remark + '</span></div>';
+			chtml += '	</div>';
+			chtml += '	<div class="right"><span>' + result[j].cash_num + ' 元</span><br>状态: <em '+stustyle+'>' + result[j].statu + '</em><br> 提现编号: ' + result[j].id + '</div>';
+			chtml += '</div>'; 
+        }
+		mainDiv.append(chtml);
+		if(result.length==0){
+			document.getElementById("btn_Page").innerHTML="已全部加载完成";
+		}
+    }  
+  
+    //==============核心代码=============  
+    var winH = $(window).height(); //页面可视区域高度   
+  
+    var scrollHandler = function () {  
+        var pageH = $(document.body).height();  
+        var scrollT = $(window).scrollTop(); //滚动条top   
+        var aa = (pageH - winH - scrollT) / winH;  
+        if (aa < 0.02) { 
+            if (i % 1 === 0) {
+                getData(i);  
+                $(window).unbind('scroll');  
+                $("#btn_Page").show();
+            } else {  
+                getData(i);  
+                $("#btn_Page").hide();
+            }  
+        }  
+    }  
+    //定义鼠标滚动事件
+    $(window).scroll(scrollHandler);
+    //继续加载按钮事件
+    $("#btn_Page").click(function () {
+		loading.style.display = 'block';
+        getData(i);
+        $(window).scroll(scrollHandler);
+    });
+  
+});  
+</script>
+
+{php echo register_jssdk(false);}
+<script type="text/javascript">
+wx.ready(function(){
+	var shareData = {
+		title: "{$sharelink['title']} - {$setting['sitename']} - {$_W['account']['name']}",
+		desc: "{$sharelink['desc']}",
+		link: "{php echo $shareurl;}",
+		imgUrl: "{php echo $_W['attachurl'];}{$sharelink['images']}",
+		trigger: function (res) {},
+		complete: function (res) {},
+		success: function (res) {},
+		cancel: function (res) {},
+		fail: function (res) {}
+	};
+	wx.onMenuShareTimeline(shareData);
+	wx.onMenuShareAppMessage(shareData);
+	wx.onMenuShareQQ(shareData);
+	wx.onMenuShareWeibo(shareData);
+	wx.onMenuShareQZone(shareData);
+	
+});
+</script>
+
+
+{php include $this->template('_footer');}

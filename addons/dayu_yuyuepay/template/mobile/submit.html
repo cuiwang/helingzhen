@@ -1,0 +1,189 @@
+{template 'header'}
+<link type="text/css" rel="stylesheet" href="../addons/dayu_yuyuepay/template/mobile/mobile.css" />
+ 
+{if $initCalendar}
+<link type="text/css" rel="stylesheet" href="../web/resource/components/datetimepicker/bootstrap-datetimepicker.min.css" />
+<script type="text/javascript" src="../web/resource/components/datetimepicker/bootstrap-datetimepicker.min.js"></script>
+<script type="text/javascript">
+	$(function(){
+		$('.datepicker').each(function(){
+			$(this).datetimepicker({
+				format: "yyyy-mm-dd",
+				minView: "2",
+				pickerPosition: "top-right",
+				autoclose: true
+			});
+		});
+	});
+</script>
+{/if}
+<style>
+	body{background:#ECECEC;}
+	.text-error { color:red}
+	.research-thumb{width:100%;}
+	.mobile-content img {width: 100%;}
+	.form-table th{}
+footer {float:left;margin:0;bottom: 0;height: 45px;position: fixed;width: 100%;z-index: 10;}
+.submit {background-color:#499a68;padding:8px;height:45px;font-size:18px;text-decoration:none;border:0px solid #0B8E00;color: #ffffff;display:block;text-align:center;text-shadow:0 1px rgba(0, 0, 0, 0.2);-webkit-border-radius: 0px;-moz-border-radius: 0px;-o-border-radius: 0px;}
+.mobile-hd a, .mobile-div a{float:right; border:1px solid #499a68;font-weight:normal;background-color:#64bf87;color:#fff;font-size:12px;line-height:22px;-webkit-border-radius: 3px;-moz-border-radius: 3px;-o-border-radius: 3px;padding:2px 5px;margin:2px 5px 0 0;}
+input.datetimepickers{width:100%;background-color:#fff;padding:0;margin:0;height:32px;;}
+.time input{color:#499a68;background:#eee;}
+.form-control{margin:2px 0;}
+
+</style>
+
+<div class="research">
+	{if !empty($activity['thumb'])}
+	<img class="research-thumb" src="{php echo tomedia($activity['thumb']);}">
+	{/if}
+	<div class="mobile-div img-rounded">
+		<div class="mobile-hd">{$activity['title']}
+		<a href="{php echo $this->createMobileUrl('mydayu_yuyuepay', array('name' => 'dayu_yuyuepay', 'weid' => $_W['uniacid'], 'id' => $reid))}"><span>{if empty($activity['mname'])}我的预约{else}{$activity['mname']}{/if}</span></a></div>
+		<div class="mobile-content">
+		{php echo htmlspecialchars_decode($activity['content'])}
+		</div>
+	</div>
+	<form action="" method="post" enctype="multipart/form-data" onsubmit="return validate();" id="sky-form">
+	<div class="mobile-div img-rounded">
+		<div class="mobile-hd">请认真填写表单</div>
+		<div class="mobile-content">
+			<table class="form-table">
+				<tr>
+					<th><label for="">姓名<span title="必填项" class="text-error">*</span></label></th>
+					<td><input name="member" type="text" value="{$userinfo['realname']}" placeholder="请输入您的真实姓名" class="form-control"></td>
+				</tr>
+				<tr>
+					<th><label for="">手机<span title="必填项" class="text-error">*</span></label></th>
+					<td><input name="mobile" type="text" value="{$userinfo['mobile']}" placeholder="请输入您的手机号码" class="form-control"></td>
+				</tr>
+				<tr{if $activity['is_time'] == 1} style="display:none"{/if}>
+					<th><label for="">{$activity['yuyuename']}</label></th>
+					<td class="time">{php echo tpl_form_field_dateyy('yuyuetime', $yuyuetime, true)}</td>
+				</tr>
+				<tr>
+					<th><label for="">{$activity['xmname']}</label></th>
+					<td>
+						<select name="xmid" id="xmid" class="form-control">
+					{loop $xms $xm}
+					<option value="{$xm['id']}">{$xm['title']} {if !empty($xm['price'])}<span class="fa fa-rmb">&yen;{$xm['price']}</span>{/if}</option>
+					{/loop}
+					</td>
+				</tr>
+				<tr>
+					<th><label for="">支付方式</label></th>
+					<td>
+						<select name="paytype" class="form-control">
+							<option value="1">在线支付</option>
+					{if $activity['pay'] == 1}
+							<option value="2">店付或面付</option>
+					{/if}
+						</select>
+					</td>
+				</tr>
+				{loop $ds $row}
+				<tr>
+					<th>
+						<label for="">
+							{$row['title']}
+							{if $row['essential']}
+							<span title="必填项" class="text-error">*</span>
+							{/if}
+						</label>
+					</th>
+					<td>
+						
+						{if $row['type'] == 'text'}
+						<input type="text" name="field_{$row['refid']}_{$row['bind']}" value="{$row['default']}" class="form-control"/>
+						{/if}
+						
+						{if $row['type'] == 'number'}
+						<input type="text" name="field_{$row['refid']}_{$row['bind']}" value="{$row['default']}" class="form-control"/>
+						{/if}
+						
+						{if $row['type'] == 'textarea'}
+						<textarea name="field_{$row['refid']}_{$row['bind']}" rows="3" class="form-control"/>{$row['default']}</textarea>
+						{/if}
+						{if $row['type'] == 'radio'}
+						<select name="field_{$row['refid']}_{$row['bind']}" class="form-control"/>
+						{loop $row['options'] $v}
+							<option value="{$v}" {if $v == $row['default']} selected="selected"{/if}>{$v}</option>
+						{/loop}
+						</select>
+						{/if}
+						{if $row['type'] == 'checkbox'}
+						{loop $row['options'] $v}
+						<label class="checkbox-inline btn btn-small">
+							<input type="checkbox" name="field_{$row['refid']}_{$row['bind']}[]" value="{$v}" {if $v == $row['default']} checked="checked"{/if}/>{$v}
+						</label>
+						{/loop}
+						{/if}
+						{if $row['type'] == 'select'}
+						<select name="field_{$row['refid']}_{$row['bind']}" class="form-control"/>
+						{loop $row['options'] $v}
+							<option value="{$v}" {if $v == $row['default']} selected="selected"{/if} />{$v}</option>
+						{/loop}
+						</select>
+						{/if}
+						{if $row['type'] == 'calendar'}
+						{php echo tpl_form_field_date('field_' . $row['refid'] . '_' . $row['bind']);}
+						{/if}
+						{if $row['type'] == 'email'}
+						<input type="text" name="field_{$row['refid']}_{$row['bind']}" value="{if $row['default']}{$row['default']}{else}@{/if}"  class="form-control"/>
+						{/if}
+
+						{if $row['type'] == 'image'}
+						<div class="file">
+							{php echo tpl_form_field_image('field_' . $row['refid'] . '_' . $row['bind'], '');}
+						</div>
+						{/if}
+
+						{if $row['type'] == 'range'}
+						<select name="field_{$row['refid']}_{$row['bind']}" class="form-control">
+							<option value="0:00-1:00" >0:00-1:00</option>
+							<option value="1:00-2:00">1:00-2:00</option>
+							<option value="2:00-3:00">2:00-3:00</option>
+							<option value="3:00-4:00">3:00-4:00</option>
+							<option value="4:00-5:00">4:00-5:00</option>
+							<option value="5:00-6:00">5:00-6:00</option>
+							<option value="6:00-7:00">6:00-7:00</option>
+							<option value="7:00-8:00">7:00-8:00</option>
+							<option value="8:00-9:00">8:00-9:00</option>
+							<option value="9:00-10:00">9:00-10:00</option>
+							<option value="10:00-11:00">10:00-11:00</option>
+							<option value="11:00-12:00">11:00-12:00</option>
+							<option value="12:00-13:00">12:00-13:00</option>
+							<option value="13:00-14:00">13:00-14:00</option>
+							<option value="14:00-15:00">14:00-15:00</option>
+							<option value="15:00-16:00">15:00-16:00</option>
+							<option value="16:00-17:00">16:00-17:00</option>
+							<option value="17:00-18:00">17:00-18:00</option>
+							<option value="18:00-19:00">18:00-19:00</option>
+							<option value="19:00-20:00">19:00-20:00</option>
+							<option value="20:00-21:00">20:00-21:00</option>
+							<option value="21:00-22:00">21:00-22:00</option>
+							<option value="22:00-23:00">22:00-23:00</option>
+							<option value="23:00-24:00">23:00-24:00</option>
+						</select>
+						{/if}
+						{if $row['type'] == 'reside'}
+						{php echo tpl_fans_form('reside',array('province' => $profile['resideprovince'],'city' => $profile['residecity'],'district' => $profile['residedist']));}
+						{/if}
+
+						{if !empty($row['description'])}
+						<span class="help-block">{php echo urldecode($row['description']);}</span>
+						{/if}
+					</td>
+				</tr>
+				{/loop}
+			</div>
+			</table>
+		</div>
+	</div>
+	<footer>
+		<input type="hidden" name="token" value="{$_W['token']}" />
+		<input type="submit" class="btn btn-large btn-success submit" value="提交" name="submit" style="width:100%;">
+	</footer>
+</form>
+</div>
+{template 'concise/script'}
+{template 'footer'}

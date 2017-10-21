@@ -1,0 +1,211 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+<li {if $op == 'display'}class="active"{/if}><a href="{php echo url('site/entry/vod',array('op'=>'display','m'=>'siyuan_cms'))}">视频列表</a></li>
+<li {if $op == 'post'}class="active"{/if}><a href="{php echo url('site/entry/vod',array('op'=>'post','m'=>'siyuan_cms'))}">添加视频</a></li>
+</ul>
+<style>
+.table td span{display:inline-block;margin-top:4px;}
+.table td input{margin-bottom:0;}
+</style>
+{if $op == 'display'}
+<div class="panel panel-info">
+<div class="panel-heading">筛选</div>
+<div class="panel-body">
+<form action="./index.php" method="get" class="form-horizontal" role="form">
+<input type="hidden" name="c" value="site" />
+<input type="hidden" name="a" value="entry" />
+<input type="hidden" name="op" value="display" />
+<input type="hidden" name="do" value="vod" />
+<input type="hidden" name="m" value="siyuan_cms" />
+<div class="form-group">
+<label class="col-xs-12 col-sm-2 col-md-2 control-label">关键字</label>
+<div class="col-sm-8 col-md-8 col-lg-8 col-xs-12">
+<input class="form-control" name="keyword" id="" type="text" value="{$_GPC['keyword']}" placeholder="请输入视频标题关键字">
+</div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-2 col-md-2 control-label">视频分类</label>
+<div class="col-sm-8 col-md-8 col-lg-8 col-xs-12">
+<select class="form-control" style="margin-right:15px;" name="cate_1">
+<option value="0">请选择分类</option>
+{loop $fenlei $row}
+{if $row['parentid'] == 0}
+<option value="{$row['id']}" {if $row['id'] == $_GPC['cate_1']} selected="selected"{/if}>{$row['name']}</option>
+{/if}
+{/loop}
+</select>
+</div>
+<div class="pull-right col-xs-12 col-sm-2 col-md-2 col-lg-2">
+<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+</div>
+</div>
+</form>
+</div>
+</div>
+<form action="" method="post" onsubmit="return formcheck(this)"><div class="panel panel-default">
+<div class="table-responsive panel-body">
+<table class="table">
+<thead>
+<tr>
+<th style="width:80px">排序</th>
+<th>标题</th>
+<th style="width:180px; text-align:center;">网址</th>
+<th style="width:150px;">M3U8商业解析</th><th style="width:200px;">属性</th>
+<th style="width:180px;">日期</th>
+<th style="width:100px;">点击</th>
+<th style="width:280px;">操作</th>
+</tr>
+</thead>
+<tbody>
+{loop $list $item}
+<tr>
+<td><input type="text" class="form-control" name="displayorder[{$item['id']}]" value="{$item['displayorder']}"></td>
+<td>
+<span class="cate">{if !empty($item['blei'])}<span class="text-info">[{$fenlei[$item['blei']]['name']}]</span>{/if}{if !empty($item['slei'])}<span class="text-error">[{$fenlei[$item['slei']]['name']}]</span>{/if}</span>
+<a href="{php echo url('site/entry/vod',array('op'=>'post', 'id' => $item['id'],'m'=>'siyuan_cms'))}" style="color:#333;">{$item['title']}</a>
+</td>
+<td class="text-center"><a target="_blank" href="{$_W['siteroot']}app/{php echo $this->createMobileUrl('vod', array('id' => $item['id'],'act' => news, 'weid' => $_W['weid']))}"><button type="button" class="btn btn-primary"><i class="fa fa-paper-plane"></i>点击访问</button></a></td>
+<td style="color:red;">{if $item['m3u8']==1}<span class="label label-success">是</span>{/if}</td><td style="color:red;">{if $item['tuijian']==1}<span class="label label-success">推荐</span>&nbsp;&nbsp;{/if}{if $item['descimgs']}<span class="label label-info">多图</span>&nbsp;&nbsp;{/if}{if $item['flash']}<span class="label label-danger">幻灯新闻</span>&nbsp;&nbsp;{/if}</td>
+<td>{php echo date('Y-m-d H:i', $item['time'])}</td>
+<td>{$item['yuedu']}</td>
+<td>
+{if $item['m3u8'] =='0'}<a class="btn btn-success btn-sm" href="{php echo $this->createWebUrl('vod',array('op'=>'m3u8','id'=>$item['id'],'m3u8'=>1))}"><i class="icon-edit"></i>设置为商业解析</a>{else}<a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('vod',array('op'=>'m3u8','id'=>$item['id'],'m3u8'=>0))}"><i class="icon-edit"></i>取消商业解析</a>{/if}<a href="{php echo url('site/entry/vod',array('op'=>'post', 'id' => $item['id'],'m'=>'siyuan_cms'))}" title="编辑" class="btn btn-default btn-sm"><i class="fa fa-edit"></i></a>
+<a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo url('site/entry/vod',array('op'=>'delete', 'id' => $item['id'],'m'=>'siyuan_cms'))}" title="删除" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-times"></i></a>
+</td>
+</tr>
+{/loop}
+</tbody>
+</table>
+{$pager}
+</div>
+</div><input name="submit" type="submit" class="btn btn-success" value="更新排序"><input type="hidden" name="token" value="{$_W['token']}" /></form>
+{elseif $op == 'post'}
+<div class="main">
+<div class="panel panel-info">
+<div class="panel-heading">网站导航(绿色按钮的支持videojj，m3u8商业解析支持绿色+蓝色,各大视频网站VIP会员视频需咨询客服购买VIP解析权限！)&nbsp;&nbsp;&nbsp;&nbsp;<a style="color:red" target="_blank" href="http://s.semall365.cn/app/index.php?i=1&c=entry&do=index&m=siyuan_help">视频解析说明</a></div>
+<div class="panel-body table-responsive">
+<a target="_blank" href="http://www.youku.com"><button type="button" class="btn btn-primary"><i class="fa fa-paper-plane"></i>优酷网</button></a>
+<a target="_blank" href="http://www.tudou.com"><button type="button" class="btn btn-primary"><i class="fa fa-paper-plane"></i>土豆视频</button></a>
+<a target="_blank" href="http://v.qq.com"><button type="button" class="btn btn-primary"><i class="fa fa-paper-plane"></i>腾讯视频</button></a>
+<a target="_blank" href="http://www.iqiyi.com"><button type="button" class="btn btn-info"><i class="fa fa-paper-plane"></i>爱奇艺</button></a>
+<a target="_blank" href="http://www.le.com"><button type="button" class="btn btn-info"><i class="fa fa-paper-plane"></i>乐视网</button></a>
+<a target="_blank" href="http://www.mgtv.com"><button type="button" class="btn btn-info"><i class="fa fa-paper-plane"></i>芒果TV</button></a>
+<a target="_blank" href="http://tv.sohu.com"><button type="button" class="btn btn-info"><i class="fa fa-paper-plane"></i>搜狐视频</button></a>
+<a target="_blank" href="http://www.pptv.com"><button type="button" class="btn btn-info"><i class="fa fa-paper-plane"></i>PPTV</button></a>
+<a target="_blank" href="http://www.acfun.tv"><button type="button" class="btn btn-info"><i class="fa fa-paper-plane"></i>acfun</button></a>
+<a target="_blank" href="http://www.bilibili.com"><button type="button" class="btn btn-info"><i class="fa fa-paper-plane"></i>bilibili</button></a>
+<a target="_blank" href="http://www.1905.com"><button type="button" class="btn btn-info"><i class="fa fa-paper-plane"></i>1905电影</button></a>
+<a target="_blank" href="http://www.yinyuetai.com"><button type="button" class="btn btn-info"><i class="fa fa-paper-plane"></i>音悦台视频</button></a><a target="_blank" href="http://www.56.com"><button type="button" class="btn btn-info"><i class="fa fa-paper-plane"></i>56视频</button></a><a target="_blank" href="http://v.ku6.com"><button type="button" class="btn btn-info"><i class="fa fa-paper-plane"></i>酷6视频</button></a><a target="_blank" href="http://www.miaopai.com"><button type="button" class="btn btn-info"><i class="fa fa-paper-plane"></i>秒拍视频</button></a><br><br><a target="_blank" href="http://weibo.com"><button type="button" class="btn btn-info"><i class="fa fa-paper-plane"></i>微博视频</button></a><a target="_blank" href="http://www.pptvyun.com"><button type="button" class="btn btn-info"><i class="fa fa-paper-plane"></i>PPTV</button></a><a target="_blank" href="http://v.17173.com/"><button type="button" class="btn btn-info"><i class="fa fa-paper-plane"></i>17173视频</button></a><a target="_blank" href="http://v.ifeng.com"><button type="button" class="btn btn-info"><i class="fa fa-paper-plane"></i>凤凰视频</button></a><a target="_blank" href="http://www.meipai.com"><button type="button" class="btn btn-info"><i class="fa fa-paper-plane"></i>美拍视频</button></a><a target="_blank" href="http://tv.cctv.com"><button type="button" class="btn btn-info"><i class="fa fa-paper-plane"></i>CNTV央视</button></a><a target="_blank" href="http://v.huya.com/"><button type="button" class="btn btn-info"><i class="fa fa-paper-plane"></i>虎牙视频</button></a></div></div>
+<form class="form-horizontal form" action="" method="post" enctype="multipart/form-data" id="form1">
+<div class="panel panel-default">
+<div class="panel-heading">视频管理</div>
+<div class="panel-body">
+<input type="hidden" name="id" value="{$item[id]}">
+
+<div class="form-group">
+<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">视频标题</label>
+<div class="col-sm-8 col-xs-12">
+<input type="text" class="form-control" placeholder="" name="title" value="{$item['title']}">
+</div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">自定义属性</label>
+<div class="col-sm-8 col-xs-12">
+<label class="checkbox-inline"><input type="checkbox" name="flash" value="1" {if $item['flash']} checked{/if}> 首页幻灯片</label><label class="checkbox-inline"><input type="checkbox" name="tuijian" value="1" {if $item['tuijian']} checked{/if}> 推荐</label>
+</div>
+</div>
+
+
+<div class="form-group">
+<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">缩略图</label>
+<div class="col-sm-8 col-xs-12">
+{php echo tpl_form_field_image('thumb', $item['thumb']);}
+<div class="help-block"><font color="red">封面大图为640*320</font></div>
+</div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">分享缩略图</label>
+<div class="col-sm-8 col-xs-12">
+{php echo tpl_form_field_image('fenxiang', $item['fenxiang']);}
+<div class="help-block"><font color="red">必须上传，图片为1:1大小</font></div>
+</div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">视频类别</label>
+<div class="col-sm-8 col-xs-12">
+<select class="form-control" name="blei">
+<option value="0">==选择所属分类==</option>{loop $fenlei $row}<option value="{$row['id']}" {if $row['id'] == $item['blei']}selected{/if}>{$row['name']}</option>{/loop}</select></div></div><div class="form-group"><label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">是否M3U8商业解析</label><div class="col-sm-8 col-xs-12"><label class="checkbox-inline"><input type="checkbox" name="m3u8" value="1" {if $item['m3u8']} checked{/if}> 是</label></div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">视频网址</label>
+<div class="col-sm-8 col-xs-12">
+<input type="text" class="form-control" placeholder="" name="url" value="{$item['url']}">
+<span class="help-block">复制优酷、腾讯、土豆的网址(VIP会员视频不能解析)，这里填了底下视频代码就不用填了！<br>支持：MP4/MOV/M3U8/AVI/ASF/WMV/NAVI/3GP/MKV/FLV/MPEG/MPG/DAT/F4V/RMVB/WebM 格式的直接视频网址，支持的协议包括：http,hls，移动端H5不支持rtmp协议 。</span>
+</div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">视频代码</label>
+<div class="col-xs-12 col-sm-8">
+<textarea rows="5" class="form-control" name="video">{$item['video']}</textarea>
+<div class="help-block">复制优酷、腾讯等视频网站视频通用代码，优酷的请注意一下，将单引号改为双引号！</div>
+</div></div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">发布时间</label>
+<div class="col-sm-8 col-xs-12">
+{php echo tpl_form_field_date('time', $item['time'], true);}
+</div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">阅读次数</label>
+<div class="col-sm-8 col-xs-12">
+<input type="text" class="form-control" placeholder="文章已被阅读次数" name="yuedu" value="{$item['yuedu']}">
+<span class="help-block">可手动调节。</span>
+</div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">介绍</label>
+<div class="col-xs-12 col-sm-8">
+<textarea style="height:300px; width:100%" class="richtext" name="content" rows="6" id="reply-add-text" placeholder="点这里输入内容" >
+{$item['content']}</textarea>
+</div>
+</div>
+<div class="form-group">
+<div class="col-sm-6 col-xs-6">
+<button type="submit" class="btn btn-primary btn-block" name="submit" value="提交">提交</button>
+<input type="hidden" name="token" value="{$_W['token']}" />
+</div>
+</div>
+</div></div></div>
+</form>
+</div>
+</div>
+<script type="text/javascript">
+require(['jquery', 'util'], function($, u){
+$(function(){
+$('.richtext').each(function() {
+u.editor(this);
+});
+});
+});
+</script>
+<script type="text/javascript">
+require(['jquery', 'util'], function($, u){
+$('#form1').submit(function(){
+if($("input[name=title]").val().length <= 0) {
+u.message('没有填写标题', '', 'error');
+return false;
+}
+if($("input[name=fenxiang]").val().length <= 0) {
+u.message('分享缩略图没有上传', '', 'error');
+return false;
+}
+if ($("select[id=fenlei_parent]").val() == "0"){
+u.message('请选择分类', '', 'error');
+return false;
+}
+return true;
+});
+});
+</script>
+{/if}
+{template 'common/footer'}

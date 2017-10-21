@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1.0,maximum-scale=1.0,minimum-scale=1,user-scalable=no">
+    <meta content="yes" name="apple-mobile-web-app-capable">
+    <meta content="black" name="apple-mobile-web-app-status-bar-style">
+    <meta content="telephone=no" name="format-detection">
+    <meta content="email=no" name="format-detection">
+    <title>共享聊天记录</title>
+    <link rel="stylesheet" href="{MD_ROOT}static/newui/css/reset.css"/>
+	<link rel="stylesheet" href="{MD_ROOT}static/iconfont/iconfont.css?v=20170625"/>
+	<link rel="stylesheet" href="{MD_ROOT}static/css/weui.min.css"/>
+	<link rel="stylesheet" href="{MD_ROOT}static/css/jquery-weui.min.css"/>
+	<link rel="stylesheet" href="{MD_ROOT}static/newui/css/style.css?v=20170625"/>
+	<link rel="stylesheet" href="{MD_ROOT}/emoji/emoji.css"/>
+	{php echo register_jssdk(false);}
+    <script>
+        var deviceWidth = document.documentElement.clientWidth;
+        document.documentElement.style.fontSize = deviceWidth / 7.5 + 'px';
+    </script>
+</head>
+<body style="background-color:{$setting['bgcolor']};">
+<!--消息内容-->
+<div class="chat-content" id="messagelist" style="-webkit-overflow-scrolling:touch;">
+<div class="main">
+	{if $chatcon}
+		{loop $chatcon $row}
+		<div class="chat-msg">
+			<div class="time">{php echo date('Y-m-d H:i:s',$row['time'])}</div>
+			{if $row['openid'] != $openid}
+			<div class="msg left clear">
+			{else}
+			<div class="msg right clear">
+			{/if}
+				<div class="nick-img">
+					<img src="{$row['avatar']}" />
+				</div>
+				<div class="nick-text">
+					<div class="txt-con">
+						{if $row['type'] == 3 || $row['type'] == 4}
+						<img src="{$row['content']}" onclick="showbigimg();" style="max-width:100%;"  />
+						{elseif $row['type'] == 5 || $row['type'] == 6}							
+							<span class="audio-msg voiceplay" style="width:{php echo (($row['yuyintime']*3.5)/60)+0.3}rem;" onclick="playvoice('{$row['content']}',$(this).parents('.txt-con').next('.weidu'));"><i class="a-icon iconfont">&#xe601;</i></span>
+						{else}
+							{$row['content']}
+						{/if}
+					</div>
+					{if $row['type'] == 5 || $row['type'] == 6}
+					{if $row['hasyuyindu'] == 0 && $openid == $row['toopenid']}<span class="weidu"></span>{/if}
+					<span class="miaoshu">{$row['yuyintime']}''</span>
+					{/if}
+				</div>
+			</div>
+		</div>
+		{/loop}
+	{/if}
+</div>
+</div>
+<script src="{MD_ROOT}/static/newui/js/jquery-3.1.1.min.js"></script>
+<script src="{MD_ROOT}/static/newui/js/jquery-weui.min.js"></script>
+<script src="{MD_ROOT}/static/newui/js/swiper.min.js"></script>
+<script type="text/javascript">
+var pb = $.photoBrowser({
+	items: [
+		{loop $imglist $irow}
+			"{$irow['content']}",
+		{/loop}
+	]
+});
+function playvoice(serverid){
+	wx.downloadVoice({
+		serverId: serverid,
+		success: function (res) {
+			wx.playVoice({
+				localId: res.localId, // 需要播放的音频的本地ID，由stopRecord接口获得
+			});
+		}
+	});
+}
+function showbigimg(){
+	pb.open();  //打开
+}
+//查看QQ表情结果
+function replace_em(str){
+	str = str.replace(/\[em_([0-9]*)\]/g,'<img src="{MD_ROOT}/static/arclist/$1.gif" style="width:0.5rem;" border="0" />');
+	return str;
+}
+$(function(){
+	$('.txt-con').each(function(){
+		$(this).html(replace_em($(this).html()));
+	});
+})
+</script>
+<script type="text/javascript">
+wx.ready(function () {
+	wx.hideOptionMenu();
+	sharedata = {
+		title: '{$nickname}的共享聊天记录',
+		desc: '{$setting["sharedes"]}',
+		link: '{$setting["shareurl"]}',
+		imgUrl: '{php echo tomedia($setting["sharethumb"]);}',
+		trigger: function (res) {
+			//alert('用户点击发送给朋友');
+		},
+		success: function (res) {
+			//alert('已分享');
+		},
+		cancel: function (res) {
+			//alert('已取消');
+		},
+		fail: function (res) {
+			alert("分享失败");
+		}
+	};
+	wx.onMenuShareAppMessage(sharedata);
+	wx.onMenuShareTimeline(sharedata);
+	wx.onMenuShareQQ(sharedata);
+	wx.onMenuShareWeibo(sharedata);
+});
+</script>
+</body>
+</html>

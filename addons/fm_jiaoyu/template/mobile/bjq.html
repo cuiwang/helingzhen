@@ -1,0 +1,1112 @@
+
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>班级圈</title>
+<meta name="viewport" content="width=device-width initial-scale=1.0 maximum-scale=1.0 user-scalable=yes" />
+<link type="text/css" rel="stylesheet" href="{OSSURL}public/mobile/css/mAlbum.css?v=4.90716" />   
+<link type="text/css" rel="stylesheet" href="{OSSURL}public/mobile/css/greenStyle.css?v=4.90120" />
+<link type="text/css" rel="stylesheet" href="{OSSURL}public/mobile/css/bjqCss.css?v=4.901151">
+<link type="text/css" rel="stylesheet" href="{OSSURL}public/mobile/css/mKtdt.css?v=4.85" />
+<link type="text/css" rel="stylesheet" href="{OSSURL}public/mobile/css/jquery-emoji.css?v=4.85" />
+{php echo register_jssdk();}
+<script type="text/javascript" src="{MODULE_URL}public/mobile/js/jquery-1.11.3.min.js?v=4.9"></script>
+<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+<script type="text/javascript" src="{OSSURL}public/mobile/js/PromptBoxUtil.js?v=4.80309"></script>
+<script type="text/javascript" src="{MODULE_URL}public/mobile/js/swiper.jquery.min.js?v=4.9"></script>
+</head>
+<body >	
+    <input id="wlzyid" type="hidden">
+	<div id="fullbg" class="fullbg"></div>
+	<!-- 发布、评论的输入框 -->
+	<div id="discussText" class="discussText">
+		<textarea id="content" rows="" cols=""></textarea>
+		<div id="discussButton" class="discussSend"></div>
+	</div>
+	<div class="selectList">
+		<div class="single" id="classList" style="z-index:100000;">
+				<ul>
+                    {if !empty($teachers['bj_id1'])}<li onclick="isSelect(this);"><span class="le">{$name1}</span><input type=hidden value="{$bjid1}" /></li>{/if}
+					{if !empty($teachers['bj_id2'])}<li onclick="isSelect(this);"><span class="le">{$name2}</span><input type=hidden value="{$bjid2}" /></li>{/if}
+					{if !empty($teachers['bj_id3'])}<li onclick="isSelect(this);"><span class="le">{$name3}</span><input type=hidden value="{$bjid3}" /></li>{/if}
+	            </ul> 
+		</div>
+	</div>
+	<input id="bjid" type="hidden"{if !empty($bj_id)}value="{$category[$bj_id]['sid']}"{else if !empty($teachers['bj_id1'])}value="{$bjid1}"{else}{/if}/>
+	<div class="bjqHeader">
+		<div id="className" class="className" onclick="showSelectBox('classList')">{if !empty($bj_id)}{$category[$bj_id]['sname']}{else if !empty($teachers['bj_id1'])}{$name1}{else}{/if}</div>
+	</div>
+	<div id="ghhdHref" class="ghhdHref" style="display:none;">
+		<div id="ghhdName" class="ghhdTips"></div>
+		<div id="ghhdInfo" class="ghhdTips"></div>
+	</div>
+	<div id="commentTip" class="commentTip"></div>
+	
+	<div class="xcUpload">
+		<a href="{php echo $this->createMobileUrl('bjqfabu', array('schoolid' => $schoolid), true)}"><div class="file"></div></a>
+	</div>
+	<div id="bjq_content">
+		<div id="img-content-bjq">
+			<div id="bjqBody" class="xcBody">
+			  {if empty($list)}
+			  <div id="noDataBjqDiv" class="noData">本班还没有班级圈数据哦</div>
+			  {else}
+			  {loop $list $item}
+				<div id="xcBox{$item['id']}" class="xcBox">
+					<div class="l">
+						<div class="headimg">
+								<img alt="" src ="{if !empty($teacher['thumb'])}{php echo toimage($teacher['thumb'])}{else}{php echo toimage($member[$item['uid']]['avatar'])}{/if}"/>
+					    </div>
+					</div>
+					<div class="r">
+							<div class="nameAndTime">
+								<span class="name">{$item['shername']}</span><p style="color:red;">{if $item['isopen'] == 1}*未审核*{/if}</p>
+							</div>
+							<div class="content comment">{$item['content']}</div>
+							<div class="pic parent">
+							 {loop $item['picurl'] $row}	 
+								<div {if $row['order'] == 3 ||$row['order'] == 6||$row['order'] == 9}class="noMR img"{else}class="img"{/if} style = "height:75px;">
+									<a onclick="wxImageShow(this)"><img alt="{$row['order']}" src="{$_W['attachurl']}{$row['picurl']}" /></a>
+								</div>
+							 {/loop}								
+							</div>
+							<div id="like{$item['id']}" class="like">
+								<span name="publishdate" class="time">{php echo(date('m-d H:i',$item['createtime']))}</span>
+									{if $item['uid'] == $fan['uid']}<span class="del" onclick="delWlzy({$item['id']})">删除</span>{/if}&nbsp;
+									{if $item['isopen'] == 1}{if $bzj['sid'] == $bj_id}<span class="del" onclick="delWlzy({$item['id']})">删除</span><span class="del" onclick="pass({$item['id']})">审核</span>{/if}{/if}
+								<div class="toolButton" onclick="showTooLBtnBox(this)">
+									<em class="dot"></em>
+									<em class="dot dot-right"></em>
+									<span class="triangle"></span>
+								</div>	
+								<div class="buttonBox">
+									<span class="btn-span  two_btn " id="like_label{$item['id']}" onclick="savePraise({$item['id']})">
+											<i class="icon_sprite_outer gopng_heart"></i>
+											<span class="icon_text">点赞</span>
+									</span>
+                                    <span class="btn-span btn-span-noborder '+bjqBtnConfig.commentBtn+'" onclick="setWlzyId({$item['id']});">
+											<i class="icon_sprite_outer gopng_comment"></i>
+											<span class="icon_text">评论</span>
+									</span>
+								</div>							
+							</div>
+							<div class="arrowLine">
+							        <span></span>
+							</div>
+							<div onclick="showPraised(this);" class="praiseUserList" id="praiseUserList{$item['id']}">
+							     <span class="icon_sprite_outer"><i class="gopng_heart_red"></i></span>
+								 {loop $item['zname'] $row1}
+	                             <span class="praiseUser" id="{$row1['uid']}">{$row1['zname']}</span>
+								 {/loop}
+								 {if $row1['order'] >= 5}
+                                 <div class="andSoOn">等人</div>
+								 {/if}
+	                        </div>
+							<div id="discuss{$item['id']}" class="discuss">
+								<div class="discussBox comment">
+                                    <ul>
+									 {loop $item['contents'] $row2}
+                                        <li {if $row2['uid'] !=$fan['uid']}onclick="setWlzyIdAndReceiver({$item['id']},{$row2['uid']},{$row2['id']});"{/if}>
+                        					<span>{$row2['shername']}</span>&nbsp;{$row2['content']}											
+										</li>
+									 {/loop}
+									</ul>
+								</div>						
+							</div>
+					</div>
+					<div class="cl"></div>
+				</div>
+			  {/loop}
+			  {/if}
+			</div>
+		</div>
+	</div>
+	<div class="blackBg"></div>
+	<div id="buttonBoxShade" class="buttonBoxShade"></div>
+</body>
+<script type="text/javascript">
+/**!
+ * 微信内置浏览器的Javascript API，功能包括：
+ *
+ * 1、分享到微信朋友圈
+ * 2、分享给微信好友
+ * 3、分享到腾讯微博
+ * 4、新的分享接口，包含朋友圈、好友、微博的分享（for iOS）
+ * 5、隐藏/显示右上角的菜单入口
+ * 6、隐藏/显示底部浏览器工具栏
+ * 7、获取当前的网络状态
+ * 8、调起微信客户端的图片播放组件
+ * 9、关闭公众平台Web页面
+ * 10、判断当前网页是否在微信内置浏览器中打开
+ * 11、增加打开扫描二维码
+ * 12、支持WeixinApi的错误监控
+ * 13、检测应用程序是否已经安装（需要官方开通权限）
+ *
+ * @author zhaoxianlie(http://www.baidufe.com)
+ */
+var WeixinApi = (function () {
+	
+	return {
+        ready           :wxJsBridgeReady,
+        shareToTimeline :weixinShareTimeline,
+        shareToWeibo    :weixinShareWeibo,
+        shareToFriend   :weixinSendAppMessage,
+        showOptionMenu  :showOptionMenu,
+        hideOptionMenu  :hideOptionMenu,
+        showToolbar     :showToolbar,
+        hideToolbar     :hideToolbar,
+        getNetworkType  :getNetworkType,
+        imagePreview    :imagePreview
+    }; 
+	
+    "use strict";
+
+    /**
+     * 分享到微信朋友圈
+     * @param       {Object}    data       待分享的信息
+     * @p-config    {String}    appId      公众平台的appId（服务号可用）
+     * @p-config    {String}    imgUrl     图片地址
+     * @p-config    {String}    link       链接地址
+     * @p-config    {String}    desc       描述
+     * @p-config    {String}    title      分享的标题
+     *
+     * @param       {Object}    callbacks  相关回调方法
+     * @p-config    {Boolean}   async                   ready方法是否需要异步执行，默认false
+     * @p-config    {Function}  ready(argv)             就绪状态
+     * @p-config    {Function}  dataLoaded(data)        数据加载完成后调用，async为true时有用，也可以为空
+     * @p-config    {Function}  cancel(resp)    取消
+     * @p-config    {Function}  fail(resp)      失败
+     * @p-config    {Function}  confirm(resp)   成功
+     * @p-config    {Function}  all(resp)       无论成功失败都会执行的回调
+     */
+    function weixinShareTimeline(data, callbacks) {
+        callbacks = callbacks || {};
+        var shareTimeline = function (theData) {
+            WeixinJSBridge.invoke('shareTimeline', {
+                "appid":theData.appId ? theData.appId : '',
+                "img_url":theData.imgUrl,
+                "link":theData.link,
+                "desc":theData.title,
+                "title":theData.desc, // 注意这里要分享出去的内容是desc
+                "img_width":"640",
+                "img_height":"640"
+            }, function (resp) {
+                switch (resp.err_msg) {
+                    // share_timeline:cancel 用户取消
+                    case 'share_timeline:cancel':
+                        callbacks.cancel && callbacks.cancel(resp);
+                        break;
+                    // share_timeline:confirm 发送成功
+                    case 'share_timeline:confirm':
+                    case 'share_timeline:ok':
+                        callbacks.confirm && callbacks.confirm(resp);
+                        break;
+                    // share_timeline:fail　发送失败
+                    case 'share_timeline:fail':
+                    default:
+                        callbacks.fail && callbacks.fail(resp);
+                        break;
+                }
+                // 无论成功失败都会执行的回调
+                callbacks.all && callbacks.all(resp);
+            });
+        };
+        WeixinJSBridge.on('menu:share:timeline', function (argv) {
+            if (callbacks.async && callbacks.ready) {
+                window["_wx_loadedCb_"] = callbacks.dataLoaded || new Function();
+                if(window["_wx_loadedCb_"].toString().indexOf("_wx_loadedCb_") > 0) {
+                    window["_wx_loadedCb_"] = new Function();
+                }
+                callbacks.dataLoaded = function (newData) {
+                    window["_wx_loadedCb_"](newData);
+                    shareTimeline(newData);
+                };
+                // 然后就绪
+                callbacks.ready && callbacks.ready(argv);
+            } else {
+                // 就绪状态
+                callbacks.ready && callbacks.ready(argv);
+                shareTimeline(data);
+            }
+        });
+    }
+
+    /**
+     * 发送给微信上的好友
+     * @param       {Object}    data       待分享的信息
+     * @p-config    {String}    appId      公众平台的appId（服务号可用）
+     * @p-config    {String}    imgUrl     图片地址
+     * @p-config    {String}    link       链接地址
+     * @p-config    {String}    desc       描述
+     * @p-config    {String}    title      分享的标题
+     *
+     * @param       {Object}    callbacks  相关回调方法
+     * @p-config    {Boolean}   async                   ready方法是否需要异步执行，默认false
+     * @p-config    {Function}  ready(argv)             就绪状态
+     * @p-config    {Function}  dataLoaded(data)        数据加载完成后调用，async为true时有用，也可以为空
+     * @p-config    {Function}  cancel(resp)    取消
+     * @p-config    {Function}  fail(resp)      失败
+     * @p-config    {Function}  confirm(resp)   成功
+     * @p-config    {Function}  all(resp)       无论成功失败都会执行的回调
+     */
+    function weixinSendAppMessage(data, callbacks) {
+        callbacks = callbacks || {};
+        var sendAppMessage = function (theData) {
+            WeixinJSBridge.invoke('sendAppMessage', {
+                "appid":theData.appId ? theData.appId : '',
+                "img_url":theData.imgUrl,
+                "link":theData.link,
+                "desc":theData.desc,
+                "title":theData.title,
+                "img_width":"640",
+                "img_height":"640"
+            }, function (resp) {
+                switch (resp.err_msg) {
+                    // send_app_msg:cancel 用户取消
+                    case 'send_app_msg:cancel':
+                        callbacks.cancel && callbacks.cancel(resp);
+                        break;
+                    // send_app_msg:confirm 发送成功
+                    case 'send_app_msg:confirm':
+                    case 'send_app_msg:ok':
+                        callbacks.confirm && callbacks.confirm(resp);
+                        break;
+                    // send_app_msg:fail　发送失败
+                    case 'send_app_msg:fail':
+                    default:
+                        callbacks.fail && callbacks.fail(resp);
+                        break;
+                }
+                // 无论成功失败都会执行的回调
+                callbacks.all && callbacks.all(resp);
+            });
+        };
+        WeixinJSBridge.on('menu:share:appmessage', function (argv) {
+            if (callbacks.async && callbacks.ready) {
+                window["_wx_loadedCb_"] = callbacks.dataLoaded || new Function();
+                if(window["_wx_loadedCb_"].toString().indexOf("_wx_loadedCb_") > 0) {
+                    window["_wx_loadedCb_"] = new Function();
+                }
+                callbacks.dataLoaded = function (newData) {
+                    window["_wx_loadedCb_"](newData);
+                    sendAppMessage(newData);
+                };
+                // 然后就绪
+                callbacks.ready && callbacks.ready(argv);
+            } else {
+                // 就绪状态
+                callbacks.ready && callbacks.ready(argv);
+                sendAppMessage(data);
+            }
+        });
+    }
+
+    /**
+     * 分享到腾讯微博
+     * @param       {Object}    data       待分享的信息
+     * @p-config    {String}    link       链接地址
+     * @p-config    {String}    desc       描述
+     *
+     * @param       {Object}    callbacks  相关回调方法
+     * @p-config    {Boolean}   async                   ready方法是否需要异步执行，默认false
+     * @p-config    {Function}  ready(argv)             就绪状态
+     * @p-config    {Function}  dataLoaded(data)        数据加载完成后调用，async为true时有用，也可以为空
+     * @p-config    {Function}  cancel(resp)    取消
+     * @p-config    {Function}  fail(resp)      失败
+     * @p-config    {Function}  confirm(resp)   成功
+     * @p-config    {Function}  all(resp)       无论成功失败都会执行的回调
+     */
+    function weixinShareWeibo(data, callbacks) {
+        callbacks = callbacks || {};
+        var shareWeibo = function (theData) {
+            WeixinJSBridge.invoke('shareWeibo', {
+                "content":theData.desc,
+                "url":theData.link
+            }, function (resp) {
+                switch (resp.err_msg) {
+                    // share_weibo:cancel 用户取消
+                    case 'share_weibo:cancel':
+                        callbacks.cancel && callbacks.cancel(resp);
+                        break;
+                    // share_weibo:confirm 发送成功
+                    case 'share_weibo:confirm':
+                    case 'share_weibo:ok':
+                        callbacks.confirm && callbacks.confirm(resp);
+                        break;
+                    // share_weibo:fail　发送失败
+                    case 'share_weibo:fail':
+                    default:
+                        callbacks.fail && callbacks.fail(resp);
+                        break;
+                }
+                // 无论成功失败都会执行的回调
+                callbacks.all && callbacks.all(resp);
+            });
+        };
+        WeixinJSBridge.on('menu:share:weibo', function (argv) {
+            if (callbacks.async && callbacks.ready) {
+                window["_wx_loadedCb_"] = callbacks.dataLoaded || new Function();
+                if(window["_wx_loadedCb_"].toString().indexOf("_wx_loadedCb_") > 0) {
+                    window["_wx_loadedCb_"] = new Function();
+                }
+                callbacks.dataLoaded = function (newData) {
+                    window["_wx_loadedCb_"](newData);
+                    shareWeibo(newData);
+                };
+                // 然后就绪
+                callbacks.ready && callbacks.ready(argv);
+            } else {
+                // 就绪状态
+                callbacks.ready && callbacks.ready(argv);
+                shareWeibo(data);
+            }
+        });
+    }
+
+
+    /**
+     * 新的分享接口
+     * @param       {Object}    data       待分享的信息
+     * @p-config    {String}    appId      公众平台的appId（服务号可用）
+     * @p-config    {String}    imgUrl     图片地址
+     * @p-config    {String}    link       链接地址
+     * @p-config    {String}    desc       描述
+     * @p-config    {String}    title      分享的标题
+     *
+     * @param       {Object}    callbacks  相关回调方法
+     * @p-config    {Boolean}   async                   ready方法是否需要异步执行，默认false
+     * @p-config    {Function}  ready(argv,shareTo)             就绪状态
+     * @p-config    {Function}  dataLoaded(data)        数据加载完成后调用，async为true时有用，也可以为空
+     * @p-config    {Function}  cancel(resp,shareTo)    取消
+     * @p-config    {Function}  fail(resp,shareTo)      失败
+     * @p-config    {Function}  confirm(resp,shareTo)   成功
+     * @p-config    {Function}  all(resp,shareTo)       无论成功失败都会执行的回调
+     */
+    function weixinGeneralShare(data, callbacks) {
+        callbacks = callbacks || {};
+        var generalShare = function (general,theData) {
+
+            // 如果是分享到朋友圈，则需要把title和desc交换一下
+            if(general.shareTo == 'timeline') {
+                var title = theData.title;
+                theData.title = theData.desc || title;
+                theData.desc = title;
+            }
+
+            // 分享出去
+            general.generalShare({
+                "appid":theData.appId ? theData.appId : '',
+                "img_url":theData.imgUrl,
+                "link":theData.link,
+                "desc":theData.desc,
+                "title":theData.title,
+                "img_width":"640",
+                "img_height":"640"
+            }, function (resp) {
+                switch (resp.err_msg) {
+                    // general_share:cancel 用户取消
+                    case 'general_share:cancel':
+                        callbacks.cancel && callbacks.cancel(resp ,general.shareTo);
+                        break;
+                    // general_share:confirm 发送成功
+                    case 'general_share:confirm':
+                    case 'general_share:ok':
+                        callbacks.confirm && callbacks.confirm(resp ,general.shareTo);
+                        break;
+                    // general_share:fail　发送失败
+                    case 'general_share:fail':
+                    default:
+                        callbacks.fail && callbacks.fail(resp ,general.shareTo);
+                        break;
+                }
+                // 无论成功失败都会执行的回调
+                callbacks.all && callbacks.all(resp ,general.shareTo);
+            });
+        };
+        WeixinJSBridge.on('menu:general:share', function (general) {
+            if (callbacks.async && callbacks.ready) {
+                window["_wx_loadedCb_"] = callbacks.dataLoaded || new Function();
+                if(window["_wx_loadedCb_"].toString().indexOf("_wx_loadedCb_") > 0) {
+                    window["_wx_loadedCb_"] = new Function();
+                }
+                callbacks.dataLoaded = function (newData) {
+                    window["_wx_loadedCb_"](newData);
+                    generalShare(general,newData);
+                };
+                // 然后就绪
+                callbacks.ready && callbacks.ready(general,general.shareTo);
+            } else {
+                // 就绪状态
+                callbacks.ready && callbacks.ready(general,general.shareTo);
+                generalShare(general,data);
+            }
+        });
+    }
+
+    /**
+     * 加关注（此功能只是暂时先加上，不过因为权限限制问题，不能用，如果你的站点是部署在*.qq.com下，也许可行）
+     * @param       {String}    appWeixinId     微信公众号ID
+     * @param       {Object}    callbacks       回调方法
+     * @p-config    {Function}  fail(resp)      失败
+     * @p-config    {Function}  confirm(resp)   成功
+     */
+    function addContact(appWeixinId,callbacks){
+        callbacks = callbacks || {};
+        WeixinJSBridge.invoke("addContact", {
+            webtype: "1",
+            username: appWeixinId
+        }, function (resp) {
+            var success = !resp.err_msg || "add_contact:ok" == resp.err_msg || "add_contact:added" == resp.err_msg;
+            if(success) {
+                callbacks.success && callbacks.success(resp);
+            }else{
+                callbacks.fail && callbacks.fail(resp);
+            }
+        })
+    }
+
+    /**
+     * 调起微信Native的图片播放组件。
+     * 这里必须对参数进行强检测，如果参数不合法，直接会导致微信客户端crash
+     *
+     * @param {String} curSrc 当前播放的图片地址
+     * @param {Array} srcList 图片地址列表
+     */
+    function imagePreview(curSrc,srcList) {
+        if(!curSrc || !srcList || srcList.length == 0) {
+            return;
+        }
+        WeixinJSBridge.invoke('imagePreview', {
+            'current' : curSrc,
+            'urls' : srcList
+        });
+    }
+
+    /**
+     * 显示网页右上角的按钮
+     */
+    function showOptionMenu() {
+        WeixinJSBridge.call('showOptionMenu');
+    }
+
+
+    /**
+     * 隐藏网页右上角的按钮
+     */
+    function hideOptionMenu() {
+        WeixinJSBridge.call('hideOptionMenu');
+    }
+
+    /**
+     * 显示底部工具栏
+     */
+    function showToolbar() {
+        WeixinJSBridge.call('showToolbar');
+    }
+
+    /**
+     * 隐藏底部工具栏
+     */
+    function hideToolbar() {
+        WeixinJSBridge.call('hideToolbar');
+    }
+
+    /**
+     * 返回如下几种类型：
+     *
+     * network_type:wifi     wifi网络
+     * network_type:edge     非wifi,包含3G/2G
+     * network_type:fail     网络断开连接
+     * network_type:wwan     2g或者3g
+     *
+     * 使用方法：
+     * WeixinApi.getNetworkType(function(networkType){
+     *
+     * });
+     *
+     * @param callback
+     */
+    function getNetworkType(callback) {
+        if (callback && typeof callback == 'function') {
+            WeixinJSBridge.invoke('getNetworkType', {}, function (e) {
+                // 在这里拿到e.err_msg，这里面就包含了所有的网络类型
+                callback(e.err_msg);
+            });
+        }
+    }
+
+    /**
+     * 关闭当前微信公众平台页面
+     * @param       {Object}    callbacks       回调方法
+     * @p-config    {Function}  fail(resp)      失败
+     * @p-config    {Function}  success(resp)   成功
+     */
+    function closeWindow(callbacks) {
+        callbacks = callbacks || {};
+        WeixinJSBridge.invoke("closeWindow",{},function(resp){
+            switch (resp.err_msg) {
+                // 关闭成功
+                case 'close_window:ok':
+                    callbacks.success && callbacks.success(resp);
+                    break;
+
+                // 关闭失败
+                default :
+                    callbacks.fail && callbacks.fail(resp);
+                    break;
+            }
+        });
+    }
+
+    /**
+     * 当页面加载完毕后执行，使用方法：
+     * WeixinApi.ready(function(Api){
+     *     // 从这里只用Api即是WeixinApi
+     * });
+     * @param readyCallback
+     */
+    function wxJsBridgeReady(readyCallback) {
+        if (readyCallback && typeof readyCallback == 'function') {
+            var Api = this;
+            var wxReadyFunc = function () {
+                readyCallback(Api);
+            };
+            if (typeof window.WeixinJSBridge == "undefined"){
+                if (document.addEventListener) {
+                    document.addEventListener('WeixinJSBridgeReady', wxReadyFunc, false);
+                } else if (document.attachEvent) {
+                    document.attachEvent('WeixinJSBridgeReady', wxReadyFunc);
+                    document.attachEvent('onWeixinJSBridgeReady', wxReadyFunc);
+                }
+            }else{
+                wxReadyFunc();
+            }
+        }
+    }
+
+    /**
+     * 判断当前网页是否在微信内置浏览器中打开
+     */
+    function openInWeixin(){
+        return /MicroMessenger/i.test(navigator.userAgent);
+    }
+
+    /*
+     * 打开扫描二维码
+     * @param       {Object}    callbacks       回调方法
+     * @p-config    {Function}  fail(resp)      失败
+     * @p-config    {Function}  success(resp)   成功
+     */
+    function scanQRCode (callbacks) {
+        callbacks = callbacks || {};
+        WeixinJSBridge.invoke("scanQRCode",{},function(resp){
+            switch (resp.err_msg) {
+                // 打开扫描器成功
+                case 'scan_qrcode:ok':
+                    callbacks.success && callbacks.success(resp);
+                    break;
+
+                // 打开扫描器失败
+                default :
+                    callbacks.fail && callbacks.fail(resp);
+                    break;
+            }
+        });
+    }
+
+
+	/**
+     * 检测应用程序是否已安装 
+     * 		by mingcheng 2014-10-17
+     *
+     * @param       {Object}    data       	    应用程序的信息
+     * @p-config    {String}    packageUrl      应用注册的自定义前缀，如 xxx:// 就取 xxx
+     * @p-config    {String}    packageName	    应用的包名
+     *
+     * @param       {Object}    callbacks       相关回调方法
+     * @p-config    {Function}  fail(resp)      失败
+     * @p-config    {Function}  success(resp)   成功，如果有对应的版本信息，则写入到 resp.version 中
+     * @p-config    {Function}  all(resp)       无论成功失败都会执行的回调
+     */
+    function getInstallState(data, callbacks) {
+        callbacks = callbacks || {};
+
+        WeixinJSBridge.invoke("getInstallState", { 
+            "packageUrl": data.packageUrl || "",
+            "packageName": data.packageName || ""
+        }, function(resp) {
+            var msg = resp.err_msg, match = msg.match(/state:yes_?(.*)$/);
+            if (match) {
+                resp.version = match[1] || "";
+                callbacks.success && callbacks.success(resp);
+            } else {
+                callbacks.fail && callbacks.fail(resp);
+            }
+
+            callbacks.all && callbacks.all(resp);
+        });
+    }
+
+
+    /**
+     * 开启Api的debug模式，比如出了个什么错误，能alert告诉你，而不是一直很苦逼的在想哪儿出问题了
+     * @param    {Function}  callback(error) 出错后的回调，默认是alert
+     */
+    function enableDebugMode(callback){
+        /**
+         * @param {String}  errorMessage   错误信息
+         * @param {String}  scriptURI      出错的文件
+         * @param {Long}    lineNumber     出错代码的行号
+         * @param {Long}    columnNumber   出错代码的列号
+         */
+        window.onerror = function(errorMessage, scriptURI, lineNumber,columnNumber) {
+
+            // 有callback的情况下，将错误信息传递到options.callback中
+            if(typeof callback === 'function'){
+                callback({
+                    message : errorMessage,
+                    script : scriptURI,
+                    line : lineNumber,
+                    column : columnNumber
+                });
+            }else{
+                // 其他情况，都以alert方式直接提示错误信息
+                var msgs = [];
+                msgs.push("额，代码有错。。。");
+                msgs.push("\n错误信息：" , errorMessage);
+                msgs.push("\n出错文件：" , scriptURI);
+                msgs.push("\n出错位置：" , lineNumber + '行，' + columnNumber + '列');
+                alert(msgs.join(''));
+            }
+        }
+    }
+
+    return {
+        version         :"2.5",
+        enableDebugMode :enableDebugMode,
+        ready           :wxJsBridgeReady,
+        shareToTimeline :weixinShareTimeline,
+        shareToWeibo    :weixinShareWeibo,
+        shareToFriend   :weixinSendAppMessage,
+        generalShare    :weixinGeneralShare,
+        addContact      :addContact,
+        showOptionMenu  :showOptionMenu,
+        hideOptionMenu  :hideOptionMenu,
+        showToolbar     :showToolbar,
+        hideToolbar     :hideToolbar,
+        getNetworkType  :getNetworkType,
+        imagePreview    :imagePreview,
+        closeWindow     :closeWindow,
+        openInWeixin    :openInWeixin,
+        getInstallState :getInstallState,
+        scanQRCode      :scanQRCode
+    };
+})();
+	
+    "use strict";
+var ALI_URL = "{$_W['attachurl']}";
+var ALI_URL_VIEDO = "{$_W['attachurl']}";
+
+//http://static.weixiaotong.com.cn/145fb37a9026155ccb6119442f8db8adc15d99f5.jpg@320w_320h_1e_0c_0i_70Q_1x_1o.jpg
+var mySwiper;
+
+function wxImageShow(node){
+	var srcList = new Array();
+	var imgs = $(node).closest('.parent').find("img");
+	var curSrc = $(node).find("img")[0]['src'].split("@");
+	var curImgIndex=0;
+	for(i=0;i<imgs.length;i++){
+		var imgsrc = imgs[i]['src'].split("@");
+		if(imgsrc.length>1){
+			srcList.push(imgsrc[0].replace(ALI_URL,ALI_URL_VIEDO));
+		}else{
+			srcList.push(imgsrc[0]);
+		}
+		if(curSrc[0]==imgsrc[0]){
+			curImgIndex=i;
+		}
+	}
+	if (typeof YixinJSBridge != "undefined"){
+		//易信
+		YixinJSBridge.call('showimg',{list: srcList,index:curImgIndex});
+	} else if (typeof WeixinJSBridge != "undefined") {
+		WeixinApi.imagePreview(curSrc[0].replace(ALI_URL,ALI_URL_VIEDO), srcList);
+	} else {
+		if ($(".swiper-container").length > 0) {
+			$(".swiper-container").css("display", "block");
+			mySwiper = new Swiper('.swiper-container', {
+			    pagination: '.swiper-pagination',
+			    paginationClickable: true,
+			    spaceBetween: 30,
+			});
+			mySwiper.removeAllSlides();// 移除所有slides
+			
+			var maxWidth = document.body.clientWidth;
+			var maxHeight = document.body.clientHeight;
+			var scale = maxWidth / maxHeight;
+			
+			for (var i = 0; i < srcList.length; i++) {
+				var theImage = new Image();
+				theImage.src = srcList[i].replace(ALI_URL,ALI_URL_VIEDO);
+				var style;
+				if (theImage.width / theImage.height > scale) {
+					style = "width:100%;";
+				} else {
+					style = "height:100%;";
+				}
+				mySwiper.appendSlide('<div class="swiper-slide" onclick="hideSwiper();"><img style="' + style + '" src="' + srcList[i].replace(ALI_URL,ALI_URL_VIEDO) + '"/></div>');// 添加slide到slides的结尾 , 可以是HTML元素或slide数组
+			}
+			var curIndex = arrIndex(curSrc[0], srcList);
+			mySwiper.slideTo(curIndex, 0, false);// 切换到当前slide
+			$(window).scrollTop(0);
+			document.body.style.overflow = 'hidden';
+		}
+	}
+}
+
+function hideSwiper() {
+	mySwiper.destroy(true, true);
+	$(".swiper-container").css("display", "none");
+	document.body.style.overflow = 'visible';
+}
+</script>
+<script type="text/javascript">
+var PB = new PromptBox();
+var bjqBtnConfig = {
+		rewordBtn:"",
+		commentBtn:"",
+		praiseBtn:"",
+		btnBoxWidth:"83%"
+};
+window.onload=function(){
+//执行你的代码
+initImgCss();
+}
+function  initImgCss(){
+	var imgDivs = $(".img");
+	for (var i = 0; i < imgDivs.length; i++) {
+		//外面边框的的高宽比例
+		var H_W = imgDivs.eq(i).height() / imgDivs.eq(i).width();
+		//图片的高宽比例
+		var h_w = imgDivs.eq(i).find("img").height() / imgDivs.eq(i).find("img").width();
+		if(H_W > 1 && H_W > h_w){
+			maxHeight(imgDivs.eq(i));
+		}else if(H_W > 1 && H_W < h_w){
+			maxWidth(imgDivs.eq(i));
+		}else if(H_W < 1 && H_W > h_w){
+			maxHeight(imgDivs.eq(i));
+		}else if(H_W < 1 && H_W < h_w){
+			maxWidth(imgDivs.eq(i));
+		}else if(H_W = 1 && h_w > 1){
+			maxWidth(imgDivs.eq(i));
+		}else if(H_W = 1 && h_w < 1){
+			maxHeight(imgDivs.eq(i));
+		}else{
+			maxHeightAndWidth(imgDivs.eq(i));
+		}
+	}
+}
+function savePraise(dataid){
+	
+	var submitData = {
+			weid: "{$weid}",
+			schoolid: "{$schoolid}",
+			uid: "{$fan['uid']}",
+			sherid: dataid,
+			zname: "{$teachers['tname']}老师"
+	};
+	$.post("{php echo $this->createMobileUrl('bjqajax', array('op' => 'dianzan'))}",submitData,function(data){
+            if(data.result){
+                PB.prompt(data.msg);
+				closeToolBox();
+				window.location.href = "{php echo $this->createMobileUrl('bjq', array('schoolid' => $schoolid, 'bj_id' => $bj_id), true)}"
+            }else{
+                PB.prompt(data.msg);
+				closeToolBox();
+            }
+    },'json');
+}
+function maxWidth(obj){
+	obj.find("img").css("width","100%");
+	obj.find("img").css("top","50%");
+	obj.find("img").css("margin-top",-obj.find("img").height()/2);
+}
+
+function maxHeight(obj){
+	obj.find("img").css("height","100%");
+	obj.find("img").css("left","50%");
+	obj.find("img").css("margin-left",-obj.find("img").width()/2);
+}
+
+function maxHeightAndWidth(obj){
+	obj.find("img").css("top","0");
+	obj.find("img").css("left","0");
+	obj.find("img").css("height","100%");
+	obj.find("img").css("width","100%");
+}
+
+function showTooLBtnBox(node){
+	var checkedButBox = $(node).parent().find(".buttonBox");
+	
+	if(!checkedButBox.hasClass("checked")){
+		var otherCheckedButBox = $(".buttonBox.checked");
+		otherCheckedButBox.removeClass("checked");
+		otherCheckedButBox.animate({width:"0"},300);
+		otherCheckedButBox.hide(300);
+		checkedButBox.show();
+		checkedButBox.animate({width:bjqBtnConfig.btnBoxWidth},300);
+		checkedButBox.addClass("checked");
+		$("#buttonBoxShade").show();
+	}else{
+		checkedButBox.animate({width:"0"},300,function(){
+			checkedButBox.removeClass("checked");
+			$("#buttonBoxShade").hide();
+		});
+		checkedButBox.hide(300);
+	}
+}
+
+function closeSendType() {
+	$(".sendType").animate({height:"0px"}, "fast");
+	$("#fullbg").hide();
+	document.body.style.cssText = '';
+	document.body.parentNode.style.overflow="scroll";
+	document.documentElement.style.overflow='';
+} 
+
+function discussRelease(){
+	$("#discussText").css("display","block");
+	$("#discussBg").css("display","block");
+	createDiscussSend("release");
+}
+
+function setWlzyId(wlzyid){
+	closeToolBox();
+	$("#wlzyid").val(wlzyid);
+	$("#receiverid").val("");
+	$("#discussText").css("display","block");
+	$("#discussBg").css("display","block");
+	createDiscussSend("comment");
+}
+function closeToolBox(){
+	var otherCheckedButBox = $(".buttonBox.checked");
+	otherCheckedButBox.removeClass("checked");
+	otherCheckedButBox.animate({width:"0"},300);
+	otherCheckedButBox.hide(300);
+	$("#buttonBoxShade").hide();
+}
+
+function createDiscussSend(type){
+	var discussSend = new Array();
+	$("#emojiBox,#imageBox").hide();
+	if(type=="release"){
+		discussSend.push('<button id="discussRelease" class="s" >发送</button>');
+	}else if(type=="comment"){
+		discussSend.push('<button id="discussSend" class="s" onclick="discussSend()">发送</button>');
+	}
+	discussSend.push('<button id="discussCancel" class="c" onclick="closeDiscussText();">取消</button>');
+	$("#discussButton").html(discussSend.join(''));
+}
+
+function discussSend(){
+	$('#discussSend').attr("disabled",true);
+	var content = $("#content").val();
+	if(content == "" || content == null){
+		closeDiscussText();
+		return ;
+	}
+	var userid = $("#userid").val();
+	var wlzyid = $("#wlzyid").val();
+	var content = $("#content").val();
+	var submitData = {
+			weid: "{$weid}",
+			schoolid: "{$schoolid}",
+			uid: "{$fan['uid']}",
+			sherid: wlzyid,
+			openid:"{$openid}",
+			shername: "{$teachers['tname']}老师",
+			content: content
+	};
+	$.post("{php echo $this->createMobileUrl('bjqajax', array('op' => 'huifu'))}",submitData,function(data){
+            if(data.result){
+                PB.prompt(data.msg);
+				window.location.href = "{php echo $this->createMobileUrl('bjq', array('schoolid' => $schoolid, 'bj_id' => $bj_id), true)}"
+            }else{
+                PB.prompt(data.msg);
+            }
+    },'json');	
+}
+
+function closeDiscussText(){
+	$("#receiverid").val("");
+	$("#discussText").css("display","none");
+	$("#discussBg").css("display","none");
+	$("#content").val("");
+}
+
+function showSelectBox(obj){
+	if($("#"+obj).find("ul").children().length > 0){
+		if(obj=="stuList")$(".checkAll").css("display","none");
+		$(".selectList").css("display","block");
+		$(".blackBg").css("display","block");
+		$("#"+obj).css("display","block");
+		var height = 0;
+		if($("#"+obj).attr("class") == "double"){
+			$("#"+obj).css("height",$(".selectList").height());
+			$("#"+obj).find("ul").css("height",$(".selectList").height()-50);
+			var objList;
+			if($("#"+obj+"Value").val() != ""){
+				objList = $("#"+obj+"Value").val().split(",");
+				var liList = $("#"+obj).find("li");
+				for (var j = 0; j < liList.length; j++) {
+					for (var i = 0; i < objList.length; i++) {
+						if(objList[i] == liList.eq(j).find("input[type=hidden]").val()){
+							liList.eq(j).find("img").attr("alt","checked");
+							liList.eq(j).find("img").attr("src",oss+"public/mobile/img/checked.png");
+							liList.eq(j).find("input[type=hidden]").attr("name","checked");
+							liList.eq(j).find("span[class=le]").attr("name","checkedName");
+							break;
+						}else{
+							liList.eq(j).find("img").attr("alt","check");
+							liList.eq(j).find("img").attr("src",oss+"public/mobile/img/check.png");
+							liList.eq(j).find("input[type=hidden]").attr("name","check");
+							liList.eq(j).find("span[class=le]").attr("name","checkName");
+						}
+					}
+				}
+			}else{
+				$("#"+obj).find("img").attr("alt","check");
+				$("#"+obj).find("img").attr("src",oss+"public/mobile/img/check.png");
+				$("#"+obj).find("input[type=hidden]").attr("name","check");
+				$("#"+obj).find("span[class=le]").attr("name","checkName");
+			}
+		}else{
+			$("#"+obj).css("height",$(".selectList").height());
+			$("#"+obj).find("ul").css("height",$(".selectList").height());
+		}
+		$(".selectList").css("margin-top",-$("#"+obj).parent().height()/2);	
+	}
+}
+
+function isSelect(obj){
+	$(obj).parent().children().removeAttr("class");
+	$(obj).parent().find("span[class=le]").attr("name","selectName");
+	$(obj).parent().find("input[type=hidden]").attr("name","select");
+	$(obj).attr("class","selected");
+	$(obj).find("span[class=le]").attr("name","selectedName");
+	$(obj).find("input[type=hidden]").attr("name","selected");
+	var boxName = $(obj).parent().parent().attr("id");
+	var selectedName = $(obj).find("span[class=le][name=selectedName]");
+	var selectedValue = $(obj).find("input[type=hidden][name=selected]");
+	$("#className").html(selectedName.html());
+	$("#bjid").val(selectedValue.val());
+	closeBox();
+	var bjid = $("#bjid").val();
+	PB.prompt("数据载入中，请等待~","forever");
+	location.href = "{php echo $this->createMobileUrl('bjq', array('schoolid' => $schoolid), true)}"+ '&bj_id=' + bjid;
+}
+
+function closeBox(){
+	$(".selectList").css("display","none");
+	$(".blackBg").css("display","none");
+	$(".single").css("display","none");
+	$(".double").css("display","none");
+	$(".double").css("height","auto");
+	$(".double").find("ul").css("height","auto");
+}
+
+function delWlzy(id){
+	conformMsg("提示","确认删除？",id);
+}
+
+function pass(id){
+	conformMsgpass("提示","确认审核通过本条图文？",id);
+}
+
+function realDel(id){
+	removeConformDiv();
+	var submitData = {
+			id:id,
+			schoolid:"{$schoolid}",
+			weid:"{$weid}",
+	};
+	$.post("{php echo $this->createMobileUrl('bjqajax', array('op' => 'delbjq'))}",submitData,function(data){
+            if(data.result){
+                PB.prompt(data.msg);
+				window.location.href = "{php echo $this->createMobileUrl('bjq', array('schoolid' => $schoolid, 'bj_id' => $bj_id), true)}"
+            }else{
+                PB.prompt(data.msg);
+            }
+    },'json');
+}
+
+function realPass(id){
+	removeConformDiv();
+	var submitData = {
+			id:id,
+			schoolid:"{$schoolid}",
+			weid:"{$weid}",
+	};
+	$.post("{php echo $this->createMobileUrl('bjqajax', array('op' => 'shbjq'))}",submitData,function(data){
+            if(data.result){
+                PB.prompt(data.msg);
+				window.location.href = "{php echo $this->createMobileUrl('bjq', array('schoolid' => $schoolid, 'bj_id' => $bj_id), true)}"
+            }else{
+                PB.prompt(data.msg);
+            }
+    },'json');
+}
+
+function conformMsg(title,msg,id){
+	if(!title){
+		title = "提示";
+	}
+	if(!msg){
+		msg = "确认删除？";
+	}
+	var conformDiv = $('<div id="conformDiv" style="top:50%;height:200px;margin-top:-100px;left:10%;right:10%;background:white;position:fixed;z-index:9999;"></div>').appendTo($("body"));
+    var titleDiv = $('<div style="width:90%;margin:0 3%;padding:0 2%;height:65px;line-height:65px;font-size:18px;color:#39ac13;font-weight:bold;border-bottom:1px solid #bababa;">'+ title +'</div>').appendTo(conformDiv);
+    var msgDiv = $('<div style="width:90%;margin:0 3%;padding:0 2%;height:84px;line-height:84px;font-size:16px;">'+ msg +'</div>').appendTo(conformDiv);
+    var btnBox = $('<div style="width:100%;height:49px;border-top:1px solid #d5d5d5;background:#d5d5d5;"></div>').appendTo(conformDiv);
+    var btnDivL = $('<div style="width:50%;height:49px;float:left;"></div>').appendTo(btnBox);
+    var btnDivR = $('<div style="width:50%;height:49px;float:left;"></div>').appendTo(btnBox);
+    var cancelBtn = $('<div style="margin:0 1px 0 0;height:49px;line-height:49px;background:white;text-align:center;cursor:pointer;" onclick="removeConformDiv()">取消</div>').appendTo(btnDivL);
+    var enterBtn = $('<div style="margin:0;height:49px;line-height:49px;background:white;text-align:center;cursor:pointer;" onclick="realDel('+ id +')">确定</div>').appendTo(btnDivR);
+    var coverDiv = $('<div id="coverDiv" style="top:0;bottom:0;left:0;right:0;position:fixed;background:black;filter:alpha(opacity:30);opacity:0.3;z-index:9998;"></div>').appendTo($("body"));
+}
+
+function conformMsgpass(title,msg,id){
+	if(!title){
+		title = "提示";
+	}
+	if(!msg){
+		msg = "确认审核通过本条图文？";
+	}
+	var conformDiv = $('<div id="conformDiv" style="top:50%;height:200px;margin-top:-100px;left:10%;right:10%;background:white;position:fixed;z-index:9999;"></div>').appendTo($("body"));
+    var titleDiv = $('<div style="width:90%;margin:0 3%;padding:0 2%;height:65px;line-height:65px;font-size:18px;color:#39ac13;font-weight:bold;border-bottom:1px solid #bababa;">'+ title +'</div>').appendTo(conformDiv);
+    var msgDiv = $('<div style="width:90%;margin:0 3%;padding:0 2%;height:84px;line-height:84px;font-size:16px;">'+ msg +'</div>').appendTo(conformDiv);
+    var btnBox = $('<div style="width:100%;height:49px;border-top:1px solid #d5d5d5;background:#d5d5d5;"></div>').appendTo(conformDiv);
+    var btnDivL = $('<div style="width:50%;height:49px;float:left;"></div>').appendTo(btnBox);
+    var btnDivR = $('<div style="width:50%;height:49px;float:left;"></div>').appendTo(btnBox);
+    var cancelBtn = $('<div style="margin:0 1px 0 0;height:49px;line-height:49px;background:white;text-align:center;cursor:pointer;" onclick="removeConformDiv()">取消</div>').appendTo(btnDivL);
+    var enterBtn = $('<div style="margin:0;height:49px;line-height:49px;background:white;text-align:center;cursor:pointer;" onclick="realPass('+ id +')">确定</div>').appendTo(btnDivR);
+    var coverDiv = $('<div id="coverDiv" style="top:0;bottom:0;left:0;right:0;position:fixed;background:black;filter:alpha(opacity:30);opacity:0.3;z-index:9998;"></div>').appendTo($("body"));
+}
+
+function imagePreview(curSrc,srcList) {
+        if(!curSrc || !srcList || srcList.length == 0) {
+            return;
+        }
+        WeixinJSBridge.invoke('imagePreview', {
+            'current' : curSrc,
+            'urls' : srcList
+        });
+}
+
+function removeConformDiv(){
+	$("#conformDiv").remove();
+	$("#coverDiv").remove();
+}
+</script>
+</html>

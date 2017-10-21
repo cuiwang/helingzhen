@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>个人中心 - {php echo $this->module['config']['sname']}</title>
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, width=device-width">
+	<meta content="telephone=no" name="format-detection">
+    <link href="{WELIAM_INDIANA_STATIC}css/common.css" rel="stylesheet">
+    <link href="{WELIAM_INDIANA_STATIC}css/user.css" rel="stylesheet">
+    <script language="javascript" src="{WELIAM_INDIANA_STATIC}js/jquery.js"></script>
+</head>
+{template wxshare}
+<script>
+   	//自动刷新
+	var id={$id};
+	var flag=0;
+	var openid = '{$openid}';
+	//检测没有数据
+	function all_more(){
+		var re = document.getElementById('{$operation}'+'_more');
+		if({$id} == -1){
+			re.innerHTML='没有更多的信息了';
+		}
+	}
+
+	//判断div是否在可视区域
+	  $(document).ready(function () {
+            $(window).scroll(function () {
+                var a = document.getElementById('{$operation}'+'_more').offsetTop;
+                if (a >= $(window).scrollTop() && a < ($(window).scrollTop()+$(window).height())&&id!='-1'&&flag=='0') {
+                   document.getElementById('{$operation}'+'_more').innerHTML="努力加载中";
+					flag = 1;
+					down_load();	
+                }
+            });
+        });
+//回传数据
+	
+	function down_load(){
+		//传值验证返回	
+	    $.post("{php echo $this->createMobileUrl('otherpersonal')}",
+	    {
+	    	id:id,
+	    	op:'{$operation}',
+	    	openid:openid
+	    },
+	    function(m){
+				if(m==''){
+					document.getElementById('{$operation}'+'_more').innerHTML="没有可加载项";
+				}else{
+					if(m.success=='-1'){
+						document.getElementById('{$operation}'+'_more').innerHTML='没有更多的信息了';
+					}else{
+						id = m.success;
+						openid = m.openid;
+						
+						//夺宝记录刷新
+						if('{$operation}' == 'all'){
+							for(var i=0;i<m.list.length;i++){
+							//判定获奖则是否未揭晓
+							if(m.list[i].nickname == ''){
+								m.list[i].nickname = "待揭晓";
+								m.list[i].partakes = "";
+							}else{
+								m.list[i].partakes = "(本期共参与<strong>"+m.list[i].partakes+"</strong>人次";
+							}
+							
+							//判定中奖号码是否未揭晓
+							if(m.list[i].code == ''){
+								m.list[i].code = "待揭晓";
+							}
+							
+							//判定是否未揭晓
+							if(m.list[i].endtime == ''){
+								m.list[i].endtime = "待揭晓";
+							}
+							
+							var more = '<li class="w-goodsList-item" id="pro-view-8"><div class="w-goods w-goods-l w-goods-ing m-user-goods"><div class="w-goods-pic"><a href="{php echo $this->createMobileUrl('detail')}&periodid='+m.list[i].id+'"><img src="'+m.list[i].picarr+'"  style="width: 90px;"></a></div><div class="w-goods-info"><p class="w-goods-title f-txtabb"><a href="{php echo $this->createMobileUrl('detail')}&periodid='+m.list[i].id+'">(第'+m.list[i].periods+'期)'+m.list[i].title+'</a></p><p class="w-goods-price">总需：'+m.list[i].zong_codes+'份</p><p class="w-goods-price">期号：'+m.list[i].period_number+'</p><div class="m-user-goods-owner m-user-box"><div class="m-user-box-name">获得者：</div><div class="m-user-box-cont"><a href="#">'+m.list[i].nickname+'</a>'+m.list[i].partakes+'</div></div><p class="m-user-goods-code">幸运号码：<span class="txt-impt">'+m.list[i].code+'</span></p><p class="m-user-goods-time">揭晓时间：'+m.list[i].endtime+'</p><div class="m-user-goods-my">本期参与：<span class="txt-impt">'+m.list[i].count+'</span>人次</div></div></div></li>';
+							$("#allmore").append(more);
+							flag = 0;
+							document.getElementById('all_more').innerHTML="上拉加载更多";
+						}
+						//中奖记录页面刷新	
+						}else if('{$operation}' == 'get'){
+							for(var i=0;i<m.list.length;i++){
+								var more = '<li class="w-goodsList-item" id="pro-view-4"><div class="w-goods w-goods-l w-goods-ing m-user-goods m-user-goods-winList"><div class="w-goods-pic"><a href="{php echo $this->createMobileUrl('detail')}&periodid='+m.list[i].id+'"><img src="'+m.list[i].picarr+'" style="width: 90px;"></a></div><div class="w-goods-info"><p class="w-goods-title f-txtabb"><a href="{php echo $this->createMobileUrl('detail')}&periodid='+m.list[i].id+'">'+m.list[i].title+'</a></p><p class="w-goods-price">总需：'+m.list[i].zong_codes+' 人次</p><p class="w-goods-price">期号：'+m.list[i].period_number+'</p><p class="m-user-goods-code">幸运号码：<span class="txt-impt">'+m.list[i].code+'</span></p><div class="m-user-goods-common">本期参与：'+m.list[i].partakes+'人次</div><div class="m-user-box m-user-goods-calTime"><p class="m-user-box-name">揭晓时间：</p><p class="m-user-box-cont">'+m.list[i].endtime+'</p></div></div></div></li>';
+								$("#getmore").append(more);
+								flag = 0;
+								document.getElementById('get_more').innerHTML="上拉加载更多";
+							}
+							
+						//晒单界面刷新
+						}else{
+							for(var i=0;i<m.list.length;i++){
+								var addr = "{php echo $this->createMobileUrl('share_detail')}&id="+m.list[i].id;
+								var more = '<div class="w-shareList" data-pro="list"><div class="w-shareItem" onclick="'+addr+'" id="pro-view-32"><p class="title"><a href="#">'+m.list[i].title+'</a></p><div class="author">晒单时间：'+m.list[i].createtime+'</div><div class="abbr"><div class="pic"><a href="#"><img src="'+m.list[i].thumb+'" style="width: 90px;"></a></div><div class="txt"><a href="#">'+m.list[i].detail+'</a></div></div></div></div>';
+								$("#sharemore").append(more);
+								flag = 0;
+								document.getElementById('share_more').innerHTML="上拉加载更多";
+							}
+						}
+						
+						
+					}
+				}
+
+             },"json");
+	}
+	
+   	
+	
+</script>
+<body onload="all_more();">
+<div class="m-user" id="dvWrapper">
+    <div class="m-simpleHeader" id="dvHeader">
+        <a href="{php echo $this->createMobileUrl('person')}" data-pro="back" data-back="true" class="m-simpleHeader-back"><i class="ico ico-back"></i></a>
+        <a href="{php echo $this->createMobileUrl('index')}" data-pro="ok" class="m-simpleHeader-ok" id="aHome"><i class="ico ico-home"></i></a>
+        <h1>个人中心</h1>
+    </div>
+    <div class="m-user-index">
+    <div class="m-user-summary m-user-summary-simple">
+        <img class="bg" src="{WELIAM_INDIANA_STATIC}image/summary_bg.png" width="100%">
+        <div class="info">
+            <div class="m-user-avatar"><img width="50" height="50" src="{php echo tomedia($member['avatar'])}"></div>
+            <div class="txt">
+                <div class="name">{$member['nickname']}</div>
+            </div>
+        </div>
+    </div>
+        <div class="w-nav w-nav-hasSplt w-nav-hasBorder" id="dvTab">
+            <div class="w-nav-item {if $operation=='all' || $operation==''}w-nav-item-on{/if}" onclick="location.href='{php echo $this->createMobileUrl('otherpersonal',array('op'=>'all','openid'=>$openid))}'" ><span class="w-nav-txt">夺宝记录<span class="num"></span></span></div>
+            <div class="w-nav-item {if $operation=='get'}w-nav-item-on{/if}" onclick="location.href='{php echo $this->createMobileUrl('otherpersonal',array('op'=>'get','openid'=>$openid))}'"><span class="w-nav-txt">中奖记录</span></div>
+            <div class="w-nav-item {if $operation=='share'}w-nav-item-on{/if}" onclick="location.href='{php echo $this->createMobileUrl('otherpersonal',array('op'=>'share','openid'=>$openid))}'"><span class="w-nav-txt">晒单</span></div>
+        </div>
+    </div>
+</div>
+{if $operation == 'all'}
+<ul class="w-goodsList w-goodsList-l m-user-goodsList" id="allmore">
+	{loop $p_record $goodsid $goods}
+	<li class="w-goodsList-item" id="pro-view-8">
+        <div class="w-goods w-goods-l w-goods-ing m-user-goods">
+            <div class="w-goods-pic">
+                <a href="{php echo $this->createMobileUrl('detail', array('periodid' => $goods['id']))}">
+                    <img src="{php echo tomedia($goods['picarr']);}"  style="width: 90px;">
+                </a>
+            </div>
+            <div class="w-goods-info">
+                <p class="w-goods-title f-txtabb"><a href="{php echo $this->createMobileUrl('detail', array('periodid' => $goods['id']))}">(第{$goods['periods']}期){$goods['title']}</a></p>
+                <p class="w-goods-price">总需：{$goods['zong_codes']}份</p>
+                <p class="w-goods-price">期号：{$goods['period_number']}</p>
+                <div class="m-user-goods-owner m-user-box"><div class="m-user-box-name">获得者：</div><div class="m-user-box-cont"><a href="#">{if $goods['nickname'] == ''}待揭晓</a>{else}{$goods['nickname']}</a>(本期共参与<strong>{$goods['partakes']}</strong>人次){/if}</div></div>
+                <p class="m-user-goods-code">幸运号码：<span class="txt-impt">{if $goods['code'] == ''}待揭晓{else}{$goods['code']}{/if}</span></p>
+                <p class="m-user-goods-time">揭晓时间：{if $goods['endtime'] == ''}待揭晓{else}{php echo date('Y-m-d H:i:s',$goods['endtime'])}{/if}</p>
+                <div class="m-user-goods-my">
+                    本期参与：<span class="txt-impt">{$goods['allcount']}</span>人次
+                </div>
+            </div>
+            <div class="w-goods-shortFunc">               
+            </div>
+        </div>
+	</li>
+	{/loop}	
+</ul>
+   <div data-pro="more"><div class="w-more" id="all_more">上拉加载更多</div></div>
+{elseif $operation == 'get'}
+	<ul class="w-goodsList w-goodsList-l m-user-goodsList" id="getmore">
+		{loop $period $list}
+	    <li class="w-goodsList-item" id="pro-view-4">
+	        <div class="w-goods w-goods-l w-goods-ing m-user-goods m-user-goods-winList">
+	            <div class="w-goods-pic">
+	                <a href="{php echo $this->createMobileUrl('detail', array('periodid' => $list['id']))}">
+	                    <img src="{php echo tomedia($list['picarr'])}" style="width: 90px;">
+	                </a>
+	            </div>
+	            <div class="w-goods-info">
+	                <p class="w-goods-title f-txtabb"><a href="{php echo $this->createMobileUrl('detail', array('periodid' => $list['id']))}">{$list['title']}</a></p>
+	                <p class="w-goods-price">总需：{$list['zong_codes']} 人次</p>
+	                <p class="w-goods-price">期号：{$list['period_number']}</p>
+	                <p class="m-user-goods-code">幸运号码：<span class="txt-impt">{$list['code']}</span></p>
+	                <div class="m-user-goods-common">本期参与：{$list['partakes']}人次</div>
+	                <div class="m-user-box m-user-goods-calTime"><p class="m-user-box-name">揭晓时间：</p><p class="m-user-box-cont">{php echo date('Y-m-d H:i:s',$list['endtime'])}</p></div>
+	            </div>
+	        </div>
+	    </li>
+	    {/loop}
+	</ul>
+      <div data-pro="more"><div class="w-more" id="get_more">上拉加载更多</div></div>
+
+{else}
+<div class="m-user-shareList" id="share_dvWrapper">
+	<div id="pro-view-9" id="sharemore">
+		<div data-pro="loading"></div>
+			{loop $period $list}
+			<div class="w-shareList" data-pro="list">
+				<div class="w-shareItem" onclick="location.href='{php echo $this->createMobileUrl('share_detail',array(id => $list['id']));}'" id="pro-view-32">
+       				 <p class="title"><a href="#">{$list['title']}</a></p>
+        			<div class="author">晒单时间：{php echo date("m-d H:i",$list['createtime'])}</div>
+      			  <div class="abbr">
+           		 <div class="pic"><a href="#"><img src="{$list['thumbs'][0]}" style="width: 90px;"></a></div>
+            <div class="txt"><a href="#">{$list['detail']}</a></div>
+        </div>
+    	</div>
+		</div>
+		{/loop}
+</div>
+</div>
+<div data-pro="more"><div class="w-more" id="share_more">上拉加载更多</div></div>
+{/if}
+</body></html>

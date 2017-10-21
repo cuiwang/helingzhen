@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-use-url="{$html['use_url']}" data-bind-gift-url="{$html['bind_gift_url']}" data-openid="{$html['openid']}">
+<head>
+<title>礼品兑换订单核销</title>
+<meta charset="utf-8">
+<meta name="description" content="">
+<meta name="viewport"
+	content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<link rel="stylesheet" type="text/css"
+	href="../addons/lonaking_gift_shop/template/mobile/bootstrap/css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css"
+	href="../addons/lonaking_gift_shop/template/mobile/css/scan.css">
+<script
+	src="../addons/lonaking_gift_shop/template/mobile/bootstrap/js/jquery-2.1.3.min.js"></script>
+<script
+	src="../addons/lonaking_gift_shop/template/mobile/bootstrap/js/bootstrap.min.js"></script>
+<script type="text/javascript"
+	src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+<script type="text/javascript">
+		    wx.config({
+			    debug: false,
+			    appId: '{$html['jsconfig']['appId']}',  //微信的appid需要在公众平台生成
+			    timestamp: '{$html['jsconfig']['timestamp']}', //这是由php部分生成的
+			    nonceStr: '{$html['jsconfig']['nonceStr']}', //这是由php部分生成的
+			    signature: '{$html['jsconfig']['signature']}', //这是由php部分生成的
+			    jsApiList: [
+				    'onMenuShareTimeline',
+				    'onMenuShareAppMessage',
+				    'onMenuShareQQ',
+				    'onMenuShareWeibo',
+				    'scanQRCode',
+			    ]
+		   });
+		   wx.ready(function(){
+			   document.querySelector('#scan').onclick = function(){
+				   wx.scanQRCode({
+						needResult : 1, // 默认为0，扫描结果由微信处理，1则直接返回扫描结果，
+						scanType : [ "qrCode", "barCode" ], // 可以指定扫二维码还是一维码，默认二者都有
+						success : function(res) {
+							var result = res.resultStr; // 当needResult 为 1 时，扫码返回的结果
+							var url = $('html').attr('data-use-url');
+							var postData = {
+								order_num :result,
+								openid : $('html').attr('data-openid')
+							};
+							$.post(url, postData,function(result){
+								var json = eval('(' + result + ')');
+								if(json.status == 200){
+									alert(json.message);
+								}else{
+									alert(json.message+":"+json.data);
+								}
+							})
+						},
+						error : function(res){
+							alert('error');
+						}
+					});
+			   };
+		   });
+		</script>
+		<script src="../addons/lonaking_gift_shop/template/mobile/js/scan.js"></script>
+</head>
+<body>
+	<!-- 主体 -->
+	<div class="container">
+		<div class="row">
+			<div id='bind-info'>
+				<div class="alert alert-danger alert-dismissable">
+					<button type="button" class="close" data-dismiss="alert"
+						aria-hidden="true">&times;</button>
+					你没有权限核销任何礼品，如果要使用此功能，请先绑定一个礼品
+				</div>
+				<form>
+					<div class="form-group">
+						<div class="col-lg-12 col-xs-12 col-md-12">
+							<input type="text" class="form-control" name="password" value=""
+								placeholder="请输入礼品的核销密码" /> <span class="help-block">绑定礼品之后才可以使用此功能</span>
+						</div>
+					</div>
+				</form>
+				<button type="button" class="btn btn-success" id="bind-gift">提交验证</button>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

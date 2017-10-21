@@ -1,0 +1,173 @@
+{template 'head'}
+<link rel="stylesheet" type="text/css" href="{HT}css/order.css">
+
+<body>
+<form action="{php echo $this->createmobileurl('seckill_goods',array('op'=>'order_save'))}" method="post" id="editAddressForm" onsubmit="return orderfrom()">
+    <div class="add_to clearfix">
+		<a href="{php echo $this->createMobileUrl('seckill_user', array('op'=>'add_address', 'id'=>$order_list['order_id']))}">
+			<div class="add_to_left clearfix">
+				<div class="asdsf">
+					<i class="iconfont dw">&#xe634;</i>
+				</div>
+				<div class="asdsf_zhong">
+				{if empty($add_str)}
+					
+					<span class="tianjia"><i class="iconfont jia">&#xe626;</i>添加收货地址</span>
+				{else}
+					<span>{$add_arr[0]} {$add_arr[1]} </span>
+					<span>{$add_arr[5]}</span>
+				{/if}	
+				</div>
+				<i class="iconfont add_to_right">
+				&#xe656;
+			</i>
+				
+			</div>
+
+		</a>
+	</div>
+    <div class="add_border">
+    </div>
+    <div class="add_content">
+    	<div class="add_top">
+    		<img src="{php echo tomedia($goods_list['thumb'])}">
+    		<p>{$goods_list['name']} </p>
+    		<span class="describe">颜色分类：{if $order_list['goods_nature']}{$order_list['goods_nature']}{else}无{/if}</span>
+    		<span class="price">￥{$order_list['goods_seksillprice']}</span>
+    		<span class="sign">×{$order_list['goods_number']}</span>
+    	</div>
+    	<div class="wechat_payment clearfix">
+    		<div class="payment_left">
+    			支付方式
+    		</div>
+    		<div class="wechat_right">
+    			<i class="iconfont weixin">&#xe62a;</i>
+    			微信支付
+    		</div>
+    	</div>
+		
+        {if $config['bb_show'] == 1} <!--版本  1本地  2全国-->
+             <div class="peisong_mode clearfix">
+        		<div class="fangshi">
+        			自提地址
+        		</div>
+        		<div class="ziti">
+                    {$goods_list['since_address']}
+        		<i class="iconfont">&#xe656;</i>
+        		</div>
+        	</div>
+        	
+        {else}
+           <div class="peisong_mode clearfix">
+        		<div class="fangshi">
+        			配送方式
+        		</div>
+        		<div class="ziti">
+                     <select name="peis"  onchange="peiss();" id="peis" >
+                        <option value="0" >选择配送方式</option>
+                            {loop $peis_list $ps}
+                                <option value="{$ps['id']}">{$ps['name']}(
+                                    {if $ps[delivery_fee] == '0.00'}
+                                        包邮
+                                    {else}
+                                        含运费{$ps[delivery_fee]}元
+                                    {/if}
+                                )</option>
+                            {/loop}
+                    </select>
+        		<i class="iconfont">&#xe656;</i>
+        		</div>
+        	</div>
+        {/if}
+    	<div class="add_bottom">
+    		共1件商品 共计：
+    		<span id="tatol_price">￥{php echo $order_list['order_totalprice']+$order_list[order_yunfei]}元</span>
+    	</div>
+    </div>
+    
+        <input type="hidden" value="{$order_list['order_totalprice']}" id="order_totalprice" name="order_totalprice"/>
+        <input type="hidden" value="{$order_list['order_id']}" id="order_id" name="order_id"/>
+        <input type="hidden" value="0.00" id="order_yunfei" name="order_yunfei"/>
+        <input type="hidden" value="{$add_str}" id="address" name="address"/>
+        <input type="submit" class="red-color" id="directorder" style="width: 100%;"  value="立即付款"/>
+        
+    </form>
+    {template 'footer'}
+   <script>
+            function  orderfrom(){
+                var address  = $("#address").val();
+                var  bb_show = {$config['bb_show']};
+                if(bb_show == 2){
+                    if(address == ''){
+                        layer.msg('请获取微信收货地址！', {icon: 7});
+                        return false;
+                    }
+                    
+                    var $since_address = "{$goods_list['since_address']}";
+                    // 全国版 检测快递
+                        var peis_id = $.trim($("select[name='peis']").val());
+                        if(peis_id == '0'){
+                            layer.msg('请选择配送方式！', {icon: 7});
+                            return false; 
+                        }
+               }
+                
+               
+               return true;
+            }
+    function peiss(){
+        var peis_id = $.trim($("select[name='peis']").val());
+         var order_totalprice = "{$order_list['order_totalprice']}";
+        if(peis_id == '0'){
+            $("#yunfei").html('选择配送方式');
+            $('#tatol_price').html('￥'+order_totalprice);
+            $('#order_totalprice').val(order_totalprice);
+            return  false;
+        }
+            var data ={
+                id :peis_id,
+                order_totalprice:order_totalprice,
+            };
+       	$.ajax({
+    		url: "{php echo $this->createmobileurl('seckill_goods',array('op'=>'peis_ajax'))}",
+    		type: "GET",
+    		data: data,
+    		cache:false,
+    		dataType: "JSON",
+    		success: function (res) {
+    		      
+    			if(res['status']){
+    			    
+                    $('#tatol_price').html('￥'+res['sm']);
+                    $('#order_totalprice').val(res['sm']);
+                    $('#order_yunfei').val(res['delivery_fee']);
+                    
+    			}else{
+    			     $("#yunfei").html(res['sm']);
+                    $('#tatol_price').html(order_totalprice);
+           	    }
+    		}
+    	});
+        
+    }
+    wx.ready(function () {
+        
+            sharedata = {
+                title: "{$config['share_title']}",
+                desc: "{$config['share_desc']}",
+                link: "{$share_url}",
+                imgUrl: "{php echo tomedia($config['share_img'])}",
+                success: function(){
+    				
+                },
+                cancel: function(){
+                    layer.msg('分享失败，可能是网络问题，一会儿再试试？', {icon: 5});
+                }
+            };
+            wx.onMenuShareAppMessage(sharedata);
+            wx.onMenuShareTimeline(sharedata);
+        }); 
+        
+   </script> 
+</body>
+</html>

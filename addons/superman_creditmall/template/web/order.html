@@ -1,0 +1,430 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li {if $act == 'display' && $status == 'all'}class="active"{/if}><a href="{php echo $this->createWebUrl('order',array('status'=>'all'));}">全部订单</a></li>
+	{loop $order_status $key $status_name}
+		<li {if $status != '' && $status != 'all' && $status == $key }class="active"{/if}><a href="{php echo $this->createWebUrl('order', array('status'=>$key));}">{$status_name}</a></li>
+	{/loop}
+	{if $_GPC['id']}<li {if $act == 'post'}class="active"{/if}><a href="{php echo $this->createWebUrl('order', array('act' => 'post', 'id' => $id));}">编辑订单</a></li>{/if}
+</ul>
+<style>
+	.text-overflow {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.tac {
+		text-align: center;
+	}
+	.nav.nav-tabs {
+		margin-bottom: 20px;
+	}
+	.table>thead>tr>th {
+		vertical-align: bottom;
+		border-bottom: 2px solid #ddd;
+		font-size: 14px;
+	}
+	.tac>.btn-sm{
+		position: relative;
+		float: left;
+	}
+	.table>tbody>tr>td {
+		vertical-align: middle !important;
+	}
+</style>
+{if $act == 'display'}
+<div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+		<form action="" method="get" class="form-horizontal" role="form">
+			<input type="hidden" name="c" value="site">
+			<input type="hidden" name="a" value="entry">
+			<input type="hidden" name="status" value="{$_GPC['status']}">
+			<input type="hidden" name="do" value="{$_GPC['do']}">
+			<input type="hidden" name="eid" value="{$_GPC['eid']}">
+			<input type="hidden" name="m" value="superman_creditmall">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 control-label">订单号</label>
+				<div class="col-sm-8 col-md-8 col-lg-8 col-xs-12">
+					<input class="form-control" name="ordersn" type="text" value="{$_GPC['ordersn']}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 control-label">商品名</label>
+				<div class="col-sm-8 col-md-8 col-lg-8 col-xs-12">
+					<input class="form-control" name="product_title" type="text" value="{$_GPC['product_title']}">
+				</div>
+				<div class="pull-right col-xs-12 col-sm-2 col-md-2 col-lg-2">
+					<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+<form action="" method="post">
+	<div class="panel panel-default">
+		<div class="table-responsive panel-body">
+			<table class="table table-hover">
+				<thead>
+				<tr>
+					<th width="10%" class="tac">订单号</th>
+					<th width="15%">头像/昵称</th>
+					<th width="15% " class="tac">商品</th>
+					<th width="70" class="tac">件数</th>
+					<th width="160" class="tac">总金额</th>
+					<!--<th width="75">姓名</th>
+					<th width="120">手机</th>
+					<th>住址</th>-->
+					<th width="10%" class="tac">支付方式</th>
+					<th width="80" class="tac">状态</th>
+					<th width="110" class="tac">创建时间</th>
+					<th width="100" class="tac">操作</th>
+				</tr>
+				</thead>
+				<tbody>
+				{loop $list $item}
+				<tr>
+					<td class="tac">{$item['ordersn']}</td>
+					<td>
+						<div class="clear">
+							<div class="pull-left" style="width: 40px;height: 40px; overflow: hidden; border-radius: 50%;">
+								<img src="{php echo tomedia($item['member']['avatar'])}" onerror="this.src='{$_W['siteroot']}/app/resource/images/heading.jpg'" style="width: 100%" />
+							</div>
+							<div class="pull-left" style="line-height: 40px; margin-left: 5px; width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{$item['member']['nickname']}">
+								{if $item['member']['nickname']!=''}{$item['member']['nickname']}{else}{$item['uid']}{/if}
+							</div>
+						</div>
+					</td>
+					<td class="tac">{$item['title']}</td>
+					<td class="tac">{$item['total']}</td>
+					<td class="tac">
+						<a target="_blank" href="{php echo wurl('mc/member/credit_record', array('type' => $item['credit_type'], 'uid' => $item['uid']))}">{$item['credit']}{$item['credit_title']}</a>{if $item['price']>0} + <a target="_blank" href="{php echo wurl('mc/member/credit_record', array('type' => $balance_credit_type, 'uid' => $item['uid']))}">{$item['price']}元</a>{/if}
+					</td>
+					<!--<td>{$item['username']}</td>
+					<td>{$item['mobile']}</td>
+					<td>{$item['address']}</td>-->
+					<td class="tac">
+						{if $item['status'] > 0}
+						{if $item['pay_type'] == 2}
+						<button class="btn btn-default btn-xs" type="button" title="积分+微信支付兑换" data-toggle="tooltip" data-placement="top" style="border-color: #4cd964;color: #4cd964;">微信</button>
+						{else}
+							{if $item['price'] > 0}
+							<button class="btn btn-default btn-xs" type="button" title="积分+余额兑换" data-toggle="tooltip" data-placement="top" style="border-color: #ff6600;color: #ff6600;">余额</button>
+							{else}
+							<button class="btn btn-default btn-xs" type="button" title="积分兑换" data-toggle="tooltip" data-placement="top" style="border-color: #0894ec;color: #0894ec;">积分</button>
+							{/if}
+						{/if}
+						{/if}
+					</td>
+					<td class="tac">
+						{loop $order_status $key $statusname}
+							{if $item['status'] == $key}
+							<span class="label label-{if $item['status']=='-2'}danger{elseif $item['status']=='-1'}warning{elseif $item['status']==1}info{elseif $item['status']>1}success{else}default{/if}">{$statusname}</span>
+							{/if}
+						{/loop}
+					</td>
+					<td class="tac">{php echo str_replace(' ', '<br>', $item['dateline'])}</td>
+					<td style="overflow: visible;" class="tac">
+						<a href="{php echo $this->createWebUrl('order' , array('act' => 'post', 'id' => $item['id']));}" title="编辑" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm" style="padding: 5px 8px;"><i class="fa fa-edit"></i></a>
+						<a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('order' , array('act' => 'delete', 'id' => $item['id']));}" title="删除" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm" style="padding: 5px 10px;"><i class="fa fa-times"></i></a>
+					</td>
+				</tr>
+				{/loop}
+				</tbody>
+			</table>
+		</div>
+		<div class="panel-footer">
+			总共 <strong>{$total}</strong> 条
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-2 text-left">
+			<a class="btn btn-primary" target="_blank" href="{php echo $this->createWebUrl('order', array('export' => 'yes', 'ordersn' => $_GPC['ordersn'], 'product_title' => $_GPC['product_title'], 'status' => $_GPC['status']))}">导出数据</a>
+		</div>
+		<div class="col-xs-10 text-right">
+			{$pager}
+		</div>
+	</div>
+</form>
+<script type="text/javascript">
+	require(['jquery','bootstrap'],function($){
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+	});
+</script>
+{else if $act == 'post'}
+<style type="text/css">
+	.form .panel-default .form-group{margin-bottom:10px;}
+</style>
+<form id="form1" class="form-horizontal form" action="" method="post" enctype="multipart/form-data">
+	<input type="hidden" name="id" value="{$order['id']}">
+	<div class="panel panel-default">
+		<div class="panel-heading">订单详情</div>
+		<div class="panel-body" style="line-height: 20px;">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">订单号：</label>
+				<div class="col-sm-8 col-xs-12">
+					<p class="form-control-static">{$order['ordersn']}</p>
+				</div>
+			</div>
+			{if $order['payment_no'] != ''}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">支付平台单号</label>
+				<div class="col-sm-8 col-xs-12">
+					<p class="form-control-static">{$order['payment_no']}</p>
+					<span class="help-block">可在支付平台查询使用</span>
+				</div>
+			</div>
+			{/if}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">商品名：</label>
+				<div class="col-sm-8 col-xs-12">
+					<p class="form-control-static">{$order['product']['title']}</p>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">件数：</label>
+				<div class="col-sm-8 col-xs-12">
+					<p class="form-control-static">{$order['total']}</p>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">订单状态：</label>
+				<div class="col-sm-8 col-xs-12">
+					<p class="form-control-static">
+						{if $order['status'] == -2}<span class="label label-danger">已删除</span>{/if}
+						{if $order['status'] == -1}<span class="label label-danger">已取消</span>{/if}
+						{if $order['status'] == 0}<span class="label label-info">待支付</span>{/if}
+						{if $order['status'] == 1}<span class="label label-info">待发货</span>{/if}
+						{if $order['status'] == 2}<span class="label label-info">已发货</span>{/if}
+						{if $order['status'] == 3}<span class="label label-success">已收货</span>{/if}
+						{if $order['status'] == 4}<span class="label label-success">已评价</span>{/if}
+					</p>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">价格：</label>
+				<div class="col-sm-8 col-xs-12">
+					<p class="form-control-static">{$order['credit']}{$order['credit_title']}</p>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">创建时间：</label>
+				<div class="col-sm-8 col-xs-12">
+					<p class="form-control-static">{$order['dateline']}</p>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">支付时间：</label>
+				<div class="col-sm-8 col-xs-12">
+					<p class="form-control-static">{$order['pay_time']}</p>
+				</div>
+			</div>
+			{if isset($order['extend']['redpack_amount']) && $order['extend']['redpack_amount'] > 0}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">红包金额：</label>
+				<div class="col-sm-8 col-xs-12">
+					<p class="form-control-static">{$order['extend']['redpack_amount']}元</p>
+				</div>
+			</div>
+			{if isset($order['extend']['redpack_result'])}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">红包发送结果：</label>
+				<div class="col-sm-8 col-xs-12">
+					<p class="form-control-static">
+						{if strstr($order['extend']['redpack_result'], 'success')}
+						<span class="label label-success">成功</span>
+						{else}
+						<span class="label label-danger">失败</span>
+						{/if}
+						<textarea class="form-control" disabled rows="6" style="margin-top: 10px;">{$order['extend']['redpack_result']}</textarea>
+					</p>
+					<span class="help-block">商户订单号：微信支付商户后台=》商户订单号</span>
+					<span class="help-block">微信单号：微信支付商户后台=》红包订单的微信单号</span>
+					<span class="help-block">发放成功时间：微信支付商户后台=》红包发送时间</span>
+					{if strstr($order['extend']['redpack_result'], 'SYSTEMERROR')}
+					<button class="btn btn-info btn_query" type="submit" name="search_result" onclick="this.addClass('disabled')" value="yes">查询发放结果</button>
+					{else if !strstr($order['extend']['redpack_result'], 'success') && $order['status'] == 0}
+					<button class="btn btn-danger btn_send" type="submit" name="resend_redpack" onclick="return confirm('确认重新发送红包吗？'); return false;" value="yes">重新发红包</button>
+					{/if}
+					<script>
+						require(['jquery'], function($){
+							/*$('.btn_query').click(function(){
+								$(this).prop('disabled', true);
+								//TODO
+								*//*$.ajax({
+
+								});*//*
+							});*/
+							/*$('.btn_send').click(function(){
+								if (!confirm('')) {
+									return false;
+								}
+								$(this).prop('disabled', true);
+								//TODO
+								*//*$.ajax({
+
+								 });*//*
+							});*/
+						});
+					</script>
+				</div>
+			</div>
+			{/if}
+			{/if}
+			{if isset($order['extend']['virtual_result']) && $order['extend']['virtual_result'] > 0}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">虚拟商品发送结果：</label>
+				<div class="col-sm-8 col-xs-12">
+					<p class="form-control-static">
+						{if $order['extend']['virtual_result']['errno'] == 0}
+						<span class="label label-success">成功</span>
+						{else}
+						<span class="label label-danger">失败</span>
+						{/if}
+						<textarea class="form-control" name="virtual_key" rows="6" style="margin-top: 10px;">{php echo $order['extend']['virtual_result']['key']}</textarea>
+					</p>
+				</div>
+			</div>
+			{/if}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">留言：</label>
+				<div class="col-sm-8 col-xs-12">
+					<textarea style="height:150px;" class="form-control" name="remark" cols="70">{$order['remark']}</textarea>
+					<span class="help-block">此为用户设置的订单留言信息</span>
+				</div>
+			</div>
+			{if !isset($order['extend']['redpack_amount'])}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">配送方式：</label>
+				<div class="col-sm-8 col-xs-12">
+					<p class="form-control-static">{$order['express_title']}（快递费：{$order['express_fee']}）</p>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">快递单号：</label>
+				<div class="col-sm-8 col-xs-12">
+					<input type="text" class="form-control" name="express_no" placeholder="" value="{$order['express_no']}">
+				</div>
+			</div>
+			{/if}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">更改状态：</label>
+				<div class="col-sm-8 col-xs-12">
+					<select name="status" class="form-control">
+						{loop $order_status $key $statusname}
+						<option value="{$key}" {if $order['status']==$key}selected{/if}>{$statusname}</option>
+						{/loop}
+					</select>
+					<span class="help-block">已支付的订单选择取消时可以退还积分和余额，但无法退回微信支付的现金（例如：价格，运费），会将支付的现金退还到余额，请联系用户协商现金退还问题</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label"></label>
+				<div class="col-sm-8 col-xs-12">
+					<input id="btn_submit" type="submit" name="submit" value="提交" class="btn btn-primary">
+					<input type="hidden" name="token" value="{$_W['token']}" />
+				</div>
+			</div>
+		</div>
+	</div>
+	{if !isset($order['extend']['redpack_amount'])}
+	<div class="panel panel-default">
+		<div class="panel-heading">收货人信息</div>
+		<div class="panel-body">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">姓名：</label>
+				<div class="col-sm-8 col-xs-12">
+					<p class="form-control-static">{$order['username']}</p>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">手机：</label>
+				<div class="col-sm-8 col-xs-12">
+					<p class="form-control-static">{$order['mobile']}</p>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">收货地址：</label>
+				<div class="col-sm-8 col-xs-12">
+					<p class="form-control-static">{$order['address']}</p>
+				</div>
+			</div>
+		</div>
+	</div>
+	{/if}
+	<div class="panel panel-default">
+		<div class="panel-heading">用户信息</div>
+		<div class="panel-body">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">OpenID：</label>
+				<div class="col-sm-8 col-xs-12">
+					<p class="form-control-static">{$order['fans']['openid']}</p>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">UID：</label>
+				<div class="col-sm-8 col-xs-12">
+					<p class="form-control-static">{$order['uid']}</p>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">昵称：</label>
+				<div class="col-sm-8 col-xs-12">
+					<div class="pull-left" style="width: 40px;height: 40px; overflow: hidden; border-radius: 50%;">
+						<img src="{php echo tomedia($order['member']['avatar'])}" onerror="this.src='../app/resource/images/heading.jpg'" style="width: 100%" />
+					</div>
+					<div class="pull-left" style="line-height: 40px; margin-left: 5px; width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{$item['member']['nickname']}">
+						{if $order['member']['nickname']!=''}{$order['member']['nickname']}{else}无{/if}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal fade" id="cancel-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+		<div class="modal-dialog modal-lg" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title" id="myModalLabel">请选择</h4>
+				</div>
+				<div class="modal-body">
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">是否退还积分？</label>
+						<div class="col-sm-6 col-md-8 col-xs-12">
+							<div class="input-group">
+								<label class="radio-inline">
+									<input type="radio" name="return_credit" value="1" checked> 是
+								</label>
+								<label class="radio-inline">
+									<input type="radio" name="return_credit" value="0" > 否
+								</label>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+					<button type="submit" class="pull-right btn btn-primary" name="submit" value="确定">确定</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</form>
+<script>
+	require(['jquery', 'util'], function($, u){
+		$('#btn_submit').bind('click', function(){
+			var status = $('select[name=status]');
+			if ({$order['status']} > 0 && status.val() == '-1') {
+				$('#cancel-modal').modal('show');
+				return false;
+			}
+			$('#form1').submit();
+		});
+	});
+</script>
+{/if}
+{template 'common/footer'}

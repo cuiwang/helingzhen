@@ -1,0 +1,187 @@
+{php $newUI = true;}
+{template 'common/header'}
+{php echo tpl_ueditor('');}
+<form class="form-horizontal form" action="{php echo url('material/news2keyword/io')}"  method="post" enctype="multipart/form-data">
+<div class="clearfix" ng-controller="MainCtrl">
+	<div class="col-md-3">
+		<div class="panel panel-default" ng-repeat="reply in replies">
+			<div class="panel-heading">{{reply.title}}<span class="pull-right" ng-click="removeItem(reply)">删除</span></div>
+			<div class="panel-body">
+				<img ng-src="{{reply.thumb}}" width="150" alt=""/>
+				<div ng-bind-html="reply.content"></div>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-6">
+		<div class="panel panel-default">
+			<div class="panel-heading">{{activeItem.title}}</div>
+			<div class="panel-body">
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label">标题</label>
+						<div class="col-sm-9 col-xs-12">
+							<input type="text" class="form-control" placeholder="添加图文消息的标题" name="title[]" ng-model="activeItem.title"/>
+							<input type="hidden" name="id[]" value="{$li['id']}" />
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label">作者</label>
+						<div class="col-sm-9 col-xs-12">
+							<input type="text" class="form-control" placeholder="添加图文消息的作者" ng-model="activeItem.author"/>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label">排序</label>
+						<div class="col-sm-9 col-xs-12">
+							<input type="text" class="form-control" placeholder="添加排序" ng-model="activeItem.displayorder"/>
+							<span class="help-block">排序只能在提交后显示。按照从大到小的顺序对图文排序</span>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label">封面{{activeItem.thumb}}</label>
+						<div class="col-sm-9 col-xs-12">
+							<div class="col-xs-3 img" ng-if="activeItem.thumb == ''">
+								<span ng-click="changeItem(activeItem)"><i class="fa fa-plus-circle green"></i>&nbsp;添加图片</span>
+							</div>
+							<div class="col-xs-3 img" ng-if="activeItem.thumb != ''">
+								<h3 ng-click="changeItem(activeItem)">重新上传</h3>
+								<img ng-src="{{ activeItem.thumb }}" width="150">
+							</div>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+						<div class="col-sm-9 col-xs-12">
+							<label>
+								封面（大图片建议尺寸：360像素 * 200像素）
+							</label>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+						<div class="col-sm-9 col-xs-12">
+							<label class="checkbox-inline">
+								<input type="hidden" ng-model="incontent" class="incontent-flag"/>
+								<input type="checkbox" value="1" ng-model="incontent"/> 封面图片显示在正文中
+							</label>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label">描述</label>
+						<div class="col-sm-9 col-xs-12">
+							<textarea class="form-control" placeholder="添加图文消息的简短描述" ng-model="descriptions">{$li['description']}</textarea>
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="col-sm-offset-4 col-md-offset-3 col-lg-offset-2 col-xs-12 col-sm-8 col-md-9 col-lg-10">
+							<label class="checkbox-inline">
+								<input type="checkbox" value="data" class="detail-switch" {if !empty($li['content'])}checked{/if}/> 是否编辑图文详情
+							</label>
+							<span class="help-block">编辑详情可以展示这条图文的详细内容, 可以选择不编辑详情, 那么这条图文将直接链接至下方的原文地址中.</span>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label">详情</label>
+						<div class="col-sm-9 col-xs-12">
+							<div ng-my-editor ng-my-value="activeItem.content"></div>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label">来源</label>
+						<div class="col-sm-9 col-xs-12">
+							<div class="input-group">
+								<input type="text" class="form-control" placeholder="图文消息的来源地址" name="urls[]" value="{$li['url']}"/>
+								<span class="input-group-btn">
+									<button class="btn btn-default link_select" type="button"><i class="fa fa-external-link"></i> 系统链接</button>
+								</span>
+							</div>
+						</div>
+					</div>
+			</div>
+		</div>
+	</div>
+	<a href="javascript:;" ng-click="addItem()">添加回复</a>
+</div>
+	<input type="hidden" name="token" value="{$_W['token']}"/>
+	<input type="submit" name="submit" class="btn btn-primary"/>
+</form>
+<script type="text/javascript">
+	require(['angular.sanitize', 'jquery.ui', 'underscore', 'jquery.wookmark'], function(angular, $, _, uploader, wookmark){
+		$('.water').wookmark({
+			align: 'left',
+			autoResize: true
+		});
+
+		angular.module('app', ['ngSanitize']).controller('MainCtrl', function($scope){
+			$scope.replies = [
+				{
+					'title' : '回复1',
+					'content' : '内容1'
+				},
+			];
+
+			//当前编辑的回复项目的索引
+			$scope.activeIndex = 0;
+			//当前编辑的回复项目
+			$scope.activeItem = $scope.replies[$scope.activeIndex];
+
+			$scope.addItem = function(){
+				$scope.replies.push(
+					{
+						'title' : '新添加',
+						'content' : '新添加内容1',
+						'thumb' : ''
+					}
+				);
+				$scope.activeIndex = $scope.replies.length - 1;
+				$scope.activeItem = $scope.replies[$scope.activeIndex];
+				console.dir($scope.replies);
+			};
+
+			$scope.removeItem = function(reply){
+				$scope.replies = _.without($scope.replies, reply);
+			};
+
+			$scope.changeItem = function(reply) {
+				uploader.init(function(imgs){
+					var index = $.inArray(reply, $scope.replies);
+					if(index > -1){
+						$scope.replies[index].id = imgs.id;
+						$scope.replies[index].thumb = imgs.url;
+						$scope.$apply()
+					}
+				}, {'direct' : true, 'multiple' : false});
+			}
+		})
+		.directive('ngMyEditor', function(){
+			var editor = {
+				'scope' : {
+					'value' : '=ngMyValue'
+				},
+				'template' : '<textarea id="editor" rows="10" style="height:600px;"></textarea>',
+				'link' : function ($scope, element, attr) {
+					if(!element.data('editor')) {
+						editor = UE.getEditor('editor', ueditoroption);
+						element.data('editor', editor);
+						editor.addListener('contentChange', function() {
+							$scope.value = editor.getContent();
+							$scope.$root.$$phase || $scope.$apply('value');
+						});
+						editor.addListener('ready', function(){
+							if (editor && editor.getContent() != $scope.value) {
+								editor.setContent($scope.value);
+							}
+							$scope.$watch('value', function (value) {
+								if (editor && editor.getContent() != value) {
+									editor.setContent(value ? value : '');
+								}
+							});
+						});
+					}
+				}
+			};
+			return editor;
+		});
+		angular.bootstrap(document, ['app']);
+	});
+</script>
+{template 'common/footer'}

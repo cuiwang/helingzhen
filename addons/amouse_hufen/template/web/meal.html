@@ -1,0 +1,220 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+    <li {if $op=='display'} class="active"{/if}><a href="{php echo $this->createWebUrl('meal',array('op' =>'display'))}">套餐管理</a></li>
+    <li{if empty($item['id']) && $op== 'post'&& empty($auto)} class="active" {/if}><a href="{php echo $this->createWebUrl('meal',array('op' =>'post'))}">添加套餐管理</a></li>
+    {if !empty($item['id']) && $op=='post'}
+        <li class="active"><a href="{php echo $this->createWebUrl('meal',array('op' =>'post','id'=>$item['id']))}">编辑套餐管理</a></li>
+    {/if}
+    <li{if empty($item['id']) && $op=='post'&& $auto==1} class="active"{/if}><a href="{php echo $this->createWebUrl('meal', array('op'=>'post','auto'=>'1'))}">
+    添加自动爆机VIP</a>
+    </li>
+</ul>
+
+<div class="alert alert-info info">
+    <i class="fa fa-info-circle"></i>
+    普通VIP可以选择 [自动爆机]。无需手动置顶，每10分钟自动刷新。
+</div>
+
+{if $op == 'display'}
+<div class="panel panel-info">
+    <div class="panel-heading">筛选</div>
+    <div class="panel-body">
+        <form role="form" class="form-horizontal" method="get" action="./index.php">
+            <input type="hidden" name="m" value="amouse_hufen" >
+            <input type="hidden" name="do" value="meal" >
+            <input type="hidden" name="c" value="site" />
+            <input type="hidden" name="a" value="entry" />
+            <input type="hidden" value="display" name="op">
+
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">关键字</label>
+                <div class="col-sm-8">
+                    <input type="text" placeholder="搜索套餐管理名称" value="{$_GPC['keyword']}" id="" name="keyword" class="form-control">
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="pull-right col-xs-12 col-sm-2 col-lg-1">
+                    <button class="btn btn-block"><i class="fa fa-search"></i> 搜索</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div style="padding: 0 15px 0  15px;">
+    <div class="row-fluid">
+        <div class="span8 control-group">
+            <a class="btn btn-default {if empty($type)}active{/if}" href="{php echo $this->createWebUrl('meal',array('op' => 'display'))}">全部</a>
+            <a class="btn btn-default {if $type=='1'}active{/if}" href="{php echo $this->createWebUrl('meal',array('op' => 'display','type'=>1))}">普通VIP</a>
+            <a class="btn btn-default {if $type==2}active{/if}" href="{php echo $this->createWebUrl('meal',array('op' => 'display','type'=>2))}">超级VIP</a>
+            <a class="btn btn-default {if $type==3}active{/if}" href="{php echo $this->createWebUrl('meal',array('op' => 'display','type'=>3))}">VIP公众号</a>
+            <a class="btn btn-default {if $type==4}active{/if}" href="{php echo $this->createWebUrl('meal',array('op' => 'display','type'=>4))}">VIP群</a>
+        </div>
+    </div>
+</div>
+
+
+<div style="padding:15px;">
+    <form id="form2" class="form-horizontal" method="post">
+        <table class="table table-hover">
+            <thead class="navbar-inner">
+            <tr>
+                <th style="width:10%;">标题</th>
+                <th style="width:10%;">金额</th>
+                <th style="width:8%;">图片</th>
+                <th style="width:5%;">类型</th>
+                <th style="width:8%;">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {loop $list $item}
+            <tr>
+                <td>{$item['title']}</td>
+                <td>
+                    <script>
+                        var reg=/^[0-9]*$/;
+                        var tt={$item['price']};
+                        if(!reg.test(tt)){
+                            tt = tt<0?0:tt.toFixed(3);
+                        }else{
+                            tt = tt<0?0:tt;
+                        }
+                        document.write(tt);
+                    </script>
+                </td>
+                <td>{if $item['img']}
+                    <img src="{php echo strpos($item['img'],'http://')===FALSE?(tomedia($item['img'])):$item['img']}" height="40" width="40"/>
+                {/if}
+                </td>
+                <td>{if $item['type']==1}普通VIP{elseif $item['type']==2}<label class='label label-default label-success'>超级VIP</lable>
+                    {elseif $item['type']==3}VIP公众号{elseif $item['type']==4}<label class='label label-default label-info'>VIP群</lable>{/if}
+                </td>
+                <td style="text-align:left;">
+                    <a href="{php echo $this->createWebUrl('meal', array('op' => 'post', 'id' => $item['id']))}" class="btn btn-default btn-sm"><i
+                            class="fa fa-edit">编辑</i></a>
+                    <a onclick="return confirm('此操作不可恢复，确认吗？'); return false;"
+                       href="{php echo $this->createWebUrl('meal', array('id' => $item['id'],'op'=>'delete'))}" title="删除" class="btn btn-default btn-sm">
+                        <i class="fa fa-times">删除</i></a>
+
+                </td>
+            </tr>
+            {/loop}
+            </tbody>
+        </table>
+    </form>
+    <div style="margin:0 auto;margin-right: auto;vertical-align: middle;text-align: center;" >
+        {$pager}
+    </div>
+</div>
+{elseif $op == 'post'}
+<div class="main">
+    <form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" onsubmit='return formcheck()'>
+        <input type="hidden" name="id" value="{$item['id']}" />
+        <input type="hidden" name="auto" value="{$auto}" />
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                套餐管理设置
+            </div>
+            <div class="panel-body">
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style="color:red">*</span>标题</label>
+                    <div class="col-sm-9">
+                        <input type="text" id='title' name="title" class="form-control" value="{$item['title']}" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">VIP类型</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <input type="radio" name="type" id="form-type-1" value="1" {if $item['type']==1}checked="true"{/if}  />
+                        <label for="form-type-1">VIP</label>
+                        {if $auto==1} <span style="color:red;">自动爆机,必须选择普通VIP</span> {/if}
+                        {if $auto!=1}
+                        <input type="radio" name="type" id="form-type-2" value="2" {if $item['type']==2}checked="true"{/if}  />
+                        <label for="form-type-2">超级VIP</label>
+                        <input type="radio" name="type" id="form-type-3" value="3" {if $item['type']==3}checked="true"{/if}  />
+                        <label for="form-type-3">VIP公众号</label>
+                        <input type="radio" name="type" id="form-type-4" value="4" {if $item['type']==4}checked="true"{/if}  />
+                        <label for="form-type-4">VIP群</label>{/if}
+                        <span class="help-block">VIP类型 只有购买了VIP才可以购买超级VIP。</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">置顶天数/分钟</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <div class="input-group">
+                            <input type="text" id='day' name="day" class="form-control" value="{$item['day']}" />
+                            <span class="input-group-addon">{if $item['type']==2}分钟{else}天{/if}</span>
+                        </div>
+                        <span class="help-block">超级VIP按照分钟计算，其他都是按照天计算。</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style="color:red">*</span>价格</label>
+                    <div class="col-sm-9">
+                        <input type="text" id='price' name="price" class="form-control" value="{$item['price']}" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                     <label class="col-xs-12 col-sm-3 col-md-2 control-label">套餐图片</label>
+                     <div class="col-sm-9">
+                         {php echo tpl_form_field_image('img', $item['img'])}
+                        <span class="help-block">
+                            建议图片大小为： 40*40 比如:
+                            <img  src="http://hufen.npltec.com/static/img/gold.9c7c443de448.png" width="40" height="40">
+                        </span>
+                     </div>
+                 </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">描述</label>
+                    <div class="col-sm-9">
+                        <textarea   id='desc' name="desc" class="form-control" cols="4"  >{$item['desc']}</textarea>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div class="form-group col-sm-12">
+            <input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+            <input type="hidden" name="token" value="{$_W['token']}" />
+        </div>
+    </form>
+</div>
+
+<script language='javascript'>
+    function formcheck() {
+        if ($("#title").isEmpty()) {
+            Tip.focus("title", "请填写套餐名称!");
+            return false;
+        }
+        if ($("#price").isEmpty()) {
+            Tip.focus("price", "请填写套餐费用!");
+            return false;
+        }
+        return true;
+    }
+
+    require(['jquery', 'util'], function ($, u) {
+        $("#form-type-{php echo $item['type'];}").attr("checked", true);
+        var type ={$item['type']};
+        if(type==2){
+            $(".input-group-addon").html("分钟");
+        }else{
+            $(".input-group-addon").html("天");
+        }
+        $("input[name='type']").on("change", function(){
+            var type = $("input[name='type']:checked").val();
+            if(type==2){
+                $(".input-group-addon").html("分钟");
+            }else{
+                $(".input-group-addon").html("天");
+            }
+        });
+    });
+</script>
+{/if}

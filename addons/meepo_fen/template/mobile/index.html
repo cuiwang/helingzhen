@@ -1,0 +1,482 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" >
+	<title>关注有礼</title>
+	<link href="../addons/meepo_fen/template/css/global.css?t={php echo time();}" rel="stylesheet" type="text/css" />
+	<link href="../addons/meepo_fen/template/css/main.css?t={php echo time();}" rel="stylesheet" type="text/css" />
+	<meta name="viewport" content="width=device-width,user-scalable=0">
+	<base target="_blank">
+	<style>
+	
+.light{ width:23.75em; height: 9.16em;   top: 3.5em; left: 1.45em; background: url(../images/light.png); background-size: 23.75em 9.16em; display: block; }
+.gua{ width: 20.41em; height: 4.16em; left: 3.41em; top: 13.85em;  z-index: 9;  /*left: 0; top: 00px; */ /*left: 50%; margin: 0 0 0 -10.205em;*/ left: 13%;}
+.gua .imgs{ position: absolute; left: 0; top: 0; z-index: 2;  }
+.gua img{ width: 100%;}
+.gua_bottom{width: 20.41em; height: 4.16em; left: 3.41em; top: 13.83em; background: url(../images/gua_quan.gif);  background-size: 20.41em 4.16em;  z-index: 8; display: none;  left: 50%; margin: 0 0 0 -10.205em;}
+.app_down{ width:17.41em; height:5.75em; left: 5.41em; top: 24.58em; background: url(../images/app-download.png); background-size: 17.41em 5.75em;  left: 50%; margin: 0 0 0  -8.7em;}
+.app_down .hand{ width: 3.83em; height: 4.16em; left: 14.33em; top: 4em; background: url(../images/hand.gif); background-size: 3.83em 4.16em; display: none;  }
+/*.app_down .hand_mov{ top: 5em;}*/
+.app_down a{ display: block; width: 100%; height: 100%;}
+.guide_wap,
+.guide{ width:10.83em ; height:2.33em;  left: 7.91em; top: 31.25em; background: url(../images/guide.jpg); background-size: 10.83em 2.33em; display: none; left: 50%; margin: 0 0 0 -5.41em;  }
+.guide_wap{ background: url(../images/guide_wap.jpg); background-size: 10.83em 2.33em; }
+.share{ width: 25em; height: 5.83em; left:50%; top:0; margin: 0 0 0 -12.5em; background: url(../images/share_note.png); background-size: 25em 5.83em;   z-index: 11; position: fixed; display: none;  }
+.screen{ position: fixed; left: 0; top: 0; right: 0; bottom: 0;  background: #000; opacity: 0.6; z-index: 10; display: none;}
+.footer{ width: 100%;   top: 38em; left: 0;   }
+	</style>
+</head>
+<body>
+ <div class="home">
+	<img src="../addons/meepo_fen/template/images/main_bg.gif" class="img_bg"  alt="">
+	<img src="../addons/meepo_fen/template/images/light.png"   class="img_light"  alt="">
+ 	<div class="gua" id="gua">
+ 		<canvas id="tu"   class="imgs" width="490" height="100"></canvas>
+ 		<img src="../addons/meepo_fen/template/images/gua_quan.gif"   class="img_canvas"  alt="">
+ 	</div>
+ 	<div class="app_down">
+ 		<a href="{php echo $_W['account']['subscribeurl'];}" target="_blank"  class="mixDown"></a>
+ 		<p class="hand"></p>
+
+ 	</div>
+ 	<div class="guide"></div>
+ 	<!-- <div class="guide_wap"></div> -->
+ 	<div class="screen"></div>
+ 	<div class="share"></div>
+ 	 
+ 	<img src="{php echo tomedia($set['footer'])}"   class="footer"  alt="">
+ </div>
+
+	<script type="text/javascript" src="../addons/meepo_fen/template/js/jquery-1.7.2.min.js?t={php echo time();}"></script>
+	<script type="text/javascript" src="../addons/meepo_fen/template/js/m_code.js?t={php echo time();}"></script>
+	<script type="text/javascript">
+ 	var toggle = true;
+	setInterval(function(){
+
+		if( toggle ){
+			$(".img_light").hide();
+		}
+		else{
+			$(".img_light").show();
+		}	
+		toggle = !toggle;		
+		
+	},300)
+	// 设置尺寸
+	function setGua()
+	{
+		var $w = $(window).width() > 640 ? 640 : $(window).width();
+		$("#gua").css({"width": $w*490/640 ,"height": 100/490*($w*490/640),"top": 332/640*$w })	
+		$("#tu").css({"width": $w*490/640 ,"height": 100/490*($w*490/640)})
+	}
+	
+	setGua()
+	// 分享指引 关闭	
+	$(".screen,.share").click(function(){
+		$(".screen,.share").hide();	
+	})	
+	// 分享指引 开启
+	$(".guide").click(function(){
+		$(".screen,.share").show();	
+	})
+	// 刮奖
+	function getContext(id)
+	{
+		return document.getElementById(id).getContext("2d");
+	}
+	var ctx = document.getElementById("tu")
+	var gua = document.getElementById("gua")
+	var a = 30;
+	var img = new Image();
+		img.src = "../addons/meepo_fen/template/images/gua.png?t={php echo time();}";
+	var mask = getContext("tu")
+	var timeout,totimes = 100,jiange = 30;
+	img.onload = function(){
+
+		mask.drawImage(img,0,0,490,100)
+		
+		// $("#tu").css({"width":$("#gua").width() , "height":$("#gua").height()})
+		tapClip();
+		// setTimeout(function(){ $(".img_canvas").show(); },500)
+	}
+	 
+	function tapClip(){
+			var hastouch = "ontouchstart" in window?true:false,
+				tapstart = hastouch?"touchstart":"mousedown",
+				tapmove = hastouch?"touchmove":"mousemove",
+				tapend = hastouch?"touchend":"mouseup";
+				
+			mask.lineCap = "round";
+			mask.lineJoin = "round";
+			mask.lineWidth = a*2;
+			mask.globalCompositeOperation = "destination-out";
+			
+			ctx.addEventListener(tapstart , function(e){
+				$(".img_canvas").show();
+				clearTimeout(timeout)
+				e.preventDefault();
+				
+				x1 = hastouch?e.targetTouches[0].pageX:e.clientX  //- gua.offsetLeft;//- $(".gua").position().left;
+				y1 = hastouch?e.targetTouches[0].pageY:e.clientY //- gua.offsetTop; //- 200 //- $(".gua").position().top;
+				 
+				x1 = x1  - Math.ceil (  parseInt( $("#gua").position().left ) );
+				y1 = y1 - Math.ceil (  parseInt( $(".gua").position().top ) );
+					 
+				mask.save();
+				mask.beginPath()
+				mask.arc(x1,y1,1,0,2*Math.PI);
+				mask.fill();
+				mask.restore();
+				
+				ctx.addEventListener(tapmove , tapmoveHandler);
+				ctx.addEventListener(tapend , function(){
+					ctx.removeEventListener(tapmove , tapmoveHandler);
+
+					timeout = setTimeout(function(){
+						var imgData = mask.getImageData(0,0,$("#gua").width(),$("#gua").height());
+						var dd = 0;
+						for(var x=0;x<imgData.width;x+=jiange){
+							for(var y=0;y<imgData.height;y+=jiange){
+								var i = (y*imgData.width + x)*4;
+								if(imgData.data[i+3] >0){
+									dd++
+								}
+							}
+						}
+
+						if(dd/(imgData.width*imgData.height/(jiange*jiange))<0.5){
+							// canvas.className = "noOp";
+							$("#gua .imgs").hide();
+							$(".hand").show();
+						}
+					},totimes)
+					
+				});
+				function tapmoveHandler(e){
+					clearTimeout(timeout)
+					e.preventDefault()
+					x2 = hastouch?e.targetTouches[0].pageX:e.clientX //-  $("#gua").position().left ;
+					y2 = hastouch?e.targetTouches[0].pageY:e.clientY //-  $("#gua").position().top ;
+					
+					// 
+					// x2 = x2 + Math.ceil (  parseInt( $("#gua").position().left ) );
+					x2 = x2 > 150 ? x2+100 :
+					        x2 > 200 ? x2+200  :
+					        x2 > 300 ? x2+250  : x2- Math.ceil (  parseInt( $("#gua").position().left ) );
+
+					y2 = y2 - Math.ceil ( parseInt( $("#gua").position().top ) -10);
+					 
+					mask.save();
+					mask.moveTo(x1,y1);
+					mask.lineTo(x2,y2);
+					mask.stroke();
+					mask.restore()
+
+					x1 = x2;
+					y1 = y2;
+					// $(".light").html(  x1+" :122 : " +  Math.ceil ( parseInt( $("#gua").position().top ) -10) )
+				}
+			})
+		}
+	//微信判断
+	 // var $MDown =  $(".app_down a");
+	 //  var ua = navigator.userAgent.toLowerCase();
+
+	 //    if (ua.indexOf('iphone') > 0 || ua.indexOf('ipad') > 0) {
+	 //      $MDown.attr({"href":"https://itunes.apple.com/us/app/you-gou-wu/id550926736?ls=1&mt=8"})
+	 //  } 
+	 //  else if (ua.indexOf('android') > 0 || ua.indexOf('linux') > 0) {
+	 //      // _hrefSource()
+	      
+	 //      // $MDown.attr({"href":"http://a.app.qq.com/o/simple.jsp?pkgname=com.huimai365&g_f=992723","target":"_blank"})  
+	 //  } 
+	 //  // 微信
+	 //    if( ua.indexOf('micromessenger') > 0 || ua.indexOf('MicroMessenger') > 0 ) {
+	 //    	$(".guide").show();
+	 //    	  if( ua.indexOf('iphone') > 0 || ua.indexOf('ipad') > 0 )
+		//       {
+		//            $MDown.attr({"href":"http://a.app.qq.com/o/simple.jsp?pkgname=com.huimai365&g_f=992723","target":"_blank"})
+		//            // $MDown.attr({"href":"https://itunes.apple.com/us/app/you-gou-wu/id550926736?ls=1&mt=8","target":"_blank"})
+		//       }
+		//       else if( ua.indexOf('android') > 0 || ua.indexOf('linux') > 0 )
+		//       {
+		//           // $MDown.attr({"href":"http://a.app.qq.com/o/simple.jsp?pkgname=com.huimai365&g_f=992723","target":"_blank"})  
+		//       }
+	 //    }
+	 //    else{
+	 //    	// $(".guide_wap").show();	
+	 //    }
+	
+	 // 翻转
+	 // $(window).resize(function(){
+
+	 // 	setGua()
+	 // 	// $("#tu").css({"width": $(window).width()*490/640 ,"height": 100/490*($(window).width()*490/640)})
+	 // })
+	 // _setIphone4Screen()
+
+
+ 	  /***************************************/	  
+ 	  function getUrlRequest() {
+			var url = location.search;
+			var theRequest = new Object();
+			if (url.indexOf("?") != -1) {
+				var str = url.substr(1);
+				if (str.indexOf("&") != -1) {
+					strs = str.split("&");
+					for (var i = 0; i < strs.length; i++) {
+						theRequest[strs[i].split("=")[0]] = unescape(strs[i]
+								.split("=")[1]);
+					}
+				} else {
+					var key = str.substring(0, str.indexOf("="));
+					var value = str.substr(str.indexOf("=") + 1);
+					theRequest[key] = decodeURI(value);
+				}
+			}
+			return theRequest;
+		}
+	  
+
+	  $(document)
+				.ready(
+						function() {
+
+							//download address check and change
+							var loc = location.href;
+							var dir_download = loc.indexOf("?ch=") > 0 ? loc
+									.slice(loc.indexOf("?ch=") + 4) : "none";
+							var real_download = "{php echo $_W['account']['subscribeurl'];}";
+							
+							// android set herf come frome
+							function _hrefSource() {
+								$(".mixDown").each(
+										function(i, d) {
+											var $T = i == 0 ? $(this) : $(this)
+													.parent();
+											$T.attr({
+												"href" : $T.attr("href")
+														.replace("{php echo $_W['account']['subscribeurl'];}",
+																real_download)
+											})
+										})
+							}
+
+							var PLATFORM = 0;
+							var $MDown = $(".mixDown");
+							// window.onload=function(){
+							var ua = navigator.userAgent.toLowerCase();
+							if (ua.indexOf('iphone') > 0
+									|| ua.indexOf('ipad') > 0) {
+								PLATFORM = 1;
+								$MDown
+										.attr({
+											"href" : "{php echo $_W['account']['subscribeurl'];}"
+										})
+							} else if (ua.indexOf('android') > 0
+									|| ua.indexOf('linux') > 0) {
+								PLATFORM = 2;
+								_hrefSource()
+							}
+
+							if (ua.indexOf('micromessenger') > 0
+									|| ua.indexOf('MicroMessenger') > 0) {
+								PLATFORM = 3;
+								if (ua.indexOf('iphone') > 0
+										|| ua.indexOf('ipad') > 0) {
+									$MDown.attr({"href" : "{php echo $_W['account']['subscribeurl'];}" })
+									// $MDown.attr({"href" : "https://itunes.apple.com/us/app/you-gou-wu/id550926736?ls=1&mt=8" })
+								} else if (ua.indexOf('android') > 0
+										|| ua.indexOf('linux') > 0) {
+									$MDown
+											.attr({
+												"href" : "{php echo $_W['account']['subscribeurl'];}",
+												"target" : "_blank"
+											})
+								}
+
+							}
+
+							// }
+
+							function _setMcodeID(id_way) {
+								PLATFORM == 1 ? $MDown.attr("id",
+										"__AD_H5_index_iphone_" + id_way)
+										: PLATFORM == 2 ? $MDown.attr("id",
+												"__AD_H5_index_android_"
+														+ id_way)
+												: PLATFORM == 3 ? $MDown.attr(
+														"id",
+														"__AD_H5_index_android_wx_"
+																+ id_way)
+														: $MDown
+																.attr("id",
+																		"__AD_H5_index_android");
+
+							}
+							// 设置 显示
+							 // 尺寸判断 iphone
+							 function _setIphone4Screen()
+							{
+							    var $w = $(window);
+							   if( Math.ceil( ( $w.width() / $w.height() ) *100 ) > 100 )
+							   {  
+							      return false;
+							   }  
+							   else if( Math.ceil( ( $w.width() / $w.height() ) *100 ) > 85 )
+							   {
+							   	// iphone4
+							   	$(".app_down").css({"top":"21.5em"})
+							   	// $(".guide_wap,.guide").css({"top":"26.66em"})
+							   	$(".footer").css({"top":"30.66em"})
+							   	$(".home").css({"height":"36.5em","overflow":"hidden"})
+							   	// $(".home").css({"height":"20em"})
+							   	// alert( $(".home").height() )
+							   }
+							   else if( Math.ceil( ( $w.width() / $w.height() ) *100 ) < 65 )
+							   {
+							   	$(".home").css({"height": $w.height() })
+							   }
+							   // setTimeout(function(){ $(".img_canvas").show(); },1000)
+							 }
+
+							/*var Request = new Object();
+							Request = getUrlRequest();
+							var ch = Request['ch'];
+							var dir_download = */
+							var ch=loc.indexOf("?ch=") > 0 ? loc
+									.slice(loc.indexOf("?ch=") + 4) : "none";
+							switch (ch) {
+							case 'tv':
+								_setMcodeID("tv")
+								$(".ugo_goindex a").attr("id",
+										"__AD_H5_index_wap_tv");
+								break;
+							case 'ec':
+								_setMcodeID("ec")
+								$(".ugo_goindex a").attr("id",
+										"__AD_H5_index_wap_ec");
+								break;
+							case 'weixin':
+								_setMcodeID("weixin")
+								$(".ugo_goindex a").attr("id",
+										"__AD_H5_index_wap_weixin");
+								break;
+							case 'box':
+								_setMcodeID("box")
+								$(".ugo_goindex a").attr("id",
+										"__AD_H5_index_wap_box");
+								break;
+							case 'ad':
+								_setMcodeID("ad")
+								$(".ugo_goindex a").attr("id",
+										"__AD_H5_index_wap_ad");
+								break;
+							case 'dx':
+								_setMcodeID("dx")
+								$(".ugo_goindex a").attr("id",
+										"__AD_H5_index_wap_dx");
+								break;
+							case 'dx1':
+								_setMcodeID("dx1")
+								$(".ugo_goindex a").attr("id",
+										"__AD_H5_index_wap_dx1");
+								break;
+							case 'dm':
+								_setMcodeID("dm")
+								$(".ugo_goindex a").attr("id",
+										"__AD_H5_index_wap_dm");
+								break;
+							case 'bdjp':
+								_setMcodeID("bdjp")
+								$(".ugo_goindex a").attr("id",
+										"__AD_H5_index_wap_bdjp");
+								break;
+							case 'bdpp':
+								_setMcodeID("bdpp")
+								$(".ugo_goindex a").attr("id",
+										"__AD_H5_index_wap_bdpp");
+								break;
+							case 'bdsp':
+								_setMcodeID("bdsp")
+								$(".ugo_goindex a").attr("id",
+										"__AD_H5_index_wap_bdsp");
+								break;
+							case 'sgjp':
+								_setMcodeID("sgjp")
+								$(".ugo_goindex a").attr("id",
+										"__AD_H5_index_wap_sgjp");
+								break;
+							case 'sgpp':
+								_setMcodeID("sgpp")
+								$(".ugo_goindex a").attr("id",
+										"__AD_H5_index_wap_sgpp");
+								break;
+							case 'sgsp':
+								_setMcodeID("sgsp")
+								$(".ugo_goindex a").attr("id",
+										"__AD_H5_index_wap_sgsp");
+								break;
+
+								
+							case 'smjp':
+								_setMcodeID("smjp")
+								$(".ugo_goindex a").attr("id",
+										"__AD_H5_index_wap_smjp");
+								break;
+							case 'smpp':
+								_setMcodeID("smpp")
+								$(".ugo_goindex a").attr("id",
+										"__AD_H5_index_wap_smpp");
+								break;
+							case 'smsp':
+								_setMcodeID("smsp")
+								$(".ugo_goindex a").attr("id",
+										"__AD_H5_index_wap_smsp");
+								break;
+								
+							case "bdwapjp":
+								_setMcodeID("bdwapjp")
+								$(".ugo_goindex a").attr("id",
+										"__AD_H5_index_wap_bdwapjp");
+								break;
+							case "sgwapjp":
+								_setMcodeID("sgwapjp")
+								$(".ugo_goindex a").attr("id",
+										"__AD_H5_index_wap_sgwapjp");
+								break;
+							case "smwapjp":
+								_setMcodeID("smwapjp")
+								$(".ugo_goindex a").attr("id",
+										"__AD_H5_index_wap_smwapjp");
+								break;
+
+							case "bdwjg":
+								_setMcodeID("bdwjg")
+								$(".ugo_goindex a").attr("id",
+										"__AD_H5_index_wap_bdwjg");
+								break;
+							case "sgwjg":
+								_setMcodeID("sgwjg")
+								$(".ugo_goindex a").attr("id",
+										"__AD_H5_index_wap_sgwjg");
+								break;
+							case "smwtm":
+								_setMcodeID("smwtm")
+								$(".ugo_goindex a").attr("id",
+										"__AD_H5_index_wap_smwtm");
+								break;
+							default:
+								$(".ugo_goindex a").attr("id",
+										"__AD_H5_index_wap");
+							}
+
+							$(window).resize(function() {
+								_setIphone4Screen()
+							})
+							_setIphone4Screen()
+						});
+		</script>
+</body>
+</html>							

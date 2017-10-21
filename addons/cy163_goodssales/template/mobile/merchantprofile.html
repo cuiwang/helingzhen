@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1.0,maximum-scale=1.0,minimum-scale=1,user-scalable=no">
+    <meta content="yes" name="apple-mobile-web-app-capable">
+    <meta content="black" name="apple-mobile-web-app-status-bar-style">
+    <meta content="telephone=no" name="format-detection">
+    <meta content="email=no" name="format-detection">
+    <title>商家资料</title>
+	<link rel="stylesheet" href="{MD_ROOTN}/messi/css/reset.css"/>
+    <link rel="stylesheet" href="{MD_ROOTN}/messi/iconfont/iconfont.css"/>
+	<link rel="stylesheet" href="{MD_ROOTN}/jqueryweui/css/weui.min.css"/>
+	<link rel="stylesheet" href="{MD_ROOTN}/jqueryweui/css/jquery-weui.min.css"/>
+	<link rel="stylesheet" href="{MD_ROOTN}/messi/css/common.css"/>
+	{php echo register_jssdk(false);}
+	<script>
+        var deviceWidth = document.documentElement.clientWidth;
+        document.documentElement.style.fontSize = deviceWidth / 7.5 + 'px';
+    </script>
+</head>
+
+<body style="background:#f5f5f5;">
+<div id="header">
+	<div class="goback iconfont" onclick="history.go(-1);">&#xe612;</div>
+	<div class="title textellipsis1 text-c">商家资料</div>
+	<div class="empty text-c"></div>
+</div>
+
+<div class="weui-cells weui-cells_form">
+	<div class="weui-cell">
+		<div class="weui-cell__hd"><label class="weui-label wy-lab">商家名称</label></div>
+		<div class="weui-cell__bd"><input class="weui-input" type="text" id="name" value="{$merchant['name']}" placeholder="请输入商家名称"></div>
+	</div>
+	
+	<div class="weui-cell">
+		<div class="weui-cell__bd">
+		  <div class="weui-uploader">
+			<div class="weui-uploader__hd">
+				<p class="weui-uploader__title">店铺头像(120*120)</p>
+			</div>
+			<div class="weui-uploader__bd">
+				<ul class="weui-uploader__files" id="uploaderFiles">
+					{if $merchant['avatar']}
+					<li class="weui-uploader__file" style="background-image:url({php echo tomedia($merchant['avatar'])})"></li>
+					<input type="hidden" name="avatar" id="avatar" value="{$merchant['avatar']}" />
+					{/if}
+				</ul>
+				<div class="weui-uploader__input-box" id="chooseImage"></div>
+			</div>
+		  </div>
+		</div>
+	</div>
+	
+	<div class="weui-cells__title">店铺地址</div>
+	<div class="weui-cells weui-cells_form">
+	  <div class="weui-cell">
+		<div class="weui-cell__bd">
+		  <textarea class="weui-textarea" placeholder="请输入店铺地址" name="address" id="address" rows="3">{$merchant['address']}</textarea>
+		</div>
+	  </div>
+	</div>
+</div> 
+<div style="padding:15px;">
+	<a class="weui-btn weui-btn_primary" href="javascript:;" id="save">修改</a>
+</div>
+
+<script type="text/javascript" src="{MD_ROOTN}/messi/js/jquery-3.1.1.min.js"></script>
+<script type="text/javascript" src="{MD_ROOTN}/jqueryweui/js/fastclick.js"></script>
+<script type="text/javascript" src="{MD_ROOTN}/jqueryweui/js/jquery-weui.min.js"></script>
+<script>
+var images = {
+	localId: [],
+	serverId: []
+};
+$(function() {
+	FastClick.attach(document.body);
+
+	$("#save").click(function(){
+		$.ajax({
+			url:"{php echo $this->createMobileUrl('merchantprofile',array('op'=>'post'))}",   
+			type:'post', 
+			data:{
+				isdo:1,
+				id:$('#id').val(),
+				name:$('#name').val(),
+				avatar:$('#avatar').val(),
+				address:$('#address').val(),
+			},
+			dataType:'json',
+			success:function(data){
+				if (data.error == 1) {
+					$.alert(data.msg);
+				}else{
+					$.alert(data.msg,function(){
+						history.go(-1);
+					});
+				}
+			}
+		});
+	});
+	$('#chooseImage').click(function(){
+		wx.chooseImage({
+			count: 1, // 默认9
+			sizeType: ['compressed'], // 可以指定是原图还是压缩图，默认二者都有
+			sourceType: ['album', 'camera'], // 可以指定来源是相册还是相机，默认二者都有
+			success: function(res) {
+				var localIds = res.localIds; // 返回选定照片的本地ID列表，localId可以作为img标签的src属性显示图片
+				// 上传照片
+				wx.uploadImage({
+					localId: '' + localIds,
+					isShowProgressTips: 1,
+					success: function(res) {
+						serverId = res.serverId;
+						$.ajax({   
+							 url:"{php echo $this->createMobileUrl('getmedia')}",    
+							 type:'post', 
+							 data:{
+								media_id:serverId,
+								tarwidth:120,
+								tarheight:120,
+							 },
+							 dataType:'json',
+							 success:function(data){   
+								if (data.error == 1) {
+									$.alert(data.message);
+								} else {
+									var imagehtml = '<li class="weui-uploader__file" style="background-image:url('+data.imgurl+')"></li><input type="hidden" name="avatar" id="avatar" value="'+data.realimgurl+'" />';
+									$('#uploaderFiles').html(imagehtml);
+								}  
+							 }
+						});
+					}
+				});
+			}
+		});
+	});
+});
+</script>
+</body>
+</html>

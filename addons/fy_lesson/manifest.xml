@@ -1,0 +1,618 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns="http://www.012wz.com" versionCode="0.6">
+	<application setting="true">
+		<name><![CDATA[智慧微课堂]]></name>
+		<identifie><![CDATA[fy_lesson]]></identifie>
+		<version><![CDATA[1.6.3]]></version>
+		<type><![CDATA[biz]]></type>
+		<ability><![CDATA[微课堂是一款基于微信客户端的课堂功能模块，该功能支持用户在线单独购买课程或开通VIP会员服务进行观看视频课程进行学习。]]></ability>
+		<description><![CDATA[微课堂支持用户在线单独购买课程或开通会员观看课程视频进行学习，模块内置三级分销，您可以推荐给朋友，朋友从您的推荐链接或二维码进入微课堂，您的朋友每次进行购买课程，您都可以获取一定比例的佣金。]]></description>
+		<author><![CDATA[微赞科技]]></author>
+		<url><![CDATA[www.012wz.com]]></url>
+	</application>
+	<platform>
+		<subscribes>
+			<message type="subscribe" />
+			<message type="qr" />
+		</subscribes>
+		<handles>
+		</handles>
+		<rule embed="false" />
+		<card embed="false" />
+		<supports>
+		</supports>
+	</platform>
+	<bindings>
+		<cover>
+			<entry title="微课堂首页" do="index" state="" direct="false" />
+			<entry title="我的课程" do="mylesson" state="" direct="false" />
+			<entry title="分销中心" do="commission" state="" direct="false" />
+			<entry title="个人中心" do="self" state="" direct="false" />
+			<entry title="推广海报(公众号)" do="qrcodes" state="" direct="false" />
+			<entry title="推广海报(首页)" do="qrcode" state="" direct="false" />
+		</cover>
+		<menu>
+			<entry title="日志管理" do="syslog" state="" direct="false" />
+			<entry title="课程分类" do="category" state="" direct="false" />
+			<entry title="课程管理" do="lesson" state="" direct="false" />
+			<entry title="推荐板块" do="recommend" state="" direct="false" />
+			<entry title="讲师管理" do="teacher" state="" direct="false" />
+			<entry title="VIP订单" do="viporder" state="" direct="false" />
+			<entry title="课程订单" do="order" state="" direct="false" />
+			<entry title="分销管理" do="agent" state="" direct="false" />
+			<entry title="评价管理" do="evaluate" state="" direct="false" />
+			<entry title="基本设置" do="setting" state="" direct="false" />
+			<entry title="文章公告" do="article" state="" direct="false" />
+		</menu>
+		<home>
+			<entry title="微课堂首页" do="index" state="" direct="false" />
+		</home>
+		<profile>
+			<entry title="我的课程" do="mylesson" state="" direct="false" />
+			<entry title="微课堂首页" do="index" state="" direct="false" />
+		</profile>
+	</bindings>
+	<install><![CDATA[CREATE TABLE IF NOT EXISTS `ims_fy_lesson_article` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) DEFAULT NULL COMMENT '公众号id',
+  `title` varchar(255) DEFAULT NULL COMMENT '标题',
+  `author` varchar(100) DEFAULT NULL COMMENT '作者',
+  `content` text COMMENT '内容',
+  `isshow` tinyint(1) DEFAULT '1' COMMENT '前台展示 0.关闭 1.开启',
+  `displayorder` varchar(255) DEFAULT '0' COMMENT '排序 数值越大越靠前',
+  `addtime` int(10) DEFAULT NULL COMMENT '发布时间',
+  `view` int(11) NOT NULL DEFAULT '0' COMMENT '访问量',
+  `linkurl` varchar(1000) DEFAULT NULL COMMENT '原文链接',
+  `images` varchar(255) DEFAULT NULL COMMENT '分享图片',
+  PRIMARY KEY (`id`),
+  KEY `idx_uniacid` (`uniacid`),
+  KEY `idx_title` (`title`),
+  KEY `idx_author` (`author`),
+  KEY `idx_isshow` (`isshow`),
+  KEY `idx_addtime` (`addtime`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_fy_lesson_blacklist` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) DEFAULT NULL,
+  `openid` varchar(255) DEFAULT NULL,
+  `addtime` int(10) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_uniacid` (`uniacid`),
+  KEY `idx_openid` (`openid`),
+  KEY `idx_addtime` (`addtime`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_fy_lesson_cashlog` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) NOT NULL COMMENT '公众号id',
+  `cash_type` tinyint(1) NOT NULL COMMENT '提现方式 1.管理员审核 2.自动到账',
+  `uid` int(11) DEFAULT NULL COMMENT '会员id',
+  `openid` varchar(255) NOT NULL COMMENT '粉丝编号',
+  `cash_num` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '提现金额',
+  `status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '状态 0.待审核 1.提现成功 -1.审核未通过',
+  `disposetime` int(10) NOT NULL DEFAULT '0' COMMENT '处理时间',
+  `partner_trade_no` varchar(255) DEFAULT NULL COMMENT '商户订单号',
+  `payment_no` varchar(255) DEFAULT NULL COMMENT '微信订单号',
+  `remark` text COMMENT '管理员备注',
+  `lesson_type` tinyint(1) NOT NULL COMMENT '提现类型 1.分销佣金提现 2.课程收入提现',
+  `addtime` int(10) NOT NULL COMMENT '申请时间',
+  `cash_way` tinyint(1) NOT NULL DEFAULT '2' COMMENT '1.提现到余额  2.提现到微信钱包',
+  `pay_account` varchar(50) DEFAULT NULL COMMENT '提现帐号',
+  PRIMARY KEY (`id`),
+  KEY `idx_uniacid` (`uniacid`),
+  KEY `idx_cash_type` (`cash_type`),
+  KEY `idx_cash_way` (`cash_way`),
+  KEY `idx_uid` (`uid`),
+  KEY `idx_openid` (`openid`),
+  KEY `idx_status` (`status`),
+  KEY `idx_lesson_type` (`lesson_type`),
+  KEY `idx_addtime` (`addtime`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='佣金提现表';
+CREATE TABLE IF NOT EXISTS `ims_fy_lesson_category` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '所属帐号',
+  `name` varchar(50) NOT NULL COMMENT '分类名称',
+  `parentid` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '上级分类ID,0为第一级',
+  `ico` varchar(255) DEFAULT NULL COMMENT '分类图标',
+  `displayorder` tinyint(3) unsigned NOT NULL DEFAULT '0' COMMENT '排序',
+  `addtime` int(10) DEFAULT NULL COMMENT '添加时间',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='课程分类表';
+CREATE TABLE IF NOT EXISTS `ims_fy_lesson_collect` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) NOT NULL COMMENT '公众号id',
+  `uid` int(11) NOT NULL COMMENT '会员id',
+  `openid` varchar(255) NOT NULL COMMENT '粉丝编号',
+  `outid` int(11) NOT NULL COMMENT '外部编号(课程编号或讲师编号)',
+  `ctype` tinyint(1) NOT NULL COMMENT '收藏类型 1.课程 2.讲师',
+  `addtime` int(10) NOT NULL COMMENT '收藏时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_uniacid` (`uniacid`),
+  KEY `idx_uid` (`uid`),
+  KEY `idx_openid` (`openid`),
+  KEY `idx_ctype` (`ctype`),
+  KEY `idx_addtime` (`addtime`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='收藏表';
+CREATE TABLE IF NOT EXISTS `ims_fy_lesson_commission_level` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) NOT NULL COMMENT '公众号id',
+  `levelname` varchar(50) DEFAULT NULL COMMENT '分销等级名称',
+  `commission1` decimal(10,2) DEFAULT '0.00' COMMENT '一级分销佣金比例',
+  `commission2` decimal(10,2) DEFAULT '0.00' COMMENT '二级分销佣金比例',
+  `commission3` decimal(10,2) DEFAULT '0.00' COMMENT '三级分销佣金比例',
+  `updatemoney` decimal(10,2) DEFAULT '0.00' COMMENT '升级条件(分销佣金满多少)',
+  PRIMARY KEY (`id`),
+  KEY `idx_uniacid` (`uniacid`),
+  KEY `idx_levelname` (`levelname`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='分销商等级表';
+CREATE TABLE IF NOT EXISTS `ims_fy_lesson_commission_log` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) DEFAULT NULL COMMENT '公众号id',
+  `orderid` varchar(255) DEFAULT NULL COMMENT '订单id',
+  `uid` int(11) DEFAULT NULL COMMENT '会员id',
+  `openid` varchar(255) DEFAULT NULL COMMENT '粉丝编号',
+  `nickname` varchar(100) DEFAULT NULL COMMENT '会员昵称',
+  `bookname` varchar(255) DEFAULT NULL COMMENT '课程名称',
+  `change_num` decimal(10,2) DEFAULT '0.00' COMMENT '变动数目',
+  `grade` tinyint(1) DEFAULT NULL COMMENT '佣金等级',
+  `remark` varchar(255) DEFAULT NULL COMMENT '变动说明',
+  `addtime` int(10) DEFAULT NULL COMMENT '变动时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_uniacid` (`uniacid`),
+  KEY `idx_orderid` (`orderid`),
+  KEY `idx_uid` (`uid`),
+  KEY `idx_openid` (`openid`),
+  KEY `idx_nickname` (`nickname`),
+  KEY `idx_bookname` (`bookname`),
+  KEY `idx_grade` (`grade`),
+  KEY `idx_addtime` (`addtime`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='佣金日志表';
+CREATE TABLE IF NOT EXISTS `ims_fy_lesson_coupon` (
+  `card_id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) NOT NULL,
+  `password` varchar(18) NOT NULL COMMENT '优惠码密钥',
+  `amount` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '优惠码面值',
+  `validity` int(10) NOT NULL COMMENT '有效期',
+  `conditions` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '使用条件(满x元可用)',
+  `is_use` tinyint(1) NOT NULL DEFAULT '0' COMMENT '状态 0.未使用 1.已使用',
+  `nickname` varchar(50) DEFAULT NULL COMMENT '昵称',
+  `uid` int(11) DEFAULT NULL COMMENT '会员编号',
+  `openid` varchar(50) DEFAULT NULL COMMENT '粉丝编号',
+  `ordersn` varchar(50) DEFAULT NULL COMMENT '订单编号',
+  `use_time` int(10) DEFAULT NULL COMMENT '使用时间',
+  `addtime` int(10) NOT NULL COMMENT '添加时间',
+  PRIMARY KEY (`card_id`),
+  UNIQUE KEY `idx_ordersn` (`ordersn`),
+  KEY `idx_uniacid` (`uniacid`),
+  KEY `idx_password` (`password`),
+  KEY `idx_uid` (`uid`),
+  KEY `idx_openid` (`openid`),
+  KEY `idx_validity` (`validity`),
+  KEY `idx_addtime` (`addtime`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_fy_lesson_evaluate` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) NOT NULL COMMENT '公众号id',
+  `orderid` int(11) NOT NULL COMMENT '订单id',
+  `ordersn` varchar(255) NOT NULL COMMENT '订单编号',
+  `lessonid` int(11) NOT NULL COMMENT '课程id',
+  `bookname` varchar(255) NOT NULL COMMENT '课程名称',
+  `openid` varchar(255) NOT NULL COMMENT '粉丝编号',
+  `uid` int(11) NOT NULL COMMENT '会员id',
+  `nickname` varchar(50) NOT NULL COMMENT '会员昵称',
+  `grade` tinyint(1) NOT NULL COMMENT '评价 1.好评 2.中评 3.差评',
+  `content` text NOT NULL COMMENT '评价内容',
+  `addtime` int(10) NOT NULL COMMENT '评价时间',
+  `reply` text COMMENT '评价回复',
+  `teacherid` int(11) DEFAULT NULL COMMENT '讲师id(与fy_lesson_teacher表的id字段对应)',
+  PRIMARY KEY (`id`),
+  KEY `idx_uniacid` (`uniacid`),
+  KEY `idx_orderid` (`orderid`),
+  KEY `idx_ordersn` (`ordersn`),
+  KEY `idx_lessonid` (`lessonid`),
+  KEY `idx_bookname` (`bookname`),
+  KEY `idx_teacherid` (`teacherid`),
+  KEY `idx_grade` (`grade`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='评价课程表';
+CREATE TABLE IF NOT EXISTS `ims_fy_lesson_history` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) NOT NULL COMMENT '公众号id',
+  `uid` int(11) NOT NULL COMMENT '会员id',
+  `openid` varchar(255) NOT NULL COMMENT '粉丝编号',
+  `lessonid` int(11) NOT NULL COMMENT '课程id',
+  `addtime` int(10) NOT NULL COMMENT '最后进入时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_uniacid` (`uniacid`),
+  KEY `idx_uid` (`uid`),
+  KEY `idx_openid` (`openid`),
+  KEY `idx_addtime` (`addtime`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_fy_lesson_member` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) NOT NULL COMMENT '公众号id',
+  `uid` int(11) NOT NULL COMMENT '会员id',
+  `openid` varchar(255) NOT NULL COMMENT '粉丝标识',
+  `studentno` varchar(20) DEFAULT NULL COMMENT '学号',
+  `nickname` varchar(100) DEFAULT NULL COMMENT '会员昵称',
+  `parentid` int(11) NOT NULL DEFAULT '0' COMMENT '推荐人id',
+  `nopay_commission` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '未结算佣金',
+  `pay_commission` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '已结算佣金',
+  `nopay_lesson` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '未提现课程收入',
+  `pay_lesson` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '已提现课程收入',
+  `vip` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否vip 0.否 1.是',
+  `validity` bigint(11) NOT NULL DEFAULT '0' COMMENT 'vip有效期',
+  `pastnotice` int(10) NOT NULL DEFAULT '0' COMMENT 'vip服务过期前最新通知时间',
+  `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '分销状态 0.关闭 1.开启',
+  `uptime` int(10) NOT NULL COMMENT '更新时间',
+  `addtime` int(11) NOT NULL COMMENT '添加时间',
+  `agent_level` int(11) NOT NULL DEFAULT '0' COMMENT '分销代理级别',
+  PRIMARY KEY (`id`),
+  KEY `idx_uniacid` (`uniacid`),
+  KEY `idx_uid` (`uid`),
+  KEY `idx_openid` (`openid`),
+  KEY `idx_parentid` (`parentid`),
+  KEY `idx_vip` (`vip`),
+  KEY `idx_validity` (`validity`),
+  KEY `idx_pastnotice` (`pastnotice`),
+  KEY `idx_status` (`status`),
+  KEY `idx_addtime` (`addtime`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_fy_lesson_member_order` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `acid` int(11) NOT NULL,
+  `uniacid` int(11) NOT NULL COMMENT '公众号id',
+  `ordersn` varchar(255) NOT NULL COMMENT '订单编号',
+  `uid` int(11) NOT NULL COMMENT '会员id',
+  `openid` varchar(255) NOT NULL COMMENT '粉丝编号',
+  `viptime` int(4) NOT NULL COMMENT '会员服务时间',
+  `vipmoney` decimal(10,2) NOT NULL COMMENT '会员服务价格',
+  `paytype` varchar(50) NOT NULL COMMENT '支付方式',
+  `status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '订单状态 0.未支付 1.已支付',
+  `paytime` int(10) DEFAULT '0' COMMENT '订单支付时间',
+  `addtime` int(10) NOT NULL COMMENT '订单添加时间',
+  `member1` int(11) NOT NULL COMMENT '一级代理会员id',
+  `commission1` decimal(10,2) NOT NULL COMMENT '一级代理佣金',
+  `member2` int(11) NOT NULL COMMENT '二级代理会员id',
+  `commission2` decimal(10,2) NOT NULL COMMENT '二级代理佣金',
+  `member3` int(11) NOT NULL COMMENT '三级代理会员id',
+  `commission3` decimal(10,2) NOT NULL COMMENT '三级代理佣金',
+  `update_time` int(10) DEFAULT NULL COMMENT '更新时间',
+  `refer_id` int(11) DEFAULT NULL COMMENT '充值卡id(与vip卡的id对应)',
+  PRIMARY KEY (`id`),
+  KEY `idx_uniacid` (`uniacid`),
+  KEY `idx_uid` (`uid`),
+  KEY `idx_openid` (`openid`),
+  KEY `idx_paytype` (`paytype`),
+  KEY `idx_status` (`status`),
+  KEY `idx_refer_id` (`refer_id`),
+  KEY `idx_addtime` (`addtime`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_fy_lesson_order` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `acid` int(11) NOT NULL,
+  `uniacid` int(11) NOT NULL COMMENT '公众号id',
+  `ordersn` varchar(255) NOT NULL COMMENT '订单编号',
+  `uid` int(11) NOT NULL COMMENT '会员id',
+  `openid` varchar(255) NOT NULL COMMENT '粉丝编号',
+  `lessonid` int(11) NOT NULL COMMENT '课程id',
+  `bookname` varchar(255) NOT NULL COMMENT '课程名称',
+  `marketprice` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '原价',
+  `price` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '课程价格',
+  `teacher_income` tinyint(3) NOT NULL DEFAULT '0' COMMENT '讲师收入(课程价格分成%)',
+  `integral` int(4) NOT NULL DEFAULT '0' COMMENT '赠送积分',
+  `paytype` varchar(50) NOT NULL DEFAULT '0' COMMENT '支付方式',
+  `paytime` int(10) NOT NULL DEFAULT '0' COMMENT '支付时间',
+  `member1` int(11) NOT NULL DEFAULT '0' COMMENT '一级代理会员id',
+  `commission1` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '一级佣金',
+  `member2` int(11) NOT NULL DEFAULT '0' COMMENT '二级代理会员id',
+  `commission2` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '二级佣金',
+  `member3` int(11) NOT NULL DEFAULT '0' COMMENT '三级代理会员id',
+  `commission3` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '三级佣金',
+  `status` tinyint(1) NOT NULL DEFAULT '0' COMMENT '订单状态 -1.已取消 0.未支付 1.已支付 2.已评价',
+  `addtime` int(10) DEFAULT NULL COMMENT '下单时间',
+  `teacherid` int(11) DEFAULT NULL COMMENT '讲师id(与fy_lesson_teacher表的id字段对应)',
+  `invoice` varchar(100) DEFAULT NULL COMMENT '发票抬头',
+  `coupon` varchar(50) DEFAULT NULL COMMENT '课程优惠码',
+  `coupon_amount` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '优惠码面值',
+  `validity` int(11) NOT NULL DEFAULT '0' COMMENT '有效期 在有效期内可观看学习课程',
+  PRIMARY KEY (`id`),
+  KEY `idx_acid` (`acid`),
+  KEY `idx_uniacid` (`uniacid`),
+  KEY `idx_ordersn` (`ordersn`),
+  KEY `idx_uid` (`uid`),
+  KEY `idx_openid` (`openid`),
+  KEY `idx_lessonid` (`lessonid`),
+  KEY `idx_bookname` (`bookname`),
+  KEY `idx_teacherid` (`teacherid`),
+  KEY `idx_paytype` (`paytype`),
+  KEY `idx_status` (`status`),
+  KEY `idx_addtime` (`addtime`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_fy_lesson_parent` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) NOT NULL COMMENT '公众号ID',
+  `cid` int(11) NOT NULL COMMENT '分类ID',
+  `bookname` varchar(255) NOT NULL COMMENT '课程名称',
+  `price` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '课程价格',
+  `isdiscount` tinyint(1) NOT NULL DEFAULT '1' COMMENT '是否开启该课程折扣',
+  `vipdiscount` int(3) NOT NULL DEFAULT '0' COMMENT 'vip会员折扣',
+  `integral` int(11) NOT NULL DEFAULT '0' COMMENT '购买赠送积分',
+  `images` varchar(255) DEFAULT NULL COMMENT '课程封图',
+  `descript` text COMMENT '课程介绍',
+  `difficulty` varchar(100) DEFAULT NULL COMMENT '课程难度',
+  `buynum` int(11) NOT NULL DEFAULT '0' COMMENT '正常购买人数',
+  `virtual_buynum` int(11) NOT NULL DEFAULT '0' COMMENT '虚拟购买人数',
+  `score` decimal(5,2) NOT NULL COMMENT '课程好评率',
+  `teacherid` int(11) NOT NULL COMMENT '主讲老师id',
+  `commission` text COMMENT '佣金比例',
+  `displayorder` int(4) NOT NULL DEFAULT '0' COMMENT '课程排序',
+  `status` tinyint(1) NOT NULL COMMENT '是否上架',
+  `recommendid` varchar(255) DEFAULT NULL COMMENT '推荐板块id',
+  `vipview` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'vip权限是否可免费观看',
+  `teacher_income` tinyint(3) NOT NULL DEFAULT '0' COMMENT '讲师分成%',
+  `addtime` int(10) NOT NULL COMMENT '添加时间',
+  `stock` int(11) NOT NULL COMMENT '课程库存',
+  `poster` text COMMENT '视频播放封面图',
+  `validity` int(11) NOT NULL DEFAULT '0' COMMENT '有效期 即购买时起多少天内有效',
+  PRIMARY KEY (`id`),
+  KEY `idx_uniacid` (`uniacid`),
+  KEY `idx_cid` (`cid`),
+  KEY `idx_bookname` (`bookname`),
+  KEY `idx_teacherid` (`teacherid`),
+  KEY `idx_displayorder` (`displayorder`),
+  KEY `idx_status` (`status`),
+  KEY `idx_recommendid` (`recommendid`),
+  KEY `idx_addtime` (`addtime`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='课程主表';
+CREATE TABLE IF NOT EXISTS `ims_fy_lesson_playrecord` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) DEFAULT NULL COMMENT '公众号id',
+  `uid` int(11) DEFAULT NULL COMMENT '会员id',
+  `openid` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL COMMENT '粉丝编号',
+  `lessonid` int(11) DEFAULT NULL COMMENT '课程id',
+  `sectionid` int(11) DEFAULT NULL COMMENT '章节id',
+  `addtime` int(10) DEFAULT NULL COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_uniacid` (`uniacid`),
+  KEY `idx_uid` (`uid`),
+  KEY `idx_openid` (`openid`),
+  KEY `idx_addtime` (`addtime`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+CREATE TABLE IF NOT EXISTS `ims_fy_lesson_qiniu_upload` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) NOT NULL COMMENT '公众号id',
+  `uid` int(11) DEFAULT NULL COMMENT '会员编号',
+  `openid` varchar(255) DEFAULT NULL COMMENT '粉丝编号',
+  `teacher` int(11) DEFAULT NULL COMMENT '讲师编号',
+  `name` varchar(500) DEFAULT NULL COMMENT '文件名',
+  `com_name` varchar(1000) DEFAULT NULL COMMENT '完成文件名',
+  `qiniu_url` varchar(1000) DEFAULT NULL COMMENT '文件链接',
+  `size` varchar(100) DEFAULT NULL COMMENT '文件大小',
+  `addtime` int(10) DEFAULT NULL COMMENT '添加时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_uniacid` (`uniacid`),
+  KEY `idx_teacher` (`teacher`),
+  KEY `idx_name` (`name`(333))
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_fy_lesson_recommend` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) NOT NULL COMMENT '公众号id',
+  `rec_name` varchar(255) DEFAULT NULL COMMENT '模块名称',
+  `displayorder` int(4) DEFAULT NULL COMMENT '排序',
+  `is_show` tinyint(1) NOT NULL DEFAULT '1' COMMENT '是否显示',
+  `addtime` int(10) NOT NULL COMMENT '添加时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_uniacid` (`uniacid`),
+  KEY `idx_is_show` (`is_show`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_fy_lesson_relation` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) DEFAULT NULL COMMENT '公众号id',
+  `uid` int(11) DEFAULT NULL COMMENT '会员id',
+  `tjgx` text COMMENT '推荐关系',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='推荐关系表';
+CREATE TABLE IF NOT EXISTS `ims_fy_lesson_setting` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) NOT NULL COMMENT '公众号id',
+  `logo` varchar(255) NOT NULL COMMENT 'app端logo',
+  `istplnotice` tinyint(1) NOT NULL DEFAULT '1' COMMENT '是否开启模版消息 0.关闭 1.开启',
+  `buysucc` varchar(255) DEFAULT NULL COMMENT '用户购买课程通知',
+  `pastvip` varchar(255) DEFAULT NULL COMMENT '用户会员服务过期',
+  `cnotice` varchar(255) DEFAULT NULL COMMENT '佣金提醒',
+  `newjoin` varchar(255) DEFAULT NULL COMMENT '三级分销下级加入提醒',
+  `newlesson` varchar(255) DEFAULT NULL COMMENT '新开课提醒学员',
+  `neworder` varchar(255) NOT NULL COMMENT '订单通知(管理员)',
+  `manageopenid` text NOT NULL COMMENT '新订单提醒(管理员)',
+  `sitename` varchar(100) DEFAULT NULL,
+  `banner` text COMMENT '焦点图',
+  `copyright` varchar(255) NOT NULL COMMENT '版权',
+  `vipserver` text COMMENT 'vip时长和价格',
+  `sharelink` text COMMENT '链接分享',
+  `sharelesson` text COMMENT '分享课程',
+  `shareteacher` text COMMENT '分享讲师',
+  `closespace` int(4) NOT NULL DEFAULT '60' COMMENT '关闭未付款订单时间间隔',
+  `closelast` int(10) NOT NULL DEFAULT '0' COMMENT '上次执行关闭未付款订单时间',
+  `is_sale` tinyint(1) NOT NULL DEFAULT '0' COMMENT '分销功能 0.关闭 1.开启',
+  `self_sale` tinyint(1) NOT NULL DEFAULT '0' COMMENT '分销内购 0.关闭 1.开启',
+  `sale_rank` tinyint(1) NOT NULL DEFAULT '1' COMMENT '分销身份 1.任何人 2.VIP身份',
+  `level` tinyint(1) NOT NULL DEFAULT '3' COMMENT '分销等级',
+  `commission` text COMMENT '佣金比例',
+  `cash_type` tinyint(1) NOT NULL DEFAULT '1' COMMENT '提现方式 1.管理员审核 2.自动到账',
+  `cash_lower` decimal(10,2) NOT NULL DEFAULT '1.00' COMMENT '提现最低下限 默认为1元',
+  `mchid` varchar(100) DEFAULT NULL COMMENT '微信支付商户号',
+  `mchkey` varchar(255) DEFAULT NULL COMMENT '微信支付商户支付密钥',
+  `serverIp` varchar(100) DEFAULT NULL COMMENT '服务器Ip',
+  `savetype` tinyint(2) NOT NULL DEFAULT '0' COMMENT '0.其他存储方式 1.七牛云存储 2.腾讯云存储',
+  `qiniu` text COMMENT '七牛云存储参数',
+  `qcloud` text COMMENT '腾讯云存储',
+  `print_error` tinyint(1) NOT NULL DEFAULT '0' COMMENT '打印视频错误信息 0.关闭 1.开启',
+  `vipdiscount` int(3) NOT NULL DEFAULT '0' COMMENT 'vip会员购买课程折扣',
+  `footnav` tinyint(1) NOT NULL DEFAULT '0' COMMENT '菜单显示方式 0.底部菜单 1.悬浮菜单',
+  `lessonshow` tinyint(1) NOT NULL DEFAULT '1' COMMENT '首页课程显示 1.一行一个课程 2.一行两个课程',
+  `teacher_income` tinyint(3) NOT NULL DEFAULT '0' COMMENT '讲师收入(课程价格分成%)',
+  `isfollow` tinyint(1) NOT NULL DEFAULT '0' COMMENT '强制关注公众号 0.不强制 1.强制',
+  `qrcode` varchar(255) DEFAULT NULL COMMENT '公众号二维码',
+  `mustinfo` tinyint(1) NOT NULL DEFAULT '0',
+  `autogood` int(4) NOT NULL DEFAULT '0' COMMENT '超时自动好评 默认0为关闭',
+  `posterbg` varchar(255) DEFAULT NULL COMMENT '推广海报背景图',
+  `addtime` int(10) NOT NULL COMMENT '添加时间',
+  `vipdesc` text NOT NULL COMMENT 'vip服务描述',
+  `vip_sale` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'VIP订单分销开关',
+  `cash_way` text NOT NULL COMMENT '提现方式',
+  `adv` text NOT NULL COMMENT '课程详情页广告',
+  `newcash` varchar(255) NOT NULL COMMENT '提现申请通知(管理员)',
+  `mobilechange` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否开启修改手机链接 0.关闭 1.开启',
+  `main_color` varchar(50) DEFAULT NULL COMMENT '前台主色调',
+  `minor_color` varchar(50) DEFAULT NULL COMMENT '前台副色调',
+  `teacherlist` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否显示讲师列表 0.不显示  1.显示',
+  `category_ico` varchar(255) NOT NULL COMMENT '所有分类图标',
+  `rec_income` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '直接推荐奖励金额',
+  `apply_teacher` varchar(255) DEFAULT NULL COMMENT '申请讲师入驻审核通知',
+  `viporder_commission` text COMMENT 'VIP订单佣金比例(如果该值不设定，则使用全局分销佣金比例)',
+  `index_lazyload` text COMMENT '首页延迟加载',
+  `cash_follow` tinyint(1) NOT NULL DEFAULT '0' COMMENT '提现是否需要关注公众号',
+  `front_color` text COMMENT '前台界面颜色',
+  `self_diy` text COMMENT '个人中心自定义栏目',
+  `stock_config` tinyint(1) DEFAULT '0' COMMENT '是否启用库存 0.否 1.是',
+  `is_invoice` tinyint(1) NOT NULL DEFAULT '0' COMMENT '开具发票 0.不支持 1.支持',
+  `index_upgrade` tinyint(1) NOT NULL DEFAULT '0' COMMENT '索引升级',
+  `poster_type` tinyint(1) NOT NULL DEFAULT '1' COMMENT '推广海报样式 1.直接进入微课堂  2.直接进入公众号',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_uniacid` (`uniacid`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='基本设置';
+CREATE TABLE IF NOT EXISTS `ims_fy_lesson_son` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) NOT NULL COMMENT '公众号id',
+  `parentid` int(11) NOT NULL COMMENT '课程关联id',
+  `title` varchar(255) NOT NULL COMMENT '章节名称',
+  `sectiontype` tinyint(1) NOT NULL DEFAULT '1' COMMENT '章节类型 1.视频章节 2.图文章节',
+  `savetype` tinyint(1) NOT NULL COMMENT '存储方式 0.其他存储方式 1.七牛存储 2.内嵌播放代码模式',
+  `videourl` text COMMENT '章节视频url',
+  `videotime` varchar(100) NOT NULL COMMENT '视频时长',
+  `content` text COMMENT '章节内容',
+  `displayorder` int(4) NOT NULL DEFAULT '0',
+  `is_free` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否为试听章节 0.否 1.是',
+  `status` tinyint(1) NOT NULL DEFAULT '1' COMMENT '是否显示 0.隐藏 1.显示',
+  `addtime` int(10) NOT NULL COMMENT '添加时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_uniacid` (`uniacid`),
+  KEY `idx_parentid` (`parentid`),
+  KEY `idx_status` (`status`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='课程章节内容';
+CREATE TABLE IF NOT EXISTS `ims_fy_lesson_syslog` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) DEFAULT NULL COMMENT '公众号id',
+  `admin_uid` int(11) DEFAULT NULL COMMENT '管理员id',
+  `admin_username` varchar(50) DEFAULT NULL COMMENT '管理员昵称',
+  `log_type` tinyint(1) DEFAULT NULL COMMENT '操作类型 1.增加 2.删除 3更新',
+  `function` varchar(100) DEFAULT NULL COMMENT '操作的功能',
+  `content` varchar(1000) DEFAULT NULL COMMENT '操作描述',
+  `ip` varchar(50) DEFAULT NULL COMMENT '操作IP地址',
+  `addtime` int(10) NOT NULL COMMENT '添加时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_uniacid` (`uniacid`),
+  KEY `idx_admin_uid` (`admin_uid`),
+  KEY `idx_log_type` (`log_type`),
+  KEY `idx_function` (`function`),
+  KEY `idx_addtime` (`addtime`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='操作日志表';
+CREATE TABLE IF NOT EXISTS `ims_fy_lesson_teacher` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `uid` int(11) NOT NULL DEFAULT '0' COMMENT '会员id',
+  `openid` varchar(100) NOT NULL DEFAULT '0' COMMENT '粉丝编号',
+  `uniacid` int(11) NOT NULL COMMENT '公众号id',
+  `teacher` varchar(100) NOT NULL COMMENT '讲师名称',
+  `qq` varchar(20) DEFAULT NULL COMMENT '讲师QQ',
+  `qqgroup` varchar(20) DEFAULT NULL COMMENT '讲师QQ群',
+  `qqgroupLink` varchar(255) DEFAULT NULL COMMENT 'QQ群加群链接',
+  `weixin_qrcode` varchar(255) NOT NULL COMMENT '讲师微信二维码',
+  `first_letter` varchar(10) DEFAULT NULL COMMENT '讲师名称首字母拼音',
+  `teacherdes` text COMMENT '讲师介绍',
+  `teacherphoto` varchar(255) DEFAULT NULL COMMENT '讲师相片',
+  `status` tinyint(1) NOT NULL DEFAULT '2' COMMENT '讲师状态 -1.审核不通过 1.正常 2.审核中',
+  `addtime` int(11) NOT NULL COMMENT '添加时间',
+  `account` varchar(20) DEFAULT NULL COMMENT '讲师登录帐号',
+  `password` varchar(32) DEFAULT NULL COMMENT '讲师登录密码',
+  `upload` tinyint(1) NOT NULL DEFAULT '1' COMMENT '上传权限 0.禁止 1.允许',
+  PRIMARY KEY (`id`),
+  KEY `idx_uniacid` (`uniacid`),
+  KEY `idx_uid` (`uid`),
+  KEY `idx_openid` (`openid`),
+  KEY `idx_account` (`account`),
+  KEY `idx_status` (`status`),
+  KEY `idx_upload` (`upload`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_fy_lesson_teacher_income` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) DEFAULT NULL COMMENT '公众号id',
+  `uid` int(11) DEFAULT NULL COMMENT '会员id',
+  `openid` varchar(100) DEFAULT NULL COMMENT '粉丝id',
+  `teacher` varchar(255) DEFAULT NULL COMMENT '讲师名称',
+  `ordersn` varchar(100) DEFAULT NULL COMMENT '订单编号',
+  `bookname` varchar(255) DEFAULT NULL COMMENT '课程名称',
+  `orderprice` decimal(10,2) DEFAULT '0.00' COMMENT '订单价格',
+  `teacher_income` tinyint(3) DEFAULT NULL COMMENT '讲师分成',
+  `income_amount` decimal(10,2) DEFAULT '0.00' COMMENT '讲师实际收入',
+  `addtime` int(10) DEFAULT NULL COMMENT '添加时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_uniacid` (`uniacid`),
+  KEY `idx_uid` (`uid`),
+  KEY `idx_openid` (`openid`),
+  KEY `idx_teacher` (`teacher`),
+  KEY `idx_ordersn` (`ordersn`),
+  KEY `idx_bookname` (`bookname`),
+  KEY `idx_addtime` (`addtime`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='讲师收入表';
+CREATE TABLE IF NOT EXISTS `ims_fy_lesson_vipcard` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(11) NOT NULL COMMENT '公众号id',
+  `card_id` varchar(50) DEFAULT NULL COMMENT '卡号',
+  `password` varchar(100) DEFAULT NULL COMMENT '服务卡密码',
+  `viptime` int(11) DEFAULT NULL COMMENT '服务卡时长',
+  `is_use` tinyint(1) NOT NULL DEFAULT '0' COMMENT '状态 0.未使用 1.已使用',
+  `nickname` varchar(100) DEFAULT NULL COMMENT '会员昵称',
+  `uid` int(11) DEFAULT NULL COMMENT '会员id',
+  `openid` varchar(100) DEFAULT NULL COMMENT '粉丝编号',
+  `ordersn` varchar(50) DEFAULT NULL COMMENT '使用订单编号(对应vip订单表的ordersn)',
+  `use_time` int(10) DEFAULT NULL COMMENT '使用时间',
+  `validity` int(10) DEFAULT NULL COMMENT '有效期',
+  `addtime` int(10) unsigned DEFAULT NULL COMMENT '添加时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_uniacid` (`uniacid`),
+  KEY `idx_card_id` (`card_id`),
+  KEY `idx_is_use` (`is_use`),
+  KEY `idx_uid` (`uid`),
+  KEY `idx_openid` (`openid`),
+  KEY `idx_nickname` (`nickname`),
+  KEY `idx_ordersn` (`ordersn`),
+  KEY `idx_validity` (`validity`),
+  KEY `idx_use_time` (`use_time`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+]]></install>
+	<uninstall><![CDATA[DROP TABLE IF EXISTS `ims_fy_lesson_article`;
+DROP TABLE IF EXISTS `ims_fy_lesson_blacklist`;
+DROP TABLE IF EXISTS `ims_fy_lesson_cashlog`;
+DROP TABLE IF EXISTS `ims_fy_lesson_category`;
+DROP TABLE IF EXISTS `ims_fy_lesson_collect`;
+DROP TABLE IF EXISTS `ims_fy_lesson_commission_level`;
+DROP TABLE IF EXISTS `ims_fy_lesson_commission_log`;
+DROP TABLE IF EXISTS `ims_fy_lesson_coupon`;
+DROP TABLE IF EXISTS `ims_fy_lesson_evaluate`;
+DROP TABLE IF EXISTS `ims_fy_lesson_history`;
+DROP TABLE IF EXISTS `ims_fy_lesson_member`;
+DROP TABLE IF EXISTS `ims_fy_lesson_member_order`;
+DROP TABLE IF EXISTS `ims_fy_lesson_order`;
+DROP TABLE IF EXISTS `ims_fy_lesson_parent`;
+DROP TABLE IF EXISTS `ims_fy_lesson_playrecord`;
+DROP TABLE IF EXISTS `ims_fy_lesson_qiniu_upload`;
+DROP TABLE IF EXISTS `ims_fy_lesson_recommend`;
+DROP TABLE IF EXISTS `ims_fy_lesson_relation`;
+DROP TABLE IF EXISTS `ims_fy_lesson_setting`;
+DROP TABLE IF EXISTS `ims_fy_lesson_son`;
+DROP TABLE IF EXISTS `ims_fy_lesson_syslog`;
+DROP TABLE IF EXISTS `ims_fy_lesson_teacher`;
+DROP TABLE IF EXISTS `ims_fy_lesson_teacher_income`;
+DROP TABLE IF EXISTS `ims_fy_lesson_vipcard`;
+]]></uninstall>
+	<upgrade><![CDATA[upgrade.php]]></upgrade>
+</manifest>

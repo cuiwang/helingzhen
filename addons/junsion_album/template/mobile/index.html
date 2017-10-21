@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html>
+	<title>我的相册</title>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="utf-8">
+
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<script src="../app/resource/js/lib/jquery-1.11.1.min.js" ></script>
+	<style type="text/css">
+body
+{
+    margin:0px;
+    background-color: ghostwhite;
+}
+
+#title
+{
+	width: 100%;
+	height: 50px;
+	font-size: 18pt;
+	text-align: center;
+	line-height: 50px;
+	background-color:{if $cfg['bgtheme']}{$cfg['bgtheme']}{else}#FF2D51{/if};
+	color: {if $cfg['fonttheme']}{$cfg['fonttheme']}{else}white{/if};
+}
+
+#help-btn
+{
+	position: absolute;
+	top: 10px;
+	right: 20px;
+	height: 30px;
+	line-height: 30px;
+	font-size: 18pt;
+	width: 60px;
+	border-radius: 20px;
+	text-decoration: none;
+	background-color: {if $cfg['bgother']}{$cfg['bgother']}{else}#FFCC66{/if};
+	color: {if $cfg['fontother']}{$cfg['fontother']}{else}white{/if};
+}
+
+#report-btn {
+    position: absolute;
+    top: 10px;
+    left: 20px;
+    height: 30px;
+    line-height: 30px;
+    font-size: 14pt;
+    width: 60px;
+    background-color: {if $cfg['bgother']}{$cfg['bgother']}{else}#FFCC66{/if};
+    border-radius: 20px;
+    color: {if $cfg['fontother']}{$cfg['fontother']}{else}white{/if};
+    text-decoration: none;
+}
+
+#content
+{
+	position: relative;
+	width: 100%;
+	min-height: 100%;
+}
+
+#promt
+{
+	width: 100%;
+	height: 80%;
+}
+
+#promt>span
+{
+	display: block;
+	font-size: 18px;
+	text-align: center;
+	width: 80%;
+	margin: 20px 10% 0 10%;
+	height:80px;
+	line-height:80px;
+}
+
+.item
+{
+    position: relative;
+    margin: 20px auto;
+    background-color: white;
+    border-radius: 5px;
+    -webkit-box-shadow: #666 0px 0px 10px;
+    margin: 0 auto;
+}
+
+.item-pic
+{
+    position: relative;
+    width: 100%;
+    margin: 0 auto;
+    height: 160px;
+    overflow: hidden;
+    background-position: center;
+    background-size: cover;
+    {if $mem_info['status'] != 1 && empty($mid)}
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    {else}
+    border-radius: 5px;
+    {/if}
+}
+
+.item-pv
+{
+	position: relative;
+	width: 100%;
+	text-align: center;
+	height: 40px;
+	line-height: 40px;
+	font-size: 12pt;
+}
+
+.item-edit , .item-del
+{
+    text-align: center;
+    line-height: 40px;
+    font-size: 15pt;
+    display: inline-block;
+}
+
+.item-pcount{
+	position: absolute;
+    top: 15px;
+    left: -52px;
+    z-index: 9;
+    -webkit-transform: rotate(-35deg);
+    height: 30px;
+    line-height: 30px;
+    width: 180px;
+    text-align: center;
+    font-size: 15px;
+    background-color: {if $cfg['bgtheme']}{$cfg['bgtheme']}{else}#FF2D51{/if};
+	color: {if $cfg['fonttheme']}{$cfg['fonttheme']}{else}white{/if};
+}
+
+.item-pwarp{
+    width: 94%;
+    height: 145px;
+    position: absolute;
+    overflow: hidden;
+}
+
+.item-edit
+{
+	border-radius: 10px;
+	width: 200px;
+	height: 40px;
+	background-color: {if $cfg['bgtheme']}{$cfg['bgtheme']}{else}#FF2D51{/if};
+	color: {if $cfg['fonttheme']}{$cfg['fonttheme']}{else}white{/if};
+}
+
+.item-del
+{
+	background-image: url({if $cfg['icon_del']}{php echo toimage($cfg['icon_del'])}{else}{RES}img/del.png{/if});
+    width: 20px;
+    height: 25px;
+    position: absolute;
+    right: 20px;
+    bottom: 14px;
+    background-size: 100% 100%;
+}
+.item-lock
+{
+	background-image: url({if $cfg['icon_lock']}{php echo toimage($cfg['icon_lock'])}{else}{RES}img/lock.png{/if});
+    width: 20px;
+    height: 25px;
+    position: absolute;
+    left: 20px;
+    bottom: 14px;
+    background-size: 100% 100%;
+}
+.item-lock.unlock
+{
+	background-image: url({if $cfg['icon_unlock']}{php echo toimage($cfg['icon_unlock'])}{else}{RES}img/unlock.png{/if});
+    width: 20px;
+    height: 25px;
+    background-size: 100% 100%;
+}
+
+.item-pedit{
+	width: 100%;
+    display: block;
+    text-align: center;
+    color: grey;
+    text-decoration: none;
+    padding: 10px 0;
+}
+
+.item-pdata{
+	padding: 5px 0;
+  		font-size: 13px;
+}
+
+.item-pdata img{
+	width: 25px;
+  		vertical-align: middle;
+}
+
+.item-pdata font{
+	line-height: 25px;
+    vertical-align: bottom;
+}
+
+.items{
+	margin: 20px auto;
+    border-bottom: 1px solid gainsboro;
+    width: 90%;
+    color: gray;
+}
+.items:last-child{
+	border: 0;
+}
+
+.item-plock{
+	background-image: url({if $cfg['icon_lock']}{php echo toimage($cfg['icon_lock'])}{else}{RES}img/lock.png{/if});
+    width: 15px;
+    height: 20px;
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    background-size: 100% 100%;
+}
+
+.item-plock.unlock{
+	background-image: url({if $cfg['icon_unlock']}{php echo toimage($cfg['icon_unlock'])}{else}{RES}img/unlock.png{/if});
+    width: 20px;
+    height: 20px;
+    background-size: 100% 100%;
+}
+
+.businessCenterTips{ width: 100%; height: auto; display: box; display: -webkit-box; display: -mo-box; padding: 5px 0px; overflow: hidden; background: #fff; border-width: 1px 0px 1px 0px; border-style: solid; border-color: #eee;}
+.businessCenterTips .tips_img{ width: auto; height: 20px; display: block; border-right: 1px solid #eee; margin: 0px 10px; padding: 0px 10px 0px 0px;}
+.businessCenterTips .tips_img img{ width: auto; height: 20px; display: block;}
+.businessCenterTips a{ width: 100%; height: 20px; line-height: 20px; overflow: hidden; font-size: 14px;color: inherit;box-flex:1; -webkit-box-flex:1; -moz-box-flex:1;margin: 0;display: block;}
+
+#createBtn{
+    font-size: 20px;
+    width: 90%;
+    border-radius: 5px;
+    text-decoration: none;
+    margin: 10px auto;
+    display: block;
+    border: 1px solid {if $cfg['bgtheme']}{$cfg['bgtheme']}{else}#FF2D51{/if};
+    padding: 5px 0;
+    background-color: {if $cfg['bgtheme']}{$cfg['bgtheme']}{else}#FF2D51{/if};
+	color: {if $cfg['fonttheme']}{$cfg['fonttheme']}{else}white{/if};
+}
+.my_album{
+    position: fixed;
+    text-decoration: none;
+    width: 50px;
+    height: 50px;
+    text-align: center;
+    border-radius: 50%;
+    right: 10px;
+    line-height: 50px;
+    bottom: 20%;
+    border: 1px solid {if $cfg['bgtheme']}{$cfg['bgtheme']}{else}#FF2D51{/if};
+	background-color:{if $cfg['bgtheme']}{$cfg['bgtheme']}{else}#FF2D51{/if};
+	color: {if $cfg['fonttheme']}{$cfg['fonttheme']}{else}white{/if};
+}
+</style>
+	<script type="text/javascript" src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js?v=20150120"></script>
+    </head>
+    <body>
+    <div id="title">{if empty($mid)}我的{/if}音乐相册
+    	{if !empty($openid)}<a href="{php echo $this->createMobileUrl('feed')}" id="report-btn">反馈</a>{/if}
+    	<a href="{php echo $this->createMobileUrl('help')}" id="help-btn">帮助</a>
+    </div>
+    {if $cfg['notify_title1']}
+    <div class="businessCenterTips">
+		<span class="tips_img">
+			<img src="{RES}img/notice.png" />
+		</span>
+		<a {if $cfg['notify_url1']}href='{$cfg['notify_url1']}'{/if}>
+			<marquee direction="left" scrollamount="5">{$cfg['notify_title1']}</marquee>
+		</a>
+	</div>
+    {/if}
+	<div id="content">
+		{if $cfg['netcreate']}<button id="createBtn" onclick="onCreateAlbum()">创建相册</button>{/if}
+        {if !$list}
+        <div id="promt">
+            <span>您还未制作过任何的音乐相册呢~</span>
+        </div>
+        {else}
+        	{loop $list $l}
+        	<div class="items">
+	        	<div class="item">
+	        		 <div class="item-pwarp"><div class="item-pcount">共{php echo count(unserialize($l['pics']))}张照片</div></div>
+	                 <div class="item-pic" onclick="location.href='{php echo $this->createMobileUrl('album',array('aid'=>base64_encode($l['id'])))}'" style="background-image:url({php $p = unserialize($l['pics']);echo $p[0]})"></div>
+					{if $mem_info['status'] != 1 && empty($mid)}
+					<a class="item-pedit" href="{php echo $this->createMobileUrl('album',array('aid'=>base64_encode($l['id']),'op'=>'edit'))}">编辑</a>
+					<div class="item-plock {if !$l['passwd']}unlock{/if}"  onclick="passwd({$l['id']},'{$l['passwd']}',this)"></div>
+					{/if}
+	             </div>
+	             <div class="item-pdata"><img src="{RES}img/view.png"> <font style="margin-right: 15px;">{$l['clicknum']}次</font><img src="{RES}img/share.png"> <font>{$l['sharenum']}次</font>
+	             		{if $mem_info['status'] != 1 && empty($mid)}
+	             		<div style="float: right;" onclick="del_book(this,'{php echo base64_encode($l['id'])}')"><img style="width: 21px;vertical-align: baseline;" src="{RES}img/delete.png"> <font>删除</font></div>
+	             		{/if}
+	             </div>
+			</div>
+        	{/loop}
+        {/if}
+	</div>
+<a class="my_album" href="{php echo $this->createMobileUrl('square')}">广场</a>
+	{template 'adv'}
+{template 'passwd'}
+{template 'loading'}
+<script type="text/javascript">
+var images = new Array();
+var loadNum = 0;
+var needLoadNum = 0;
+function onCreateAlbum(){
+	{if $_W['fans']['follow']!=1}
+		window.location.href = "{$cfg['ydyy']}";
+		return false;
+	{/if}
+	//拍照或从手机相册中选图接口
+	wx.chooseImage({
+	    count: 9, // 默认9
+	    success: function (res) {
+	    	for(var i in res.localIds){
+	    		needLoadNum++;
+	    		images.push(res.localIds[i]); // 返回选定照片的本地ID列表，localId可以作为img标签的src属性显示图片
+	    	}
+	    	$('#loadingToast .weui_toast_content').text("上传中("+0+"/"+needLoadNum+")");
+	    	LOADING(true);
+	    	upload();
+	    }
+	});
+}
+
+function del_book(obj,aid){
+	if(confirm('删除后将不可恢复，确定删除吗？')){
+		$.ajax({
+			url:'{php echo $this->createMobileUrl("del")}',
+			type:'post',
+			data:{aid:aid},
+			success:function(data){
+				if(data == '1'){
+					$(obj).parents('.items').remove();
+				}else{
+					alert('删除失败！');
+				}
+			}
+		});
+	}
+}
+
+var shareData = {
+	      title: "{$cfg['ms_title']}",
+	      link: "{php echo $_W['siteroot'].'app'.substr($this->createMobileUrl('index',array('mid'=>base64_encode($mem_info['id']))),1)}",
+	      desc: "{$cfg['ms_desc']}",
+          imgUrl: "{if $cfg['ms_thumb']}{php echo toimage($cfg['ms_thumb'])}{else}{$avatar}{/if}",
+          success:function(){
+        	  {if $cfg['ms_url']}
+        	  location.href = '{$cfg["ms_url"]}';
+        	  {/if}
+          }
+	   };
+
+jssdkconfig = {php echo json_encode($_W['account']['jssdkconfig']);} || { jsApiList:[] };
+jssdkconfig.debug = false;
+jssdkconfig.jsApiList = ['checkJsApi','onMenuShareTimeline','onMenuShareAppMessage','onMenuShareQQ','onMenuShareWeibo','showOptionMenu','chooseImage','uploadImage'];
+wx.config(jssdkconfig);
+	wx.ready(function () {
+	    wx.onMenuShareAppMessage(shareData);
+	    wx.onMenuShareTimeline(shareData);
+	    wx.onMenuShareQQ(shareData);
+	    wx.onMenuShareWeibo(shareData);
+	});
+	
+var pics = new Array();	
+function upload(){
+	wx.uploadImage({
+		localId : images[loadNum], // 需要上传的图片的本地ID，由chooseImage接口获得
+		isShowProgressTips : 0, // 默认为1，显示进度提示
+		success : function(res) {
+			$.ajax({
+				type:"POST",
+				url:"{php echo $this->createMobileUrl('upload')}",
+				data:{imgid:res.serverId},
+				success:function(data){
+					var data = $.parseJSON(data);
+					if(data.code == 1){
+						loadNum++;
+						$('#loadingToast .weui_toast_content').text("上传相片中("+loadNum+"/"+needLoadNum+")");
+						pics.push(data.thumb);
+						if(needLoadNum == loadNum){//最后一个图片
+							$.ajax({
+								url:"{php echo $this->createMobileUrl('create')}",
+								type:'post',
+								data:{pics:JSON.stringify(pics)},
+								success:function(data){
+									data = JSON.parse(data);
+									if(data.code==0){
+										LOADING(false);
+										alert(data.msg);
+									}else{
+										window.location.href=data.url;
+										return false;
+									}
+								}
+							});
+						}
+					}
+					upload();
+				}
+			});
+		},
+	});
+	return false;
+}	
+</script>
+</body>
+</html>

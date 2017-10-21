@@ -1,0 +1,87 @@
+{template 'common/header'}
+<section>
+    <div class="container-fluid container-fullw bg-white">
+        <div class="panel panel-default">
+            <div class="panel-body">
+            <form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" >
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">版本</label>
+                    <div class="col-sm-10">
+                        <p class="form-control-static"><span class="fa fa-square-o"></span> &nbsp; 当前版本: {$version}</p>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">更新日期</label>
+                    <div class="col-sm-10">
+                        <p class="form-control-static"><span class="fa fa-square-o"></span> &nbsp; {$updatedate}</p>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">更新情况</label>
+                    <div class="col-sm-10" id="upgrade">
+                        <div class="help-block"><strong>注意: {$message}</strong></div>
+                        {if !empty($files)}
+                        <div class="alert alert-info" style="line-height:20px;margin-top:20px;">
+                            {loop $files $f}
+                            <div><span style="display:inline-block; width:30px;">覆盖</span>{$f['path']}</div>
+                            {/loop}
+                        </div>
+                        {/if}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-sm-offset-2 col-md-offset-2 col-lg-offset-1 col-xs-12 col-sm-10 col-md-10 col-lg-11">
+                        <div class='form-control-static'>
+                            <span id="process"></span>
+                            <button type="button" id="forward" class="btn btn-primary" >立即更新</button>
+                            <input type="hidden" name="token" value="{$_W['token']}" />
+                        </div>
+                    </div>
+            	</div>
+            </form>
+        </div>
+     </div>
+</div>
+<section>
+    <div class="container-fluid container-fullw bg-white">
+        <div class="row" id="logs">
+
+        </div>
+    </div>
+</section>
+</section>
+<script type="text/javascript">
+    require(['jquery', 'util'], function($, u){
+    	function upgrade(){
+            $.ajax({
+                url: "{php $this->createWebUrl('download')}",
+                data:{op:'download'},
+                type:'post',
+                dataType:'json',
+                success:function(ret){
+                 if(ret.result==1)      {
+                     $('#process').html("已更新 " + ret.success + "个文件 / 共 " + ret.total +  " 个文件！");
+                     upgrade();
+                 }
+                 else if(ret.result==2){
+                	 u.message("恭喜您，更新成功！", '', 'success');
+                     location.reload();
+                 }
+                }
+            });
+        }
+        $('#forward').click(function(){
+        	upgrade();
+        });
+    });
+</script>
+
+    <script>
+        var url = '{php echo $this->createWebUrl('updatelog')}';
+        $.get(url,function(data){
+            $('#logs').html(data);
+        });
+    </script>
+{template 'common/footer'}

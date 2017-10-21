@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>我要上推荐</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="../addons/hao_recommend/template/mobile/style/common.css">
+    <link rel="stylesheet" href="../addons/hao_recommend/template/mobile/style/events.css">
+    <script type="text/javascript" src="../addons/hao_recommend/template/mobile/style/jquery-1.11.0.min.js"></script>
+    <link href="{$_W['siteroot']}app/resource/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{$_W['siteroot']}app/resource/css/font-awesome.min.css" rel="stylesheet">
+    <link href="{$_W['siteroot']}app/resource/css/animate.css" rel="stylesheet">
+    <link href="{$_W['siteroot']}app/resource/css/common.css" rel="stylesheet">
+    <link href="{$_W['siteroot']}app/resource/css/app.css" rel="stylesheet">
+    <style id="style-1-cropbar-clipper">
+    .en-markup-crop-options {
+        top: 18px !important;
+        left: 50% !important;
+        margin-left: -100px !important;
+        width: 200px !important;
+        border: 2px rgba(255,255,255,.38) solid !important;
+        border-radius: 4px !important;
+    }
+
+    .en-markup-crop-options div div:first-of-type {
+        margin-left: 0px !important;
+    }
+    </style>
+</head>
+
+<body>
+<form>
+<div class="events-bg2">
+    <div class="width">
+        <div class="events-form">
+            <input type="hidden" name="openid" value="{$openid}" />
+            <div class="input3">
+                <label for="name">姓名</label>
+                <input id="name" name="username" type="text" value="" placeholder="真实姓名" required="" aria-required="true">
+            </div>
+            <div class="input3">
+                <label for="tel">电话</label>
+                <input id="tel" name="phone" type="tel" placeholder="联系方式" required="" aria-required="true">
+            </div>
+            <div class="input3">
+                <label for="email">名称</label>
+                <input id="email" name="publicname" type="text" value="" placeholder="名称" required="" aria-required="true">
+            </div>
+            <div class="input3">
+                <label for="company" style="vertical-align:top;">简介</label>
+                <textarea type="text" name="publicdescription" placeholder="简介" required="" aria-required="true"></textarea>
+            </div>
+            <div class="input4"> 
+                <label><input name="category" checked="checked" type="radio" value="0">微信公众号</label>
+                <label><input name="category" type="radio" value="1">个人微信号</label>
+                <label><input name="category" type="radio" value="2">微信群聊号</label>
+            </div>
+            <div class="input3">
+                <label for="rank">二维码</label>
+                <input type="hidden" name="publicimage" />
+                <button class="btn btn-lg btn-primary btn-shadow" id="publicimage" type="button" style="margin-left:28px;">上传图片</button>
+                <img id="image" width="45" height="45" style="display:none;" />
+            </div>
+            <div class="input3">
+                <label for="rank">宣传小图标</label>
+                <input type="hidden" name="icon" />
+                <button class="btn btn-lg btn-primary btn-shadow" id="publicimage1" type="button">上传图片</button>
+                <img id="image1" width="45" height="45" style="display:none;" />
+            </div>
+        </div>
+    </div>
+</div>
+<div id="showError" class="showError"> </div>
+<div class="eve-btn width">
+   <button href="javascript:void(0)" id="events-submit" type="button" >确定</button>
+</div>
+</form>
+
+{php echo register_jssdk(false);}
+<script type="text/javascript">
+  wx.ready(function () {
+          var btn = document.getElementById('publicimage');
+          //定义images用来保存选择的本地图片ID，和上传后的服务器图片ID
+          var images = {
+              localId: [],
+              serverId: []
+          };
+          btn.onclick = function(){
+              wx.chooseImage({
+                   success:function(res){
+                        images.localId = res.localIds;
+                        document.getElementById('image').src = images.localId;
+                        $('#image').attr('style','');
+
+                        var i = 0, len = images.localId.length;
+                        wx.uploadImage({
+                            localId: images.localId[i], // 需要上传的图片的本地ID，由chooseImage接口获得
+                            isShowProgressTips: 1, // 默认为1，显示进度提示
+                            success: function (res) {
+                                i++;
+                                //将上传成功后的serverId保存到serverid
+                                images.serverId.push(res.serverId); 
+                                var uniacid = {$_W['uniacid']};
+                                $.ajax({
+                                     url: "{php echo $this->createMobileUrl('upload');}",  
+                                     type: "GET",
+                                     data:{media_id: res.serverId,uniacid:uniacid},
+                                     dataType: "json",
+                                     error: function(){  
+                                         alert('Error loading XML document');  
+                                     },  
+                                     success: function(data,status){ 
+                                         $('input[name="publicimage"]').val(data['url']);
+                                         //alert($('input[name="publicimage"]').val());
+                                     }
+                                 });                
+
+                                if(i < len){
+                                    wxUpload();
+                                }  
+                            }
+                        });
+                   }
+              });
+          }
+    });
+</script>
+<script type="text/javascript">
+    wx.ready(function () {
+          var btn = document.getElementById('publicimage1');
+          //定义images用来保存选择的本地图片ID，和上传后的服务器图片ID
+          var images = {
+              localId: [],
+              serverId: []
+          };
+
+          btn.onclick = function(){
+              wx.chooseImage({
+                   success:function(res){
+                        images.localId = res.localIds;
+                        document.getElementById('image1').src = images.localId;
+                        $('#image1').attr('style','');
+
+                        var i = 0, len = images.localId.length;
+                        wx.uploadImage({
+                            localId: images.localId[i], // 需要上传的图片的本地ID，由chooseImage接口获得
+                            isShowProgressTips: 1, // 默认为1，显示进度提示
+                            success: function (res) {
+                                i++;
+                                //将上传成功后的serverId保存到serverid
+                                images.serverId.push(res.serverId);
+                                var uniacid = {$_W['uniacid']};
+                                $.ajax({
+                                     url: "{php echo $this->createMobileUrl('upload');}",  
+                                     type: "GET",
+                                     data:{media_id: res.serverId,uniacid:uniacid},
+                                     dataType: "json",
+                                     error: function(){  
+                                         alert('Error loading XML document');  
+                                     },  
+                                     success: function(data,status){//如果调用php成功    
+                                        $('input[name="icon"]').val(data['url']);
+                                        //alert($('input[name="icon"]').val());
+                                     }
+                                 });                           
+
+                                if(i < len){
+                                    wxUpload();
+                                }  
+                            }
+                        });
+                   }
+              });
+          }
+    });
+</script>
+<script type="text/javascript">
+    $(function(){
+        $('.help-block').attr('style','display:none');
+    });
+    //错误提示
+    function errorTips(othis, msg) {
+        document.getElementById("events-submit").disabled = false;
+        if(othis != null)
+            othis.focus();
+
+        if (msg != '') {
+            $('.showError').html(msg).css({
+                "color": "red"
+            });
+            $(".showError").fadeIn("slow");
+            setTimeout(function() {
+                $('.showError').fadeOut('slow');
+            }, 2000);
+        } else {
+            $('.showError').html('');
+        }
+        return false;
+    }
+
+    $('#events-submit').click(function(){
+    	var category= $('input:radio[name="category"]:checked').val();
+        var name_input = $("input[name='username']");
+        var phone_input  = $("input[name='phone']");
+        var publicname_input  = $("input[name='publicname']");
+        var publicdescription_input  = $("textarea[name='publicdescription']");
+        var publicimage_input  = $("input[name='publicimage']");
+        var icon_input = $("input[name='icon']");
+
+        var name = $("input[name='username']").val();
+        var phone = $("input[name='phone']").val();
+        var publicname = $("input[name='publicname']").val();
+        var publicdescription = $("textarea[name='publicdescription']").val();
+        var publicimage = $("input[name='publicimage']").val();
+        var icon = $('input[name="icon"]').val();
+        var openid = $("input[name='openid']").val();
+        if (name == '') {
+            errorTips(name_input, "姓名不能为空");
+            return false;
+        }
+        if (phone == '') {
+            errorTips(phone_input, "电话不能为空");
+            return false;
+        } else {
+            var reg = /^1\d{10}$/;
+            iso = reg.test(phone);
+            if (!iso) {
+                errorTips(phone_input, "电话格式错误");
+                return false;
+            }
+        }
+        if (publicname == '') {
+            errorTips(publicname_input, "名称不能为空");
+            return false;
+        }
+        if (publicdescription == '') {
+            errorTips(publicdescription_input, "简介不能为空");
+            return false;
+        }
+        if (publicimage == '') {
+            errorTips(publicimage_input, "二维码不能为空");
+            return false;
+        }
+        if (icon == '') {
+            errorTips(icon_input, "宣传小图标不能为空");
+            return false;
+        }
+        else{
+            var uniacid = {$_W['uniacid']};
+            //alert(publicimage);
+            $.ajax({
+               url: "{php echo $this->createMobileUrl('ajaxform')}",  
+               type: "GET",
+               data:{uniacid:uniacid,publicimage:publicimage,category:'0',username:name,phone:phone,publicname:publicname,publicdescription:publicdescription,icon:icon,openid:openid,category:category},
+               dataType: "json",
+               error: function(){  
+                  alert('Error loading XML document');  
+               },  
+               success: function(data,status){//如果调用php成功   
+                  alert("提交成功,等待审核！"); 
+                  location.href = "{php echo $this->createMobileUrl('tip')}";
+               }
+           });    
+        }
+    });
+</script>
+</body>
+</html>

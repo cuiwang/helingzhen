@@ -1,0 +1,223 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+		<li><a href="{php echo $this->createWebUrl('print', array('op' => 'list'));}">打印机管理</a></li>
+        <li  class="active"><a href="{php echo $this->createWebUrl('print', array('op' => 'add'));}">设置打印机</a></li>
+
+</ul>
+<form action="" method="post" class="form-horizontal form" onsubmit="return check(this);">
+    <input type="hidden" name="regionid" value="" />
+<div class="main"  >
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">GPRS打印机基本设置</h3>
+        </div>
+        <div class="panel-body">
+             <div class="alert alert-info" role="alert">
+                <p>支持:飞印打印机和小区定制打印机.</p>
+                <p>1.飞印打印机填写商户编码,API密钥,终端编号。</p>
+                <p>2.定制打印机填写API密钥,终端编号.</p>
+            </div>
+            <div class="form-group">
+                <label for="" class="col-sm-2 control-label">是否开启</label>
+                <div class="col-sm-10">
+                    <label for="isshow1" class="radio-inline">
+                        <input type="radio" name="print_status" value="1" id="isshow1" {if $settings['print_status']==1}checked="true" {/if} /> 是</label>
+                    &nbsp;&nbsp;&nbsp;
+                    <label for="isshow2" class="radio-inline">
+                        <input type="radio" name="print_status" value="0" id="isshow2" {if $settings['print_status']==0}checked="true" {/if} /> 否</label>
+                    <span class="help-block"></span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="" class="col-sm-2 control-label">打印方式</label>
+                <div class="col-sm-10">
+                    <label  class="radio-inline">
+                        <input type="radio" name="print_type" value="1" id="print_type2" {if $settings['print_type']==1}checked="true" {/if}/>打印报修</label>
+                    &nbsp;&nbsp;&nbsp;
+                    <label  class="radio-inline">
+                        <input type="radio" name="print_type" value="2" id="print_type2" {if $settings['print_type']==2}checked="true" {/if}/>打印投诉</label>
+                    &nbsp;&nbsp;&nbsp;
+                    <label  class="radio-inline">
+                        <input type="radio" name="print_type" value="3" id="print_type2" {if $settings['print_type']==3}checked="true" {/if}/>打印订单</label>
+                    &nbsp;&nbsp;&nbsp;
+                    <label  class="radio-inline">
+                        <input type="radio" name="print_type" value="0" id="print_type3" {if $settings['print_type']==0}checked="true" {/if}/>全部打印</label>
+                    <span class="help-block"></span>
+                </div>
+            </div>
+			<div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">选择打印机</label>
+                    <div class="col-sm-9">
+                        <select class="form-control" name="printid" id="type" >
+                            {loop $printers $p} 
+							<option value="{$p['id']}" {if $settings['printid']==$p['id']}selected{/if}>{$p['name']}</option>
+							{/loop}
+                        </select>
+						<div class="help-block">请先到全局打印机处添加打印机，然后在此选择使用。此处选择打印机后，下面的商户编码等可不用填写。</div>
+                    </div>
+            </div>
+
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">移步全局打印机</label>
+				<div class="col-sm-9 col-xs-12">
+					<div class="help-block"><a href="./index.php?c=fournet&a=print&do=printlist&" target="_blank">移步全局打印机添加打印机</a></div>
+					</div>
+			</div>
+            <div class="form-group">
+                <label for="print_usr" class="col-sm-2 control-label">商户编码</label>
+                <div class="col-sm-5">
+                    <input type="text" name="member_code" value="{$settings['member_code']}" class="form-control" />
+                    <p class="help-block">商户编码</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="print_nums" class="col-sm-2 control-label">API密钥</label>
+                <div class="col-sm-5">
+                    <input type="text" name="api_key" class="form-control" value="{$settings['api_key']}" />
+                    <p class="help-block">API密钥</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="print_nums" class="col-sm-2 control-label">终端编号</label>
+                <div class="col-sm-5">
+                    <input type="text" name="deviceNo" class="form-control" value="{$settings['deviceNo']}" />
+                    <p class="help-block">打印机编号</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="" class="col-sm-2 control-label">省市区</label>
+                <div class="col-sm-5">
+                    {php echo tpl_form_field_district('birth',array('province' => $settings['province'],'city' => $settings['city'],'dist' => $settings['dist']))}
+                </div>
+            </div>
+            <div class="form-group region" {if !$regs}style="display: none"{/if}>
+                <label for="" class="col-sm-2 control-label">选择小区</label>
+                <div class="col-sm-10 content">
+                    {if $regs}
+                    <label class="checkbox-inline">
+                        <input type="checkbox" id="checkAll" name="checkAll" data-group="regionid">全部
+                    </label>
+                    {loop $regions $region}
+                    <label class="checkbox-inline">
+                        <input type="checkbox" id="regionid" value="{$region['id']}" name='regionid[]' data-group="regionid" {if @in_array($region[ 'id'], $regs)}checked='checked' {/if}> {$region['city']}{$region['dist']}{$region['title']}
+                    </label>
+                    {/loop}
+
+
+                    {/if}
+
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="" class="col-sm-2 control-label"></label>
+                <div class="col-sm-10">
+                    <input name="submit" type="submit" value="提交" class="btn btn-primary span3">
+                    <input type="hidden" name="id" value="{$settings['id']}" />
+                    <input type="hidden" name="token" value="{$_W['token']}" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+</form>
+<script type="text/javascript">
+    function check(form){
+        var regionids = [];
+        $("input[id='regionid']:checked").each(function(){
+            var lastid = $(this).val();
+            regionids.push(lastid);
+        })
+        regionids.join(",");
+        console.log(regionids);
+        $("input[name='regionid']").val(regionids);
+        return true;
+    }
+    {if $id}
+        $(function() {
+            $("#checkAll").click(function() {
+                var checked = $(this).get(0).checked;
+                var group = $(this).data('group');
+                $("#regionid[data-group='" +group + "']").each(function(){
+                    $(this).get(0).checked = checked;
+                })
+            });
+        });
+        {/if}
+    $(function() {
+        //省
+        $('.tpl-province').change(function(){
+            var province =$('.tpl-province').val();
+            $.getJSON("{php echo $this->createWebUrl('cregion')}",{province:province},function(data){
+                var region ="";
+                region += "<label class=\"checkbox-inline\" >";
+                region += "<input type=\"checkbox\" id=\"checkAll\" name=\"checkAll\" data-group=\"regionid\" />全部";
+                region += "</label>";
+                for(var o in data){
+                    region += "<label class=\"checkbox-inline\" >";
+                    region += "<input type='checkbox' id='regionid' value='"+data[o].id+"' data-group='regionid' >"+data[o].title;
+                    region += "</label>";
+                }
+                $('.content').html(region);
+                $('.region').show();
+                $("#checkAll").click(function() {
+                    var checked = $(this).get(0).checked;
+                    var group = $(this).data('group');
+                    $("#regionid[data-group='" +group + "']").each(function(){
+                        $(this).get(0).checked = checked;
+                    })
+                });
+            })
+        })
+        //市
+        $('.tpl-city').change(function(){
+            var city =$('.tpl-city').val();
+            $.getJSON("{php echo $this->createWebUrl('cregion')}",{city:city},function(data){
+                var region ="";
+                region += "<label class=\"checkbox-inline\" >";
+                region += "<input type=\"checkbox\" id=\"checkAll\" name=\"checkAll\" data-group=\"regionid\"  />全部";
+                region += "</label>";
+                for(var o in data){
+                    region += "<label class=\"checkbox-inline\" >";
+                    region += "<input type='checkbox' id='regionid' value='"+data[o].id+"' data-group ='regionid'>"+data[o].title;
+                    region += "</label>";
+                }
+                $('.content').html(region);
+                $('.region').show();
+                $("#checkAll").click(function() {
+                    var checked = $(this).get(0).checked;
+                    var group = $(this).data('group');
+                    $("#regionid[data-group='" +group + "']").each(function(){
+                        $(this).get(0).checked = checked;
+                    })
+                });
+            })
+        })
+        //区
+        $('.tpl-district').change(function(){
+            var dist =$('.tpl-district').val();
+            $.getJSON("{php echo $this->createWebUrl('cregion')}",{dist:dist},function(data){
+                var region ="";
+                region += "<label class=\"checkbox-inline\" >";
+                region += "<input type=\"checkbox\" id=\"checkAll\" name=\"checkAll\" data-group=\"regionid\"  />全部";
+                region += "</label>";
+                for(var o in data){
+                    region += "<label class=\"checkbox-inline\" >";
+                    region += "<input type='checkbox' id='regionid' value='"+data[o].id+"' data-group ='regionid'>"+data[o].title;
+                    region += "</label>";
+                }
+                $('.content').html(region);
+                $('.region').show();
+                $("#checkAll").click(function() {
+                    var checked = $(this).get(0).checked;
+                    var group = $(this).data('group');
+                    $("#regionid[data-group='" +group + "']").each(function(){
+                        $(this).get(0).checked = checked;
+                    })
+                });
+            })
+        })
+
+    });
+</script>
+{template 'common/footer'}

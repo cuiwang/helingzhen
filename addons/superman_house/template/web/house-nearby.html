@@ -1,0 +1,80 @@
+<div class="alert alert-info">周边数据来源为百度地图数据，以楼盘为圆心，方圆2000米范围内的商家数据</div>
+{if $item['nearby']}
+<div id="house_nearby_wrap">
+	<ul class="nav nav-tabs">
+	{php $index=0;}
+	{loop $item['nearby'] $key $val}
+	{php $index+=1;}
+		<li class="{if $index==1}active{/if} tab2">
+			<a href="javascript:;" rel="superman_nearby_{$index}">
+				{$key} ({php echo count($val)})
+			</a>
+		</li>
+	{/loop}
+	</ul>
+
+	<div style="min-height:420px;width:500px;">
+		{php $index=0;}
+		{loop $item['nearby'] $near}
+		{php $index+=1;}
+		<div class="tab-content">
+			<div class="tab-pane pane2 {if $index==1}active{/if}" id="superman_nearby_{$index}">
+				{if $near}
+				<ul class="list-group">
+				{loop $near $v}
+					<li class="list-group-item">
+						<span class="badge">{$v['distance']}米</span>
+						{$v['name']}
+					</li>
+				{/loop}
+				</ul>
+				{/if}
+			</div>
+		</div>
+		{/loop}
+	</div>
+	<a class="btn btn-danger btn_clear_nearby">清除周边数据</a>
+	<span class="help-block">清除操作成功后，重新刷新页面即可自动获取周边数据</span>
+	<script>
+		require(['jquery', 'util'], function($, u){
+			//绑定tab切换
+			$('#house_nearby_wrap .tab2 a').bind('click', function(){
+				var id = $(this).attr('rel');
+				$('#house_nearby_wrap .tab2').each(function(){
+					$(this).removeClass('active');
+				});
+				$('#house_nearby_wrap .pane2').each(function(){
+					$(this).hide();
+				});
+				$('#'+id).show();
+				console.log(id);
+				$(this).parent().addClass('active');
+			});
+
+			$('.btn_clear_nearby').click(function(){
+				var t = this;
+				$(t).attr('disabled', true);
+				if (!confirm('确认清除周边数据？')) {
+					$(t).removeAttr('disabled');
+					return false;
+				}
+				$(t).attr('disabled', true);
+				$.ajax({
+					url: location.href+'&delnearby=yes',
+					success: function(resp) {
+						if (resp == 'success') {
+							$(t).removeAttr('disabled');
+							util.message('操作成功', '', 'success');
+							$('#house_nearby_wrap').remove();
+						} else {
+							util.message(resp, '', 'error');
+						}
+					}
+				});
+			});
+		});
+	</script>
+</div>
+{else}
+	<span class="help-block">楼盘地址坐标设置后，楼盘周边数据自动调用，数据来源为百度地图，暂不支持自定义修改</span>
+{/if}

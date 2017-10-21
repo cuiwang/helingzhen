@@ -1,0 +1,109 @@
+{template 'common/header'}
+
+<div class="main">
+	<ul class="nav nav-tabs">
+		<li{if $_GPC['do'] == 'manage'} class="active"{/if}><a href="{php echo $this->createWebUrl('manage');}">活动管理</a></li>
+		<li{if $_GPC['do'] == 'post'} class="active"{/if}><a href="{php echo url('platform/reply/post',array('m'=>'ruifan_yaoyiyao'));}">添加活动</a></li>
+		<li{if $_GPC['do'] == 'awardfans'} class="active"{/if}><a href="{php echo $this->createWebUrl('awardfans',array('rid'=>$id))}">中奖名单</a></li>
+		<li{if $_GPC['do'] == 'awardlist'} class="active"{/if}><a href="{php echo $this->createWebUrl('awardlist',array('rid'=>$id))}">中奖数据</a></li>
+	</ul>
+    <div class="panel panel-primary">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+		<form action="./index.php" method="get" class="form-horizontal" role="form">
+			<input type="hidden" name="c" value="site" />
+			<input type="hidden" name="a" value="entry" />
+        	<input type="hidden" name="m" value="ruifan_yaoyiyao" />
+        	<input type="hidden" name="do" value="awardlist" />
+        	<input type="hidden" name="rid" value="{$_GPC['rid']}" />
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">关键字</label>
+				<div class="col-xs-12 col-sm-8 col-lg-9">
+					<input class="form-control" name="keywords" id="" type="text" value="{$_GPC['keywords']}" placeholder="请输入手机号">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">状态</label>
+				<div class="col-xs-12 col-sm-8 col-lg-9">
+					<select name="status" class="form-control" style="float:left">
+                    	<option value="" {if $_GPC['status']==''}selected{/if}>全部</option>
+                        <option value="1" {if $_GPC['status']=='1'}selected{/if}>未兑奖</option>
+                        <option value="2" {if $_GPC['status']=='2'}selected{/if}>已兑换</option>
+                        <option value="21" {if $_GPC['status']=='21'}selected{/if}>红包未发送</option>
+                	</select>
+				</div>
+                <div class=" col-xs-12 col-sm-2 col-lg-2">
+					<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+<div class="panel panel-primary">
+<div class="panel-heading">
+
+	<div class="alert" style="margin-bottom:0;">
+		本次活动中奖总数：{$num1}个　　未兑奖：{$num2}个 
+		<span style="float:right">
+			<button class="btn btn-success" onclick="location.href='{php echo $this->createWebUrl('downloadr',array('rid'=>$_GPC['rid']))}'" type="button"><i class="fa fa-search"></i> 导出数据</button>
+		</span>
+		</div>
+		<div class="alert" style="margin-bottom:0;">特别提醒：由于微信红包会出现小概率发送延迟的情况，但是返回的代码是为发送失败的，请再点击重新发送前先到商户后台红包发送记录看看该用户的OpenID是否已发送了。
+		<br>使用借用红包权限的公众号，6月27日前的失败记录不支持重复功能，之后的记录可以支持,非借用的认证服务号不受此限制。
+		</div>
+</div>
+	<div style="position:relative">
+		<div class="panel-body table-responsive">
+			<table class="table table-hover" style="position:relative">
+			<thead class="navbar-inner">
+				<tr>
+					<th style="width:60px;">序号</th>
+					<th style="width:200px;">奖品名称</th>
+					<th style="width:80px;">状态</th>
+					<th style="width:120px;">领取者手机号</th>
+					<th style="width:250px;">领奖者OpenID</th>
+					<th style="width:140px;">中奖时间</th>
+					<th style="width:140px;">兑奖时间</th>
+					<th style="width:95px;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $row}
+				<tr>
+					<td>{$row['id']}</td>
+					<td> {if $row['giscredt']==1}【积分】{elseif $row['giscredt']==2}【余额】{elseif $row['giscredt']==4}【卡券】{elseif $row['giscredt']==5}【红包】{else}【实物】{/if}
+						{$row['prizetype']}</td>
+					<td>{if $row['status']==0}<span class="label label-default">未领取</span>
+						{elseif $row['status']==1}<span class="label label-warning">未兑奖</span>
+						{elseif $row['status']==21}<span class="label btn-danger">未发送</span>
+						{else}<span class="label label-success">已兑奖</span>{/if}</td>
+					<td>{$row['tel']}</td>
+					<td>{$row['from_user']}</td>
+					<td>{php echo date('Y/m/d H:i',$row['createtime']);}</td>
+					<td>{if $row['consumetime'] == 0}未使用{else}{php echo date('Y/m/d H:i',$row['consumetime']);}{/if}</td>
+					<td>
+						{if $row['status']==1}
+						<a class="btn btn-warning" href="#" onclick="drop_confirm('确认设置为已兑奖?','{php echo $this->createWebUrl('setstatus',array('status'=>2,'id'=>$row['id'],'rid'=>$row['rid']))}');"><i class="fa fa-check-circle-o"></i> 兑奖</a>
+						{elseif $row['status']==21}
+						<a class="btn btn-warning" href="#" onclick="drop_confirm('确认重新给粉丝发送红包?','{php echo $this->createWebUrl('setstatus',array('status'=>2,'ishb'=>1,'id'=>$row['id'],'rid'=>$row['rid']))}');"><i class="fa fa-check-circle-o"></i> 重发</a>
+						{else}
+						<button class="btn btn-success" disabled="disabled" ><i class="fa fa-check-circle-o"></i> 已兑</button>
+						{/if}
+					</td>
+				</tr>
+				{/loop}
+			</tbody>
+		</table>
+	</div>
+</div>
+</div>
+{$pager}
+</div>
+<script>
+	function drop_confirm(msg, url){
+    if(confirm(msg)){
+        window.location = url;
+    }
+}
+</script>
+{template 'common/footer'}

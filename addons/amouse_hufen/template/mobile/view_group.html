@@ -1,0 +1,169 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no"/>
+    <meta name="format-detection" content="telephone=no"/>
+    <title>{if $set['copyright']}{$set['copyright']}{else}{$_W['account']['name']}{/if}</title>
+    <link rel="stylesheet" href="{AMOUSE_HUFEN_RES}css/foundation.css"/>
+    <link rel="stylesheet" href="{AMOUSE_HUFEN_RES}css/main.a85c39c492c5.css"/>
+    <link rel="stylesheet" href="{AMOUSE_HUFEN_RES}css/detail2.css"/>
+</head>
+<body>
+<div class="wrapper">
+    <div class="content">
+        <div class="dialog" id="tip">
+            <div class="dialog-cnt">
+                <div class="dialog-bd">
+                    <h3>提示</h3>
+                    <p class="text"></p>
+                    <a class="button correct-btn" id="alert_ok">确&nbsp;&nbsp;定</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="introduction box">
+            <div class="row">
+                <div class="small-3 columns">
+                    <div class="portrait portrait-group">
+                        <img src="{AMOUSE_HUFEN_RES}images/group.png" alt="">
+                    </div>
+                </div>
+                <div class="small-9 columns">
+                    <p class="group-name">{$group['title']}<span class="hot">{$group['hot']}</span></p>
+                    <p>个人微信：
+                        <a style="color:#18d5ff;"
+                           href="{php echo $this->createMobileUrl('viewperson',array(),true)}&pk={$card['id']}">
+                            {$fans['wechatno']}</a>
+
+                    </p>
+
+                    <p>最近更新：{if $group['uptime']>0}{php echo date('Y-m-d H:i',$group['uptime'])}{else}{php echo date('Y-m-d H:i',$group['createtime'])}{/if}</p>
+                    <p><span class="special-letter">地</span>址：{$group['location_c']}</p>
+
+                </div>
+            </div>
+        </div>
+        <div class="intro-list box">
+            <p class="subtitle">简介</p>
+            <div class="line"></div>
+            <p>{$group['desc']}</p>
+        </div>
+        <div class="intro-list box">
+            <p class="subtitle">群二维码</p>
+            <div class="line"></div>
+            <div class="group-code" style="text-align:center;">
+                <img class="qrcode-img" src="{php echo strpos($group['qrcode'],'http://')===FALSE?(tomedia($group['qrcode'])):$group['qrcode']}" alt="">
+                <p>若长按无法识别，请点击放大图片后再识别</p>
+            </div>
+        </div>
+
+        <div class="row">
+            {if $group['openid']==$openid}
+            {if $group['mealid']<0}
+            <div class="small-12 columns publish">
+                <a class="button btn"
+                   href="{php echo $this->createMobileUrl('vip',array('op'=>'step4','type'=>'4','pk'=>$group['id']),true)}">开通群VIP
+                </a>
+            </div>
+            {/if}
+
+            <div class="small-12 columns publish">
+                <a class="button btn" href="{php echo $this->createMobileUrl('release',array('ptype'=>'group'),true)}&pk={$group['id']}">更新群名片</a>
+            </div>
+            <div class="small-12 columns publish">
+                <a class="button btn" onclick="return confirm('确定删除这个群？');"
+                   href="{php echo $this->createMobileUrl('delete',array('ptype'=>'group'),true)}&pk={$group['id']}">删除群名片</a>
+            </div>
+            {/if}
+        </div>
+    </div>
+
+    {template 'footerbar'}
+
+</div>
+{php echo register_jssdk(false);}
+<script src="{AMOUSE_HUFEN_RES}js/jquery.f5d547e5b88b.js?v2"></script>
+<script src="{AMOUSE_HUFEN_RES}js/modernizr.7710ac5fd1f2.js"></script>
+<script src="{AMOUSE_HUFEN_RES}js/foundation.min.dea49fb77ce9.js"></script>
+<script src="{AMOUSE_HUFEN_RES}js/main.04f12e56ea6a.js"></script>
+<script>
+    $(document).foundation();
+    alert_ok = null;
+    function new_alert(msg, cb) {
+        alert_ok = cb;
+        $('#tip .text').html(msg);
+        $('#tip').show();
+    }
+    old_alert = window.alert;
+    window.alert = new_alert;
+    $('#alert_ok').click(function () {
+        if (alert_ok) {
+            alert_ok();
+        }
+        $('#tip').hide();
+    });
+
+    currentItem ="{$group['id']}";
+    $('.wrapper').delegate('.addit', 'click', function (e) {
+        e.stopPropagation();
+        show("{php echo strpos($group['qrcode'],'http://')===FALSE?(tomedia($group['qrcode'])):$group['qrcode']}");
+        return false;
+    });
+
+    $('#qrcode .qrcode-img').on('touchstart', function (e) {
+        if (currentItem) {
+            window.touchTimeout = setTimeout(function () {
+                var getUrl = '{php echo $this->createMobileUrl('log',array(),true)}&show_type=group&pk='+currentItem+ '&_=' + Math.random();
+                var result=AjaxReturn(getUrl,'get');
+                console.log(result);
+                if(result.code==200) {
+
+                }
+            }, 10);
+        }
+    }).on('touchend', function (e) {
+        clearTimeout(window.touchTimeout);
+    });
+
+
+    wx.ready(function () {
+        shareMeta = {
+            imgUrl:"{$shareimg}",
+            link: "{php echo $this->createMobileUrl('share',array('type'=>1,'pk'=>$card['id']),true)}",
+            desc : "{$sharedesc}",
+            title : "{$sharetitle}",
+            success: function(){
+
+            },
+            cancel: function(){
+                // alert("分享失败，可能是网络问题，一会儿再试试？");
+            }
+        };
+        wx.onMenuShareTimeline(shareMeta);
+        wx.onMenuShareAppMessage(shareMeta);
+        wx.onMenuShareWeibo(shareMeta);
+        wx.onMenuShareQQ(shareMeta);
+        wx.onMenuShareQZone(shareMeta);
+    });
+
+    /*$('#get_redpacks').click(function () {
+        var $link = $(this);
+        $link.hide();
+        $.getJSON("/pay/ajax_get_redpacks", function (j) {
+            if (j.code == 0) {
+                alert('领取成功，请留意公众号消息。');
+                setTimeout(function () {
+                    location.reload();
+                }, 3000);
+            } else {
+                alert(j.msg);
+                $link.show();
+            }
+        });
+    });*/
+</script>
+
+{template 'cnzz'}
+</body>
+</html>

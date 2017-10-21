@@ -1,0 +1,109 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li {if $op == 'post'}class="active"{/if}><a href="{php echo $this->createWebUrl('news', array('op' => 'post'))}">添加分类</a></li>
+	<li {if $op == 'list'}class="active"{/if}><a href="{php echo $this->createWebUrl('news', array('op' => 'list'))}">管理分类</a></li>
+	<li {if $op == 'add_news'}class="active"{/if}><a href="{php echo $this->createWebUrl('news', array('op' => 'add_news'))}">添加文章</a></li>
+	<li {if $op == 'news_list'}class="active"{/if}><a href="{php echo $this->createWebUrl('news', array('op' => 'news_list'))}">文章列表</a></li>
+</ul>
+{if $op == 'post'}
+<div class="main">
+	<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data">
+	<input type="hidden" name="parentid" value="{$parent['id']}" />
+    	<div class="panel panel-default">
+            <div class="panel-heading">
+                分类详细设置
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">排序</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <input type="text" name="listorder" class="form-control" value="{$categoryone['listorder']}" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">是否显示</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <label for="status1" class="radio-inline"><input type="radio" name="status" value="1" id="status1" {if $categoryone['status']=='1'}  checked="true" {/if}> 是</label>&nbsp;&nbsp;&nbsp;
+	         			<label for="status0" class="radio-inline"><input type="radio" name="status" value="0" id="status0"  {if $categoryone['status'] == '0'}  checked="true" {/if}> 否</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">分类名称</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <input type="text" name="title" class="form-control" value="{$categoryone['title']}" />
+                    </div>
+                </div>
+	   			<div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">分类描述</label>
+                    <div class="col-sm-9 col-xs-12">
+                      <textarea name="description" class="form-control" cols="70">{$categoryone['description']}</textarea>
+                    </div>
+                </div>	  
+				<div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">分类头部图片</label>
+                    <div class="col-sm-9 col-xs-12">
+                        {php load()->func('tpl')}
+                     {php echo tpl_form_field_image('thumb', $categoryone['thumb']);}
+					<span class="help-block" style="clear:both">建议图片大小不超过300K(640 px * 150px),以免影响展示效果</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="form-group col-sm-12">
+         	<input name="id" type="hidden" value="{$categoryone['id']}">
+         	<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+          	<input type="hidden" name="token" value="{$_W['token']}" />
+        </div>
+	</form>
+</div>
+{elseif $op == 'list'}
+<div class="main panel panel-default">
+	<div class="category panel-body table-responsive">
+		<form action="" method="post" onsubmit="return formcheck(this)">
+		<table class="table table-hover">
+			<thead>
+				<tr>
+					<th style="width:80px;">显示顺序</th>
+					<th style="width:100px;">分类名称</th>
+					<th style="width:100px;">是否显示</th>
+					<th style="width:150px;">分类描述</th>
+					<th style="width:200px;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+			{loop $categorys $row}
+				<tr>
+					<td><input type="text" class="form-control" name="displayorder[{$row['id']}]" value="{$row['displayorder']}"></td>
+					<td>{$row['title']}</td>
+					<td>{if $row['status']=='1'}<span class="label label-success">显示</span>{else}<span class="label label-danger">不显示</span>{/if}</td>
+					<td>{$row['description']}</td>
+					<td>
+						<a class='btn btn-default' href="{php echo $this->createWebUrl('news', array('op' => 'add_news', 'cateid' => $row['id']))}" title="添加文章" class="btn btn-small btn-default" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-plus"></i></a>
+						<a class='btn btn-default' href="{php echo $this->createWebUrl('news', array('op' => 'post', 'id' => $row['id']))}" title="编辑" class="btn btn-default btn-small" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-edit"></i></a>
+						<a class='btn btn-default' href="{php echo $this->createWebUrl('news', array('op' => 'del', 'id' => $row['id']))}" onclick="return confirm('确认删除此分类吗？');return false;" title="删除" class="btn btn-small btn-default" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-times"></i></a>
+					</td>
+				</tr>
+			{/loop}
+				<tr>
+					<td colspan="5">
+						<a class="btn btn-default" href="{php echo $this->createWebUrl('news', array('op' => 'post'))}"><i class="fa fa-arrows"></i> 添加新分类</a>
+					</td>
+				</tr>
+				<tr>
+					<td colspan="5">
+						<input name="submit" type="submit" class="btn btn-primary" value="提交">
+						<input type="hidden" name="token" value="{$_W['token']}" />
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		</form>
+	</div>
+</div>
+{/if}
+<script>
+	require(['bootstrap'],function($){
+		$('.btn').tooltip();
+	});
+</script>
+{template 'common/footer'}

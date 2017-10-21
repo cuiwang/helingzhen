@@ -1,0 +1,129 @@
+{template 'common/header'}
+{template 'admin/setting/tabs'}
+
+<div class="panel panel-info">
+
+   <div class="panel-heading">
+       增加前端管理员
+   </div>
+   <div class="panel-body">
+     <form  class="form-horizontal" method="post">
+       <input type="hidden" name='id' value="{php echo $_GPC['id']}">
+       <input type="hidden" name='dopost' value="save_manger">
+       <input type="hidden" name="allows" value="999" >
+       <div class="form-group">
+         <label  class="col-md-2 control-label">选取用户</label>
+         <div class="col-md-8">
+           <div class="input-group">
+             <input type="text" name="openid" value="{$item['openid']}" id="openid" class="form-control" placeholder='输入openid'>
+             <div class="input-group-btn">
+               <span class="btn btn-success btn-openid" data-toggle="modal" data-target="#myModal">检 测</span>
+             </div>
+           </div>
+           <br>
+             <button class="btn btn-info btn-sm">保存</button>
+         </div>
+       </div>
+    </form>
+   </div>
+</div>
+
+
+<script type="text/html" id="tpl_member_1">
+     <form  class="form-horizontal" method="post">
+           <div class="form-group">
+             <label  class="col-md-2 control-label">头像</label>
+             <div class="col-md-8">
+                   <img src="{{thumb}}" alt="" width="64px;">
+             </div>
+           </div>
+           <div class="form-group">
+             <label  class="col-md-2 control-label">昵称</label>
+             <div class="col-md-8">
+                    <input type="text" value="{{nickname}} " class="form-control" disabled>
+             </div>
+           </div>
+           <div class="form-group">
+             <label  class="col-md-2 control-label">openid</label>
+             <div class="col-md-8">
+                    <input type="text" value="{{openid}}" class="form-control" disabled>
+             </div>
+           </div>
+     </form>
+</script>
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">用户信息</h4>
+      </div>
+      <div class="modal-body">
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+    require(['{GARCIA_JS}template.js','bootstrap'],function(template){
+      $('#myModal').on('show.bs.modal', function (e) {
+                  var openid = $("#openid").val();
+                 $.ajax({
+                     url:"{php echo $this->createWebUrl('setting',array('dopost'=>'ajax_manger'))}",
+                     type:"post",
+                     dataType:"json",
+                     data:{
+                        openid:openid
+                     },success:function(res){
+                        var html = template('tpl_member_1',res);
+                        // alert(res.thumb);
+                        $(".modal-body").html(html);
+                     },error:function(){
+                       alert(2);
+                     }
+                 })
+
+      })
+    })
+</script>
+
+{if $_GPC['action']!='editor'}
+<div class="panel panel-info">
+  <div class="panel-heading">
+      管理员列表
+  </div>
+  <div class="panel-body">
+    <table class="table text-center">
+        <tr>
+          <td width="5%;">ID</td>
+          <td width='64px'>头像</td>
+          <td>昵称</td>
+          <td width="25%;">openid</td>
+          <td>管理范围</td>
+          <td>编辑</td>
+        </tr>
+
+        {loop $_list $row}
+            <tr>
+              <td>{$row['id']}</td>
+              <td><img src="{$row['headimgurl']}" width='64px' alt=""></td>
+              <td>{php echo urldecode($row['nickname'])}</td>
+              <td>{$row['openid']}</td>
+              <td>{if $row['allows']==999} <button class="btn btn-xs btn-success">总权限</button> {else}{$row['allow']}{/if}</td>
+              <td>
+                <a href="{php echo $this->createWebUrl('setting',array('display'=>'manger','id'=>$row['id'],'action'=>'editor'))}" class="btn btn-xs btn-info">编辑</a>
+                <a href="{php echo $this->createWebUrl('setting',array('display'=>'manger','id'=>$row['id'],'dopost'=>'del_manger'))}" class="btn btn-xs btn-danger">删除</a>
+              </td>
+            </tr>
+        {/loop}
+    </table>
+  </div>
+</div>
+{/if}

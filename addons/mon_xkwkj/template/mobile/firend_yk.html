@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-CN" ng-app="WmallAPP">
+<head>
+    <title>{$xkwkj['title']}</title>
+    <meta charset="utf-8">
+    <meta content="" name="description">
+    <meta content="" name="keywords">
+    <meta content="eric.wu" name="author">
+    <meta content="application/xhtml+xml;charset=UTF-8" http-equiv="Content-Type">
+    <meta content="telephone=no, address=no" name="format-detection">
+    <meta content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
+    <link href="{MON_XKWKJ_RES}css/reset.css?v=131" rel="stylesheet" />
+    <link href="{MON_XKWKJ_RES}css/common.css?v=131" rel="stylesheet" />
+    <link href="{MON_XKWKJ_RES}css/bargain.css?v=1312222" rel="stylesheet" />
+    <link rel="stylesheet" type="text/css"
+          href="{MON_XKWKJ_RES}/css/sweet-alert.css">
+    <script type="text/javascript" src="{MON_XKWKJ_RES}/js/sweet-alert.min.js"></script>
+    <style>
+
+        *[data-mask='help'] .help_pic{
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url({php echo MonUtil::defaultImg(MonUtil::$IMG_SHARE_BG,$xkwkj)}) no-repeat center top rgba(0,0,0,0.93);
+            background-size: 100%;
+            z-index: 100;
+        }
+    </style>
+    <script src="{MON_XKWKJ_RES}js/jquery_min.js"></script>
+
+    {template 'share'}
+    <script>
+        var  basePath = "{MON_XKWKJ_RES}";
+        APP = {
+            config: {
+                needTime: true, //是否需要计时，如果不需要请设为false，这很重要，因为倒计时到点时js会自动刷新页面
+                time: {
+                    currentTime: "{$curtime}",
+                    calcWhat: "end",
+                    //计算距离开始的时间填"start", 计算距离结束的时间填"end"
+                    startTime: "{$starttime}",//活动开始时间(请按此字符串格式赋值)
+                    endTime: "{$endtime}",//活动结束时间（请按此字符串格式赋值）
+                }
+            },
+            urls: {
+                cut_list: '{php echo $this->createMobileUrl('KjFirendList',array('uid'=>$user['id']), true)}'
+
+            }
+        }
+    </script>
+    <script src="{MON_XKWKJ_RES}js/sea.js"></script>
+    <script>
+        (function(l){
+            seajs.config({
+                base: "./",
+                map: [
+                    [ ".js", (l&&l[1]||"")+".js"]
+                ]
+            });
+            //
+            seajs.use("{MON_XKWKJ_RES}js/bargain.js?v=131");
+        })(location.href.match(/de(\-\d+)bug/));
+    </script>
+
+    <script type="text/javascript">
+
+        function scrollDoor(){
+        }
+        scrollDoor.prototype = {
+            sd : function(menus,divs,openClass,closeClass){
+                var _this = this;
+                if(menus.length != divs.length)
+                {
+                    alert("菜单层数量和内容层数量不一样!");
+                    return false;
+                }
+                for(var i = 0 ; i < menus.length ; i++)
+                {
+                    _this.$(menus[i]).value = i;
+                    _this.$(menus[i]).onmouseover = function(){
+
+                        for(var j = 0 ; j < menus.length ; j++)
+                        {
+                            _this.$(menus[j]).className = closeClass;
+                            _this.$(divs[j]).style.display = "none";
+                        }
+                        _this.$(menus[this.value]).className = openClass;
+                        _this.$(divs[this.value]).style.display = "block";
+                    }
+                }
+            },
+            $ : function(oid){
+                if(typeof(oid) == "string")
+                    return document.getElementById(oid);
+                return oid;
+            }
+        }
+        window.onload = function(){
+            var SDmodel = new scrollDoor();
+            SDmodel.sd(["m01","m02","m03"],["c01","c02","c03"],"sd01","sd02","sd03");
+        }
+
+        function check_des()
+        {
+            $("#m01").attr("class","sd01");
+            $("#m02").attr("class","sd02");
+            $("#m03").attr("class","sd02");
+
+            $("#c01").show();
+            $("#c02").hide();
+            $("#c03").hide();
+
+            var pos = $("#comehere").offset().top;
+            $("html,body").animate({scrollTop: pos}, 500);
+
+        }
+    </script>
+</head>
+<body onselectstart="return true;" ondragstart="return false;">
+<div data-role="container" class="container">
+    <header data-role="header"></header>
+    <section data-role="body" class="body" {if $xkwkj['show_index_enable']} style="padding-bottom: 100px" {/if}>
+        <form id="form1" action="javascript:;" method="post">
+            <!--请将表单所有需要的隐藏输入加在此处-->
+            <!--随机武器序列-->
+            <input type="hidden" id="weapon_seq" name="seq_weapon" value="1">
+            <!--随机昵称序列-->
+            <input type="hidden" id="name_seq" name="seq_name" value="1">
+            <!--若能获取真正昵称，则请赋值，若不能获取则不必赋值-->
+            <input type="hidden" id="name_real" name="user_name" value="">
+            <!---->
+            <div class="section_div">
+
+                <div class="title_time">
+                    {if $status == $this::$KJ_STATUS_ZC}
+                    <div>
+                        <span>剩余时间</span>
+                        <span class="time hours">00</span>
+                        <span>:</span>
+                        <span class="time minutes">00</span>
+                        <span>:</span>
+                        <span class="time seconds">00</span>
+                    </div>
+                    {else}
+                    <div>
+                        <span>{$statusText}</span>
+
+                    </div>
+                    {/if}
+
+                    <div class='fr'>剩余{$leftCount}件</div>
+
+                </div>
+
+            </div>
+            {template 'kj_announcement'}
+            <div class="section_div">
+                <div class="poster">
+                    <img src="{php echo MonUtil::getpicurl($xkwkj['p_pic'])}">
+                    <div class="goods">
+                        <a href="{$xkwkj['p_url']}">
+                            <div class="goods_pic">
+                                <img src="{php echo MonUtil::getpicurl($xkwkj['p_preview_pic'])}">
+                            </div>
+                            <div class="goods_des" style="text-decoration: underline">{$xkwkj['p_name']}</div>
+                            <div class="goods_price">原价<br>￥{$xkwkj['p_y_price']}</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="section_div">
+
+                <div class="price_board">
+                    <!--当前价-->
+
+                    <img src="{MON_XKWKJ_RES}images/bargain_6.png">
+                    <div class="price one"><span>￥{$user['price']}</span></div>
+                </div>
+
+            </div>
+
+            <div class="section_div">
+                <div class="msg_board">
+                    <div class="avatar">
+                        <i></i>
+                    </div>
+                    <!--若获取不到用户昵称，则统一填少侠-->
+                    <div><span class="avatar_name">{$firend['nickname']}</span>，{php echo $this->getTipMsg($xkwkj, $this::$TIP_FK_ALREADY)}</div>
+                </div>
+            </div>
+
+            <div class="section_div">
+
+                <!--我也要&找人帮砍 红色&黄色-->
+                <div class="btn_wrapper two">
+                    <a href="javascript:join()" class="cut_two_btn shadow_red cut_4 fl"></a>
+
+
+
+                    {if $status == $this::$KJ_STATUS_ZC}
+                      <a href="javascript:;" class="cut_two_btn shadow_yellow cut_7 fr"></a>
+                    {else}
+                       <a href="{$xkwkj['zgg_url']}" class="cut_two_btn shadow_red cut_3 fr"></a>
+                    {/if}
+
+                </div>
+
+            </div>
+
+
+            <style>
+                .kj-top {
+                    width: 100%;
+                    float: left;
+                    position: relative;
+                }
+
+                .kj-top img {
+                    width: 100%;
+                    float: left;
+                }
+
+                .scrollUl li {
+                    float: left;
+                    text-align: center;
+                    width: 33.3%;
+                }
+                .scrollUl {
+                    width: 96%;
+                    float: left;
+                    position: absolute;
+                    bottom: 23%;
+                    left: 2%;
+                    text-align: center;
+                    height: 30px;
+                    font: 600 12px/52px "";
+                }
+
+                .sd01 {
+                    cursor: pointer;
+                    color: #fed90d;
+                    background: none;
+                }
+
+                .sd02 {
+                    cursor: pointer;
+                    color: #fff;
+                    background: none;
+                }
+
+                .sd02 {
+                    cursor: pointer;
+                    color: #fff;
+                    background: none;
+                }
+
+                .phb-list {
+                    float: left;
+                    background: #483b4b;
+                    width: 100%;
+                    padding: 10px 8px;
+                    margin: 0;
+                {if $xkwkj['show_index_enable']}
+                margin-bottom: 100px;
+                {/if}
+                box-sizing: border-box;
+                -webkit-box-sizing: border-box;
+                }
+
+                .list_wrapper .cut_list .weapon_pic>img {
+                    display: inline-block;
+                    width: 46px;
+                    height: 46px;
+                    border-radius: 1000px;
+                    background: #342d36;
+                    vertical-align: middle;
+                }
+            </style>
+
+
+            <div class="kj-top">
+                <img src="{MON_XKWKJ_RES}images/kj-top.jpg" alt="">
+                <ul class="scrollUl">
+                    <li class="sd01" id="m01" value="0">活动说明</li>
+                    <li class="sd02" id="m02" value="1">帮砍团</li>
+                    <li class="sd02" id="m03" value="2">排行榜（{$joinCount}）</li>
+                </ul>
+            </div>
+
+
+
+            <div class="phb-list content">
+                <div id="c01" style="border-bottom-width: 1px; border-bottom-style: dashed; border-bottom-color: rgb(255, 255, 255); display: block;">
+                    {$xkwkj['kj_intro']}
+                </div>
+
+                <div id="c02" class="hidden" style="display: none;">
+                    <div class="list_wrapper">
+
+                        <ul class="cut_list" id="cut_list">
+
+                        </ul>
+                    </div>
+                    <div id="c1more">
+
+                    </div>
+                </div>
+
+
+                <div id="c03" class="hidden" style="display: none;">
+                    <div class="section_div">
+                        <div class="list_wrapper">
+                            <ul class="cut_list" id="cut_list2">
+
+                                {loop $ranklist $juser}
+                                <li>
+                                    <div>
+                                        <div class="weapon_pic">
+                                            <img src="{$juser['headimgurl']}">
+                                        </div>
+                                        <div class="message">
+                                            <span class="user_name">{$juser['nickname']} 已砍掉 {php echo round($xkwkj['p_y_price']-$juser['price'], 2)}元</span>
+                                            <span class="amount">当前金额{$juser['price']}</span> 元
+                                        </div>
+                                    </div>
+                                </li>
+                                {/loop}
+
+
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+
+        </form>
+
+    </section>
+    <footer data-role="footer">
+        <!--有活动说明的页面请添加此段-->
+        <div data-role="mask" data-mask="instruction" id="mask_instruction" class="mask_instruction">
+            <div class="mask_bkg"></div>
+            <div class="dialogue_wrapper">
+                <div class="d_header"></div>
+                <div class="d_body" id="wrapper">
+                    <div>
+                        {$xkwkj['kj_intro']}
+
+                    </div>
+                </div>
+                <div class="d_footer">我知道了</div>
+            </div>
+        </div>
+
+        <!--有找人帮砍的页面请添加此段-->
+        <div data-role="mask" data-mask="help" id="mask_help" class="mask_help">
+            <div class="help_pic"></div>
+        </div>
+
+    </footer>
+
+    {template 'foot'}
+</div>
+<script>
+    function join() {
+        {if $xkwkj['join_follow_enable']==1}
+
+            var follow = {$follow};
+            if (follow == 1) {
+
+                swal({
+                            title: "提示",
+                            text: "{$xkwkj['follow_dlg_tip']}",
+                            type: "warning",
+                            showCancelButton: true,
+                            cancelButtonText: "取消",
+                            confirmButtonColor: "#DD6B55",
+                            confirmButtonText: "{$xkwkj['follow_btn_name']}",
+                            closeOnConfirm: false },
+                        function(){
+
+                            window.top.location.href ="{$xkwkj['follow_url']}";
+
+                        });
+
+            } else {
+                window.top.location.href ="{php echo MonUtil::str_murl($this->createMobileUrl ( 'auth',array('kid'=>$xkwkj['id'],'au'=>Value::$REDIRECT_USER_INDEX),true))}";
+            }
+
+        {else}
+            window.top.location.href ="{php echo MonUtil::str_murl($this->createMobileUrl ( 'auth',array('kid'=>$xkwkj['id'],'au'=>Value::$REDIRECT_USER_INDEX),true))}";
+         {/if}
+    }
+</script>
+</body>
+</html>

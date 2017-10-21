@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <meta charset="utf-8" />
+  <title>修改密码</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0" />
+  <meta name="format-detection" content="telephone=no">
+<link rel="stylesheet" type="text/css" href="../addons/jy_signup/css/header.css">
+  <link rel="stylesheet" type="text/css" href="../addons/jy_signup/css/login.css" />
+  <link rel="stylesheet" type="text/css" href="../addons/jy_signup/css/notice.css">
+  {template style}
+  <style>
+  .account{margin-left: 10px}
+  </style>
+ </head>
+ <body>
+  <header>
+    <a href="javascript:history.go(-1);"><div class="navbar-btn floL"><img class="icon-back" src="../addons/jy_signup/images/header-back.png"></div></a>
+    <a href="{php echo $this->createMobileUrl('geren')}"><div class="navbar-btn floR"><img class="icon-back" src="../addons/jy_signup/images/header-person.png"></div></a>
+    <h1 class="latecolorbg">{if !empty($sitem['aname'])}{$sitem['aname']}{else}报名活动{/if}</h1>
+  </header>
+
+   <div class="screen-wrap">
+      {if !empty($member['mobile'])}
+        <label class="account">当前账号 {$member['mobile']}</label>
+      {/if}
+     <div class="field phone" style="margin-top:10px">
+     {if !empty($member['mobile'])}
+      <input type="hidden" name="reg_mobile" id="reg_mobile" placeholder="手机号码" value="{$member['mobile']}" class="c-form-txt-normal" />
+     {else}
+      <input type="tel" name="reg_mobile" id="reg_mobile" placeholder="手机号码" value="{$member['mobile']}" class="c-form-txt-normal" />
+     {/if}
+     </div>
+     <!-- <div class="field codebtn" style="padding:10px 15px;">
+      <button id="S_sendsms" class="c-btn-border">免费获取验证码</button>
+     </div>
+     <div class="field code">
+      <div class="codetxt">
+       <input type="tel" name="reg_code" id="reg_code" placeholder="验证码" class="c-form-txt-normal" />
+      </div>
+     </div> -->
+     <div class="field pwd">
+      <input type="password" name="reg_passwd" id="J_PassWordTxt" placeholder="登录密码" class="c-form-txt-normal" />
+     </div>
+     <div class="field">
+      <input type="button" id="S_save" class="submit-new latecolor" value="设置密码" />
+     </div>
+     {template footer}
+   </div>
+
+  <script src="http://libs.baidu.com/jquery/1.10.2/jquery.min.js"></script>
+  <script src="../addons/jy_signup/js/notice.js"></script>
+  <script>
+   $("#S_save").bind("click",function(){
+      var phone = getValue("reg_mobile");
+      var passwd = getValue("reg_passwd");
+      if(validatemobile(phone)){
+        if(!passwd){
+          showNoticeFunc("请设置登录密码!");
+        }
+        else{
+          $.post("{php echo $_W['siteroot'].'app/'.substr($this->createMobileUrl('change',array('op'=>'add')),2)}"+"&mobile="+phone+"&password="+passwd,function(data){
+                if (data == 1) {
+                    showNoticeFunc("修改密码成功!");
+                    setTimeout(function(){
+                        window.location.href="{php echo $_W['siteroot'].'app/'.substr($this->createMobileUrl('geren'),2)}";;
+                    },1500);
+                }
+                else if (data == 2) {
+                    showNoticeFunc("已存在该手机号，请重新输入！");
+                }
+                else{
+                    showNoticeFunc("修改密码失败！");
+                }
+            });
+        }
+      }
+   });
+
+     function validatemobile(mobile) {
+        var myreg = /^1[345789]\d{9}$/;
+        if(mobile.length==0) {
+           alert('请输入手机号码！');
+           $("#reg_mobile").val("");
+           document.reg.reg_mobile.focus();
+           return false;
+        }
+        if(mobile.length!=11 || !myreg.test(mobile)) {
+            alert('请输入有效的手机号码！');
+            $("#reg_mobile").val("")
+            document.reg.reg_mobile.focus();
+            return false;
+        }
+        return true;
+    }
+    function getValue(nameStr){
+        return $('[name='+nameStr+']').val();
+    }
+  </script>
+    {if $weixin==1}
+    <script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+
+    {php $signPackage=$_W['account']['jssdkconfig'];}
+    <script>
+
+        var appid = '{$_W['account']['jssdkconfig']['appId']}';
+        var timestamp = '{$_W['account']['jssdkconfig']['timestamp']}';
+        var nonceStr = '{$_W['account']['jssdkconfig']['nonceStr']}';
+        var signature = '{$_W['account']['jssdkconfig']['signature']}';
+
+        wx.config({
+            debug: false,
+            appId: appid,
+            timestamp: timestamp,
+            nonceStr: nonceStr,
+            signature: signature,
+            jsApiList: ['checkJsApi','onMenuShareTimeline','onMenuShareAppMessage','onMenuShareQQ','onMenuShareWeibo',]
+        });
+    </script>
+    <script type="text/javascript">
+        var params = {
+            {if empty($sitem['sharetitle'])}
+            title:"活动管理",
+            {else}
+            title: "{$sitem['sharetitle']}",
+            {/if}
+            {if empty($sitem['sharedesc'])}
+            desc: "活动管理!",
+            {else}
+            desc: "{$sitem['sharedesc']}",
+            {/if}
+            link: "{php echo $_W['siteroot'].'app/'.substr($this->createMobileUrl('index'),2)}",
+            {if empty($sitem['sharelogo'])}
+            imgUrl: "{$_W['siteroot']}addons/jy_signup/icon.jpg",
+            {else}
+            imgUrl: "{$_W['attachurl']}{$sitem['sharelogo']}",
+            {/if}
+        };
+        wx.ready(function () {
+            wx.showOptionMenu();
+            wx.onMenuShareAppMessage.call(this, params);
+            wx.onMenuShareTimeline.call(this, params);
+        });
+    </script>
+    {/if}
+ </body>
+</html>

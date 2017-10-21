@@ -1,0 +1,172 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li {if $op == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('cgc_ad_tx', array('op' => 'display'))}">管理</a></li>
+</ul>
+<style>
+.panel-body {
+padding: 10px;
+}
+</style>
+
+
+{if $op == 'display'}
+<form action="./index.php" id="form1" method="get" class="form-horizontal" role="form">
+
+<div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+
+	<div class="panel-body">
+			<input type="hidden" name="c" value="site" />
+			<input type="hidden" name="a" value="entry" />
+        	<input type="hidden" name="m" value="cgc_ad" />
+        	<input type="hidden" name="do" value="cgc_ad_tx" />
+
+		
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">广告平台筛选</label>
+				<div class="col-xs-6 col-sm-4 col-lg-4">
+					<select name="quan_id" class="form-control">
+						<option value="0">请选择所属广告平台</option>
+						{loop $quan $q}
+							<option value="{$q['id']}" {if $_GPC['quan_id']==$q['id']}selected{/if}>{$q['aname']}</option>
+						{/loop}
+					</select>
+				</div>
+			</div>
+			
+	
+		   <div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">是否提现</label>
+				<div class="col-xs-6 col-sm-4 col-lg-4">
+					<select name="status" class="form-control">
+					<option value="">所有</option>
+						<option value="0" {if $_GPC['status']==='0'}selected{/if}>未提现</option>
+						<option value="1" {if $_GPC['status']==1}selected{/if}>已提现</option>
+						<option value="4" {if $_GPC['status']==4}selected{/if}>提现失败</option>											
+					</select>
+				</div>
+			</div>
+ 
+			
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">时间</label>
+					<div class="col-sm-9 col-xs-12">
+						{php echo tpl_form_field_daterange('time', array('starttime'=>date('Y-m-d', $starttime),'endtime'=>date('Y-m-d', $endtime)));}
+					</div>
+				</div>
+
+
+			<div class="form-group">
+			 	<div class=" col-xs-12 col-sm-2 col-lg-2">
+
+					<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+
+				</div>
+			</div>
+	</div>
+	</div>
+<div class="main">
+	<div class="category">
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					提现管理
+				</div>
+				<div class="panel-body table-responsive">
+					<form action="{php echo $this->createWebUrl('cgc_ad_tx');}" method="POST" class="form-horizontal form" onsubmit="return formcheck(this)">
+					<table class="table table-hover">
+
+					<thead class="navbar-inner">
+						<tr>
+							<th style="width: 3%;" class="row-first">
+				<input type="checkbox" name="" onclick="var ck = this.checked;$(':checkbox').each(function(){this.checked = ck});">
+						   </th>
+							<th style="width:140px;">用户id</th>
+							<th style="width:140px;">昵称</th>
+							<th style="width:120px;">头像</th>
+							<th style="width:100px;">状态</th>
+							<th style="width:100px;">提现金额</th>						
+							<th style="width:100px;">申请时间</th>
+						    <th style="width:100px;">提现到账时间</th>
+							<th style="width:180px;">操作</th>
+						</tr>
+					</thead>
+
+					<tbody id="main">
+						{loop $list $row}
+						<tr>	
+							<td><input type="checkbox" name="select[]" value="{$row['id']}"/></td>					
+							<td>{$row['mid']}</td>                           
+                            <td>{$row['nickname']}</td>
+                            <td><img style="width:80px" src="{php echo tomedia($row['headimgurl'])}"></td>	                  
+                             <td>{if $row['status']==1}已提现{elseif $row['status']==0}未提现{elseif $row['status']==4}提现失败{elseif $row['status']==3}转账失败{/if}</td>
+                            <td>{$row['money']}</td>
+                            <td>
+                            {php echo date('Y-m-d H:i:s', $row['create_time']);}
+                            </td>
+                             <td>
+                            {php echo date('Y-m-d H:i', $row['tx_time']);}
+                            </td>					
+							<td>
+								<a href="{php echo $this->createWebUrl('cgc_ad_tx', array('op' => 'tx', 'id' => $row['id'],'quan_id' => $row['quan_id']))}"  class="btn btn-default btn-sm"><i class="fa fa-edit">提现</i></a>
+								<a href="{php echo $this->createWebUrl('cgc_ad_tx', array('op' => 'delete','id' => $row['id'],'quan_id' => $row['quan_id']))}" onclick="return confirm('确认删除吗？');return false;" title="删除" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top"><i class="fa fa-times">删除</i></a>
+							</td>
+						</tr>
+
+					{/loop}
+					<tr>
+					<td>
+					<input type="checkbox" name="" onclick="var ck = this.checked;$(':checkbox').each(function(){this.checked = ck});"></td>
+						<td colspan="7">
+							<input type="hidden" id="op" name="op"/>
+							<a href="javascript:batch_check();" class="btn btn-default btn-primary" data-toggle="tooltip" data-placement="top" title="">批量审核</a>
+							<a href="javascript:batch_del();" class="btn btn-default btn-primary" data-toggle="tooltip" data-placement="top" title="">批量删除</a>
+					</td>
+					</tr>
+					
+					</tbody>
+					</table>
+						{$pager}
+					</form>
+				</div>
+			</div>
+	</div>
+</div>
+</form>
+
+<script>
+
+$(function(){
+	$("#select_all").click(function(){
+		if($("#select_all").is(':checked')){
+			$("input[name='select[]']").prop("checked", true);
+		}else{
+			$("input[name='select[]']").prop("checked", false);
+		}
+	});
+});
+
+function batch_del(){
+    if(!confirm('确定批量删除吗?'))
+        return false;
+    else{
+        $('#op').val('batch_del');
+        $('#form1').submit();
+    }
+}
+
+function batch_check(){
+    if(!confirm('确定批量审核吗?'))
+        return false;
+    else{
+        $('#op').val('batch_check');
+        $('#form1').submit();
+    }
+}
+
+
+</script>
+
+
+{/if}
+
+{template 'common/footer'}

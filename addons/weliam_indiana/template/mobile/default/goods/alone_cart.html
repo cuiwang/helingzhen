@@ -1,0 +1,138 @@
+{template 'common/header'}
+<style>
+	*{box-sizing: content-box!important;}
+	.titlee a span{color: #FB5156!important;}
+	{if $_W['siteroot'] == 'http://m.runxing99.com/' || $_W['siteroot'] == 'http://m.023wx.cn/'}
+	.aa{float: left;display: block;height: 27px;width: 18%;background: #FF4C4C;color: #fff;text-align: center;line-height: 27px;border-radius: 5px;margin-right: 2px;border: 1px solid #efeff4;font-size: 12px!important;font-weight: lighter!important;}
+	.a-box-a{color: #FB5156;border: 1px solid #FB5156;background: #fff;} 
+	{/if}
+	.topay{display: inline-block;padding: 3px 10px;width: 50%;color: white;background-color: orangered;border-radius: 5px;position: absolute;bottom: 20px;left: 25%;text-align: center;font-size: 25px;}
+	.address{margin-top: 20px;background-color: white;padding: 10px;}
+	.address .addtitle{font-size: 15px;color: orange;}
+	.address .addtitle .changeaddress{display: inline-block;background-color: orange;padding: 3px 10px;color: white;border-radius: 5px;float: right;font-size: 12px;margin-right: 7px;}
+	.address .notips{color: orangered;margin-top: 5px;}
+	.address .nandt .tel{float: right;} 
+</style>
+<div class="page-group">
+    <div class="page page-current" id="page-goods-list">
+		{template 'common/followed'}
+		<div class="content infinite-scroll native-scroll" data-distance="10">
+		<div class="m-cart" id="pro-view-5">
+			<input type="hidden" id="addnum"  value="{$goods['aloneprice']}">
+			<div class="item"  id="div{$goods['id']}">
+				<div class="pic">
+					<a href="{php echo $this->createMobileUrl('detail', array('id' => $goods['id']))}">
+						<img src="{php echo tomedia($goods['picarr']);}" alt="">
+					</a>
+				</div>
+				<div class="text">
+					<h1 class="titlee">
+						<a href="{php echo $this->createMobileUrl('detail', array('id' => $goods['id']))}">
+							{$goods['title']}
+						</a>
+					</h1>
+					<div>
+						全价购买商品
+						<p style="color: #FB5156;position: relative;" >￥<span id="goodsprice">{php echo $goods['num']*$goods['aloneprice']}</span></p>
+					</div>
+					<div style="position: relative;">
+						<div class="w-number" style="padding:0 27.5px" id="pro-view-7">
+							<input class="w-number-input" style="box-shadow: none;" type="tel" id="buynum" name="num[]" value="{$goods['num']}">
+							<a class="w-number-btn w-number-btn-plus" id="numup">
+								+
+							</a>
+							<a class="w-number-btn w-number-btn-minus" id="numdown">
+								-
+							</a>
+						</div>
+						件
+					</div>
+				</div>
+			</div>
+			<div class="address">
+				<div class="addtitle">收货地址：<span class="changeaddress">更换</span></div>
+				{if $address['username']}
+				<div class="nandt"><span id="realname" class="name">{$address['username']}</span><span class="tel">{$address['mobile']}</span></div>
+				<div class="xxaddress">{$address['province']}{$address['district']}{$address['address']}</div>
+				{else}
+				<div class="notips"><center>未获取到地址，请点击更换按钮选择或添加</center></div>
+				{/if}
+			</div>
+			<div class="topay">购买</div>
+			<script>
+			var price = {$goods['aloneprice']};
+			var goodsid = {$goods['id']};
+			var num = $('#buynum').val();
+			var allprice = parseFloat(num*price).toFixed(2);
+			$("#goodsprice").text(allprice);
+			/******************填写修改数量js开始***********************/
+				$("#buynum").change(function(){
+					var num = document.getElementById("buynum").value;
+					var init_money = $('#addnum').val(); 
+						if(isNaN(num) || num<=0){
+//							判定输入是否是整数
+							num = 1;
+							$('#buynum').val(num);
+						}
+					var orderprice = parseFloat(price*num).toFixed(2); 
+					$("#goodsprice").text(orderprice);
+				});
+			/******************填写修改数量js结束***********************/
+			/******************增加数量js开始***********************/
+				$("#numup").bind('click',function(){
+					var num = $('#buynum').val();
+						addnum = 1;
+						num = parseInt(num);
+					num =  parseInt(num) + addnum; 
+					$('#buynum').val(num);
+					var orderprice = parseFloat(price*num).toFixed(2); 
+					$("#goodsprice").text(orderprice);
+				});
+			/******************增加数量js结束***********************/
+			/******************减少数量js开始***********************/
+				$("#numdown").bind('click',function(){
+					var num = $('#buynum').val();
+						addnum = 1;
+						num = parseInt(num);
+						if (num <=1 ) {
+							$.toast("抱歉，不能再少了~");
+							return false;
+						}
+					num =  parseInt(num) - addnum;
+					$('#buynum').val(num);
+					var orderprice = parseFloat(price*num).toFixed(2); 
+					$("#goodsprice").text(orderprice);
+				});
+			/******************减少数量js开始***********************/
+			/******************提交支付js开始***********************/
+			$('.topay').bind('click',function(){
+				var total = $('#buynum').val();
+					total = parseInt(total);
+				{if $address['username']}
+				var address = $('.xxaddress').text();
+				var realname = $('#realname').text();
+				var mobile = {$mobile};
+				{else}
+				$.toast("请添加购买地址！");
+				return false;
+				{/if}
+				if(!isNaN(total)){
+					if(total<=0){
+						$.toast("并没有填写购买量！");
+						return false;
+					}
+				}
+				setTimeout(function(){
+					location.href = "{php echo $this->createMobileUrl('cart',array('op'=>'alone_order'))}&num="+total+"&goodsid="+goodsid+"&realname="+realname+"&mobile="+mobile+"&address="+address;
+				}, 300);
+				
+			});
+			/******************提交支付js结束***********************/
+			
+			$('.changeaddress').click(function(){
+				location.href = "{php echo $this->createMobileUrl('address')}&flag="+goodsid;
+			});
+		
+</script>
+{template 'common/common_message'}
+</html>

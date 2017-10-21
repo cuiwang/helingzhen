@@ -1,0 +1,136 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li class="active"><a href="{php echo $this->createWebUrl('goods', array('op'=>'display'));}">商品列表</a>
+	</li>
+	<li><a href="{php echo $this->createWebUrl('goods', array('op'=>'edit'));}">添加商品</a>
+	</li>
+</ul>
+<div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+		<form action="./index.php" method="get" class="form-horizontal" role="form" id="form1">
+                <input type="hidden" name="c" value="site" />
+                <input type="hidden" name="a" value="entry" />
+                <input type="hidden" name="m" value="wz_tuan" />
+                <input type="hidden" name="do" value="goods" />
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">商品名称</label>
+                    <div class="col-sm-8 col-lg-9 col-xs-12">
+                        <input class="form-control" name="keyword" id="" type="text" value="{$_GPC['keyword']}" placeholder="可查询商品名称">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">分类</label>
+                    <div class="col-sm-8 col-lg-9 col-xs-12">
+                        <select name="pay_type" class="form-control">
+                            <option value="">不限</option>
+                            {loop $category $key $type}
+                            <option value="{$type['id']}" {if $_GPC['pay_type'] == $type['id']} selected="selected" {/if}>{$type['name']}</option>
+                            {/loop}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                        <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label"></label>
+                        <div class="col-sm-3 col-lg-2"><button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+                        </div>
+                </div>
+            </form>
+   </div>
+</div>
+<div class="panel panel-default">
+	<div class="panel-heading">商品列表</div>
+		<form action="" method="post" onsubmit="return formcheck(this)">
+		<div class="table-responsive panel-body">
+			<table class="table table-hover" style="min-width: 300px;">
+				<thead class="navbar-inner">
+					<tr>
+						<th class="col-sm-1">显示顺序</th>
+						<th class="col-sm-3">名称</th>
+						<th class="col-sm-1">图片</th>
+						<th class="col-sm-1">分类</th>
+						<th class="col-sm-1">商品库存</th>
+						<th class="col-sm-1">销量</th> 
+						<th class="col-sm-1">团购价</th>
+						<th class="col-sm-1">单买价</th>
+						<th class="col-sm-1">起团人数</th>
+						<th style="width: 250px;">状态(点击可修改)</th>
+						
+						<th class="col-sm-1 text-right">操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					{loop $goodses $goodsid $goods}
+					<tr>
+						<td><input type="text" class="form-control" name="displayorder[{$goods['id']}]" value="{$goods['displayorder']}"></td>
+						<td>{$goods['gname']}</td>
+						<td>
+							<image src="{php echo tomedia($goods['gimg']);}" style="max-width: 48px; max-height: 48px; border: 1px dotted gray">
+						</td>
+						<td>{$goods['category']['name']}</td>
+						<td>{$goods['gnum']}</td>
+						<td>{$goods['salenum']}</td>
+						<td>{$goods['gprice']}元</td>
+						<td>{$goods['oprice']}元</td>
+						<td>{$goods['groupnum']}人</td>
+						<td>
+						{if $this->module['config']['goodstip'] == 2}
+						<label data='{$goods['isnew']}' class='label label-default {if $goods['isnew']==1}label-info{else}{/if}' onclick="setProperty(this,{$goods['id']},'new')">上新</label>
+						<label data='{$goods['ishot']}' class='label label-default {if $goods['ishot']==1}label-info{/if}' onclick="setProperty(this,{$goods['id']},'hot')">疯抢</label>
+						<label data='{$goods['isrecommand']}' class='label label-default {if $goods['isrecommand']==1}label-info{/if}' onclick="setProperty(this,{$goods['id']},'recommand')">推荐</label>
+						<label data='{$goods['isdiscount']}' class='label label-default {if $goods['isdiscount']==1}label-info{/if}' onclick="setProperty(this,{$goods['id']},'discount')">优惠</label>
+						{/if}
+						<label data='{$goods['isshow']}' class='label  label-default {if $goods['isshow']==1}label-info{/if}' onclick="setProperty(this,{$goods['id']},'isshow')">{if $goods['isshow']==1}上架{else}下架{/if}</label>
+						</td>
+						<td class="text-right">
+							<a href="{php echo $this->createWebUrl('goods', array('op'=>'edit', 'id'=>$goods['id']));}" class="btn btn-default" data-toggle="tooltip" data-placement="top" title="" data-original-title="编辑"><i class="fa fa-pencil"></i></a>
+							<a href="{php echo $this->createWebUrl('goods',array('op'=>'delete','id'=>$goods['id']));}" onclick="return confirm('此操作不可恢复，确认删除？');return false;" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="删除"><i class="fa fa-times"></i>
+							</a>
+						</td>
+					</tr>
+					{/loop}
+					{if empty($goodses)}		
+					<tr>
+						<td colspan="12">
+							尚未添加商品
+						</td>
+					</tr>
+					{/if}
+				</tbody>
+			</table>
+			{$pager}
+		</div>
+	</div>
+	</form>
+</div>
+</div>
+<script type="text/javascript">
+	require(['bootstrap'],function($){
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+	});
+
+	var category = {php echo json_encode($children)};
+	function setProperty(obj,id,type){
+		$(obj).html($(obj).html() + "...");
+		$.post("{php echo $this->createWebUrl('setgoodsproperty')}"
+			,{id:id,type:type, data: obj.getAttribute("data")}
+			,function(d){
+				$(obj).html($(obj).html().replace("...",""));
+				if(type=='isshow'){
+				 $(obj).html( d.data=='1'?'上架':'下架');
+				}
+				$(obj).attr("data",d.data);
+				if(d.result==1){
+					$(obj).toggleClass("label-info");
+				}
+			}
+			,"json"
+		);
+	}
+
+</script>
+{template 'common/footer'}

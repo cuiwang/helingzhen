@@ -1,0 +1,152 @@
+{template 'header'}
+{template 'header-common'}
+<link type="text/css" rel="stylesheet" href="{$_W['siteroot']}addons/superman_house/template/mobile/css/mycustomer.css">
+<div class="margin">
+	{if $this->partner['role']['isadmin'] || $this->partner['is_subpartner']}
+	<form action="{php echo $this->createMobileUrl('partner', array('act' => 'mycustomer', 'op' => 'list'))}" class="form-horizontal" method="post">
+		<div class="card border-1px mycustomer_search_bar">
+			<div class="col-xs-4">
+				<div class="btn-group">
+					<button type="button" class="btn btn-default dropdown-toggle btn-sm" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						{$statustitle} <span class="caret"></span>
+					</button>
+					<ul class="dropdown-menu">
+						<li>
+							<a href="{php echo $this->createMobileUrl('partner', array('act' => 'mycustomer', 'op' => 'list'))}">全部</a>
+						</li>
+						{loop $all_status $s}
+						<li>
+							<a href="{php echo $this->createMobileUrl('partner', array('act' => 'mycustomer', 'statusid' => $s['id']))}">
+								{$s['title']}
+							</a>
+						</li>
+						{/loop}
+						{if $this->partner['role']['isadmin']}
+						<li role="separator" class="divider"></li>
+						<li>
+							<a href="{php echo $this->createMobileUrl('partner', array('act' => 'mycustomer', 'statusid' => -1))}">未分配</a>
+						</li>
+						{/if}
+					</ul>
+				</div>
+			</div>
+			<div class="col-xs-8">
+				<div class="input-group">
+					<input class="form-control" type="text" name="realname" value="{$realname}" placeholder="客户姓名"><span class="input-group-btn">
+					<input type="hidden" name="token" value="{$_W['token']}">
+					<button class="btn btn-default" type="submit">搜索</button></span>
+				</div>
+			</div>
+		</div>
+	</form>
+	{/if}
+	{if !$this->partner['role']['isadmin'] && !$this->partner['is_subpartner']}
+    <table class="table" style="background: #fff">
+		<tr>
+			<th>姓名</th>
+			<th>意向楼盘</th>
+			<th>电话</th>
+			<th>状态</th>
+		</tr>
+		{loop $list $item}
+		<tr>
+			<td>{$item['realname']}</td>
+			<td>{$item['house_name']}</td>
+			<td>{$item['mobile']}</td>
+			<td><span class="label label-success">{$all_status[$item['laststatusid']]['title']}</span></td>
+		</tr>
+    	{/loop}
+	</table>
+	{else}
+	{loop $list $item}
+	<div class="row" style="margin-bottom: 10px;">
+		<ul class="new-ul fontcolor">
+			<li class="new-li">
+				姓名：{$item['realname']}
+			</li>
+			<li class="new-li">
+				意向楼盘：{$item['house_name']}
+			</li>
+			<li class="new-li">
+				电话：{$item['mobile']}
+			</li>
+			<li class="new-li">
+				状态：<span class="label label-success">{$all_status[$item['laststatusid']]['title']}</span>
+				{if $item['partnerid'] == 0}<a href="{php echo $this->createMobileUrl('partner', array('act' => 'mycustomer', 'statusid' => -1))}" class="label label-warning">未分配</a>{/if}
+			</li>
+			{if $this->partner['role']['isadmin']}
+			<li class="new-li">
+				经纪人：
+				{if $item['partner_realname']}
+				<span>{$item['partner_realname']}</span>
+				{else}
+				<span>暂无</span>
+				{/if}
+			</li>
+			{/if}
+			<li class="new-li">
+				推荐人：<span>{$item['recommender']}</span>
+			</li>
+			<li class="new-li">
+				推荐时间：<span>{$item['recommendtime']}</span>
+			</li>
+			{if $this->partner['role']['isadmin'] || $this->partner['is_subpartner']}
+			<li class="new-li">
+				{if $this->partner['role']['isadmin']}
+					{if $item['partnerid'] == 0}
+					<a href="{php echo $this->createMobileUrl('partner', array('act' => 'distribution', 'op' => 'distribut', 'id' => $item['id']))}" class="btn btn-default btn-sm">
+						<i class="fa fa-check"></i> 分配
+					</a>
+					{else}
+					<a href="{php echo $this->createMobileUrl('partner', array('act' => 'distribution', 'op' => 'distribut', 'id' => $item['id']))}" class="btn btn-default btn-sm">
+						<i class="fa fa-check"></i> 重新分配
+					</a>
+					{/if}
+				{/if}
+
+				<a href="{php echo $this->createMobileUrl('partner', array('act' => 'distribution', 'op' => 'setup', 'id' => $item['id']))}" class="btn btn-default btn-sm">
+					<i class="fa fa-edit"></i> 设置
+				</a>
+
+				{if $this->partner['role']['isadmin']}
+					{if $item['status'] == 0}
+					<a onclick="return confirm('关闭后客户将无法继续操作，确认关闭？')" href="{php echo $this->createMobileUrl('partner', array('act' => 'mycustomer', 'op' => 'setstatus', 'customerid' =>  $item['id'], 'status' =>-1))}" class="btn btn-warning btn-sm" style="margin-left: 10px;">
+						关闭
+					</a>
+					{elseif $item['status'] == -1}
+					<a onclick="return confirm('确认开启？')" href="{php echo $this->createMobileUrl('partner', array('act' => 'mycustomer', 'op' => 'setstatus', 'customerid' =>  $item['id'], 'status' =>０))}" class="btn btn-success btn-sm" style="margin-left: 10px;">
+						开启
+					</a>
+					{/if}
+				{/if}
+			</li>
+			{/if}
+			<hr style="padding-top: 0; padding-bottom: 0">
+		</ul>
+	</div>
+	{/loop}
+	<div class="modal fade close-modal-sm" tabindex="-1" role="dialog">
+		<div class="modal-dialog modal-sm">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+					<h4 class="modal-title" id="mySmallModalLabel">关闭客户状态设置</h4>
+				</div>
+				<div class="modal-body">
+					关闭后，经纪人将无法设置客户的状态。
+				</div>
+				<div class="modal-footer">
+					<a href="{php echo $this->createMobileUrl('partner', array('act' => 'mycustomer', 'op' => 'setstatus', 'customerid' =>  $item['id'], 'status' =>-1))}" type="button" class="btn btn-primary" data-dismiss="modal">确认</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	{/if}
+	<div class="row">
+		<div class="col-xs-12 text-center">
+			{$pager}
+		</div>
+	</div>
+</div>
+{template 'footer-common'}
+{template 'footer'}

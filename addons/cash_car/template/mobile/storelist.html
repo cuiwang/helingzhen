@@ -1,0 +1,273 @@
+<!--
+ * ============================================================================
+ * 版权所有 2015-2016 米粒源码，并保留所有权利。
+ * 网站地址: http://www.webmili.com；
+ * ----------------------------------------------------------------------------
+ * 这不是一个自由软件！已购买用户允许对程序代码进行修改和使用，但是不允许对
+ * 程序代码以任何形式任何目的的再发布，作者将保留追究法律责任的权力和最终解
+ * 释权。
+ * ============================================================================
+-->
+{php include $this->template('_header');}
+<style type="text/css">
+.filter_wrap {
+	display: -webkit-box;
+	position: relative;
+	width: 100%;
+	overflow: hidden;
+	z-index: 20;
+	clear: both;
+	height: 4em;
+    line-height: 4em;
+	border: 1px #ddd solid;
+	text-align: center;
+}
+
+.filter_item {
+	position: relative;
+	-webkit-box-flex: 1;
+	font-size: 1.6rem;
+	text-align: center;
+	color: #FC605A;
+	cursor: pointer;
+	border-right: 1px #DDD solid;
+}
+.filter_item select{
+	width:99%;
+	border:none;
+	position: absolute;  
+    left: 0px;  
+    top: 0px;  
+    opacity: 0; 
+}
+.filter_item select option{
+	vertical-align: middle;
+}
+.shop_goods{
+	padding: 0.3rem 0rem;
+}
+.goods_pay {
+    display: inline-block;
+    padding: 0rem 1rem;
+    background-color: #f03060;
+    color: #FFFFFF;
+    text-align: center;
+    margin-left: 0.5rem;
+    border-radius: 0.4rem;
+    border: none;
+}
+.page-header select{
+	background-color:#FC605A;
+	border:none;
+}
+</style>
+<body>
+<div id="loading" style="display:none;"><img src="../addons/cash_car/template/images/loading.gif" /></div>
+<header class="page-header">
+	<h3>
+		<select name="storetype" onchange="selectStoretype(this.value);">
+			<option value=""  {if empty($_GPC['storetype'])}selected{/if}>全部服务点类型</option>
+			<option value="1" {if $_GPC['storetype']==1}selected{/if}>上门服务类型</option>
+			<option value="2" {if $_GPC['storetype']==2}selected{/if}>到店服务类型</option>
+		</select>
+	</h3>
+</header>
+
+<div class="contaniner fixed-contb">
+{if !empty($banner)}
+	<figure class="ban swiper-container">
+		<ul class="swiper-wrapper">
+		{loop $banner $ban}
+			{if !empty($ban['img'])}
+			<li class="swiper-slide">
+				<a href="{$ban['link']}">
+					<img src="{$_W['attachurl']}{$ban['img']}"/>
+				</a>
+			</li>
+			{/if}
+		{/loop}
+		</ul>
+	</figure>
+{/if}	
+	<div id="storelist" class="shop">
+	{if $setting['store_model']==2}
+	    <div class="filter_wrap">
+			<div class="filter_item">
+				<span>{$cname}</span>
+				<select onchange="selectServe(this.value);">
+					<option value="" {if empty($_GPC['cid'])}selected{/if}>全部服务</option>
+					{loop $category $cat}
+					<option value="{$cat['id']}" {if $cat['id']==$_GPC['cid']}selected{/if}>{$cat['name']}</option>
+					{/loop}
+				</select>
+			</div>
+			<div class="filter_item">
+				<span>{$softname}</span>
+				<select onchange="selectSoft(this.value);">
+					<option value="" {if empty($_GPC['soft'])}selected{/if}>智能排序</option>
+					<option value="1" {if $_GPC['soft']==1}selected{/if}>离我最近</option>
+					<option value="2" {if $_GPC['soft']==2}selected{/if}>价格优先</option>
+				</select>
+			</div>
+		</div>
+	{/if}
+
+	{if !empty($storelist)}
+		{loop $storelist $row}
+			<section>
+				<article style="height:100px;">
+					<a href="{php echo $this->createMobileUrl('goodslist', array('storeid' => $row['id'], 'from_user' => $from_user), true)}">
+						<table style="cursor:pointer;width: 100%;">
+							<tbody>
+							<tr>
+								<td rowspan="3">
+									<span>
+										<img src="{if !empty($row['logo'])}{$_W['attachurl']}{$row['logo']}{else}../addons/cash_car/template/images/default-logo.jpg{/if}" >
+									</span>
+								</td>
+								<td>
+									<h1 style="float:left;">{$row['title']}</h1>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<p>
+									   {$row['address']}<br/>
+									   {if empty($row['distance'])}
+									   <font>计算中...</font>
+									   {else}
+									   <font>距：{php echo round($row['distance']/1000,2);} Km</font>
+									   {/if}
+									</p>
+								</td>
+							</tr>
+							<tr>
+								<td>
+								&nbsp;
+								</td>
+							</tr>
+							</tbody>
+						</table>
+					</a>
+				</article>
+				{if $setting['store_model']==2 && ($cid>0 || $soft>0)}
+				    {loop $row['goods'] $key $goods}
+					<ul class="shop_goods {if $key>0}store{$row['id']}{/if}" {if $key>0}style="border-top:#E8EAEB 1px solid;display:none;"{/if}>
+						<li style="width:59%;text-align:left;line-height:2.2em;font-size:1.2em;border-right:none;">{$goods['title']}</li>
+						<li style="width:40%;text-align:right;line-height:2em;font-size:1.2em;color:#F03060;">￥{$goods['productprice']}<button class="goods_pay" onclick="location.href='{php echo $this->createMobileUrl('goodsdetail', array('storeid'=>$row['id'],'goodsid'=>$goods['id']));}'">详情</button></li>
+					</ul>
+					{/loop}
+					{if count($row['goods'])>1}
+					<ul id="look{$row['id']}" style="border-top:#E8EAEB 1px solid;">
+					    <li style="width:100%; font-size:1.2em; line-height:2.2em; color:#F03060;" onclick="lookall({$row['id']});">展开全部项目</li>
+					</ul>
+					{/if}
+				{else}
+				<ul>
+					<li><a href="{php echo $this->createMobileUrl('storeshow', array('storeid' => $row['id']), true)}" class="order" style="    background-position: 37px 0;">简介</a></li>
+					<li>
+					{if $row['map_type']==1}
+					<a href="http://apis.map.qq.com/tools/routeplan/eword={$row['title']}&epointx={$row['txlng']}&epointy={$row['txlat']}?referer=myapp&key=672BZ-O7URG-NYGQO-I7YIR-EG55Q-RGFY6" class="gps">导航</a>
+					{elseif $row['map_type']==2}
+					<a href="http://api.map.baidu.com/marker?location={$row['lat']},{$row['lng']}&title={$row['title']}&name={{$row['title']}}&content={$row['address']}&output=html&src=weiba|weisrc" class="gps">导航</a>
+					{/if}
+					</li>
+					<li>
+						<a href="tel:{php echo $row['tel'];}" class="phone">客服</a>
+					</li>
+				</ul>
+				{/if}
+			</section>
+		{/loop}
+	{else}
+	        <div class="none">
+				<h3 style="margin-top:15%;background-color:#F2F2F2;">
+					<img src="../addons/cash_car/template/images/nostore.png">
+				</h3>
+				<p>
+					<span>暂时没有服务点~</span>
+				</p>
+			</div>
+	{/if}
+	</div>
+</div>
+{php include $this->template('_footer');}
+
+<script src='http://api.map.baidu.com/api?v=2.0&ak=uszridA8UmehmbHreas4aV14'></script>
+<script type="text/javascript">
+function distance(){
+    document.getElementById("loading").style.display="block";
+	var geolocation = new BMap.Geolocation();
+	geolocation.getCurrentPosition(function(r){
+		if(this.getStatus() == BMAP_STATUS_SUCCESS){
+			var position = {
+				 lng: r.point.lng,
+				 lat: r.point.lat,
+			}
+			positions(position);
+		}else {
+			alert('获取当前位置失败,请确定您开启了定位服务');
+			document.getElementById("loading").style.display="none";
+		}        
+	},{enableHighAccuracy: true});
+}
+function positions(position){
+    window.location.href = '{php echo $url;}' + '&lng=' + position.lng + '&lat=' + position.lat;
+}
+{if empty($_SESSION['lat']) || empty($_SESSION['lng']) || ($coords_time>$setting['coords_time'])}
+    window.onload=distance;
+{else}
+    document.getElementById("loading").style.display="none";
+{/if}
+</script>
+
+<script src="../addons/cash_car/template/js/swiper.min.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+	var mySwiper = new Swiper('.swiper-container',{
+		loop: true,
+		speed:1000,
+		autoplay: 4000
+	});
+});
+
+var chooseurl = "{php echo $chooseurl;}";
+function selectServe(cid){
+	location.href= chooseurl + "&cid="+cid;
+}
+function selectSoft(soft){
+	location.href= chooseurl + "&soft="+soft;
+}
+function selectStoretype(storetype){
+	location.href= chooseurl + "&storetype="+storetype;
+}
+function lookall(storeid){
+	var id = storeid;
+	$(".store"+id).show();
+	$("#look"+id).hide();
+	
+}
+</script>
+<script type="text/javascript">
+wx.ready(function(){
+	var shareData = {
+		title: "{$sharelink['title']} - {$_W['account']['name']}",
+		desc: "{$sharelink['desc']}",
+		link: "{php echo $_W['siteroot'] .'app/'.$this->createMobileUrl('storelist');}",
+		imgUrl: "{php echo $_W['attachurl'];}{$sharelink['images']}",
+		trigger: function (res) {},
+		complete: function (res) {},
+		success: function (res) {},
+		cancel: function (res) {},
+		fail: function (res) {}
+	};
+	wx.onMenuShareTimeline(shareData);
+	wx.onMenuShareAppMessage(shareData);
+	wx.onMenuShareQQ(shareData);
+	wx.onMenuShareWeibo(shareData);
+	wx.onMenuShareQZone(shareData);
+	
+});
+</script>
+</body>
+</html>

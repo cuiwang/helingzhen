@@ -1,0 +1,97 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+    <li {if $operation=='add' }class="active" {/if}><a href="{php echo $this->createWebUrl('business', array('op' => 'category','operation' => 'add'))}">添加分类</a></li>
+    <li {if $operation=='list' }class="active" {/if}><a href="{php echo $this->createWebUrl('business', array('op' => 'category','operation' => 'list'))}">分类列表</a></li>
+</ul>
+<style type="text/css">
+.type-child {
+    padding-left: 55px;
+    background:url('{MODULE_URL}template/image/bg_repno.gif') no-repeat -248px -550px;
+}
+</style>
+<div class="main">
+    <div class="category">
+        <form action="" method="post" onsubmit="return formcheck(this)">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th style="width:10px;"></th>
+                        <th style="width:80px;">显示顺序</th>
+                        <th>分类名称</th>
+                        <th style="width:50%;">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {loop $category $key $row}
+                    <tr>
+                        <td>
+                            {if count($children[$row['id']]) > 0}
+                            <a href="javascript:;">
+                                <i class="icon-chevron-down"></i>
+                            </a>
+                            {/if}
+                        </td>
+                        <td>
+                            <input type="text" class="form-control" name="displayorder[{$row['id']}]" value="{$row['displayorder']}">
+                        </td>
+                        <td>
+                            <div class="type-parent">{$row['name']}&nbsp;&nbsp; {if empty($row['parentid'])}
+                                <a href="{php echo $this->createWebUrl('business', array('parentid' => $row['id'], 'op' => 'category','operation' => 'add'))}">
+                                    <i class="glyphicon glyphicon-plus-sign"></i> 添加子分类</a>
+                                {/if}
+                            </div>
+                        </td>
+                        <td>
+                            <a href="{php echo $this->createWebUrl('business', array('op' => 'category','operation' => 'add', 'id'=>$row['id']))}" title="编辑" class="btn btn-default btn-sm">
+                                <i class="fa fa-edit" data-toggle="tooltip" data-placement="top"></i>编辑</a>
+                            <a onclick="del({$row['id']})" class="btn btn-default btn-sm" title="删除"><i class="fa fa-times"></i>删除</a>
+                        </td>
+                        <td>
+                        </td>
+                    </tr>
+                    {loop $children[$row['id']] $row}
+                    <tr>
+                        <td></td>
+                        <td>
+                            <input type="text" class="form-control" name="displayorder[{$row['id']}]" value="{$row['displayorder']}">
+                        </td>
+                        <td>
+                            <div class="type-child">{$row['name']}&nbsp;&nbsp;</div>
+                        </td>
+                        <td>
+                            <a href="{php echo $this->createWebUrl('business', array('op' => 'category','operation' => 'add', 'parentid'=>$row['parentid'],'id' => $row['id']))}" title="编辑" class="btn btn-default btn-sm"><i class="fa fa-edit" data-toggle="tooltip" data-placement="top"></i>编辑</a>
+                            <a onclick="del({$row['id']})" class="btn btn-default btn-sm" title="删除"><i class="fa fa-times"></i>删除</a>
+                        </td>
+                    </tr>
+                    {/loop} {/loop}
+                    <tr>
+                        <td></td>
+                        <td colspan="3">
+                            <input name="submit" type="submit" class="btn btn-primary" value="提交">
+                            <input type="hidden" name="token" value="{$_W['token']}" />
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </form>
+    </div>
+</div>
+<script type="text/javascript">
+function del(id) {
+    var id = id;
+    var url = "{php echo $this->createWebUrl('business',array('op' => 'delete'))}";
+    $.post(url, {
+            id: id
+        },
+        function(msg) {
+            if (msg.status == 1) {
+                setTimeout(function() {
+                    window.location.reload();
+                }, 100);
+            };
+
+        },
+        'json');
+}
+</script>
+{template 'common/footer'}

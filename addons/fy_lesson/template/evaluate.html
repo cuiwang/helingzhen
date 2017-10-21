@@ -1,0 +1,187 @@
+<!-- 
+ * 评价管理
+ * ============================================================================
+ * ============================================================================
+-->
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li {if $op=='display'}class="active"{/if}><a href="{php echo $this->createWebUrl('evaluate');}">评价列表</a></li>
+	{if $op=='reply'}
+	<li {if $op=='reply'}class="active"{/if}><a href="{php echo $this->createWebUrl('evaluate', array('op'=>'reply','id'=>$_GPC['id']));}">评价详情</a></li>
+	{/if}
+</ul>
+{if $operation == 'display'}
+<style type="text/css">
+.col-lg-3{width:22%;}
+</style>
+<div class="main">
+    <div class="panel panel-info">
+        <div class="panel-heading">筛选</div>
+        <div class="panel-body">
+            <form action="./index.php" method="get" class="form-horizontal" role="form">
+                <input type="hidden" name="c" value="site" />
+                <input type="hidden" name="a" value="entry" />
+                <input type="hidden" name="m" value="fy_lesson" />
+                <input type="hidden" name="do" value="evaluate" />
+                <input type="hidden" name="op" value="display" />
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label" style="width:100px;">订单编号</label>
+                    <div class="col-sm-2 col-lg-3">
+                        <input class="form-control" name="ordersn" type="text" value="{$_GPC['ordersn']}">
+                    </div>
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">课程名称</label>
+                    <div class="col-sm-2 col-lg-3">
+                        <input class="form-control" name="bookname" type="text" value="{$_GPC['bookname']}">
+                    </div>
+                </div>
+                <div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">用户昵称</label>
+                    <div class="col-sm-2 col-lg-3">
+                        <input class="form-control" name="nickname" id="" type="text" value="{$_GPC['nickname']}">
+                    </div>
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">回复状态</label>
+                    <div class="col-sm-2 col-lg-3">
+                        <select name="reply" class="form-control">
+							<option value="">请选择...</option>
+							<option value="0" {if in_array($_GPC['reply'], array('0'))}selected{/if}>未回复</option>
+							<option value="1" {if $_GPC['reply']==1}selected{/if}>已回复</option>
+						</select>
+                    </div>
+                </div>
+				<div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label" style="width: 100px;">下单时间</label>
+                    <div class="col-sm-8 col-lg-3 col-xs-12">
+                        {php echo tpl_form_field_daterange('time', array('starttime'=>date('Y-m-d', $starttime),'endtime'=>date('Y-m-d', $endtime)));}
+                    </div>
+                    <div class="col-sm-3 col-lg-3" style="width: 18%;">
+                        <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="panel panel-default">
+        <form action="" method="post" class="form-horizontal form" >
+        <div class="table-responsive panel-body">
+            <table class="table table-hover">
+                <thead class="navbar-inner">
+                <tr>
+                    <th style="width:13%;">订单遍号</th>
+                    <th style="width:10%;">用户昵称</th>
+                    <th style="width:15%;">课程名称</th>
+                    <th style="width:13%;text-align:center;">评价/回复</th>
+                    <th style="width:25%;text-align:center;">评价内容</th>
+                    <th style="width:10%;">评价日期</th>
+                    <th style=" text-align:right;">操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                {loop $list $item}
+                <tr>
+                    <td>{php echo $item['ordersn']?$item['ordersn']:'免费课程';}</td>
+                    <td>{$item['nickname']}</td>
+                    <td>{$item['bookname']}</td>
+                    <td align="center">
+						{if $item['grade']==1}<span class="label" style="background-color:#FB5B5B;">好评</span>
+						{elseif $item['grade']==2}<span class="label" style="background-color:#D99810;">中评</span>
+						{elseif $item['grade']==3}<span class="label" style="background-color:#555555;">差评</span>{/if}
+						
+						{if !empty($item['reply'])}
+						<span class="label label-success">已回复</span>
+						{else}
+						<span class="label label-default">未回复</span>
+						{/if}
+                    </td>
+                    <td align="center">{$item['content']}</td>
+                    <td>{php echo date('Y-m-d', $item['addtime'])}</td>
+                    <td style="text-align:right;">
+						<a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('evaluate', array('op' => 'reply', 'id' => $item['id']))}" title="查看评价"><i class="fa fa-edit"></i>查看</a>
+                        <a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('evaluate', array('op' => 'delete', 'id' => $item['id'], 'refurl'=>$_W['siteurl']))}" title="删除评价" onclick="return confirm('此操作不可恢复，确认删除？');return false;"><i class="fa fa-times"></i>删除</a>
+                    </td>
+                </tr>
+                {/loop}
+                </tbody>
+            </table>
+            {$pager}
+        </div>
+    </div>
+    </form>
+</div>
+{elseif $operation == 'reply'}
+<div class="main">
+	<form method="post" class="form-horizontal form">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                订单信息
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">订单遍号</label>
+                    <div class="col-sm-9">
+                        <p class="form-control-static">{php echo $evaluate['ordersn']?$evaluate['ordersn']:'免费课程';}</p>
+                    </div>
+                </div>
+				<div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">课程名称</label>
+                    <div class="col-sm-9">
+                        <p class="form-control-static">
+                        {$evaluate['bookname']}
+                        </p>
+                    </div>
+                </div>
+				<div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">昵称/姓名/手机号码</label>
+                    <div class="col-sm-9">
+                        <p class="form-control-static">
+							<img src="{$member['avatar']}" width="35" height="35">
+							{$member['nickname']} / {$member['realname']} / {$member['mobile']}
+                        </p>
+                    </div>
+                </div>
+				<div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">评价级别</label>
+                    <div class="col-sm-9">
+                        <p class="form-control-static">
+							{if $evaluate['grade']==1}<span class="label" style="background-color:#FB5B5B;">好评</span>
+							{elseif $evaluate['grade']==2}<span class="label" style="background-color:#D99810;">中评</span>
+							{elseif $evaluate['grade']==3}<span class="label" style="background-color:#555555;">差评</span>{/if}
+                        </p>
+                    </div>
+                </div>
+				<div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">评价内容</label>
+                    <div class="col-sm-9">
+                        <p class="form-control-static">
+							{$evaluate['content']}
+                        </p>
+                    </div>
+                </div>
+				<div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">评价内容</label>
+                    <div class="col-sm-9">
+                        <p class="form-control-static">
+							{if empty($evaluate['reply'])}
+							<textarea name="reply"  class="form-control" style="width:600px;height:150px;"></textarea>
+							{else}
+							{$evaluate['reply']}
+							{/if}
+                        </p>
+                    </div>
+                </div>
+				{if empty($evaluate['reply'])}
+				<div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+                    <div class="col-sm-9">
+						<input type="hidden" name="id" value="{$id}" />
+						<input type="hidden" name="token" value="{$_W['token']}" />
+                        <input type="submit" name="submit" class="btn btn-info span2" value="提交回复" />
+                    </div>
+                </div>
+				{/if}
+            </div>
+        </div>
+	</form>
+</div>
+{/if}
+{template 'common/footer'}

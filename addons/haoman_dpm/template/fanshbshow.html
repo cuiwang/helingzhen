@@ -1,0 +1,130 @@
+{template 'common/header'}
+<div class="main">
+    <ul class="nav nav-tabs">
+        <li class="active"><a href="#">红包详细列表</a></li>
+        <!--<li><a  href="{php echo $this->createWebUrl('Newtoupiao',array('rid' => $rid));}">添加投票</a></li>-->
+    </ul>
+	<div class="category">
+        <button class="btn btn-success" onclick="location.href='{php echo $this->createWebUrl('download_hb_log',array('rid'=>$_GPC['rid']))}'" type="button"><i class="fa fa-search"></i> 导出数据</button>
+        <div class="panel panel-default">
+                <div class="panel-body table-responsive">
+                    <table class="table table-hover" >
+                        <thead class="navbar-inner">
+                        <tr>
+                            <th style="width:80px;">排序</th>
+                            <th style="width:100px;">头像</th>
+                            <th style="width:150px;">昵称</th>
+                            <th style="width:100px;">红包金额</th>
+                            <th style="width:100px;">支付金额</th>
+                            <th style="width:100px;">手续费(%)</th>
+                            <th style="width:100px;">发放方式</th>
+                            <th style="width:100px;">红包个数</th>
+                            <th style="width:100px;">领取个数</th>
+                            <th style="width:100px;">已被领取金额</th>
+                            <th style="width:200px;">祝福语</th>
+                            <th style="width:200px;">适用活动</th>
+                            <th style="width:150px;">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {loop $list $row}
+                        <tr>
+                            <td>{$row['id']} </td>
+                            <td><img style="width: 80px;height: 80px" src="{php echo tomedia($row['avatar'])}" alt=""></td>
+                            <td>{$row['nickname']} </td>
+                            <td>{$row['actual_money']}</td>
+                            <td>{$row['money']}</td>
+                            <td>{$row['counter']}%</td>
+
+                            <td>{if $row['desknum']==1}随机{else}均分{/if}</td>
+                            <td>{$row['hbnum']}</td>
+                            <td>{$row['usesnum']}</td>
+                            <td>{$row['usemoney']}</td>
+                            <td>{$row['says']}</td>
+                            <td>{$row['rulename']}</td>
+                            <td>
+                                <a class="btn btn-default xiangqing userinfo4" href="javascript:void(0)"  data-placement="top" title="详情" id="{$row['id']}"><i class="fa fa-bullseye" ></i></a>
+                                <!--<a class="btn btn-default" data-toggle="tooltip" data-placement="top" href="{php echo $this->createWebUrl('Newtoupiao',array('rid' => $rid,'op'=>'up','uid'=>$row['id']));}" title="编辑"><i class="fa fa-edit"></i></a>-->
+                                <a class="btn btn-default" data-toggle="tooltip" data-placement="top" href="#" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('dele_fanshb',array('rid' => $rid,'op'=>'del','uid'=>$row['id']));}');" title="删除"><i class="fa fa-times"></i></a>
+                            </td>
+                        </tr>
+                        {/loop}
+                       
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+	</div>
+
+</div>
+<script>
+    require(['jquery', 'util'], function($, u){
+        $('.userinfo4').click(function(){
+            var fansid = parseInt($(this).attr('id'));
+
+            $.get("{php echo $this->createWebUrl('Userinfo4')}&fansid=" + fansid, function(data){
+                if(data == 'dataerr') {
+                    u.message('未找到指定红包记录', '', 'error');
+                } else {
+                    var obj = u.dialog('红包领取记录', data, $('#guanbi').html());
+                }
+                obj.modal('show');
+            });
+        })
+    });
+</script>
+<script>
+    require(['bootstrap'],function($){
+        $('.btn').hover(function(){
+            $(this).tooltip('show');
+        },function(){
+            $(this).tooltip('hide');
+        });
+    });
+
+
+
+    $(function(){
+
+        $(".check_all").click(function(){
+            var checked = $(this).get(0).checked;
+
+            $("input[type=checkbox]").attr("checked",checked);
+        });
+        $("input[name=deleteall]").click(function(){
+            var check = $("input:checked");
+
+            if(check.length<2){
+                alert('请选择要删除的记录!');
+                return false;
+            }
+            if( confirm("确认要删除选择的记录?")){
+                var id = new Array();
+                check.each(function(i){
+                    id[i] = $(this).val();
+                });
+                $.post('{php echo $this->createWebUrl('deleteAllcard')}', {idArr:id},function(data){
+                    if (data.errno ==0)
+                    {
+                        location.reload();
+                    } else {
+                        alert(data.error);
+                    }
+
+
+                },'json');
+            }
+
+        });
+    });
+</script>
+<script>
+    function drop_confirm(msg, url){
+        if(confirm(msg)){
+            window.location = url;
+        }
+    }
+</script>
+{$pager}
+		
+{template 'common/footer'}

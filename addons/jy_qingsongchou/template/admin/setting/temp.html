@@ -1,0 +1,137 @@
+{template 'common/header'}
+{template 'admin/setting/tabs'}
+<style>
+  font{color: red;}
+</style>
+
+  <form action="" method="post" class="form-horizontal" enctype="multipart/form-data">
+    <input type="hidden" name="id" value="{php echo $_GPC['id']}" />
+    <input type="hidden" name="dopost" value="save_temp" />
+    <div class="panel panel-default">
+      <div class="panel-heading"> 模板消息 </div>
+      <div class="panel-body">
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style="color:red">*</span>模板消息名称</label>
+          <div class="col-sm-9 col-xs-12">
+            <input type="text" name="catename" class="form-control" required="required" value="{$item['catename']}" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style="color:red">*</span>模板ID</label>
+          <div class="col-sm-9 col-xs-12">
+            <input type="text" name="tempid" class="form-control" required="required" value="{$item['tempid']}" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style="color:red">*</span>模板跳转链接</label>
+          <div class="col-sm-9 col-xs-12">
+            <input type="text" name="url" class="form-control" required="required" value="{$item['url']}" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style="color:red">*</span>模板消息</label>
+          <div class="col-sm-9 col-xs-12">
+            <textarea name="content" id="content" class="form-control" rows="8">{$item['content']}</textarea>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label">&nbsp;</label>
+          <div class="col-sm-9 col-xs-12">
+            <button type="button" class="btn btn-primary" onclick="resolve()">解析模板内容</button>
+            <i class="glyphicon glyphicon-question-sign tips" data-toggle="tooltip" data-placement="bottom" title="如果是固定内容，请在“值”中输入内容，否则留空。调用时则可重定义这些内容"></i>
+            <input type="submit" name="submit" value="保存模板" class="btn btn-primary pull-right" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style="color:red">*</span>参数</label>
+          <div class="col-sm-9 col-xs-12">
+            <div id="parama"></div>
+            </div>
+        </div>
+        <div class="form-group">
+          <div class="col-xs-8">
+                相关参数:
+                <p>系统消息通知 可用变量 <font>{title}</font>(消息标题) <font>{desc}</font>(消息描述) <font>{time}</font>(消息发布时间) <font>{url}</font>(消息链接) <font>{tid}</font>(流水号)</p>
+                <p>支持成功通知 可用变量 <font>{nickname}</font>(支持者姓名) <font>{fee}</font>(支持金额) <font>{time}</font>(支持时间) <font>{msg}</font>(支持评论)  <font>{name}</font>(项目名称)</p>
+                <p>新评论通知 可用变量 <font>{nickname}</font>(支持者姓名) <font>{fee}</font>(支持金额) <font>{time}</font>(支持时间) <font>{msg}</font>(支持评论)  <font>{name}</font>(项目名称)</p>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group col-xs-12">
+
+      <input type="hidden" name="token" value="{$_W['token']}" />
+      <input type="hidden" id="paramavla" value='{$item['parama']}'/>
+    </div>
+  </form>
+
+{if empty($_GPC['action'])}
+  {if !empty($liist)}
+     <div class="panel panel-info">
+         <div class="panel-heading">
+             模板列表
+         </div>
+         <div class="panel-body">
+           <table class="table text-center">
+           <tr>
+             <td width='5%'>ID</td>
+             <td>名称</td>
+             <td>模板ID</td>
+             <td>创建时间</td>
+             <td width='10%;'>操作</td>
+           </tr>
+
+           {loop $liist $row}
+           <tr>
+             <td>{$row['id']}</td>
+             <td>{$row['catename']}</td>
+             <td>{$row['tempid']}</td>
+             <td>{php echo date('Y-m-d H:i:s',$row['upbdate'])}</td>
+             <td>
+               <a href="{php echo $this->createWebUrl('setting',array('display'=>'temp','action'=>'editor','id'=>$row['id']))}" class='btn btn-info btn-xs'>编辑</a>
+               <a href="{php echo $this->createWebUrl('setting',array('dopost'=>'del_temp','id'=>$row['id']))}" class="btn btn-danger btn-xs">删除</a>
+             </td>
+           </tr>
+           {/loop}
+           </table>
+         </div>
+     </div>
+  {/if}
+  {/if}
+<script type="text/javascript">
+i=0;
+function resolve(){
+	msg=$("#content").val() ? $("#content").val():$("#content").html();
+	if(msg=='undefined' || msg=="")return;
+	var test = /\{\{.*?\.(DATA)\}\}/gi;
+	var result = [];
+	var img ;
+	$("#parama").empty();
+	while(img = test.exec(msg)){
+		temp=img[0].replace(" ","").replace("{{","").replace(".DATA}}","");
+		addparama(temp);
+	}
+}
+function addparama(){
+	key=arguments[0]!=""?arguments[0]:"";
+	var temp="<div><label class='form-inline'><input class='form-control' readonly name='parama-key["+i+"]' value='"+key+"' placeholder='键'/> : <input class='form-control' name='parama-val["+i+"]' placeholder='值'/>  : <input class='form-control' class='tcolor' name='parama-color["+i+"]' placeholder='颜色'/> </label></div>";
+	$("#parama").append(temp);
+	i++;
+}
+readdparama();
+function readdparama(){
+	val=$("#paramavla").val();
+	if(val.length<10)return;
+	tempary=eval("("+val+")");
+	for(key in tempary){
+		temp="<div><label class='form-inline'><input class='form-control' readonly name='parama-key["+i+"]' value='"+key+"' placeholder='键'/> :";
+		temp+=" <input class='form-control' name='parama-val["+i+"]' placeholder='值' value='"+tempary[key]['value']+"'/>  :";
+		temp+=" <input class='form-control' class='tcolor' name='parama-color["+i+"]' placeholder='颜色' value='"+tempary[key]['color']+"'/> </label></div>";
+		$("#parama").append(temp);
+		i++;
+	}
+}
+
+</script>

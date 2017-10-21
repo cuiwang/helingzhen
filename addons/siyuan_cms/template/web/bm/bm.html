@@ -1,0 +1,183 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+<li {if $op == 'display'}class="active"{/if}><a href="{php echo url('site/entry/bm',array('op'=>'display','m'=>'siyuan_cms'))}">便民列表</a></li>
+<li {if $op == 'post'}class="active"{/if}><a href="{php echo url('site/entry/bm',array('op'=>'post','m'=>'siyuan_cms'))}">添加便民</a></li>
+</ul>
+<style>
+.table td span{display:inline-block;margin-top:4px;}
+.table td input{margin-bottom:0;}
+</style>
+{if $op == 'display'}
+<div class="panel panel-default">
+<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" onsubmit="return check(this)">
+<div class="table-responsive panel-body">
+<table class="table">
+<thead>
+<tr>
+<th style="width:70px">排序</th>
+<th style="width:200px">标题</th>
+<th style="width:100px;">图标</th>
+<th style="width:100px;">模式</th>
+<th style="width:180px;">网址</th>
+<th style="width:320px;">操作</th>
+</tr>
+</thead>
+<tbody>
+{loop $list $item}
+<tr>
+<td class="text-center"><input type="text" class="form-control" name="displayorder[{$item['id']}]" value="{$item['displayorder']}"></td>
+<td>
+<span class="cate"><span class="text-info">[{$fenlei[$item['bid']]['name']}]</span></span>
+<a href="{php echo url('site/entry/bm',array('op'=>'post', 'id' => $item['id'],'m'=>'siyuan_cms'))}" style="color:#333;">{$item['title']}</a>
+</td>
+<td>{if $item['thumb']}<img src="{$_W['attachurl']}{$item['thumb']}" style="width:40px;height:40px;border-radius:50px;"/>{else}<span class="label label-default">未设置</span>{/if}</td>
+<td>{if $item['ms'] == '0'}<span class="label label-success">站外模式</span>{else}<span class="label label-info">站内插件</span>{/if}</td>
+<td>{if $item['ms'] == '1'}<a target="_blank" href="{$item['url']}"><button type="button" class="btn btn-info"><i class="fa fa-paper-plane"></i>点击访问</button></a>{else}<a target="_blank" href="{$_W['siteroot']}app/{php echo $this->createMobileUrl('bm', array('id' => $item['id'],'act' => news, 'weid' => $_W['weid']))}"><button type="button" class="btn btn-primary"><i class="fa fa-paper-plane"></i>点击访问</button></a>{/if}</td>
+<td>
+<a href="{php echo url('site/entry/bm',array('op'=>'post', 'id' => $item['id'],'m'=>'siyuan_cms'))}" title="编辑" class="btn btn-default btn-sm"><i class="fa fa-edit"></i></a>
+<a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo url('site/entry/bm',array('op'=>'delete', 'id' => $item['id'],'m'=>'siyuan_cms'))}" title="删除" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-times"></i></a>
+</td>
+</tr>
+{/loop}
+</tbody>
+</table>
+{$pager}
+</div>
+</div>
+<tr>
+<td colspan="5">
+<input name="submit" type="submit" class="btn btn-primary" value="更新排序">
+<input type="hidden" name="token" value="{$_W['token']}" />
+</td>
+</tr>
+</form>
+{elseif $op == 'post'}
+<div class="main">
+<form class="form-horizontal form" action="" method="post" enctype="multipart/form-data" id="form1">
+<div class="panel panel-default">
+<div class="panel-heading">便民查询管理</div>
+<div class="panel-body">
+<input type="hidden" name="id" value="{$item[id]}">
+<div class="form-group">
+<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">类别</label>
+<div class="col-sm-8 col-xs-12">
+<select class="form-control" name="bid">
+<option value="0">==选择所属分类==</option>
+{loop $fenlei $row}
+<option value="{$row['id']}" {if $row['id'] == $item['bid']}selected{/if}>{$row['name']}</option>
+{/loop}
+</select>
+</div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">名称</label>
+<div class="col-sm-8 col-xs-12">
+<input type="text" class="form-control" placeholder="" name="title" value="{$item['title']}">
+</div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-3 col-md-2 control-label">模式</label>
+<div class="col-sm-9">
+<label class="radio-inline" onclick="$('.moshi').show();">
+<input type="radio" name="ms" value="0" {if $item['ms']== 0} checked="checked"{/if}/>站外页面</label>
+<label class="radio-inline" onclick="$('.moshi').hide();">
+<input type="radio" name="ms" value="1" {if $item['ms'] == 1} checked="checked"{/if}/>站内插件</label>
+</div>
+</div>
+<div class="moshi" {if $item['ms'] == 1}style="display: none;"{/if}>
+<div class="form-group">
+<label class="col-xs-12 col-sm-3 col-md-2 control-label">靠上距离</label>
+<div class="col-sm-9 col-xs-12">
+<div class="row row-fix">
+<div class="col-sm-2 col-xs-2">
+<div class="input-group">
+<input type="text" name="top" class="form-control" value="{$item['top']}">
+<span class="input-group-addon">px</span>
+</div><span class="help-block">可输入负数，例如-20</span>
+</div>
+</div>
+</div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-3 col-md-2 control-label">靠下距离</label>
+<div class="col-sm-9 col-xs-12">
+<div class="row row-fix">
+<div class="col-sm-2 col-xs-2">
+<div class="input-group">
+<input type="text" name="bottom" class="form-control" value="{$item['bottom']}">
+<span class="input-group-addon">px</span>
+</div><span class="help-block">可输入负数，例如-20</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="form-group">
+<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">便民网址</label>
+<div class="col-sm-8 col-xs-12">
+<input type="text" class="form-control" placeholder="" name="url" value="{$item['url']}">
+<span class="help-block">请输入便民网址</span>
+</div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">封面图标</label>
+<div class="col-sm-8 col-xs-12">
+{php echo tpl_form_field_image('thumb', $item['thumb']);}
+<div class="help-block"><font color="red">大小建议：200*200px</font></div>
+</div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">分享标题</label>
+<div class="col-sm-8 col-xs-12">
+<input type="text" class="form-control" placeholder="" name="share_title" value="{$item['share_title']}">
+<div class="help-block">例：XXX今日天气查询</div>
+</div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">分享缩略图</label>
+<div class="col-sm-8 col-xs-12">
+{php echo tpl_form_field_image('share_icon', $item['share_icon']);}
+<div class="help-block"><font color="red">必须上传，图片为1:1大小</font></div>
+</div>
+</div>
+<div class="form-group">
+<div class="col-sm-6 col-xs-6">
+<button type="submit" class="btn btn-primary btn-block" name="submit" value="提交">提交</button>
+<input type="hidden" name="token" value="{$_W['token']}" />
+</div>
+</div>
+</div></div></div>
+</form>
+</div>
+</div>
+<script type="text/javascript">
+require(['jquery', 'util'], function($, u){
+$(function(){
+$('.richtext').each(function() {
+u.editor(this);
+});
+});
+});
+</script>
+<script type="text/javascript">
+require(['jquery', 'util'], function($, u){
+$('#form1').submit(function(){
+if($("input[name=title]").val().length <= 0) {
+u.message('没有填写标题', '', 'error');
+return false;
+}
+if($("input[name=url]").val().length <= 0) {
+u.message('网址没有填写', '', 'error');
+return false;
+}
+if ($("select[name=bid]").val() == "0"){
+u.message('请选择分类', '', 'error');
+return false;
+}
+return true;
+});
+});
+</script>
+{/if}
+{template 'common/footer'}

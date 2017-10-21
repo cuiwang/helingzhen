@@ -1,0 +1,179 @@
+{template 'common/header'}
+	<style type="text/css">
+
+.global_icon,.global_icon_before:before,.global_icon_after:after,.level {
+    background-image: url('{FMURL}mobile/templates/stylebase/style/images/new_sglobal_icon.png');
+    background-repeat: no-repeat;
+    -webkit-background-size: 70px auto;
+    background-size: 70px auto
+}
+
+.level {
+    width: 20px;
+    height: 20px;
+    display: inline-block;
+    line-height: 16px;
+    text-align: center;
+    font-size: 10px;
+    color: #fff;
+    vertical-align: middle
+}
+
+.level_1,.level_2,.level_3 {
+    background-position: 0 -127px
+}
+
+.level_4,.level_5,.level_6,.level_7,.level_8,.level_9 {
+    background-position: 0 -155px
+}
+
+.level_10,.level_11,.level_12,.level_13,.level_14,.level_15 {
+    background-position: 0 -183px
+}
+
+.level_16,.level_17,.level_18 {
+    background-position: 0 -211px
+}
+
+.female {
+    background-position: 0 -492px
+}
+
+.male {
+    background-position: 0 -510px
+}
+	</style>
+    <div class="main">
+	{if $rid!=''}
+		{template 'nav'}
+	{/if}
+
+	<div class="panel panel-default">
+		<div class="panel panel-info">
+			<div class="panel-heading">筛选</div>
+			<div class="panel-body">
+				<form action="./index.php" method="get" class="form-horizontal" role="form">
+					<input type="hidden" name="c" value="site" />
+					<input type="hidden" name="a" value="entry" />
+					<input type="hidden" name="m" value="fm_photosvote" />
+					<input type="hidden" name="do" value="votelog" />
+					<input type="hidden" name="rid" value="{$_GPC['rid']}" />
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-4 col-lg-3 control-label">投票人昵称或者投票IP或被投票人昵称</label>
+						<div class="col-xs-12 col-sm-8 col-lg-7">
+							<input class="form-control" name="keyword" id="" type="text" value="{$_GPC['keyword']}" placeholder="投票人昵称或者投票IP或者被投票人昵称"> 
+							{if $keyword}
+								<div class="help-block label label-info " style="position: relative;  top: 10px;  font-size: 15px;">当前系统已搜索到 {$total} 条包含 “{$keyword}” 的相关数据......</div>
+							{/if}
+						</div>
+						<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+						
+					</div>
+					
+				</form>
+			</div>
+		</div>
+	
+		{if $_W['role']=='founder'}
+		<div class="panel-heading">	
+			<div class="row-fluid">
+				<div class="span8 control-group">
+					<a class="btn btn-danger" data-toggle="tooltip" data-placement="top" href="#" onclick="drop_confirm('清空投票数据后无法恢复，您确定要清空数据吗?', '{php echo $this->createWebUrl('deletealllog',array('rid'=>$rid))}');" title="清空数据"><i class="fa fa-remove"></i> 清空数据</a>
+					<a class="btn btn-info" data-toggle="tooltip" data-placement="top" href="#" onclick="drop_confirm('您确定要导出投票信息吗?', '{php echo $this->createWebUrl('tpdownload',array('rid'=>$rid, 'keyword' => $keyword, 'afrom_user' => $afrom_user, 'tfrom_user' => $tfrom_user))}');" title="导出投票信息"><i class="fa fa-remove"></i> 导出投票信息</a>
+				</div>
+			</div>
+		</div>
+		{/if}
+		<form method="post" class="form-horizontal" id="formfans">
+		<input type="hidden" name="op" value="del" />
+		<div style="position:relative">
+			<div class="panel-body table-responsive">
+				<table class="table table-hover" style="position:relative">
+				<thead class="navbar-inner">
+					<tr>
+						<th style="width:50px;">删？</th>
+						<th style="width:60px;">序号</th>
+						<th style="width:200px;">投票人</th>
+						<th style="width:180px;">投票时间</th>									
+						<th style="width:150px;">投票IP</th>										
+						<th style="width:100px;">投票地区</th>								
+						<th style="width:150px;">被投票人</th>									
+						<th style="width:150px;">拉票人</th>
+					</tr>
+				</thead>
+				<tbody>
+					{loop $votelogs $row}
+					{php $fuser = $this->_getuser($row['rid'], $row['tfrom_user']);}
+					{php $auser = $this->_auser($row['rid'], $row['afrom_user']);}
+					{php $iparr = iunserializer($row['iparr']);}
+					{php $level = intval($this->fmvipleavel($rid, $uniacid, $row['from_user']));$tlevel = intval($this->fmvipleavel($rid, $uniacid, $row['tfrom_user']));$alevel = intval($this->fmvipleavel($rid, $uniacid, $row['afrom_user']));}
+					{if $keyword}
+						<style>
+							.active {background:#FFFC00; color:red;}
+						</style>
+						{php $rn = stristr($row['nickname'],$keyword); $fn = stristr($fuser['nickname'],$keyword)}
+					{/if}
+					<tr>
+						<td><input type="checkbox" name="uid[]" value="{$row['id']}" class=""></td>
+						<td>{$row['id']}</td>									
+						<td><img src="{php echo toimage($row['avatar'])}" width="50px;"/>  <span {if $rn}class="active"{/if}>{if $row['nickname']}{$row['nickname']}{else}{$row['from_user']}{/if}</span> <span class="level level_{$level}">{$level}</span></td>
+						<td>{php echo date('Y-m-d H:i:s', $row[createtime]);}</td>
+						<td><span {if strstr($keyword, $row['ip'])}class="active"{/if}>{$row['ip']}</span></td>
+						<td style="white-space: normal;word-break: break-all;">{if is_array($iparr)}{$iparr['country']}{/if}|{if is_array($iparr)}{$iparr['province']}{/if}|{if is_array($iparr)}{$iparr['city']}{/if}</td>
+						<td><img src="{php echo toimage($fuser['avatar'])}" width="50px;"/> <span {if $fn}class="active"{/if}>{$fuser['nickname']}</span> <span class="level level_{$tlevel}">{$tlevel}</span></td>									
+						<td>{if empty($row['afrom_user'])}没有{else}<img src="{php echo toimage($auser['avatar'])}" width="50px;"/> {if empty($auser['nickname'])}{$row['afrom_user']}{else}{$auser['nickname']}  <span class="level level_{$alevel}">{$alevel}</span>{/if}{/if}</td>
+					</tr>
+					{/loop}
+					
+					<tr>
+						<td><input type="checkbox" name="" onclick="var ck = this.checked;$(':checkbox').each(function(){this.checked = ck});"></td>
+						<td colspan="9"><input name="token" type="hidden" value="{$_W['token']}" /><input type="submit" name="submit" class="btn btn-primary" value="删除选中的投票"></td>
+					</tr>
+					
+				</tbody>
+				</table>
+			</div>
+		</div>
+		</form>
+	</div>
+		{$pager}
+
+    </div>
+
+<div id="guanbi" class="hide">
+	<span type="button" class="pull-right btn btn-primary" data-dismiss="modal" aria-hidden="true">关闭</span>
+</div>
+<script>
+	require(['jquery', 'util'], function($, u){		
+		$('#formfans').submit(function(){
+		    if($(":checkbox[name='uid[]']:checked").size() > 0){
+			    var check = $(":checkbox[name='uid[]']:checked");
+			    if( confirm("确认要删除选择的投票记录?")){
+		            var id = new Array();
+				    var rid = {$rid};
+		            check.each(function(i){
+			            id[i] = $(this).val();
+		            });
+		            $.post('{php echo $this->createWebUrl('deletevote')}', {idArr:id,rid:rid},function(data){
+			        if (data.errno ==0){
+						location.reload();
+			        } else {
+				        alert(data.error);
+			        }
+		            },'json');
+		        }
+		    }else{
+		        u.message('没有选择投票', '', 'error');
+		        return false;
+		    }		    
+	    });    
+		
+	});	
+
+function drop_confirm(msg, url){
+	if(confirm(msg)){
+		window.location = url;
+	}
+}
+</script>
+{template 'common/footer'}

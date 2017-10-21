@@ -1,0 +1,344 @@
+{template 'common/header'}
+<div class="alert alert-info info">
+	<i class="fa fa-info-circle"></i>
+	当前门店名称: {$store['title']}
+</div>
+{template 'nav'}
+<style type="text/css">
+	.info{padding:6px;width:400px;margin:20px auto 3px auto;text-align:center;}
+	.table{min-width:100%;max-width: 100%;margin-bottom: 0}
+	.table th,td{text-align: center;}
+	.submit-fixed{position: fixed;bottom:0;z-index:1000;width:100%;text-align: center}
+	.submit-fixed .btn{width: 100px;}
+
+	.stat-num{text-align: center;}
+	.stat-plus-times{cursor: pointer;}
+	.tile{display:block; position:relative; float:left; margin:0.4em;padding:.3em 1em .3em 1em; width:8em; height:5.5em; text-align:center; background:#EEE; color:#333; text-decoration:none;}
+	.tile span{display: block}
+	.tile strong{display: block;padding-bottom:7px;}
+
+	.tile .fa, .tile .num{display: none}
+	.tile.active{border:2px #009cd6 solid;}
+	.tile.active .fa.fa-check{display:inline-block;position:absolute;bottom:0px;right:0px;color:#FFF;background:#009CD6;padding:2px;font-size:12px;border-radius:0 0 4px 0;}
+	.tile.active .num{display:inline-block;position:absolute;top:-7px;left:-7px;color:#FFF;background:#009CD6;width:20px;height:20px;font-size:12px;border-radius:10px;}
+
+	.text-high{font-size: 18px;font-weight: bold;color:#ec7501;}
+</style>
+
+<div class="clearfix">
+	<div class="pull-left col-lg-4" id="dish" style="padding:0">
+		<div class="panel panel-default" style="padding:1em">
+			<nav role="navigation" class="navbar navbar-default navbar-static-top" id="clear" style="margin: -1em -1em 1em -1em;">
+				<div class="container-fluid">
+					<div class="navbar-header">
+						<a href="javascript:;" class="navbar-brand">已点菜品</a>
+					</div>
+				</div>
+			</nav>
+			<div class="panel-body" style="padding:0">
+				<div class="table-responsive">
+					<form class="form-horizontal form" id="form1" action="{php echo $this->createWebUrl('manage', array('op' => 'back_submit'));}" method="post" enctype="multipart/form-data">
+						<table class="table table-hover table-bordered" style="max-width:500px">
+							<thead>
+								<tr>
+									<th width="130">数量</th>
+									<th width="120">菜名</th>
+									<th width="60">单价</th>
+									<th width="60">小计</th>
+								</tr>
+							</thead>
+						</table>
+						<div style="height:450px;overflow-y:auto">
+							<table class="table table-hover table-bordered" id="stat-dish">
+							</table>
+						</div>
+						<table class="table table-hover table-bordered">
+							<tr>
+								<th>份数：<span class="text-high" id="total-num">0份</span></th>
+								<th>总计：<span class="text-high" id="total-price">0元</span></th>
+							</tr>
+							<tr>
+								<th colspan="2">
+									<label class="radio-inline"><input type="radio" name="order_type" value="1" checked onclick="$('#type1, #type2').hide();$('#type1').show();"> 店内单</label>
+									<label class="radio-inline"><input type="radio" name="order_type" value="2" onclick="$('#type1, #type2').hide();$('#type2').show();"> 外卖单</label>
+								</th>
+							</tr>
+							<tr id="type1">
+								<th colspan="2">
+									<select class="form-control" name="table_id">
+										<option value="0">==请选择桌号==</option>
+										{loop $tables $table}
+											<option value="{$table['id']}">{$table['title']}</option>
+										{/loop}
+									</select>
+								</th>
+							</tr>
+							<tr id="type2" style="display:none">
+								<th colspan="2">
+									<input type="text" name="username" value="{$member['username']}" class="form-control" style="margin-bottom:10px;" placeholder="下单人">
+									<input type="text" name="mobile" value="{$member['mobile']}" class="form-control" style="margin-bottom:10px;" placeholder="手机号">
+									<input type="text" name="address" value="{$member['address']}" class="form-control" placeholder="送餐都地址">
+								</th>
+							</tr>
+							<tr>
+								<th colspan="2">
+									<textarea name="note" value="" class="form-control" placeholder="备注"></textarea>
+								</th>
+							</tr>
+							<tr>
+								<td><input type="submit" name="submit" value="提交" class="btn btn-primary" style="width:130px"></td>
+								<input type="hidden" name="token" value="{$_W['token']}">
+								<input type="hidden" name="uid" id="uid" value="">								
+								<td><a href="javascript:;" id="empty" class="btn btn-danger" style="width:130px">清空</a></td>
+							</tr>
+						</table>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="pull-left col-lg-8">
+		<div class="pull-left col-lg-12" id="userinfo">
+			<div class="panel panel-default" style="padding:1em">
+				<nav role="navigation" class="navbar navbar-default navbar-static-top" id="clear" style="margin: -1em -1em 1em -1em;">
+					<div class="container-fluid">
+						<div class="navbar-header">
+							<a href="javascript:;" class="navbar-brand">会员编号</a>
+						</div>
+					</div>
+				</nav>
+				<div class="panel-body" style="padding:0px">
+				<form class="form-horizontal form" id="form2" action="" method="post" enctype="multipart/form-data">
+					<input type="hidden" name="c" value="site">
+					<input type="hidden" name="a" value="entry">
+					<input type="hidden" name="m" value="str_takeout">
+					<input type="hidden" name="do" value="manage"/>
+					<input type="hidden" name="op" value="back_order"/>
+					<input type="hidden" name="uid" value="0"/>
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="require">* </span>会员UID/手机号/姓名</label>
+						<div class="col-sm-8">
+							<div class="input-group">
+								<input type="text" class="form-control" name="keyword" value="{$keyword}">
+								<div class="input-group-btn">
+									<button class="btn btn-primary" id="search"> 搜索</button>
+								</div>
+							</div>
+							<div class="help-block">
+								您可以输入关键字来查找对应的会员,选择会员后,系统会根据对应会员所在的会员组,自动计算菜品的价格.
+							</div>
+						</div>
+					</div>	
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label">会员信息</label>
+						<div class="col-sm-8 table-responsive">
+							{if !empty($members) && !$uid}
+							<table class="table table-hover table-bordered">
+								<thead>
+									<tr>
+										<th>UID</th>
+										<th>真实姓名</th>
+										<th>会员组</th>
+										<th>手机</th>
+										<th></th>
+									</tr>
+								</thead>
+								<tbody>
+									{loop $members $member}
+										<tr>
+											<td>{$member['uid']}</td>
+											<td>
+												{if !empty($member['realname'])}
+													{$member['realname']}
+												{else}
+													未完善
+												{/if}
+											</td>
+											<td>
+												{$groups[$member['groupid']]['title']} 	
+											</td>
+											<td>
+												{if !empty($member['mobile'])}
+													{$member['mobile']}
+												{else}
+													未完善
+												{/if}
+											</td>
+											<td>
+												<a href="{php echo $this->createWebUrl('manage', array('op' => 'back_order', 'uid' => $member['uid']));}" class="btn btn-success">选取</a>
+											</td>
+										</tr>
+									{/loop}
+								</tbody>
+							</table>
+							{/if}
+							{if $uid > 0 && !empty($member)}
+								<p class="form-control-static text-danger" id="user-info" data-uid="{$uid}">
+								UID：{$member['uid']} 
+								{if !empty($member['groupid'])}
+								 会员组：{$groups[$member['groupid']]['title']} 
+								{/if}
+								{if !empty($member['realname'])}
+								 姓名：{$member['realname']} 
+								{/if}
+								{if !empty($member['mobile'])}
+								 手机号：{$member['mobile']} 
+								{/if}
+								{if !empty($member['nickname'])}
+								 微信昵称：{$member['nickname']} 
+								{/if}
+								</p>
+							{/if}
+						</div>
+					</div>
+				</form>
+				</div>
+			</div>
+		</div>
+		<div class="pull-left col-lg-12" id="dish">
+			<div class="panel panel-default" style="padding:1em">
+				<nav role="navigation" class="navbar navbar-default navbar-static-top" id="clear" style="margin: -1em -1em 1em -1em;">
+					<div class="container-fluid">
+						<div class="navbar-header">
+							<a href="javascript:;" class="navbar-brand">菜品</a>
+						</div>
+						<ul class="nav navbar-nav nav-btns" id="cate">
+							<li class="active" data-id="0"><a href="javascript:;">全部</a></li>
+							{loop $categorys $category}
+								<li data-id="{$category['id']}"><a href="javascript:;">{$category['title']}</a></li>
+							{/loop}
+						</ul>
+					</div>
+				</nav>
+				<div class="panel-body">
+					{loop $categorys $category}
+						<div id="cate-{$category['id']}" class="cate-dish">
+							{loop $data[$category['id']] $row}
+								<a href="javascript:;" class="tile img-rounded" id="dish-right-{$row['id']}" data-id="{$row['id']}" data-price="{$row['price']}">
+									<strong>{$row['price']} 元/份</strong>
+									<span>{$row['title']}</span>
+									<i class="fa fa-check"></i>
+									<b class="num">0</b>
+								</a>
+							{/loop}
+						</div>
+					{/loop}
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+require(['util'], function(util){
+	var dishes = '{$dishes_str}';
+	dishes = $.parseJSON(dishes);
+	$('#cate li').click(function(){
+		$('#cate li').removeClass('active');
+		$(this).addClass('active');
+
+		var cateid = $(this).data('id');
+		if(!cateid) {
+			$('.cate-dish').show();
+		} else {
+			$('.cate-dish').hide();
+			$('#cate-' + cateid).show();
+		}
+		return true;
+	});
+
+	$('.cate-dish a').click(function(){
+		var id = $(this).data('id');
+		var num = parseInt($(this).find('.num').html());
+		$(this).find('.num').html(++num);
+		$(this).addClass('active');
+		plus_times_dish(id, 'plus');
+	});
+
+	$('#stat-dish').on('click', '.stat-plus-times', function(){
+		var id = $(this).data('id');
+		var type = $(this).data('type');
+		plus_times_dish(id, type);
+	});
+
+	$('#empty').click(function(){
+		if(!confirm('确定清空菜品吗')) {
+			return false;
+		}
+		$('#stat-dish tr').remove();
+		$('.cate-dish a').removeClass('active');
+		$('.cate-dish a .num').html(0);
+		return true;
+	});
+
+	$('#form1').submit(function(){
+		$('#form1 #uid').val($('#user-info').data('uid'));
+		if(!$('#stat-dish tr').size()) {
+			util.message('请选择菜品', '', 'error');
+			return false;
+		}
+		if(!confirm('确认点餐吗')) {
+			return false;
+		}
+		return true;
+	});
+
+	function plus_times_dish(id, type) {
+		var dish = dishes[id];
+		if(!$('#dish-' + id).size()) {
+			var html = 	'<tr id="dish-' + dish['id'] + '">' +
+							'<input type="hidden" name="ids[]" class="stat-id" value="' + dish['id'] + '">' +
+							'<td width="130">' +
+								'<div class="input-group">' +
+									'<span class="input-group-addon stat-plus-times" data-type="times" data-id="'+dish['id']+'">-</span>' +
+										'<input type="text" class="form-control stat-num" value="1" name="nums[]">' +
+										'<span class="input-group-addon stat-plus-times" data-type="plus" data-id="'+dish['id']+'">+</span>' +
+								'</div>' +
+							'</td>' +
+							'<td width="120">' + dish['title'] + '</td>' +
+							'<td width="60">' + dish['price'] + '</td>' +
+							'<td width="60" class="stat-price">' + dish['price'] + '</td>' +
+						'</tr>';
+
+			$('#stat-dish').append(html);
+		} else {
+			var $num = $('#dish-' + id).find('.stat-num');
+			var $price = $('#dish-' + id).find('.stat-price');
+			if(type == 'plus') {
+				$num.val(parseInt($num.val()) + 1);
+				$price.html(parseInt($num.val()) * dish['price']);
+			} else {
+				if(parseInt($num.val()) > 0) {
+					$num.val(parseInt($num.val()) - 1);
+					$price.html(parseInt($num.val()) * dish['price']);
+					if(parseInt($num.val()) == 0) {
+						$('#dish-right-' + id).removeClass('active');
+					}
+				}
+			}
+			var num = parseInt($num.val());
+			if(num > 0) {
+				$('#dish-right-' + id).addClass('active');
+
+			} else {
+				$('#dish-right-' + id).removeClass('active');
+			}
+			$('#dish-right-' + id).find('.num').html(num);
+		}
+
+		//总价和分数
+		var total_price = 0;
+		var total_num = 0;
+		$('#stat-dish tr').each(function(){
+			var id = parseInt($(this).find('.stat-id').val());
+			var num = parseInt($(this).find('.stat-num').val());
+			if(id && num) {
+				total_price += dishes[id]['price'] * num;
+				total_num += num;
+			}
+		});
+		$('#total-price').html(total_price + '元');
+		$('#total-num').html(total_num + '份');
+	}
+});
+</script>
+{template 'common/footer'}

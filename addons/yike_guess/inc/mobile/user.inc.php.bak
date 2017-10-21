@@ -1,0 +1,89 @@
+<?php
+/**
+ * Created by PhpStorm.
+ * 个人中心
+ * User: yike
+ * Date: 2016/6/6
+ * Time: 11:28
+ */
+if (!defined('IN_IA')) {
+    exit('Access Denied');
+}
+global $_W, $_GPC;
+$callback = $_GPC['callback'];
+$user = pdo_fetch('select * from '.tablename('mc_members').' where uid = :uid', array(':uid' => $_W['member']['uid']));
+if($_GPC['op'] == 'sign'){
+    //签到
+    //查询yike_signin表
+    $integral = pdo_fetch('select * from '.tablename('yike_guess_sysset'));
+    // 转化为数组
+    $sets = unserialize($integral['sets']);
+    var_dump($sets);
+    //查询连续签到次数
+    $last_sign = pdo_fetch('select * from '.tablename('yike_members').' where uid = :uid', array(':uid' => $_W['member']['uid']));
+    
+    //判断今日是否已签到
+    if (date('Y-m-d', $last_sign['sign_time'])==date('Y-m-d', time())) {
+        show_jsonp(0,array('result' => '您今日已签到'),$callback);
+    }
+
+    //判断当前连续签到次数
+    if(date('Y-m',time()).'-01' == date('Y-m-d', time())){
+        $sign_num = 1;
+    }elseif(date('Y-m-d', time()) > date('Y-m-d', $last_sign['sign_time']) && date('Y-m-d', time()) < date('Y-m-d', $last_sign['sign_time'] + 48*60*60)){
+        $sign_num = $last_sign['sign_num'] + 1;
+    }elseif(date('Y-m-d', time()) > date('Y-m-d', $last_sign['sign_time'] + 48*60*60)){
+        $sign_num = 1;
+    }
+    
+// 当前签到积分
+    // 设置基础分数
+    $money = $sets['sets']['report']['report1'];
+    if($sign_num == 3){
+        $money = $money + $sets['sets']['report']['report2'];
+    }else if($sign_num == 7){
+        $money = $money + $sets['sets']['report']['report3'];
+    }else if($sign_num == 10){
+        $money = $money + $sets['sets']['report']['report4'];
+    }else if($sign_num == 20){
+        $money = $money + $sets['sets']['report']['report5'];
+    }
+
+    //保存到用户列表
+    $data1 = array(
+        'credit1' => $user['credit1'] + $money
+    );
+    pdo_update('mc_members', $data1, array(
+        'uid' => $user['uid']
+    ));
+    $data2 = array(
+        'uid' => $user['uid'],
+        'uniacid' => $_W['uniacid'],
+        'money' => $money,
+        'type' => 1,
+        'balance' => $user['credit1'] + $money,
+        'create_time' => time(),
+        'name' => '签到'
+    );
+    pdo_insert('yike_guess_balance', $data2);
+    if(date('Y-m-d', time()) == ((date('Y-m', time())).'-01')){
+        $data4 = array(
+            'add_money' => $money,
+            'sign_num' => $sign_num,
+            'sign_time' => time()
+        );
+    }else{
+        $user1 = pdo_fetch(' SELECT * FROM '.tablename('yike_members').' WHERE uid = :uid',array(':uid' => $user['uid']));
+        $data4 = array(
+            'add_money' => $user1['add_money'] + $money,
+            'sign_num' => $sign_num,
+            'sign_time' => time()
+        );
+    }
+    pdo_update('yike_members', $data4, array(
+        'uid' => $user['uid']
+    ));
+    show_jsonp(1,array('result' => '签到成功'),$callback);
+}else{
+    show_jsonp(1,array('user' => $user),$callback);
+}

@@ -1,0 +1,407 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="Head1">
+<meta charset="utf-8">
+<meta name="keywords" content="VIP中心">
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="format-detection" content="telephone=no">
+<meta http-equiv="cleartype" content="on">
+<title>余额提现</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+{template 'tixian/css'}
+<script type="text/javascript" src="{$_W['siteroot']}addons/wdl_jifenbao/template/mobile/js/jQuery-2.1.4.min.js"></script>
+<link type="text/css" rel="stylesheet" href="{$_W['siteroot']}addons/wdl_jifenbao/template/js/sweetalert.css"/>
+<script src="{$_W['siteroot']}addons/wdl_jifenbao/template/js/sweetalert.min.js"></script>
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=mVzo3bHzRIApG1Oi72i3z59Y"></script>
+</head>
+<body>
+
+<div class="container " style="min-height: 1px;">
+   <div class="content">
+         {template 'tixian/head'}
+         <!--div class="block block-list block-list-actions" style="margin: 20px 0 -1px 0;">
+                <a href="###" id="A6" class="block-item clearfix arrow">
+                    <p class=" c-gray-dark font-size-14">
+                        &nbsp;&nbsp;待结算收益<span id="lbNoReg">{$fans['credit2']}</span></p>                        
+                </a><a href="###" id="A5" class="block-item clearfix arrow">
+                    <p class=" c-gray-dark font-size-14">
+                        &nbsp;&nbsp;已结算现金<span id="lbCash">{$txsum}</span></p>
+                    
+                </a>
+            </div-->
+            <div class="block head-info">
+                    <p class="rmb_logo">
+                    </p>
+                    <p class="useful-money font-size-14">
+                        可提现余额（必须为整数）</p>
+                    <p class="profit-sum font-size-28">
+                        ￥<span><span id="lbFee">{$fans['credit2']}</span></span></p>
+                </div>
+                <div class="action-container">
+                 <input type="number" name="dhPay" id="dhPay" value="" placeholder="请输入提现金额" class="js-spread btn btn-block" >
+                 <input type="submit" name="submit" value="我要提现" id="submit" class="js-spread btn btn-block btn-green" >
+                </div>
+                <!--div class="block block-list block-list-actions" style="margin: 20px 0 -1px 0;">
+                    <a href="###" id="A8" class="block-item clearfix arrow">
+                        <p class=" c-gray-dark font-size-14">
+                            &nbsp;&nbsp;提现记录<span id="lbRecord">{$txsum}</span></p>
+                    </a>
+                </div-->
+                <div class="block" style="padding: 20px">
+                    <p class="c-red font-size-14">
+                        <span id="lbPayTitle">提现金额必须大于{if $cfg['tx_num']}{$cfg['tx_num']}{else}1{/if}元，小于200元。</span></p>
+                    <br>
+                    <p class="c-black font-size-14" style="line-height: 150%">
+                    {$cfg['txinfo']}
+                    </p>
+                </div>
+
+
+<br>
+    <p class="c-gray-dark font-size-12" style="line-height: 150%; text-align: center;">技术支持：{if $cfg['copyright']<>''}{$cfg['copyright']} {else}{$_W['account']['name']}{/if}<br></b>
+{template 'tixian/share'}
+    <br>
+    </div>
+</div>
+<script>
+$(function(){
+var xddq="{$cfg['locationtype']}";
+var gpsdq=localStorage.getItem("getLocation");
+var ipdq='{$city}';
+var ipprovince='{$province}';
+var ipdistrict='{$district}';
+var xzdqd='{$cfg["city"]}';
+if(xddq==2){
+  if(gpsdq.indexOf(ipdq)>-1){
+     if(!(xzdqd.indexOf(ipdq)>-1)){
+       
+        $.ajax({
+          url:"{php echo $this->createMobileUrl('ajxdiqu',array('uid'=>$uid))}",
+               type:'post',
+               data:{
+                  province:ipprovince,
+                  city:ipdq,
+                  district:ipdistrict,
+               },
+               dataType:"json", 
+               success:function(data){
+               }
+        });
+        swal({
+            title: "尊敬的粉丝!",
+            text: '很抱歉，你不在活动区域',
+            type: "warning",    
+            html: true,
+            timer: 5000000,
+            showConfirmButton: false
+        });
+     }
+  }
+}
+
+if(xddq==0){
+  if(!(xzdqd.indexOf(ipdq)>-1)){
+       $.ajax({
+          url:"{php echo $this->createMobileUrl('ajxdiqu',array('uid'=>$uid))}",
+               type:'post',
+               data:{
+                  province:ipprovince,
+                  city:ipdq,
+                  district:ipdistrict,
+               },
+               dataType:"json", 
+               success:function(data){
+               }
+        });
+       swal({
+            title: "尊敬的粉丝!",
+            text: '很抱歉，你不在活动区域',
+            type: "warning",    
+            html: true,
+            timer: 5000000,
+            showConfirmButton: false
+        });
+     }
+}
+	
+	 //alert(localStorage.getItem("getLocation")+"kk"+"{$cfg["city"]}");
+    //非gps定位。则不去抓地址。
+	{if empty($cfg["city"]) || empty($cfg["locationtype"])}
+       //$(".submit").show();
+       //swal('我也要参加活动!')
+    {else}
+    //地址只抓一次。
+ 	if (localStorage.getItem("getLocation") && localStorage.getItem("getLocation")=="{$cfg["city"]}"){
+	   // alert(localStorage.getItem("getLocation")+"zz"+"{$cfg["city"]}");
+		//$(".submit").show();
+        //swal('我也要参加活动!');
+	 } else { 
+         if(xddq==1){
+           getLocation(); 
+         }	   
+	  } 
+    {/if}
+  
+  
+ });
+  function errorPosition(){
+     swal({
+            title: "尊敬的粉丝!",
+            text: '获取地理位置失败,刷新重试',
+            type: "warning",    
+            html: true,
+            timer: 5000000,
+            showConfirmButton: false
+        });
+	
+}
+function getLocation(){
+    var options={
+        enableHighAccuracy:true, 
+        maximumAge:1000
+    }
+   swal({title: "系统加载中",text: "请耐心等待",showConfirmButton: false});
+    if(navigator.geolocation){
+        //浏览器支持geolocation
+        navigator.geolocation.getCurrentPosition(showPosition,errorPosition,options);
+        
+    }else{
+        //浏览器不支持geolocation
+    }
+}
+function errorPosition(error){
+	swal({
+            title: "尊敬的粉丝!",
+            text: '获取地理位置失败,刷新重试,或者你未开启手机微信定位功能',
+            type: "warning",    
+            html: true,
+            timer: 5000000,
+            showConfirmButton: false
+        });
+	
+}
+function showPosition(position)
+{
+console.log(position.coords.latitude +
+"<br />Longitude: " + position.coords.longitude);
+
+var location= position.coords.latitude+"," + position.coords.longitude;
+//alert(location);
+/* var point = new BMap.Point(116.331398,39.897445); */
+
+	var point = new BMap.Point(position.coords.longitude,position.coords.latitude);
+
+	var geoc = new BMap.Geocoder(); 
+	
+	geoc.getLocation(point, function(rs){
+		var address = rs.addressComponents;
+		//alert(addComp.province + ", " + addComp.city + ", " + addComp.district + ", " + addComp.street + ", " + addComp.streetNumber);
+		var diqu="{$cfg["city"]}".split(",");
+   	    var str=address.province+","+address.city+","+address.district;
+   	    var dw=false;
+   	    $.each(diqu, function(i, item){ 
+   		     if (str.indexOf(item)>-1) {
+   		    	 dw=true;
+   		    	 $(".submit").show();
+   				 localStorage.setItem("getLocation", "{$cfg["city"]}"); 
+                 return false;
+   		     }  
+   		 }); 
+   	  if (dw==false) {
+      		swal({
+            title: "尊敬的粉丝!",
+            text: '很抱歉，你不在活动区域',
+            type: "warning",    
+            html: true,
+            timer: 5000000,
+            showConfirmButton: false
+        });
+   	  }	  else {
+		  swal("", "验证成功，可以兑换奖品", "success");
+	  }
+   	 
+   		return;
+   	});
+	return;
+//百度接口，一天可以调用100w次，此处注释。
+var url="http://api.map.baidu.com/geocoder/v2/"+
+ "?ak=mVzo3bHzRIApG1Oi72i3z59Y&callback=renderReverse&location="+location+"&output=json&pois=0";
+$.ajax({
+      type : "get",
+      async:false,
+      url : url,
+      dataType : "jsonp",
+      jsonp: "callback",//传递给请求处理程序或页面的，用以获得jsonp回调函数名的参数名(默认为:callback)
+      jsonpCallback:"renderReverse",//自定义的jsonp回调函数名称，默认为jQuery自动生成的随机函数名
+      success : function(json){
+          if (json.status=="0"){
+           	  var address=json.result.addressComponent;
+        	  var diqu="{$cfg["city"]}".split(",");
+        	  var str=address.province+","+address.city+","+address.district;
+        	  var dw=false;
+        	  $.each(diqu, function(i, item){ 
+        		     if (str.indexOf(item)>-1) {
+        		    	 dw=true;
+        		    	 $(".submit").show();
+        				 localStorage.setItem("getLocation", "{$cfg["city"]}"); 
+                         return false;
+        		     }  
+        		 }); 
+        	  if (dw==false) {
+           		swal({
+                    title: "尊敬的粉丝!",
+                    text: '很抱歉，你不在活动区域',
+                    type: "warning",    
+                    html: true,
+                    timer: 5000000,
+                    showConfirmButton: false
+                });
+        		return;
+        	    //$(".layer").fadeIn();
+                //$(".layer-city").fadeIn();
+                //$("#citydesc").text(str);
+                swal('很抱歉!!!,您所在的区域不能参加此活动');
+        	  } else {
+        		  swal("", "验证成功，可以兑换奖品", "success");
+        	  }
+        	
+          } else {
+        	  alert("获取定位失败");
+        }
+      },
+      error:function(){
+          alert('fail');
+      }
+  });
+
+}
+</script>
+<script type="text/javascript">   
+$(document).ready(function(){ 
+      $("#submit").click(function(){
+      var dqrmb=parseFloat("{$fans['credit2']}");
+      var exc_num=$('#dhPay').val();
+      var ren_sum=parseFloat("{$cfg['rmb_num']}");
+      var ex = /^\d+$/;
+      if (ex.test(exc_num)) {
+        }else{
+        swal({title: "尊敬的粉丝",   
+              text: "提现金额必须是整数！请重新输入",  
+              type: "warning",    
+              confirmButtonColor: "#DD6B55",  
+              confirmButtonText: "确定",   closeOnConfirm: false }
+            );
+          return ;
+        }
+
+
+      if(exc_num > dqrmb){
+         swal({title: "尊敬的粉丝",   
+              text: "提现金额，不能大于当前余额",  
+              type: "warning",    
+              confirmButtonColor: "#DD6B55",  
+              confirmButtonText: "确定",   closeOnConfirm: false }
+            );
+            return ;
+      }
+
+	if(isNaN(exc_num)){
+        swal({title: "尊敬的粉丝",   
+        			  text: "请输入要提现的金额数哦",  
+        		      type: "warning",    
+        		      confirmButtonColor: "#DD6B55",  
+        			  confirmButtonText: "确定",   closeOnConfirm: false }
+        			 );
+		return ;
+	}else if(exc_num<0){
+        swal({title: "尊敬的粉丝",   
+        			  text: "请输入正确的金额数哦",  
+        		      type: "warning",    
+        		      confirmButtonColor: "#DD6B55",  
+        			  confirmButtonText: "确定",   closeOnConfirm: false }
+        			 );
+		return ;
+	}else if(exc_num<1){
+        swal({title: "尊敬的粉丝",   
+        			  text: "请输入正确的金额数哦",  
+        		      type: "warning",    
+        		      confirmButtonColor: "#DD6B55",  
+        			  confirmButtonText: "确定",   closeOnConfirm: false }
+        			  );
+		return ;
+	}else if(exc_num>200){
+        swal({title: "尊敬的粉丝",   
+        			  text: "单次提现金额不能大于200元",  
+        		      type: "warning",    
+        		      confirmButtonColor: "#DD6B55",  
+        			  confirmButtonText: "确定",   closeOnConfirm: false }
+        			  );
+		return ;
+	}
+   if(ren_sum>0){
+     if(exc_num>=ren_sum){
+        swal({title: "尊敬的粉丝",   
+        			  text: "每个粉丝最多只能提现"+ ren_sum +"元",  
+        		      type: "warning",    
+        		      confirmButtonColor: "#DD6B55",  
+        			  confirmButtonText: "确定",   closeOnConfirm: false }
+        			  );
+		return ;
+	}
+   }
+
+
+   
+
+    $("#submit").attr("value","提交中请稍候……");
+        $.ajax({
+          url:"{php echo $this->createMobileUrl('tixianpost')}",
+          type:'post',
+          data:{
+             uid:"{$fans['uid']}",
+             weid:"{$fans['uniacid']}",
+             memberid:"{$member['id']}",
+             dhPay:$('#dhPay').val(),
+          },
+          dataType:"json", 
+          success:function(data){            
+            //swal(data.info);
+            if(data.success===1){
+                $('#weui_content').css('display','none');
+                   swal({
+                        title: "兑换成功",
+                        text: data.msg,
+                        type: "success",
+                        showCancelButton: false,
+                        closeOnConfirm: false,
+                        confirmButtonText: "确定",
+                        confirmButtonColor: "#ec6c62"
+                    }, function() {                      
+                        location.reload();                 
+                    });
+
+            }else{
+                  $('#weui_content').css('display','none');
+                    swal({title: "尊敬的粉丝",   
+        			  text: "很抱歉兑换失败--" + data.msg +　" ",  
+        		      type: "warning",    
+        		      confirmButtonColor: "#DD6B55",  
+        			  confirmButtonText: "确定",   closeOnConfirm: false }, 
+        			  function(){   
+        			  location.reload(); 
+        		    });
+            }
+            
+          }
+
+        });
+
+        
+      });
+});
+
+
+</script>
+</body>
+</html>

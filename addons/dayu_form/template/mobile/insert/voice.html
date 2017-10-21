@@ -1,0 +1,140 @@
+
+	<div class="weui_cells weui_cells_form voice">
+		<div class="weui_cells_title tright"><span class="left">{$activity['voice']}{if $activity['ivoice']==1}<span class="f-red">*</span>{/if}</span><span class="f12">{$activity['voicedec']}</span></div>	
+		<div class="weui_cell">
+			<div class="weui_cell_hd">		
+				<div class="record-start-btn iconfont f35 f-white left" id="record-start">&#xe62a;</div>
+				<div class="record-stop-btn iconfont f35 f-white left" id="record-stop">&#xe62a;</div>
+				<div class="record-time f-orange f12 right"></div>
+				<div class="record-prompt f-orange f12 middle right"><span class="block f-blue">蓝色开始录音</span><span class="block f-red">红色停止录音</span></div>
+				<input type="hidden" name="voice" id="showvoice" value="" {if $activity['isvoice']==1 && $activity['ivoice']==1}required tips="请上传{$activity['voice']}"{/if}>
+			</div>
+			<div class="weui_cell_bd weui_cell_primary">
+				<div class="send-control right">
+					<div class="send-record-btn" id="send-record-btn">上传录音</div>
+					<div class="send-success weui_btn_disabled" id="send-success" style="display:none;">上传成功</div>
+				</div>
+			</div>
+		</div>	
+	</div>
+	<script>
+    var upload_url='{php echo $_W['siteroot'].'app/'.$this->createMobileUrl('uploadvoice',array());}';
+    var getprefop_url='{php echo $_W['siteroot'].'app/'.$this->createMobileUrl('getprefop',array());}';
+          var btn = document.getElementById('send-record-btn');
+		  
+  //        btn.onclick = function(){
+		var localId = null;
+		var serverId = null;
+        var timer = null;
+        var timerTime = 0;
+		
+		$(".record-start-btn").click(function () {
+            $(".record-start-btn").hide();
+            $(".record-stop-btn").show();
+            $(".record-prompt").hide();
+//			wx.startRecord();
+			wx.startRecord({
+				cancel: function () {
+					alert('您拒绝了授权录音');
+				}
+			});
+            timerTime = 0;
+            $(".record-time").text("");
+            timer = setInterval(function () {
+                timerTime++;
+                $(".record-time").text("时长:" + timerTime + "秒");
+				if (timerTime >58) {
+					wx.stopRecord({
+						success: function (res) {
+							localId = res.localId;
+							recordComplete();
+						},
+						fail: function (res) {
+							alert(JSON.stringify(res));
+						}
+					});
+				}
+            }, 1000);
+            wx.onVoiceRecordEnd({
+                // 录音时间超过一分钟没有停止的时候会执行 complete 回调
+                complete: function (res) {
+                    localId = res.localId;
+                    recordComplete();
+					alert('录音时间已超过一分钟');
+                }
+            });
+        });
+        $(".record-stop-btn").mouseup(function () {
+            wx.stopRecord({
+                success: function (res) {
+                    localId = res.localId;
+                    recordComplete();
+//						document.getElementById('showvoice').value = localId;
+					$('#send-record-btn').css('display','');
+					$('#send-success').css('display','none');
+                },
+				fail: function (res) {
+					alert(JSON.stringify(res));
+				}
+            });
+        });
+        function recordComplete() {
+            wx.playVoice({
+                localId: localId // 需要播放的音频的本地ID，由stopRecord接口获得
+            });
+            clearInterval(timer);
+            $(".record-stop-btn").hide();
+            $(".record-start-btn").show();
+            $(".send-control").show();
+        }
+
+		$(".send-record-btn").click(function () {
+            if (localId == null)
+                return;
+            wx.uploadVoice({
+                localId: localId, // 需要上传的音频的本地ID，由stopRecord接口获得
+                serverId: serverId,
+                isShowProgressTips: 1, // 默认为1，显示进度提示
+                success: function (res) {
+				
+                $.ajax({
+                  type: 'POST',
+                  url: upload_url,
+                  data:{serverId:res.serverId},
+                  timeout: 15000,
+                  success: function(res){
+                    if (/^qiniu-persistentId.*$/.test(res)) {
+                        var tmp=res.split(':');
+                        setInterval(function () {
+                            $.ajax({
+                                type: 'POST',
+                                url: getprefop_url,
+                                data:{persistentId:tmp[1]},
+                                success: function(res) {
+                                    if (res == 1) location.href =tmp[2];
+                                },
+                                fail: function(err) {
+                                    alert(JSON.stringify(err));
+                                }
+                            });
+                        },1000);
+                    }else{
+                    }
+                  },
+                  fail: function(err) {
+                      alert(JSON.stringify(err));
+                  }
+                });
+//				alert('上传语音成功，serverId 为' + res.serverId);
+					serverId = res.serverId; // 返回音频的服务器端ID
+					document.getElementById('showvoice').value = "dayu_form_{$_W['uniacid']}_"+serverId+".mp3";
+					$('#send-record-btn').css('display','none');
+					$('#send-success').css('display','');
+
+                },
+				fail:function() {
+					alert(JSON.stringify(res));
+				}
+            });
+		});
+	</script>

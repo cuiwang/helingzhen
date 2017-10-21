@@ -1,0 +1,260 @@
+{template 'common/header'}
+{if $op == 'display'}
+<link rel="stylesheet" href="../addons/wn_storex/template/style/css/membercard.css">
+<div class="main" id="membercard">
+	<ul class="nav nav-tabs">
+		<li {if $_GPC['do'] == 'membercard' }class="active" {/if}><a href="{php echo $this->createWeburl('membercard', array('op' => 'display'))}">会员卡设置</a></li>
+		<li {if $_GPC['do'] == 'signmanage' }class="active" {/if}><a href="{php echo $this->createWeburl('signmanage', array('op' => 'sign_set'))}">签到管理</a></li>
+		<li {if $_GPC['do'] == 'noticemanage'}class="active" {/if}><a href="{php echo $this->createWeburl('noticemanage', array('op' => 'notice_list'))}">通知管理</a></li>
+		<li {if $_GPC['do'] == 'cardmanage'}class="active"{/if}><a href="{php echo $this->createWeburl('cardmanage', array('op' => 'display'))}">会员卡管理</a></li>
+	</ul>
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<div class="weui-cell weui-cell_switch" style="width:300px;">
+				<div class="weui-cell__bd"> 是否启用会员卡：</div>
+				<div class="weui-cell__ft">
+					<label for="switchCP" class="weui-switch-cp">
+						<input id="switchCP" class="weui-switch-cp__input" type="checkbox" checked="checked" name="flag" @change="switchflag" v-model.lazy="flag" :true-value="1" :false-value="0">
+						<div class="weui-switch-cp__box"></div>
+					</label>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="panel panel-default" style="display:none;">
+		<div class="panel-heading">
+			<div class="weui-cell weui-cell_switch" style="width:300px;">
+				<div class="weui-cell__bd"> 同步系统会员卡：</div>
+				<div class="weui-cell__ft">
+					<a type="button" onclick="return confirm('此操作将同步系统会员卡信息到万能小店，确认同步？');return false;" 
+					href="{php echo $this->createWebUrl('membercard', array('op' => 'remove_mc_data'));}" class="btn btn-primary">同步系统会员卡</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="app" v-show="status">
+		<div class="app-preview">
+			<div class="app-header"></div>
+			<div class="app-content">
+				<div class="title">
+					<h1><span>会员卡</span></h1>
+				</div>
+				<div class="" v-for="module in activeModules">
+					<div class="weui-tab" v-if="module.id && module.id== 'cardBasic'">
+						<div id="vux_view_box_body" class="weui-tab__panel vux-fix-safari-overflow-scrolling" style="padding-bottom: 0;">
+							<div class="home router-view">
+								<div class="weui-tab__panel">
+									<div class="banner card-banner">
+										<div class="card-panel"><img :src="activeModules.cardBasic.params.background.image" alt="" class="bg-card">
+											<div class="logo"><img alt="" :src="activeModules.cardBasic.params.logo" class="avatar"></div>
+											<div class="con" v-show="activeModules.cardBasic.params.card_label.type == 1" :style="{'color' : activeModules.cardBasic.params.color.title}">{{activeModules.cardBasic.params.card_label.title}}</div>
+											<div class="rank" style="font-size: 20px;" :style="{'color' : activeModules.cardBasic.params.color.rank}" v-show="activeModules.cardBasic.params.card_level.type == 1">高级会员</div>
+											<div class="num" style="color: black; font-size: 20px;">NO:0000001</div>
+										</div>
+									</div>
+									{template 'membercard-basic'}
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="app-side">
+			<div class="editor">
+				<div>
+					<div class="app-header-setting">
+						<div class="arrow-left"></div>
+						<div class="app-header-setting-inner">
+							<div class="panel panel-default">
+								<div class="wn-card-menu">
+									<ul class="nav nav-tabs">
+										<li class="active" style=""><a href="#cardBasic" aria-controls="cardBasic" role="tab" data-toggle="tab">基本设置</a></li>
+										<li class="" style=""><a href="#cardActivity" aria-controls="cardActivity" role="tab" data-toggle="tab">消费优惠设置</a></li>
+										<li><a href="#cardRecharge" aria-controls="cardRecharge" role="tab" data-toggle="tab">充值优惠设置</a></li>
+										<li style="display:none"><a href="#cardNums" aria-controls="cardNums" role="tab" data-toggle="tab">计次设置</a></li>
+										<li style="display:none"><a href="#cardTimes" aria-controls="cardTimes" role="tab" data-toggle="tab">计时设置</a></li>
+									</ul>
+								</div>
+								<div class="tab-content">
+									<!-- 基本设置 -->
+									{template 'membercard-edit-cardBasic'}
+									<!-- 消费设置 -->
+									{template 'membercard-edit-cardActivity'}
+									<!-- 充值 -->
+									{template 'membercard-edit-cardRecharge'}
+									<!-- 计次 -->
+									{template 'membercard-edit-cardNums'}
+									<!-- 计时 -->
+									{template 'membercard-edit-cardTimes'}
+
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<nav class="navbar wn-card-sumbit navbar-fixed-bottom" role="navigation">
+			<div class="container">
+					<button type="submit" class="btn btn-primary" @click = "submit">上架</button>
+			</div>
+		</nav>
+	</div>
+</div>
+
+<script type="text/javascript">
+	require({
+		paths: {
+			'vue': 'https://unpkg.com/vue@2.2.6/dist/vue',
+			'data': '/addons/wn_storex/template/style/js/membercard/data'
+		}
+	})
+	require(['vue', 'data'], function(Vue, data) {
+		setting_params = {php echo !empty($setting['params']) ? $setting['params'] : 'null'};
+		var params = setting_params ? setting_params : data.activeModules;
+		var discounts = {php echo json_encode($discounts);};
+		params.cardActivity.params.discounts = discounts;
+		var fansFields = {php echo json_encode($fields);};
+		var card_status = {php echo $setting['status'] ? $setting['status'] : 0};
+		var app = new Vue({
+			el: '#membercard',
+			data: {
+				'newcard': data.newcard,
+				'creditnames': data.creditnames,
+				'activeModules': params,
+				'fansFields': fansFields,
+				'discounts': discounts,
+				'flag': card_status,
+				'status': card_status
+			},
+			directives: {
+				'colorpicker': {
+					bind: function (el, binding, vnode) {
+						var value = binding.value; // 传递给指令的值
+						require(['jquery','util'], function($, util){
+							util.colorpicker($(el), function(color){
+								app.$set(value.object, value.key, color.toHexString())
+							});
+						});
+					}
+				}
+			},
+			methods: {
+				compare(condition, discount) {
+					if(Number(condition) <= Number(discount)) {
+						util.message('优惠价格不合理', '', 'error');
+					}
+				},
+				switchflag() {
+					const self = this
+					$.post("{php echo $this->createWeburl('membercard', array('op' => 'cardstatus'));}", {status:this.flag}, function(data){
+						data = $.parseJSON(data);
+						if (data.message.errno != 0) {
+							util.message(data.message.message, '', 'error');
+						} else {
+							self.status = self.flag
+							util.message('修改成功', '', 'success');
+						}
+					});
+				},
+				addBgThumb() {
+					const self = this;
+					require(['fileUploader'], function(uploader) {
+						uploader.show(function(img) {
+							self.activeModules.cardBasic.params.background.image = img.url
+						}, {
+							'direct': true,
+							'multiple': false
+						});
+					});
+				},
+				addThumb(type) {
+					const self = this;
+					require(['fileUploader'], function(uploader) {
+						uploader.show(function(img) {
+							self.activeModules.cardBasic.params[type] = img.url
+						}, {
+							'direct': true,
+							'multiple': false
+						});
+					});
+				},
+				addFields() {
+					this.activeModules.cardBasic.params.fields.push({
+						title: '',
+						require: 1,
+						bind: '',
+						issystem: 0
+					});
+				},
+				removeFields(type, index) {
+					if(type == 'mobile' ||　type == 'realname') {
+						return false;
+					} else {
+						this.activeModules.cardBasic.params.fields.splice(index, '1')
+					}
+				},
+				addRecharges() {
+					this.activeModules.cardRecharge.params.recharges.push({
+						condition: '',
+						back: '',
+						backtype: '0',
+						backunit: '元',
+					});
+				},
+				removeRecharges(index) {
+					this.activeModules.cardRecharge.params.recharges.splice(index, '1')
+				},
+				addNums() {
+					this.activeModules.cardNums.params.nums.push({
+						recharge: '',
+						num: ''
+					});
+				},
+				removeNums(index) {
+					this.activeModules.cardNums.params.nums.splice(index, '1')
+				},
+				addTimes() {
+					this.activeModules.cardTimes.params.times.push({
+						recharge: '',
+						time: ''
+					});
+				},
+				removeTimes(index) {
+					this.activeModules.cardTimes.params.times.splice(index, '1')
+				},
+				submit() {
+					if(this.activeModules.cardActivity.params.discount_type == 1) {
+						var compare = this.activeModules.cardActivity.params.discounts;
+						for(key in compare) {
+							console.log(compare[key]);
+							if(Number(compare[key].condition_1) <= Number(compare[key].discount_1)) {
+								return util.message('优惠价格不合理', '', 'error');
+							}
+						}
+					}
+					if(this.activeModules.cardActivity.params.discount_type == 2) {
+						var compare = this.activeModules.cardActivity.params.discounts;
+						for(key in compare) {
+							if(compare[key].discount_2 <= 0 || compare[key].discount_2 >= 10) {
+								return util.message('优惠折扣不合理', '', 'error');
+							}
+						}
+					}
+					$.post("{php echo $this->createWeburl('membercard', array('op' => 'post'));}", {params:this.activeModules}, function(data){
+						data = $.parseJSON(data);
+						if (data.message.errno != '0') {
+							util.message(data.message.message, '', 'error');
+						} else {
+							util.message('设置成功', data.redirect, 'success');
+						}
+					});
+				}
+			}
+		})
+	})
+
+</script>
+
+{/if} {template 'common/footer'}

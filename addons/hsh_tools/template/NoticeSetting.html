@@ -1,0 +1,233 @@
+{template 'common/header'}
+{if $operation == 'post'}
+<div class="panel panel-default">
+	<div class="panel-heading">
+		预约项目编辑
+	</div>
+	<div class="panel-body">
+		<form action="" name="noticeSettingForm" id="noticeSettingForm" method="post" onsubmit="return check();" class="form-horizontal form" enctype="multipart/form-data">
+			<input type="hidden" name="token" value="{$_W['token']}" />
+			<input type="hidden" name="id" value="{$_GPC['id']}" />
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">名称</label>
+				<div class="col-sm-9">
+					<input type="text" value="{$singleNoticeSetting['title']}" class="form-control" name="title" id="title" />
+					<span class="help-block"></span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">通知人员</label>
+				<div class="col-sm-9">
+					{loop $noticeOption $key $val}
+					<label class="checkbox-inline"><input name="notice_list[]" type="checkbox"{if $val['checked'] == 1} checked="checked" {/if} value="{$key}"  />{$val['name']}</label>
+					{/loop}
+					<span class="help-block"></span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">营业时间（填写整点）</label>
+				<div class="col-sm-9">
+					<input type="text" value="{$singleNoticeSetting['opening_hour_begin']}" class="form-control form-inline" name="opening_hour_begin" />
+					<span class="help-block">请填写0~24的整数（24小时制）</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">打烊时间（填写整点）</label>
+				<div class="col-sm-9">
+					<input type="text" value="{$singleNoticeSetting['opening_hour_end']}" class="form-control" name="opening_hour_end" />
+					<span class="help-block">请填写0~24的整数（24小时制）</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">非营业时间提示</label>
+				<div class="col-sm-9">
+					<input type="text" value="{$singleNoticeSetting['closing_hint']}" class="form-control" name="closing_hint" />
+					<span class="help-block"></span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">下次正常营业开启时间</label>
+				<div class="col-sm-9">
+					
+					{php echo tpl_form_field_date('opening_time', date('Y-m-d H:i:s',$singleNoticeSetting['opening_time']), true);}
+					<span class="help-block"></span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">暂停营业提示</label>
+				<div class="col-sm-9">
+					<input type="text" value="{$singleNoticeSetting['pause_hint']}" class="form-control" name="pause_hint" />
+					<span class="help-block"></span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">预约成功提示</label>
+				<div class="col-sm-9">
+					<input type="text" value="{$singleNoticeSetting['success_hint']}" class="form-control" name="success_hint" />
+					<span class="help-block"></span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">底部信息</label>
+				<div class="col-sm-9">
+					<textarea class="form-control" id="foot_info" name="foot_info" >{$singleNoticeSetting['foot_info']}</textarea>
+					<span class="help-block"></span>
+				</div>
+			</div>
+			<hr />
+			
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">字段设置</label>
+				<div class="col-sm-9">
+					<textarea class="form-control" name="field_setting">{$singleNoticeSetting['field_setting']}</textarea>
+					<span class="help-block">
+						示例：{"describe":{"type":"textarea","prompt":"需求描述","show":"1","valid":"1","list_show":"1"}<br />
+						type：字段类型，prompt：字段标识（提示），show：是否前台显示（0 or 1），valid：empty（验证是否为空）、mobile（验证手机号码格式），list_show：是否在后台订单列表中显示（0 or 1）
+					</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">通知选项</label>
+				<div class="col-sm-9">
+					<textarea class="form-control" name="notice_option">{$singleNoticeSetting['notice_option']}</textarea>
+					<span class="help-block">
+						示例：[{"name":"通知人员1","tel":"13333333333","openid":"od8tRt6ICtEkJPdzeWtlNOKh04H8","type":"3"},{"name":"通知人员1","tel":"18888888888","openid":"od8tRt0ghSqN-EcotljztkjCcfyM","type":"3"}]<br />
+						name：通知人员名称 ，tel：通知人员手机号码，openid：通知人员OpenID，type：通知类型（1--电话通知，2--微信模板消息通知，3--双重通知）
+					</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">模板处理脚本</label>
+				<div class="col-sm-9">
+					<input type="text" value="{$singleNoticeSetting['message_script']}" class="form-control" name="message_script" />
+					<span class="help-block">模板存放目录 “/addons/hsh_tools/diy/*.php”，此处填写（*）号内容即可</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">短信模板ID</label>
+				<div class="col-sm-9">
+					<input type="text" value="{$singleNoticeSetting['sms_template_id']}" class="form-control" name="sms_template_id" />
+					<span class="help-block"></span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">模板名称</label>
+				<div class="col-sm-9">
+					<input type="text" value="{$singleNoticeSetting['template_name']}" class="form-control" name="template_name" />
+					<span class="help-block">
+						模板存放目录 “/addons/hsh_tools/template/mobile/*.html”，此处填写（*）号内容即可
+					</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+				<div class="col-sm-9">
+					<button name="submit" type="submit" class="btn btn-success" value="submit"><i class="icon-plus"></i>提交</button>
+					<button type="button" class="btn btn-danger" onclick="document.location.href = '{php echo $this->createWebUrl('NoticeSetting', array('op' => 'display'))}'"><i class="icon-plus"></i>返回</button>
+				</div>
+			</div>
+		</form>
+		<script type="text/javascript">
+			require(['jquery','util'], function($, util){
+				$(function(){
+					var editor = util.editor($('#foot_info')[0]);
+				});
+			});
+			function check(){
+				var canSubmit = false;
+				if(document.noticeSettingForm.title.value == "") {
+					alert("预约项目名称不能为空");
+				} else if(!checkOpenningHour(document.noticeSettingForm.opening_hour_begin.value,document.noticeSettingForm.opening_hour_end.value)) {
+					alert("营业时间填写错误");
+				} else {
+					canSubmit = true;
+				}
+				return canSubmit;
+			}
+			function checkOpenningHour(h_begin,h_end) {
+				h_begin = parseInt(h_begin);
+				h_end = parseInt(h_end);
+				if(h_begin < h_end) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+		</script>
+	</div>
+</div>	
+{elseif $operation == 'display'}
+<div class="panel panel-default">
+	<div class="panel-heading">
+		操作
+	</div>
+	<div class="table-responsive panel-body">
+		<a class="btn btn-danger" href="{php echo $this->createWebUrl('NoticeSetting', array('op' => 'post'))}"><i class="icon-plus"></i>添加</a>
+		<a class="btn btn-success" href="javascript:location.reload()"><i class="icon-refresh"></i>刷新</a>
+	</div>
+</div>
+
+<div class="panel panel-default">
+	<div class="panel-heading">
+		预约通知项目列表
+	</div>
+	<div class="table-responsive panel-body">
+		<table class="table table-hover">
+			<thead>
+				<tr>
+					<th style="width:60px;">ID</th>
+					<th>名称</th>
+					<th>入口链接</th>
+					<th style="width:200px;">通知人员</th>
+					<th style="width:150px;">操作</th>
+				</tr>
+			</thead>
+			<tbody id="level-list">
+				{loop $noticeSetting $row}
+				<tr>
+					<td>{$row['id']}</td>
+					<td>{$row['title']}</td>
+					<td><input type='text' class="form-control" readonly value="{$row['app_url']}" ondblclick="inputCopy(this);" ></td>
+					<td >{$row['notice_person']}</td>
+					<td>
+						<a href="{php echo $this->createWebUrl('NoticeOrders', array('op' => 'display', 'nid' => $row['id']))}" class="btn btn-default btn-sm" title="订单管理" ><i class="fa fa-reorder"></i></a>
+						&nbsp;&nbsp;
+						<a href="{php echo $this->createWebUrl('NoticeSetting', array('op' => 'post', 'id' => $row['id']))}" class="btn btn-default btn-sm" title="编辑内容"><i class="fa fa-pencil"></i></a>
+						&nbsp;&nbsp;
+						<a href="{php echo $this->createWebUrl('NoticeSetting', array('op' => 'delete', 'id' => $row['id']))}" onclick="return confirm('确认删除此分类吗？');
+								return false;" class="btn btn-default btn-sm" title="删除"><i class="fa fa-times"></i></a>
+					</td>
+				</tr>
+				{/loop}
+				<tr>
+					<td colspan="5">
+						{$pager}
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</div>
+<div style="display: none;" id="messageTemplate">
+	<div class="input-group">
+		<span class="input-group-addon">功能开发中</span>
+		<input name="tset" value="test" class="form-control">
+	</div>
+</div>
+<script>
+	require(['jquery', 'util'], function ($, util) {
+		$(function () {
+			/*$('.sendTemplateMessage').click(function () {
+			 var modalobj = util.ajaxshow("{php echo $this->createWebUrl('SendMessage', array('op' => 'post', 'id' => $row['id']))}",'test',{'show' : true,'remote':true}, {'hidden' : function(obj) {obj.remove();}});
+			 modalobj.modal('show');
+			 });*/
+		});
+
+	});
+	function inputCopy(obj) {
+		obj.select();
+	}
+	
+</script>
+{/if}
+{template 'common/footer'}

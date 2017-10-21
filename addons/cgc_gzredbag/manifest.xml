@@ -1,0 +1,119 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns="http://www.012wz.com" versionCode="0.6">
+	<application setting="true">
+		<name><![CDATA[关注关键字红包]]></name>
+		<identifie><![CDATA[cgc_gzredbag]]></identifie>
+		<version><![CDATA[1.4.7]]></version>
+		<type><![CDATA[other]]></type>
+		<ability><![CDATA[关注微信号就送红包，发送关键字就有红包。适合微信服务号]]></ability>
+		<description><![CDATA[简单的关注送红包功能，如果会写正则表达式的同学，可以结合线下的活动，设计一个符合规则的关键字，领取红包]]></description>
+		<author><![CDATA[微赞]]></author>
+		<url><![CDATA[www.012wz.com]]></url>
+	</application>
+	<platform>
+		<subscribes>
+			<message type="text" />
+			<message type="location" />
+		</subscribes>
+		<handles>
+			<message type="text" />
+		</handles>
+		<rule embed="true" />
+		<card embed="false" />
+	</platform>
+	<bindings>
+		<menu>
+			<entry title="数据管理" do="datamanage" state="" direct="false" />
+			<entry title="扫码支付" do="wxpay" state="" direct="false" />
+		</menu>
+	</bindings>
+	<install><![CDATA[CREATE TABLE IF NOT EXISTS `ims_gzredbag_count` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) unsigned NOT NULL,
+  `total_count` int(10) NOT NULL DEFAULT '0' COMMENT '总次数',
+  `createtime` int(10) unsigned NOT NULL COMMENT '创建时间',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='红包总次数';
+CREATE TABLE IF NOT EXISTS `ims_gzredbag_hx` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) unsigned NOT NULL,
+  `openid` varchar(100) NOT NULL COMMENT '用户id',
+  `status` int(1) NOT NULL COMMENT '状态',
+  `send_status` int(1) NOT NULL COMMENT '红包发放状态',
+  `hxcode` varchar(100) DEFAULT NULL COMMENT '核销编码',
+  `createtime` int(10) unsigned NOT NULL COMMENT '创建时间',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_gzredbag_money` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) unsigned NOT NULL,
+  `total_money` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `createtime` int(10) unsigned NOT NULL COMMENT '创建时间',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_gzredbag_user` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) unsigned NOT NULL,
+  `openid` varchar(100) NOT NULL COMMENT '用户id',
+  `nickname` varchar(100) DEFAULT NULL COMMENT '用户昵称',
+  `headimgurl` varchar(200) DEFAULT NULL COMMENT '用户头像',
+  `status` varchar(1) DEFAULT NULL COMMENT '0未领取，1未领取',
+  `send_status` int(1) NOT NULL COMMENT '红包发放状态',
+  `money` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `createtime` int(10) unsigned NOT NULL COMMENT '创建时间',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_gzredbag_userinfo` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) unsigned NOT NULL,
+  `openid` varchar(100) NOT NULL COMMENT '用户id',
+  `nickname` varchar(100) DEFAULT NULL COMMENT '用户昵称',
+  `headimgurl` varchar(200) DEFAULT NULL COMMENT '用户头像',
+  `location_x` varchar(200) DEFAULT NULL COMMENT '经度',
+  `location_y` varchar(1) DEFAULT NULL COMMENT '维度',
+  `money` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '粉丝领取总金额',
+  `tx_money` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '粉丝已提现金额',
+  `ktx_money` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '粉丝可提现金额',
+  `createtime` int(10) unsigned NOT NULL COMMENT '创建时间',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='粉丝信息';
+CREATE TABLE IF NOT EXISTS `ims_gzredbag_wxpay` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) unsigned NOT NULL,
+  `title` varchar(100) DEFAULT NULL COMMENT '支付项目名称',
+  `money` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '支付金额',
+  `max_money` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '红包最大金额',
+  `min_money` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '红包最小金额',
+  `qr_url` varchar(500) DEFAULT NULL COMMENT '二维码字符串',
+  `qr_img` varchar(300) NOT NULL COMMENT '二维码图片',
+  `type` int(1) NOT NULL DEFAULT '1' COMMENT '扫码支付类型 1,2',
+  `remark` text NOT NULL COMMENT '备注',
+  `createtime` int(10) unsigned NOT NULL COMMENT '创建时间',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+CREATE TABLE IF NOT EXISTS `ims_gzredbag_wxpay_order` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `uniacid` int(10) unsigned NOT NULL,
+  `openid` varchar(100) DEFAULT NULL COMMENT '用户id',
+  `title` varchar(100) DEFAULT NULL COMMENT '支付项目名称',
+  `wxpay_id` varchar(100) DEFAULT NULL COMMENT '支付项目id',
+  `money` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '支付金额',
+  `get_money` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '获得红包金额',
+  `send_status` int(1) NOT NULL DEFAULT '0' COMMENT '红包发放状态',
+  `out_trade_no` varchar(100) DEFAULT NULL COMMENT '内部交易单号',
+  `transaction_id` varchar(100) DEFAULT NULL COMMENT '微信交易单号',
+  `pay_status` int(1) NOT NULL DEFAULT '0' COMMENT '0未付款，1已付款',
+  `createtime` int(10) unsigned NOT NULL COMMENT '创建时间',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+]]></install>
+	<uninstall><![CDATA[DROP TABLE IF EXISTS `ims_gzredbag_count`;
+DROP TABLE IF EXISTS `ims_gzredbag_hx`;
+DROP TABLE IF EXISTS `ims_gzredbag_money`;
+DROP TABLE IF EXISTS `ims_gzredbag_user`;
+DROP TABLE IF EXISTS `ims_gzredbag_userinfo`;
+DROP TABLE IF EXISTS `ims_gzredbag_wxpay`;
+DROP TABLE IF EXISTS `ims_gzredbag_wxpay_order`;
+]]></uninstall>
+	<upgrade><![CDATA[upgrade.php]]></upgrade>
+</manifest>

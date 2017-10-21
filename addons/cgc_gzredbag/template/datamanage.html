@@ -1,0 +1,162 @@
+{template 'common/header'}
+
+<script type="text/javascript" src="./resource/js/lib/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="./resource/js/lib/jquery-ui-1.10.3.min.js"></script>
+
+<ul class="nav nav-tabs">
+	<li  class="active"><a href="{php echo $this->createWebUrl('Datamanage',array('op'=>'display'));}">红包记录</a></li>
+	<li><a href="{php echo $this->createWebUrl('gzredbag_money',array('op'=>'display'));}">红包总金额</a></li>
+	<li><a href="{php echo $this->createWebUrl('gzredbag_hx',array('op'=>'display'));}">线下核销中奖管理</a></li>
+
+</ul>
+{if $op== 'display'}
+<div class="main">
+	<div class="panel panel-info">
+</div>
+
+<style>
+.label{cursor:pointer;}
+</style>
+
+<div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+		<form action="./index.php" method="get" class="form-horizontal" role="form">
+			<input type="hidden" name="c" value="site" />
+			<input type="hidden" name="a" value="entry" />
+			<input type="hidden" name="m" value="cgc_gzredbag" />
+			<input type="hidden" name="do" value="datamanage" />
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">用户openid</label>
+				<div class="col-xs-12 col-sm-8 col-lg-9">
+					<input class="form-control" placeholder="" name="openid" id="" type="text" value="{$_GPC['openid']}">
+				</div>
+			</div>
+			
+						
+			<div class="form-group">
+				<div class=" col-xs-12 col-sm-2 col-lg-2">
+					<button class="btn btn-default"><i class="fa fa-search"></i>搜索</button>
+				</div>
+			</div>
+			
+			
+		</form>
+	</div>
+</div>
+
+
+<button  type="button" class="btn btn-default" onclick="delete_all()"> 删除所有红包记录</button>
+<label>全部用户:{$total}</label>	
+
+<div class="panel panel-default">
+	<div class="panel-body table-responsive">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+                 	<th style="width:10%;">用户id</th>
+					<th style="width:10%;display:none">用户昵称</th>
+					<th style="width:5%;display:none">头像</th>
+					<th style="width:15%;">领取状态</th>
+					<th style="width:20%;">红包金额(元)</th>
+					<th style="width:20%;">时间</th>
+                    <th style="width:20%;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $item}
+				<tr>	
+					<td>{$item['openid']}</td>	
+					<td style="display:none">{$item['nickname']}</td>
+					<td  style="display:none"><img src="{$item['headimgurl']}" width=30/></td>
+					<td>{if $item['status']==0}未领取
+						{else}已领取{/if}</td>
+					<td>{$item['money']}</td>
+					<td title="{php echo date('Y-m-d H:i:s', $item['createtime'])}">{php echo date('Y-m-d H:i:s', $item['createtime'])}  </td>
+				<td>  <a href="{php echo $this->createWebUrl('Datamanage', array('op' => 'delete', 'id' => $item['id']))}" onclick="return confirm('确认删除信息吗？');return false;">删除</a>
+					<a  style="display:none" href="{php echo $this->createWebUrl('Datamanage', array('op' => 'post', 'id' => $item['id']))}">修改</a>
+				</td>				
+				</tr>
+				{/loop}
+			</tbody>
+		
+		</table>
+		{$pager}
+	</div>
+	</div>
+</div>
+
+{elseif $op == 'post'}
+<div class="panel panel-default">
+    <div class="panel-heading">
+        红包修改
+    </div>
+    <div class="panel-body">
+	<form action="" method="post" class="form-horizontal" role="form" id="form1">
+
+		<div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">用户id：</label>
+
+            <div class="col-sm-9 col-xs-12">
+                <input type="text" id="title" class="form-control span7"
+                       placeholder="" name="openid" value="{$item['openid']}">
+            </div>
+        </div>
+		<div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">用户昵称：</label>
+
+            <div class="col-sm-9 col-xs-12">
+                <input type="text" id="title" class="form-control span7"
+                       placeholder="" name="nickname" value="{$item['nickname']}">
+            </div>
+        </div>
+		
+		
+		<div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">用户头像：</label>
+
+            <div class="col-sm-9 col-xs-12">
+                <input type="text" id="title" class="form-control span7"
+                       placeholder="" name="headimgurl" value="{$item['headimgurl']}">
+            </div>
+        </div>
+
+		<div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">领取状态：</label>
+
+            <div class="col-sm-9 col-xs-12">
+                <select name="status">  
+ 				 	<option value="0">未领取</option>  
+  					<option value="1">已领取</option>  
+				</select>
+            </div>
+        </div>
+
+		<div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">红包金额：</label>
+
+            <div class="col-sm-9 col-xs-12">
+                <input type="text" id="title" class="form-control span7"
+                       placeholder="" name="money" value="{$item['money']}">
+            </div>
+        </div>
+
+		
+		<div class="form-group">
+				<div class="col-sm-8">
+					<input type="submit" name="submit" value="提交" class="btn btn-primary">
+					<input type="hidden" name="token" value="{$_W['token']}" />
+				</div>		
+		</div>
+		</form>
+    </div>
+</div>
+{/if}
+<script type="text/javascript">
+
+function delete_all(){
+location.href ="{php echo $this->createWebUrl('Datamanage', array('op' => 'delete_all'))}";
+}
+
+</script>
+{template 'common/footer'}

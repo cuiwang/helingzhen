@@ -1,0 +1,82 @@
+{template 'common/header'}
+</style>
+<div class="panel panel-default">
+    <div class="panel-heading">订单管理</div>
+    <div class="panel-body">
+        <div class="panel-group">  
+            <div class="list-group">
+              {php $address = pdo_fetch("SELECT * FROM ".tablename('hao_water_address')." WHERE uniacid = :uniacid AND id = :id LIMIT 1",array(':uniacid' => $_W['uniacid'],':id' => $member['id'] ));}
+              <a href="#" class="list-group-item active">
+                  订单详情
+              </a>
+              <a href="#" class="list-group-item" style="color:green;">订单号：{$order['order_number']}</a>
+              <a href="#" class="list-group-item" style="color:green;">下单时间：{php echo date('Y-m-d H:i:s',$order['order_time']);}</a>
+              <a href="#" class="list-group-item" style="color:red;">配送时间：{$order['delivery_time']}</a>
+              <a href="#" class="list-group-item" style="color:green;">客户姓名：{$member['member_nickname']}</a>
+              <a href="#" class="list-group-item" style="color:green;">客户联系方式：{$member['member_phone']}</a>
+              <a href="#" class="list-group-item" style="color:green;">客户配送地址：{$address['address_detail']}</a>
+            </div>
+        </div>
+        <div class="panel-group">  
+            <div class="list-group">
+                <a href="#" class="list-group-item active">
+                  订单状态
+                </a>
+                {loop $status $id $st}
+                    {if ($st['order_deliver_status'] == '0' )}
+                        <a href="#" class="list-group-item" style="color:red;">支付成功&nbsp;&nbsp;&nbsp;{php echo date('Y-m-d H:i:s',$st['time']);}</a>
+                    {/if}
+                    {if ($st['order_deliver_status'] == '1' )}
+                        <a href="#" class="list-group-item" style="color:#FF9912;">配送中&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{php echo date('Y-m-d H:i:s',$st['time']);}</a>
+                    {/if}
+                    {if ($st['order_deliver_status'] == '2' )}
+                        <a href="#" class="list-group-item" style="color:green;">订单完成&nbsp;&nbsp;&nbsp;{php echo date('Y-m-d H:i:s',$st['time']);}</a>
+                    {/if}
+                {/loop}
+            </div>
+        </div> 
+        {if ($total == '1')}
+        <form method="post" action="{php echo $this->createWebUrl('orderstatus')}" onsubmit="return check();" >
+	        <input type="hidden" value="{$order['id']}" name="orderid" />
+	        <input type="hidden" value="{$order['ordersn']}" name="ordersn" />
+	        <input type="hidden" value="1" name="status" />
+	        <div class="panel-group">
+	            <div class="col-lg-3">
+	                <div class="input-group">
+	                   <span class="input-group-addon">
+	                    配送员联系方式
+	                   </span>
+	                   <input type="text" name="staff_phone" class="form-control">
+	                </div>
+	            </div>
+	            <button type="submit" name="submit" class="btn btn-success">配送</button>
+	            <input name="token" value="{$_W['token']}" type="hidden" >
+	        </div>
+        </form>
+        {/if}
+        {if ($total == '2')}
+        <form method="post" action="{php echo $this->createWebUrl('orderstatus')}" >
+	        <input type="hidden" value="{$order['id']}" name="orderid" />
+	        <input type="hidden" value="{$order['ordersn']}" name="ordersn" />
+	        <input type="hidden" value="2" name="status" />
+	        <button type="submit" name="submit" class="btn btn-success">订单完成</button>
+	        <input name="token" value="{$_W['token']}" type="hidden" >
+        </form>
+        {/if}
+    </div>
+</div>
+<script type="text/javascript">
+	function check(){
+		var input = $('input[name="staff_phone"]').val();
+		if(input == ''){
+			alert('请输入配送员的联系方式');
+		}
+		var reg = /^1\d{10}$/;
+        iso = reg.test(input);
+        if (!iso) {
+            alert("电话格式错误");
+            return false;
+        }
+	}
+</script>
+{template 'common/footer'}

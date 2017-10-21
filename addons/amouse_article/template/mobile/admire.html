@@ -1,0 +1,195 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="viewport" content="width=device-width,height=device-height,inital-scale=1.0,maximum-scale=1.0,user-scalable=no;"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+    <meta name="format-detection" content="telephone=no"/>
+    <style type="text/css">
+        .page {
+            max-width: 640px;
+            margin: -10px auto 10px;
+        }
+        .page_title {
+            margin: 0px 5px !important;
+        }
+        .page_title .weui_btn {
+            float: left;
+            width: 30%;
+            margin: 5px;
+            line-height: 60px;
+        }
+        .clear {
+            clear: both;
+        }
+        .weui_btn:first-child {
+            position: relative;
+            top: 10px;
+        }
+    </style>
+    <title>赞赏{$_W['account']['name']}</title>
+    <link rel="stylesheet" type="text/css" href="{RES}css/weui.css">
+    <link rel="stylesheet" type="text/css" href="{RES}css/example.css">
+    <script src="http://cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
+</head>
+<body>
+<div class="page cell">
+
+    <div class="hd">
+        <h1 class="page_title"><img src="{php echo tomedia('headimg_'.$account['acid'].'.jpg');}?time={php echo time()}" style="height: 50px;width: 50px;" /></h1>
+        <p class="page_desc" style="font-size:18px;font-weight:bold;">{$account['name']}</p>
+        <p class="page_desc">{$detail['admiretxt']}</p>
+    </div>
+    <div class="hd">
+        <h1 class="page_title">
+            {loop $adsets $adset}
+            <a href="javascript:;" class="weui_btn weui_btn_plain_primary" data-price="{$adset['price']}"><span style="font-size:18px;font-weight:bold;">{$adset['price']}</span>元
+            </a>
+            {/loop}
+    </div>
+
+    <div class="clear"></div>
+
+    <div class="bd spacing">
+        <div class="button_sp_area">
+            <a href="javascript:;" class="weui_btn weui_btn_plain_primary" id="showDialog2">其他金额</a>
+        </div>
+    </div>
+
+    <div class="weui_dialog_alert" id="dialog2" style="display: none;">
+        <div class="weui_mask"></div>
+        <div class="weui_dialog">
+            <div class="weui_dialog_hd"> <a data-remodal-action="close" class="remodal-close" aria-label="Close">X</a>
+                <strong class="weui_dialog_title">其他金额</strong></div>
+            <div class="weui_dialog_bd">金额(元) <input class="weui_input" style="width: 75%;" type="number" name="price" id="price" placeholder="可填写1-256"></div>
+            <div class="weui_dialog_ft">
+                <a href="javascript:;" class="weui_btn_dialog primary">赞赏</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="weui_msg"  style="display: none;">
+        <div class="weui_icon_area"><i class="weui_icon_success weui_icon_msg"></i></div>
+        <div class="weui_text_area">
+            <h2 class="weui_msg_title">操作成功</h2>
+            <p class="weui_msg_desc">内容详情，可根据实际需要安排</p>
+        </div>
+        <div class="weui_opr_area">
+            <p class="weui_btn_area">
+                <a href="javascript:;" class="weui_btn weui_btn_primary">确定</a>
+                <a href="javascript:;" class="weui_btn weui_btn_default">取消</a>
+            </p>
+        </div>
+    </div>
+</div>
+</body>
+
+
+<script type="text/javascript">
+
+    function pay(price,params,payOkFunc,payCancelFailFunc){
+        var url = "{php echo $this->createMobileUrl('ajaxPay',array('aid'=>$artid),true)}";
+        var price = price;
+        if (!price) {
+            price = 0.01;
+        }
+        $.ajax({
+            url : url,
+            type : "post",
+            dataType : "json",
+            data : "price="+price,
+            success : function(res){
+                var jsApiParameters =res.wechat;
+                callpay(jsApiParameters,params,payOkFunc,payCancelFailFunc);
+            },
+            error : function(res){
+			alert('error');
+            }
+        });
+    }
+
+    function callpay(jsApiParameters,params,payOkFunc,payCancelFailFunc){
+		
+        WeixinJSBridge.invoke("getBrandWCPayRequest",jsApiParameters,function(res){
+            WeixinJSBridge.log(res.err_msg);
+            if(res.err_msg=="get_brand_wcpay_request:ok"){
+                payOkFunc(params);
+            }else if(res.err_msg=="get_brand_wcpay_request:cancel"){
+			}
+			else{
+                var err_msg = res.err_msg +"<br/>"+res.err_desc;
+                payCancelFailFunc(err_msg);
+            }
+        });
+    }
+
+    $(function () {
+        $(".button_sp_area .weui_btn").click(function () {
+            $('#dialog2').show();
+            $('#dialog2').find('.weui_btn_dialog').on('click', function () {
+                var money = $("input[name='price']");
+                if (money.val() == '') {
+                    alert("请输入您要打赏金额");
+                    money.focus();
+                    return false;
+                }
+                var reg = new RegExp("^[0-9]+(.[0-9]{2})?$");
+                if (!reg.test(money.val())) {
+                    alert("请输入正确的打赏金额");
+                    money.focus();
+                    return false;
+                }
+                var price = parseFloat(money.val()); // 支付金额
+                var aid='{$artid}';
+                var params = new Array();
+                params['price'] = price;
+                params['aid'] = aid;
+                pay(price,params,paySucess,payCancelOrFail);
+                //window.location.href="{php echo $this->createMobileUrl('admire',array('op'=>'pay'),true)}&price="+price+"&aid="+aid;
+            });
+        });
+
+        $(".remodal-close").click(function () {
+            $('#dialog2').hide();
+        });
+
+        $(".page_title .weui_btn").click(function () {
+            var price = $(this).attr('data-price'); // 支付金额
+            var aid='{$artid}';
+            var params = new Array();
+            params['price'] = price;
+            params['aid'] = aid;
+            console.log(price);
+            pay(price,params,paySucess,payCancelOrFail);
+
+        });
+    });
+
+
+    function paySucess(params){
+    //    $.ajax({
+    //        type : "POST",
+    //        url :"{php echo $this->createMobileUrl('Ajaxpraise',array(),true)}",
+   //         data : "price="+params['price']+"&aid="+params['aid'],
+   //         dataType : "json",
+  //          contentType: "application/x-www-form-urlencoded; charset=utf-8",
+  //          success : function(data){
+  //              if(data && data.code==200){
+                    window.location.href="{php echo $this->createMobileUrl('detail',array(),true)}&id="+params['aid'];
+ //               }else{
+ //                   alert(data.msg);
+ //                   return;
+ //               }
+ //           },
+ //           error : function(data){
+ //               alert('网络出错');
+ //           }
+ //       });
+    }
+
+    function payCancelOrFail(err_msg){
+        alert(err_msg);
+    }
+
+</script>
+</html>

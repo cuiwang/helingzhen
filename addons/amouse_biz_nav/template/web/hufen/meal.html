@@ -1,0 +1,188 @@
+{template 'common/header'}
+
+{template 'web/hufen/tabs'}
+<div class="alert alert-info">
+    <label class='label label-success'>1:自动刷新 对应个人名片 自动刷新</label>
+    <label class='label label-danger'>2: 超级VIP 对应个人名片 固定置顶.分钟计算</label>
+    <label class='label label-default label-info'>3:会员VIP 对应开通会员 .</label><kbd>赠送时长默认为0.</kbd>
+</div>
+{if $op == 'display'}
+<div class="panel panel-default">
+    <div class="panel-body">
+        <a class='btn btn-success' href="{php echo $this->createWebUrl('meal',array('op'=>'post'))}"><i class='fa fa-plus'></i> 添加套餐</a>
+    </div>
+</div>
+<div class='panel-body'>
+    <form id="form2" class="form-horizontal" method="post">
+        <table class="table table-hover">
+            <thead class="navbar-inner">
+            <tr>
+                <th style="width:10%;">规则</th>
+                <th style="width:10%;">{if $set['custom'][credit2txt]}{$set['custom'][credit2txt]}{else}余额{/if}</th>
+                <th style="width:5%;">类型</th>
+                <th style="width:8%;">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {loop $list $item}
+            <tr>
+                <td>开通时长：{$item['day']}天 = {$item['price']}
+                    {$set['custom'][credit2txt]} {if $item['desc']}(送{$item['desc']}){/if}
+                </td>
+
+                <td>
+                    <script>
+                        var reg=/^[0-9]*$/;
+                        var tt={$item['price']};
+                        if(!reg.test(tt)){
+                            tt = tt<0?0:tt.toFixed(3);
+                        }else{
+                            tt = tt<0?0:tt;
+                        }
+                        document.write(tt);
+                    </script>
+                </td>
+                <td>{if $item['type']==5}会员VIP
+                    {elseif $item['type']==6}<label class='label label-default label-info'>自动刷新</lable>
+                    {elseif $item['type']==7}<label class='label label-default label-info'>超级VIP</lable>
+                    {/if}
+                </td>
+                <td style="text-align:left;">
+                    <a href="{php echo $this->createWebUrl('meal', array('op' => 'post', 'id' => $item['id']))}" class="btn btn-default btn-sm"><i
+                            class="fa fa-edit">编辑</i></a>
+                    <a onclick="return confirm('此操作不可恢复，确认吗？'); return false;"
+                       href="{php echo $this->createWebUrl('meal', array('id' => $item['id'],'op'=>'delete'))}" title="删除" class="btn btn-default btn-sm">
+                        <i class="fa fa-times">删除</i>
+                    </a>
+
+                </td>
+            </tr>
+            {/loop}
+            </tbody>
+        </table>
+    </form>
+    <div style="margin:0 auto;margin-right: auto;vertical-align: middle;text-align: center;" >
+        {$pager}
+    </div>
+</div>
+{elseif $op == 'post'}
+<div class="main">
+    <form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" onsubmit='return formcheck()'>
+        <input type="hidden" name="id" value="{$item['id']}" />
+        <input type="hidden" name="auto" value="{$auto}" />
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                套餐管理设置
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style="color:red">*</span>类型</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <label class="radio-inline" for="form-type-4">
+                            <input type="radio" name="type" id="form-type-4" value="5" {if $item['type']==5}checked="true"{/if}  /> 会员VIP
+                        </label>
+                        <label class="radio-inline" for="form-type-6">
+                            <input type="radio" name="type" id="form-type-6" value="6" {if $item['type']==6}checked="true"{/if}  /> 自动刷新
+                        </label>
+
+                        <label class="radio-inline" for="form-type-3">
+                            <input type="radio" name="type" id="form-type-3" value="7" {if $item['type']==7}checked="true"{/if}  /> 超级VIP[固定头部]
+                        </label>
+
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style="color:red">*</span>置顶天数</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <div class="input-group">
+                            <input type="text" id='day' name="day" class="form-control" value="{php echo intval($item['day'])}" />
+                            <span class="input-group-addon top">天</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                        <span style="color:red">*</span> 价格
+                    </label>
+                    <div class="col-sm-9 col-xs-12">
+                        <div class="input-group">
+                            <input type="text" id='price' name="price" class="form-control" value="{php echo intval($item['price'])}" />
+                            <span class="input-group-addon ptop">{if $set['custom'][credit2txt]}{$set['custom'][credit2txt]}{else}余额{/if}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">赠送时长</label>
+                    <div class="col-sm-9">
+                        <div class="input-group">
+                            <input type="text"   name="desc" class="form-control" value="{php echo intval($item['desc'])}" />
+                            <span class="input-group-addon top">天</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group" id="img_id">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">套餐图片</label>
+                    <div class="col-sm-9">
+                        {php echo tpl_form_field_image('img', $item['img'])}
+                        <span class="help-block">
+                            建议图片大小为： 40*40 比如:
+                            <img  src="http://hufen.npltec.com/static/img/gold.9c7c443de448.png" width="40" height="40">
+                        </span>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+        <div class="form-group col-sm-12">
+            <input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+            <input type="hidden" name="token" value="{$_W['token']}" />
+        </div>
+    </form>
+</div>
+<script language='javascript'>
+    function formcheck() {
+        if ($("#title").isEmpty()) {
+            Tip.focus("title", "请填写套餐名称!");
+            return false;
+        }
+        if ($("#price").isEmpty()) {
+            Tip.focus("price", "请填写套餐费用!");
+            return false;
+        }
+        return true;
+    }
+
+    require(['jquery', 'util'], function ($, u) {
+        $("#form-type-{php echo $item['type'];}").attr("checked", true);
+        var type ="{$item['type']}";
+        if(type==7){
+            $("#img_id").show();
+            $(".top").html('分钟');
+        }else if(type==6){
+            $("#img_id").show();
+            $(".top").html('天');
+        }else{
+            $("#img_id").hide();$(".top").html('天');
+        }
+        $("input[name='type']").on("change", function(){
+            var type = $("input[name='type']:checked").val();
+            if(type==7){
+                $("#img_id").show();
+                $(".top").html('分钟');
+            }else if(type==6){
+                $("#img_id").show();
+                $(".top").html('天');
+
+            }else{
+                $("#img_id").hide();
+                $(".top").html('天');
+            }
+        });
+    });
+</script>
+{/if}

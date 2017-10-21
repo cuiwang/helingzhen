@@ -1,0 +1,358 @@
+{template 'weheader'}
+<style type='text/css'>
+	#poptip { position: fixed; top:40%;left:50%;width:160px;margin-left:-80px;height: 27px;background:#000; opacity: 0.7;filter:alpha(opacity=0.7); color:#fff;z-index: 999;  border-radius:5px;-webkit-border-radius:5px;-moz-border-radius:5px;}
+	#poptip_content { position: fixed; top:40%;left:50%;width:160px;margin-left:-80px; height: 27px; color:#fff;text-align:center;font-size:14px;z-index: 9909}
+</style>
+<script language='javascript'>
+function tip(msg,autoClose){
+	var div = $("#poptip");
+	var content =$("#poptip_content");
+	if(div.length<=0){
+		div = $("<div id='poptip'></div>").appendTo(document.body);
+		content =$("<div id='poptip_content'>" + msg + "</div>").appendTo(document.body);
+	}else{
+		content.html(msg);
+		content.show(); div.show();
+	}
+	if(autoClose) {
+		setTimeout(function(){
+			content.fadeOut(500);
+			div.fadeOut(500);
+		},1000);
+	}
+}
+function tip_close(){
+	$("#poptip").fadeOut(500);
+	$("#poptip_content").fadeOut(500);
+}
+</script>
+<style>
+.weui_label {color:#333;}
+.weui_uploader_files, .weui_uploader_file{width:60px;height:60px;margin:0 10px 0 0;}
+.weui_input, .weui_select{text-align:right;color:#666;}
+select.gender {direction: rtl;}
+.weui_switch:before {background-color: #FF33CC;}
+.weui_switch:checked {border-color: #18B4ED;background-color: #18B4ED;}
+
+.weui_cell_select {padding: 10px 0;}
+.weui_cell_select .weui_select {padding-right: 30px;}
+</style>
+    <div class="weui_tab_bd">
+<form class="form-horizontal" method="post" role="form">
+	<input type="hidden" name="goodstype" value="{$goodstype}" />
+		<div class="weui_cells weui_cells_access">
+        <div class="weui_cell">
+			<div class="weui_cell_hd"><label class="weui_label"><span>头像</span></label></div>
+            <div class="weui_cell_bd weui_cell_primary">
+                <div class="weui_uploader">
+                    <div class="weui_uploader_hd">
+                    </div>
+                    <div class="weui_uploader_bd right" id="upavatar">
+                        <ul class="weui_uploader_files {if !$member['avatar']}weui_uploader_input_wrp{/if}">   
+                            <input type="hidden" id="avatar" name="avatar" accept="image/*" capture="camera" />
+                            <image class="weui_uploader_file weui_uploader_status radius-md" id="showavatar" src="{$member['avatar']}" />
+                        </ul>
+                    </div>
+                </div>
+            </div>
+		<div class="weui_cell_ft"></div>
+        </div>
+    <div class="weui_cell">
+        <div class="weui_cell_hd"><label class="weui_label"><span>昵称</span></label></div>
+        <div class="weui_cell_bd weui_cell_primary">
+            <input class="weui_input" id="nickname" type="text" placeholder="请输入联系人姓名">
+        </div>
+		<div class="weui_cell_ft"></div>
+    </div>
+    <div class="weui_cell">
+        <div class="weui_cell_hd"><label class="weui_label"><span class="ui-reddot-s">姓名</span></label></div>
+        <div class="weui_cell_bd weui_cell_primary">
+            <input class="weui_input" id="realname" type="text" placeholder="请输入联系人姓名">
+        </div>
+		<div class="weui_cell_ft"></div>
+    </div>
+    <div class="weui_cell">
+        <div class="weui_cell_hd"><label class="weui_label"><span class="ui-reddot-s">手机</span></label></div>
+        <div class="weui_cell_bd weui_cell_primary">
+            <input class="weui_input" id="mobile" name="mobile" type="tel" placeholder="请输入联系手机">
+        </div>
+		<div class="weui_cell_ft"></div>
+    </div>
+	{if $setting['smsid']}
+    <div class="weui_cell">
+		<input type="hidden" id="htel">
+		<input type="hidden" id="hsms">
+        <div class="weui_cell_hd"><label class="weui_label"><span class="ui-reddot-s">验证码</span></label></div>
+        <div class="weui_cell_bd weui_cell_primary" style="padding:0 10px;">
+            <input class="weui_input" id="sms" name="sms" type="tel" placeholder="请输入验证码">
+        </div>
+		<div class="weui_cell_ft">
+        <input type="button" id="sendsms" class="weui_btn weui_btn_mini weui_btn_primary" value="获取验证码">
+		</div>
+    </div>
+	{/if}
+
+</div>
+<div class="weui_cells weui_cells_access">
+	<div class="weui_cell weui_cell_switch">
+		<div class="weui_cell_hd weui_cell_primary"><label class="weui_label"><span>性别</span></label></div>
+		<div class="weui_cell_bd" style="padding:0 10px;margin:0;">
+			<input class="weui_switch" name="gender" id="gender" value="{$member['gender']}" type="checkbox" {if $member['gender']==1}checked="checked"{/if}/>
+		</div>
+	</div>
+			
+	<div class="weui_cell weui_cell_select">
+		<div class="weui_cell_bd weui_cell_primary">
+			<select id="sel-provance" onChange="selectCity();" class="weui_select" style="width:30%; margin-right:2%;">
+				<option value="" selected="true">省/直辖市</option>
+			</select>
+			<select id="sel-city" onChange="selectcounty()" class="weui_select" style="width:30%; margin-right:2%;">
+				<option value="" selected="true">请选择</option>
+			</select>
+			<select id="sel-area" class="weui_select" style="width:30%;">
+				<option value="" selected="true">请选择</option>
+			</select>
+		</div>
+	</div>
+    <div class="weui_cell">
+        <div class="weui_cell_hd"><label class="weui_label"><span>地址</span></label></div>
+        <div class="weui_cell_bd weui_cell_primary">
+            <input class="weui_input" id="address" type="text" name="gpsaddress" placeholder="请输入详细地址">
+        </div>
+		<span class="weui_cell_ft"><a href="javascript:void(0);" onclick="getLocation(this);" class="iconfont f-red f18">&#xe60e;</a></span>
+    </div>
+</div>
+<div class="weui_cells weui_cells_form">
+
+	<div class="weui_cell">
+		<a class="f-black tcenter block" style="width:100%;" onclick="saveAddress()">保存</a>
+	</div>
+</div>
+</form>
+</div>
+	
+<script type="text/javascript" src="../app/resource/components/area/cascade.js"></script>
+
+{if $setting['smsid']}
+<script type="text/javascript">
+		var wait=60;
+		function time(o) {
+			if (wait == 0) {
+				o.removeAttribute("disabled");
+				o.value="获取验证码";
+				wait = 60;
+			} else {
+				o.setAttribute("disabled", true);
+				o.value="重新发送(" + wait + ")";
+				wait--;  
+				setTimeout(function() {
+					time(o)
+				},
+            1000)
+			}
+		}
+	$("#sendsms").bind("click",function(){
+		var checktel = /^(((13[0-9]{1})|(15[0-9]{1})|(17[0-9]{1})|(18[0-9]{1}))+\d{8})$/;
+			if($.trim($(':input[name="mobile"]').val())=='' || !checktel.test($.trim($('input[name="mobile"]').val()))){
+				$('#mobile').attr("readonly",false);
+				$.toast("请输入正确的手机号码", "cancel");
+				return false;
+			}else{
+				$('#mobile').attr('readonly',true);
+				var submitData = {};
+				$.post("{php echo murl('entry', array('do' => 'SendSms', 'id' => $setting['smsid'], 'm' => 'dayu_sms'), true, true)}"+"&mobile="+$("#mobile").val(), submitData,function(data){
+					if(data.message.state == 1) {
+						$("#htel").val(data.message.mobile);
+						$("#hsms").val(data.message.yzm);
+						$.toast(data.message.msg, "success");
+					}else{
+						$.toast(data.message.msg, "cancel");
+					}
+				},"json");
+				time(this);
+			}
+	});
+</script>
+{/if}
+<script type="text/javascript">
+function getLocation(_this){
+	$.confirm("由{$_W['account']['name']}自动获取您的地址吗?", "确定?", function() {
+    wx.getLocation({
+      type: 'gcj02', //wgs84 或 gcj02
+      success: function (res) {
+        var latitude = res.latitude; // 纬度，浮点数，范围为90 ~ -90
+        var longitude = res.longitude; // 经度，浮点数，范围为180 ~ -180。
+        var MJKD_LATLNG = latitude+','+longitude;		
+		var data={
+			location:MJKD_LATLNG,
+			key:"YUUBZ-PJKR3-IKN3O-33NYY-IEK32-5QF27",
+			get_poi:0    
+		}
+		var url="http://apis.map.qq.com/ws/geocoder/v1/?";
+		data.output="jsonp";
+		$.ajax({
+			type:"get",
+			dataType:'jsonp',
+			data:data,
+			jsonp:"callback",
+			jsonpCallback:"QQmap",
+			url:url,
+			success:function(json){
+				$.toast(json.result.address, "success");
+				$('input[name=gpsaddress]').val(json.result.address_component.street+json.result.address_component.street_number);
+				cascdeInit(json.result.address_component.province, json.result.address_component.city, json.result.address_component.district);
+			},
+		error : function(err){alert("服务端错误，请刷新浏览器后重试")}
+		});	
+      },
+      fail: function(res) {
+        alert('获取位置失败');
+      }
+    });
+		}, function() {
+			$.toast("取消了自动获取地址!", "cancel");
+        });
+}
+var addressUrl = "{php echo $this->createMobileUrl('info')}";
+var genderUrl = "{php echo $this->createMobileUrl('info', array('op' => 'sex'));}";
+$("#gender").bind("click",function(){
+	$this = $(this);
+	var sex = this.checked ? 1 : 2;
+					var submitData = {
+						sex:sex
+					};
+	$.post(genderUrl, submitData, function(data){
+		if(data.status == 1) {
+			$.toast(data.message, "success");
+			return;
+		} else {
+			$.toast("操作失败", "cancel");
+		}
+	},"json");
+});
+          var btn = document.getElementById('upavatar');
+          var images = {
+              localId: [],
+              serverId: []
+          };
+          btn.onclick = function(){
+              wx.chooseImage({
+					count: 1,
+					sourceType: ['album', 'camera'],
+					success:function(res){
+
+                        images.localId = res.localIds;
+                        var i = 0, length = images.localId.length;
+
+                        document.getElementById('showavatar').src = images.localId;
+					var wxUpload = function() {
+                        wx.uploadImage({
+                            localId: images.localId[i], 
+                            isShowProgressTips: 1, // 默认为1，显示进度提示
+                            success: function (res) {
+                                images.serverId.push(res.serverId);
+                                $.get("{php echo $this->createMobileUrl('upload', array('type' => 2))}", { media_id: res.serverId },
+                                function(data){
+                                    $('input[name="avatar"]').val(data);
+                                }); 
+                                i++;
+                                if(i < length){
+                                    wxUpload();
+                                }
+                            },
+							fail: function (res) {
+								alert(JSON.stringify(res));
+							}
+                        });
+						
+					};
+					wxUpload();
+                   }
+              });
+  
+          }
+	var from='{$_GPC['from']}';
+	var returnurl = '{$_GPC['returnurl']}';
+		$('#avatar').val('{media $member['avatar']}');
+		$('#nickname').val('{$member['nickname']}');
+		$('#realname').val('{$member['realname']}');
+		$('#mobile').val('{$member['mobile']}');
+		$('#address').val('{$member['address']}');
+		cascdeInit('{$member['resideprovince']}','{$member['residecity']}','{$member['residedist']}');
+
+	function saveAddress() {
+		var avatar = $('#avatar').val();
+		var nickname = $('#nickname').val();
+		var realname = $('#realname').val();
+		var mobile = $('#mobile').val();
+		var province = $('#sel-provance').val();
+		var city = $('#sel-city').val();
+		var area = $('#sel-area').val();
+		var address = $('#address').val();
+		if (!avatar) {
+			$.toast("请上传头像！", "cancel");
+			return false;
+		}
+		if (!nickname) {
+			$.toast("请填写昵称！", "cancel");
+			return false;
+		}
+		if (!realname) {
+			$.toast("请填写姓名！", "cancel");
+			return false;
+		}
+		if (!mobile) {
+			$.toast("请填写联系手机！", "cancel");
+			return false;
+		}
+		{if $setting['smsid']}
+		var htel=$("#htel").val();
+		var hsms=$("#hsms").val();
+		var tel=$("#mobile").val();
+		var sms=$("#sms").val();
+		if(htel==tel){
+			if(hsms==sms){
+			}else{
+				$.toast("请输入正确验证码", "cancel");
+				return false;
+			}
+		}else{
+			$.toast("请获取验证码", "cancel");
+			return false;
+		}
+		{/if}
+		if (mobile.search(/^([0-9]{11})?$/) == -1) {
+			$.toast("请输入正确的联系手机！", "cancel");
+			return false;
+		}
+		tip("正在处理数据...");
+		$.post('{php echo $this->createMobileUrl('info')}', {
+			'op' : 'post',
+			'nickname' : nickname,
+			'realname' : realname,
+			'mobile' : mobile,
+			'province' : province,
+			'city' : city,
+			'area' : area,
+			'address' : address
+		}, function(s) {
+			tip_close();
+			if (s.message != 0) {
+				if (from == 'dayu_form') {
+					if (returnurl != '') {
+						window.location.href = decodeURIComponent(returnurl);;
+						return;
+					}
+					window.location.href = '{php echo $this->createMobileUrl('dayu_form', array('op'=>'info'))}';
+				}
+			}
+			if (returnurl != '') {
+				window.location.href = decodeURIComponent(returnurl);
+				return;
+			}
+		}, 'json');
+	}
+</script>
+{php $share = 1;}
+{php $footer_off = 0;}
+{template 'footers'}

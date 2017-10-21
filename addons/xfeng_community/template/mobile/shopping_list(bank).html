@@ -1,0 +1,165 @@
+{php $bootstrap_type = 3;}
+{if empty($_W['isajax'])}
+{template 'header'}
+{template 'shopping_common'}
+<script language="javascript" src="../addons/ewei_shopping/images/touchslider.min.js"></script>
+<script language="javascript" src="../addons/ewei_shopping/images/swipe.js"></script>
+<style>
+   .td_a { height:7em; text-align: center}
+</style>
+<link type="text/css" rel="stylesheet" href="../addons/ewei_shopping/images/style.css?{TIMESTAMP}">
+<div class="head">
+	<a href="javascript:;" onclick="$('.head .order').toggleClass('hide');" class="bn pull-left"><i class="fa fa-reorder"></i></a>
+	<span class="title">小区超市{if $_GPC['pcate']} - {$category[$_GPC['pcate']]['name']}{/if}{if $_GPC['ccate']} - {$children[$_GPC['pcate']][$_GPC['ccate']]['name']}{/if}</span>
+	<a href="{php echo $this->createMobileUrl('shopping',array('op' => 'mycart'))}" class="bn pull-right"><i class="fa fa-shopping-cart"></i><span class="buy-num img-circle" id="carttotal">{$carttotal}</span></a>
+	<ul class="unstyled order hide">
+		{loop $category $item}
+		<li>
+			<a href="{php echo $this->createMobileUrl('shopping', array('op' => 'list2','pcate' => $item['id']))}" class="bigtype"><i class="fa fa-folder-open"></i> {$item['name']}</a>
+			{loop $children[$item['id']] $child}
+			<a href="{php echo $this->createMobileUrl('shopping', array('op' => 'list2','ccate' => $child['id']))}" class="smtype"><i class="fa fa-folder"></i> {$child['name']}</a>
+			{/loop}
+		</li>
+		{/loop}
+	</ul>
+</div>
+
+<div id="banner_box" class="box_swipe" style='width:100%;float:left;'>
+	<ul>
+		{loop $advs $adv}
+		<li>
+			<a href="{if empty($adv['link'])}#{else}{$adv['link']}{/if}">
+				<img src="{php echo tomedia($adv['thumb']);}" title="{$adv['advname']}" height='200px'/>
+			</a>
+			<span class="title">{$adv['advname']}</span>
+		</li>
+		{/loop}
+	</ul>
+	<ol>
+	   {php $slideNum = 1;}
+	{loop $advs $adv}
+		<li{if $slideNum == 1} class="on"{/if}></li>
+		{php $slideNum++;}
+	{/loop}
+	</ol>
+</div>
+<script>
+	$(function() {
+		new Swipe($('#banner_box')[0], {
+			speed:500,
+			auto:3000,
+			callback: function(){
+				var lis = $(this.element).next("ol").children();
+				lis.removeClass("on").eq(this.index).addClass("on");
+			}
+		});
+	});
+</script>
+
+<div class="shopping-main">
+	<table style='width:100%;'>
+		<tr>
+			<td class='td_a'>
+				<a href="{php echo $this->createMobileUrl('shopping',array('op' => 'list2'))}">
+					<img src="../addons/ewei_shopping/template/mobile/images/icon_indexn_06.png" style='width:6.2em;height:6.2em'>
+				</a>
+			</td>
+			<td class='td_a'>
+				<a href="{php echo $this->createMobileUrl('shopping',array('op' => 'list2','isnew'=>1))}">
+					<img src="../addons/ewei_shopping/template/mobile/images/icon_indexn_01.png" style='width:6.2em;height:6.2em'>
+				</a>
+			</td>
+			<td class='td_a'>
+				<a href="{php echo $this->createMobileUrl('shopping',array('op' => 'list2','ishot'=>1))}">
+					<img src="../addons/ewei_shopping/template/mobile/images/icon_indexn_05.png" style='width:6.2em;height:6.2em'>
+				</a>
+			</td>
+		</tr>
+		<tr>
+			<td class='td_a'>
+				<a href="{php echo $this->createMobileUrl('shopping',array('op' => 'list2','isdiscount'=>1))}">
+					<img src="../addons/ewei_shopping/template/mobile/images/icon_indexn_02.png" style='width:6.2em;height:6.2em'>
+				</a>
+			</td>
+			<td class='td_a'>
+				<a href="{php echo $this->createMobileUrl('shopping',array('op' => 'list2','istime'=>1))}">
+					<img src="../addons/ewei_shopping/template/mobile/images/icon_indexn_09.png" style='width:6.2em;height:6.2em'>
+				</a>
+			</td>
+			<td class='td_a'>
+				<a href="{php echo $this->createMobileUrl('contactus')}">
+					<img src="../addons/ewei_shopping/template/mobile/images/icon_indexn_08.png" style='width:6.2em;height:6.2em'>
+				</a>
+			</td>
+		</tr>
+	</table>
+	{/if}
+<div class="list" id="list_rec">
+	<div class="list-tips" style='float:left;width:100%;font-size:14px;color:#e9342a;padding-left:10px;'>推荐商品</div>
+	{loop $rlist $item}
+		{template 'shopping_list_item'}
+	{/loop}
+</div>
+<div class="show-more"><a href="javascript:;" onclick="loadRecPage('{$rpindex}', 'list_rec')" class="img-rounded pager" id="pager_rec">浏览更多商品</a></div>
+	{loop $recommandcategory $c}
+		{if !empty($c['list'])}
+			{if empty($_W['isajax'])}
+				<div class="list" id="list_{$c['parentid']}_{$c['id']}">
+			{/if}
+			{if empty($_W['isajax'])}
+				<div class="list-tips" style='float:left;width:100%;font-size:14px;color:#e9342a;padding-left:10px;'>{$c['name']}</div>
+			{/if}
+			{loop $c['list'] $item}
+				{template 'shopping_list_item'}
+			{/loop}
+			{if empty($_W['isajax'])}</div>
+				<div class="show-more">
+					<a href="javascript:;" onclick="loadPage('{$pindex}', 'list_{$c['parentid']}_{$c['id']}', '{$c['parentid']}', '{$c['id']}')" class="img-rounded pager" id="pager_{$c['parentid']}_{$c['id']}">浏览更多商品</a>
+				</div>
+			{/if}
+		{/if}
+	{/loop}
+	{if empty($_W['isajax'])}
+</div>
+
+<script type="text/javascript">
+function loadPage(pindex, container, pcate, ccate) {
+	pindex = parseInt(pindex) + 1;
+	var pager = $('#pager_' + pcate + "_" + ccate);
+	pager.html('正在加载数据...');
+	var url = "{php echo $this->createMobileUrl('listmore')}";
+	$.get(url, {'page' : pindex, 'pcate':pcate, 'ccate':ccate}, function(html){
+		if (html.indexOf('list-item') > - 1) {
+			pager.html('浏览更多商品');
+			$('#' + container).append(html);
+			pager.get(0).onclick = function(){
+				loadPage(pindex, container, pcate, ccate);
+			}
+		} else {
+			pager.html('已经显示全部商品');
+		}
+	});
+}
+
+function loadRecPage(pindex, container) {
+	pindex = parseInt(pindex) + 1;
+	var pager = $('#pager_rec');
+	pager.html('正在加载数据...');
+	var url = "{php echo $this->createMobileUrl('listmore_rec')}";
+	$.get(url, {'page' : pindex}, function(html){
+		if (html.indexOf('list-item') > - 1) {
+			pager.html('浏览更多商品');
+			$('#' + container).append(html);
+			pager.get(0).onclick = function(){
+				loadRecPage(pindex, container);
+			}
+		} else {
+			pager.html('已经显示全部商品');
+		}
+	});
+}
+</script>
+
+<!-- {template 'footer'} -->
+{template 'shopping_footerbar'}
+{/if}

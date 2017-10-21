@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<title>订单确认页</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+<meta name="format-detection" content="telephone=no" />
+<link rel="stylesheet" type="text/css" href="../addons/weisrc_dish/template/css/1/wei_canyin_v1.8.4.css?v=1.0" media="all">
+<link rel="stylesheet" type="text/css" href="../addons/weisrc_dish/template/css/1/wei_dialog_v1.2.1.css?v=1.0" media="all">
+<script type="text/javascript" src="../addons/weisrc_dish/template/js/1/wei_dialog_v1.9.9.js"></script>
+<script type="text/javascript" src="../addons/weisrc_dish/template/js/2/jQuery.js"></script>
+<script type="text/javascript" src="../addons/weisrc_dish/template/js/1/wei_webapp_v2_common_v1.9.4.js"></script>
+<style>
+    .group_1{
+        margin-top:30px;
+        border-top:1px solid #ccc;
+        position:relative;
+        padding:15px 0;
+    }
+    .group_1:after{
+        content:attr(data-title);
+        background:#fefefe;
+        position:absolute;
+        top:-15px;
+        left:0;
+        padding:5px;
+    }
+    .btn_1{
+        display:block;
+        border:1px solid #d8d8d8;
+        border-radius:3px;
+        padding:10px;
+        color:#666;
+        background:-webkit-gradient(linear, 0 0, 0 100%, from(#fefefe), to(#efefef));
+    }
+    .btn_2{
+        display:block;
+        width:150px;
+        margin:auto;
+        line-height:35px;
+        text-align:center;
+        padding:0 5px;
+        color:#fff;
+        /*background:-webkit-gradient(linear, 0 0, 0 100%, from(#2ec366), to(#2ec366));*/
+        background:-webkit-gradient(linear, 0 0, 0 100%, from(#fdb338), to(#fdb338));
+        border:1px solid #fdb338;
+        border-radius:3px;
+        font-size:15px;
+    }
+</style>
+</head>
+<body id="page_intelOrder" class="myOrderCon">    
+    <div class="center">
+        <section style="margin-bottom: 10px; padding: 0;">
+            <article>
+                <ul>
+                    <li style="border-top: 0; margin-top: 0;" class="arrow">
+                        <a href="#" style="color: #888; display: block;">
+                            <p style="font-size: 12px;">订单号：{$order['ordersn']}</p>
+                            <p style="font-size: 12px;">订餐人：{$order['username']} 门店名称：{$store['title']}</p>
+                            <p style="font-size: 15px; color: #000;">门店地址：{$store['address']}</p>
+                        </a>
+                    </li>
+                </ul>
+            </article>
+        </section>
+        <section style="margin-bottom: 20px;">
+            <article>
+                <label style="line-height: 30px; font-size: 16px; font-weight: bold; margin-left: 10px;">我的菜单</label>
+                <ul id="myorder" class="myorder">
+                    {loop $goodslist $item}
+                    <li class="dish_item">
+                        <span class="dishName">{$item['title']}</span>
+                        <i>{if $item['isspecial'] == 1}{$item['productprice']}{else}{$item['marketprice']}{/if}元/{$item['unitname']}</i>
+                        <section class="bbox">
+                            <input class="numBox" name="numBox" type="text" value="{$item['total']}" readonly="readonly">
+                        </section>
+                    </li>
+                    {/loop}
+                </ul>
+                <div class="group_1" data-title="选择支付方式">
+                    <select style="width: 100%; height: 38px;" onchange="selectpaytype(this);" id="selpaytype">
+                        <option value="0" selected="selected">现金支付</option>
+                        <option value="1">在线支付</option>
+                    </select>
+                    <p id="cardinfo" style="width: 100%;color:#f00;padding: 5px;display: none;">
+                        {if empty($card)}
+                        您还没申请会员卡!
+                        {else}
+                        您的卡号是{$card['cardsn']},余额<span id="cardcoin">{$fans['credit2']}</span>
+                        {/if}                                               　
+                    </p>
+                </div>
+            </article>
+        </section>
+        <header style="border-bottom: 1px solid #ccc; overflow: hidden;">
+            <label style="margin-top: 0;">
+                <i>应付金额：</i>
+                <b class="duiqi"><span id="total">{$order['totalprice']}</span>元</b>
+            </label>
+        </header>
+        <footer>
+            <a href="#" class="btn_2" id="confirm_order">立即预定</a>
+        </footer>
+    </div>
+    <script>
+        $(function () {
+            $("#confirm_order").click(function () {
+                MDialog.confirm(
+                    '', '确认下单吗？', null,
+                    '确定', function(){
+                        postmain();
+                    }, null, '取消', null, null,null, true, true
+                );
+            });
+        });
+        //提交数据
+        function postmain() {
+            //付款类型
+            var paytype = $("#selpaytype").val();
+            //剩余余额
+            if (paytype == 1) {
+                "{if !empty($card)}"
+                var cardcoin = parseFloat("{$card['coin']}");
+                var orderprice = parseFloat("{$order['totalprice']}");
+                if (orderprice > cardcoin) {
+                    alert('您的余额不足,请使用别的支付方式!');
+                    return false;
+                }
+                "{else}"
+                    alert('您还没申请会员卡,请使用别的支付方式!');
+                    return false;
+                "{/if}"
+
+                var url = "{php echo $this->createMobileUrl('pay', array('orderid' => $orderid), true)}";
+                location.href = url;
+                return true;
+            }
+            var url = "{php echo $this->createMobileUrl('orderconfirmupdate', array('storeid' => $storeid, 'from_user' => $from_user, 'orderid' => $orderid), true)}";
+            $.ajax({
+                url: url, type: "post", dataType: "json", timeout: "10000",
+                data: {
+                    "paytype": paytype
+                },
+                success: function (data) {
+                    if (data['message']['code'] == "1") {
+                        //alert("订单确认成功.");
+                        alert(data['message']['msg']);
+                        window.location.href = "{php echo $this->createMobileUrl('orderlist', array('storeid' => $storeid, 'from_user' => $from_user), true)}";
+                        $("#confirm_order").hide();
+                    } else {
+                        //alert("订单处理错误...");
+                        alert(data['message']['msg']);
+                    }
+                },
+                error: function () {
+                    alert("网络繁忙，请稍后访问!");
+                }
+            });
+        }
+        function selectpaytype(obj){
+            if (obj.value == 1) {
+                $("#cardinfo").show();
+            } else {
+                $("#cardinfo").hide();
+            }
+        }
+    </script>   
+</body>
+</html>

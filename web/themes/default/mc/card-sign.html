@@ -1,0 +1,134 @@
+{php $newUI = true;}
+{template 'common/header'}
+{template 'mc/card-nav'}
+<div style="margin-bottom:15px;">
+	<div class="btn-group">
+		<a href="{php echo url('mc/card/sign', array('op' => 'sign-credit'))}" class="btn {if $op == 'sign-credit'}btn-primary{else}btn-default{/if}">积分策略</a>
+		<a href="{php echo url('mc/card/sign', array('op' => 'record-list'))}" class="btn {if $op == 'record-list'}btn-primary{else}btn-default{/if}">签到列表</a>
+	</div>
+</div>
+{if $op == 'record-list'}
+<div class="clearfix">
+	<div class="form-group">
+		<div class="panel panel-default">
+			<div class="panel-body table-responsive">
+				<table class="table table-hover">
+					<thead>
+					<tr>
+						<th>会员姓名</th>
+						<th>积分</th>
+						<th>签到时间</th>
+					</tr>
+					</thead>
+					<tbody>
+					{loop $list $sign}
+					<tr>
+						<td>{$sign['realname']}</td>
+						<td>{$sign['credit']}</td>
+						<td>{$sign['addtime']}</td>
+					</tr>
+					{/loop}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	{$pager}
+	</div>
+</div>
+{/if}
+
+{if $op == 'sign-credit'}
+<div class="clearfix">
+	<div style="margin-bottom:20px">
+		是否开启签到功能:
+		<input type="checkbox" name="sign_status" value="1" {if intval($setting['sign_status'])==1} checked="checked" {/if}/>
+	</div>
+	{if $setting['sign_status'] == '1'}
+	<form action="" class="form-horizontal form" method="post" enctype="multipart/form-data" id="form1">
+		<input type="hidden" name="id" value="{$care['id']}"/>
+		<div class="panel panel-default">
+			<div class="panel-heading">积分策略</div>
+			<div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">签到奖励</label>
+					<div class="col-sm-9 col-xs-12">
+						<div class="input-group">
+							<span class="input-group-addon">每天签到奖励</span>
+							<input type="text" class="form-control" name="sign[everydaynum]" value="{$set['sign']['everydaynum']}"/>
+							<span class="input-group-addon">积分</span>
+						</div>
+						<br/>
+						<div class="input-group">
+							<span class="input-group-addon">每月累计</span>
+							<input type="text" class="form-control" name="sign[first_group_day]" value="{$set['sign']['first_group_day']}"/>
+							<span class="input-group-addon">天签到奖励</span>
+							<input type="text" class="form-control" name="sign[first_group_num]" value="{$set['sign']['first_group_num']}"/>
+							<span class="input-group-addon">积分</span>
+						</div>
+						<br/>
+						<div class="input-group">
+							<span class="input-group-addon">每月累计</span>
+							<input type="text" class="form-control" name="sign[second_group_day]" value="{$set['sign']['second_group_day']}"/>
+							<span class="input-group-addon">天签到奖励</span>
+							<input type="text" class="form-control" name="sign[second_group_num]" value="{$set['sign']['second_group_num']}"/>
+							<span class="input-group-addon">积分</span>
+						</div>
+						<br/>
+						<div class="input-group">
+							<span class="input-group-addon">每月累计</span>
+							<input type="text" class="form-control" name="sign[third_group_day]" value="{$set['sign']['third_group_day']}"/>
+							<span class="input-group-addon">天签到奖励</span>
+							<input type="text" class="form-control" name="sign[third_group_num]" value="{$set['sign']['third_group_num']}"/>
+							<span class="input-group-addon">积分</span>
+						</div>
+						<br/>
+						<div class="input-group">
+							<span class="input-group-addon">每月满签奖励</span>
+							<input type="text" class="form-control" name="sign[full_sign_num]" value="{$set['sign']['full_sign_num']}"/>
+							<span class="input-group-addon">积分</span>
+						</div>
+						<span class="help-block">连续奖励的天数必须大于1天。</span>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">积分攻略</label>
+					<div class="col-sm-9 col-xs-12">
+						{php echo tpl_ueditor('content', $set['content']);}
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="form-group" style="margin-left:0px">
+			<input type="hidden" name="token" value="{$_W['token']}"/>
+			<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1"/>
+		</div>
+	</form>
+	{/if}
+</div>
+<script type="text/javascript">
+	require(['jquery.ui', 'bootstrap.switch'], function($){
+		$('#form1').submit(function(){
+			var everydaynum = parseInt($(':text[name="sign[everydaynum]"]').val());
+			if(isNaN(everydaynum) || !everydaynum) {
+				util.message('每天签到奖励积分必须大于0', '', 'error');
+				return false;
+			}
+		});
+
+		$(":checkbox[name='sign_status']").bootstrapSwitch();
+		$(":checkbox[name='sign_status']").on('switchChange.bootstrapSwitch', function(e, state){
+			$this = $(this);
+			var status = this.checked ? 1 : 0;
+			$.post("{php echo url('mc/card/ajax', array('op' => 'other', 'field' => 'sign_status'));}", {status:status}, function(resp){
+				if(resp != 'success') {
+					util.message(resp, '', 'error');
+					return false;
+				} else {
+					util.message('操作成功', location.href, 'success');
+				}
+			});
+		});
+	});
+</script>
+{/if}
+{template 'common/footer'}

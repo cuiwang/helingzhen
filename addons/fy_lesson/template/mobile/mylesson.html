@@ -1,0 +1,170 @@
+<!-- 
+ * 我的课程
+ * ============================================================================
+-->
+{php include $this->template('_header');}
+<link href="{MODULE_URL}template/mobile/style/self.css?v=20170315" rel="stylesheet" />
+
+<div class="order-container">
+    <!--如果需要吸顶 则在tab-wrap这个div上加上fixed-->
+    <div class="tab-wrap">
+        <ul id="order-tab" class="order-tab hbox">
+            <li class="flex {if $_GPC['status']=='all'}cur{/if}" onclick="location.href='{php echo $this->createMobileUrl("mylesson", array("status"=>"all"));}'">全部</li>
+            <li class="flex {if $_GPC['status']=='0'}cur{/if}" onclick="location.href='{php echo $this->createMobileUrl("mylesson", array("status"=>"0"));}'">待付款</li>
+            <li class="flex {if $_GPC['status']=='1'}cur{/if}" onclick="location.href='{php echo $this->createMobileUrl("mylesson", array("status"=>"1"));}'">已付款</li>
+        </ul>
+    </div>
+	<div class="swiper-container swiper-container-horizontal swiper-container-autoheight">
+		<div class="swiper-wrapper" style="transform: translate3d(0px, 0px, 0px); transition-duration: 0ms;">
+			<div class="swiper-slide swiper-slide-active">
+                {if !empty($mylessonlist)}
+				<ul class="order-list">
+				</ul>
+				{else}
+				<div class="no-content"><i class="ico-none ico"></i><div>亲爱的学霸，暂时没有订单哦</div></div>
+				{/if}
+            </div>
+		</div>
+	</div>
+</div>
+<div id="loading" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:9999;"><div class="spinner"><div class="bounce1"></div><div class="bounce2"></div><div class="bounce3"></div></div></div>
+<div style="font-size:.12rem; text-align: center;{if empty($mylessonlist)}display:none;{/if}">
+	<a href="javascript:void(0);" id="btn_Page">点击加载更多</a>
+</div>
+
+<script type="text/javascript">
+function GetQueryString(name){
+	var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
+	var r = window.location.search.substr(1).match(reg);
+	if(r!=null)return  unescape(r[2]); return null;
+}
+
+
+var i = 1; //设置当前页数，全局变量
+var status    = GetQueryString('status');
+var ajaxurl   = "{php echo $this->createMobileUrl('mylesson', array('op'=>'ajaxgetlist'));}";
+var lessonurl = "{php echo $this->createMobileUrl('lesson');}";
+var attachurl = "{php echo $_W['attachurl'];}";
+var payurl    = "{php echo $this->createMobileUrl('pay');}";
+var cancleurl = "{php echo $this->createMobileUrl('mylesson', array('op'=>'cancle'));}";
+var eurl	  = "{php echo $this->createMobileUrl('evaluate');}";
+var loading   = document.getElementById("loading");
+$(function () {
+    //根据页数读取数据  
+    function getData(page) {  
+        i++; //页码自动增加，保证下次调用时为新的一页。  
+        $.get(ajaxurl, {page: page, status:status}, function (data) {  
+            if (data.length > 0) {
+				loading.style.display = 'none';
+                var jsonObj = JSON.parse(data);
+                insertDiv(jsonObj);  
+            }
+        });  
+       
+    } 
+    //初始化加载第一页数据  
+    getData(1);
+
+    //生成数据html,append到div中  
+    function insertDiv(result) {  
+        var mainDiv =$(".order-list");
+        var chtml = '';  
+        for (var j = 0; j < result.length; j++) {  
+            chtml += '<li>';
+			chtml += '	<div class="order-info cbox">';
+			chtml += '		<div class="flex num-time">';
+			chtml += '			<span>订单号:' + result[j].ordersn + '</span>';
+			chtml += '			<span class="order-time">下单时间:' + result[j].addtime + '</span>';
+			chtml += '		</div>';
+			chtml += '		<span class="pay-state">' + result[j].statusname + '</span>';
+			chtml += '	</div>';
+			chtml += '	<div class="course-list row2 wider">';
+			chtml += '		<a href="' + lessonurl + '&id=' + result[j].lessonid + '" class="item">';
+			chtml += '			<img src="'+attachurl+result[j].images + '" alt="'+result[j].bookname+'">';
+			chtml += '			<div class="con vbox">';
+			chtml += '				<h3 class="title te2 flex">'+result[j].bookname+'</h3>';
+			chtml += '			</div>';
+			chtml += '		</a>';
+			chtml += '	</div>';
+			if(result[j].validity!=0){
+			chtml += '	<div class="pay-info cbox">';
+			chtml += '		<div class="flex num-time">';
+			chtml += '			<span>有效期:</span>';
+			chtml += '			<i style="font-size:.14rem;color:red;">'+result[j].validity+'</i>';
+			chtml += '		</div>';
+            chtml += '	</div>';
+			}
+			chtml += '	<div class="pay-info cbox">';
+			chtml += '		<div class="flex num-time">';
+			chtml += '			<span>实付款:</span>';
+			chtml += '			<i>￥'+result[j].price+'</i>';
+			if(result[j].status=='0'){
+			chtml += '			<span style="display:inline-block;float:right;"><a href="'+cancleurl+'&orderid='+result[j].id+' " class="cancle-btn">取消订单</a>&nbsp;<a href="'+payurl+'&orderid='+result[j].id+' " class="pay-btn">支付订单</a></span>';
+			}else if(result[j].status=='1'){
+			chtml += '			<span style="display:inline-block;float:right;"><a href="'+eurl+'&orderid='+result[j].id+' " class="evaluate-btn">评价课程</a></span>';
+			}
+			chtml += '		</div>';
+            chtml += '	</div>';
+			chtml += '</li>';
+        }
+		mainDiv.append(chtml);
+		if(result.length==0){
+			document.getElementById("btn_Page").innerHTML="已全部加载完成";
+		}
+    }  
+  
+    //==============核心代码=============  
+    var winH = $(window).height(); //页面可视区域高度   
+  
+    var scrollHandler = function () {  
+        var pageH = $(document.body).height();  
+        var scrollT = $(window).scrollTop(); //滚动条top   
+        var aa = (pageH - winH - scrollT) / winH;  
+        if (aa < 0.02) { 
+            if (i % 1 === 0) {
+                getData(i);  
+                $(window).unbind('scroll');  
+                $("#btn_Page").show();
+            } else {  
+                getData(i);  
+                $("#btn_Page").hide();
+            }  
+        }  
+    }  
+    //定义鼠标滚动事件
+    $(window).scroll(scrollHandler);
+    //继续加载按钮事件
+    $("#btn_Page").click(function () {
+		loading.style.display = 'block';
+        getData(i);
+        $(window).scroll(scrollHandler);
+    });
+  
+});  
+</script>
+
+{php echo register_jssdk(false);}
+<script type="text/javascript">
+wx.ready(function(){
+	var shareData = {
+		title: "{$sharelink['title']} - {$setting['sitename']} - {$_W['account']['name']}",
+		desc: "{$sharelink['desc']}",
+		link: "{php echo $shareurl;}",
+		imgUrl: "{php echo $_W['attachurl'];}{$sharelink['images']}",
+		trigger: function (res) {},
+		complete: function (res) {},
+		success: function (res) {},
+		cancel: function (res) {},
+		fail: function (res) {}
+	};
+	wx.onMenuShareTimeline(shareData);
+	wx.onMenuShareAppMessage(shareData);
+	wx.onMenuShareQQ(shareData);
+	wx.onMenuShareWeibo(shareData);
+	wx.onMenuShareQZone(shareData);
+	
+});
+</script>
+
+
+{php include $this->template('_footer');}

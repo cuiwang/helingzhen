@@ -1,0 +1,166 @@
+{template 'header'}
+
+
+<div class="content top">
+  <form action="" method="post" id="project-report" onsubmit="return _check()">
+    <input type="hidden" name='dopost' value="save">
+    <input type="hidden" name='fid' value="{$_GPC['id']}">
+    <div class="qsc-form-group">
+      <div class="form-item input-cell">
+          <textarea id="report_reason" name="report_reason" class="control-input text_validata" data-min="30" placeholder="填写您举报该项目的理由" rows="5"></textarea>
+      </div>
+    <div class="form-item input-cell">
+      <div class="qsc-uploader" >
+        <div class="uploader-list main-images-list" id="fileList"></div>
+
+        <div class="webPicPicker webuploader-container" id="uploader">
+
+            <div id="showimg"></div>
+
+          <div id="webPicPicker-100000" class="webuploader-pick webuploader-pick-hover">
+                 <i class="icon icon-plus"></i>上传举报相关图片
+               </div>
+
+             <div style="position: absolute; top: 4px; left: 4px; width: 91px; height: 92%; overflow: hidden;">
+                <div id="uploader" style="font-size: 999px; opacity: 0; position: absolute; top: 0px; left: 0px; width: 100%; height: 100%;"></div>
+             </div>
+        </div>
+
+      </div>
+    <div class="clearfix"></div>
+    <div class="help-block"></div>
+    </div>
+    </div>
+  <div class="footer-btn">
+  <input type="submit" class="btn btn-success btn-lg btn-block ajax-submit" data-form="project-report" value="确认举报">
+    <p class="help-block text-center">
+        <strong data-toggle="modal" data-target="#modal-report-legal">附:《中华人民共和国民法通则》《中华人民共和国刑法》</strong><br>
+    </p>
+  </div>
+  </form>
+</div>
+{template 'loading'}
+
+
+<div class="qsc-toast" id="toast-default" >
+  <div class="toast-backdrop"></div>
+  <div class="toast-dialog">
+     <div class="toast-content"><span></span></div>
+  </div>
+</div>
+<div id="filelist" style="display:none;"></div>
+<script type='text/html' id="file_tpl_1">
+    <div class="o_1agtp82ti1u1h1kvdupo1gdh1eqor file-item thumbnail">
+      <a class="fancybox" title="图片预览" rel="fancybox" href="javascript:void(0)">
+        <img src="{{imgurl}}">
+      </a>
+      <div class="file-panel"><span>×</span></div>
+      <input name="wxid[]" class="report_img_thumb" value="{{imgurl}}" type="hidden">
+    </div>
+</script>
+
+<script>
+  function _check(){
+    var sp = $("#toast-default").find('span');
+       reason  = $("#report_reason");
+       if(reason.val().length<1){
+         alert('不能少于15个字');
+         return false;
+       }
+       return true;
+  }
+require(['template'],function(template){
+   $(document).on('click',".file-panel",function(){
+       if(confirm('确定删除该图片吗')){
+         $(this).parent().remove();
+       }
+     });
+})
+require(['template','plupload'],function(template,sss){
+    var  i = 1;
+    var uploader = new plupload.Uploader({
+         runtimes : 'html5,flash,silverlight,html4',
+         browse_button : 'uploader', // you can pass in id...
+         chunk_size : '200kb',
+         max_retries:2,
+         url : "{php echo $this->createMobileUrl('uploadimg',array('dopost'=>'downimg','machine'=>md5(GARCIA_MACHINE)))}",
+         filters : {
+           max_file_size : '5mb',
+           mime_types: [
+             {title : "Image files", extensions : "jpg,gif,png,jpeg"},
+             {title : "Zip files", extensions : "zip"}
+           ]
+         },
+         init: {
+           PostInit: function() {
+               document.getElementById('filelist').innerHTML = '';
+               return false;
+           },
+           FilesAdded: function(up, files) {
+             plupload.each(files, function(file) {
+            });
+               var _f = uploader.files.length;
+               var _len = $("#fileList").find('div.file-item').length;
+               var __len = parseInt(_f)+parseInt(_len);
+               if(__len>8){
+                   _tips('不能超过8张图片');
+                   uploader.splice(0, _f);
+                   return  false;
+               }else if(_f>8){
+                   _tips('不能超过8张图片');
+                   uploader.splice(0, _f);
+                   return  false;
+               }
+
+               // return false;
+               uploader.start();
+               $("#loadingToast").show();
+               $(".weui_toast_content").html('正在上传');
+               console.log(i);
+               i++;
+           },
+           FilesRemoved:function(){
+             $(".weui_toast_content").html(0+"%");
+           },
+           UploadProgress: function(up, file) {
+           $(".weui_toast_content").html(file.percent+"%");
+                     console.log(file);
+           },
+           FileUploaded:function(uploader,files,responseObject){
+                 var response = responseObject.response;
+                 response = eval('(' + response + ')');
+                 //
+                 if(response.status==2){
+                     $("#loadingToast").hide();
+                     _tips(response.msg);
+                     return false;
+                 }
+                 var html=template('file_tpl_1',response);
+                 $("#fileList").append(html);
+                 console.log(response);
+                 $("#loadingToast").hide();
+                 // return false;
+           },
+           UploadComplete:function(uploader,files){
+               uploader.splice(0,100);
+               $("#loadingToast").hide();
+              //  _rankpic();
+           },
+           Error: function(up, err) {
+             $("#loadingToast").hide();
+             if(err.code==-200){
+                 _tips('服务器无响应，请重试');
+                 return  false;
+             }else if(err.code==-600){
+                 _tips('图片不能超过5MB');
+                 return  false;
+             }else{
+                 _tips(err.code);
+                 return  false;
+             }
+           }
+         }
+    })
+    uploader.init();
+})
+</script>

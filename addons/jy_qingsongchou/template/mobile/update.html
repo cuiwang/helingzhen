@@ -1,0 +1,206 @@
+{template 'header'}
+<link rel="stylesheet" href="{GARCIA_CSS}amazeui.css">
+
+<div class="content top bottom">
+  <form action="" method="POST" name="project-update" id="project-update">
+    <input type="hidden" name="fid" value="{$_GPC['id']}">
+    <input type="hidden" name="dopost" value="save_up">
+    <div class="qsc-form-group">
+    <div class="form-item input-cell">
+        <textarea name="content" id="content" class="control-input text_validata" placeholder="填写更新内容" rows="6" data-max="120" data-min="10" data-length="10"></textarea>
+    </div>
+    <div class="form-item input-cell">
+
+        <div id="uploader_timeline" class="qsc-uploader clearfix">
+        <div class="uploader-list" id="fileList"></div>
+        <div class="webPicPicker webuploader-container">
+          <div id="showimg"></div>
+
+        <div id="webPicPicker-100000" class="webuploader-pick webuploader-pick-hover">
+               <i class="icon icon-plus"></i>上传图片<br>(最多8张)
+             </div>
+
+           <div style="position: absolute; top: 4px; left: 4px; width: 91px; height: 92%; overflow: hidden;">
+              <input id="uploader" type="file" name='mypic[]' style="font-size: 999px; opacity: 0; position: absolute; top: 0px; left: 0px; width: 100%; height: 100%;" multiple="" accept="image/jpeg,image/png,image/bmp">
+           </div>
+           </div>
+        <div class="clearfix"></div>
+        <div class="help-block text-danger">
+        请勿在更新内容中上传支付二维码或引导用户发微信、支付宝红包、私人账号汇款等信息，一经发现，将严肃处理。
+        </div>
+    </div>
+    </div>
+
+    <div class="footer-btn">
+      <div class="btn btn-success btn-lg btn-block" data-toggle="modal" data-target="#modal-project_timeline"><strong>更新</strong></div>
+    </div>
+
+  </form>
+</div>
+<div class="weui_dialog_confirm" id="dialog1" style="display: none;">
+    <div class="weui_mask"></div>
+    <div class="weui_dialog">
+        <div class="weui_dialog_hd"><strong class="weui_dialog_title"></strong></div>
+        <div class="weui_dialog_bd"></div>
+        <div class="weui_dialog_ft">
+            <a href="javascript:;" class="weui_btn_dialog default" id="quxiao">取消</a>
+            <a href="javascript:;" class="weui_btn_dialog primary" id="queding">确定</a>
+        </div>
+    </div>
+</div>
+
+
+<div class="qsc-toast" id="toast-default" >
+  <div class="toast-backdrop"></div>
+  <div class="toast-dialog">
+     <div class="toast-content"><span></span></div>
+  </div>
+</div>
+{template 'loading'}
+{template 'tip'}
+<script type="text/html" id="file_tpl_1">
+  <div class="o_1agpd3a58i4u9hls4pta95d67 file-item thumbnail">
+      <a class="fancybox" title="图片预览" rel="fancybox" href="{{imgurl}}">
+      <img src="{{imgurl}}"></a>
+      <div class="file-panel"><span>×</span></div>
+       <input type="hidden" name='wxId[]' class="wxId" value="{{imgurl}}">
+    </div>
+</script>
+<script type="text/javascript">
+$(function(){
+  $(document).on('click','.file-panel',function(){
+
+    if(confirm('确定删除该图片吗')){
+      $(this).parent().remove();
+        _rankpic();
+    }
+
+  });
+   $(".btn-block").bind('click',function(){
+        $(".weui_dialog_title").html('更新');
+        $(".weui_dialog_bd").html('更新后无法删除你确定要提交吗？');
+         $("#dialog1").show();
+        // $('body').append('<div class="modal-backdrop in"></div>');
+
+   })
+   $("#quxiao").bind('click',function(){
+      $("#dialog1").hide();
+   })
+   $("#queding").bind('click',function(){
+      var content = $("#content").val();
+      if(content==''){
+          $("#toast-default").find('span').html('请完善正文');
+          $("#toast-default").show();
+          $("#dialog1").hide();
+          setTimeout(function(){
+            $("#toast-default").hide();
+          },1000);
+          return false;
+      }else{
+          $("#project-update").submit();
+      }
+   })
+})
+
+
+</script>
+
+<script>
+
+require(['template','plupload'],function(template,sss){
+     var   i = 1;
+    var uploader = new plupload.Uploader({
+         runtimes : 'html5,flash,silverlight,html4',
+         browse_button : 'uploader', // you can pass in id...
+         chunk_size : '200kb',
+         max_retries:2,
+         url : "{php echo $this->createMobileUrl('uploadimg',array('dopost'=>'downimg','machine'=>md5(GARCIA_MACHINE)))}",
+         filters : {
+           max_file_size : '5mb',
+           mime_types: [
+             {title : "Image files", extensions : "jpg,gif,png,jpeg"},
+             {title : "Zip files", extensions : "zip"}
+           ]
+         },
+         init: {
+           PostInit: function() {
+            //  document.getElementById('filelist').innerHTML = '';
+
+               return false;
+
+           },
+
+           FilesAdded: function(up, files) {
+             plupload.each(files, function(file) {
+
+             });
+
+               var _f = uploader.files.length;
+
+               var _len = $("#fileList").find('div.file-item').length;
+               var __len = parseInt(_f)+parseInt(_len);
+               if(__len>8){
+                   _tips('不能超过8张图片');
+                   uploader.splice(0, _f);
+                   return  false;
+               }else if(_f>8){
+                   _tips('不能超过8张图片');
+                   uploader.splice(0, _f);
+                   return  false;
+               }
+
+               // return false;
+               uploader.start();
+               $("#loadingToast").show();
+               $(".weui_toast_content").html('正在上传');
+               console.log(i);
+               i++;
+           },
+           FilesRemoved:function(){
+             $(".weui_toast_content").html(0+"%");
+           },
+           UploadProgress: function(up, file) {
+           $(".weui_toast_content").html(file.percent+"%");
+                    //  console.log(file);
+           },
+           FileUploaded:function(uploader,files,responseObject){
+                 var response = responseObject.response;
+                 response = eval('(' + response + ')');
+                 //
+                 if(response.status==2){
+                     $("#loadingToast").hide();
+                     _tips(response.msg);
+                     return false;
+                 }
+
+                 var html=template('file_tpl_1',response);
+                 $("#fileList").append(html);
+                 console.log(response);
+                 $("#loadingToast").hide();
+                 // return false;
+           },
+           UploadComplete:function(uploader,files){
+               uploader.splice(0,100);
+                _tips('上传成功');
+               $("#loadingToast").hide();
+
+           },
+           Error: function(up, err) {
+                    $("#loadingToast").hide();
+             // document.getElementById('console').innerHTML += "\nError #" + err.code + ": " + err.message;
+             if(err.code==-200){
+                 _tips('服务器无响应，请重试');
+                 return  false;
+             }else if(err.code==-600){
+                 _tips('图片不能超过5MB');
+                 return  false;
+             }else{
+                 _tips(err.code);
+                 return  false;
+             }
+           }
+         }
+    })
+    uploader.init();
+})
+</script>

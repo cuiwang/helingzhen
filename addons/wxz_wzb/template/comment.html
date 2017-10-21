@@ -1,0 +1,117 @@
+{template 'common/header'}
+<div class="main">
+{template 'list_nav'}
+		<div class="panel panel-default">
+			<div class="panel-heading" style="position:relative;">
+				<span>视频评论列表</span>
+				<span style="position:absolute;right:10rem;top:4px;"><a class="btn btn-default" href="{php echo $this->createWebUrl('dummyComment',array('rid'=>$rid))}">虚拟评论</a></span>
+				<span style="position:absolute;right:.5rem;top:4px;"><a class="btn btn-default" href="{php echo $this->createWebUrl('sendGroupPacket',array('rid'=>$rid))}">发放群红包</a></span>
+			</div>
+			<div class="panel-body">
+			<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>					
+					<th style="width:3%;text-align:center;"></th>
+					<th align="center" style="width:10%;text-align:center;">昵称</th>						
+					<th align="center" style="width:10%;text-align:center;">评论内容</th>
+					<th align="center" style="width:8%;text-align:center;">是否显示</th>
+					<th align="center" style="width:8%;text-align:center;">是否是红包</th>
+					<th align="center" style="width:8%;text-align:center;">总金额</th>
+					<th align="center" style="width:8%;text-align:center;">数量</th>
+					<th align="center" style="width:8%;text-align:center;">已发数量</th>
+					<th align="center" style="width:8%;text-align:center;">已发金额</th>
+					<th align="center" style="width:10%;text-align:center;">评论时间</th>
+					<th align="center" style="text-align:center;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $Comment $row}
+					{if $row['dsid']==0 || ($row['dsid']>0 && $row['dsstatus']==1)}
+					<tr>	
+						<td><input class="check-delete tagids-{$row['id']}" type="checkbox" name="delete[]" value="{$row['id']}" data-tagids="{$row['groupid']}" data-openid="{$row['openid']}" data-fanid="{$row['id']}"/></td>
+						<td align="center" style="text-align:center;">{$row['nickname']}</td>
+                        <td align="center" style="text-align:center;">{$row['content']}</td>
+                        <td align="centet" style="text-align: center;">
+                        {if $row['is_auth']==1}
+                        <span style="color: green;">显示</span>{/if}
+                        {if $row['is_auth']==2}
+                        <span style="color: red;">不显示</span>
+                        {/if}
+                        </td>
+						<td align="centet" style="text-align: center;">
+                        {if $row['ispacket']==1}
+                        <span style="color: green;">是</span>{/if}
+                        {if $row['ispacket']==0}
+                        <span style="color: red;">否</span>
+                        {/if}
+                        </td>
+						<td align="center" style="text-align:center;">{$row['amount']}</td>
+						<td align="center" style="text-align:center;">{$row['num']}</td>
+						<td align="center" style="text-align:center;">{$row['send_num']}</td>
+						<td align="center" style="text-align:center;">{php echo $row['yifa_amount']/100}</td>
+						<td align="center" style=" text-align:center;">{php echo date('Y-m-d H:i',$row['dateline'])}</td>
+						<td align="center" style=" text-align:center;">
+						{if $row['is_auth']==1}
+						<a href="{php echo $this->createWebUrl('isauth',array('id' =>$row['id'],'is_auth'=>'2','rid'=>$row['rid']))}"><button type="button" class="btn btn-warning" >不显示</button></a>
+                        {/if}
+                        {if $row['is_auth']==2}
+						<a href="{php echo $this->createWebUrl('isauth',array('id' =>$row['id'],'is_auth'=>'1','rid'=>$row['rid']))}"><button type="button" class="btn btn-success" >显示</button></a>
+                        {/if}
+						{if $row['isshutup']==0}
+						<a href="{php echo $this->createWebUrl('isshutup',array('uid' =>$row['uid'],'isshutup'=>'1','rid'=>$row['rid']))}"><button type="button" class="btn btn-success" >禁言</button></a>
+                        {/if}
+                        {if $row['isshutup']==1}
+						<a href="{php echo $this->createWebUrl('isshutup',array('uid' =>$row['uid'],'isshutup'=>'0','rid'=>$row['rid']))}"><button type="button" class="btn btn-warning" >取消禁言</button></a>
+                        {/if}
+{if $row['ispacket']==1 && $row['isadmin']==1}
+						<a href="{php echo $this->createWebUrl('getpacket',array('toid' =>$row['id'],'is_auth'=>'1','rid'=>$row['rid']))}"><button type="button" class="btn btn-success" >领取用户</button></a>{/if}
+						{if $row['ispacket']!=1 && $row['isadmin']!=1 && $row['touid']==0 && $row['dsid']==0}<a href="{php echo $this->createWebUrl('reply',array('id' =>$row['id'],'rid'=>$row['rid']))}"><button type="button" class="btn btn-success" >回复</button></a>{/if}
+						</td>
+					</tr>
+					{/if}
+				{/loop}
+			</tbody>
+		</table>
+		<table class="table table-hover">
+			<tr>
+				<td width="30">
+					<input type="checkbox" onclick="var ck = this.checked;$('.check-delete').each(function(){this.checked = ck});" />
+				</td>
+				<td class="text-left">
+					<input type="submit" name="submit" class="btn btn-primary span2" value="删除" onclick="del()"/> &nbsp; 
+					
+				</td>
+			</tr>
+			
+		</table>
+		{$pager}
+			</div>
+		</div>
+			</div>
+		</div>
+		
+</div>
+<script>
+
+function del(){
+		var check = $("input:checked");
+
+		if(check.length<1){
+			alert('请选择要删除的记录!');
+			return false;
+		}
+        if( confirm("确认要删除选择的记录?")){
+		var id = new Array();
+		check.each(function(i){
+			if($(this).val()!='on'){
+				id[i] = $(this).val();
+			}
+		});
+
+		$.post('{php echo $this->createWebUrl('delcom')}', {idArr:id},function(data){
+			window.location.reload();
+		},'json');
+		}
+   }
+</script>
+{template 'common/footer'}

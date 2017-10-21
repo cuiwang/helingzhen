@@ -1,0 +1,702 @@
+{template 'web/common/header-base'}
+{template 'web/common/header-nav'}
+{template 'web/common/header'}
+<link rel="stylesheet" href="{GARCIA_CSS}web/pay.css">
+<script type="text/javascript" src="../payment/alipay/ap.js"></script>
+<script type="text/javascript" src="{GARCIA_JS}template.js"></script>
+  <div class="mainbox2 clearfix">
+    <div class="wrap ">
+
+       <div class="paybox">
+
+         {if $_GPC['type']!='self'&&$_GPC['type']!='list'}
+         <div class="addressbox">
+              <ul class="address-box">
+
+                {if $address}
+            {loop $address $row}
+                      {if $row['is_def']==1}
+                          <input type="hidden" id="address_id" value="{$row['id']}">
+                          {else}
+                          <input type="hidden" id="address_id" value="">
+                      {/if}
+                  <li {if $row['is_def']==1}class='address-box-active'{/if} id="addbox{$row['id']}" data-id="{$row['id']}">
+                      <div class="address-name" title="{$row['name']}">
+                          <span>{$row['name']}</span>
+                      </div>
+                      <div class="address-action">
+                           <a class="action-btn" href="javascript:;" onclick="_editoraddress($(this))" data-name="{$row['name']}" data-id="{$row['id']}" data-tel="{$row['tel']}" data-address="{$row['province']}{$row['city']}{$row['area']}{$row['address']}">修改</a>
+                          <a class="action-btn" onclick="_deladdress({$row['id']})">删除</a>
+                          <a class="action-btn default-addr">
+                              <span>默认地址</span> <span onclick="_def(0,{$row['id']},$(this))">设为默认</span>
+                          </a>
+                      </div>
+                          <span>{$row['tel']}</span>
+                          <p>{$row['province']}{$row['city']}{$row['area']}{$row['address']}</p>
+                  </li>
+                  {/loop}
+                  {else}
+                    <input type="hidden" id="address_id" value="">
+                  {/if}
+                  <li class="address-add" >
+                        <a href="javascript:;"> <i class="icon-user"></i> <span class="icon-kaistart-add-users"></span> <p>使用新地址</p> </a>
+                  </li>
+              </ul>
+         </div>
+{/if}
+         <div class="infobox order-check">
+              <p>确认订单信息</p>
+
+              {if $_GPC['type']=='list'}
+              <table class="order-table">
+                  <thead class="table-head">
+                     <tr>
+                        <td colspan="5">支持梦想</td>
+                        <td colspan="4">支持金额</td>
+
+                    </tr>
+                  </thead>
+                  <tbody class="table-body">
+                    <tr class="table-body-one">
+                        <td colspan="6">
+                            <span>项目：</span><b>{$fabu['name']}</b> <span>发起人：</span><b>{php echo urldecode($fabu['nickname'])}</b>
+                        </td>
+                        <td colspan="3"></td>
+                      </tr>
+
+                      <tr class="table-body-one">
+                          <td colspan="6">
+                              <span>支持项目：</b>
+                          </td>
+                          <td colspan="3"></td>
+                      </tr>
+
+                      <tr class="table-body-one">
+                          <td colspan="5">
+                              <span>支持金额</b>
+                          </td>
+                          <td colspan="4" style="text-align: center;">
+                             <input type="text" name='price' id="price" class="pricebox price"  placeholder="输入你要支持的金额">
+                             <input type="hidden" id="dream_id" value="{$_GPC['id']}">
+                          </td>
+                      </tr>
+
+                      <tr class="table-body-five">
+                        <td colspan="1"><span>*</span>微信号</td>
+                        <td colspan="8">
+                           <div class="edit-project-mobile"  style="width: 100%;">
+                             <input type="text" name="" class="edit-project-mobile-input" id="weixinid" placeholder="请输入微信号" maxlength="100" style="border: 1px solid rgb(255, 255, 255); height: 60px; padding-left: 30px; text-align: left;">  </div> </td>
+                       </tr>
+                      <tr class="table-body-five">
+                          <td colspan="1"><span></span>备注</td>
+                          <td colspan="8">
+                            <div class="edit-project-mobile"  style="width: 100%;">
+                            <input type="text" name="" class="edit-project-mobile-input"  placeholder="请输入内容" maxlength="50" style="border: 1px solid rgb(255, 255, 255); height: 60px; padding-left: 30px; text-align: left;">  </div>
+                          </td>
+                      </tr>
+                  </tbody>
+                </table>
+              {else}
+              <table class="order-table">
+                  <thead class="table-head">
+                     <tr>
+                       {if $_GPC['type']!='self'}
+                        <td colspan="5">回报</td>
+                        {else}
+                        <td colspan="5">无私奉献</td>
+                        {/if}
+                        <td>数量</td>
+                        <td>单价 (元)</td>
+                        <td>小计 (元)</td>
+                    </tr>
+                  </thead>
+                  <tbody class="table-body">
+                  <tr class="table-body-one">
+                      <td colspan="6">
+                          <span>项目：</span><b>{$fabu['name']}</b> <span>发起人：</span><b>{php echo urldecode($fabu['nickname'])}</b>
+                      </td>
+                      <td colspan="3"></td>
+                    </tr>
+
+
+                    <tr class="table-body-two">
+                       {if $_GPC['type']!='self'}
+                        <td colspan="5"> <span>剩余： 无限制</span><br/><span>发送回报时间：{$fabu['deliveryTime']} 邮费：{$fabu['yunfei']}</span> </td>
+                        {else}
+                        <td colspan="5"><span>无私奉献</span> </td>
+                        {/if}
+                        <td class="buy-count">
+                          {if $_GPC['type']!='self'}
+                                <span id="mincount">-</span>
+                                <input type="text"  class="addbox" id="addbox" value="1">
+                                <span id="addcount">+</span>
+                            <input type="hidden" id="price" value="{$reward['supportNumber']}">
+                            <input type="hidden" id="reid" value="{$_GPC['id']}">
+
+                          {else}
+                                <span>1</span>
+                          {/if}
+                        </td>
+                        {if $_GPC['type']!='self'}
+                        <td id="dangjia" data-default="{$reward['supportNumber']}">￥{$reward['supportNumber']}</td>
+                        <td id="xiaoji">￥{$reward['supportNumber']}</td>
+                        {else}
+                        <td>￥{$_GPC['money']}</td>
+                        <td>￥{$_GPC['money']}</td>
+                        {/if}
+                      </tr>
+
+                    <tr class="table-body-five">
+                      <td colspan="1"><span>*</span>微信号</td>
+                      <td colspan="8">
+                         <div class="edit-project-mobile"  style="width: 100%;">
+                           <input type="text" name="" class="edit-project-mobile-input" id="weixinid" placeholder="请输入微信号" maxlength="100" style="border: 1px solid rgb(255, 255, 255); height: 60px; padding-left: 30px; text-align: left;">  </div> </td>
+                     </tr>
+                    <tr class="table-body-five">
+                        <td colspan="1"><span></span>备注</td>
+                        <td colspan="8">
+                          <div class="edit-project-mobile"  style="width: 100%;">
+                          <input type="text" name="" class="edit-project-mobile-input"  placeholder="请输入内容" maxlength="50" style="border: 1px solid rgb(255, 255, 255); height: 60px; padding-left: 30px; text-align: left;">  </div>
+                        </td>
+                        </tr>
+
+                  </tbody>
+              </table>
+
+              {/if}
+         </div>
+
+                  <div class="infobox">
+                    <div class="pay-way-title"> <p>选择支付方式</p> </div>
+                    <div>
+                        <div href="javascript:;"  data-type="wx" class="pay-way-item pay-way-item-active">
+                           <span>微信 · 扫码支付 </span>
+                        </div>
+                        <div href="javascript:;" data-type="ali" class="pay-way-item">
+                           <span>支付宝 · 扫码支付 </span>
+                        </div>
+                    </div>
+                  </div>
+
+                  <div class="order-submit">
+                    <div class="order-submit-info">
+                      <div class="info-one">
+                        <span>实付金额 (元)：</span>
+                        {if $_GPC['type']=='reward'}
+                          <span  id="mmm" data-m="{if $fabu['yunfei']!=0} {php echo $fabu['yunfei']+$reward['supportNumber']}{else} {$reward['supportNumber']} {/if}">{if $fabu['yunfei']!=0} {php echo $fabu['yunfei']+$reward['supportNumber']}{else} {$reward['supportNumber']} {/if}</span>
+                        {elseif  $_GPC['type']=='list'}
+                          <span id="mmm" >0</span>
+                        {else}
+                        <span data-m="{$_GPC['money']}" id="mmm">{$_GPC['money']}</span>
+                        {/if}
+                        </div>
+                           {if $_GPC['type']!='self'}
+                        <!-- <span class="info-two"> 送至： <b>asd </b> </span> <div class="info-three">
+                          <span> 收货人：<b>asdas</b> </span> <span><b>13787878223</b></span> </div> -->
+                          {/if}
+                        </div>
+                          <button class="btn btn-default" id="ordersubmit">提交订单</button>
+                          <div class="order-alert">
+                            <span>请在下单后 <b>15</b> 分钟内完成支付，超出时间系统将释放锁定的名额</span>
+                           </div>
+                   </div>
+         </div>
+
+
+
+    </div>
+  </div>
+
+
+  <div class="wxblock" ></div>
+
+  <div class="addressaddbox">
+               <input type="hidden" id="boxtype" value="0" style="display:none;">
+               <input type="hidden" id="boxid" value="" style="display:none;">
+
+      <div class="addmain">
+           <div class="addbody">
+
+                 <div class="addressinput clearfix">
+                        <div class="addname">
+                             <div>
+                                 <span>*</span>
+                                 <span>姓名</span>
+                             </div>
+                        </div>
+                        <div class="addinput">
+                             <input type="text" id="name" placeholder="请输入姓名">
+                        </div>
+                        <button class="setdef cur" data-type='1'>取消默认</button>
+                 </div>
+                 <div class="addressinput clearfix">
+                        <div class="addname">
+                             <div>
+                                 <span>*</span>
+                                 <span>手机</span>
+                             </div>
+                        </div>
+                        <div class="addinput">
+                             <input type="text" id="tel" placeholder="请输入手机">
+                        </div>
+                 </div>
+                 <div class="addressinput clearfix">
+                        <div class="addname">
+                             <div>
+                                 <span>*</span>
+                                 <span>地址</span>
+                             </div>
+                        </div>
+                        <div class="addinput">
+                             <input type="text" id="address" placeholder="请输入地址">
+                        </div>
+                 </div>
+           </div>
+
+           <div class="addfooter clearfix">
+                    <button class="addfooterbtn pull-right" onclick="_address()">提交</button>
+           </div>
+           </div>
+  </div>
+
+  <div class="wxqrcpde">
+      <div class="wxqrcodeimg">
+        <img src="" id="orderqrcode">
+      </div>
+      <p>订单号: <span id="orderid"></span></p>
+      <p>下单时间: <span id="ordertime"></span></p>
+  </div>
+
+
+
+<form method="post" id="_aliforn" action="{php echo $this->createMobileUrl('alipay2')}">
+
+  <input type="hidden" name="params" id="params" value="">
+</form>
+<script type="text/html" id="addaddressbox">
+  <li  id="addbox{{id}}" data-id="{{id}}">
+      <div class="address-name" title="{$row['name']}">
+          <span>{{res.name}}</span>
+      </div>
+      <div class="address-action">
+          <a class="action-btn" href="javascript:;" onclick="_editoraddress($(this))" data-name="{{res.name}}" data-id="{{id}}" data-tel="{{res.tel}}" data-address="{{res.province}}{{res.city}}{{res.area}}{{res.address}}">修改</a>
+          <a class="action-btn" onclick="_deladdress({{id}})">删除</a>
+          <a class="action-btn default-addr">
+              <span>默认地址</span> <span onclick="_def(0,{{id}},$(this))">设为默认</span>
+          </a>
+      </div>
+          <span>{{res.tel}}</span>
+          <p>{{res.province}}{{res.city}}{{res.area}}{{res.address}}</p>
+  </li>
+</script>
+
+  <script>
+    $(function(){
+        $("#ordersubmit").bind('click',function(){
+              var m = $("#mmm").attr('data-m');
+              if($("#weixinid").val().trim()==''){
+                 _tips('请输入微信号');
+                 return false;
+              }
+              {if $_GPC['type']!='self'}
+                var address_id = $("#address_id").val();
+                if($.trim(address_id)==''){
+                  _tips('请选择收货地址');
+                  return false;
+                }
+              {/if}
+
+              var  type = $(".pay-way-item.pay-way-item-active").attr('data-type');
+          if(m==undefined||m<=0){
+            _tips('请输入支持的金额');
+            return false;
+          }
+
+              if(type=='wx'){
+                _getOrder(m,{$_GPC['fid']});
+              }else{
+                    _alipay(m,{$_GPC['fid']});
+              }
+              //
+        });
+
+        $(".pay-way-item").bind('click',function(){
+           var type  = $(this).attr('data-type');
+           $(this).siblings().removeClass('pay-way-item-active');
+           $(this).addClass('pay-way-item-active');
+          //  alert(type);
+        })
+        $(".wxblock").bind('click',function(){
+             $("#boxtype").val(0);
+             $("#boxid").val('');
+             $("#name").val('');
+             $("#tel").val('');
+             $("#address").val('');
+            $(".addressaddbox").fadeOut();
+          $(".wxblock").fadeOut();
+          $(".wxqrcpde").fadeOut();
+
+          clearInterval(window.gp);
+        });
+        $(".address-add").bind('click',function(){
+            $(".wxblock").fadeIn();
+            $(".addressaddbox").fadeIn();
+        });
+        $(".setdef").bind('click',function(){
+             if($(this).hasClass('cur')){
+                 $(this).removeClass('cur');
+                 $(this).html('设置默认');
+                 $(this).attr('data-type',0);
+             }else{
+                $(this).addClass('cur');
+                $(this).html('取消默认');
+                $(this).attr('data-type',1);
+             }
+        });
+
+        $("#addcount").bind('click',function(){
+            var shu = $("#addbox").val();
+                shu = parseInt(shu);
+                shu = shu +1;
+                if(shu<=0){
+                   shu = 1;
+                   _tips('不能少于1');
+                }
+              $("#addbox").val(shu);
+                _price(shu);
+        });
+        $("#mincount").bind('click',function(){
+            var shu = $("#addbox").val();
+                shu = parseInt(shu);
+                shu = shu -1;
+                if(shu<=0){
+                   shu = 1;
+                   _tips('不能少于1');
+                }
+
+              $("#addbox").val(shu);
+                _price(shu);
+        });
+
+        $(document).on('click','.address-box li',function(){
+           if($(this).hasClass('address-add')){
+             return false;
+           }
+            $(this).siblings().removeClass('address-box-active');
+            $(this).addClass('address-box-active');
+
+            var id = $(this).attr('data-id');
+            $("#address_id").val(id);
+        });
+        $(".price").bind('input propertychange',function(){
+            var v  = $(this).val();
+            if(!$.isNumeric(v)){
+              $(this).val(0);
+              _tips('请输入数字');
+               return false;
+            }
+            _price2(v);
+        })
+        $("#addbox").bind('input propertychange',function(){
+            var shu = $("#addbox").val();
+            if(!$.isNumeric(shu)){
+              shu = 1;
+                $("#addbox").val(shu);
+              _tips('请输入数字');
+               return false;
+            }
+                shu = parseInt(shu);
+                if(shu<=0){
+                   shu = 1;
+                     $("#addbox").val(shu);
+                             _price(shu);
+                   _tips('不能少于1');
+                   return false;
+                }
+            _price(shu);
+        });
+    })
+
+    function _gadd(){
+
+    }
+    function _price2(v){
+      $("#mmm").html(v);
+             $("#mmm").attr('data-m',v);
+      // console.log(dangjia);
+    }
+    function _price(n){
+       var dangjia = $("#dangjia").attr('data-default');
+       {if $fabu['yunfei']!=0}
+         price = n*dangjia+{$fabu['yunfei']};
+       {else}
+         price = n*dangjia;
+       {/if}
+
+       $("#mmm").html(price);
+       $("#mmm").attr('data-m',price);
+       $("#xiaoji").html(price);
+       $("#price").val(price);
+       console.log(dangjia);
+    }
+    function _address(){
+        var name = $("#name").val();
+        var tel = $("#tel").val();
+        var address = $("#address").val();
+        var def = $(".setdef").attr('data-type');
+        var reg = /^1[3|4|5|8]\d{9}$/;
+        var type = $("#boxtype").val();
+
+        if($.trim(name)==''){
+           _tips('请输入姓名');
+           return false;
+        }
+        if($.trim(tel)==''){
+           _tips('请输入手机号码');
+           return false;
+        }
+        if(!reg.test(tel)){
+           _tips('请输入正确手机号码');
+           return false;
+        }
+        if($.trim(address)==''){
+           _tips('请输入详细地址');
+           return false;
+        }
+        if(type==1){
+             id = $("#boxid").val();
+            $.ajax({
+               url:base_url,
+               type:"post",
+               dataType:'json',
+               data:{
+                   func:'address',
+                   action:'add_address',
+                   name:name,
+                   tel:tel,
+                   address:address,
+                   is_def:def,
+                   id:id,
+                   mid:{php echo $this->conf['user']['mid']},
+                   apikey:apikey
+               },success:function(res){
+                 console.log(jts(res));
+                      if(res.status_code==1){
+
+                         _tips(res.msg);
+                         $("#addbox"+id).remove();
+                         var h = template('addaddressbox',res);
+                         $("#addbox"+res.id).siblings().removeClass('address-box-active');
+                         $("#address_id").val(res.id);
+                         $(".address-box").prepend(h);
+                         _hide();
+                      }
+               }
+             });
+        }else if(type==0){
+          $.ajax({
+             url:base_url,
+             type:"post",
+             dataType:'json',
+             data:{
+                 func:'address',
+                 action:'add_address',
+                 name:name,
+                 tel:tel,
+                 address:address,
+                 is_def:def,
+                 mid:{php echo $this->conf['user']['mid']},
+                 apikey:apikey
+             },success:function(res){
+                    // console.log(jts(res));
+                    if(res.status_code==1){
+
+
+                        var h = template('addaddressbox',res);
+                        $("#addbox"+res.id).siblings().removeClass('address-box-active');
+                            $("#address_id").val(res.id);
+                        $(".address-box").prepend(h);
+                        _hide();
+                    }
+             }
+           });
+        }
+    }
+
+    function _hide(){
+        $("#boxtype").val(0);
+        $("#boxid").val('');
+        $("#name").val('');
+        $("#tel").val('');
+        $("#address").val('');
+        $(".addressaddbox").fadeOut();
+        $(".wxblock").fadeOut();
+    }
+    function _def(type,id,o){
+      o.parents('li').siblings().removeClass('address-box-active');
+      o.parents('li').addClass('address-box-active');
+      $.ajax({
+         url:base_url,
+         type:"post",
+         dataType:'json',
+         data:{
+           func:'address',
+           action:'is_def',
+           id:id,
+           mid:{php echo $this->conf['user']['mid']},
+           apikey:apikey
+         },success:function(res){
+                // console.log(jts(res));
+
+                _tips(res.msg);
+         }
+       });
+    }
+
+    function _alipay(m,fid){
+      if(m<=0){
+           _tips('请输入金额');
+          return false;
+      }
+      // alert(m);
+      $.ajax({
+         url:base_url,
+         type:"post",
+         dataType:'json',
+         data:{
+           func:'pay',
+           action:'alipay',
+           fid:fid,
+           fee:m,
+          {if $_GPC['type']!='self'}
+            address_id:$("#address_id").val(),
+            reid:$("#reid").val(),
+          {/if}
+           mid:{php echo $this->conf['user']['mid']},
+           weixinid:$("#weixinid").val(),
+           apikey:apikey
+         },success:function(data){
+            console.log(jts(data));
+            $("#params").val(data.res);
+            // res = data.res;
+            // // _tips(msg.msg);
+            // if(data.status_code==1){
+            //   console.log(res.url);
+            //   _AP.pay(res.url);
+            // }
+            $("#_aliforn").submit();
+         },error:function(msg){
+            // console.log('bad');
+         }
+      });
+    }
+    function _getOrder(m,fid){
+      if(m<=0){
+           _tips('请输入金额');
+          return false;
+      }
+
+
+      $.ajax({
+         url:base_url,
+         type:"post",
+         dataType:'json',
+         data:{
+           func:'pay',
+           action:'getorder',
+           fid:fid,
+           fee:m,
+          {if $_GPC['type']=='reward'}
+            address_id:$("#address_id").val(),
+            reid:$("#reid").val(),
+            {elseif $_GPC['type']=='list'}
+            dream_id:$("#dream_id").val(),
+          {/if}
+          {if $_GPC['tid']!=''}
+          tid:'{php echo $_GPC["tid"]}',
+          {/if}
+           mid:{php echo $this->conf['user']['mid']},
+           weixinid:$("#weixinid").val(),
+           apikey:apikey
+         },success:function(msg){
+            // console.log(jts(msg));
+            data = msg.msg;
+            // _tips(msg.msg);
+            if(msg.status_code==1){
+              $("#orderqrcode").attr('src',data.img);
+              $("#orderid").html(data.tid);
+              $("#ordertime").html(data.time);
+              $(".wxblock").fadeIn();
+              $(".wxqrcpde").fadeIn();
+              window.gp = setInterval(function(){
+                $.ajax({
+                  url:base_url,
+                  type:"post",
+                  dataType:'json',
+                  data:{
+                    func:'pay',
+                    action:'getstatus',
+                    tid:data.tid,
+                    apikey:apikey
+                  },success:function(res){
+                      console.log(jts(res));
+                      if(res.res==1){
+                                  clearInterval(window.gp);
+                        _tips('支付成功');
+                          setTimeout(function(){
+                            window.location.href="{php echo  $_W['siteroot'].'app/'.substr($this->createMobileUrl('pay',array('display'=>'done','fid'=>$_GPC['fid'])),2)}";
+                          },800);
+                      }
+                  }
+                })
+              },1000);
+            }
+         },error:function(msg){
+            console.log('bad');
+         }
+      });
+      // console.log({php echo $this->conf['user']['mid']});
+
+    }
+
+
+    function _deladdress(id){
+        if(confirm('是否确定删除该地址')){
+          $.ajax({
+             url:base_url,
+             type:"post",
+             dataType:'json',
+             data:{
+                 func:'address',
+                 action:'del_address',
+                 id:id,
+                 apikey:apikey
+             },success:function(res){
+                    // console.log(jts(res));
+                    if(res.status_code==1){
+                               $("#address_id").val('');
+                             $("#addbox"+id).remove();
+                             _tips(res.msg);
+                    }else{
+                       _tips(res.msg);
+                    }
+             }
+           });
+        }
+    }
+
+    function _editoraddress(id){
+       $("#boxtype").val(1);
+       var name = id.attr('data-name');
+       var tel = id.attr('data-tel');
+       var address = id.attr('data-address');
+       var id = id.attr('data-id');
+       $("#name").val(name);
+       $("#tel").val(tel);
+       $("#address").val(address);
+       $("#boxid").val(id)
+      $(".wxblock").fadeIn();
+      $(".addressaddbox").fadeIn();
+    }
+  </script>
+{template 'web/common/footer'}

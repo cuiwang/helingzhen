@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+	<meta name="viewport"    content="width=device-width, initial-scale=1.0">
+	
+		<title>微信弹幕秀</title>
+		<link rel="stylesheet" href="{MEEPO}common/css/common.css" />
+		<link rel="stylesheet" href="{MEEPO}common/css/header.css" />
+		<link rel="stylesheet" href="{MEEPO}common/css/footer.css" />
+		<link rel="stylesheet" href="{MEEPO}common/css/layer.css" />
+		<link rel="stylesheet" href="{MEEPO}common/css/tooltips.css" />
+		<link id="skincss" rel="stylesheet" href="{MEEPO}/skin/css/{$style}?t={php echo time()}" />
+		
+
+<style>
+	
+	#danmuarea {
+		position: relative;
+		
+		width:1000px;
+		height: 580px;
+		margin-top:30px;
+		margin-left: auto;
+		margin-right: auto;
+		
+
+
+	}
+
+ 
+
+	.ctr {
+		font-size: 1em;
+		  line-height: 2em;
+	}
+	</style>
+	</head>
+	<body onLoad="init()">
+		
+        <input type="hidden" value='{php echo time();}' id="checktime"/>
+		<div id="wrap" class="wrapBg">
+			<div id="whole">
+			<div class="loader">Loading...</div>
+				
+				<div class="header clearfix">
+				
+					<!--<h3><img id="logurl" name="home.logurl" src="{MEEPO}common/images/logoV1.0.png"  src="" /></h3-->
+					<div style="float:left" name="http://dld.wsd.so" id="goto">
+					  <span style="display:block;margin-top:10px"><img id="logurl" name="home.logurl" src="{MEEPO}common/images/logoV1.0.png"  src="" /></span>
+					 
+					</div>
+					<div class="wordScroll">
+						<div class="scrollBox colorStyle">
+							<ul>
+							<p id="title"><li>{if empty($ridwall['danmuwords'])}发送任意文字、提示上墙成功，就可以在屏幕上滚动哦！{else}{$ridwall['danmuwords']}{/if}</li></p>
+							</ul>
+						</div>
+						<div class="num colorStyle" style="text-align:center" >
+							<span onClick="fullScreen(document.documentElement)" id="fulls"></span>
+<style>
+{if !empty($ridwall['danmubgimg'])}
+.wrapBg {
+background: url({$_W['attachurl']}{$ridwall['danmubgimg']}) no-repeat center
+}
+{/if}
+
+#fulls {
+background-color:#ccc
+float: left;
+display: inline-block;
+width: 35px;
+height: 35px;
+background: url({RES}icons.png) no-repeat;
+text-indent: -9999em;
+margin-right: 10px;
+background-position: 0 -40px;
+}
+</style>
+						</div>
+					</div>
+					<div class="QRcode">
+					<img id="wscode" name="home.qrurl" src="{$_W['attachurl']}{$cfg['erweima']}" height=100px width=100px />
+					</div>
+				</div>
+			
+				
+          </div> 
+		  <div id="danmuarea">
+		    <div id="danmu" style="width:1000px;"></div>
+        </div>
+	
+				<div style="height:20px;line-height:20px;text-align:center;margin-top:10px">@{$ridwall['votepower']}版权所有</div>
+	  </div> 	
+	</body>
+	<script src="{MEEPO}tanmu/assets/js/jquery-1.11.1.min.js"></script>
+<script src="{MEEPO}tanmu/assets/js/jquery.danmu.js"></script>
+<script>
+(function(){
+$("#danmu").danmu({
+	left:0,
+	top:0,
+	height:"100%",
+	width:"100%",
+    speed:{php echo $ridwall['danmutime']*1000;},
+    opacity:1,
+    font_size_small:20,
+    font_size_big:30,
+    top_botton_danmu_time:6000
+}
+  );
+})(jQuery);
+function init(){
+  
+	
+  	query();
+	
+	$(".loader").hide("slow");
+}
+function starter(){
+  $('#danmu').danmu('danmu_start');
+}
+function query() {
+	
+  $.get("{php echo $this->createMobileUrl('getover',array('rid'=>$rid))}&checktime="+$('#checktime').val()+"&time="+$('#danmu').data("nowtime"),function(dataall,status){
+	 
+	 var dataall = JSON.parse(dataall);
+	 if(dataall != null){
+		 var danmu_from_sql= dataall.data; 
+		 if(danmu_from_sql != undefined){
+			 for (var i=0;i<danmu_from_sql.length;i++){
+			   
+			  $('#danmu').danmu("add_danmu",danmu_from_sql[i]);
+			 }
+			 $('#checktime').val(dataall.maxtime);
+			 
+		 }
+	 }
+     });
+  starter();
+  $(".loader").hide("slow");
+  setTimeout("send_danmu()",2000);
+}
+
+function send_danmu() {
+	$.get("{php echo $this->createMobileUrl('getover',array('rid'=>$rid))}&checktime="+$('#checktime').val()+"&time="+$('#danmu').data("nowtime"),function(dataall,status){
+       var dataall = JSON.parse(dataall);
+	   if(dataall != null){
+		   var danmu_from_sql= dataall.data; 
+		   
+		   if(danmu_from_sql != undefined){
+			   for (var i=0;i<danmu_from_sql.length;i++){
+				  console.log(danmu_from_sql[i]);
+				  $('#danmu').danmu("add_danmu",danmu_from_sql[i]);
+			   }
+			   $('#checktime').val(dataall.maxtime);
+		   }
+	    }
+  });
+  t=setTimeout("send_danmu()",2000)
+  
+}
+function fullScreen(element){
+	if(element.requestFullscreen) {
+    element.requestFullscreen();
+  } else if(element.mozRequestFullScreen) {
+    element.mozRequestFullScreen();
+  } else if(element.webkitRequestFullscreen) {
+    element.webkitRequestFullscreen();
+  } else if(element.msRequestFullscreen) {
+    element.msRequestFullscreen();
+  }
+}
+</script>
+</html>

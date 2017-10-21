@@ -1,0 +1,232 @@
+﻿<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width,height=device-height,inital-scale=1.0,maximum-scale=1.0,user-scalable=no;">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="format-detection" content="telephone=no">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="-1">
+    <title>{$reply['title']}</title>
+    <link href="{RES}mobile/css/style.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+    <style>
+        .btn_music {
+            display: inline-block;
+            width: 35px;
+            height: 35px;
+            background: url('{RES}mobile/images/play.png') no-repeat center center;
+            background-size: 100% auto;
+            position: absolute;
+            z-index: 10000;
+            left: 15px;
+            top: 30px;
+        }
+        .btn_music.on {
+            background-image: url("{RES}mobile/images/stop.png");
+        }
+        .botton  { z-index:1000 !important;}
+        .botton1 {z-index:1000 !important;}
+        #help_tip {
+            /*width: 80%;*/
+            /*margin: 0 auto;*/
+            /*max-width: 580px;*/
+            /*min-width: 260px;*/
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 999999999;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            text-align: center;
+        }
+        #help_tip img{width:80%;margin-top:20px; }
+    </style>
+    {php echo register_jssdk(false);}
+</head>
+<body>
+<div id="zjl"  class="popwin"  style="display:none;">
+    <div class="box"><b class="closeb" onClick="document.getElementById('zjl').style.display='none';" ></b>
+        <div class="inputqy">
+            <div class="jpimg">0
+            </div>
+            <div class="jptext">   <h1 id="hd1"></h1>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript" src="{RES}mobile/js/audio.js"></script>
+<script>
+    window.addEventListener("DOMContentLoaded", function(){
+        playbox.init("playbox");
+    }, false);
+</script>
+
+<span id="playbox" class="btn_music" onClick="playbox.init(this).play();">
+    <audio autoplay="autoplay" src="{$reply['music_url']}" loop id="audio"></audio></span>
+<div class="contianer">
+    <div class="bg"><img src="{$bg}"></div>
+    <div class="logo"><img src="{$logo}"></div>
+    <div class="botton">
+        <a href="{php echo $this->createMobileUrl('rule', array('id' => $id), true)}"><img
+                src="{RES}mobile/images/button_01.png" width="100%"></a>
+        <a href="{php echo $this->createMobileUrl('list', array('id' => $id), true)}"><img src="{RES}mobile/images/button_02.png"  ></a>
+    </div>
+    <div class="button_03"><a href=""><img src="{$light2}"></a></div>
+    <div class="huasa"><a href=""><img src="{$paper}"></a></div>
+    <div class="snowman"><img id="tree" src="{RES}mobile/images/snowman_8.png"></div>
+    <div class="button_04">
+        {if $ishelp == 1}
+        <button disabled="disabled" onClick="alert('{if $from_user==$followuser}已植树{else}已帮{/if}')" >{if $from_user==$followuser}已植树{else}已帮{/if}</button>
+        {else}
+        <button id="zlb"  onClick="kanjia()" >{if $from_user==$followuser}植树{else}帮他植树{/if}</button>
+        {/if}
+        {if $from_user == $followuser}
+        <button class="fenxiang" id="help">发送好友</button>
+        {else}
+        <button onClick="bm()">我要报名</button>
+        {/if}
+
+    </div>
+    <div class="list">
+        <div class="title">
+            <img src="{RES}mobile/images/notice.png">
+            {if $from_user==$followuser}
+            <div class="tx"><img src="{php echo tomedia($fans['headimgurl']);}"></div>
+            <div class="name">{php echo $fans['nickname'];}</div>
+            <div class="number">植树<span>{php echo intval($fans['totalnum']);}</span> 次</div>
+            {else}
+            <div class="tx"><img src="{php echo tomedia($followfans['headimgurl']);}"></div>
+            <div class="name">{php echo $followfans['nickname'];}</div>
+            <div class="number">植树<span>{php echo intval($followfans['totalnum']);}</span> 次</div>
+            {/if}
+        </div>
+        <div class="con">
+            <ul>
+                {loop $fanslist $item}
+                <li><p><img src="{php echo tomedia($item['headimgurl']);}" width="100%"></p></li>
+                {/loop}
+            </ul>
+            <div class="clr"></div>
+        </div>
+    </div>
+</div>
+<div id="help_tip">
+    <img src="{RES}mobile/images/help.png">
+</div>
+<script>
+    function changetree(i){
+        document.getElementById("tree").src="{RES}mobile/images/snowman_"+i+".png";
+        var jj="{$tree}";
+
+        i=i+1;
+        if(i>jj){
+            i=1;
+        }
+        setTimeout("changetree("+i+")",1200);
+    }
+    changetree("{$tree}");
+
+    function bm(){
+        window.location.href="{php echo $this->createMobileUrl('bm', array('id' => $id), true)}";
+    }
+</script>
+<script type="text/javascript">
+    var yzl = 0;
+    function kanjia() {
+        var url = "{php echo $this->createMobileUrl('help', array('id' => $id, 'help_user' => $followuser), true)}";
+        if (window.yzl == 1) {
+            refalsh();
+        }
+        var submitData = {
+            action: "setTel"
+        };
+        $.post(url, submitData,
+                function (data) {
+                    alert(data.msg);
+                    $('#zlb').val("已助力");
+                    $('#zlb').attr("disabled",false);
+                    window.yzl=1;
+                    setTimeout("refalsh()",1500);
+                },
+                "json");
+    }
+
+    function refalsh() {
+        window.location.reload();
+    }
+</script>
+
+{if $reply['qrcode']}
+<script type="text/javascript">
+    document.writeln("<style type=\"text/css\">");
+    document.writeln(".wxapiErweima { position: fixed; right: 15px; top: 50%; margin-top:-25px;  z-index: 99999999; height: 40px; width: 40px; }");
+    document.writeln(".wxapiErweima .erweimalogo { display: block; height: 40px; width: 40px; background: url(http://xmjdwl.com/ewm.jpg) 0 0 no-repeat #fafafa; background-size: 40px 40px; border-radius: 100%; box-shadow: 0 0 6px 0px rgba(0, 0, 0, 0.15); cursor: pointer; }");
+    document.writeln(".wxapiErweima .erweimaxxx { cursor: pointer; position: absolute; display: block; width: 20px; height: 20px; text-indent: -9999px; top: -20px; right: -10px; background-color: rgba(255, 255, 255, 0.4); border-radius: 100%; box-shadow: 0 0 5px 0px rgba(0, 0, 0, 0.15); }");
+    document.writeln(".wxapiErweima .erweimaxxx:before { position: absolute; content: \'.\'; display: block; width: 14px; height: 1px; background-color: rgba(0, 0, 0, 0.5); -webkit-transform: rotate(-45deg); top: 10px; left: 3px; }");
+    document.writeln(".wxapiErweima .erweimaxxx:after { position: absolute; content: \'.\'; display: block; width: 14px; height: 1px; background-color: rgba(0, 0, 0, 0.5); -webkit-transform: rotate(45deg); top: 10px; left: 3px; }");
+    document.writeln(".ErweimaSaomiao { display: none; background-color: rgba(0, 0, 0, 0.8); position: fixed; z-index: 99999990; top: 0; left: 0; right: 0; bottom: 0; }");
+    document.writeln(".ErweimaSaomiao.active { display: block }");
+    document.writeln(".ErweimaSaomiao .erweimalogo { display: block; background: url(http://www.xmjdwl.com/er.gif) no-repeat 10px 10px #FFF; background-size: 249px 252px; width: 249px; position: absolute; top: 50%; left: 50%; margin-top: -153px; margin-left: -135px; padding: 10px; border-radius: 6px; }");
+    document.writeln(".ErweimaSaomiao .erweimalogo .erweimaimg { display: block; margin: 2px; width: 245px; height: 248px; opacity: 1 }");
+    document.writeln(".ErweimaSaomiao .erweimalogo .erweimaSaomiaowz { display: block; margin: 15px 10px 5px 10px; color: #333; font-size: 14px; text-align: center }");
+    document.writeln("</style>");
+    document.writeln("<div class=\"ErweimaSaomiao\"  id=\"CustomerErweimaSaomiao\">");
+    document.writeln("  <div class=\"erweimalogo\"> <img class=\"erweimaimg\" src=\"{$qrcode}\">");
+    document.writeln("    <p class=\"erweimaSaomiaowz\">请长按二维码并选择识别图中二维码</p>");
+    document.writeln("  </div>");
+    document.writeln("</div>");
+    document.writeln("<div id=\"CustomerErweima\" class=\"wxapiErweima\"><a onClick=\"$(\'#CustomerErweimaSaomiao\').toggleClass(\'active\');\" class=\"erweimalogo\"></a><span class=\"erweimaxxx\" onClick=\"document.getElementById(\'CustomerErweima\').style.display=\'none\';document.getElementById(\'CustomerErweimaSaomiao\').style.display=\'none\';\"></span></div>");
+    var obj=document.getElementById('CustomerErweima');
+    obj.addEventListener("touchmove", function (event) {
+        event.preventDefault();
+        if (event.targetTouches.length == 1) {
+            var touch = event.targetTouches[0];
+            obj.style.left =  touch.pageX + "px";
+            obj.style.top =  touch.pageY + "px";
+        }
+    }, false);
+</script>
+{/if}
+<script>
+    wx.ready(function () {
+        sharedata = {
+            title: '{$share_title}',
+            desc: '{$share_desc}',
+            link: '{$share_url}',
+            imgUrl: '{$share_image}',
+            success: function(){
+                alert('提前祝你能中奖');
+            },
+            cancel: function(){
+                //alert('cancel');
+            }
+        };
+        wx.onMenuShareAppMessage(sharedata);
+        wx.onMenuShareTimeline(sharedata);
+    });
+
+    function time_jump() {
+        var url = "{php echo $this->createMobileUrl('index', array('id' => $id), true)}";
+        location.href = url;
+    }
+
+    $(function() {
+        $("#help").click(function () {
+            $("#help_tip").show();
+        })
+
+
+        $("#help").click(function () {
+            $("#help_tip").show();
+        })
+
+        $("#help_tip").click(function () {
+            $("#help_tip").hide();
+        })
+    });
+</script>
+</body>
+</html>

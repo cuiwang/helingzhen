@@ -1,0 +1,242 @@
+{template 'public/header'}
+{template 'public/comhead'}
+<link rel="stylesheet" type="text/css" href="{MODULE_URL}public/web/css/main.css"/>
+
+{if $operation == 'display'}
+<script>
+require(['bootstrap'],function($){
+	$('.btn,.tips').hover(function(){
+		$(this).tooltip('show');
+	},function(){
+		$(this).tooltip('hide');
+	});
+});
+</script>
+
+<div class="main">
+    <style>
+        .form-control-excel {
+            height: 34px;
+            padding: 6px 12px;
+            font-size: 14px;
+            line-height: 1.42857143;
+            color: #555;
+            background-color: #fff;
+            background-image: none;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+            box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+            -webkit-transition: border-color ease-in-out .15s,-webkit-box-shadow ease-in-out .15s;
+            -o-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+            transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+        }
+    </style>
+	<script src="{MODULE_URL}public/web/js/webuploader.js"></script>
+	<script src="{MODULE_URL}public/web/js/wlzyList.js"></script>
+    <div class="panel panel-info">
+        <div class="panel-heading">班级相册管理</div>
+        <div class="panel-body">
+            <form action="./index.php" method="get" class="form-horizontal" role="form">
+                <input type="hidden" name="c" value="site" />
+                <input type="hidden" name="a" value="entry" />
+                <input type="hidden" name="m" value="fm_jiaoyu" />
+				<input type="hidden" name="op" value="display" />
+                <input type="hidden" name="do" value="photos" />
+				<input type="hidden" name="schoolid" value="{$schoolid}" />
+				 <div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label" style="width: 100px;">按班级</label>
+                    <div class="col-sm-2 col-lg-2">
+                        <select style="margin-right:15px;" name="bj_id" class="form-control">
+                            <option value="">请选择班级搜索</option>
+                            {loop $bjlist $row}
+                            <option value="{$row['sid']}" {if $row['sid'] == $_GPC['bj_id']} selected="selected"{/if}>{$row['sname']}</option>
+                            {/loop}
+                        </select>
+                    </div>						
+                    <div class="col-sm-2 col-lg-2">
+                        <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+                    </div>					
+				</div>	
+            </form>
+        </div>
+    </div>	
+	<div class="panel panel-default">
+        <div class="table-responsive panel-body">
+			<div id="queue-setting-index-body">
+				<div class="viewList">
+					<div class="viewBox">
+						<div class="nameAndTime">
+							<span class="name">公共相册</span>
+							<span name="publishdate" class="time"></span>
+						</div>
+						<div class="content">					
+								<a class="lightgray" >{$class['sname']}公共相册</a>	
+						</div>
+						<div class="gallery" style="margin:5px;">
+								<div class="picBox">
+									<table name="imgTable" width="100%" height="100%" border="1" bordercolor="white">
+										<tr>
+											<td>
+												<div class="img">
+													{if !empty($cfrist['picurl'])}
+													<a href="{php echo tomedia($cfrist['picurl'])}" target="_blank" class="gallery-link" title="">
+														<img src="{php echo tomedia($cfrist['picurl'])}" alt="">
+													</a>
+													{/if}
+												</div>
+											</td>
+										</tr>
+									</table>				
+								</div>	
+							<div class="likeAndDel" style="margin:5px;">
+								<div class="l">							
+									<span>照片（{$ctotal}）</span>									
+								</div>						
+								<div class="r">
+									<a href="{php echo $this->createWebUrl('photos', array('op' => 'posta', 'schoolid' => $schoolid, 'bj_id' => $bjqbjid))}"><button type="button" class="btn btn-sm btn-info">查看详情</button></a>
+								</div>						
+							</div>
+						</div>
+					</div>				
+				{loop $xclist $item}
+					<div class="viewBox">
+						<div class="nameAndTime">
+							<span class="name">{$item['tag']}</span>
+							<span name="publishdate" class="time">{php echo(date('Y-m-d H:i:s',$item['createtime']))}</span>
+						</div>
+						<div class="content">					
+								<a class="lightgray" >{$item['tag']}的相册</a>	
+						</div>
+						<div class="gallery" style="margin:5px;">
+								<div class="picBox">
+									<table name="imgTable" width="100%" height="100%" border="1" bordercolor="white">
+										<tr>
+											<td>
+												<div class="img">
+													<a href="{php echo tomedia($item['fmpicurl'])}" target="_blank" class="gallery-link" title="">
+														<img src="{php echo tomedia($item['fmpicurl'])}" alt="">
+													</a>
+												</div>
+											</td>
+										</tr>
+									</table>				
+								</div>	
+							<div class="likeAndDel" style="margin:5px;">
+								<div class="l">							
+									<!-- <img alt="" src="{MODULE_URL}public/web/recipe/liked.png" /> -->
+									<span>照片（{$item['total']}）</span>									
+									<a href="{php echo $this->createWebUrl('photos', array('op' => 'delete', 'schoolid' => $schoolid, 'id' => $item['wlzytype']))}" onclick="return confirm('此操作不可恢复，确认删除？');return false;" title="删除"><span style="cursor:pointer;color:#428bca;">删除</span></a>
+									&nbsp;
+								</div>						
+								<div class="r">
+									<a href="{php echo $this->createWebUrl('photos', array('op' => 'post', 'schoolid' => $schoolid, 'id' => $item['wlzytype']))}"><button type="button" class="btn btn-sm btn-info">查看详情</button></a>
+								</div>						
+							</div>
+						</div>
+					</div>
+				{/loop}	
+				</div>
+			</div>	
+		</div>
+		&nbsp;{$pager}
+	</div>
+</div>	
+{elseif $operation == 'post'}
+<div class="panel panel-info">
+	<div class="panel-heading"><a class="btn btn-primary" href="{php echo $this->createWebUrl('photos', array('op' => 'display', 'schoolid' => $schoolid))}"><i class="fa fa-tasks"></i>返回相册列表</a></div>
+</div>
+<div class="main">
+	<div class="panel panel-default">
+        <div class="table-responsive panel-body">
+			<div id="queue-setting-index-body">
+				<div class="panel panel-default">
+					<div class="panel-heading">{$students['s_name']}相册详情</div>
+				</div>
+				<div class="uploadList">
+					<div class="" style="border-bottom: 1px solid #dbe1e8;">
+						<div class="">
+							<label class="control-label" style="float: left;width: 25%;">{$students['s_name']}---{$classify['sname']}</label>
+							<p class="form-control-static">
+								<span>操作:</span>
+								<span><a class="btn btn-primary" href="{php echo $this->createWebUrl('photos', array('op' => 'delete', 'schoolid' => $schoolid, 'id' => $id))}" onclick="return confirm('此操作将删除学生所有照片？');return false;">删除所有</a></span>
+								<span class="time" style="float: right;">{$classify['sname']}</span>
+							</p>							
+						</div>
+					</div>
+				</div>
+				<div class="" style="">
+					<div style="margin:10px 0"></div>
+					<div class="photoList" style="width:100%;margin:10px 0;">
+						<div id="addPhotoBox1" name="addPhotoBox">
+						    <div class="gallery" data-toggle="lightbox-gallery">
+								{loop $list1 $row}
+									<div class="photoBox" style="width:200px;height:200px;">								
+										<div class="img" style="width:200px;height:200px;">
+												<div class="gallery-image">
+													<a href="{php echo tomedia($row['picurl'])}" target="_blank" class="gallery-link">
+														<img src="{php echo tomedia($row['picurl'])}" alt="image" style="width:100%;">
+														<a class="btn btn-primary" style="background-color:red;z-index:9999999;position: absolute;float:right;" href="{php echo $this->createWebUrl('photos', array('op' => 'deleteone', 'schoolid' => $schoolid, 'photoid' => $row['id']))}" onclick="return confirm('确认删除本张照片？');return false;">删除</a>
+													</a>
+												</div>
+										</div>	
+									</div>
+									
+								{/loop}
+			                </div>
+			            </div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>	
+</div>
+{elseif $operation == 'posta'}
+<div class="panel panel-info">
+	<div class="panel-heading"><a class="btn btn-primary" href="{php echo $this->createWebUrl('photos', array('op' => 'display', 'schoolid' => $schoolid))}"><i class="fa fa-tasks"></i>返回相册列表</a></div>
+</div>
+<div class="main">
+	<div class="panel panel-default">
+        <div class="table-responsive panel-body">
+			<div id="queue-setting-index-body">
+				<div class="panel panel-default">
+					<div class="panel-heading">{$classify['sname']}的公共相册</div>
+				</div>
+				<div class="uploadList">
+					<div class="" style="border-bottom: 1px solid #dbe1e8;">
+						<div class="">
+							<label class="control-label" style="float: left;width: 25%;"></label>
+							<p class="form-control-static">
+								<span class="time" style="float: right;"></span>
+							</p>							
+						</div>
+					</div>
+				</div>
+				<div class="" style="">
+					<div style="margin:10px 0"></div>
+					<div class="photoList" style="width:100%;margin:10px 0;">
+						<div id="addPhotoBox1" name="addPhotoBox">
+						    <div class="gallery" data-toggle="lightbox-gallery">
+								{loop $list2 $row}
+									<div class="photoBox" style="width:200px;height:200px;">								
+										<div class="img" style="width:200px;height:200px;">
+												<div class="gallery-image">
+													<a href="{php echo tomedia($row['picurl'])}" target="_blank" class="gallery-link">
+														<img src="{php echo tomedia($row['picurl'])}" alt="image" style="width:100%;">
+														<a class="btn btn-primary" style="background-color:red;z-index:9999999;position: absolute;float:right;" href="{php echo $this->createWebUrl('photos', array('op' => 'deleteone', 'schoolid' => $schoolid, 'photoid' => $row['id']))}" onclick="return confirm('确认删除本张照片？');return false;">删除</a>
+													</a>
+												</div>
+										</div>	
+									</div>
+								{/loop}
+			                </div>
+			            </div>
+					</div>
+					{$pager}
+				</div>
+			</div>
+		</div>
+	</div>	
+</div>		
+{/if}
+{template 'public/footer'}

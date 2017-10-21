@@ -1,0 +1,36 @@
+<?php
+pdo_query("CREATE TABLE IF NOT EXISTS `ims_activity` (
+`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+`weid` int(11) unsigned,
+`name` varchar(50),
+`ac_pic` varchar(100) NOT NULL,
+`begintime` int(11) unsigned,
+`endtime` int(11) unsigned,
+`createtime` int(11) unsigned,
+`countlimit` int(5) NOT NULL,
+`countvirtual` int(5),
+`visitsCount` int(11),
+`ppt1` varchar(100),
+`ppt2` varchar(100),
+`ppt3` varchar(100),
+`acdes` varchar(500) NOT NULL,
+`address` varchar(200) NOT NULL,
+`location_p` varchar(100) NOT NULL,
+`location_c` varchar(100) NOT NULL,
+`location_a` varchar(100) NOT NULL,
+`lng` decimal(18,10) NOT NULL,
+`lat` decimal(18,10) NOT NULL,
+`tel` varchar(20),
+`email` varchar(20),
+`zb` varchar(50),
+`cb` varchar(50),
+`xb` varchar(50),
+`cjdx` varchar(50),
+`hoteldesc` varchar(500),
+`costdes` varchar(500),
+`isrepeat` int(1),
+`istip` int(1),
+PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+");

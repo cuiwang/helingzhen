@@ -1,0 +1,200 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1">
+<title>发布视频</title>
+<link href="{$_W['siteroot']}addons/siyuan_cms/img/css.css" rel="stylesheet" />
+<link href="{$_W['siteroot']}addons/siyuan_cms/img/xinxi/css.css" rel="stylesheet" />
+</head>
+<body>
+{template 'top'}
+<div class="namecard-page"> 
+<form action="" class="am-form" data-am-validator method="post" onsubmit="return checkform();">
+<input type="hidden" name="token" value="{$_W['token']}" />
+<input type="hidden" name="id"  value="{$zhibo['id']}" />
+<section class="editcontent-column">
+      <div class="editcontent-inner">
+      	<div id="photoList">
+		{php $i=0}
+			{if $img}
+			<div class="editcontent-box1">
+				<div class="editcontent-image">
+					<div class="editcontent-upload">
+						<a class="upload-btn1" href="javascript:;"><img style="display: block;" id="fileimg{$i}" src="{$_W['attachurl']}{$img}" width="100%;" height="100%;" class="fillIn-avatar-thumbnail">
+						<span class="upload-text">点击上传视频</span>
+						
+							<input type="file" id="{$i}" name="file" onchange="imageupload(this)" class="uploadFile" single="" accept="image/*">
+						<input type="hidden" id="pic_url{$i}" name="headimg[]" value="{$img}">
+							<div class="progress">{$i}</div>
+						</a>
+							<div class="editcontent-editor-btn">
+								<a class="image-btn edit-btn up-btn" href="javascript:;">上移</a>
+								<a class="image-btn detele-btn" href="javascript:;">删除</a>
+							</div>
+					</div>
+				</div>
+			</div>
+			{/if}
+			{php $i=$i+1}
+	    </div>
+<div class="editcontent-addbox"><span class="editcontent-addbtn" id="addbtn" style="background: {$set['color']}">点击添加视频</span>
+</div>
+<p class="tougaotishi">(一次最多上传1个小视频(10秒以内)，请等待视频截图出现再提交！)</p>
+</div>
+</section>
+<input type="hidden" id="newcode" name="newcode" />
+<section class="ddList">
+<div class="ddtit" style="color: #83868f;">内容</div>
+<dl class="not">
+<textarea name="body" cols="" rows="" maxlength="500" class="ipt-text textarea" id="body" placeholder="请输入文字内容"></textarea>
+</dl>
+</section>
+
+<button class="editcontent-addbtn" type="submit" name="submit" value="yes" style="width:96%;margin-left:2%;margin-bottom:10px;background: {$set['color']}">提交</button>
+<script src="http://libs.baidu.com/jquery/1.7.2/jquery.min.js"></script>
+<script src="{$_W['siteroot']}addons/siyuan_cms/img/js/tishi.js"></script>
+<script type="text/javascript" src="{$_W['siteroot']}addons/siyuan_cms/img/js/zepto.form.js"></script>
+<script>
+var fileNum = $('.uploadFile');
+var count = fileNum.length;
+
+function addNewphoto(){
+	var $photoList = $("#photoList");
+	var $temp = $('<div class="editcontent-box1">'+
+		        	'<div class="editcontent-image">'+
+		          	'<div class="editcontent-upload">'+
+		            	'<a class="upload-btn1" href="javascript:;">'+
+		            		'<img  style="display:none" id="fileimg'+count+'" width="100%;" height="100%;"class="fillIn-avatar-thumbnail">'+
+		            		'<span class="upload-text">点击上传视频</span>'+
+		            		'<input type="file" id="'+count+'" name="file" onchange="imageupload(this)" class="uploadFile" single accept="video/*">'+
+		            		'<input type="hidden" id="pic_url'+count+'" name="headimg[]" value=""/>'+
+		            		'<div class="progress">0</div>'+
+		            	'</a>'+
+		              	'<div class="editcontent-editor-btn"><a class="image-btn edit-btn up-btn" href="javascript:;">上移</a><a class="image-btn detele-btn" href="javascript:;">删除</a></div>'+
+		            '</div>'+
+		          '</div>'+
+		        '</div>');
+				
+	count = count +1;
+	$temp.find(".detele-btn").click(function(){
+		$temp.remove();
+	});
+	
+	$photoList.append($temp);
+	/*
+	$temp.h5upload({
+		"uploadUrl": "/upload/ajaxUploadifyUploadMobileFile.do?fileType=bizcard&sizeRange=480x"
+	});
+	*/
+}
+
+function imageupload(obj){
+			inputId = "#"+obj.id;
+			fileimgId = "#fileimg"+obj.id;
+			fileimgElementId = "fileimg"+obj.id;
+			pic_urlId = "#pic_url"+obj.id;
+			$(inputId).wrap('<form method="post" id="formUpload" action="{php echo $this->createMobileUrl('QiniuVod');}" enctype="multipart/form-data"></form>');	
+			document.getElementById(fileimgElementId).style.display = 'none';
+			$("#formUpload").ajaxSubmit({
+				dataType:  'json',
+				beforeSend: function() {
+$.flytip("上传中，请耐心等待视频上传完成...");
+				},
+				uploadProgress: function(event, position, total, percentComplete) {
+			
+				},
+				success: function(data) {
+					if(data.error==1) {
+					}else{
+						var picurl = data.filename;
+						$(fileimgId).attr('src',picurl+'?vframe/jpg/offset/0');
+						$(pic_urlId).attr('value',picurl);
+						document.getElementById(fileimgElementId).style.display = 'block';
+						$.flytip("视频上传成功!");
+					}
+				},
+				error:function(xhr){
+					$.flytip("视频上传失败!");
+				}
+			});
+}
+
+//组装数据
+function pushData(){
+	var $photoList = $("#photoList");
+	var $photoListLi = $photoList.find(".editcontent-box1");
+	var items = [];
+
+	$photoListLi.each(function(){
+		var $this = $(this);
+		var pic = $this.find(".picPath").val();
+		if(pic){
+			items.push({"pic":pic});
+		}
+	});
+	
+	var datas = {"photos":items};
+	return datas;
+}
+
+//数据提交
+function savePersonInfo() {
+	$("#saveBtn").text("正在保存...");
+	$("#personForm").submit();
+}
+
+
+$(function(){
+	$("#photoList .editcontent-box1").each(function(){
+		//$(this).h5upload();
+	});
+
+	//添加
+	$("#addbtn").click(function(){
+		//--不能超过30个
+		if($(".editcontent-box1").length >= 1){
+			$.flytip("一次最多上传 1 个视频！");
+			return false;
+		}
+		addNewphoto();
+	});
+	
+	//上移
+	$("#photoList").on("click", ".up-btn", function(){
+		var $thisP = $(this).parents(".editcontent-box1");
+		if($thisP.index()>0){
+			$thisP.prev().before($thisP);
+		}else{
+			$.flytip("已经是最顶了");
+		}
+	});
+	//删除
+	$("#photoList").on("click", ".detele-btn", function(){
+		$(this).parents(".editcontent-box1").remove();
+	});
+	
+	//图标
+	iconsList();
+	
+	var $iconsList = $("#iconsList");
+	var $iconsPrev = $("#iconsPrev");
+	
+	$iconsPrev.click(function(){
+		$iconsList.show();
+	});
+	
+	$iconsList.on("click", ".icons-list-item", function(){
+		var $this = $(this);
+		var url = $this.find("img").attr("src");
+		$("#iconsPath").val(url);
+		$iconsPrev.find("img").attr("src",url);
+		$iconsList.hide();
+	});
+	
+	$("#footerFixed").bottomFixed();
+	
+});
+</script>
+</body>
+</html>

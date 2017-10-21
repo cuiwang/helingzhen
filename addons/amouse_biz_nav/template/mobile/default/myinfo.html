@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>个人名片</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <link href="{AMOUSE_BIZ_NAV_RES}pig/css/main.css?2016050101" rel="stylesheet">
+    <link href="{AMOUSE_BIZ_NAV_RES}pig/css/load.css?2016050101" rel="stylesheet">
+    <script src="{AMOUSE_BIZ_NAV_RES}pig/js/jquery.min.js?2016050101"></script>
+
+</head>
+
+{template 'default/navbar'}
+
+
+<body>
+<div class="mygroups" >
+    <!--个人名片-->
+    <div class="p10">
+        <div class="mygroups_tips_line">
+            <div class="mygroups_tips_main">
+                <img src="{AMOUSE_BIZ_NAV_RES}pig/images/card_my.png"/>
+                <span>个人名片</span>
+            </div>
+        </div>
+    </div>
+    <ul class="mygroups-ul">
+        {loop $fanlist $fan}
+        <li class="mygroups-li" id="list_{$fan['id']}" >
+            <div class="mygroups_info">
+                <a href="{php echo $_W['siteroot'] . 'app/' . substr($this->createMobileUrl('view',array('op'=>'card','id'=>pencode($fan['id']))), 2)}" class="block">
+                    <div class="title">
+                        <span>{$fan['title']}</span>
+                    </div>
+                    <div class="desc" >{$fan['intro']}
+                    </div>
+                </a>
+                <div class="list_btn">
+                    <span class='read_num'>扫描: {$fan['hot']}次</span>
+                    <div class="fr">
+                        <a class="mygroups_btn intop" onclick="svipTop('{$fan[id]}','{$fans[vipstatus]}','1')" >固定置顶</a>
+                        <a class="mygroups_btn reload" onclick="upCardTop('{$fan[id]}','{$fans[vipstatus]}','1')">手动刷新</a>
+                        <a class="mygroups_btn zd_reload" onclick="autoRefresh('{$fan[id]}','{$fans[vipstatus]}',1)">自动刷新</a>
+                        <a class="mygroups_btn del" onclick='deleteGroup("{$fan[id]}","0","{$fan[title]}")'>删除</a>
+                    </div>
+                </div>
+            </div>
+        </li>
+        {/loop}
+    </ul>
+
+
+    <!--群名片-->
+    <div class="p10">
+        <div class="mygroups_tips_line">
+            <div class="mygroups_tips_main">
+                <img src="{AMOUSE_BIZ_NAV_RES}pig/images/card_user.png"/>
+                <span>群名片</span>
+            </div>
+        </div>
+    </div>
+    <ul class="mygroups-ul">
+        {if count($groupList)>0}
+        {loop $groupList $group}
+        <li class="mygroups-li" id="list_{$group['id']}" >
+            <div class="mygroups_info">
+                <a href="{php echo $_W['siteroot'] . 'app/' . substr($this->createMobileUrl('view',array('op'=>'group','id'=>pencode($group['id']))), 2)}" class="block">
+                    <div class="title">
+                        <span>{$group['title']}</span>
+                    </div>
+                    <div class="desc" >{$group['desc']}
+                    </div>
+                </a>
+                <div class="list_btn">
+                    <span class='read_num'>扫描: {$group['hot']}次</span>
+                    <div class="fr">
+                        <a class="mygroups_btn intop" onclick="svipTop('{$group[id]}','{$fans[vipstatus]}',2)" >固定置顶</a>
+                        <a class="mygroups_btn reload" onclick="upCardTop('{$group[id]}','{$fans[vipstatus]}',2)">手动刷新</a>
+                        <a class="mygroups_btn zd_reload" onclick="autoRefresh('{$group[id]}','{$fans[vipstatus]}',2)">自动刷新</a>
+                        <a class="mygroups_btn del" onclick='deleteGroup("{$group[id]}","1","{$group[title]}")'>删除</a>
+                    </div>
+                </div>
+            </div>
+        </li>
+        {/loop}
+        {else}
+        暂无数据
+        {/if}
+    </ul>
+</div><!--content  结束-->
+
+{template 'base/cnzz'}
+<img src="" width="0" height="0"/>
+
+<div style="height:30px; width:100%;"></div>
+{template 'default/footerbar'}
+
+
+{template 'default/javascript'}
+
+<script>
+    $('title').html('我的名片');
+    var abcurl = "{php echo $_W['siteroot'] . 'app/' . substr($this->createMobileUrl('getAbcFuck'), 2)}";
+    var pcenter_url="{php echo $_W['siteroot'].'app/'.substr($this->createMobileUrl('pcenter'), 2)}";
+    //删除群
+    function deleteGroup(id,top,name){
+        var msg = "确定删除 "+ name;
+        if(top=="0"){
+            medelete_url="{php echo $_W['siteroot'] . 'app/'.substr($this->createMobileUrl('ajaxDel',array('op'=>'card')), 2)}";
+        }else{
+            medelete_url="{php echo $_W['siteroot'] . 'app/'.substr($this->createMobileUrl('ajaxDel',array('op'=>'group')), 2)}";
+        }
+        if(confirm(msg)){
+            $.post(medelete_url,{sid:id},function(json){
+                if(json.code==200){
+                    $("#list_"+id).remove();
+                    history.go(0);
+                }else{
+                    dialog2(json.msg);
+                }
+            }, 'json');
+        }
+    }
+    var needfriend= "{$set['needfriend']}";
+    //非vip限制
+    function autoRefresh(id,vip,reftype){
+        if(vip==0){
+            dialog2("亲爱的,自动刷新仅限VIP购买使用！");
+            return false;
+        }else{
+            window.location.href="{php echo $this->createMobileUrl('vip',array('op'=>'auto'),true)}&id="+id+"&iscard="+reftype;
+        }
+    }
+
+    function svipTop(id,vip,iscard) {
+        if(vip==0){
+            dialog2("亲爱的,固定置顶仅限VIP购买使用！");
+            return false;
+        }else{
+            window.location.href="{php echo $this->createMobileUrl('vip',array('op'=>'svip'),true)}&id="+id+"&iscard="+iscard;
+        }
+    }
+
+    /**
+     * 刷新
+     * **/
+    function upCardTop(id,vip,istype){
+        var storage=window.localStorage;
+        if(vip==0){
+            if(needfriend<=0){
+                if(storage.getItem("addfans_num")) {
+                    var click_num = parseInt(storage.getItem("addfans_num"));
+                    if(click_num < needfriend){
+                        dialog2("亲爱的,您不是VIP，扫码加"+needfriend+"个好友后才可使用刷新一次哦！\n\n开通包月VIP，无需加人即可使用刷新！\n\n您已加了" + click_num + "人，继续加油！");
+                        return false
+                    }
+                    storage.setItem("addfans_num", 0)
+                }else{
+                    storage.setItem("addfans_num", 0);
+                    dialog2("亲爱的,您不是VIP，扫码加"+needfriend+"个好友后才可使用刷新一次哦！\n\n开通包月VIP，无需加人即可使用刷新！\n\n您已加了0人，继续加油！");
+                    return false
+                }
+            }
+        }
+        if(!confirm('『刷新』相当于重新发布一次，确认吗？')){
+            return;
+        }
+        var  refresh_url="{php echo $_W['siteroot'].'app/'.substr($this->createMobileUrl('refresh'), 2)}&id="+id+"&istype="+istype;
+        $.ajax({
+            type:"get",
+            async:false,
+            url:refresh_url,
+            dataType: "json",
+            beforeSend : function(XMLHttpRequest) {
+                loadingToast("提交中...");
+            },
+            success:function(result){
+                if(result.code==200) {
+                    dialog2('手动刷新成功');
+                    hidemod("loadingToast");
+                    setTimeout("location.reload()", 2000);
+                }else if(result.code==0){
+                    hidemod("loadingToast");
+                    dialog2(result.msg);
+                    setTimeout("window.location.href = pcenter_url", 500);
+
+                }else{
+                    hidemod("loadingToast");
+                    dialog2(result.msg );
+                }
+            },
+            error : function(data){
+                hidemod("loadingToast");
+                dialog2(data.msg);
+            }
+        });
+    }
+</script>
+</body>
+</html>

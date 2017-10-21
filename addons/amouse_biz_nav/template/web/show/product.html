@@ -1,0 +1,201 @@
+{template 'common/header'}
+
+{template 'web/show/tab_header'}
+
+{if $op == 'display'}
+
+<div class="panel panel-info">
+    <div class="panel-heading">筛选</div>
+    <div class="panel-body">
+        <form action="./index.php" method="get" class="form-horizontal" role="form">
+            <input type="hidden" name="c" value="site"/>
+            <input type="hidden" name="a" value="entry"/>
+            <input type="hidden" name="m" value="amouse_biz_nav"/>
+            <input type="hidden" name="do" value="product"/>
+            <input type="hidden" name="op" value="display"/>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-2 col-md-2 control-label">关键字</label>
+                <div class="col-sm-8 col-md-8 col-lg-8">
+                    <input class="form-control" name="keyword" id="" placeholder="商品名称" type="text" value="{$_GPC['keyword']}">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="pull-right col-xs-12 col-sm-2 col-md-2 col-lg-2">
+                    <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<div class="panel panel-default">
+    <div class="panel-body">
+        <a class='btn btn-default' href="{php echo $this->createWebUrl('product',array('op'=>'post'))}"><i class='fa fa-plus'></i>添加产品</a>
+    </div>
+    <form  class="form-horizontal" method="post">
+        <table class="table">
+            <thead>
+            <tr>
+                <th style="width:40%">货源信息</th>
+                <th style="width:15%;">创建时间</th>
+                <th style='width:12%;'>审核</th>
+                <th style="text-align:center;">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {loop $newList $item}
+            <tr>
+                <td>
+                     {$item['title']} / {$item['brief']}
+                    <br/> <label class='label label-danger'>人气:{$item['viewcount']}</label>
+                    <br/><label class='label label-info'>状态：{if $item['status']=='0'}正常{/if} {if $item['status']=='1'}待审核{/if}</label>
+                    <br/>
+                     <label class='label label-danger'>所属粉丝:{$item['nickname']} </label><br/>
+                    <a href="{php echo $this->createWebUrl('product', array('op' => 'post', 'id' => $item['id']))}" style="color:#333;">
+                        {if !empty($item['pcateid'])}  <label class='label label-success'>[{$item['cname']}]</label> {/if}
+                    </a>
+                </td>
+
+                <td style="width:15%;">{php echo date('Y-m-d H:i',$item['createtime'])} </td>
+                <td>
+                    <label title="点击自动切换是否审核" data="{$item['status']}" class='label label-default {if $item['status']==1}label-success{/if}'
+                    onclick="setProperty(this,{$item['id']},'status')">{if $item['status']==0}正常{else if $item['status']==1}待审核{/if}
+                    </label>
+                </td>
+
+                <td style="text-align:center;">
+                    <a href="{php echo $this->createWebUrl('product', array('op' => 'post', 'id' => $item['id'],'page'=>$pindex))}" title="编辑" data-toggle="tooltip"
+                       data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-edit">编辑</i>
+                    </a>
+                    <a onclick="return confirm('此操作不可恢复，确认吗？'); return false;"
+                       href="{php echo $this->createWebUrl('product', array('op' => 'delete', 'id' => $item['id']))}"
+                       title="删除" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-times">删除</i></a>
+                </td>
+            </tr>
+            {/loop}
+            </tbody>
+
+        </table>
+    {$pager}
+    </form>
+</div>
+<script>
+    function setProperty(obj, id,type) {
+        $(obj).html($(obj).html() + "...");
+        $.post("{php echo $this->createWebUrl('product',array('op'=>'setstatus'))}",{id: id,type: type,data: obj.getAttribute("data")},function (d) {
+            $(obj).html($(obj).html().replace("...", ""));
+            $(obj).html(d.data == '1' ? '正常' : '待审核');
+            $(obj).attr("data", d.data);
+            if (d.result == 1) {
+                $(obj).toggleClass("label-info");
+            }
+        }, "json");
+    }
+</script>
+{elseif $op == 'post'}
+<style type="text/css">
+    option.imagebacked {
+        padding: 2px 0 2px 20px;
+        background-repeat: no-repeat;
+        background-position: 1px 2px;
+        vertical-align: middle;
+    }
+    </style>
+    <div class="clearfix">
+    <form class="form-horizontal form" action="" method="post" enctype="multipart/form-data">
+        <div class="panel panel-default">
+            <div class="panel-heading">货源管理</div>
+            <div class="panel-body">
+                <input type="hidden" name="id" value="{$item[id]}">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">标题</label>
+                    <div class="col-sm-8 col-xs-12">
+                        <input type="text" name="title"   class="form-control" value="{$item['title']}" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">简介</label>
+                    <div class="col-sm-8 col-xs-12">
+                        <input type="text" name="brief"   class="form-control" value="{$item['brief']}" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">描述</label>
+                    <div class="col-sm-8">
+                        <textarea class="form-control" name="described" rows="5">{$item['described']}</textarea>
+                    </div>
+                </div>
+
+                <!--<div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">市场价</label>
+                    <div class="col-sm-8">
+                        <input type="text" class="form-control" placeholder="" name="price" value="{$item['price']}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">清货价</label>
+                    <div class="col-sm-8">
+                        <input type="text" class="form-control" placeholder="" name="clear_price" value="{$item['clear_price']}">
+                    </div>
+                </div>-->
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">浏览数</label>
+                    <div class="col-sm-8">
+                        <input type="text" class="form-control" placeholder="" name="viewcount" value="{$item['viewcount']}">
+                    </div>
+                </div>
+
+
+                <div class="form-group" >
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">所属卖家</label>
+                    <div class="col-sm-8 col-xs-12">
+                        <select id="openid" name="openid" class="form-control">
+                            {loop $list2 $row}
+<option value="{$row['openid']}" class="imagebacked" {if $row['from_user'] == $item['openid']} selected="selected"{/if} style="background-image:url({php echo tomedia($row['headimgurl'])});">{$row['nickname']}
+            </option>
+                            {/loop}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group" >
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">分类</label>
+                    <div class="col-sm-8 col-xs-12">
+                        <select id="pcateid" name="pcateid" class="form-control" >
+                            {loop $category $row}
+                            <option value="{$row['id']}"  {if $row['id'] == $item['pcateid']} selected="selected"{/if}>{$row['name']}</option>
+                            {/loop}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">货源展示图片</label>
+                    <div class="col-sm-9 col-xs-12">
+                        {php echo tpl_form_field_multi_image('images',iunserializer($item['images']))}
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-sm-12">
+                <input name="submit" type="submit" value="提交" class="btn btn-primary col-lg-1">
+                <input type="hidden" name="token" value="{$_W['token']}"/>
+            </div>
+        </div>
+    </form>
+    </div>
+
+{/if}
+
+<!--
+<link href="{AMOUSE_BIZ_NAV_RES}pig/css/main.css?1464937879" rel="stylesheet">
+<script src="{AMOUSE_BIZ_NAV_RES}js/showewm.js?1464937879"></script>
+<script>
+    var abcurl = "{php echo $_W['siteroot'] . 'app/' . substr($this->createMobileUrl('getAbcFuck'), 2)}";
+</script>-->

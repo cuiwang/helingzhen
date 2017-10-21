@@ -1,0 +1,266 @@
+{template 'header'}
+
+<link rel="stylesheet" type="text/css" href="../addons/we7_car/style/css/datepicker.css" media="all" />
+<link rel="stylesheet" type="text/css" href="../addons/we7_car/style/css/common.css" media="all" />
+<link rel="stylesheet" type="text/css" href="../addons/we7_car/style/css/reset.css" media="all" />
+<link type="text/css" rel="stylesheet" href="../web/resource/components/datetimepicker/bootstrap-datetimepicker.min.css" />
+<script type="text/javascript" src="../web/resource/components/datetimepicker/bootstrap-datetimepicker.min.js"></script>
+
+<style>
+.list_book dd > div:first-of-type label {
+    display: inline-block;
+    margin: 0 5px;
+    width: 80px;
+}
+</style>
+
+
+<div id="bookBody" class="body">
+	<section>
+		<form id="form1" action="" method="post" onsubmit="return validate(this);" enctype="multipart/form-data">
+			<div class="pb_5 pl_10 pr_10 pt_10">
+				<dl class="list_book">
+					<dt><label>我的车型</label></dt>
+						<dd class="tbox">
+							<div><label>品牌：</label></div>
+							<div>
+								<select name="brand" id="brand" onchange="fetchseries(this.value,'series','')" class="input-medium" data-rule-required="true">
+									<option value="0">请选择品牌</option>
+									{loop $brands $brand}
+										<option {if ($car['brand_val'] == $brand['id'].'='.$brand['title'])} selected {/if} value="{$brand['id']}={$brand['title']}">{$brand['title']}</option>
+									{/loop}
+								</select>
+							</div>
+						</dd>
+						<dd class="tbox">
+							<div><label>车系：</label></div>
+							<div>
+								<select name="serie" id="series" onchange="fetchseries(this.value,'types')" class="input-medium" data-rule-required="true">
+									{loop $eseries $serie}
+										<option {if ($order['series_val'] == $serie['id'].'='.$serie['title'])} selected {/if} value="{$serie['id']}={$serie['title']}">{$serie['title']}</option>
+									{/loop}
+									<option value="0">请选择车系</option>
+								</select>
+							</div>
+						</dd>
+						<dd class="tbox">
+							<div><label>车型：</label></div>
+							<div>
+								<select name="types" id="types" class="input-medium" data-rule-required="true">
+									{loop $etypes $type}
+										<option {if ($order['type_val'] == $type['id'].'='.$type['title'])} selected {/if} value="{$type['id']}={$type['title']}">{$type['title']}</option>
+									{/loop}
+									<option value="0">请选择车型</option>
+								</select>
+							</div>
+						</dd>
+					<dd class="tbox">
+						<div><label>自定义：</label></div>
+						<div><input type="text" id="car_note" name="car_note" placeholder="或者您也可以直接输入" maxlength="30" value="{$car['car_note']}"/></div>
+					</dd>
+				</dl>
+			</div>
+			<!---------->
+			<div class="pb_5 pl_10 pr_10">
+				<dl class="list_book">
+					<dt><label>基本信息</label></dt>
+					<dd class="tbox">
+						<div><label>车牌号码：</label></div>
+						<div><input type="text" name="car_no" placeholder="如：晋A123456" maxlength="15" value="{$car['car_no']}"/></div>
+					</dd>
+
+					<dd class="tbox">
+						<div><label>车主姓名：</label></div>
+
+						<div><input type="text" name="car_userName" placeholder="如：王家家" maxlength="15" value="{$car['car_userName']}"/></div>
+					</dd>
+					<dd class="tbox">
+						<div><label>车主电话：</label></div>
+						<div><input type="text" name="car_mobile" placeholder="如：13453225656" maxlength="15" value="{$car['car_mobile']}"/></div>
+					</dd>
+					<dd class="tbox">
+						<div><label>上牌时间：</label></div>
+						<div>
+							{php echo tpl_form_field_date('car_startTime', $car['car_startTime'])}
+						</div>
+					</dd>
+
+					<dd class="tbox">
+						<div><label>爱车靓照：</label></div>
+						<div class="relative">
+							<input type="text" placeholder="添加照片" name="fileCover" id="fileCover" value=""/>
+							<input type="file" name="car_photo" accept="image/*" onchange="changeFile(this,event);"/>
+						</div>
+					</dd>
+
+					<dd class="tbox">
+						<div><label></label></div>
+						<div class="relative">
+							<span style="color:red;">建议图片尺寸640*320，大小不超过1M</span>
+						</div>
+					</dd>
+					{if $car['car_photo']}
+					<dd class="tbox">
+						<div>
+							<input type="image" class="img_loading" src="{$_W['attachurl']}{$car['car_photo']}" id="fileShow" name="fileShow" style="max-height:180px;padding:0!important;height:auto;" onclick="return false;"/>
+						</div>
+					</dd>
+					{else}
+					<dd>
+						<div>
+							<input type="image" class="img_loading" src="" id="fileShow" name="fileShow" style="max-height:180px;padding:0!important;height:auto;" onclick="return false;"/>
+						</div>
+					</dd>
+
+					{/if}
+
+				</dl>
+			</div>
+			<!---------->
+			<div class="pb_5 pl_10 pr_10">
+				<dl class="list_book">
+					<dt><label>保险信息</label></dt>
+					<dd class="tbox">
+						<div><label style="width:105px;">上次保险日期：</label></div>
+						<div>
+							{php echo tpl_form_field_date('car_insurance_lastDate', $car['car_insurance_lastDate'])}
+						</div>
+					</dd>
+					<dd class="tbox">
+						<div><label style="width:105px;">上次保险费用：</label></div>
+						<div style="width:100%;"><input style="width:75%;" type="text" name="car_insurance_lastCost" maxlength="15" value="{$car['car_insurance_lastCost']}"/> 元</div>
+					</dd>
+				</dl>
+			</div>
+			<div class="pb_5 pl_10 pr_10">
+				<dl class="list_book">
+					<dt><label>保养信息</label></dt>
+					<dd class="tbox">
+						<div><label style="width:105px;">上次保养里程：</label></div>
+						<div style="width:100%;"><input style="width:75%;" type="text" name="car_care_mileage" maxlength="8" value="{$car['car_care_mileage']}"/> 公里</div>
+					</dd>
+					<dd class="tbox">
+						<div><label style="width:105px;">上次保养时间：</label></div>
+						<div>
+							{php echo tpl_form_field_date('car_care_lastDate', $car['car_care_lastDate'])}
+						</div>
+					</dd>
+					<dd class="tbox">
+						<div><label style="width:105px;">上次保养费用：</label></div>
+						<div style="width:100%;"><input style="width:75%;" type="text" name="car_care_lastCost" maxlength="8" value="{$car['car_care_lastCost']}"/> 元</div>
+					</dd>
+				</dl>
+			</div>
+			<div style="margin:0;text-align: center;">
+				<input type="hidden" name="token" value="{$_W['token']}" />
+				<input type="submit" name="submit" value="确定" class="btn_submit">
+			</div>
+			<div style="height:80px;"></div>
+		</form>
+	</section>
+
+	{template 'share'}
+
+</div>
+
+<script type="text/javascript">
+	$(function(){
+		$("#dpd1,#dpd2,#dpd3").datetimepicker({
+			format: "yyyy-mm-dd",
+			minView: "2",
+			autoclose: true
+		});
+	});
+	function fetchseries(bid,type,obj){
+		var arr=bid.split('=');
+		$(obj).find("input").val(arr[1])
+		$.get("index.php?i={$_W['uniacid']}&c=entry&m=we7_car&do=yuyue&op=getseries"+"&ty="+type+"&bid="+arr[0],
+		function(data){
+			$("#"+type).html(data);
+		});
+	}	
+
+	function changeFile(thi, evt){
+		for (var i=0, f; f = evt.target.files[i]; i++) {
+			var type = {".jp":"image/jpeg",".pn":"image/png",".gi":"image/gif"}[f.name.match(/\.(\w){2}/g)[0]||".jp"];
+			f.type2 = f.type||type;
+
+
+			var fileCover = document.getElementById('fileCover');
+			var fileShow = document.getElementById('fileShow');
+			fileShow.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';
+			var reader = new FileReader();
+			reader.onload = (function(theFile) {
+				return function(e) {
+					var ori = e.target.result;
+					ori = ori.replace(/^.+(,)/, "data:"+theFile.type2+";base64,");
+					fileCover.value = evt.target.files[0].name;
+					fileShow.src = ori;
+				};
+			  })(f);
+			reader.readAsDataURL(f);	
+		 }
+	}
+
+	function validate() {
+		/*
+		if($.trim($(':text[name="realname"]').val()) == '') {
+			alert('必须填写姓名.');
+			return false;
+		}
+		var regu =/^[0-9]{11}$/;
+		var re = new RegExp(regu);
+		var $phone = $("#mobile");
+		var phone = $phone.val();
+		if(!re.test(phone)){
+			alert("请输入正确的手机号码!");
+			$phone.focus();
+			return false;
+		}
+		*/
+		if($("#brand").val()<='0' && $("#series").val()<='0' && $("#car_type").val()==''){
+			alert('请选择品牌/车系或直接输入.');
+			return false;
+		}
+		if($.trim($(':text[name="car_no"]').val()) == '') {
+			alert('请输入车牌号.');
+			return false;
+		}
+		if($.trim($(':text[name="car_userName"]').val()) == '') {
+			alert('请输入车主姓名.');
+			return false;
+		}
+		if($("#dpd1").val()==''){
+			alert('请选择上牌时间.');
+			return false;
+		}
+		if($("#dpd2").val()==''){
+			alert('请选择上次保险时间.');
+			return false;
+		}
+		
+		var car_insurance_lastCost = parseInt($(':text[name="car_insurance_lastCost"]').val());
+		if(isNaN(car_insurance_lastCost)) {
+			alert('保险费用必须为数字.');
+			return false;
+		}
+		var car_care_mileage = parseInt($(':text[name="car_care_mileage"]').val());
+		if(isNaN(car_care_mileage)) {
+			alert('保养公里数必须为数字.');
+			return false;
+		}
+		
+		if($("#dpd3").val()==''){
+			alert('请选择场次保养时间.');
+			return false;
+		}
+		var car_care_lastCost = parseInt($(':text[name="car_care_lastCost"]').val());
+		if(isNaN(car_care_lastCost)) {
+			alert('保养费用必须为数字.');
+			return false;
+		}
+		return true;
+	}
+</script>
+
+{template 'footer'}

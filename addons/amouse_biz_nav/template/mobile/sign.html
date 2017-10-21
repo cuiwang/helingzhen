@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>每日签到</title>
+    <meta name="format-detection" content="telephone=no, address=no">
+    <meta name="apple-mobile-web-app-capable" content="yes" /> <!-- apple devices fullscreen -->
+    <meta name="apple-touch-fullscreen" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <link rel="shortcut icon" href="{$_W['siteroot']}{$_W['config']['upload']['attachdir']}/{if !empty($_W['setting']['copyright']['icon'])}{$_W['setting']['copyright']['icon']}{else}images/global/wechat.jpg{/if}" />
+
+    <script type="text/javascript" src="{$_W['siteroot']}app/resource/js/app/util.js"></script>
+    <script src="{$_W['siteroot']}app/resource/js/require.js"></script>
+    <script src="{$_W['siteroot']}app/resource/js/app/config.js"></script>
+    <script type="text/javascript" src="{$_W['siteroot']}app/resource/js/lib/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="{$_W['siteroot']}app/resource/js/lib/mui.min.js"></script>
+    <script type="text/javascript" src="{$_W['siteroot']}app/resource/js/app/common.js"></script>
+    {if defined('MUI')}
+    <link href="{$_W['siteroot']}app/resource/css/mui.min.css" rel="stylesheet">
+    {else}
+    <link href="{$_W['siteroot']}app/resource/css/bootstrap.min.css" rel="stylesheet">
+    {/if}
+    <link href="{$_W['siteroot']}app/resource/css/common.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container container-fill">
+<style>
+    body{background:#d2e6e9;}
+
+    .sign ul,.sign li{margin:0; padding:0; list-style:none;}
+
+    .sign .calendar {font-family:Verdana; background-color:#EEE; text-align:center; height: 320px; line-height:1.5em;}
+    .sign .calendar .header{font-size: 14px; color: #888e8e; line-height: 50px; height: 50px; background: #ffffff; box-shadow: 0 5px 5px rgba(100,100,100,0.1); padding:0 50px; text-align:center; position:relative;}
+    .sign .calendar .header .pre,.sign .calendar .header .next{display:inline-block; width:50px; height:50px; line-height:50px; text-align:center; position:absolute; top:0;}
+    .sign .calendar .header .pre{left:0;}
+    .sign .calendar .header .next{right:0;}
+    .sign .calendar a{color:#888e8e;}
+    .sign .calendar table{width:280px; margin:auto; border:0;}
+    .sign .calendar table thead{color:#acacac;}
+    .sign .calendar table td {color:#989898; border:1px solid #ecf9fa; width:40px; height:40px; margin:1px; background: #ffffff; -webkit-box-sizing:border-box;}
+    .sign .calendar thead td, .sign .calendar td:empty{background:none; border:0;}
+    .sign .calendar thead td{color:#72bec9; font-size:13px; font-weight:bold;}
+    #idCalendar td a.checked{display: block;height:100%; border:0px solid #58c4d1; background: url({AMOUSE_BIZ_NAV_RES}pig/images/pig_check_in.png) no-repeat center 16px;background-size: 20px;font-weight: bold; line-height:38px; color:#989898;}
+    #idCalendar td.onToday, #idCalendar td.onToday a{color:#ff3600!important;}
+</style>
+<link href="{AMOUSE_BIZ_NAV_RES}pig/css/main.css?2016050101" rel="stylesheet">
+<link href="{AMOUSE_BIZ_NAV_RES}pig/css/load.css?2016050101" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="{AMOUSE_BIZ_NAV_RES}pig/css/sign.css?1464147804"/>
+<body class="bgw">
+<div class="sign">
+
+    <div class="check_bg">
+        <div class="check_box">
+            <a class="check_btn" data-record="{$record['id']}">
+                <h2>{if $record['id']}已签到{else}签到{/if}</h2>
+                <p>总次数:{$total}</p>
+            </a>
+            <p class="check_int">我的积分<span>{$credits}</span></p>
+        </div>
+    </div>
+
+    <div class="month-container">
+        <div class="calendar">
+            <div class="header">
+                <a class="pre" href="{php echo $this->createMobileUrl('sign',array('e' => $pretime));}"><i class="fa fa-long-arrow-left"></i></a>
+                <span class="year" id="idCalendarYear">{$year}</span>年 <span class="month" id="idCalendarMonth">{$month}</span>月
+                <a class="next" href="{php echo $this->createMobileUrl('sign',array('e' => $nexttime));}"><i class="fa fa-long-arrow-right"></i></a>
+            </div>
+            <table cellspacing="0">
+                <thead>
+                <tr>
+                    <td>日</td>
+                    <td>一</td>
+                    <td>二</td>
+                    <td>三</td>
+                    <td>四</td>
+                    <td>五</td>
+                    <td>六</td>
+                </tr>
+
+                </thead>
+                <tbody id="idCalendar">
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{template 'default/footerbar'}
+<script>
+    require(['calendar', 'util'], function(calendar, util){
+        var flag = $.parseJSON('{$flags}');
+        var cale = new Calendar("idCalendar", {
+            Year : "{$year}",
+            Month : "{$month}",
+            onToday: function(o){ o.className = "onToday"; },
+            onFinish: function(){
+                this.Year = "{$year}";
+                this.Month = "{$month}";
+                $$("idCalendarYear").innerHTML = this.Year;
+                $$("idCalendarMonth").innerHTML = this.Month;
+                for(var i = 0, len = flag.length; i < len; i++){
+                    this.Days[flag[i]].innerHTML = "<a href='javascript:void(0);' class='checked'>" + flag[i] + "</a>";
+                }
+            }
+        });
+
+        function AjaxReturn(url,medthod){
+            var bol;
+            $.ajax({
+                type:medthod,
+                async:false,
+                url:url,
+                dataType: "json",
+                success:function(data){
+                    bol=data;
+                }
+            });
+            return bol;
+        }
+
+        $('.check_btn').bind('click',function(){
+            var record = parseInt($(this).data('record'));
+            if(record > 0){
+                util.message("您今天已经签到");
+                return false;
+            }
+            var ajaxurl = "{php echo $this->createMobileUrl('ajaxSign',array('fansid'=>$fans['id']),true)}&_=" + Math.random();
+            var result=AjaxReturn(ajaxurl,'get');
+            if(result.code==200) {
+                 util.message(result.msg, "{php echo $this->createMobileUrl('index');}", 'success');
+            }else{
+                util.message(result.msg);
+            }
+            return false;
+        })
+    });
+</script>

@@ -1,0 +1,1040 @@
+<html lang="en" style="font-size: 19.45px;">
+<head>
+<meta charset="UTF-8">
+<title>详情~{$system['sysname']}</title>
+<meta name="viewport" content="initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, width=device-width">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<link rel="stylesheet" type="text/css" href="../addons/water_live/template/css/one.css">
+<script type="text/javascript" src="../addons/water_live/template/js/jquery.min.js"></script>
+<link type="text/css" href="../addons/water_live/template/css/animate.css">
+<script type="text/javascript" src="../addons/water_live/template/js/jquery.lazyload.js"></script>
+<script>
+	$(function(){ 
+		
+		lazyLoad();
+		
+		$postBar = $(".post_bar"),	
+		nUin = $postBar.attr("data-id");
+		$postBar.on("click", ".comment_btn",
+			function() {
+                var $postItem = $(this).parents(".post_item");
+                $postItem.find(".comment_bar").show(500);
+                $postItem.find(".comment_edit").show(500).find(".edit_text").attr("placeholder", "我来说一句").attr("data-to", 0)[0].focus();
+           
+        });
+		$postBar.on("click", ".comment_btn2",
+				function() {
+	                var $postItem = $(this).parents(".post_item");
+	                var sectionId = $postItem.attr("data-sectionid");
+	                var topicId   = $postItem.attr("data-topicid");
+	                $.ajax({
+                        type: 'GET',
+                        url: '{php echo $this->createMobileUrl("admindelete");}',
+                        data: {sectionid: sectionId,topicid:topicId},
+                        success: function(data) {
+                        	var data = eval("("+data+")");
+                            if (data.errcode == 0) {
+                            	alertToUrl(data.errmsg,data.url);
+                            } else {
+   	                    	 	alert(data.errmsg);
+                            }
+                        },
+                        error: function() {}
+                    });
+	        });
+		$postBar.on("click", ".comment_btn3",
+				function() {
+	                var $postItem = $(this).parents(".post_item");
+	                var sectionid = $postItem.attr("data-sectionid");
+	                var url = '{php echo $this->createMobileUrl('dashang');}';
+	            	var newurl = url.replace('?','?sectionid='+sectionid+'&');  
+	            	window.location.href=newurl;
+	        });
+		
+		$postBar.on("click", ".like_btn",
+			function() {
+	            var operationtype;
+	            var $this = $(this),
+	            $postItem = $(this).parents(".post_item");
+	            if ($this.attr("data-click") == 1) {
+	                return;
+	            } else {
+	                $this.attr("data-click", 1);
+	            }
+	            if ($(this).hasClass("like_active")) {
+	                operationtype = 2;
+	                {if $system['syszan']>0}showdh($this,'积分-{$system['syszan']}');{/if}
+	            } else {
+	                operationtype = 1;
+	                {if $system['syszan']>0}showdh($this,'积分+{$system['syszan']}');{/if}
+	            }
+	            var sectionId = $postItem.attr("data-sectionId");
+	            var topicId = $postItem.attr("data-topicId");
+	            var $likeNum = $this.find(".num");
+	            var $likeBar = $postItem.find(".like_bar");
+	            var $commentBar = $postItem.find(".comment_bar");
+	            $.ajax({
+	                type: 'GET',
+	                url: '{php echo $this->createMobileUrl("dolike");}',
+	                data: {sectionid: sectionId,topicid: topicId,operatetype: operationtype},
+	                success: function(data) {
+	                	var data = eval("("+data+")");
+	                    $this.attr("data-click", 0);
+	                    if (data.errcode == 0) {
+	                        if (operationtype == 2) {
+	                            if ($likeNum.html() == 1) {
+	                                $likeNum.html("赞");
+	                                $commentBar.attr("data-like", 0);
+	                            } else {
+	                                $commentBar.attr("data-like", parseInt($commentBar.attr("data-like") - 1));
+	                                $likeNum.html(parseInt($likeNum.html()) - 1);
+	                            }
+	                            $this.removeClass("like_active");
+	                        } else {
+	                            if (isNaN($likeNum.html())) {
+	                                $likeNum.html(1);
+	                                $commentBar.attr("data-like", 1);
+	                            } else {
+	                                $likeNum.html(parseInt($likeNum.html()) + 1, 10);
+	                                $commentBar.attr("data-like", parseInt($commentBar.attr("data-like") + 1));
+	                            }
+	                            $this.addClass("like_active");
+	                        }
+	                        commentShow($postItem);
+ 	                        $.ajax({
+	                            type: 'GET',
+	                            url: '{php echo $this->createMobileUrl("likelist");}',
+	                            data: {sectionid: sectionId},
+	                            success: function(data) {
+	                            	var data = eval("("+data+")");
+	                                if (data.errcode == 0) {
+	                                    $likeBar.html(data.likelist);
+	                                    lazyLoad();
+	                                } else {
+	       	                    	 	tips('网络错误4');
+	                                }
+	                            },
+	                            error: function() {}
+	                        });
+	                    } else {
+	                    	 tips('网络错误3');
+	                    }
+	                },
+	                error: function() {
+	                    $this.attr("data-click", 0);
+	                    tips('网络错误2');
+	                }
+	            });
+	           
+	    });
+		
+        $postBar.on("click", ".comment_item",
+                function(e) {
+                    if (e.target.nodeName != 'A') {
+                        var $this = $(this);
+                        var idForm = $this.attr("data-from"),
+                        nameFrom = $this.attr("data-user");
+                        if (idForm != nUin) {
+                            $this.parents(".post_item").find(".comment_edit").show(500).find(".edit_text").attr("placeholder", "回复" + nameFrom).attr("data-to", idForm).attr("data-to-name", nameFrom)[0].focus();
+                        }
+                       
+                    }
+                });
+		
+		$postBar.on("click", ".cancel",
+			function() {
+				$(this).parents(".comment_edit").hide().find(".edit_text").val('').attr("placeholder", "").parent().find(".left_num").html(200).removeClass("left_warn");
+            	commentShow($(this).parents(".post_item"));
+        });
+
+        $postBar.on("input", ".edit_text",
+			function() {
+				var textLength = $(this).val().length,
+				$num = $(this).parent().find(".left_num");
+				if (textLength > 200) {
+					$num.addClass("left_warn");
+				} else {
+					$num.removeClass("left_warn");
+				}
+				$num.html(200 - textLength);
+        });
+
+        $postBar.on("focus", ".edit_text",
+			function() {
+				$("body").css("padding-bottom", "230px");
+				$("#headWrap").hide(0);
+				$(".container").css("marginTop", 0);
+				var top = $(this).offset().top;
+				$("body").scrollTop(top - 100);
+				$(".edit_bar").hide();
+			});
+        $postBar.on("blur", ".edit_text",
+			function() {
+				$(".edit_bar").show();
+				$("#headWrap").show();
+				$(".container").css("marginTop", "44px");
+				$("body").css("padding-bottom", 0);
+			});
+
+        $postBar.on("click", ".commit",
+			function() {
+				var $text = $(this).parents(".comment_edit").find(".edit_text"),
+				text = $.trim($text.val()),
+				$postItem = $(this).parents(".post_item"),
+				sectionId = $postItem.attr("data-sectionId"),
+				topicId = $postItem.attr("data-topicid"),
+				$commentBox = $postItem.find(".comment_box"),
+				commentNum = parseInt($commentBox.attr("data-count")),
+				toId = $text.attr("data-to"),
+				toName = $text.attr("data-to-name"),
+				username = $postBar.attr("data-name"),
+				$commentBar = $postItem.find(".comment_bar"),
+				$moreBtn = $commentBox.find(".more_comment");
+				if ($commentBar.attr("data-commit") == 1) {
+	                return;
+	            } else {
+	            	$commentBar.attr("data-commit", 1);
+	            }
+				if (text.length > 200) {
+					//signPop.setContent("评论字数不能超过200").show();
+					tips("评论字数不能超过200");
+					return false;
+				}
+				if ($.trim(text) == "") {
+					tips("评论不能为空");
+					//signPop.setContent("评论不能为空").show();
+					return false;
+				}
+				
+				{if $system['syspl']>0}showdh($text,'积分+{$system['syspl']}');{/if}
+				
+				
+	    	      $.ajax({
+	     	     		 type:'GET',
+	     	     		 data:{sectionid:sectionId,topicid:topicId,content:text,toid:toId,toname:toName,nUin:nUin},
+	     	     		 url:'{php echo $this->createMobileUrl("commitconten");}',
+	     	     		 success:function(data){
+	     	     			  var data = eval("("+data+")");
+	     	     			  $commentBar.attr("data-commit", 0);
+		  	                  if (data.errcode == 0) {
+			                    	tips("评论成功");
+			                        $text.parent().hide();
+			                        $text.val("");
+			                        $commentBar.attr("data-comment", commentNum + 1);
+			                        $commentBox.attr("data-count", commentNum + 1).show();
+		                            var $model = $("#commentModel").find(".comment_item");
+		                            text = text.replace(/\r\n/g, "<br>");
+		                            text = text.replace(/\r/g, "<br>");
+		                            text = text.replace(/\n/g, "<br>");
+		                            if (toId == 0) {
+		                                var $comment = $model.eq(0).clone();
+		                                $comment.find(".item_text").find(".name").html(xss(username, 'html') + '：').attr("href", "http:page?queryuin=" + "0");
+		                                $comment.find(".item_text").find(".context").html(xss(text, 'html'));
+		                                $comment.attr("data-to", 0).attr("data-from", nUin);
+		                                //$moreBtn.before($comment);
+		                            } else {
+		                                var nameTo = $text.attr("data-to-name");
+		                                var $comment = $model.eq(1).clone();
+		                                $comment.find(".item_text").find(".name").eq(0).html(xss(username, 'html')).attr("href", "http://www.b.com?in=" + "0");
+		                                var content = '回复<span class="blue_name">'+nameTo+'：</span>' + xss(text, 'html');
+		                                $comment.find(".item_text").find(".context").html(content);//
+		                                $comment.attr("data-to", toId).attr("data-from", nUin);
+		                            }
+	                                $moreBtn.before($comment);
+			                    } else {
+			                    	tips('网络错误1');
+			                    }
+	     	     		 }
+	     	     	 });
+
+			});
+
+	}); 
+	
+    function lazyLoad() {
+        $('.img_loading').lazyload({
+            effect: "fadeIn",
+            data_attribute: 'img',
+            threshold: 240,
+            appear: function(obj) {
+                $(this).removeClass("img_loading");
+            }
+        });
+    }
+	
+    function xss(str, type) {
+        if (!str) {
+            return str === 0 ? "0": "";
+        }
+        switch (type) {
+        case "none":
+            return str + "";
+            break;
+        case "html":
+            return str.replace(/[&'"<>\/\\\-\x00-\x09\x0b-\x0c\x1f\x80-\xff]/g,
+            function(r) {
+                return "&#" + r.charCodeAt(0) + ";"
+            }).replace(/ /g, "&nbsp;").replace(/\r\n/g, "<br />").replace(/\n/g, "<br />").replace(/\r/g, "<br />");
+            break;
+        case "htmlEp":
+            return str.replace(/[&'"<>\/\\\-\x00-\x1f\x80-\xff]/g,
+            function(r) {
+                return "&#" + r.charCodeAt(0) + ";"
+            });
+            break;
+        case "url":
+            return escape(str).replace(/\+/g, "%2B");
+            break;
+        case "miniUrl":
+            return str.replace(/%/g, "%25");
+            break;
+        case "script":
+            return str.replace(/[\\"']/g,
+            function(r) {
+                return "\\" + r;
+            }).replace(/%/g, "\\x25").replace(/\n/g, "\\n").replace(/\r/g, "\\r").replace(/\x01/g, "\\x01");
+            break;
+        case "reg":
+            return str.replace(/[\\\^\$\*\+\?\{\}\.\(\)\[\]]/g,
+            function(a) {
+                return "\\" + a;
+            });
+            break;
+        default:
+            return escape(str).replace(/[&'"<>\/\\\-\x00-\x09\x0b-\x0c\x1f\x80-\xff]/g,
+            function(r) {
+                return "&#" + r.charCodeAt(0) + ";"
+            }).replace(/ /g, "&nbsp;").replace(/\r\n/g, "<br />").replace(/\n/g, "<br />").replace(/\r/g, "<br />");
+            break;
+        }
+    }
+	
+
+	function commentShow(selector) {
+        var $commentBar = selector.find(".comment_bar");
+        $commentBar.each(function() {
+            var $likeBar = $(this).find(".like_bar"),
+            $comment = $(this).find(".comment_box");
+            if ($(this).attr("data-like") > 0) {
+                $likeBar.css("display", "block");
+            } else {
+                $likeBar.css("display", "none");
+            }
+            if ($(this).attr("data-comment") > 0) {
+                $comment.css("display", "block");
+            } else {
+                $comment.css("display", "none");
+            }
+            if ($(this).attr("data-like") == 0 && $(this).attr("data-comment") == 0) {
+                $(this).css("display", "none");
+            } else {
+                $(this).css("display", "block");
+            }
+        })
+    }
+
+	function tips(content){
+		$("#info").html(content);
+		$("#pup").addClass("mod_tips_popup_show");
+		setTimeout('$("#pup").removeClass("mod_tips_popup_show")',2000); 
+		
+	}
+	
+	function alertToUrl(info,url) {
+		tips(info);
+	    setTimeout("window.location.href='" + url + "'", 800);
+	  }
+	
+	</script>
+</head>
+<style>
+.sellprice {
+    color: #f44;
+    bottom: 0;
+    padding-top:3px;
+    padding-right:8px;
+    font-family: HiraKakuProN-W6;
+}
+.fs-t1 {
+    font-size: 10px;
+}
+.fs-t4 {
+    font-size: 15px;
+}
+    </style>
+<body style="background-color: #fff">
+	<header id="headWrap">
+		<div class="md_hd_wrap" id="headContent">
+			<div class="col_left ">
+				<a href="{php echo $this->createMobileUrl('topic',array('topicid'=>$section['topicid']));}"><i id="backChildBtn" class="hd_back" attr-tag="backBtn"></i></a>
+			</div>
+			<div class="col_middle">
+				<h1 id="title">帖子详情</h1>
+			</div>
+			<div class="col_right" style="display: none;">
+				<a href="#"></a>
+			</div>
+		</div>
+	</header>
+	<ul class="smart_box" id="smartbox"></ul>
+	<div class="container">
+		<div class="post_bar" data-id="{$fans['id']}" data-name="{$fans['nickname']}">
+			<div class="post_item detail_style " data-sectionid="{$section['id']}" 
+				data-topicid="{$section['topicid']}" data-uin="{$fans['id']}" data-topic="{$section['stitle']}">
+				<div class="item_top clearfix">
+					<div style="float: left;width: 70%;">
+						<a class="head" href="{php echo $this->createMobileUrl('home',array('fansid'=>$section['fansid']));}" title="" target=""> <img class="head_img img_loading" data-img="{$section['headimgurl']}" src="../addons/water_live/template/img/head.png"></a> 
+						<a class="item_name" href="javascript:;"><p class="{if $section['status'] ==2}item_admin{/if}">{$section['nickname']}</p><p class="time">{$section['showtime']}</p></a>
+					</div>
+                    <div style="float: right;width: 30%;text-align: right;">
+                       {if $section['fee']>0}
+	                    <p class="sellprice">
+	             			 <span class="fs-t1">￥</span><span class="fs-t4">{$section['fee']}</span>
+	            		</p>{/if}
+                    </div>
+				</div>
+				<div class="item_content detail_copy">{$section['content']}</div>
+				{if !empty($section['audiosid'])}
+				<div class="item_content detail_copy">
+				<link href="../addons/water_live/template/css/addmedia.css" rel="stylesheet">
+					<div class="post-voice-box-rp rel" onclick="toplayvoice()">
+			            <div class="post-voice-box-pause" id="voicelable" >
+								<span style="padding-left:40px;line-height:20px;font-size: 80%;" id="voiceshow">点击播放</span></div>
+			        </div>
+			        <div class="post-rp-voice-time rel">{$section['audiotime']}"</div>
+			        <input type="hidden" id="voicestate" value="0">
+			        <input type="hidden" id="audiosid" value="{$section['audiosid']}">
+				</div>
+				 <div style="clear:both;"></div>
+				{/if}
+				{if !empty($section['vediosrc'])}
+				<div class="item_content detail_copy" >
+				<video controls="controls" style="width: 40%;">
+					<source src="{$_W['attachurl']}{$section['vediosrc']}" type="video/mp4" />
+						你的浏览器不支持播放视频标签，使用谷歌或者火狐浏览器吧！
+						</video>
+				</div>
+				 <div style="clear:both;"></div>
+				{/if}
+				{if !empty($simgs)}
+				<div class="img_bar">
+						{loop $simgs $img}
+					<img class="item_img img_detail img_loading" data-img="{$_W['attachurl']}{$img}" src="../addons/water_live/template/img/abiu_loading.gif" style="opacity: 1;"> 
+						{/loop}
+					{if !empty($system['sysimg'])}
+					<img class="item_img img_detail img_loading" data-img="{$_W['attachurl']}{$system['sysimg']}" src="../addons/water_live/template/img/abiu_loading.gif" style="opacity: 1;"> 
+					{/if}
+				</div>
+				{/if}
+				<div class="item_content detail_copy"
+					style="line-height: 16px; color: #5a85ce; font-size:11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{$section['address']}</div>
+				<style>
+				.bd-ds {
+    text-align: center;
+    margin-bottom: 10px;
+}
+.bd-ds .ds-btn {
+    display: inline-block;
+    width: 90px;
+    height: 30px;
+    line-height: 30px;
+    background-color: #17b5ee;
+    color: #fff;
+    -webkit-border-radius: 4px;
+    border-radius: 4px;
+    margin: 10px 0;
+}
+.bd-ds p {
+    font-size: 12px;
+    color: #999;
+}
+.post .bd-ds .ds-list {
+    margin: 10px auto;
+    width: 270px;
+}
+.bd-ds .ds-list img {
+    width: 35px;
+    height: 35px;
+    margin: 0 5px 5px;
+    -webkit-border-radius: 35px;
+    border-radius: 35px;
+    vertical-align: middle;
+}
+				</style>
+				{if $system['isreward'] == 1}
+				<div class="bd-ds">
+					<a class="ds-btn comment_btn3" href="javascript:;">打赏</a>
+					<p style="margin-bottom: 5px;">{$rewardsum}人打赏</p>
+					<div class="ds-list">
+					   {loop $rewardlist $item}
+						<a href="{php echo $this->createMobileUrl('home',array('fansid'=>$item['fansid']));}"><img alt="头像" class="un-prev"
+							src="{$item['headimgurl']}"></a>
+					   {/loop}
+							
+					</div>
+				</div>
+				<!-- <li style="text-align: center;padding-bottom:1px;list-style: none;">
+                      <div class="f-15rem" style="margin:15px 0 5px;">
+                          <a class="detail-reward-button tmp-reward-button comment_btn3"  href="javascript:;">
+                              <i class="white-zan"></i>{$section['rewardsum']}
+                          </a>
+                      </div>
+                  </li> -->
+                  {/if}
+				<div class="show_bar clearfix">
+					<div class="item_topic" style="width: 30%;">
+						<i class="topic_name icon_source"></i> 
+						<a class="topic_link" href="{php echo $this->createMobileUrl('topic',array('topicid'=>$section['topicid']));}"><span>{$section['stitle']}</span></a>
+					</div>
+
+					<div class="show_btn">
+						{if $fans['state'] == 2}
+						<div class="able_btn comment_btn2">
+							<i class="icon_comment2 icon_source"></i><span class="num">删除</span>
+						</div>
+						{/if}
+						 {if $system['isscan'] == 1}
+						<div class="able_btn scan_btn" style="width: 60px;">
+							<i class="icon_scan icon_source"></i><span class="num">{$section['scansum']}</span>
+						</div>	{/if}					
+						<div class="able_btn comment_btn">
+							<i class="icon_comment icon_source"></i><span class="num">评论</span>
+						</div>
+						<div class="able_btn like_btn {if $section['dolike'] ==1}like_active{/if}">
+							<i class="icon_like icon_source"></i><span class="num">{if $section['likesum'] ==0}赞{else}{$section['likesum']}{/if}</span>
+						</div>
+					</div>
+				</div>
+
+				<div class="comment_bar" data-commit="0" data-like="{$section['likesum']}" data-comment="{$section['replysum']}" style="display: {if $section['likesum'] == 0 && $section['replysum']== 0 }none{else}block{/if};">
+					<i class="top_arrow"></i> <i class="top_line"></i>
+
+					<div class="like_bar clearfix" style="display: {if $section['likesum'] ==0}none{else}block{/if};">
+						<i class="icon_source icon_like_little"></i>
+						 {if $section['likesum'] > 0}
+                       	{loop $section['likelist'] $ind $like}
+                       	{if $ind<=6}
+	                      <div class="like_item">
+	                        <a class="head" href="{php echo $this->createMobileUrl('home',array('fansid'=>$like['fansid']));}" title="" target="">
+	                          <img class="head_img img_loading" data-img="{$like['headimgurl']}" src="../addons/water_live/template/img/head.png">
+	                        </a>
+	                      </div>
+	                      {/if}
+                       {/loop}
+                      <div class="like_item" style="display: {if $section['likesum']>=8}block{else}none{/if};">
+                            <a class="head" href="" >
+                                <img class="head_img" src="../addons/water_live/template/img/more_like_list.png" alt="">
+                            </a>
+                        </div>
+                      {/if}
+
+					</div>
+					<div class="comment_edit">
+						<textarea class="edit_text" name="" id="" placeholder="0" data-to=""></textarea>
+
+						<div class="left_num">200</div>
+						<div class="btn_bar clearfix">
+							<div class="commit btn">发送</div>
+							<div class="cancel btn">取消</div>
+						</div>
+					</div>
+					<div class="comment_box" data-count="{$section['replysum']}" style="display: {if $section['replysum'] ==0}none{else}block{/if};">
+						<i class="icon_source icon_comment_little"></i>
+
+						<div id="_tempUp101" class="tempUp" style="height: 0px;"></div>
+						<div id="_upLine101"></div>
+						<div id="asynItemList">
+
+							<div id="datapage101_1" class="list_page" data-pageno="1">
+								
+								{loop $section['replylist'] $reply}
+								
+								
+								<div class="comment_item clearfix" id="comment{$reply['id']}" data-id="{$reply['id']}"
+									data-to="{$reply['datato']}" data-from="{$reply['datafrom']}" data-user="{$reply['nickname']}">
+									<i class="bottom_line"></i>
+									<a class="head" href="{php echo $this->createMobileUrl('home',array('fansid'=>$reply['datafrom']));}" title="" target=""> 
+										<img class="head_img" src="{$reply['headimgurl']}" alt="">
+									</a>
+									<div class="item_text">
+									{if $reply['datato'] ==0}
+                        			<p class="name">{$reply['nickname']}：</p>
+									<p class="context">{$reply['content']}</p>
+                        			{else}
+                        			<p class="name">{$reply['nickname']}</p>
+                        			<p class="context">
+                        			回复<span class="blue_name">{$reply['toname']}：</span>{$reply['content']}</p>
+                        			{/if}
+									</div>
+									<p class="comment_time">{php echo date('m-d H:i',strtotime($reply['addtime']));}</p>
+								</div>
+								{/loop}
+								<p class="comment_item more_comment" style="display: none">
+                        			<a class="name" href="">更多…</a>
+                      			</p>
+							</div>
+						</div>
+						<div id="_downLine101"></div>
+						<div id="emptyTips"
+							style="-webkit-transform-origin: 0px 0px 0px; opacity: 1; -webkit-transform: scale(1, 1); display: none;"></div>
+
+					</div>
+
+				</div>
+				<!-- 评论模型 -->
+				    <div id="commentModel" style="display: none">
+						<div class="comment_item clearfix" id="" data-id="" data-to="" data-from="" data-user="">
+						    <i class="bottom_line"></i>
+						    <a class="head" href="" title="" target="">
+						        <img class="head_img" src="{$fans['headimgurl']}" alt="">
+						    </a>
+						    <div class="item_text">
+						        <p class="name"></p>
+						        <p class="context"></p>
+						    </div>
+						    <p class="comment_time">刚刚</p>
+						</div>
+						<div class="comment_item clearfix" id="" data-id="" data-to="" data-from="" data-user="">
+					    <i class="bottom_line"></i>
+					    <a class="head" href="" title="" target="">
+					        <img class="head_img" src="{$fans['headimgurl']}" alt="">
+					    </a>
+					    <div class="item_text">
+					        <p class="name "></p>
+					        <p class="context">回复<span class="blue_name">：</span></p>
+					            </div>
+					    <p class="comment_time">刚刚</p>
+					</div>
+			        </div>
+			</div>
+		</div>
+	</div>
+	<style>
+	.mod_tips_popup {
+	opacity: 0;
+	-webkit-transition: all linear 0.2s;
+	z-index: -1;
+	position: fixed;
+	left: 42%;
+	top: 20%;
+	box-sizing: border-box;
+	width: auto;
+	padding: 15px;
+	margin-left: auto;
+	border-radius: 10px;
+	background-color: rgba(0,0,0,0.83)
+}
+	.mod_tips_popup.mod_tips_popup_show {
+	opacity: 1;
+	z-index: 10000
+	}
+	
+	</style>
+	{if $section['fee']>0 && $section['issell'] ==1}
+	 <div style="height: 15px;"></div>
+	 {if empty($order)}
+	 
+	<a class="edit_bar" href="javascript:void(0);" id="topay">我要购买</a>
+	 {else}
+	 	<a class="edit_bar" href="javascript:void(0);" >已购买</a>
+	 {/if}
+	{/if}
+	 <div id="Mpopup14618046251102">
+      	<div id="pup" class="mod_tips_popup">
+        <div class="mod_tips_cnt">
+          <div class="J_tips_content" style="color: #fff;" id="info"></div>
+        </div>
+        <div class="mod_tips_ft">
+        </div>
+      </div>
+    </div>
+<input type="hidden" name="orderno" id="orderno">
+<input type="hidden" name="orderid" id="orderid">
+<input type="hidden" name="payewmid" id="payewmid" value="no">
+<style>
+	.mod_tips_popup {
+	opacity: 0;
+	-webkit-transition: all linear 0.2s;
+	z-index: -1;
+	position: fixed;
+	left: 28%;
+	top: 20%;
+	box-sizing: border-box;
+	width: auto;
+	padding: 15px;
+	margin-left: auto;
+	border-radius: 10px;
+	background-color: rgba(0,0,0,0.83)
+}
+	.mod_tips_popup.mod_tips_popup_show {
+	opacity: 1;
+	z-index: 10000
+	}
+	
+	</style>
+ 	  <div id="Mpopup14618046251102">
+      <div id="pup" class="mod_tips_popup">
+        <div class="mod_tips_cnt">
+          <div class="J_tips_content" style="color: #fff;" id="info"></div>
+        </div>
+        <div class="mod_tips_ft">
+        </div>
+      </div>
+    </div>
+<script>
+
+function tips(content){
+	$("#info").html(content);
+	$("#pup").addClass("mod_tips_popup_show");
+	setTimeout('$("#pup").removeClass("mod_tips_popup_show")',2500); 
+	
+}
+
+function alertToUrl(info,url) {
+	tips(info);
+    setTimeout("window.location.href='" + url + "'", 2500);
+  }
+</script>    
+    <style type="text/css">
+body, html {
+    height: 100%;
+    -webkit-tap-highlight-color: transparent;
+}
+  .d-box {
+    border-radius: 10px;
+    margin: 100px auto 0;
+    position: relative;
+    width: 80%;
+    background: #fff;
+}
+  .dialog {
+    background: rgba(0, 0, 0, 0.6) none repeat scroll 0 0;
+    height: 100%;
+    left: 0;
+    display: none;
+    position: fixed;
+    text-align: center;
+    top: 0;
+    width: 100%;
+    z-index: 999;
+}
+.d-e {
+    border-radius: 5px 5px 0 0;
+    font-size: 0;
+    overflow: hidden;
+    padding: 10px 5px;
+}
+.d-e img {
+    width: 100%;
+
+}
+.e-t {
+    background: #fff none repeat scroll 0 0;
+    border-radius: 0 0 10px 10px;
+    color: #08b3ab;
+    padding-top:0;
+    padding-bottom: 10px;
+    padding-left: 0;
+    padding-right: 0;
+}
+.d-close {
+    background: #999 none repeat scroll 0 0;
+    border-radius: 15px;
+    color: #fff;
+    cursor: pointer;
+    font-weight: bold;
+    height: 30px;
+    line-height: 30px;
+    position: absolute;
+    right: -10px;
+    top: -10px;
+    width: 30px;
+}
+
+</style>
+<!--修改号码-->
+ <div class="dialog" id='dialog'>
+      <div class="d-box">
+      	<div onclick="$('#dialog').hide();" class="d-close">X</div>
+      	<div class="d-e">
+      		<img id="payewm" >
+      	</div>
+      <p class="e-t">长按微信二维码支付</p>
+      </div>
+</div>
+    
+    
+    
+    {php $shareurl = $_W['siteroot'].'app/'.$this->createMobileUrl('sdetail',array('sectionid'=>$section['id']));}
+	{php $imgurl = $shareimg;}
+	{php $stitle = $sharetitle;}
+	{php $sdesc = $sharedesc;}
+    <script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js" type="text/javascript"></script>
+    <script>
+        var appid = '{$_W['account']['jssdkconfig']['appId']}';
+        var timestamp = '{$_W['account']['jssdkconfig']['timestamp']}';
+        var nonceStr = '{$_W['account']['jssdkconfig']['nonceStr']}';
+        var signature = '{$_W['account']['jssdkconfig']['signature']}';
+
+        wx.config({
+            debug: false,
+            appId: appid,
+            timestamp: timestamp,
+            nonceStr: nonceStr,
+            signature: signature,
+            jsApiList: [
+                'checkJsApi',
+                'showOptionMenu',
+                'onMenuShareTimeline',
+                'onMenuShareAppMessage',
+                'startRecord',
+                'stopRecord',
+                'onVoiceRecordEnd',
+                'playVoice',
+                'pauseVoice',
+                'stopVoice',
+                'onVoicePlayEnd',
+                'uploadVoice',
+                'downloadVoice',
+                'translateVoice',
+                'chooseWXPay',
+                
+            ]
+        });
+
+        var shareData = {
+            title: '{php echo $stitle}',
+            desc: '{php echo $sdesc}',
+            link: '{php echo $shareurl}',
+            imgUrl: '{php echo $imgurl}'
+        };
+
+        wx.ready(function () {
+        	
+        	wx.showOptionMenu();
+        	
+        	
+        	$("#topay").click(function() {
+        		var text = $("#topay").text();
+        		if(text == '支付中，成功后自动跳转'){
+        			return false;
+        		}
+        		$("#topay").text('支付中，成功后自动跳转');
+		        var payewmid = $("#payewmid").val().trim();
+		        if(payewmid == "no"){
+		       		   	$.ajax({
+		       				 type:'POST',
+		       				 data:{type:'sell'},
+		       				 url:'{php echo $this->createMobileUrl("GetPrepayid",array('sectionid'=>$section['id'],'fee'=>$section['fee']));}',
+		       				 success:function(data){
+		       					  var json = eval("("+data+")");
+		       					  //alert(json.orderno);
+		       					  if(json.errcode == 0){
+		       						  $("#orderno").val(json.orderno);
+		       						  $("#orderid").val(json.orderid);
+		       						  $("#tijiao").val("0");
+		       						  
+		       						  if(json.type == 1){
+		       							alertToUrl(json.msg,json.url);
+		       						  }else{
+		       							  
+			       						  if(json.auth == 0){
+				       						  wx.chooseWXPay({
+				       							    timestamp: json.timeStamp, 
+				       							    nonceStr: json.nonceStr, 
+				       							    package: json.package, 
+				       							    signType: json.signType, 
+				       							    paySign: json.paySign,
+				       							    success: function (res) {
+				       							        // 支付成功后的回调函数
+				       							    	var str = JSON.stringify(res);
+				       							    	checkorder();
+				       							    }
+				       							});
+			       						  }else{
+			       							    tips('长按二维码即可完成支付');
+			       							 	$('#dialog').show()
+												$("#payewm").attr('src',json.code_url);
+												$("#payewmid").val(json.code_url);
+												checkorder();
+			
+			       							 // alert(json.code_url);
+			       						  }
+		       						  }
+		       						  
+		       						  
+		       					  }else{	 
+		       						if(json.type == 1){
+		       							alertToUrl(json.errmsg,json.url);
+		       						} else{
+			       						tips(json.errmsg);
+		       							
+		       						}
+		       					  }
+		       				 }
+		       			 });
+		        	
+		        }else{
+				    tips('长按二维码即可完成支付');
+				 	$('#dialog').show()
+					$("#payewm").attr('src',json.code_url);
+					$("#payewmid").val(json.code_url);
+					checkorder();
+		        }
+
+	});
+	
+	
+	function checkorder(){
+		var orderno =  $("#orderno").val();
+		var orderid =  $("#orderid").val();
+		if(orderno.length == 0){
+			alert('订单号为空');
+		}
+	   	$.ajax({
+			 type:'POST',
+			 data:{orderid:orderid},
+			 url:'{php echo $this->createMobileUrl("CheckJsPayResult");}',
+			 success:function(data){
+				  var json = eval("("+data+")");
+				  if(json.errcode == 0){
+					  alertToUrl(json.msg,json.url);
+				  }else{	 
+					  //alert(json.errmsg);
+					  //clearInterval(run)
+					  checkorder();
+				  }
+			 }
+		 });
+	}
+        	
+        	
+            wx.onMenuShareAppMessage({
+                title: shareData.title,
+                desc: shareData.desc,
+                link: shareData.link,
+                imgUrl: shareData.imgUrl,
+                trigger: function (res) {
+                },
+                success: function (res) {
+                	doshare();
+                },
+                cancel: function (res) {
+                },
+                fail: function (res) {
+                }
+            });
+
+            wx.onMenuShareTimeline({
+                title: shareData.title,
+                link: shareData.link,
+                imgUrl: shareData.imgUrl,
+                success: function () {
+                	doshare();
+                },
+                cancel: function () {
+                }
+            });
+        	
+        });
+
+        wx.error(function (res) {
+        });
+
+        
+    	function toplayvoice(){
+ 	    	var audiosid = $("#audiosid").val();
+    		$("#voicelable").removeClass("post-voice-box-pause");
+    		$("#voicelable").addClass("voice-box-playing");
+    		wx.downloadVoice({
+    		    serverId: audiosid, // 需要下载的音频的服务器端ID，由uploadVoice接口获得
+    		    isShowProgressTips: 1, // 默认为1，显示进度提示
+    		    success: function (res) {
+    		        var localId = res.localId; // 返回音频的本地ID
+		    		wx.playVoice({
+		    			localId : localId,
+		    			success : function(res) {
+		    				wx.onVoicePlayEnd({
+		    					success : function(res) {
+		    						$("#voicelable").removeClass("voice-box-playing");
+		    						$("#voicelable").addClass("post-voice-box-pause");
+		    					}
+		    				})
+		    			}
+		    		});
+    		    }
+    		});
+		}
+        
+        
+        
+        function doshare(){
+        	$.ajax({
+                type: 'GET',
+                url: '{php echo $this->createMobileUrl("DoShare");}',
+                success: function(data) {
+                	var data = eval("("+data+")");
+                    if (data.errcode == 0) {
+                    	tips(data.errmsg);
+                    }else{
+                    	//alert(1);
+                    }
+                },
+                error: function() {
+                	alert('网络错误');
+                }
+            });
+        }
+
+        
+        
+    </script>
+	<script type="text/javascript">
+(function ($) {
+	$.extend({
+		tipsBox: function (options) {
+			options = $.extend({
+				obj: null,  //jq对象，要在那个html标签上显示
+				str: "+1",  //字符串，要显示的内容;也可以传一段html
+				startSize: "12px",  //动画开始的文字大小
+				endSize: "30px",    //动画结束的文字大小
+				interval: 700,  //动画时间间隔
+				color: "red",    //文字颜色
+				callback: function () { }    //回调函数
+			}, options);
+			$("body").append("<span class='dhnum'>" + options.str + "</span>");
+			var box = $(".dhnum");
+			var left = $(window).width() / 2 - 40;
+			var top = options.obj.offset().top - options.obj.height();
+			box.css({
+				"position": "absolute",
+				"left": left + "px",
+				"top": top + "px",
+				"z-index": 9999,
+				"font-size": options.startSize,
+				"line-height": options.endSize,
+				"color": options.color
+			});
+			box.animate({
+				"font-size": options.endSize,
+				"opacity": "0",
+				"top": top - parseInt(options.endSize) + "px"
+			}, options.interval, function () {
+				box.remove();
+				options.callback();
+			});
+		}
+	});
+})(jQuery);
+  
+function showdh(prop,str){
+	$.tipsBox({
+		obj: $(prop),
+		str: str,
+		callback: function () {
+		}
+	});
+}
+</script>
+</body>
+</html>

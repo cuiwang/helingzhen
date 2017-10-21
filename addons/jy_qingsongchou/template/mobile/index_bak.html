@@ -1,0 +1,213 @@
+{template 'header'}
+
+
+
+<div class="all-containe mains">
+
+<div class="swiper-container qsc-tab tab-fixed home-navbar swiper-container-horizontal swiper-container-free-mode ">
+    <ul class="swiper-wrapper tab-item">
+    <?php  foreach ($_topmunu as $key => $value) { ?>
+      <li class="swiper-slide <?php if($key==0){ echo 'active'; }?> swiper-slide-active">
+          <a href=""><?php echo $value['title']; ?></a>
+      </li>
+    <?php } ?>
+    </ul>
+</div>
+
+
+<div class="content-fixed top mod-home bottom">
+<div class="tab-content">
+
+<!-- banner -->
+<div class="swiper-container  home-banner swiper-container-horizontal">
+    <div class="swiper-wrapper">
+        <? foreach($_banner as $k => $v){ ?>
+        <div class="swiper-slide swiper-slide-active">
+          <a href="" >
+              <img src="<? echo $v['imgurl']; ?>"  width="100%">
+          </a>
+        </div>
+        <? } ?>
+    </div>
+    <div class="swiper-pagination swiper-pagination-clickable"></div>
+</div>
+  <!-- banner -->
+
+<div id="home_out_1">
+  <div class="mui-scroll">
+    <!--数据列表-->
+    <div class="mui-table-view mui-table-view-chevron" id="home_out_list_1">
+
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div class="loading" id="loading"></div>
+
+</div>
+
+
+</div>
+
+<!-- 模板输出 -->
+
+
+<script type="text/html" id="home_tpl_1">
+
+    {{each list as value i}}
+
+     <div class="mod-project-card card-type-1">
+         <a href="">
+             <div class="mod-project-card_header clearfix">
+                 <div class="mod-project-card_header__avatar">
+                     <img class="lazy-load" src="" data-original="{{value.avatar}}" width="24" height="24" alt="">
+                 </div>
+                 <div class="mod-project-card_header__user">
+                     <span>{{value.nickname}}</span>
+                     <em class="mod-project-card_header__time">{{value._time}}</em>
+                 </div>
+             </div>
+             <div class="mod-project-card_content">
+                 <header class="mod-project-card_content__header">
+                     <h2>{{value.title}}</h2>
+                 </header>
+                 <div class="mod-project-card_content__detail">
+                     <p class="description">
+                        {{value.desc}}
+                     </p>
+
+                       <div class="mod-project-card_content__img clearfix">
+                         {{each value.thumb as value i}}
+
+                         <img class="lazy-load" data-original="{{value}}" width="25%" alt="{{title}}" style="display: block;">
+
+                          {{/each}}
+                       </div>
+
+                 </div>
+                 <div class="mod-project-card_content__supporter clearfix">
+
+
+                       <strong>
+
+                            {{each value._thumb as value i}}
+                         <span>
+                           <img class="lazy-load"  data-original="{{value}}" width="24" style="display: inline;">
+                         </span>
+                         {{/each}}
+                       </strong>
+
+                     <span>已有 <strong>{{value.suport}}</strong> 人支持</span>
+                 </div>
+                 <div class="mod-project-card_content__status clearfix">
+                     <span><i class="icon icon-aims"></i>目标<strong>{{value.target}}</strong>元</span>
+                     <span><i class="icon icon-already"></i>已筹<strong>{{value._com}}</strong>元</span>
+                     <span><i class="icon icon-supporter"></i>剩余<strong>{{value.lastDay}}</strong>天</span>
+
+                 </div>
+             </div>
+         </a>
+     </div>
+       {{/each}}
+
+</script>
+<!-- 模板输出 -->
+
+<script>
+
+
+  require(['template','lazyload','mui','swiper'],function(template,lazyload,mui){
+        mui.init({
+          pullRefresh: {
+            container: '#home_out_1',
+            down: {
+              contentrefresh: '正在加载...',
+              callback: pulldownRefresh
+            },
+            up: {
+              contentrefresh: '正在加载...',
+              callback: pullupRefresh
+            }
+          }
+        });
+        var count = 0;
+        function pullupRefresh(){
+          setTimeout(function() {
+                  	mui('#home_out_1').pullRefresh().endPullupToRefresh((++count > 2));
+                _mload();
+          },10);
+        }
+        function pulldownRefresh(){
+          setTimeout(function() {
+             _mload('prepend');
+           },1000);
+        }
+        if (mui.os.plus) {
+  				mui.plusReady(function() {
+  					setTimeout(function() {
+
+  						mui('#home_out_1').pullRefresh().pullupLoading();
+  					}, 1);
+
+  				});
+  			} else {
+  				mui.ready(function() {
+  					mui('#home_out_1').pullRefresh().pullupLoading();
+  				});
+  			}
+
+
+
+
+          function _mload(type){
+              $.ajax({
+                  url:'inc.php',
+                  dataType:'json',
+                  data:{
+                  dopost:'ajax'
+                  },
+                  ansyc:false,
+                  success:function(json){
+                    if(type=='prepend'){
+                        var html=template('home_tpl_1',json);
+                        $("#home_out_list_1").prepend(html);
+                        $("img.lazy-load").lazyload();
+                        mui('#home_out_1').pullRefresh().endPulldownToRefresh();
+                    }else{
+                      var html=template('home_tpl_1',json);
+                      $("#home_out_list_1").append(html);
+                      $("img.lazy-load").lazyload();
+
+                      mui('#home_out_1').pullRefresh().endPullupToRefresh((++count > 2));
+                    }
+                  },error:function(){
+                    result = 2;
+                  }
+              })
+          }
+
+          // swiper
+          var swiper = new Swiper('.swiper-container.qsc-tab', {
+              slidesPerView: 3,
+              paginationClickable: true,
+              freeMode: true
+          });
+          var swiper = new Swiper('.swiper-container.home-banner', {
+            pagination: '.swiper-pagination',
+                     paginationClickable: true,
+                     centeredSlides: true,
+                     loop: true,
+                     slidesPerView: 'auto',
+                     autoplay: 2000
+          });
+
+  })
+
+</script>
+
+
+
+
+<? include 'footer.html' ?>

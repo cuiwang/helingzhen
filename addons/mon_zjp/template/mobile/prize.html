@@ -1,0 +1,276 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta content="yes" name="apple-mobile-web-app-capable">
+    <meta content="black" name="apple-mobile-web-app-status-bar-style">
+    <meta content="telephone=yes" name="format-detection">
+    <title>{$zip['title']}</title>
+
+    <link type="text/css" href="{MON_ZJP_RES}css/rxhk.css"
+          rel="stylesheet"/>
+</head>
+<body>
+<div class="myprize">
+    <div class="myprize-top" style="height: 195px;"><a href="{php echo $this->createMobileUrl('zjp',array('zid'=>$zjp['id']),true)}"
+                                                       class="myprize-back">返回游戏</a>
+
+        <div class="avatar"><img
+                src="{$userInfo['headimgurl']}">{$userInfo['nickname']}
+        </div>
+
+
+        <div style="text-align: center; font-size: 24px;"> 颁奖手机号码：<span id="phone">{$dbUser['tel']}</span>
+
+
+            {if empty($dbUser)||(!empty($dbUser)&&empty($dbUser['tel']))}
+            <a
+                href="javascript:editPhone();" style="color: #FFD549; text-decoration: underline;">编辑</a>
+
+            {/if}
+
+        </div>
+
+
+
+    </div>
+    <!--弹出框：输入手机号码-->
+    <div id="phonePopup" class="popup" style="position: fixed; top: 0;">
+        <div class="popup-bg"></div>
+        <div class="popup-con-wrap">
+            <div class="popup-con">
+                <div class="popup-con-head">输入手机号码</div>
+                <div class="popup-con-word">请留下您真实的手机号码，以作为领取奖品的有效凭证。</div>
+                <div class="popup-con-input"><input name="phone" type="text">
+
+                    <div class="phone-border"></div>
+                </div>
+                <p class="popup-con-error">*请输入有效的手机号码！</p></div>
+            <a href="javascript:setPhone();" class="popup-btn">确认提交</a></div>
+    </div>
+    <div class="myprize-box">
+        <dl class="myprize-dl">
+
+
+            <?php if($recordCount>0) {
+
+                    for($index=0;$index<count($playRecords);$index++){
+
+                             $record=$playRecords[$index];
+
+            ?>
+            <dt> 第<?php echo $index+1;  ?>次<span><?php echo date("Y-m-d H:i:s",  $record['createtime'] ) ?> </span></dt>
+            <dd>
+                <div class="myprize-img fl"><img
+                        src="{MON_ZJP_RES}images/icon-noprize.png"></div>
+                <div class="myprize-word-a fl"><p class="myprize-p1"><?php if($record['award_status']==0){ ?>什么都没有<?php }else{ ?><?php echo  $record['pname'] ;}?></p>
+
+                    <p class="myprize-p3"><?php echo $record['msg'] ?></p></div>
+                <div class="clear"></div>
+            </dd>
+
+            <?php }} ?>
+
+
+
+            <?php
+                    $indexm=$recordCount;
+                    for($index=0;$index<$limitPlayCount-$recordCount;$index++){
+
+
+                            $indexm++;
+
+             ?>
+            <dt>第<?php  echo $indexm; ?>次</dt>
+            <dd>
+                <div class="myprize-img-a"><img
+                        src="{MON_ZJP_RES}images/icon-unused.png"><span>等你来抽</span>
+
+                    <div class="clear"></div>
+                </div>
+            </dd>
+
+
+            <?php } ?>
+
+
+
+            <?php
+
+
+                      $l_index= $limitPlayCount;
+                    for($index=0;$index<$lockCount;$index++){
+
+                        $l_index++;
+            ?>
+            <dt>第<?php echo $l_index ?>次</dt>
+            <dd style="background: #9e9a90;"><a href="javascript:openShareMask1();">
+                <div class="myprize-img-a"><img
+                        src="{MON_ZJP_RES}images/icon-lock.png"><span>立即解锁</span>
+
+                    <div class="clear"></div>
+                </div>
+            </a>
+
+                <p class="myprize-p4">{$zjp['lock_tip']}</p></dd>
+
+            <?php
+
+             }
+
+              ?>
+
+        </dl>
+        <div class="prize-btn"><a href="javascript:openShareMask2();">{$zjp['prize_sharebtn_name']}</a></div>
+    </div>
+</div>
+
+
+<!--分享遮罩层-->
+<div id="shareMask" class="mask" onclick="closeShareMask();">
+    <div class="mask-bg"></div>
+    <div class="mask-cont"><img src="{MON_ZJP_RES}images/arrow.png" class="indicate">
+
+        <div class="clear"></div>
+        <div class="mask-cont-text"> 点击右上角的<img src="{MON_ZJP_RES}images/icon.png"><span
+                id="maskEdit">就可以分享到朋友圈，让好友也来参加活动吧！</span></div>
+        <div class="mask-close"></div>
+    </div>
+</div>
+<div class="cnzz-stats" style="display: none;">
+
+</div>
+</body>
+<script type="text/javascript" src="{MON_ZJP_RES}js/jquery.min.js"></script>
+<script type="text/javascript" src="{MON_ZJP_RES}js/rxhk.js"></script>
+
+
+
+
+<script>
+
+
+    var shareType=2;
+
+    /**
+     * 打开分享遮罩层1:分享首页
+     */
+    function openShareMask1() {
+
+        shareType=1;
+        $('#maskEdit').text('就可以分享到朋友圈，成功后立即多{$zjp['share_award_time']}次抽奖呢。不勇敢点，永远不知道好运什么时候临幸自己。');
+
+        document.getElementById('shareMask').style.display = "block";
+    }
+    /**
+     * 打开分享遮罩层2：分享战绩
+     */
+    function openShareMask2() {
+
+        shareType=2;
+
+        $('#maskEdit').text('就可以分享到朋友圈，让好友也来参加活动吧！');
+
+        document.getElementById('shareMask').style.display = "block";
+    }
+    /**
+     * 关闭分享遮罩层
+     */
+    function closeShareMask() {
+
+        document.getElementById('shareMask').style.display = "none";
+    }
+    /**
+     * 编辑电话号码
+     */
+    function editPhone(){
+        $('#phonePopup').show();
+        var phone = $('#phone').text();
+        $('input[name="phone"]').val(phone);
+    }
+    /**
+     * 设置电话号码
+     */
+    function setPhone() {
+
+        var phone = $('input[name="phone"]').val();
+        if (!/^1\d{10}$/.test(phone)) {
+            alert("请输入正确的电话号码");
+            return false;
+        }
+
+
+        $.post("{php echo $this->createMobileUrl('RegistTel',array('zid'=>$zjp['id'],'uid'=>$dbUser['id']),true)}",{"tel":phone},function(res){
+
+            if(res.code==200){
+                $('#phone').text(phone);
+                alert("设置成功");
+            }else{
+                alert(res.msg);
+            }
+            $('#phonePopup').hide();
+
+
+        },'json');
+
+
+    }
+
+</script>
+
+
+{php echo register_jssdk(false);}
+<script type="text/javascript">
+
+
+    function sharefinish() {
+
+
+
+
+
+            $.post("{php echo $this->createMobileUrl('ShareAward',array('zid'=>$zjp['id']),true)}",function(res){
+
+
+                if(res.code==200){
+
+                    window.location.reload();
+                }
+
+            },'json');
+
+
+
+
+
+    }
+
+
+    wx.ready(function () {
+        sharedata = {
+            title: "{php echo $zjp['share_title']}",
+            desc: "{php echo $zjp['share_content']}",
+            link: "{php echo $this->str_murl($this->createMobileUrl('index',array('zid'=>$zjp['id']),true))}",
+            imgUrl: "{$_W['attachurl']}{$zjp['share_icon']}",
+            success: function(){
+                if(shareType==1){
+
+                    sharefinish();
+                }
+
+            },
+            cancel: function(){
+                // alert("分享失败，可能是网络问题，一会儿再试试？");
+            }
+        };
+        wx.onMenuShareAppMessage(sharedata);
+        wx.onMenuShareTimeline(sharedata);
+    });
+
+
+
+</script>
+
+
+
+</html>

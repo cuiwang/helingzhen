@@ -1,0 +1,1 @@
+var MasterConfig=function(){var e={baseUrl:"http://api.yqphh.com/",baseMobileUrl:"http://m.yqphh.com/",oauthUrl:"https://open.weixin.qq.com/connect/oauth2/authorize?response_type=code&scope=snsapi_base&state=123&",appId:"wxd4eccec153e22fcb",shop_name:"拼好货"},t={};return t.C=function(t){return e[t]},t}();

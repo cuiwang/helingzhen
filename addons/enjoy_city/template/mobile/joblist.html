@@ -1,0 +1,87 @@
+{template 'header'}
+<header class="mui-bar mui-bar-nav"> <a class="mui-icon mui-icon-left-nav mui-pull-left" href="javascript:history.go(-1)"></a>
+  <h1 class="mui-title">管理招聘</h1>
+</header>
+<div class="mui-content">
+  <div class="mui-content-padded"> <a href="{php echo $this->createMobileUrl('addjob',array('fid'=>$fid))}" class="mui-btn mui-btn-primary mui-btn-block" style="border: 1px solid #4cd964;background-color: #4cd964;">添加新职位</a> </div>
+  <ul class="mui-table-view">
+    {loop $joblist $item}
+    <li class="mui-table-view-cell user-shop-list job-{$item[id]}">
+      <div class="mui-ellipsis">
+        <div class="mui-slider-handle">
+          <div class="mui-pull-left">
+            <div class="shop-option"> <span class="shop-status gray">{if $item[ischeck]==0}审核中{elseif $item[ischeck]==1}通过审核{else}审核不通过{/if}</span> </div>
+            {$item[ptitle]}
+            <div class="mui-content-padded"></div>
+            <span class="text-gray">提交时间：{php echo date('Y-m-d',$item[createtime])}</span><br>
+          </div>
+        </div>
+      </div>
+    </li>
+    <div class="user-shop-btns job-{$item[id]}"> <a class="show-btn" data-id="{$item[id]}" data-end="{$item[isend]}">{if $item[isend]==1}点击上架{else}点击下架{/if}</a> <a href="{php echo $this->createMobileUrl('addjob',array('fid'=>$fid,'jid'=>$item[id]))}">编辑职位</a> <a class="top-btn" data-id="{$item[id]}">刷新置顶</a> <a class="delete-btn" data-id="{$item[id]}">删除职位</a></div>
+    {/loop}
+  </ul>
+</div>
+<script src="../addons/enjoy_city/public/js/_v1_global.js"></script>
+<div style="display:none" id="counthtml"> </div>
+<script>
+initEvents.push(function () {
+  $('.show-btn').on('click', function () {
+    var id = $(this).data('id');
+    var end = $(this).data('end');
+    var msg;
+    if (end == 0) {
+      msg = '确认下架该职位？';
+    }
+    else {
+      msg = '确认上架该职位？';
+    }
+    if (!confirm(msg)) {
+      return false;
+    }
+    //showMessage('<div contenteditable="true" style="text-align:center;font-size:2rem;margin:40px auto;color:blue;user-select: text;-webkit-user-select: text;">' + $(this).data('id') + '</div>', '审核职位，添加管理员微信，发送ID');
+    $.post("{php echo $this->createMobileUrl('bulid')}", {
+      id: id,
+      end: end,
+      op: 1
+    }, function (data) {
+      var data = eval('(' + data + ')');
+      //data.flag && showMessage('操作成功！');
+      if (data.flag == 1) {
+        location.reload();
+      }
+      else {
+        alert("请重新操作");
+      }
+    });
+  });
+  $('.top-btn').on('click', function () {
+    var id = $(this).data('id');
+    $.post("{php echo $this->createMobileUrl('bulid')}", {
+      id: id,
+      op: 2
+    }, function (data) {
+      var data = eval('(' + data + ')');
+      if (data.flag == 1) {
+        alert('置顶成功');
+      }
+    });
+  });
+  $('.delete-btn').on('click', function () {
+    if (!confirm('确认删除该职位？')) {
+      return false;
+    }
+    var id = $(this).data('id');
+    $.post("{php echo $this->createMobileUrl('bulid')}", {
+      id: id,
+      op: 3
+    }, function (data) {
+      var data = eval('(' + data + ')');
+      if (data.flag == 1) {
+        $('.job-' + id).remove();
+      }
+    });
+  });
+});
+</script>
+</body></html>

@@ -1,0 +1,918 @@
+{php $bootstrap_type = 3;}
+
+{template 'header'}
+
+{template 'common'}
+
+<style type="text/css">
+
+#calendar{/*margin:10px 0;width:100%;height:30px;line-height:30px;*/cursor:pointer;text-align:center;padding:2px 5px;height:50px;}
+</style>
+<script type="text/javascript" src="../addons/xc_lv/images/jquery.gcjs.js"></script>
+<script type='text/javascript' src='../addons/xc_lv/images/touchslider.min.js'></script>
+<script language='javascript' src='../addons/xc_lv/images/photoswipe/simple-inheritance.min.js'></script>
+<script language='javascript' src='../addons/xc_lv/images/photoswipe/photoswipe-1.0.11.min.js'></script>
+<link href="../addons/xc_lv/images/photoswipe/photoswipe.css" rel="stylesheet"/>
+<link href="../addons/xc_lv/css/datepicker.css" rel="stylesheet"/>
+<script language="javascript" src="../addons/xc_lv/images/touchslider.min.js"></script>
+<script language="javascript" src="../addons/xc_lv/images/swipe.js"></script>
+<script language="javascript" src="../addons/xc_lv/js/My97DatePicker/WdatePicker.js"></script>
+
+<link type="text/css" rel="stylesheet" href="../addons/xc_lv/images/style.css?{TIMESTAMP}">
+
+<div class="head" style="background-color: #ff6612;">
+    <a href="javascript:history.back();" class="bn pull-left"><i class="fa fa-angle-left"></i></a>
+    <span class="title">内容详情</span>
+    <a href="{php echo $this->createMobileUrl('list')}" class="bn pull-right">
+        <i class="fa fa-home"></i>
+    </a>
+<!--    <a href="{php echo $this->createMobileUrl('mycart')}" class="bn pull-right">
+        <i class="fa fa-shopping-cart"></i>
+        <span class="buy-num img-circle" id="carttotal">{$carttotal}</span>
+    </a>-->
+</div>
+
+<div class="detail-main" style='margin-bottom:65px;'>
+    <div class="detail-img">
+        <div id="banner_box" class="box_swipe">
+            <ul style="background:#FFF;">
+                {loop $piclist $row}
+                <li style="text-align:center;list-style: none;">
+                    <a href="{php echo tomedia($row);}" rel='{php echo tomedia($row);}'>
+                        <img src="{php echo tomedia($row);}" height="200px"/>
+                    </a>
+                </li>
+                {/loop}
+            </ul>
+<!--            <ol>
+                {loop $piclist $row}
+                <li class="on"></li>
+                {/loop}
+            </ol>-->
+        </div>
+
+        <script>
+            var proimg_count = {php echo count($piclist)};
+            $(function () {
+                new Swipe($('#banner_box')[0], {
+                    speed: 500,
+                    auto: 3000,
+                    callback: function () {
+                        var lis = $(this.element).next("ol").children();
+                        lis.removeClass("on").eq(this.index).addClass("on");
+                    }
+                });
+                if (proimg_count > 0) {
+                    (function (window, $, PhotoSwipe) {
+                        $('#banner_box ul li a[rel]').photoSwipe({});
+                    }(window, window.jQuery, window.Code.PhotoSwipe));
+                }
+            });
+        </script>
+
+    </div>
+    <div class="detail-div">
+        <div class="detail-group text-center" style="line-height:20px;font-weight:bold;margin-top:-10px;border-bottom: 1px solid #d3d3d3;"><h4>{$goods['title']}</h4></div>
+        <div class="detail-group" style='margin-top:10px;'>
+			<span class="pull-left">成人价<!--（{if !empty($goods['unit'])}/ {$goods['unit']}{/if}）-->：<span id='marketprice' style="font-size:18px; font-weight:bold;display:inline-block;color:#ff3b0e;">¥ {$marketprice}</span></span>
+            <span class="pull-right">儿童价<!--（{if !empty($goods['unit'])}/ {$goods['unit']}{/if}）-->：<span id='marketprice' style="font-size:18px; font-weight:bold;display:inline-block;color:#ff3b0e;">¥ {$productprice}</span></span>
+				
+				<br />
+				<div style="clear: both;"></div>
+
+			
+
+        </div>
+
+        <div class='detail-group'>
+            <div class="pull-left"><span style="float:left;margin-top:5px;">成人:</span>
+                <div class="input-group" style="width:100px;float:left;margin-left:8px;">
+				<span class="input-group-btn">
+					<button class="btn btn-success btn-sm" type="button" onclick="reduceNum()"><i class="fa fa-minus"></i></button>
+				</span>
+                    <input type="tel" class="form-control input-sm pricetotal goodsnum" style="background-color:#f2f2f2;text-align:center" value="1" id="total"/>
+				<span class="input-group-btn">
+					<button class="btn btn-success btn-sm" type="button" onclick="addNum()"><i class="fa fa-plus"></i></button>
+				</span>
+                </div></div>
+            <div class="pull-right"><span style="float:left;margin-top:5px;">儿童:</span>
+                <div class="input-group" style="width:100px;float:left;margin-left:8px;">
+				<span class="input-group-btn">
+					<button class="btn btn-success btn-sm" type="button" onclick="etreduceNum()"><i class="fa fa-minus"></i></button>
+				</span>
+                    <input type="tel" class="form-control input-sm pricetotal goodsnum" style="background-color:#f2f2f2;text-align:center;" value="0" id="ettotal"/>
+				<span class="input-group-btn">
+					<button class="btn btn-success btn-sm" type="button" onclick="etaddNum()"><i class="fa fa-plus"></i></button>
+				</span>
+
+                </div></div>
+
+
+
+            {if $stock!=-1}
+            <span id='stockcontainer' style="float:left;margin-left:5px;"></span>
+            {else}
+            <span id='stockcontainer' style="float:left;margin-left:5px;"><span id='stock'></span></span>
+            {/if}
+        </div>
+        <?php
+        if($good['starttime']<=time())
+        {
+        $good['starttime']=time();
+        }
+       
+
+        $starttime = date('Y-m-d',$goods['starttime']);
+        $endtime = date('Y-m-d',$goods['endtime']);
+        
+    
+       $time2 = explode("|", $goods['time2']); 
+       $time2 = json_encode($time2);
+        
+        ?>
+       
+<!--        <div style="padding:5px 0 5px 0;height:35px;">
+            出行时间：<input id="d411" class="Wdate" style="height:30px;width:240px;" type="text" onfocus='WdatePicker({skin:"whyGreen",disabledDates:<?php echo $time2;?>,minDate:"<?php echo $starttime;?>",maxDate:"<?php echo $endtime;?>"})' readonly="readonly"/>
+        </div>-->
+
+        
+
+
+        {loop $specs $spec}
+        <input type='hidden' name="optionid[]" class='optionid optionid_{$spec['id']}' value="" title="{$spec['title']}">
+        <div id='option_group' class='detail-group' style="margin-top:10px;">
+            <div class="detail-group">
+                <span style='float:left;display:block;height:30px;line-height:30px;overflow:hidden;text-overflow:ellipsis;margin-left:15px;padding:0'>{$spec['title']}</span>
+                <span style="float:left;display:block;height:30px;line-height:30px;padding:0 3px;">:</span>
+                <span style="float:left;margin-left:8px;" class='options options_{$spec['id']}' specid='{$spec['id']}'>
+                {loop $spec['items'] $o}
+                {if empty($o['thumb'])}
+                <span class="property option option_{$spec['id']}" specid='{$spec['id']}' oid="{$o['id']}" sel='false'>{$o['title']}</span>
+                {else}
+                <span class="propertyimg optionimg option_img_{$spec['id']} " oid="{$o['id']}" specid='{$spec['id']}' sel='false'>
+                <img src="{php echo tomedia($o['thumb']);}" width='50' height='70'/>
+                </span>
+                {/if}
+                {/loop}
+                </span>
+            </div>
+        </div>
+        {/loop}
+
+    </div>
+    {if count($params)>0}
+    <div class="detail-div other-detail">
+        {loop $params $p}
+        <div class="detail-group" style="word-break:break-word;">
+            <label>{$p['title']}</label>
+            <xmp>{$p['value']}</xmp>
+        </div>
+        {/loop}
+    </div>
+    {/if}
+    <div class="detail-div detail-content">
+      <div class="form-group">
+        <label>发团日期：</label>
+        <?php
+        		$detime = $goods['detime'];
+        		$detime = json_decode($detime,true);
+        		foreach ($detime[0] as $key=>$v){
+        $time = time()+43200;
+        $vtime = strtotime($v);
+        if($vtime>$time){
+        $arr[0][] = $v;
+        $arr[1][] = $detime[1][$key];
+        }
+        }
+        ?>
+        <div class="col-sm-12 col-xs-12">
+            <ul style="margin: 5px 0 5px -50px;list-style: none;">
+                <style>
+                    .click { font-weight:bold;color: #ffe928;font-size:14px;}/*
+                    .click:focus,.click:active:focus,.click.active:focus,.click.active:after{font-weight:bold;background-color:#5cb85c;outline:thin dotted;outline:5px auto -webkit-focus-ring-color;outline-offset:-2px}
+                    .click:hover,.click:focus,.click:after{font-weight:bold;background-color:#5cb85c;text-decoration:none}
+                    .click:active,.click.active,.click:after{font-weight:bold;background-color:#5cb85c;outline:0;-webkit-box-shadow:inset 0 0 0 rgba(0,0,0,.125);box-shadow:inset 0 0 0 rgba(0,0,0,.125)}*/
+                li:nth-child(2) .btn-danger { background-color: #ff1212;border:1px solid #ff1212;}
+                li:nth-child(3) .btn-danger { background-color: #ff5656;border:1px solid #ff5656;}
+                li:nth-child(4) .btn-danger { background-color: #fd8989;border:1px solid #fd8989;}
+
+            </style>
+                {loop $arr[0] $index $v}
+                {if $index<3}
+
+                <li style="float:left;display: block;margin:0;width:25%;"><button type="button" class="form-control btn btn-danger" style="display: inline-block;padding:2px 0;height:50px;" id="riqi">{$arr[0][$index]}<br /> <dfn style="font-style: normal;color:#fff;font-size:10px;" id="jinqian">￥{$arr[1][$index]}</dfn> </button></li>
+
+                {/if}
+                {/loop}
+                <li><input type="text" id="calendar" name="calendar" readonly="readonly" onclick="AjaxTime();" placeholder=">" class="form-control" style="width:25%;display: inline-block;font-size:10px;background-color: #feacac;border:1px solid #feacac;color:white;"  /></li></ul>
+            <!--<span class="help-block">如: 人次</span>-->
+        </div>
+    </div>
+    </div>
+    <div class="detail-div detail-content" style="word-break:break-word;">
+        <label>行程特色</label>
+        <xmp>{$goods['xingcheng']}</xmp>
+    </div>
+    <div class="detail-div detail-content" style="word-break:break-all">
+        <label>线路详情</label>
+        <?php
+ 	
+ 	 $zhi = $goods['zhi'];
+ 	 $qb = json_decode($zhi,true);
+ 	 
+ 	 $jishu = count($qb);
+ 	 $han = $goods['han'];
+ 	 $han = json_decode($han,true);
+
+	  
+ 	
+ 	?>
+        {loop $qb $index $v}
+                                <p style="background-color: #5CB85C;line-height:30px;padding:0 10px;color:white;">第{$index}天：{$v[0]}</p><p></p>
+
+                                <p><i class="fa fa-list"></i> <b>行程描述</b>：</p><p>
+								<?php echo htmlspecialchars_decode($v[1]);?>
+								</p>
+	
+
+                                <p><i class="fa fa-cutlery" style="width:15px;"></i> <b>含餐</b>：{$v[2]}</p>
+
+                                <p><i class="fa fa-hotel"></i> <b>住宿</b>：{$v[3]}</p>
+
+
+
+{/loop}
+
+
+<p style="background-color: #5CB85C;height:30px;line-height:30px;padding:0 10px;color:white;"><i class="fa fa-folder-open"></i> <b>费用包含</b></p><xmp style="word-wrap: break-word;">{$han[0]}</xmp>
+
+        <p style="background-color: #5CB85C;height:30px;line-height:30px;padding:0 10px;color:white;"><i class="fa fa-folder-open-o"></i> <b>费用不含</b></p><xmp style="word-wrap: break-word;">{$han[1]}</xmp>
+
+        <p style="background-color: #5CB85C;height:30px;line-height:30px;padding:0 10px;color:white;"><i class="fa fa-gratipay"></i> <b>温馨提示</b></p><xmp style="margin-bottom: 40px;word-wrap: break-word;">{$han[2]}</xmp>
+
+    </div>
+
+       
+        	
+        	<div id="date" style="margin-top:-2000px;"></div><div id="qian" style="margin-top:-2000px;"></div>
+    <script>
+        $(".btn-danger").click(function(){
+            $(this).each(function(){
+                $(this).toggleClass("click");
+            }).blur(function(){
+                $(this).removeClass("click");
+            });
+        });
+    </script>
+
+<script type="text/javascript">
+	$(function(){
+		
+		 $("ul li").each(function(index){
+		 	
+		 	$(this).click(function(){
+		 		
+                riqi = $(this).find('#riqi').text();
+                
+                date=riqi.substring(0,10);
+               qian = riqi.substring(12,100);
+                $("#date").empty();
+                 $("#qian").empty();
+                $("#date").append(date);
+                $("#qian").append(qian);
+      
+                
+               
+		 			
+		 			
+		 	});
+		 	
+		 
+		 	
+		 });
+		
+		
+		
+	});
+</script>
+
+
+    <div style="position:fixed; bottom:0; left:0; width:100%; z-index:88; text-align:center; background:#E9E9E9;">
+
+        {if $goods['status']!=1 || $goods['deleted']==1}
+        <a href="javascript:void(0)" class="btn btn-default col-xs-12" style="width:100%;">此旅游线路已下架</a>
+        {else}
+        <input type="hidden" id="optionid" name="optionid" value=""/>
+     <!--   <a href="javascript:void(0)" onclick='addtocart()' class="btn btn-danger col-xs-12" style="width:45%;">
+            <i class="fa fa-plus"></i> 添加到购物车</a>-->
+            {if $set['ispay']==1}
+        <a href="javascript:void(0)" onclick='buy()' class="btn btn-success btn-block btn-lg">立即购买</a>
+        {else}
+        
+         <a href="javascript:void(0)" onclick='baoming()' class="btn btn-success btn-block btn-lg">立即预约</a>
+         {/if}
+        {/if}
+    </div>
+
+</div>
+
+<script type="text/javascript">
+	function AjaxTime(){	
+//		alert(234);
+var url = "{php echo $this->createMobileUrl('detail', array('op' =>'laqu','id'=>$goods['id']))}";
+	   $.get(url,function(data) {
+		
+		pickerEvent.setPriceArr(eval("("+data+")"));
+		pickerEvent.Init("calendar");
+	});
+}
+</script>
+
+<script type="text/javascript">
+	Date.prototype.Format = function(fmt)   
+{ //author: meizz   
+  var o = {   
+    "M+" : this.getMonth()+1,                 //月份   
+    "d+" : this.getDate(),                    //日   
+    "h+" : this.getHours(),                   //小时   
+    "m+" : this.getMinutes(),                 //分   
+    "s+" : this.getSeconds(),                 //秒   
+    "q+" : Math.floor((this.getMonth()+3)/3), //季度   
+    "S"  : this.getMilliseconds()             //毫秒   
+  };   
+  if(/(y+)/.test(fmt))   
+    fmt=fmt.replace(RegExp.$1, (this.getFullYear()+"").substr(4 - RegExp.$1.length));   
+  for(var k in o)   
+    if(new RegExp("("+ k +")").test(fmt))   
+  fmt = fmt.replace(RegExp.$1, (RegExp.$1.length==1) ? (o[k]) : (("00"+ o[k]).substr((""+ o[k]).length)));   
+  return fmt;   
+} 
+</script>
+<script>
+    var options = {php echo json_encode($options)};
+    var specs = {php echo json_encode($specs)};
+    var hasoption = {php echo $goods['hasoption'] == '1' ? 'true' : 'false'};
+
+    $(function () {
+        $('.other-detail .detail-group:last').css("border-bottom", "0");
+
+        if (proimg_count > 0) {
+            (function (window, $, PhotoSwipe) {
+                $('.touchslider-viewport .list a[rel]').photoSwipe({});
+            }(window, window.jQuery, window.Code.PhotoSwipe));
+
+            $('.touchslider').touchSlider({
+                mouseTouch: true,
+                autoplay: true,
+                delay: 2000
+            });
+        }
+        $(".option,.optionimg").click(function () {
+            var specid = $(this).attr("specid");
+            var oid = $(this).attr("oid");
+            $(".optionid_" + specid).val(oid);
+            $(".options_" + specid + "  span").removeClass("current").attr("sel", "false");
+            $(this).addClass("current").attr("sel", "true");
+
+            var optionid = "";
+            var stock = 0;
+            var marketprice = 0;
+            var productprice = 0;
+            var ret = option_selected();
+
+            if (ret.no == '') {
+                var len = options.length;
+                for (var i = 0; i < len; i++) {
+                    var o = options[i];
+                    var ids = ret.all.join("_");
+                    if (o.specs == ids) {
+                        optionid = o.id;
+                        stock = o.stock;
+                        marketprice = o.marketprice;
+                        productprice = o.productprice;
+                        break;
+                    }
+                }
+                $("#optionid").val(optionid);
+                if (stock != "-1") {
+                    $("#stockcontainer").html("( 剩余 <span id='stock'>" + stock + "</span> )");
+                } else {
+                    $("#stockcontainer").html("<span id='stock'></span>");
+                }
+                $("#marketprice").html(marketprice);
+                $("#productprice").html(productprice);
+                if (productprice <= 0) {
+                    $("#productpricecontainer").hide();
+                } else {
+                    $("#productpricecontainer").show();
+                }
+            }
+        });
+
+        $("#total").blur(function () {
+            var total = $("#total");
+            if (!total.isInt()) {
+                total.val("1");
+            }
+            var stock = $("#stock").html() == '' ? -1 : parseInt($("#stock").html());
+            var mb = maxbuy;
+            if (mb > stock && stock != -1) {
+                mb = stock;
+            }
+            var num = parseInt(total.val());
+            if (num > mb && mb > 0) {
+                tip("您最多可报 " + mb + " 人!", true);
+                total.val(mb);
+            }
+        })
+
+    });
+    var maxbuy = {php echo empty($goods['maxbuy']) ? "0" : $goods['maxbuy']};
+
+    function addNum() {
+        var total = $("#total");
+        if (!total.isInt()) {
+            total.val("1");
+        }
+      //  var stock = $("#stock").html() == '' ? -1 : parseInt($("#stock").html());
+      //  var mb = maxbuy;
+      //  if (mb > stock && stock != -1) {
+      //      mb = stock;
+      //  }
+        var num = parseInt(total.val()) + 1;
+     //   if (num > stock) {
+      //      tip("您最多可报 " + stock + " 人!", true);
+      //      num--;
+      //  }
+      //  if (num > mb && mb > 0) {
+      //      tip("您最多可报 " + mb + " 人!", true);
+      //      num = mb;
+      //  }
+        total.val(num);
+    }
+
+    function reduceNum() {
+        var total = $("#total");
+        if (!total.isInt()) {
+            total.val("1");
+        }
+        var num = parseInt(total.val());
+        if (num - 1 <= 0) {
+            return false;
+        }
+        num--;
+        total.val(num);
+    }
+
+//儿童人次减少
+        function etreduceNum() {
+        var ettotal = $("#ettotal");
+        if (!ettotal.isInt()) {
+            ettotal.val("1");
+        }
+        var num = parseInt(ettotal.val());
+        if (num <= 0) {
+            return false;
+        }
+        num--;
+        ettotal.val(num);
+    }
+//儿童人次增加
+    function etaddNum() {
+        var ettotal = $("#ettotal");
+        if (!ettotal.isInt()) {
+            ettotal.val("1");
+        }
+       
+        var num = parseInt(ettotal.val()) + 1;
+ 
+        ettotal.val(num);
+    }
+	
+    function addtocart() {
+        var ret = option_selected();
+        if (ret.no != '') {
+            tip("请选择" + ret.no + "!", true);
+            return;
+        }
+        tip("正在处理数据...");
+        var total = $("#total").val();
+        var stock = parseInt($('#stock').text());
+        if (stock == 0) {
+            tip('人满为患了啊，亲~~选别的线路吧~~');
+            return;
+        }
+        var url = "{php echo murl('entry//mycart',array('id'=>$goods['id'],'op'=>'add','m'=>'xc_lv'),true)}" + "&optionid=" + $("#optionid").val() + "&total=" + total;
+        $.getJSON(url, function (s) {
+            if (s.result == 0) {
+                tip("只能报 " + s.maxbuy + " 人!");
+            } else {
+                tip_close();
+                tip("已加入行囊!");
+                $('#carttotal').css({
+                    'width': '50px',
+                    'height': '50px',
+                    'line-height': '50px'
+                }).html(s.total).animate({'width': '20px', 'height': '20px', 'line-height': '20px'}, 'slow');
+            }
+        });
+    }
+	//立即购买
+    function buy() {
+    	
+    	
+		
+		
+		var date = $('#date').text();
+		var qian = $("#qian").text();
+		//alert(date);//alert(qian);
+		if(date==''){
+			
+			alert("请选择出游时间");
+			return false;
+		}
+			   
+       
+	
+        var ret = option_selected();
+        if (ret.no != '') {
+            tip("请选择" + ret.no + "!", true);
+            return;
+        }
+        var stock = parseInt($('#stock').text());
+        if (stock == 0) {
+            tip('人满为患了啊，亲~~选别的线路吧~~');
+            return;
+        }
+        var total = $("#total").val();
+	     var ettotal = $("#ettotal").val();
+        location.href = "{php echo murl('entry//confirm',array('id'=>$goods['id'],'op'=>'confirm','m'=>'xc_lv'),true)}" + "&optionid=" + $("#optionid").val() + "&total=" + total+ "&ettotal=" + ettotal + "&retime=" + date  + "&price=" + qian;
+    }
+	
+	
+	
+	
+	//立即报名
+	
+	    function baoming() 
+		{
+		var date = $('#date').text();
+		var qian = $("#qian").text();
+		//alert(date);//alert(qian);
+		if(date==''){
+			
+			alert("请选择出游时间");
+			return false;
+		}  
+	
+        var ret = option_selected();
+        if (ret.no != '') {
+            tip("请选择" + ret.no + "!", true);
+            return;
+        }
+        var stock = parseInt($('#stock').text());
+        if (stock == 0) {
+            tip('人满为患了啊，亲~~选别的线路吧~~');
+            return;
+        }
+        var total = $("#total").val();
+		 var ettotal = $("#ettotal").val();
+        location.href = "{php echo murl('entry//book',array('id'=>$goods['id'],'op'=>'confirm','m'=>'xc_lv'),true)}" + "&optionid=" + $("#optionid").val() + "&total=" + total+ "&ettotal=" + ettotal + "&retime=" + date  + "&price=" + qian;
+    }
+
+    var selected = [];
+    function option_selected() {
+        var ret = {
+            no: "",
+            all: []
+        };
+        if (!hasoption) {
+            return ret;
+        }
+        $(".optionid").each(function () {
+            ret.all.push($(this).val());
+            if ($(this).val() == '') {
+                ret.no = $(this).attr("title");
+                return false;
+            }
+        })
+        return ret;
+    }
+
+    // 微商城分享
+    wx.ready(function () {
+        sharedata = {
+            title: "{$goods['title']}",
+            desc: '{php echo cutstr(str_replace("\r\n", "", strip_tags($goods["content"])), 64, true);}',
+            link: "{$_W['siteurl']}",
+            imgUrl: "{php echo tomedia($goods['thumb']);}"
+        };
+        wx.onMenuShareAppMessage(sharedata);
+        wx.onMenuShareTimeline(sharedata);
+    });
+
+</script>
+
+
+<script type="text/javascript">
+	var obj = { date: new Date(), year: -1, month: -1, priceArr: [] };
+var htmlObj = { header: "", left: "", right: "" };
+var elemId = null;
+function getAbsoluteLeft(objectId) {
+    var o = document.getElementById(objectId)
+    var oLeft = o.offsetLeft;
+    while (o.offsetParent != null) {
+        oParent = o.offsetParent
+        oLeft += oParent.offsetLeft
+        o = oParent
+    }
+    return oLeft
+}
+//获取控件上绝对位置
+function getAbsoluteTop(objectId) {
+    var o = document.getElementById(objectId);
+    var oTop = o.offsetTop + o.offsetHeight + 10;
+    while (o.offsetParent != null) {
+        oParent = o.offsetParent
+        oTop += oParent.offsetTop
+        o = oParent
+    }
+    return oTop
+}
+//获取控件宽度
+function getElementWidth(objectId) {
+    x = document.getElementById(objectId);
+    return x.clientHeight;
+}
+var pickerEvent = {
+    Init: function (elemid) {
+        if (obj.year == -1) {
+            dateUtil.getCurrent();
+        }
+        for (var item in pickerHtml) {
+            pickerHtml[item]();
+        }
+        var p = document.getElementById("calendar_choose");
+        if (p != null) {
+            document.body.removeChild(p);
+        }
+        var html = '<div id="calendar_choose" class="calendar" style="display: block; position: fixed;">'
+        html += htmlObj.header;
+        html += '<div class="basefix" id="bigCalendar" style="display: block;">';
+        html += htmlObj.left;
+        html += htmlObj.right;
+        html += '<div style="clear: both;"></div>';
+        html += "</div></div>";
+        elemId=elemid;
+        var elemObj = document.getElementById(elemid);
+        $(document.body).append(html);
+        document.getElementById("picker_last").onclick = pickerEvent.getLast;
+        document.getElementById("picker_next").onclick = pickerEvent.getNext;
+        document.getElementById("picker_today").onclick = pickerEvent.getToday;
+        //document.getElementById("calendar_choose").style.left = getAbsoluteLeft(elemid)+"px";
+        document.getElementById("calendar_choose").style.bottom  = 150+"px";
+        document.getElementById("calendar_choose").style.zIndex = 1000;
+        var tds = document.getElementById("calendar_tab").getElementsByTagName("td");
+        for (var i = 0; i < tds.length; i++) {
+            if (tds[i].getAttribute("date") != null && tds[i].getAttribute("date") != "" && tds[i].getAttribute("price") != "-1"&& tds[i].getAttribute("class") != "off") {
+                tds[i].onclick = function () {
+                    commonUtil.chooseClick(this)
+                };
+            }
+        }
+        // return html;
+        //return elemObj;
+    },
+    getLast: function () {
+        dateUtil.getLastDate();
+        pickerEvent.Init(elemId);
+    },
+    getNext: function () {
+        dateUtil.getNexDate();
+        pickerEvent.Init(elemId);
+    },
+    getToday:function(){
+        dateUtil.getCurrent();
+        pickerEvent.Init(elemId);
+    },
+    setPriceArr: function (arr) {
+        obj.priceArr = arr;
+    },
+    remove: function () {
+        var p = document.getElementById("calendar_choose");
+        if (p != null) {
+            document.body.removeChild(p);
+        }
+    },
+    isShow: function () {
+        var p = document.getElementById("calendar_choose");
+        if (p != null) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+}
+//console.log("\u767e\u5ea6\u641c\u7d22\u3010\u7d20\u6750\u5bb6\u56ed\u3011\u4e0b\u8f7d\u66f4\u591aJS\u7279\u6548\u4ee3\u7801");
+var pickerHtml = {
+    getHead: function () {
+        var head = '<ul class="calendar_num basefix"><li class="bold">六</li><li>五</li><li>四</li><li>三</li><li>二</li><li>一</li><li class="bold">日</li><li class="picker_today bold" id="picker_today">今天</li></ul>';
+        htmlObj.header = head;
+    },
+    getLeft: function () {
+        var left = '<div class="calendar_left pkg_double_month"><p class="date_text">' + obj.year + '<br>' + obj.month + '月</p><a href="javascript:void()" title="上一月" id="picker_last" class="pkg_circle_top">上一月</a><a href="javascript:void()" title="下一月" id="picker_next" class="pkg_circle_bottom ">下一月</a></div>';
+        htmlObj.left = left;
+    },
+    getRight: function () {
+        var days = dateUtil.getLastDay();
+        var week = dateUtil.getWeek();
+        var html = '<table id="calendar_tab" class="calendar_right"><tbody>';
+        var index = 0;
+        for (var i = 1; i <= 42; i++) {
+            if (index == 0) {
+                html += "<tr>";
+            }
+            var c = week > 0 ? week : 0;
+            if ((i - 1) >= week && (i - c) <= days) {
+                var price = commonUtil.getPrice((i - c));
+                var priceStr = "";
+                var classStyle = "";
+                if (price != -1&&i-c>new Date().getDate()) {
+                    priceStr = "<dfn>￥</dfn>" + price;
+                    classStyle = "class='on'";
+                }
+                else if (price !=-1&&obj.month>new Date().getMonth()+1){
+                    priceStr = "<dfn>￥</dfn>" + price;
+                    classStyle = "class='on'";
+                }
+                else if (price !=-1){
+                    priceStr = "<dfn>￥</dfn>" + price;
+                    classStyle = "class='off'";
+                }
+                else {
+                    classStyle = "class='off'";
+                }
+                if (price != -1&&obj.year==new Date().getFullYear()&&obj.month==new Date().getMonth()+1&&i-c==new Date().getDate()) {
+                    classStyle = "class='on today'";
+                }
+                //判断今天
+                if(obj.year==new Date().getFullYear()&&obj.month==new Date().getMonth()+1&&i-c==new Date().getDate()){
+                    html += '<td  ' + classStyle + ' date="' + obj.year + "-" + obj.month + "-" + (i - c) + '" price="' + price + '"><a><span class="date basefix">今天</span><span class="team basefix" style="display: none;">&nbsp;</span><span class="calendar_price01">' + priceStr + '</span></a></td>';
+                }
+                else{
+                    html += '<td  ' + classStyle + ' date="' + obj.year + "-" + obj.month + "-" + (i - c) + '" price="' + price + '"><a><span class="date basefix">' + (i - c) + '</span><span class="team basefix" style="display: none;">&nbsp;</span><span class="calendar_price01">' + priceStr + '</span></a></td>';
+                }
+                if (index == 6) {
+
+                    html += '</tr>';
+                    index = -1;
+                }
+            }
+            else {
+                html += "<td></td>";
+                if (index == 6) {
+                    html += "</tr>";
+                    index = -1;
+                }
+            }
+            index++;
+        }
+        html += "</tbody></table>";
+        htmlObj.right = html;
+    }
+}
+var dateUtil = {
+    //根据日期得到星期
+    getWeek: function () {
+        var d = new Date(obj.year, obj.month - 1, 1);
+        return d.getDay();
+    },
+    //得到一个月的天数
+    getLastDay: function () {
+        var new_year = obj.year;//取当前的年份
+        var new_month = obj.month;//取下一个月的第一天，方便计算（最后一不固定）
+        var new_date = new Date(new_year, new_month, 1);                //取当年当月中的第一天
+        return (new Date(new_date.getTime() - 1000 * 60 * 60 * 24)).getDate();//获取当月最后一天日期
+    },
+    getCurrent: function () {
+        var dt = obj.date;
+        obj.year = dt.getFullYear();
+        obj.month = dt.getMonth() + 1;
+        obj.day = dt.getDate();
+    },
+    getLastDate: function () {
+        if (obj.year == -1) {
+            var dt = new Date(obj.date);
+            obj.year = dt.getFullYear();
+            obj.month = dt.getMonth() + 1;
+        }
+        else {
+            var newMonth = obj.month - 1;
+            if (newMonth <= 0) {
+                obj.year -= 1;
+                obj.month = 12;
+            }
+            else {
+                obj.month -= 1;
+            }
+        }
+    },
+    getNexDate: function () {
+        if (obj.year == -1) {
+            var dt = new Date(obj.date);
+            obj.year = dt.getFullYear();
+            obj.month = dt.getMonth() + 1;
+        }
+        else {
+            var newMonth = obj.month + 1;
+            if (newMonth > 12) {
+                obj.year += 1;
+                obj.month = 1;
+            }
+            else {
+                obj.month += 1;
+            }
+        }
+    }
+}
+var commonUtil = {
+    getPrice: function (day) {
+        var dt = obj.year + "-";
+        if (obj.month < 10)
+        {
+            dt += "0"+obj.month;
+        }
+        else
+        {
+            dt+=obj.month;
+        }
+        if (day < 10) {
+            dt += "-0" + day;
+        }
+        else {
+            dt += "-" + day;
+        }
+
+        for (var i = 0; i < obj.priceArr.length; i++) {
+            if (obj.priceArr[i].Date == dt) {
+                return obj.priceArr[i].Price.split('.')[0];
+            }
+        }
+        return -1;
+    },
+    chooseClick: function (sender) {
+        var date = sender.getAttribute("date");
+        var price = sender.getAttribute("price");
+        var el = document.getElementById(elemId);
+        if (el != null) {
+            el.value = date;
+            
+           
+          
+            $("#date").empty();
+                 $("#qian").empty();
+                $("#date").append(date);         
+                $("#qian").append(price);
+           
+            pickerEvent.remove();
+        }
+    }
+}
+
+$(document).bind("click", function (event) {
+    var e = event || window.event;
+    var elem = e.srcElement || e.target;
+    while (elem) {
+        if (elem.id == "calendar_choose") {
+            return;
+        }
+        elem = elem.parentNode;
+    }
+    pickerEvent.remove();
+});
+
+// (new Date()).Format("yyyy-M-d h:m:s.S")      ==> 2006-7-2 8:9:4.18   
+Date.prototype.Format = function(fmt)   
+{ //author: meizz   
+  var o = {   
+    "M+" : this.getMonth()+1,                 //月份   
+    "d+" : this.getDate(),                    //日   
+    "h+" : this.getHours(),                   //小时   
+    "m+" : this.getMinutes(),                 //分   
+    "s+" : this.getSeconds(),                 //秒   
+    "q+" : Math.floor((this.getMonth()+3)/3), //季度   
+    "S"  : this.getMilliseconds()             //毫秒   
+  };   
+  if(/(y+)/.test(fmt))   
+    fmt=fmt.replace(RegExp.$1, (this.getFullYear()+"").substr(4 - RegExp.$1.length));   
+  for(var k in o)   
+    if(new RegExp("("+ k +")").test(fmt))   
+  fmt = fmt.replace(RegExp.$1, (RegExp.$1.length==1) ? (o[k]) : (("00"+ o[k]).substr((""+ o[k]).length)));   
+  return fmt;   
+}  
+</script>
+
+
+{template 'footer'}
+

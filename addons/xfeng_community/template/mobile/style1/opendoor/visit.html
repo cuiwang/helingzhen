@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="{MODULE_URL}template/mobile/style1/static/css/weui.css" />
+    <script type="text/javascript" src="{$_W['siteroot']}app/resource/js/lib/jquery-1.11.1.min.js"></script>
+</head>
+<body>
+<div class="cont" style="margin-bottom:30px">
+    <form role="form" method="post" enctype="multipart/form-data" class="form-horizontal">
+        <div class="weui_cells weui_cells_form">
+            <div class="weui_cell weui_cell_select weui_select_after">
+                <div class="weui_cell_hd">
+                    <label for="" class="weui_label">类别</label>
+                </div>
+                <div class="weui_cell_bd weui_cell_primary">
+                    <select class="weui_select st" name="type" id="type">
+                        <option value="0">大门位置</option>
+                        <option value="2" >大门</option>
+                        <option value="1" >单元门</option>
+                    </select>
+                </div>
+            </div>
+            <div class="weui_cell weui_cell_select weui_select_after" id="content" style="display:none;">
+                <div class="weui_cell_hd">
+                    <label for="" class="weui_label">位置</label>
+                </div>
+                <div class="weui_cell_bd weui_cell_primary">
+                    <select class="weui_select" name="door" id="door">
+
+
+                    </select>
+                </div>
+            </div>
+            <div class="weui_cell">
+                <div class="weui_cell_hd">
+                    <label class="weui_label">时间</label>
+                </div>
+                <div class="weui_cell_bd weui_cell_primary" style="widows:70%;">
+                    <input class="weui_input" type="number" pattern="[0-9]*" id="opentime" placeholder="如果10分钟，就填写10"/>
+                </div>
+                <div class="weui_cell_ft">分钟</div>
+            </div>
+        </div>
+    </form>
+    <div class="bd spacing" style="text-align:center;margin-top:10px;">
+        <a href="javascript:;" class="weui_btn weui_btn_primary" id="showToast" style="width:80%">生成二维码</a>
+    </div>
+</div>
+<script type="text/javascript">
+    $(function() {
+        $(".st").change(function(){
+            var type = $("#type option:selected").val();
+            if(type == 2){
+                $.post("{php echo $this->createMobileUrl('opendoor',array('op' => 'door'))}",{},function(s){
+                    var op =" <option value='0'>选择大门</option>";
+                    $.each(s,function(name,val) {
+                        op +="<option value='"+val.id+"' >"+val.title+"</option>";
+                    });
+                    $("#door").html(op);
+                    $("#content").show();
+                },'json')
+            }
+            if(type == 1 || type == 0){
+                $("#content").hide();
+            }
+        })
+        $("#showToast").click(function(event) {
+            var opentime = $("#opentime").val();
+            if (opentime == '') {
+                alert('使用时间不能为空！');
+                return false;
+            };
+            if(opentime > 2000){
+                alert('临时二维码最高只能设置2000分钟！');
+                return false;
+            }
+            var type = $("#type option:selected").val();
+            if(type == 0 ){
+                alert('请选择类别哦！');
+                return false;
+            }
+            var door = $("#door option:selected").val();
+            $.ajax({
+                url: "{php echo $this->createMobileUrl('opendoor',array('op' => 'visit'))}",
+                dataType: 'json',
+                data: {
+                    type: type,
+                    opentime: opentime,
+                    door : door
+                },
+                success: function(s) {
+                    if (s.status == 1) {
+                        $('#toast').show();
+//                        setTimeout(function() {
+//                            $('#toast').hide();
+                            window.location.href= s.url;
+//                        }, 2000);
+                    };
+                }
+            })
+
+
+        });
+    })
+</script>
+</body>
+</html>

@@ -1,0 +1,330 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li {if $act == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('ad');}">广告列表</a></li>
+	<li {if $act == 'post' && !$_GPC['id']}class="active"{/if}><a href="{php echo $this->createWebUrl('ad', array('act' => 'post'));}">添加广告</a></li>
+	{if $_GPC['id']}<li {if $act == 'post'}class="active"{/if}><a href="{php echo $this->createWebUrl('ad', array('act' => 'post', 'id' => $id));}">编辑广告</a></li>{/if}
+</ul>
+<style>
+	.tac {
+		text-align: center;
+	}
+	.nav.nav-tabs {
+		margin-bottom: 20px;
+	}
+	.table>thead>tr>th {
+		vertical-align: bottom;
+		border-bottom: 2px	 solid #ddd;
+		font-size: 14px;
+	}
+	.tac>.btn-sm{
+		position: relative;
+		float: left;
+	}
+	.table-responsive.table>tbody>tr>td {
+		vertical-align: middle !important;
+	}
+	.we7-checkbox-option {
+		display: none;
+	}
+</style>
+{if $act == 'display'}
+<div class="alert alert-danger">
+	<p>同一个广告位置下，包含多个广告时，将合并多个广告内容，展示为幻灯片效果</p>
+	<p>每个幻灯片最多展示10条数据，因为多于10个将严重影响用户体验</p>
+	<p>满足广告终止时间条件时，广告将自动关闭显示</p>
+</div>
+<div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+		<form action="" method="post" class="form-horizontal" role="form">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 control-label">广告名称</label>
+				<div class="col-sm-8 col-md-8 col-lg-8 col-xs-12">
+					<input class="form-control" name="title" type="text" value="{$_GPC['title']}">
+				</div>
+				<div class="pull-right col-xs-12 col-sm-2 col-md-2 col-lg-2">
+					<button class="btn btn-default"><i class="fa fa-search"></i>搜索</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+<form action="" method="post">
+	<div class="panel panel-default">
+		<div class="table-responsive panel-body">
+			<table class="table table-hover">
+				<thead>
+					<tr>
+						<th class="tac" width="50">排序</th>
+						<th>广告名称</th>
+						<th class="tac">位置</th>
+						<th class="tac" width="150">是否显示</th>
+						<th class="tac">起始时间</th>
+						<th class="tac">终止时间</th>
+						<th class="tac" style="width:80px;">操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					{loop $list $item}
+					<tr>
+						<td class="tac">
+							<input type="text" class="form-control text-center" name="displayorder[{$item['id']}]" value="{$item['displayorder']}">
+						</td>
+						<td>{$item['title']}</td>
+						<td class="tac">
+							{if $item['position']}
+							{loop $item['position'] $p}
+							<button class="btn btn-default btn-xs btn-info" type="button">{$p['title']}</button>
+							{/loop}
+							{/if}
+						</td>
+						<td class="tac">
+							<input type="checkbox" value="{$item['isshow']}" data-id="{$item['id']}" data-field="isshow" {if $item['isshow'] == 1}checked{/if} name="isshow[]"/>
+						</td>
+						<td class="tac">{$item['start_time']}</td>
+						<td class="tac">
+							{if ($item['end_time']&&$item['end_time']!='无限制'&&strtotime($item['end_time'])<TIMESTAMP)}
+								<span class="label label-danger btn" title="已过期" data-toggle="tooltip">{$item['end_time']}</span>
+							{else}
+								{$item['end_time']}
+							{/if}
+						</td>
+						<td class="tac">
+							<a href="{php echo $this->createWebUrl('ad', array('act' => 'post','id' => $item['id']));}" title="编辑" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm" style="padding: 5px 9px;"><i class="fa fa-edit"></i></a>
+							<a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('ad', array('act' => 'delete','id' => $item['id']));}" title="删除" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm" style="padding: 5px 10px;"><i class="fa fa-times"></i></a>
+						</td>
+					</tr>
+					{/loop}
+				</tbody>
+			</table>
+		</div>
+	</div>
+	{$pager}
+	<input name="submit" type="submit" value="更新排序" class="btn btn-primary" />
+	<input type="hidden" name="token" value="{$_W['token']}" />
+</form>
+<script type="text/javascript">
+	require(['jquery', 'bootstrap', 'util', 'bootstrap.switch'],function($){
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+
+		$(':checkbox').bootstrapSwitch();
+		$(':checkbox').on('switchChange.bootstrapSwitch', function(e, state){
+			var t = $(this);
+			var id = t.attr('data-id');
+			var field = t.attr('data-field');
+			var value = this.checked ? 1 : 0;
+			$.post(location.href, {_method: 'switch', id: id, field: field, value: value}, function(resp){
+				if(resp != 'success') {
+					util.message('操作失败, 请稍后重试.')
+				}
+			});
+		});
+	});
+</script>
+{else if $act == 'post'}
+<form class="form-horizontal form" action="" method="post" enctype="multipart/form-data">
+	<input type="hidden" name="id" value="{$item[id]}">
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			{if empty($item['id'])}
+			添加广告
+			{else}
+			编辑广告
+			{/if}
+		</div>
+		<div class="panel-body">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">排序</label>
+				<div class="col-sm-8 col-xs-12">
+					<input type="text" class="form-control" placeholder="" name="displayorder" value="{$item['displayorder']}">
+					<span class="help-block">显示顺序，越大则越靠前</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label"><span style='color:red'>*</span>广告名称</label>
+				<div class="col-sm-8 col-xs-12">
+					<input type="text" class="form-control" placeholder="" name="title" value="{$item['title']}">
+					<span class="help-block"></span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label"><span style='color:red'>*</span>广告位置</label>
+				<div class="col-sm-8 col-xs-12">
+					<style>
+						.ad_position {
+							height: 160px !important;
+						}
+						.ad_position option {
+							color: #5bc0de;
+						}
+						.ad_position option:disabled {
+							color: #ccc;
+						}
+					</style>
+					<select name="position_ids[]" class="form-control ad_position" multiple>
+						{loop $ad_positions $pos}
+						<option {if !$pos['enable']}disabled{/if} value="{$pos['id']}" {if $item['position']&&array_key_exists($pos['id'], $item['position'])}selected{/if}>{$pos['title']}</option>
+						{/loop}
+					</select>
+					<span class="help-block">位置可以多选，灰色不可选择位置暂不支持，请关注后续版本更新</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label"><span style='color:red'>*</span>投放时间</label>
+				<div class="col-sm-8 col-xs-12">
+					<label style="font-weight: normal">
+						<input name="ad_time_limit" data-id="ad_time_wrap" type="checkbox" {if !isset($item['id'])||($item['start_time'])}checked{/if}> 不限制
+					</label>
+					<div id="ad_time_wrap" {if !isset($item['id'])||($item['start_time'])}style="display:none"{/if}>
+						{php echo tpl_form_field_daterange('ad_time', $item['ad_time'], true);}
+					</div>
+					<span class="help-block">勾选不限制后，将不检查广告投放时间参数，否则将在投放时间范围内展示广告</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">是否显示</label>
+				<div class="col-sm-6 col-md-8 col-xs-12">
+					<div class="input-group">
+						<label class="radio-inline">
+							<input type="radio" name="isshow" value="1" {if $item['isshow']}checked{/if}> 是
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="isshow" value="0" {if !$item['isshow']}checked{/if}> 否
+						</label>
+					</div>
+					<span class="help-block"></span>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="panel panel-default">
+		<div class="panel-heading">广告内容</div>
+		<div class="panel-body">
+			<div class="alert alert-danger">
+				<p>包含多个广告内容时，广告图片将展示为幻灯片效果</p>
+				<p>广告内容支持排序功能，请在 <i class="fa fa-arrows" style="color: #428bca"></i> 图标上按下鼠标左键，然后拖动即可排序</p>
+				<p>建议图片上传尺寸：360像素 * 200像素</p>
+			</div>
+			<style>
+				.ad_content_table td {
+					vertical-align: top !important;
+				}
+			</style>
+			<table class="table table-hover ad_content_table">
+				<thead>
+				<tr>
+					<th width="25"></th>
+					<th width="25%">广告标题</th>
+					<th>广告图片</th>
+					<th width="25%">广告链接</th>
+					<th width="44">操作</th>
+				</tr>
+				</thead>
+				<tbody id="list_wrap">
+				{if $item['content']}
+				{loop $item['content'] $content}
+				<tr>
+					<td>
+						<a href="javascript:;" class="fa fa-move" title="按住鼠标左键，拖动调整顺序">
+							<i class="fa fa-arrows"></i>
+						</a>
+					</td>
+					<td>
+						<div class="form-group">
+							<div class="col-sm-12 col-xs-12">
+								<input name="content[title][]" type="text" class="form-control" value="{$content['title']}"/>
+							</div>
+						</div>
+					</td>
+					<td>
+						<div class="form-group">
+							<div class="col-sm-12 col-xs-12">
+								{php echo tpl_form_field_image('content[thumb][]', $content['thumb']);}
+							</div>
+						</div>
+					</td>
+					<td>
+						<div class="form-group">
+							<div class="col-sm-12 col-xs-12">
+								<input name="content[url][]" type="text" class="form-control" value="{$content['url']}"/>
+							</div>
+						</div>
+					</td>
+					<td>
+						<a href="javascript:;" class="del_item_link" data-toggle="tooltip" onclick="delItem(this)" title="删除">
+							<i class='fa fa-remove' style="color: #f00"></i>
+						</a>
+					</td>
+				</tr>
+				{/loop}
+				{/if}
+				</tbody>
+				<tbody>
+				<tr>
+					<td colspan="5">
+						<button type="button" class="btn btn-warning" id="add_item_link" title="添加">
+							<span class="glyphicon glyphicon-plus" aria-hidden="true"></span> 添加
+						</button>
+					</td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-sm-12">
+			<input name="submit" type="submit" value="提交" class="btn btn-primary col-lg-1">
+			<input type="hidden" name="token" value="{$_W['token']}" />
+		</div>
+	</div>
+</form>
+
+<script>
+	require(['jquery', 'util', 'jquery.ui'], function($, u){
+		$('input[name=ad_time_limit]').change(function(){
+			var id = $(this).attr('data-id');
+			if ($(this).prop('checked')) {
+				$('#'+id).fadeOut();
+			} else {
+				$('#'+id).fadeIn();
+			}
+		});
+
+		$('#list_wrap').sortable({handle: '.fa-move'});
+
+		$('#add_item_link').click(function(){
+			$.ajax({
+				'url': "{php echo $this->createWebUrl('ad', array('act' => 'content'))}",
+				success: function (response) {
+					$('#list_wrap').append(response);
+				}
+			});
+		});
+
+		window.delItem = function(obj) {
+			$(obj).parent().parent().remove();
+		};
+
+		//检查表单提交内容
+		$('form').submit(function(){
+			var title = $('input[name=title]');
+			if (title.val() == '') {
+				util.message('请输入广告名称！', '', 'error');
+				return false;
+			}
+			var position_id = $('select[name=position_id]');
+			if (position_id.val()=='') {
+				util.message('请选择广告位置！', '', 'error');
+				return false;
+			}
+			return true;
+		});
+	});
+</script>
+{/if}
+{template 'common/footer'}

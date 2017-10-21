@@ -1,0 +1,121 @@
+{template 'common/header'}
+<div class="main">
+
+	<style>
+		.refresh-log ul{margin:10px 0 0 0;}
+		.refresh-log ul em{font-style:normal; float:right;}
+	</style>
+		
+	<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" >
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                系统升级
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">当前版本</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <div class="form-control-static">{$version}<br/> 最后更新日期: {$updatedate}</div>
+                    </div>
+                </div>
+                 <div class="form-group" >
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">最新版本</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <div class="form-control-static"  id="check">等待检测...</div>
+                    </div>
+                </div>
+           
+                <div class="form-group" id="upgrade" style="display:none">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+                    <div class="col-sm-9 col-xs-12">
+                        <div class='form-control-static'>
+                            <input type="button" id="upgradebtn" value="立即更新" class="btn btn-primary btn-lg" />
+                            <input type="hidden" name="token" value="{$_W['token']}" />
+                        </div>
+                    </div>
+            </div>  
+        	</div>
+        </div>
+    </form>
+    
+	<div class="panel panel-default">
+            <div class="panel-heading">
+                幸运活动
+            </div>
+            <div class="panel-body" id="active">
+            	
+            </div>
+    </div>
+    
+    <div class="panel panel-default">
+	    <div class="panel-heading">
+	               系统升级log
+	    </div>
+	    <div class="panel-body" id="logs">
+			
+		</div>
+    </div>
+    
+</div>
+<script language='javascript'>
+  
+    function upgrade(){
+        $.ajax({
+            url: "{php $this->createWebUrl('download')}",
+            data:{op:'download'},
+            type:'post',
+            dataType:'json',
+            success:function(ret){
+             if(ret.result==1)      {
+                 $('#process').html("已更新 " + ret.success + "个文件 / 共 " + ret.total +  " 个文件！");
+                 upgrade();
+             }
+             else if(ret.result==2){
+                    alert('更新完成!');
+                    location.reload();
+             }
+            }
+        });
+    }
+ 
+    $(function(){
+         $.ajax({
+            url: "{php $this->createWebUrl('download')}",
+            data:{op:'check',verifycode:$('#verifycode').val()}, 
+            type:'post',
+            dataType:'json',
+            success:function(ret){
+                if(ret.result==1){
+                    var html = "";
+                    html+="最新版本: <span style='color:red'>" + ret.version + "</span><br/>";
+                    html+="共检测到需要更新 <span style='color:red'>" + ret.filecount + "</span> 个文件!<br/>";
+                    if(ret.upgrade){
+                       html+="此次更新数据!<br/>";    
+                    }
+                
+                    html+="<div id='process'></div>";
+                    $("#check").html( html);
+                    $('#upgrade').show();
+                      $("#upgradebtn").unbind('click').click(function(){
+                            if($(this).attr('updating')=='1'){
+                                return;
+                            }
+                       
+                           $(this).attr('updating',1).val('正在更新中...');
+                           upgrade();
+                       
+                   });
+                }else{
+                    $("#check").html( ret.message);
+                }
+            }
+        });
+        var url = '{php echo $this->createWebUrl('log')}';
+        $.get(url,function(data){
+        	$('#logs').html(data);
+        });
+   
+
+    })
+</script>
+{template 'common/footer'}

@@ -1,0 +1,248 @@
+{template 'common/header'}
+
+
+
+<style type="text/css">
+.account-stat-num > div{width:25%;float:left;font-size:16px;text-align:center;}
+.account-stat-num > div span{font-size:30px;display:block;font-weight:bold;}
+
+.modal-body li{height:35px;line-height:35px;}
+.modal-body p{padding:0;margin:0;width:50%;float:left;height:35px;line-height:35px;}
+</style>
+
+<ul class="nav nav-tabs">
+
+    <li class="active"><a href="{php echo  $this->createWebUrl('shitilist');}">会员管理</a></li>
+
+	<li><a href="{php echo  $this->createWebUrl('shitiadd');}">添加会员</a></li>
+
+</ul>
+<div class="clearfix">    
+
+
+		
+    	<!--<div class="panel-heading">
+  
+        	 <a class="navbar-brand" href="javascript:;">数据统计</a>
+			 <ul class="nav navbar-nav navbar-right">
+				<li class="active"><a href="">今日</a></li>
+				<li class="active">昨日</li>
+				
+			</ul>
+			
+        </div> -->
+         
+	        <div class="panel panel-info">
+	        	<div class="panel-heading">筛选</div>
+	        	<div class="panel-body">
+	        		<div class="col-xs-12 col-sm-3 col-md-2 control-label">昵称：</div>
+	        		<form action="./index.php" method="get" class="form-horizontal" role="form">
+		        	<input type="hidden" name="c" value="site" />
+		
+		            <input type="hidden" name="a" value="entry" />
+		
+		            <input type="hidden" name="m" value="zm_jfb" />
+		
+		            <input type="hidden" name="do" value="shitilist" />
+		            
+		        	<div class="col-sm-6 col-md-6 col-lg-6 col-xs-12">
+			        	<input type="text" name="hyname" value="{$_GPC['hyname']}" class="form-control"/>
+					</div>
+					<div class="pull-left col-xs-12 col-sm-3 col-md-2 col-lg-2">
+						<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+					</div>
+					</form>
+					
+				</div>
+				<div class="panel-body">
+					<div class="col-xs-12 col-sm-3 col-md-2 control-label">选择门店：</div>
+	        		<form id="imp" action="" method="post" class="form-horizontal" role="form" enctype="multipart/form-data">
+		        	
+		        	<div class="col-sm-3 col-md-3 col-lg-3 col-xs-4">
+			        	<select id="ddlmendian" name="ddlmendian" class="form-control input-medium" style="width:80%">
+							<OPTION value="0">请选择门店</OPTION>
+							{loop $mendian $row}
+								{if !empty($row['name'])}
+									<option value="{$row['id']}" {if $row['id'] == $_GPC['ddlmendian']} selected="selected"{/if}>{$row['name']}</option>
+								{/if}
+							{/loop}
+						</select>
+					</div>
+					<div class="col-sm-3 col-md-3 col-lg-3 col-xs-4">
+						<input  name="im" id="imports" type="file" class="form-control"  value="" />
+					</div>
+					<div class="pull-left col-xs-12 col-sm-3 col-md-2 col-lg-2">
+						<input name="submit" type="submit" class="btn btn-default" value="导入"> 
+						<input type="hidden" name="token" value="{$_W['token']}"/>
+					</div>
+					</form>
+				</div>
+	        </div>
+		
+
+		<div class="panel panel-default ">
+	        <div class="table-responsive panel-body" >
+	
+	            <table class="table table-hover">
+	
+	            	<thead>
+	
+	                	<tr class="active">
+	
+							<td>姓名</td>
+							
+	                    	<td>手机号</td>
+		                        
+		                    <td>卡号</td>
+		                    
+		                    <td>积分</td>
+		                    
+		                    <td>余额</td>
+		                    
+							<td>等级</td>
+							
+							<td>绑定状态</td>
+							
+							<td>绑定时间</td>
+							
+							<td>门店详情</td>
+	
+	                        <td width="10%">操作</td>
+	
+	                    </tr>
+	
+	                </thead>
+	
+	                <tbody>
+	
+	                	{loop $list $val}
+	
+	                	<tr>
+							<td>{$val[name]}</td>
+							
+	                    	<td>{$val[phone]}</td>
+	                    	
+	                    	<td>{$val[cardmember]}</td>
+	                    	
+	                    	<td>{$val[credit1]}</td>
+	                    	
+	                    	<td>{$val[credit2]}</td>
+							
+							<td>{$val[group]}</td>
+							
+							<td>{if $val[banding] == 0}未绑定{else}已绑定{/if}</td>
+							
+							<td>{php echo date("Y-m-d H:i:s",$val[addtime])}</td>
+							
+							<td><a class="btn btn-default" href="javascript:void(0);" data-toggle="modal" data-target="#topup{$val['uid']}" onclick="loadMendian({$val['uid']})">查看门店</a></td>
+							
+							<td>
+								<a class="btn btn-default" href="{php echo $this->createWebUrl('shitidel', array('id'=>$val['id']))}" onclick="if(confirm('确认删除信息?')){return true}else{return false};"><i class="fa fa-remove"></i> 删除</a>
+								
+							</td>
+							
+	                    </tr>
+	                    <script>
+	                    function loadMendian(uid){
+	                    	$(".md-list").html("");
+	                    	$.ajax({
+	                    		
+	                            url:"{php echo $this->createWebUrl('shitilist')}",
+	                            type:'POST',
+	                            dataType:'json',
+	                            async:false,
+	                            data:{
+	                              opp:"getmd",
+	                              uid:uid
+	                            },
+	                            success:function(msg){
+	                            	
+	                            	$.each( msg, function(index, content) { 
+	                            		
+	                            		$(".md-list").html("<li><p>"+content.name+"</p><p>"+content.addtime+"</p></li>");
+	                            		
+	                            	});
+	                            	if($(".md-list").html()=="")
+	                            		$(".md-list").html("<li>没有获得积分或余额</li>");
+	                            }
+	                         });
+	                    }
+	                    </script>
+	 			<div class="modal fade" id="topup{$val['uid']}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+
+				  <div class="modal-dialog" role="document">
+
+				    <div class="modal-content">
+
+				      <div class="modal-header">
+
+				        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+
+				        <h4 class="modal-title" id="myModalLabel">门店详情</h4>
+
+				      </div>
+
+				      <div class="modal-body">
+							<ul style="list-style-type:none"><li><p>门店名称</p><p>加入时间</p></li></ul>
+				       		<ul class="md-list" style="list-style-type:none">
+				       		
+				       		</ul>
+
+				      </div>
+
+				      <div class="modal-footer">
+
+				        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+
+
+				      </div>
+
+				    </div>
+
+				  </div>
+
+				</div>
+	                    {/loop}
+	
+	                    
+	
+	                </tbody>
+	
+	            </table>
+	
+	        </div>
+	
+	       
+	
+	        <div class="panel-body text-center">
+	
+	            {$pager} 
+	
+	        </div>
+		</div>
+        
+
+		 <!--<div class="panel-footer">
+
+            <span style="color:red;">接受预约是在用户提交订单后，该员工会收到订单消息，在基础数据上只能选择一个</span>
+
+         </div>-->
+
+		
+
+        <div class="panel-footer">
+
+            <!--{if in_array('1', $power)}
+
+			<a class="btn btn-default" href="{php echo $this->createWebUrl('staffadd', array('name'=>'xm_housekeep'))}">新增员工</a>
+
+			{/if}  -->
+
+        </div>
+
+        
+
+    </div>
+
+
+{template 'common/footer'}

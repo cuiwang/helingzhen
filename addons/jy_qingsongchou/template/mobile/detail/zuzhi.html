@@ -1,0 +1,375 @@
+{template 'header'}
+{if $item['status']==3}
+  <div style="text-align: center;background: red;color: #fff;font-size: 14px;padding: 8px 0;">你的认证资料不规范，请重新提交</div>
+{/if}
+<style>
+.uploader-example .thumbnail a {
+   display: block;
+   overflow: hidden;
+   background: #eee;
+}
+.file-item .info{
+   bottom: -88px;
+   width: 100%;
+}
+</style>
+<div class="content top"></div>
+{template 'loading'}
+{template 'tip'}
+
+<script>
+    require(['template','lazyload'],function(template,lazyload){
+          var data = {
+            'views_thum':'http://jifen.2345.com/upload/jfhelp/jfhelp_1375181038.jpg'
+          };
+          var html = template('Auth_tpl',data);
+          $(".content").html(html);
+          $("img.lazy-load").lazyload();
+          $(document).on('click','.file-panel',function(){
+
+            if(confirm('确定删除该图片吗')){
+              $(this).parent().remove();
+            }
+
+          });
+
+    })
+
+
+    function _check(){
+
+
+       var zuzhir_name = $("#zuzhir_name").val();
+       var zuzhi_info = $("#zuzhi_info").val();
+       var id_card = $("#shuoming_upload").find('div.file-item').length;
+       var sm_pics = $("#idcard_upload").find('div.file-item').length;
+       var reg = /(^\d{15}$)|(^\d{18}$)|(^\d{17}(\d|X|x)$)/; //身份证正则
+       var mobile_reg = /^(13[0-9]|14[0-9]|17[0-9]|15[0-9]|18[0-9])\d{8}$/i;//手机正则
+       if(zuzhir_name==''){
+         _tips('请输入组织名称');
+         return false;
+       }else if(zuzhi_info==''){
+           _tips('请输入联系方式');
+           return false;
+       }else if(id_card<1){
+           _tips('请上传组织机构证明');
+           return false;
+       }else if(sm_pics<1){
+           _tips('请上传资金用途证明');
+           return false;
+       }
+
+       return true;
+    }
+</script>
+
+
+<script>
+
+require(['template','plupload'],function(template,sss){
+     var   i = 1;
+    var uploader = new plupload.Uploader({
+         runtimes : 'html5,flash,silverlight,html4',
+         browse_button : 'uploader', // you can pass in id...
+         chunk_size : '200kb',
+         max_retries:2,
+         url : "{php echo $this->createMobileUrl('uploadimg',array('dopost'=>'downimg','machine'=>md5(GARCIA_MACHINE)))}",
+         filters : {
+           max_file_size : '5mb',
+           mime_types: [
+             {title : "Image files", extensions : "jpg,gif,png,jpeg"},
+             {title : "Zip files", extensions : "zip"}
+           ]
+         },
+         init: {
+           PostInit: function() {
+            //  document.getElementById('filelist').innerHTML = '';
+
+               return false;
+
+           },
+
+           FilesAdded: function(up, files) {
+             plupload.each(files, function(file) {
+
+             });
+
+               var _f = uploader.files.length;
+
+               var _len = $(".uploader-list-1").find('div.file-item').length;
+               var __len = parseInt(_f)+parseInt(_len);
+               if(__len>1){
+                   _tips('不能超过1张图片');
+                   uploader.splice(0, _f);
+                   return  false;
+               }else if(_f>8){
+                   _tips('不能超过1张图片');
+                   uploader.splice(0, _f);
+                   return  false;
+               }
+
+               // return false;
+               uploader.start();
+               $("#loadingToast").show();
+               $(".weui_toast_content").html('正在上传');
+               console.log(i);
+               i++;
+           },
+           FilesRemoved:function(){
+             $(".weui_toast_content").html(0+"%");
+           },
+           UploadProgress: function(up, file) {
+           $(".weui_toast_content").html(file.percent+"%");
+                    //  console.log(file);
+           },
+           FileUploaded:function(uploader,files,responseObject){
+                 var response = responseObject.response;
+                 response = eval('(' + response + ')');
+                 //
+                 if(response.status==2){
+                     $("#loadingToast").hide();
+                     _tips(response.msg);
+                     return false;
+                 }
+
+                 var html=template('addpic_tpl_1',response);
+                 $(".uploader-list-1").append(html);
+                 console.log(response);
+
+                 // return false;
+           },
+           UploadComplete:function(uploader,files){
+               uploader.splice(0,100);
+                _tips('上传成功');
+               $("#loadingToast").hide();
+
+           },
+           Error: function(up, err) {
+                    a
+             // document.getElementById('console').innerHTML += "\nError #" + err.code + ": " + err.message;
+             if(err.code==-200){
+                 _tips('服务器无响应，请重试');
+                 return  false;
+             }else if(err.code==-600){
+                 _tips('图片不能超过5MB');
+                 return  false;
+             }else{
+                 _tips(err.code);
+                 return  false;
+             }
+           }
+         }
+    })
+    uploader.init();
+})
+</script>
+
+
+<script>
+
+require(['template','plupload'],function(template,sss){
+     var   i = 1;
+    var uploader2 = new plupload.Uploader({
+         runtimes : 'html5,flash,silverlight,html4',
+         browse_button : 'uploader2', // you can pass in id...
+         chunk_size : '200kb',
+         max_retries:2,
+         url : "{php echo $this->createMobileUrl('uploadimg',array('dopost'=>'downimg','machine'=>md5(GARCIA_MACHINE)))}",
+         filters : {
+           max_file_size : '5mb',
+           mime_types: [
+             {title : "Image files", extensions : "jpg,gif,png,jpeg"},
+             {title : "Zip files", extensions : "zip"}
+           ]
+         },
+         init: {
+           PostInit: function() {
+            //  document.getElementById('filelist').innerHTML = '';
+
+               return false;
+
+           },
+
+           FilesAdded: function(up, files) {
+             plupload.each(files, function(file) {
+
+             });
+
+               var _f = uploader2.files.length;
+
+               var _len = $(".uploader-list-2").find('div.file-item').length;
+               var __len = parseInt(_f)+parseInt(_len);
+               if(__len>8){
+                   _tips('不能超过8张图片');
+                   uploader2.splice(0, _f);
+                   return  false;
+               }else if(_f>8){
+                   _tips('不能超过8张图片');
+                   uploader2.splice(0, _f);
+                   return  false;
+               }
+
+               // return false;
+               uploader2.start();
+               $("#loadingToast").show();
+               $(".weui_toast_content").html('正在上传');
+               console.log(i);
+               i++;
+           },
+           FilesRemoved:function(){
+             $(".weui_toast_content").html(0+"%");
+           },
+           UploadProgress: function(up, file) {
+           $(".weui_toast_content").html(file.percent+"%");
+                    //  console.log(file);
+           },
+           FileUploaded:function(uploader,files,responseObject){
+                 var response = responseObject.response;
+                 response = eval('(' + response + ')');
+                 //
+                 if(response.status==2){
+                     $("#loadingToast").hide();
+                     _tips(response.msg);
+                     return false;
+                 }
+
+                 var html=template('addpic_tpl_2',response);
+                 $(".uploader-list-2").append(html);
+                 console.log(response);
+                //  $("#loadingToast").hide();
+                 // return false;
+           },
+           UploadComplete:function(uploader,files){
+               uploader.splice(0,100);
+                _tips('上传成功');
+               $("#loadingToast").hide();
+
+           },
+           Error: function(up, err) {
+                    $("#loadingToast").hide();
+             // document.getElementById('console').innerHTML += "\nError #" + err.code + ": " + err.message;
+             if(err.code==-200){
+                 _tips('服务器无响应，请重试');
+                 return  false;
+             }else if(err.code==-600){
+                 _tips('图片不能超过5MB');
+                 return  false;
+             }else{
+                 _tips(err.code);
+                 return  false;
+             }
+           }
+         }
+    })
+    uploader2.init();
+})
+</script>
+<script type='text/html' id="addpic_tpl_1">
+ <div class="file-item thumbnail">
+   <a class="fancybox" title="图片预览" rel="fancybox" href="javascript:void(0)">
+     <img src={{imgurl_thumb}}>
+   </a>
+   <div class="file-panel"><span>×</span></div>
+   <input type="hidden" name='zuzhi[]' class="wxId" value="{{insert_id}}">
+ </div>
+</script>
+
+<script type='text/html' id="addpic_tpl_2">
+ <div class="file-item thumbnail">
+   <a class="fancybox" title="图片预览" rel="fancybox" href="javascript:void(0)">
+     <img src={{imgurl_thumb}}>
+   </a>
+   <div class="file-panel"><span>×</span></div>
+   <input type="hidden" name='zhengm[]' class="" value="{{insert_id}}">
+ </div>
+</script>
+
+<script type="text/html" id="Auth_tpl">
+   <form  method="post" name="verify-form" id="verify-form" onsubmit="return _check()">
+     <input type="hidden" value="save_zuzhi" name="dopost">
+     <input type="hidden" value="{$_GPC['fid']}" name="fid">
+           <input type="hidden" value="{$_GPC['id']}" name="id">
+     <div class="qsc-form-group">
+       <h5 class="form-title">
+         收款人信息<a href="{php echo $this->createMobileUrl('detail',array('display'=>'yan_list','id'=>$_GPC['id']))}" class="title-help">重新选择</a>
+       </h5>
+       <div class="form-item">
+         <label for="creator_name" class="control-label">组织名称</label>
+         <input type="text" id="zuzhir_name" name="zuzhir_name" class="control-input text_validata" value="{$item['zuzhir_name']}" placeholder="填写组织名称">
+       </div>
+
+     <div class="form-item">
+       <label for="creator_id" class="control-label">联系方式</label>
+       <input type="text" id="zuzhi_info" name="zuzhi_info" class="control-input text_validata" value="{$item['zuzhi_info']}" placeholder="填写组织联系方式">
+     </div>
+
+
+
+     <div class="form-item input-cell">
+       <label class="control-label" style="display:block;">组织机构资质证明</label>
+
+
+
+       <div class="qsc-uploader" id="idCardUploader" style="padding-top:0;">
+       <div class="webPicPicker webuploader-container">
+           <div id="idCardPicker" class="webuploader-pick webuploader-pick-hover">
+                 <i class="icon icon-plus"></i>上传组织机构资质证明
+           </div>
+           <div id="html5_1ak7cbfvgpc3itu1p75f2l1q7s3_container" class="moxie-shim moxie-shim-html5" style="position: absolute; top: 4px; left: 4px; width: 91px; height: 92%; overflow: hidden;">
+             <div id="uploader"  style="font-size: 999px; opacity: 0; position: absolute; top: 0px; left: 0px; width: 100%; height: 100%;" ></div>
+           </div>
+      </div>
+       <div class="uploader-list main-images-list must_upload uploader-list-1" id="shuoming_upload">
+         {loop $pic1 $row}
+         <div class="file-item thumbnail">
+           <a class="fancybox" title="图片预览" rel="fancybox" href="javascript:void(0)">
+             <img src="{$row['thumb']}">
+           </a>
+           <div class="file-panel"><span>×</span></div>
+           <input type="hidden" name='zuzhi[]' class="wxId" value="{$row['id']}">
+         </div>
+         {/loop}
+       </div>
+       </div>
+
+       <div class="clearfix"></div>
+       <div class="help-block" style="padding: 0 15px 10px 15px;">
+           请提供组织机构资质证明照片
+       </div>
+     </div>
+
+     </div>
+     <div class="qsc-form-group">
+         <h5 class="form-title">资金用途证明</h5>
+         <div class="form-item input-cell">
+             <label class="control-label" style="display:none;">资金用途证明</label>
+             <div class="qsc-uploader" id="idCardUploader" style="padding-top:0;">
+             <div class="webPicPicker  webPicPicker-2 webuploader-container">
+                 <div id="idCardPicker" class="webuploader-pick webuploader-pick-hover">
+                       <i class="icon icon-plus"></i>上传组织机构资质证明
+                 </div>
+                 <div id="html5_1ak7cbfvgpc3itu1p75f2l1q7s3_container" class="moxie-shim moxie-shim-html5" style="position: absolute; top: 4px; left: 4px; width: 91px; height: 92%; overflow: hidden;">
+                   <div id="uploader2" style="font-size: 999px; opacity: 0; position: absolute; top: 0px; left: 0px; width: 100%; height: 100%;" ></div>
+                 </div>
+            </div>
+             <div class="uploader-list main-images-list must_upload uploader-list-2" id="idcard_upload">
+               {loop $pic2 $row}
+               <div class="file-item thumbnail">
+                 <a class="fancybox" title="图片预览" rel="fancybox" href="javascript:void(0)">
+                   <img src="{$row['thumb']}">
+                 </a>
+                 <div class="file-panel"><span>×</span></div>
+                 <input type="hidden" name='zhengm[]' class="wxId" value="{$row['id']}">
+               </div>
+               {/loop}
+             </div>
+             </div>
+             <div class="clearfix"></div>
+             <div class="help-block">请提供资金用途证明或正规发票。</div>
+         </div>
+     </div>
+     <div class="footer-btn">
+        <input type="submit" class="btn btn-primary btn-lg btn-block ajax-submit" value="提交验证">
+     </div>
+   </form>
+</script>

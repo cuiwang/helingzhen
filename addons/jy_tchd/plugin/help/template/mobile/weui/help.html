@@ -1,0 +1,80 @@
+{template 'inc/header'}
+
+<style>
+    html,body {margin: 0;padding: 0;width: 100%;background: #fff;height: 100%}
+    #bodybox {position: relative;margin: 0 auto;max-width: 480px;width: 100%;background-color: #f8f8f8;-webkit-box-shadow:0px 0px 10px rgba(0,0,0,.4);-moz-box-shadow:0px 0px 10px rgba(0,0,0,.4);box-shadow:0px 0px 10px rgba(0,0,0,.4);min-height: 100%;}
+
+</style>
+<div class="weui_tab tabSty" style="max-width: 480px;margin: 0 auto;-webkit-box-shadow:0 0 10px rgba(0,0,0,.4);-moz-box-shadow:0 0 10px rgba(0,0,0,.4);box-shadow:0 0 10px rgba(0,0,0,.4)">
+    <div id="bodybox">
+
+        <div class="weui_tab_bd">
+            {php echo $this->header($title,0)}
+
+            {if empty($list)}
+            <div class="weui_cells_title" style="font-size: 18px;text-align: center;margin-top: 35px">很遗憾帮助中心暂无任何文章！</div>
+            {else}
+                {loop $list $h}
+                    <div class="weui_cells_title" style="font-size: 18px;font-weight: bolder">{$h['title']}</div>
+                    {if !empty($h['item'])}
+                        {if count($h['item'])==1}
+                            <div class="weui_panel">
+                                <div data-open="0" class="weui_panel_hd" style="color:#000;font-size:16px" onclick="detail('{php echo $this->pencode($h['item'][0]['id'])}',this)">{$h['item'][0]['title']}</div>
+                                <div class="weui_panel_bd" style="display: none">
+                                    <div class="weui_media_box weui_media_text">
+                                        <div style="font-size: 14px;color: #999;line-height: 1.2;">{php echo htmlspecialchars_decode($h['item'][0]['content'])}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        {else}
+                            {php $j=1;}
+                            {loop $h['item'] $i}
+                                <div class="weui_panel" style="margin-top:0px">
+                                    <div data-open="0" class="weui_panel_hd" style="color:#000;font-size:16px" onclick="detail('{php echo $this->pencode($i['id'])}',this)">{$j}、{$i['title']}</div>
+                                    <div class="weui_panel_bd" style="display: none">
+                                        <div class="weui_media_box weui_media_text">
+                                            <div style="font-size: 14px;color: #999;line-height: 1.2;">{php echo htmlspecialchars_decode($i['content'])}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {php $j++;}
+                            {/loop}
+                        {/if}
+                    {/if}
+
+                {/loop}
+            {/if}
+
+        </div>
+
+    </div>
+    {php include $this->coretemplate('menu','weui/menu')}
+</div>
+{template 'inc/script'}
+<script>
+    function detail(id,obj) {
+        var self=obj;
+        if($(self).data('open')==0)
+        {
+            $.post("{php echo $_W['siteroot'].'app/'.substr($this->createMobileUrl('help',array('op'=>'read')),2)}"+"&id="+id,function(data){
+                if(data==1)
+                {
+                    $(self).next().toggle(300);
+                    $(self).data('open',1);
+                }
+                else
+                {
+                    swal(data);
+                    return false;
+                }
+
+            });
+        }
+        else
+        {
+            $(self).next().toggle(300);
+            $(self).data('open',0);
+        }
+    }
+</script>
+{template 'inc/footer'}

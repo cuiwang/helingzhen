@@ -1,0 +1,318 @@
+{template 'common/header'}
+
+{template 'web/hufen/tabs'}
+
+{if $op == 'display'}
+<div class="panel panel-info">
+    <div class="panel-heading">筛选</div>
+    <div class="panel-body">
+        <form action="./index.php" method="get" class="form-horizontal" role="form">
+            <input type="hidden" name="c" value="site"/>
+            <input type="hidden" name="a" value="entry"/>
+            <input type="hidden" name="m" value="amouse_biz_nav"/>
+            <input type="hidden" name="do" value="member"/>
+            <input type="hidden" name="op" value="display"/>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">关键词</label>
+                <div class="col-xs-12 col-sm-8 col-lg-9">
+                    <input class="form-control" name="keyword" placeholder="昵称 或者 微信号" type="text" value="{$_GPC['keyword']}" placeholder="可搜索订单号/商品标题">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label"> </label>
+                <div class="col-xs-12 col-sm-2 col-lg-2">
+                    <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div style="padding:15px;">
+    <div class="panel-body">
+        {if !empty($id) && $op == 'level1' && $lev == '1' }
+        <a class='btn btn-default' href="{php echo $this->createWebUrl('member',array('op'=>'level1','id'=>$id,'lev'=>'1'));}">一级好友</a>{/if}
+        {if !empty($id) && $op == 'level1' && $lev == '2' } <a class='btn btn-default' href="{php echo $this->createWebUrl('member',array('op'=>'level1','id'=>$id,'lev'=>'2'));}">二级好友</a>{/if}
+        {if !empty($id) && $op == 'level1' && $lev == '3' }<a class='btn btn-default' href="{php echo $this->createWebUrl('member',array('op'=>'level1','id'=>$id,'lev'=>'3'));}">三级好友</a>{/if}
+    </div>
+    <form id="form2" class="form-horizontal" method="post">
+        <table class="table">
+            <thead>
+            <tr>
+                <th style="width:20%">昵称/微信号</th>
+                <th style="width:10%;">创建时间</th>
+                <th style="width:10%">IP</th>
+                <th style='width:8%;'>拉黑</th>
+                <th style='width:30%;'>好友</th>
+            </tr>
+            </thead>
+            <tbody>
+            {loop $list $item}
+            <tr>
+                <td>
+                    <img src='{php echo tomedia($item['headimgurl'])}' style='width:30px;height:30px;padding:1px;border:1px solid #ccc' /> {$item['nickname']}
+                    <br/>
+                    <label class='label label-info'>状态： {if $item['user_status']=='0'}拉黑 {/if} {if $item['user_status']=='1'} 正常 {/if}</label>
+                </td>
+                <td>{php echo date('Y-m-d H:i',$item['createtime'])} </td>
+                <td>{$item['ipcilent']} </td>
+                <td>
+                    <label title="点击自动切换是否拉黑" data="{$item['user_status']}" class='label label-default {if $item['user_status']==1}label-success{/if}'
+                    onclick="setProperty(this,{$item['id']},'user_status')">{if $item['user_status']==0}拉黑{else if $item['user_status']==1}正常{/if}
+                    </label>
+                </td>
+                <td>
+                    <a href="{php echo $this->createWebUrl('member', array('op' => 'post', 'id' => $item['id'],'page'=>$pindex))}" title="编辑" data-toggle="tooltip"
+                       data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-edit">编辑</i>
+                    </a>
+                    <a onclick="return confirm('此操作不可恢复，确认吗？'); return false;"
+                       href="{php echo $this->createWebUrl('member', array('op' => 'delete', 'id' => $item['id']))}"
+                       title="删除" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-times"></i></a>
+                    <a href="{php echo $this->createWebUrl('member', array('op' => 'level1', 'id' => $item['id'],'lev'=>'1'))}" title="好友列表" data-toggle="tooltip"
+                       data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-list">一级好友[{$item['ftotal']}]</i>
+                    </a>
+                    <a href="{php echo $this->createWebUrl('member', array('op' => 'level1', 'id' => $item['id'],'lev'=>'2'))}" title="好友列表" data-toggle="tooltip"
+                       data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-list">二级好友[{$item['stotal']}]</i>
+                    </a>
+                    <a href="{php echo $this->createWebUrl('member', array('op' => 'level1', 'id' => $item['id'],'lev'=>'3'))}" title="好友列表" data-toggle="tooltip"
+                       data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-list">三级好友[{$item['ttotal']}]</i>
+                    </a>
+                </td>
+            {/loop}
+            </tbody>
+        </table>
+    </form>
+    {$pager}
+</div>
+<script>
+    function setProperty(obj, id,type) {
+        $(obj).html($(obj).html() + "...");
+        $.post("{php echo $this->createWebUrl('member',array('op'=>'setstatus'))}",{id: id,type: type,data: obj.getAttribute("data")},function (d) {
+            $(obj).html($(obj).html().replace("...", ""));
+            $(obj).html(d.data == '1' ? '正常' : '拉黑');
+            $(obj).attr("data", d.data);
+            if (d.result == 1) {
+                $(obj).toggleClass("label-info");
+
+            }
+        }, "json");
+    }
+</script>
+{elseif $op=='level1'}
+<div style="margin:0;" class="alert alert-info"><i class="icon-warning-sign"></i>
+	<span style="font-weight:bold;">
+       上家:
+        <img src='{php echo tomedia($parent['headimgurl'])}' style='width:30px;height:30px;padding:1px;border:1px solid #ccc' /> {$parent['openid']}/{$parent['nickname']}/{$parent['wechatno']}
+    </span>
+</div>
+<div style="padding:15px;">
+    <form  class="form-horizontal" method="post">
+        <table class="table">
+            <thead>
+            <tr>
+                <th style="width:20%">昵称/微信号</th>
+                <th style="width:20%;">创建时间</th>
+                <th style="width:30%">IP</th>
+                <th style='width:45%;'>好友列表</th>
+            </tr>
+            </thead>
+            <tbody>
+            {loop $list $item}
+            <tr>
+                <td>
+                    <img src='{php echo tomedia($item['headimgurl'])}' style='width:30px;height:30px;padding:1px;border:1px solid #ccc' /> {$item['nickname']}
+                    <br/>
+                    <label class='label label-info'>状态： {if $item['user_status']=='0'}拉黑 {/if} {if $item['user_status']=='1'} 正常 {/if}</label>
+                    <br>
+                    <label class='label label-info'>创建时间:{php echo date('Y-m-d H:i',$item['createtime'])}</label><br>
+                    {if $item['p1nickname']}
+                    一级好友: <img src='{php echo tomedia($item['p1avater'])}' style='width:30px;height:30px;padding:1px;border:1px solid #ccc' /> {$item['p1nickname']}
+                    <br/>
+                    {/if}
+                    {if $item['ppnickname']}
+                    二级上家: <img src='{php echo tomedia($item['ppavater'])}' style='width:30px;height:30px;padding:1px;border:1px solid #ccc' /> {$item['ppnickname']}
+                    <br/>
+                    {/if}
+                    {if $item['p2nickname']}
+                    二级好友: <img src='{php echo tomedia($item['p2avater'])}' style='width:30px;height:30px;padding:1px;border:1px solid #ccc' /> {$item['p2nickname']}
+                    <br/>
+                    {/if}
+                    {if $item['pp2nickname']}
+                    二级上家: <img src='{php echo tomedia($item['pp2avater'])}' style='width:30px;height:30px;padding:1px;border:1px solid #ccc' /> {$item['pp2nickname']}
+                    <br/>
+                    {/if}
+                    {if $item['p3nickname']}
+                    三级好友: <img src='{php echo tomedia($item['p3avater'])}' style='width:30px;height:30px;padding:1px;border:1px solid #ccc' /> {$item['p3nickname']}
+                    <br/>
+                    {/if}{if $item['pp3nickname']}
+                    二级上家: <img src='{php echo tomedia($item['pp3avater'])}' style='width:30px;height:30px;padding:1px;border:1px solid #ccc' /> {$item['pp3nickname']}
+                    <br/>
+                    {/if}
+
+                </td>
+
+                <td>{php echo date('Y-m-d H:i',$item['createtime'])} </td>
+                <td>{$item['ipcilent']} </td>
+                <td>
+                    <a href="{php echo $this->createWebUrl('member', array('op' => 'cposter', 'mid' => $item['id']))}" title="清除我的推广图片" data-toggle="tooltip"
+                       data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-edit">清除推广图片</i>
+                    </a>
+
+                    <a target="_blank" href="{php echo '../../app/'.$this->createMobileUrl('poster',array('pk'=>pencode($item['mid'])),true)}" title="我的推广图片"
+                       data-toggle="tooltip"
+                       data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-edit">推广图片</i>
+                    </a>
+
+                    <a href="{php echo $this->createWebUrl('member', array('op' => 'level1', 'id' => $item['id'],'lev'=>'1'))}" title="好友列表" data-toggle="tooltip"
+                       data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-list">一级好友[{$item['ftotal']}]</i>
+                    </a>
+                    <a href="{php echo $this->createWebUrl('member', array('op' => 'level1', 'id' => $item['id'],'lev'=>'2'))}" title="好友列表" data-toggle="tooltip"
+                       data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-list">二级好友[{$item['stotal']}]</i>
+                    </a>
+                    <a href="{php echo $this->createWebUrl('member', array('op' => 'level1', 'id' => $item['id'],'lev'=>'3'))}" title="好友列表" data-toggle="tooltip"
+                       data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-list">三级好友[{$item['ttotal']}]</i>
+                    </a>
+                </td>
+            </tr>
+            {/loop}
+            </tbody>
+        </table>
+
+    </form>
+
+    {$pager}
+</div>
+{elseif $op=='list'}
+<div style="margin:0;" class="alert alert-info"><i class="icon-warning-sign"></i>
+	<span style="font-weight:bold;">
+        提现总金额:{$out_moneys}
+    </span>
+</div>
+<div style="padding:15px;">
+    <form id="form2" class="form-horizontal" method="post">
+        <table class="table">
+            <thead>
+            <tr>
+                <th style="width:30%">提现金额</th>
+                <th style="width:10%;">状态</th>
+                <th style="width:30%">提现类型</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            {loop $list $item}
+            <tr>
+                <td>{$item['money']}元</td>
+                <td>{if $item['status']==0}发起{elseif $item['status']==1} 成功{else}失败{/if}</td>
+                <td>{if $item['channel']==1}微信红包{elseif $item['channel']==2} 企业付款{else}支付宝{/if} </td>
+                <td>
+                    {if $item['channel']==3}
+                    <a href="{php echo $this->createWebUrl('member', array('op' => 'alipay', 'id' => $item['id']))}" title="编辑" data-toggle="tooltip"
+                       data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-list">支付宝审核</i>
+                    </a>
+                    {/if}
+                </td>
+                {/loop}
+            </tbody>
+        </table>
+    </form>
+    {$pager}
+</div>
+{elseif $op == 'alipay'}
+<div class="clearfix">
+    <form class="form-horizontal form" action="" method="post" enctype="multipart/form-data">
+        <div class="panel panel-default">
+            <div class="panel-heading">支付宝审核[点审核通过时候,需要手工给账号转装]</div>
+            <div class="panel-body">
+                <input type="hidden" name="id" value="{$item[id]}">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">提现金额</label>
+                    <div class="col-sm-8 col-xs-12">
+                        <input type="text" name="money"  readonly class="form-control" value="{$item['money']}" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">支付宝账号</label>
+                    <div class="col-sm-8 col-xs-12">
+                        <input type="text" name="nickname"  readonly class="form-control" value="{$item['ali']}" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">支付宝用户名</label>
+                    <div class="col-sm-8">
+                        <input type="text" class="form-control" readonly name="ali_username" value="{$item['ali_username']}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">状态:</label>
+                    <div class="col-sm-4">
+                        <span class="label label-info">
+                            {if $item['status'] ==0}<span class="label label-info">提交审核</span>{/if}
+                            {if $item['status'] ==1}<span class="label label-info">审核通过</span>{/if}
+                            {if $item['status'] ==2}<span class="label label-success">审核失败</span>{/if}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-sm-12">
+                <input name="submit" type="submit" value="审核" class="btn btn-primary col-lg-1">
+                <input type="hidden" name="token" value="{$_W['token']}"/>
+            </div>
+        </div>
+    </form>
+
+</div>
+{elseif $op == 'post'}
+<div class="clearfix">
+    <form class="form-horizontal form" action="" method="post" enctype="multipart/form-data">
+        <div class="panel panel-default">
+            <div class="panel-heading">会员管理</div>
+            <div class="panel-body">
+                <input type="hidden" name="id" value="{$item[id]}">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">昵称</label>
+                    <div class="col-sm-8 col-xs-12">
+                        <input type="text" name="nickname"   class="form-control" value="{$item['nickname']}" />
+                    </div>
+                </div>
+
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">添加好友数量</label>
+                    <div class="col-sm-8">
+                        <input type="text" class="form-control" placeholder="" name="friend" value="{$item['friend']}">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">人气</label>
+                    <div class="col-sm-8">
+                        <input type="text" class="form-control" placeholder="" name="hot" value="{$item['hot']}">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">会员状态</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <input type="radio" name="vipstatus" value="0" id="form-oauth-0"  {if $item['vipstatus'] == 0}checked="true"{/if}  />
+                        <label for="form-oauth-0">普通会员</label>
+                        <input type="radio" name="vipstatus" value="2" id="form-oauth-2"  {if $item['vipstatus'] ==2}checked="true"{/if}  />
+                        <label for="form-oauth-2">超级VIP</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-sm-12">
+                <input name="submit" type="submit" value="提交" class="btn btn-primary col-lg-1">
+                <input type="hidden" name="token" value="{$_W['token']}"/>
+            </div>
+        </div>
+    </form>
+</div>
+{/if}

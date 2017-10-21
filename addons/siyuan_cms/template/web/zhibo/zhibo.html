@@ -1,0 +1,242 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+<li {if $op == 'display'}class="active"{/if}><a href="{php echo url('site/entry/zhibo',array('op'=>'display','m'=>'siyuan_cms'))}">直播列表</a></li>
+<li {if $op == 'post'}class="active"{/if}><a href="{php echo url('site/entry/zhibo',array('op'=>'post','m'=>'siyuan_cms'))}">添加直播</a></li>
+</ul>
+<style>
+.table td span{display:inline-block;margin-top:4px;}
+.table td input{margin-bottom:0;}
+</style>
+{if $op == 'display'}
+<script type="text/javascript" src="{$_W['siteroot']}addons/siyuan_cms/img/js/ToolTip.js"></script>
+<div class="panel panel-default">
+<div class="table-responsive panel-body">
+<table class="table">
+<thead>
+<tr>
+<th style="width:80px">排序</th>
+<th>标题</th>
+<th style="width: 120px;">直播方式</th>
+<th style="width:180px; text-align:center;">直播员</th>
+<th style="width:180px; text-align:center;">网址</th>
+<th style="width: 160px;">状态</th>
+<th style="width:180px;">开始时间</th>
+<th style="width:180px;">结束时间</th>
+<th style="width:100px;">人气</th>
+<th style="width:100px; text-align:right;">操作</th>
+</tr>
+</thead>
+<tbody>
+{loop $list $item}
+<tr>
+<td>{$item['displayorder']}</td>
+<td>
+<a href="{php echo url('site/entry/zhibo',array('op'=>'post', 'id' => $item['id'],'m'=>'siyuan_cms'))}" style="color:#333;">{$item['title']}</a>
+</td>
+<td>{if $item['lx'] == '0'}<span class="label label-success">图文</span>{else}<span class="label label-info">视频</span>{/if}</td>
+<td class="text-center"><a target="_blank" href="{php echo url('site/entry/zhibo_admin',array('op'=>'display', 'zid' => $item['id'],'m'=>'siyuan_cms'))}"><button type="button" class="btn btn-info"><i class="fa fa-headphones"></i>直播员管理</button></a></td>
+<td class="text-center"><a target="_blank" href="/app/{php echo $this->createMobileUrl('zhibo', array('id' => $item['id'],'act' => news, 'weid' => $_W['weid']))}"><button type="button" class="btn btn-primary"><i class="fa fa-paper-plane"></i>点击访问</button></a></td>
+<td>{if $item['endtime'] > $now}<span class="label label-success">直播中</span>{else}<span class="label label-default">已结束</span>{/if}</td>
+<td>{php echo date('Y-m-d H:i', $item['starttime'])}</td>
+<td>{php echo date('Y-m-d H:i', $item['endtime'])}</td>
+<td>{$item['yuedu']}</td>
+<td style="text-align:center;">
+<a href="{php echo url('site/entry/zhibo',array('op'=>'post', 'id' => $item['id'],'m'=>'siyuan_cms'))}" title="编辑" class="btn btn-default btn-sm"><i class="fa fa-edit"></i></a>
+<a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo url('site/entry/zhibo',array('op'=>'delete', 'id' => $item['id'],'m'=>'siyuan_cms'))}" title="删除" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-times"></i></a>
+</td>
+</tr>
+{/loop}
+</tbody>
+</table>
+{$pager}
+</div>
+</div>
+{elseif $op == 'post'}
+<div class="main">
+<form class="form-horizontal form" action="" method="post" enctype="multipart/form-data" id="form1">
+<div class="panel panel-default">
+<div class="panel-heading">直播管理</div>
+<div class="panel-body">
+<input type="hidden" name="id" value="{$item[id]}">
+{if $item['id']}
+<div class="form-group">
+<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">直播员邀请二维码</label>
+<div class="col-sm-8 col-xs-12">
+<a class="btn btn-primary"  onclick="doQr()"><i class="fa fa-qrcode"></i>点击显示</a>
+</div>
+</div>
+<div class="form-group zhibo_qr" style="display: none;">
+<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label"></label>
+<div class="col-sm-8 col-xs-12" id="qrqr">
+<div id="myQr"></div>
+<div class="help-block">微信直接扫描上面二维码或保存后发送给直播员！</div>
+<script>
+function doQr(){
+var url ="{$_W['siteroot']}app{php echo str_replace('./','/',$this->createMobileUrl('zhibo', array('act' => 'admin','id' => $item['id'])))}";
+var encodeurl = url.replace(/&/g, "%26");
+var qrcodeimg = "<img src='http://qr.liantu.com/api.php?w=200&m=10&text=" + encodeurl + "' width='200'/>";
+$('.zhibo_qr').show();
+document.getElementById("myQr").innerHTML = qrcodeimg;
+}
+</script>
+</div>
+</div>
+{/if}
+<div class="form-group">
+<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">标题</label>
+<div class="col-sm-8 col-xs-12">
+<input type="text" class="form-control" placeholder="" name="title" value="{$item['title']}">
+</div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">直播人气</label>
+<div class="col-sm-8 col-xs-12">
+<input type="text" class="form-control" placeholder="" name="yuedu" value="{$item['yuedu']}">
+</div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-3 col-md-2 control-label">直播方式</label>
+<div class="col-sm-9">
+<label class="radio-inline" onclick="$('.vod_zhibo').hide();$('.tuwen_zhibo').show();">
+<input type="radio" name="lx" value="0" {if $item['lx']== 0} checked="checked"{/if}/>图文模式</label>
+<label class="radio-inline" onclick="$('.vod_zhibo').show();$('.tuwen_zhibo').hide();">
+<input type="radio" name="lx" value="1" {if $item['lx'] == 1} checked="checked"{/if}/>视频模式</label>
+</div>
+</div>
+<!--<div class="tuwen_zhibo" {if $item['lx'] == 1}style="display: none;"{/if}>
+<div class="form-group">
+<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">视频源地址</label>
+<div class="col-sm-8 col-xs-12">
+<input type="text" class="form-control" placeholder="" name="tuwen_url" value="{$item['tuwen_url']}"><div class="help-block">直播时复制直播平台HLS或FLV的以.m3u8或.flv结尾的播放地址，优先选择.m3u8，直播结束后将直播录制的视频文件上传到优酷/腾讯,复制播放地址到这里，不填则显示封面图。</div>
+</div>
+</div>
+</div>-->
+
+
+<div class="vod_zhibo" {if $item['lx'] == 0}style="display: none;"{/if}>
+<div class="form-group">
+<label class="col-xs-12 col-sm-3 col-md-2 control-label">直播方式</label>
+<div class="col-sm-9">
+<label class="radio-inline" onclick="$('.leshi_zhibo').show();$('.tongyong_zhibo').hide();">
+<input type="radio" name="zb_lx" value="0" {if $item['zb_lx']== 0} checked="checked"{/if}/>乐视云</label>
+<label class="radio-inline" onclick="$('.leshi_zhibo').hide();$('.tongyong_zhibo').show();">
+<input type="radio" name="zb_lx" value="1" {if $item['zb_lx'] == 1} checked="checked"{/if}/>七牛/腾讯云/阿里云/其他平台+回放</label>
+</div>
+</div>
+
+<div class="leshi_zhibo" {if $item['zb_lx'] == 1}style="display: none;"{/if}>
+<div class="form-group">
+<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">乐视云活动ID</label>
+<div class="col-sm-8 col-xs-12">
+<input type="text" class="form-control" placeholder="" name="zhiboid" value="{$item['zhiboid']}"><div class="help-block">请到乐视云直播建立活动，将活动ID(A开头)复制过来，例：A2016010500713</div>
+</div>
+</div>
+</div>
+<div class="tongyong_zhibo" {if $item['zb_lx'] == 0}style="display: none;"{/if}>
+<div class="form-group">
+<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">视频源地址</label>
+<div class="col-sm-8 col-xs-12">
+<input type="text" class="form-control" placeholder="" name="zhibo_url" value="{$item['zhibo_url']}"><div class="help-block">直播时复制直播平台HLS或FLV的以.m3u8或.flv结尾的播放地址，优先选择.m3u8！</div>
+</div>
+</div>
+</div>
+</div>
+
+
+</div>
+
+<div class="form-group">
+<label class="col-xs-12 col-sm-3 col-md-2 control-label">页面自动刷新时间</label>
+<div class="col-sm-9 col-xs-12">
+<div class="row row-fix">
+<div class="col-sm-2 col-xs-2">
+<div class="input-group">
+<input type="text" name="shua" class="form-control" value="{$item['shua']}">
+<span class="input-group-addon">秒/次</span>
+
+</div>
+<div class="help-block"><font color="red">请输入纯数字，建议20-60秒，设置太低对占用服务器资源。</font></div>
+</div>
+</div>
+</div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">开始时间</label>
+<div class="col-sm-8 col-xs-12">
+{php echo tpl_form_field_date('starttime', $item['starttime'], true);}
+</div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">结束时间</label>
+<div class="col-sm-8 col-xs-12">
+{php echo tpl_form_field_date('endtime', $item['endtime'], true);}
+</div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">缩略图</label>
+<div class="col-sm-8 col-xs-12">
+{php echo tpl_form_field_image('thumb', $item['thumb']);}
+<div class="help-block"><font color="red">缩略图大小为640*320</font></div>
+</div>
+</div>
+<div class="form-group">
+<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">分享缩略图</label>
+<div class="col-sm-8 col-xs-12">
+{php echo tpl_form_field_image('fenxiang', $item['fenxiang']);}
+<div class="help-block"><font color="red">必须上传，图片为1:1大小</font></div>
+</div>
+</div>
+
+
+
+<div class="form-group">
+<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">直播介绍</label>
+<div class="col-xs-12 col-sm-8">
+<textarea style="height:300px; width:100%" class="richtext" name="body" rows="6" id="reply-add-text" placeholder="点这里输入内容" >
+{$item['body']}</textarea>
+<div class="help-block">仅用于视频直播显示，图文模式不会显示！</div>
+</div>
+</div>
+
+
+
+<div class="form-group">
+<div class="col-sm-6 col-xs-6">
+<button type="submit" class="btn btn-primary btn-block" name="submit" value="提交">提交</button>
+<input type="hidden" name="token" value="{$_W['token']}" />
+</div>
+</div>
+</div></div></div>
+
+</div>
+</div>
+
+
+</form>
+</div>
+</div>
+<script type="text/javascript">
+require(['jquery', 'util'], function($, u){
+$(function(){
+$('.richtext').each(function() {
+u.editor(this);
+});
+});
+});
+
+require(['jquery', 'util'], function($, u){
+$('#form1').submit(function(){
+if($("input[name=title]").val().length <= 0) {
+u.message('没有填写标题', '', 'error');
+return false;
+}
+if($("input[name=shua]").val() < '20') {
+u.message('刷新时间不要小于20秒', '', 'error');
+return false;
+}
+return true;
+});
+});
+</script>
+{/if}
+{template 'common/footer'}

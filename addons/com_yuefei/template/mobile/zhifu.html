@@ -1,0 +1,130 @@
+<!doctype html>
+<html class="no-js">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="">
+    <meta name="keywords" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>{$title}VIP升级</title>
+    <meta name="renderer" content="webkit">
+    <!-- No Baidu Siteapp-->
+    <meta http-equiv="Cache-Control" content="no-siteapp"/>
+    <!-- Add to homescreen for Chrome on Android -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <!-- Add to homescreen for Safari on iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Amaze UI"/>
+    <link rel="stylesheet" href="{RES}/mobile/assets/css/amazeui.min.css">
+    <link rel="stylesheet" href="{RES}/mobile/assets/css/app.css">
+    <style>
+        .copyright img{
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+<header data-am-widget="header" class="am-header am-header-default">
+    <h1 class="am-header-title">
+        <i class="am-icon-info-circle"></i>&nbsp;付费说明
+    </h1>
+</header>
+<ul class="am-list am-list-static am-list-border am-list-striped">
+    <input type="hidden" name="price" id="price" value="{if empty($setting)}1980{else}{$setting['price']}{/if}">
+    <input type="hidden" name="price1" id="price1" value="{if empty($setting)}100{else}{$setting['price1']}{/if}">
+    <input type="hidden" name="price2" id="price2" value="{if empty($setting)}280{else}{$setting['price2']}{/if}">
+    <input type="hidden" name="price3" id="price3" value="{if empty($setting)}500{else}{$setting['price3']}{/if}">
+    <input type="hidden" name="price4" id="price4" value="{if empty($setting)}800{else}{$setting['price4']}{/if}">
+    {if $setting['viptype']==1}
+    <li><i class="am-icon-cc-visa am-icon-sm" style="color:#FBA109"></i>&nbsp;&nbsp;{$title}VIP年费<font style="color:red">
+        {if empty($setting)}1980{else}{$setting['price']}{/if}</font>元</li>
+    {else}
+    <li><i class="am-icon-cc-visa am-icon-sm" style="color:#FBA109"></i>&nbsp;&nbsp;
+        <label for="viptype1"><input type="radio" name="viptype" value="1" id="viptype1"  checked="checked" /> 1个月</label>
+        <label for="viptype2"><input type="radio" name="viptype" value="3" id="viptype2" /> 3个月</label>
+        <label for="viptype3"><input type="radio" name="viptype" value="6" id="viptype3" /> 6个月</label>
+        <label for="viptype4"><input type="radio" name="viptype" value="12" id="viptype4" /> 12个月</label>
+        <br/>VIP费用：<font style="color:red" id="totalprice">{if empty($setting)}100{else}{$setting['price1']}{/if}</font>元
+    </li>
+    {/if}
+    <li><i class="am-icon-wechat am-icon-sm" style="color:#82D843"></i>&nbsp;&nbsp;支付方式:{if
+        $setting['paytype']==2}微信账号转账,账号：<font style="color:red">
+            {$setting['weixin']}</font>{else}微信支付{/if}</li>
+    <li><i class="am-icon-upload am-icon-sm" style="color:#B20000"></i>&nbsp;&nbsp;{if
+        $setting['paytype']==2}加微信转帐后，等待管理员开通账号{else}支付后自动升级，无需人工干预{/if}</li>
+    <li><i class="am-icon-user-plus am-icon-sm" style="color:#2C61A9"></i>&nbsp;&nbsp;为会员<font style="color:red">
+        ID{$fans['id']}</font>付费，请仔细核对</li>
+</ul>
+<div class="am-gotop am-gotop-default"><button type="button" class="am-btn  am-btn-success am-radius am-btn-lg" onclick="callpay()"><i class="am-icon-cart-arrow-down am-icon-sm"></i>&nbsp;&nbsp;现在支付</button></div>
+<hr data-am-widget="divider" style="" class="am-divider am-divider-dashed" />
+<footer data-am-widget="footer" class="am-footer am-footer-default">
+    <div class="am-footer-miscs copyright">
+        {php echo htmlspecialchars_decode($setting['copyright']);}
+    </div>
+</footer>
+{php include $this->template('_navbar');}
+<!--[if (gte IE 9)|!(IE)]><!-->
+<script src="{RES}/mobile/assets/js/jquery.min.js"></script>
+<!--<![endif]-->
+<!--[if lte IE 8 ]>
+<script src="http://libs.baidu.com/jquery/1.11.1/jquery.min.js"></script>
+<![endif]-->
+{php echo register_jssdk(false);}
+<script>
+    wx.ready(function () {
+        sharedata = {
+            title: '{$share_title}',
+            desc: '{$share_desc}',
+            link: '{$share_url}',
+            imgUrl: '{$share_image}',
+            success: function(){
+            },
+            cancel: function(){
+            }
+        };
+        wx.onMenuShareAppMessage(sharedata);
+        wx.onMenuShareTimeline(sharedata);
+    });
+</script>
+<script>
+    $('input[name="viptype"]').change(function() {
+        var count = $('input[name="viptype"]:checked ').val();
+//        var price = $('#price').val();
+//        var totalprice = count*price;
+        "{if $setting['viptype']==1}"
+        var price = $('#price').val();
+        var totalprice = price;
+        "{else}"
+        if (count == 1) {
+            totalprice = $('#price1').val();
+        } else if (count == 3) {
+            totalprice = $('#price2').val();
+        } else if (count == 6) {
+            totalprice = $('#price3').val();
+        } else if (count == 12) {
+            totalprice = $('#price4').val();
+        }
+        "{/if}"
+
+        $('#totalprice').html(totalprice);
+    });
+
+    function callpay(){
+        "{if $setting['paytype']==2}"
+        alert('请加上面的微信账号，然后转账，等待管理员开通VIP.');
+        return false;
+        "{else}"
+        "{if $setting['viptype']==1}"
+        url = "{php echo $this->createMobileUrl('AddToOrder', array(), true)}";
+        location.href = url;
+        "{else}"
+        var vipcount = $('input[name="viptype"]:checked ').val();
+        url = "{php echo $this->createMobileUrl('AddToOrder', array(), true)}" + '&vipcount=' + vipcount;
+        location.href = url;
+        "{/if}"
+        "{/if}"
+    }
+</script>
+</body>
+</html>

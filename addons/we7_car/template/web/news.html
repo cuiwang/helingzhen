@@ -1,0 +1,219 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li {if $op == 'post'}class="active"{/if}><a href="{php echo $this->createWebUrl('news', array('op' => 'post'))}">添加分类</a></li>
+	<li {if $op == 'list'}class="active"{/if}><a href="{php echo $this->createWebUrl('news', array('op' => 'list'))}">管理分类</a></li>
+	<li {if $op == 'add_news'}class="active"{/if}><a href="{php echo $this->createWebUrl('news', array('op' => 'add_news'))}">添加文章</a></li>
+	<li {if $op == 'news_list'}class="active"{/if}><a href="{php echo $this->createWebUrl('news', array('op' => 'news_list'))}">文章列表</a></li>
+</ul>
+<style>
+.table td span{display:inline-block;margin-top:4px;}
+.table td input{margin-bottom:0;}
+</style>
+{if $op == 'news_list'}
+<div class='main'>
+   	<div class="panel panel-info">
+		<div class="panel-heading">筛选</div>
+		<div class="panel-body">
+			<form action="./index.php" method="get" class="form-horizontal" role="form">
+				<input type="hidden" name="c" value="site" />
+				<input type="hidden" name="a" value="entry" />
+				<input type="hidden" name="m" value="we7_car" />
+				<input type="hidden" name="do" value="news" />
+				<input type="hidden" name="op" value="news_list" />
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">关键字</label>
+					<div class="col-xs-12 col-sm-8 col-lg-9">
+						<input class="form-control" name="keyword" id="" type="text" value="{$_GPC['keyword']}">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">状态</label>
+					<div class="col-xs-12 col-sm-8 col-lg-9">
+						<select class="form-control" style="margin-right:15px;" name="category_id" >
+							<option value="0">请选择文章分类</option>
+							{loop $categorys $row}
+							<option value="{$row['id']}" {if $row['id'] == $_GPC['category_id']} selected="selected"{/if}>{$row['title']}</option>
+							{/loop}
+						</select>
+					</div>
+                    <div class=" col-xs-12 col-sm-2 col-lg-2">
+						<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+	<div class="panel panel-default">
+		<div class="panel-body table-responsive">
+		<table class="table table-hover table-striped">
+			<thead class="navbar-inner">
+				<tr>
+					<th style="width:120px;">标题</th>
+					<th style="width:150px;">所属分类</th>
+					<th style="width:150px;">属性</th>
+					<th style="width:150px;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{if $list}
+				{loop $list $newsone}
+				<tr>
+					<td>
+						<span class="cate">{if !empty($newsone['pcate'])}<span class="text-error">[{$category[$newsone['pcate']]['name']}]</span>{/if}{if !empty($newsone['ccate'])}<span class="text-info">[{$category[$newsone['ccate']]['name']}]</span>{/if}</span>
+						<a href="{php echo $this->createWebUrl('news', array('op' => 'add_news', 'id' => $newsone['id']))}" style="color:#333;">{$newsone['title']}</a>
+					</td>
+					<td>
+						<a href="{php echo $this->createWebUrl('news', array('op' => 'post', 'id' => $newsone['category_id']))}" style="color:#333;">{$newsone['category_title']}</a>
+					</td>
+					<td>
+						{if $newsone['ishot']}<span class="label label-success">头条</span>{/if}
+						{if $newsone['iscommend']}<span class="label label-success">推荐</span>{/if}
+					</td>
+					<td>
+						<a class='btn btn-default btn-sm' href="{php echo $this->createWebUrl('news', array('op' => 'add_news', 'id' => $newsone['id']))}" title="编辑" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-edit"></i></a>
+						<a class='btn btn-default btn-sm'  onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('news', array('op' => 'del_news', 'id' => $newsone['id']))}" title="删除" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-times"></i></a>
+					</td>
+				</tr>
+				{/loop}
+				{/if}
+			</tbody>
+		</table>
+		{$pager}
+	</div>
+</div>
+	<script>
+		require(['bootstrap'],function($){
+			$('.btn').tooltip();
+		});
+	</script>
+
+{elseif $op == 'add_news'}
+<div class="main">
+	<form class="form-horizontal form" action="" method="post" enctype="multipart/form-data" onsubmit="return formcheck(this)">
+		<input type="hidden" name="id" value="{$newsone[id]}">
+         <div class="panel panel-default">
+            <div class="panel-heading">
+                分类详细设置
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">标题</label>
+                    <div class="col-sm-9 col-xs-12">
+                     <input type="text" class="form-control" placeholder="" name="title" value="{$newsone['title']}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">自定义属性</label>
+                    <div class="col-sm-9 col-xs-12">
+                      	<label class="checkbox-inline"><input type="checkbox" name="option[hot]" value="1" {if $newsone['ishot']} checked{/if}> 头条[h]</label>
+	     				<label class="checkbox-inline"><input type="checkbox" name="option[commend]" value="1" {if $newsone['iscommend']} checked{/if}> 推荐[c]</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">文章来源</label>
+                    <div class="col-sm-9 col-xs-12">
+                    	<input type="text" class="form-control" placeholder="" name="source" value="{$newsone['source']}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">文章作者</label>
+                    <div class="col-sm-9 col-xs-12">
+                    	<input type="text" class="form-control" id="writer" name="author" value="{$newsone['author']}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">缩略图</label>
+                    <div class="col-sm-9 col-xs-12">
+                    {php load()->func('tpl')}
+                    {php echo tpl_form_field_image('thumb',$newsone['thumb'])}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">所属分类</label>
+                    <div class="col-sm-9 col-xs-12">
+                   <select class="form-control" name="category_id">
+						<option value="0">请选择所属分类</option>
+						{loop $categorys $row}
+							<option value="{$row['id']}"  {if $row['id'] == $newsone['category_id'] || $cateid ==  $row['id']} selected="selected"{/if}>{$row['title']}</option>
+						{/loop}
+					</select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">内容模板</label>
+                    <div class="col-sm-9 col-xs-12">
+              		<select name="template" class="form-control">
+						<option value="">使用默认设置</option>
+						{loop $template $v}
+						<option value="{$v['title']}"{if $newsone['template'] == $v['title']} selected="selected"{/if}>{$v['title']}</option>
+						{/loop}
+					</select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">简介</label>
+                    <div class="col-sm-9 col-xs-12">
+                  		<textarea style="height:200px;" class="form-control" name="description" cols="70">{$newsone['description']}</textarea>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+                    <div class="col-sm-9 col-xs-12">
+                  		<label class="checkbox-inline"><input type="checkbox" name="autolitpic" value="1"{if empty($newsone['thumb'])} checked="true"{/if}>提取内容的第一个图片为缩略图</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">内容</label>
+                    <div class="col-sm-9 col-xs-12">
+                 		<textarea style="height:400px; width:100%;" class="richtext-clone" name="content" cols="70" id="reply-add-text">{$newsone['content']}</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+		<div class="form-group col-sm-12">
+			<input name="id" type="hidden" value="{$newsone['id']}">
+			<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+			<input type="hidden" name="token" value="{$_W['token']}" />
+		</div>
+	</form>
+</div>
+
+</div>
+
+<script type="text/javascript">
+    function message(msg){
+        require(['util'],function(util){
+            util.message(msg);
+        })
+    }
+function formcheck(obj){
+	if($.trim($(":text[name='title']").val()) == ''){
+		message('必须填写文章标题.', '', 'error');
+		return false;
+	}
+	if($("select[name='category_id']").val() == '' || $("select[name='category_id']").val() == '0'){
+		message('请选择文章分类.', '', 'error');
+		return false;
+	}
+	if($.trim($("textarea[name='description']").val()) == ''){
+		message('必须填写文章简介.', '', 'error');
+		return false;
+	}
+//	if($.trim($("textarea[name='content']").val()) == ''){
+//		message('必须填写文章内容.', '', 'error');
+//		return false;
+//	}
+	return true;
+}
+
+<!--
+	var category = {php echo json_encode($children)};
+        require(['util'],function(util){
+            util.editor( $('.richtext-clone')[0]);
+        })
+//-->
+
+
+</script>
+{/if}
+{template 'common/footer'}

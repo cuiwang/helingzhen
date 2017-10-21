@@ -1,0 +1,128 @@
+<!--
+ * ============================================================================
+ * 版权所有 2015-2016 米粒源码，并保留所有权利。
+ * 网站地址: http://www.webmili.com；
+ * ----------------------------------------------------------------------------
+ * 这不是一个自由软件！已购买用户允许对程序代码进行修改和使用，但是不允许对
+ * 程序代码以任何形式任何目的的再发布，作者将保留追究法律责任的权力和最终解
+ * 释权。
+ * ============================================================================
+-->
+{php include $this->template('_header');}
+
+<body>
+<header class="top-header fixed-header">
+	<a class="icona" href="javascript:history.go(-1)"><img src="../addons/cash_car/template/images/left-white.png"/></a>
+	<h3>{$title}</h3>
+</header>
+{if $op=='display'}
+<style type="text/css">
+.order dl ul .checked{width:10%;}
+.order dl ul .checked input{margin-top: 75%;}
+.order dl ul li{width:70%;}
+.order dl ul li p{font-size:1.45em; font-family:"宋体"; font-weight:bold; color:#EC9400;}
+.order dl ul li span{font-size:1.1em; padding-top: 2%; line-height: 1.8em; color:#0AB30A;}
+.order dl ul .amount{text-align:right; width:20%; margin-top:5%;}
+.order dl ul .amount strong{ color:red; font-weight:bold; font-size:2em;}
+</style>
+	{if !empty($card_list)}
+	<div class="contaniner fixed-conta">
+		<section class="order">
+		{loop $card_list $key $card}	
+			<dl>
+				<ul>
+					<figure class="checked"><input type="radio" name="onlycardid" value="{$card['id']}" {if $key==0}checked{/if}></figure>
+					<li>
+						<p>{$card['title']}</p>
+						{if !empty($card['content'])}
+						<span>促销活动：{$card['content']}</span>
+						{else}
+						<span style="color:#666;">有效期：年卡366天/半年卡183天/季度卡93天/月卡31天，过期未使用将自动作废！</span>
+						{/if}
+					</li>
+					<figure class="amount"><strong>{$card['amount']}</strong> 元</figure>
+				</ul>
+			</dl>
+		{/loop}
+			<dl>
+				<ul>
+					<li style="width:100%;">
+						<input type="hidden" name="{$_W['token']}" value="token" />
+						<input type="submit" name="submit" class="submit-btn" id="submit-btn" value="提交订单" />
+					</li>
+				</ul>
+			</dl>
+		</section>
+	</div>
+	<script type="text/javascript">
+	$("#submit-btn").click(function () {
+		var url = "{php echo $this->createMobileUrl('addonecardorder', array('from_user' => $from_user, 'uid' => $uid), true)}";
+		$.ajax({
+			url: url, type: "post", dataType: "json", timeout: "10000",
+			data: {
+				"onlycardid"  : $('input[name="onlycardid"]:checked').val(),
+			},
+			success: function (data) {
+				if (data.message['code'] == 'success') {
+					var url = "{php echo $this->createMobileUrl('pay', array('ordertype'=>'onecard'), true)}"+"&orderid="+data.message['orderid'];
+					location.href = url;
+				} else {
+					alert(data.message['msg']);
+				}
+			},error: function () {
+				alert("订单提交失败！");
+			}
+		});
+
+	});
+	</script>
+	{else}
+	<div class="none">
+		<h3>
+			<img src="../addons/cash_car/template/images/order-icon01.png">
+		</h3>
+		<p>
+			<span>暂无洗车卡出售，去<a href="{php echo $this->createMobileUrl('storelist');}">首页</a>逛逛~</span>
+		</p>
+	</div>
+	{/if}
+{elseif $op=='mycard'}
+<style type="text/css">
+.order dl ul li{width:80%;}
+.order dl ul li p{font-size:1.45em; font-family:"宋体"; font-weight:bold; color:#EC9400;}
+.order dl ul .give{width:18%; font-size:1.2em; margin-top:7%;}
+</style>
+	{if !empty($mycard_list)}
+	<div class="contaniner fixed-conta">
+		<section class="order">
+		{loop $mycard_list $mycard}	
+			<dl>
+				<ul>
+					<li>
+						<p>{$mycard['title']}</p>
+						<span>剩余次数: {$mycard['number']} 次</span>
+						<span>有效期限: {php echo date('Y-m-d H:i:s', $mycard['validity']);}</span>
+					</li>
+					{if $setting['is_give']==1}
+					<figure class="give"><a href="{php echo $this->createMobileUrl('givecard', array('id'=>$mycard[id]));}" style="color:blue;">我要转赠</a></figure>
+					{/if}
+				</ul>
+			</dl>
+		{/loop}
+		</section>
+	</div>
+	{else}
+	<div class="none">
+		<h3>
+			<img src="../addons/cash_car/template/images/order-icon01.png">
+		</h3>
+		<p>
+			<span>您还没有洗车卡，赶紧<a href="{php echo $this->createMobileUrl('onecardlist');}">去购买</a>吧</span>
+		</p>
+	</div>
+	{/if}
+{/if}
+
+{php include $this->template('_footer');}
+</body>
+</html>

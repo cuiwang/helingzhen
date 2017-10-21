@@ -1,0 +1,186 @@
+<html ng-app="diandanbao" class="ng-scope">
+<head>
+    <style type="text/css">@charset "UTF-8";
+    [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak, .ng-hide:not(.ng-hide-animate) {
+        display: none !important;
+    }
+
+    ng\:form {
+        display: block;
+    }</style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta content="telephone=no" name="format-detection">
+    <title>预订订单</title>
+    <link data-turbolinks-track="true" href="{RES}/mobile/{php echo $this->cur_tpl}/assets/diandanbao/weixin.css" media="all" rel="stylesheet">
+    <script src="{RES}/mobile/{php echo $this->cur_tpl}/assets/diandanbao/jquery-1.11.3.min.js"></script>
+    <style type="text/css">@media screen {
+        .smnoscreen {
+            display: none
+        }
+    }
+    @media print {
+        .smnoprint {
+            display: none
+        }
+    }</style>
+</head>
+<body>
+
+<!-- ngView:  -->
+<div ng-view="" style="height: 100%;" class="ng-scope">
+    <div id="new-order-checkout-page" class="ng-scope">
+        <div class="ddb-nav-header" common-header="">
+            <div class="nav-left-item" onclick="location.href='{php echo $this->createMobileUrl('reservationIndex', array('storeid' => $storeid, 'mode' => 3), true)}'"><i class="fa fa-angle-left"></i></div>
+            <div class="header-title ng-binding">预订订单</div>
+        </div>
+        <div class="ddb-nav-footer orders-common-footer">
+            <div class="button checkout-button right" id="btnselect">确认提交</div>
+            <div class="quantity-total ng-binding"></div>
+            <div class="total-amount red ng-binding">
+                ￥{if $rtype == 1}{$tablezones['reservation_price']}{else}{$totalprice}{/if}
+            </div>
+            <span ng-show="prepayment_type == 'prepay_for_order'" class="ng-binding ng-hide"> 预付 100% </span>
+        </div>
+        <div id="new-reservation-order-form" class="main-view">
+            <div class="section">
+            </div>
+            <div class="space-8"></div>
+            <div class="section">
+                <div class="list-item branch-name ng-binding">{$store['title']}</div>
+                <div class="list-item">
+                    <span class="table-zone ng-binding">{$tablezones['title']}</span>
+                    <span class="reservation-time ng-binding">{$select_date} {$time['time']}</span>
+                </div>
+                <div class="list-item">
+                    <div class="prepayment-type {if $rtype==1}active{/if}" onclick="window.location.href = '{$url1}';">
+                        <div class="price ng-binding">预付￥{$tablezones['reservation_price']}</div>
+                        <div class="label">只订座</div>
+                        <div class="radio"></div>
+                    </div>
+                    <div class="prepayment-type {if $rtype==2}active{/if}" onclick="window.location.href = '{$url2}';">
+                        <div class="price ng-binding">
+                            ￥{$tablezones['limit_price']} 起订
+                        </div>
+                        <div class="label">提前下单</div>
+                        <div class="radio"></div>
+                    </div>
+                </div>
+                <div class="list-item ddb-form-control">
+                    <div class="ddb-form-label">姓名</div>
+                    <div class="input-field">
+                        <input type="text" class="ddb-form-input ng-pristine ng-untouched ng-valid" placeholder="输入您的姓名" value="{$user['username']}" name="username" id="username">
+                    </div>
+                </div>
+                <div class="list-item ddb-form-control">
+                    <div class="ddb-form-label">电话</div>
+                    <div class="input-field">
+                        <input type="text" class="ddb-form-input ng-pristine ng-untouched ng-valid" placeholder="输入您的联系电话" value="{$user['mobile']}" name="mobile" id="mobile">
+                    </div>
+                </div>
+            </div>
+            <div class="space-8"></div>
+            <div class="section ng-scope">
+                <!--<div class="list-item  ddb-form-control custom-form-element ng-scope"-->
+                     <!--ng-repeat="element in form_elements">-->
+                    <!--<div class="ddb-form-label ng-binding">口味</div>-->
+
+                    <!--<select class="ng-valid ng-scope ng-dirty ng-valid-parse ng-touched">-->
+                        <!--<option value="0" selected="selected" label="原味">原味</option>-->
+                        <!--<option value="1" label="加辣">加辣</option>-->
+                    <!--</select>-->
+
+                    <!--<input type="hidden" ng-model="element.record.type" class="ng-pristine ng-untouched ng-valid">-->
+                <!--</div>-->
+                <div class="list-item ddb-form-control">
+                    <textarea placeholder="请输入备注，人数口味等等（可不填）" class="ng-pristine ng-untouched ng-valid" name="remark"
+                              id="remark"></textarea>
+                </div>
+            </div>
+            <div class="space-8"></div>
+        </div>
+    </div>
+</div>
+<input type="hidden" id="select_date" name="select_date" value="{$select_date} {$time['time']}">
+<input type="hidden" id="mode" name="mode" value="3">
+<input type="hidden" id="rtype" name="rtype" value="{$rtype}">
+<input type="hidden" id="tablezonesid" name="tablezonesid" value="{$tablezones['id']}">
+<input type="hidden" id="totalprice" name="totalprice" value="{if $rtype == 1}{$tablezones['reservation_price']}{else}{$totalprice}{/if}">
+
+
+<script type="text/javascript" src="../addons/weisrc_dish/template/js/2/jQuery.js"></script>
+<script>
+    $("#btnselect").click(function () {
+        var bool = checkItem();
+        if (bool) {
+            postmain();
+        }
+    });
+
+    function checkItem() {
+        if ($("#tel").val() == "" || $("#tel").val() == "(必填*)请输入您的手机号码") {
+            alert("请输入您的电话号码！");
+            return false;
+        }
+//    if (!/^1[3|4|5|8][0-9]\d{8}$/.test($("#tel").val())) { alert("请输入正确的电话号码！"); return false; }
+        if ($("#name").val() == "" || $("#name").val() == "(必填*)请输入您的真实姓名") {
+            alert("请输入您的真实姓名！");
+            return false;
+        }
+        totalprice = parseFloat($("#totalprice").val());
+        var rtype = $("#rtype").val();
+        if (rtype==2 && totalprice <= 0) {
+            alert("金额为0，请选择菜品！");
+            return false;
+        }
+
+        return true;
+    }
+
+    function postmain() {
+        var ordertype = $("#mode").val();
+        var select_date = $("#select_date").val();
+        var rtype = $("#rtype").val();
+//        alert(ordertype);
+//        return false;
+
+        $("#btnselect").hide();
+        if (true) {
+            var url = "{php echo $this->createMobileUrl('addtoorder', array('storeid' => $storeid, 'from_user' => $from_user), true)}";
+            var address = $("#address").val();
+            var totalprice = parseFloat($("#totalprice").val());
+
+            $.ajax({
+                url: url, type: "post", dataType: "json", timeout: "10000",
+                data: {
+                    "type": "add",
+                    "total": totalprice,
+                    "ordertype": ordertype,
+                    "tables": $("#tables").val(),
+                    "guest_name": $("#username").val(),
+                    "tel": $("#mobile").val(),
+                    "meal_time": select_date,
+                    "rtype": rtype,
+                    "tablezonesid":$("#tablezonesid").val(),
+                    "remark": $("#remark").val(),
+                    "address":address
+                },
+                success: function (data) {
+                    if (data.message['code'] != 0) {
+                        var url = "{php echo $this->createMobileUrl('pay', array(), true)}"+"&orderid="+data.message['orderid'];
+                        location.href = url;
+                    } else {
+                        alert(data.message['msg']);
+                        //'网络不稳定，请重新尝试!'
+                    }
+                    $("#btnselect").show();
+                },error: function () {
+                    alert("订单提交失败！");
+                }
+            });
+        } else {
+            $("#btnselect").show();
+        }
+    }
+</script>
+</body>
+</html>

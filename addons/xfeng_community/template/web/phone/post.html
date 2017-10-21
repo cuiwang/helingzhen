@@ -1,0 +1,167 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+    <li {if $op == 'list'}class="active" {/if}>
+    <a href="{php echo $this->createWebUrl('phone', array('op' => 'list'));}">号码管理</a>
+    </li>
+    <li>
+        <a href="{php echo $this->createWebUrl('phone', array('op' => 'add'));}">新增号码</a>
+    </li>
+    <li {if $op == 'post'}class="active" {/if}>
+        <a href="{php echo $this->createWebUrl('phone', array('op' => 'post'));}">一键导入</a>
+    </li>
+
+</ul>
+<form action="" class="form-horizontal form" method="post" role="form" enctype="multipart/form-data" onsubmit="return check(this);">
+    <input type="hidden" name="regionid" value="" />
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="panel-title">批量导入</h3>
+        </div>
+        <div class="panel-body">
+            <div class="alert alert-info" role="alert">
+                默认导入格式:当前小区费用,请按照此格式导入：排序|号码|图片路径|描述。
+                <p>(<a href="{MODULE_URL}template/upFile/phone.xlsx" target="_blank" style="font-size:16px;color:red">点击下载便民号码Excel上传格式示例</a>)</p>
+            </div>
+            {if !$user['regionid']}
+            <div class="form-group">
+                <label for="" class="col-sm-2 control-label">省市区</label>
+                <div class="col-sm-5">
+                    {php echo tpl_form_field_district('birth',array('province' => $item['province'],'city' => $item['city'],'dist' => $item['dist']))}
+                </div>
+            </div>
+            <div class="form-group region" {if !$regs}style="display: none"{/if}>
+                <label for="" class="col-sm-2 control-label">选择小区</label>
+                <div class="col-sm-10 content">
+                    {if $regs}
+                    <label class="checkbox-inline">
+                        <input type="checkbox" id="checkAll" name="checkAll" data-group="regionid">全部
+                    </label>
+                    {loop $regions $region}
+                    <label class="checkbox-inline">
+                        <input type="checkbox" id="regionid" value="{$region['id']}" data-group="regionid" {if @in_array($region[ 'id'], $regs)}checked='checked' {/if}> {$region['city']}{$region['dist']}{$region['title']}
+                    </label>
+                    {/loop}
+
+
+                    {/if}
+                </div>
+            </div>
+            {/if}
+            <div class="form-group">
+                <label for="uploadExcel" class="col-sm-2 control-label">数据</label>
+                <div class="col-sm-4">
+                    <input type="file" name="uploadExcel" class="form-control" id="uploadExcel">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="" class="col-sm-2 control-label"></label>
+                <div class="col-sm-5">
+                    <button type="submit" class="btn btn-primary span3" name="submit" value="提交">提交</button>
+                    <input type="hidden" name="token" value="{$_W['token']}" />
+                </div>
+            </div>
+    </div>
+    </div>
+
+</form>
+<script>
+    function check(form){
+        var regionids = [];
+        $("input[id='regionid']:checked").each(function(){
+            var lastid = $(this).val();
+            regionids.push(lastid);
+        })
+        regionids.join(",");
+        console.log(regionids);
+        $("input[name='regionid']").val(regionids);
+        return true;
+    }
+    {if $id}
+        $(function() {
+            $("#checkAll").click(function() {
+                var checked = $(this).get(0).checked;
+                var group = $(this).data('group');
+                $("#regionid[data-group='" +group + "']").each(function(){
+                    $(this).get(0).checked = checked;
+                })
+            });
+        });
+        {/if}
+    $(function() {
+        //省
+        $('.tpl-province').change(function(){
+            var province =$('.tpl-province').val();
+            $.getJSON("{php echo $this->createWebUrl('cregion')}",{province:province},function(data){
+                var region ="";
+                region += "<label class=\"checkbox-inline\" >";
+                region += "<input type=\"checkbox\" id=\"checkAll\" name=\"checkAll\" data-group=\"regionid\" />全部";
+                region += "</label>";
+                for(var o in data){
+                    region += "<label class=\"checkbox-inline\" >";
+                    region += "<input type='checkbox' id='regionid' value='"+data[o].id+"' data-group='regionid' >"+data[o].title;
+                    region += "</label>";
+                }
+                $('.content').html(region);
+                $('.region').show();
+                $("#checkAll").click(function() {
+                    var checked = $(this).get(0).checked;
+                    var group = $(this).data('group');
+                    $("#regionid[data-group='" +group + "']").each(function(){
+                        $(this).get(0).checked = checked;
+                    })
+                });
+            })
+        })
+        //市
+        $('.tpl-city').change(function(){
+            var city =$('.tpl-city').val();
+            $.getJSON("{php echo $this->createWebUrl('cregion')}",{city:city},function(data){
+                var region ="";
+                region += "<label class=\"checkbox-inline\" >";
+                region += "<input type=\"checkbox\" id=\"checkAll\" name=\"checkAll\" data-group=\"regionid\"  />全部";
+                region += "</label>";
+                for(var o in data){
+                    region += "<label class=\"checkbox-inline\" >";
+                    region += "<input type='checkbox' id='regionid' value='"+data[o].id+"' data-group ='regionid'>"+data[o].title;
+                    region += "</label>";
+                }
+                $('.content').html(region);
+                $('.region').show();
+                $("#checkAll").click(function() {
+                    var checked = $(this).get(0).checked;
+                    var group = $(this).data('group');
+                    $("#regionid[data-group='" +group + "']").each(function(){
+                        $(this).get(0).checked = checked;
+                    })
+                });
+            })
+        })
+        //区
+        $('.tpl-district').change(function(){
+            var dist =$('.tpl-district').val();
+            $.getJSON("{php echo $this->createWebUrl('cregion')}",{dist:dist},function(data){
+                var region ="";
+                region += "<label class=\"checkbox-inline\" >";
+                region += "<input type=\"checkbox\" id=\"checkAll\" name=\"checkAll\" data-group=\"regionid\"  />全部";
+                region += "</label>";
+                for(var o in data){
+                    region += "<label class=\"checkbox-inline\" >";
+                    region += "<input type='checkbox' id='regionid' value='"+data[o].id+"' data-group ='regionid'>"+data[o].title;
+                    region += "</label>";
+                }
+                $('.content').html(region);
+                $('.region').show();
+                $("#checkAll").click(function() {
+                    var checked = $(this).get(0).checked;
+                    var group = $(this).data('group');
+                    $("#regionid[data-group='" +group + "']").each(function(){
+                        $(this).get(0).checked = checked;
+                    })
+                });
+            })
+        })
+
+    });
+
+</script>
+{template 'common/footer'}

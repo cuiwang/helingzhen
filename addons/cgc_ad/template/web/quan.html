@@ -1,0 +1,1398 @@
+{template 'common/header'}
+
+<ul class="nav nav-tabs">
+	<li {if $op== 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('quan')}">管理广告平台</a></li>
+	<li {if $op== 'post' && empty($id)}class="active"{/if}><a href="{php echo $this->createWebUrl('quan',array('op'=>'post'))}">新建广告平台</a></li> {if !empty($id)}
+	<li class="active"><a>编辑广告平台</a></li> {/if}
+</ul>
+{if $op=='display'}
+
+<div class="panel panel-default">
+	<div class="panel-heading">广告平台详细数据 | 总数:{$total}</div>
+	<!-- 
+
+<div class="panel panel-info">
+
+
+	</div> -->
+
+	<div class="panel-body table-responsive" style="overflow: visible;">
+
+		<form action="" method="post" onsubmit="">
+
+			<table class="table table-hover">
+
+				<thead class="navbar-inner">
+
+					<tr>
+
+						<th style="width: 3%;" class="row-first">选择
+						</td>
+
+						<th style="width: 3%;">ID</th>
+
+						<th style="width: 10%;">广告平台名称</th>
+
+						<th style="width: 10%;">允许领钱时间</th>
+
+						<th style="width: 8%;">用户总数</th>
+
+						<th style="width: 8%;">广告总数</th>
+
+						<th style="width: 8%;">广告总金额</th>
+
+						<th style="width: 8%;">服务费率</th>
+
+						<th style="width: 7%;">状态</th>
+
+						<th style="width: 10%;">创建时间</th>
+
+						<th style="width: 20%;">操作</th>
+
+					</tr>
+
+				</thead>
+
+				<tbody id="main">
+
+					{loop $list $row}
+
+					<tr>
+
+						<td><input type="checkbox" name="select[]" value="{$row['id']}" /></td>
+
+						<td style="white-space: normal; word-break: break-all">{$row['id']}</td>
+
+						<td style="white-space: normal; word-break: break-all">{$row['aname']}</td>
+
+						<td style="white-space: normal; word-break: break-all">{$row['begin_time']}点 - {$row['over_time']}点</td>
+
+						<td style="white-space: normal; word-break: break-all">{$row['user']}</td>
+
+						<td style="white-space: normal; word-break: break-all">{$row['adv']}个</td>
+
+						<td style="white-space: normal; word-break: break-all">{$row['adv_fee']}元</td>
+
+						<td style="white-space: normal; word-break: break-all">{$row['percent']}%</td>
+
+						<td style="white-space: normal; word-break: break-all">{if $row['status']==0}<span class="btn btn-danger">关闭</span>{/if}{if $row['status']==1}<span class="btn btn-info">开启</span>{/if}
+						</td>
+
+						<td style="white-space: normal; word-break: break-all">{php echo date('Y年n月j日', $row['create_time']);}</td>
+
+						<td style="white-space: normal; word-break: break-all; overflow: visible;">
+							<div class="btn-group btn-group-sm">
+								<a class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-expanded="false" href="javascript:;">入口 <span class="caret"></span></a>
+								<ul class="dropdown-menu dropdown-menu-right" role="menu">
+									<li><a href="{$row['url']}" target="_blank"><i class="fa fa-external-link fa-fw"></i> 直接访问</a></li>
+									<li role="presentation"><a href="javascript:;" onclick="displayUrl('{$row['url']}', '{$row['surl']}', '{$row['guanzhu_url']}');"><i class="fa fa-link fa-fw"></i> 查看链接</a></li>
+									<li role="presentation"><a href="javascript:;" onclick="displayQr('{php echo $_W['siteroot'] . 'web/'.substr($this->createWebUrl('qr', array('raw' => base64_encode($row['url']))),2)}');"><i class="fa fa-qrcode fa-fw"></i> 查看二维码</a></li>
+									<li role="presentation"><a href="{php echo $_W['siteroot'] . 'web/'.substr($this->createWebUrl('adv', array('quan_id' => $row['id'])),2)}"><i class="fa fa-qrcode fa-fw"></i>广告管理</a></li>
+									<li role="presentation"><a href="{php echo $_W['siteroot'] . 'web/'.substr($this->createWebUrl('member', array('quan_id' => $row['id'])),2)}"><i class="fa fa-qrcode fa-fw"></i>用户管理</a></li> {if $row['guanzhu_direct']}
+									<li role="presentation"><a href="{$row['guanzhu_url']}"><i class="fa fa-qrcode fa-fw"></i>关注直达链接</a></li> {/if}
+								</ul>
+							</div> <a class="btn btn-danger" href="{php echo $this->createWebUrl('stat',array('quan_id'=>$row['id']))}"> 数据统计</a> <a href="{php echo $this->CreateWebUrl('quan',array('op'=>'post','id'=>$row['id']))}"><div class="btn btn-success">编辑</div></a> <a onclick="if(!confirm('确定删除，删除后数据不可恢复?')) return false;" href="{php echo $this->CreateWebUrl('quan',array('op'=>'del','id'=>$row['id']))}"><div class="btn btn-danger">删除</div></a>
+						</td>
+
+					</tr>
+
+					{/loop}
+
+				</tbody>
+
+			</table>
+
+
+		</form>
+
+	</div>
+	{$pager}
+</div>
+<script type="text/javascript">
+
+	require(['bootstrap'],function($){
+
+		$('.btn').hover(function(){
+
+			$(this).tooltip('show');
+
+		},function(){
+
+			$(this).tooltip('hide');
+
+		});
+
+	});
+	
+	
+	function displayUrl(lurl, surl,guanzhu_url) {
+		require(['jquery', 'util'], function($, u) {
+			var content = '<p class="form-control-static" style="word-break:break-all">菜单使用链接(需要oAuth): <br>' + lurl + '</p>';
+			content += '<p class="form-control-static" style="word-break:break-all">自动回复使用链接: <br>' + surl + '</p>';
+			content += '<p class="form-control-static" style="word-break:break-all">关注直达链接: <br>' + guanzhu_url + '</p>';
+			var footer =
+					'<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>' +
+					'<button type="button" class="btn btn-primary">复制菜单链接</button>' +
+					'<button type="button" class="btn btn-success">复制自动回复链接</button>'+
+					'<button type="button" class="btn btn-primary btn-zzz">复制直达链接</button>';
+			var diaobj = u.dialog('查看URL', content, footer);
+			diaobj.find('.btn-default').click(function() {
+				diaobj.modal('hide');
+			});
+			diaobj.on('shown.bs.modal', function(){
+				u.clip(diaobj.find('.btn-primary')[0], lurl);
+				u.clip(diaobj.find('.btn-success')[0], surl);
+				u.clip(diaobj.find('.btn-zzz')[0], guanzhu_url);
+			});
+			diaobj.modal('show');
+		});
+	}
+	function displayQr(url) {
+		require(['jquery', 'util'], function($, u) {
+			var content = '<div class="panel panel-default text-center"><img src="' + url + '" alt="活动地址二维码" class="img-rounded"></div>';
+			var footer =
+					'<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>';
+			var diaobj = u.dialog('查看URL二维码', content, footer);
+			diaobj.find('.btn-default').click(function() {
+				diaobj.modal('hide');
+			});
+			diaobj.modal('show');
+		});
+	}
+
+
+</script>
+{/if} {if $op=='post'}
+<link rel="stylesheet" href="../addons/jy_adv/js/sweetalert/sweetalert.css" type="text/css" />
+<div class="main">
+	<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data">
+		<input type="hidden" name="id" value="{$item['id']}" />
+
+
+		<div class="panel panel-info">
+			<div class="panel-heading">基本设置</div>
+			<div class="panel-body">
+
+				{if !empty($id)}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+					<div class="col-sm-7 col-xs-12">
+						<a class="btn btn-info" href="{php echo $this->createWebUrl('adv',array('quan_id'=>$id))}">该平台的广告管理</a>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+					<div class="col-sm-7 col-xs-12">
+						<a class="btn btn-success" href="{php echo $this->createWebUrl('member',array('quan_id'=>$id))}">该平台的用户管理</a>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+					<div class="col-sm-7 col-xs-12">
+						<a class="btn btn-danger" href="{php echo $this->createWebUrl('stat',array('quan_id'=>$id))}">该平台的数据统计</a>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+					<div class="col-sm-7 col-xs-12">
+						<a class="btn btn-danger" href="{php echo $this->createWebUrl('cgc_ad_tx',array('quan_id'=>$id))}">该平台的提现记录</a>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+					<div class="col-sm-7 col-xs-12">
+						<a class="btn btn-primary" href="{php echo $this->createWebUrl('message',array('quan_id'=>$id))}">该平台的评论</a>
+					</div>
+				</div>
+				{/if}
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">广告平台名称</label>
+					<div class="col-sm-7 col-xs-12">
+						<input type="text" name="aname" class="form-control" value="{$item['aname']}" />
+					</div>
+				</div>
+				
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">首页模板</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="col-sm-7 col-xs-12">
+							<label class="radio-inline"> <input type="radio" value="0" name="templet_id" {if $item['templet_id']==0}checked{/if} /> 旧模板
+							</label> 
+							<label class="radio-inline"> <input type="radio" value="1" name="templet_id" {if $item['templet_id']==1}checked{/if} /> 新模板
+							</label>
+							<div class="help-block">新模板，需要设置信息类别菜单，可以正式用了。</div>
+						</div>
+					</div>
+				</div>
+				
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">是否启用二级信息类别</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="col-sm-7 col-xs-12">
+							<label class="radio-inline"> <input type="radio" value="0" name="second_menu_enabled" {if $item['second_menu_enabled']==0}checked{/if} /> 
+							不启用
+							</label> 
+							<label class="radio-inline"> <input type="radio" value="1" name="second_menu_enabled" {if $item['second_menu_enabled']==1}checked{/if} />
+							 启用
+							</label>
+							<div class="help-block">新模板起作用，不懂的话可以选择不启用，默认就可以了。</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">广告平台初始人气</label>
+					<div class="col-sm-7 col-xs-12">
+						<input type="text" name="views" class="form-control" value="{$item['views']}" />
+					</div>
+				</div>
+				
+				
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">广告平台初始用户数</label>
+					<div class="col-sm-7 col-xs-12">
+						<input type="text" name="init_user_num" class="form-control" value="{$item['init_user_num']}" />
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">广告平台初始撤钱</label>
+					<div class="col-sm-7 col-xs-12">
+						<input type="text" name="init_fee" class="form-control" value="{$item['init_fee']}" />
+					</div>
+				</div>
+				
+					<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">点击一次广告增加人气倍数</label>
+					<div class="col-sm-7 col-xs-12">
+						<input type="text" name="click_multiple" class="form-control" value="{$item['click_multiple']}" />
+					<div class="help-block">默认为1</div>
+					</div>
+				</div>
+				
+				
+				
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">广告平台滚动公告</label>
+					<div class="col-sm-7 col-xs-12">
+						<input type="text" name="notice" class="form-control" value="{$item['notice']}" />
+						<div class="help-block">广告平台滚动公告</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">广告平台参加粉丝地区</label>
+					<div class="col-sm-7 col-xs-12">
+						<input type="text" name="city" class="form-control" value="{$item['city']}" />
+						<div class="help-block">多区域可以用|分割开，支持省市区县，例如需要广东省和广西省，则输入广西省|广东省</div>
+					</div>
+				</div>
+
+                  <div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">禁止粉丝地区</label>
+					<div class="col-sm-7 col-xs-12">
+						<input type="text" name="forbidden_addr" class="form-control"
+						 value="{$item['forbidden_addr']}" />
+						<div class="help-block">多区域可以用|分割开,这里是用ip控制,
+						如果粉丝的ip在这个区域可以禁止进来。</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">地区不符是否直接跳走</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="col-sm-7 col-xs-12">
+							<label class="radio-inline"> <input type="radio" value="0" name="addr_forward" {if $item['addr_forward']==0}checked{/if} /> 否
+							</label> <label class="radio-inline"> <input type="radio" value="1" name="addr_forward" {if $item['addr_forward']==1}checked{/if} /> 是
+							</label>
+							<div class="help-block">判断用户的GPS地址，如果不符合系统设置的，直接跳到"地区不符跳走链接"。</div>
+						</div>
+					</div>
+				</div>
+				
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">地区不符跳走链接</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="col-sm-7 col-xs-12">
+							<input type="text" name="addr_forward_url" class="form-control" value="{$item['addr_forward_url']}" />
+							<div class="help-block">与地区不符是否直接跳走 配合使用。http://开头</div>
+						</div>
+
+					</div>
+				</div>
+				
+				
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">性别限制</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="col-sm-7 col-xs-12">
+							<label class="radio-inline"> <input type="radio" value="0" name="is_sex" {if empty($item['is_sex'])}checked{/if} /> 不限制
+							</label> 
+							<label class="radio-inline"> <input type="radio" value="1" name="is_sex" {if $item['is_sex']==1}checked{/if} /> 男
+							</label>
+							<label class="radio-inline"> <input type="radio" value="2" name="is_sex" {if $item['is_sex']==2}checked{/if} /> 女
+							</label>
+						</div>
+					</div>
+				</div>
+				
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">性别不符跳走链接</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="col-sm-7 col-xs-12">
+							<input type="text" name="sex_url" class="form-control" value="{$item['sex_url']}" />
+							<div class="help-block">与性别限制配合使用,性别不符直接跳走。http://开头</div>
+						</div>
+					</div>
+				</div>
+				
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">广告页面是否显示地区限制</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="col-sm-7 col-xs-12">
+							<label class="radio-inline"> <input type="radio" value="0" name="is_page_addr" {if $item['is_page_addr']==0}checked{/if}/> 否
+							</label> <label class="radio-inline"> 
+							<input type="radio" value="1" name="is_page_addr" {if $item['is_page_addr']==1}checked{/if} /> 是
+							</label>
+						<div class="help-block">适合一个广告圈，显示不同城市的圈子</div>
+						</div>
+					</div>
+				</div>
+
+
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">广告平台说明</label>
+					<div class="col-sm-7 col-xs-12">
+						{php echo tpl_ueditor('rule',$item['rule'])}
+						<div class="help-block">对广告平台的规则等进行说明</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">每日可领取红包时段</label>
+					<div class="col-sm-4 col-xs-8">
+						<div class="input-group">
+							<div class="input-group-addon">开始</div>
+							<input type="text" name="begin_time" class="form-control" value="{$item['begin_time']}" />
+							<div class="input-group-addon">点</div>
+							<div class="input-group-addon">结束</div>
+							<input type="text" name="over_time" class="form-control" value="{$item['over_time']}" />
+							<div class="input-group-addon">点</div>
+						</div>
+						<div class="help-block">每日用户可参与的时段（0~24点）</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">领取红包冷却时间</label>
+					<div class="col-sm-2 col-xs-4">
+						<div class="input-group">
+							<input type="text" name="cold_time" class="form-control" value="{$item['cold_time']}" />
+							<div class="input-group-addon">秒</div>
+						</div>
+						<div class="help-block">用户领取红包的间隔时间（单位：秒）</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">用户发布广告</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="col-sm-7 col-xs-12">
+							<label class="radio-inline"> <input type="radio" value="1" name="shenhe" {if $item[shenhe]==1}checked{/if} /> 需要审核
+							</label> <label class="radio-inline"> <input type="radio" value="0" name="shenhe" {if $item[shenhe]==0}checked{/if} /> 不需要审核
+							</label>
+						</div>
+						<div class="help-block"></div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">广告平台状态</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="col-sm-7 col-xs-12">
+							<label class="radio-inline"> <input type="radio" value="1" name="status" {if $item[status]==1}checked{/if} /> 开启
+							</label> <label class="radio-inline"> <input type="radio" value="0" name="status" {if $item[status]==0}checked{/if} /> 关闭
+							</label>
+						</div>
+						<div class="help-block"></div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">是否手机号验证才可以抢红包</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="col-sm-7 col-xs-12">
+							<label class="radio-inline"> <input type="radio" value="1" name="is_tel" {if $item[is_tel]==1}checked{/if} /> 开启
+							</label> <label class="radio-inline"> <input type="radio" value="0" name="is_tel" {if $item[is_tel]==0}checked{/if} /> 关闭
+						</label>
+						</div>
+						<div class="help-block"></div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">评论审核</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="col-sm-7 col-xs-12">
+							<label class="radio-inline"> <input type="radio" value="1" name="is_pl" {if $item[is_pl]==1}checked{/if} /> 开启
+							</label> <label class="radio-inline"> <input type="radio" value="0" name="is_pl" {if $item[is_pl]==0}checked{/if} /> 关闭
+							</label>
+						</div>
+						<div class="help-block"></div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">是否开启评论</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="col-sm-7 col-xs-12">
+							<label class="radio-inline"> <input type="radio" value="1" name="is_message" {if $item[is_message]==1}checked{/if} /> 开启
+							</label> <label class="radio-inline"> <input type="radio" value="0" name="is_message" {if $item[is_message]==0}checked{/if} /> 关闭
+							</label>
+						</div>
+						<div class="help-block"></div>
+					</div>
+				</div>
+
+
+	            <div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">粉丝接收红包消息</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="col-sm-7 col-xs-12">
+							<label class="radio-inline"> <input type="radio" value="0" name="message_notify" {if $item['message_notify']==0}checked{/if} /> 否
+							</label> <label class="radio-inline"> 
+							<input type="radio" value="1" name="message_notify" {if $item['message_notify']==1}checked{/if} /> 是
+							</label>
+							<div class="help-block">打开这个选项，粉丝就默认接收平台发红包的消息。</div>
+						</div>
+					</div>
+				</div>
+				
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">红包页面是否显示关注</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="col-sm-7 col-xs-12">
+							<label class="radio-inline"> <input type="radio" value="0" name="is_page_follow" {if $item['is_page_follow']==0}checked{/if} /> 否
+							</label> <label class="radio-inline"> 
+							<input type="radio" value="1" name="is_page_follow" {if $item['is_page_follow']==1}checked{/if} /> 是
+							</label>
+						</div>
+					</div>
+				</div>
+				
+				
+
+			</div>
+		</div>
+
+		<div class="panel panel-success">
+			<div class="panel-heading">发布广告设置</div>
+			<div class="panel-body">
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">开启广告类型</label>
+					<div class="col-sm-9 col-xs-12">
+						<label class="checkbox-inline"> <input type="checkbox" value="1" name="piece_model[]" {if in_array('1',$item['piece_model'])}checked{/if}/> 普通模式
+						</label> <label class="checkbox-inline"> <input type="checkbox" value="2" name="piece_model[]" {if in_array('2',$item['piece_model'])}checked{/if}/> 团伙模式
+						</label> <label class="checkbox-inline"> <input type="checkbox" value="3" name="piece_model[]" {if in_array('3',$item['piece_model'])}checked{/if}/> 免费模式
+						</label> <label class="checkbox-inline"> <input type="checkbox" value="4" name="piece_model[]" {if in_array('4',$item['piece_model'])}checked{/if}/> 任务模式
+						</label> <label class="checkbox-inline"> <input type="checkbox" value="5" name="piece_model[]" {if in_array('5',$item['piece_model'])}checked{/if}/> 文章转发模式
+						</label> <label class="checkbox-inline"> <input type="checkbox" value="6" name="piece_model[]" {if in_array('6',$item['piece_model'])}checked{/if}/> 语音红包模式
+						</label> <label class="checkbox-inline"> <input type="checkbox" value="7" name="piece_model[]" {if in_array('7',$item['piece_model'])}checked{/if}/> 口令红包模式
+						</label><label class="checkbox-inline"> <input type="checkbox" value="8" name="piece_model[]" {if in_array('8',$item['piece_model'])}checked{/if}/> 卡券模式
+						</label><label class="checkbox-inline"> <input type="checkbox" value="9" name="piece_model[]" {if in_array('9',$item['piece_model'])}checked{/if}/> 二维码模式
+						</label>
+
+						<div class="help-block">选中即可开启相应抢钱类型，二维码模式内测中，请勿开启。</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">普通模式金额</label>
+					<div class="col-sm-9 col-xs-12">
+						<div class="input-group">
+							<div class="input-group-addon">广告总额下限</div>
+							<input type="text" name="total_min" class="form-control" value="{$item['total_min']}" />
+							<div class="input-group-addon">元</div>
+							<div class="input-group-addon">广告总额上限</div>
+							<input type="text" name="total_max" class="form-control" value="{$item['total_max']}" />
+							<div class="input-group-addon">元</div>
+							<div class="input-group-addon">广告平均额下限</div>
+							<input type="text" name="avg_min" class="form-control" value="{$item['avg_min']}" />
+							<div class="input-group-addon">元</div>
+							<div class="input-group-addon">手续费</div>
+							<input type="text" name="handling_fee" class="form-control" value="{$item['handling_fee']}" />
+							<div class="input-group-addon">%</div>
+						</div>
+						<div class="help-block">支持到小数点后两位，手续费为0则使用系统手续费</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">团伙模式金额</label>
+					<div class="col-sm-9 col-xs-12">
+						<div class="input-group">
+							<div class="input-group-addon">广告总额下限</div>
+							<input type="text" name="total_min2" class="form-control" value="{$item['total_min2']}" />
+							<div class="input-group-addon">元</div>
+							<div class="input-group-addon">广告总额上限</div>
+							<input type="text" name="total_max2" class="form-control" value="{$item['total_max2']}" />
+							<div class="input-group-addon">元</div>
+							<div class="input-group-addon">广告平均额下限</div>
+							<input type="text" name="avg_min2" class="form-control" value="{$item['avg_min2']}" />
+							<div class="input-group-addon">元</div>
+							<div class="input-group-addon">手续费</div>
+							<input type="text" name="handling_fee2" class="form-control" value="{$item['handling_fee2']}" />
+							<div class="input-group-addon">%</div>
+						</div>
+						<div class="help-block">支持到小数点后两位，手续费为0则使用系统手续费</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">任务模式金额</label>
+					<div class="col-sm-9 col-xs-12">
+						<div class="input-group">
+							<div class="input-group-addon">广告总额下限</div>
+							<input type="text" name="total_min4" class="form-control" value="{$item['total_min4']}" />
+							<div class="input-group-addon">元</div>
+							<div class="input-group-addon">广告总额上限</div>
+							<input type="text" name="total_max4" class="form-control" value="{$item['total_max4']}" />
+							<div class="input-group-addon">元</div>
+							<div class="input-group-addon">广告平均额下限</div>
+							<input type="text" name="avg_min4" class="form-control" value="{$item['avg_min4']}" />
+							<div class="input-group-addon">元</div>
+							<div class="input-group-addon">手续费</div>
+							<input type="text" name="handling_fee4" class="form-control" value="{$item['handling_fee4']}" />
+							<div class="input-group-addon">%</div>
+						</div>
+						<div class="help-block">支持到小数点后两位，手续费为0则使用系统手续费</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">文章转发模式金额</label>
+					<div class="col-sm-9 col-xs-12">
+						<div class="input-group">
+							<div class="input-group-addon">广告总额下限</div>
+							<input type="text" name="total_min5" class="form-control" value="{$item['total_min5']}" />
+							<div class="input-group-addon">元</div>
+							<div class="input-group-addon">广告总额上限</div>
+							<input type="text" name="total_max5" class="form-control" value="{$item['total_max5']}" />
+							<div class="input-group-addon">元</div>
+							<div class="input-group-addon">广告平均额下限</div>
+							<input type="text" name="avg_min5" class="form-control" value="{$item['avg_min5']}" />
+							<div class="input-group-addon">元</div>
+							<div class="input-group-addon">手续费</div>
+							<input type="text" name="handling_fee5" class="form-control" value="{$item['handling_fee5']}" />
+							<div class="input-group-addon">%</div>
+						</div>
+						<div class="help-block">支持到小数点后两位，手续费为0则使用系统手续费</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">语音红包模式金额</label>
+					<div class="col-sm-9 col-xs-12">
+						<div class="input-group">
+							<div class="input-group-addon">广告总额下限</div>
+							<input type="text" name="total_min6" class="form-control" value="{$item['total_min6']}" />
+							<div class="input-group-addon">元</div>
+							<div class="input-group-addon">广告总额上限</div>
+							<input type="text" name="total_max6" class="form-control" value="{$item['total_max6']}" />
+							<div class="input-group-addon">元</div>
+							<div class="input-group-addon">广告平均额下限</div>
+							<input type="text" name="avg_min6" class="form-control" value="{$item['avg_min6']}" />
+							<div class="input-group-addon">元</div>
+							<div class="input-group-addon">手续费</div>
+							<input type="text" name="handling_fee6" class="form-control" value="{$item['handling_fee6']}" />
+							<div class="input-group-addon">%</div>
+						</div>
+						<div class="help-block">支持到小数点后两位，手续费为0则使用系统手续费</div>
+					</div>
+				</div>
+
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">口令红包模式金额</label>
+					<div class="col-sm-9 col-xs-12">
+						<div class="input-group">
+							<div class="input-group-addon">广告总额下限</div>
+							<input type="text" name="total_min7" class="form-control" value="{$item['total_min7']}" />
+							<div class="input-group-addon">元</div>
+							<div class="input-group-addon">广告总额上限</div>
+							<input type="text" name="total_max7" class="form-control" value="{$item['total_max7']}" />
+							<div class="input-group-addon">元</div>
+							<div class="input-group-addon">广告平均额下限</div>
+							<input type="text" name="avg_min7" class="form-control" value="{$item['avg_min7']}" />
+							<div class="input-group-addon">元</div>
+							<div class="input-group-addon">手续费</div>
+							<input type="text" name="handling_fee7" class="form-control" value="{$item['handling_fee7']}" />
+							<div class="input-group-addon">%</div>
+						</div>
+						<div class="help-block">支持到小数点后两位，手续费为0则使用系统手续费</div>
+					</div>
+				</div>
+				
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">卡券模式金额</label>
+					<div class="col-sm-9 col-xs-12">
+						<div class="input-group">
+							<div class="input-group-addon">广告总额下限</div>
+							<input type="text" name="total_min8" class="form-control" value="{$item['total_min8']}" />
+							<div class="input-group-addon">元</div>
+							<div class="input-group-addon">广告总额上限</div>
+							<input type="text" name="total_max8" class="form-control" value="{$item['total_max8']}" />
+							<div class="input-group-addon">元</div>
+							<div class="input-group-addon">广告平均额下限</div>
+							<input type="text" name="avg_min8" class="form-control" value="{$item['avg_min8']}" />
+							<div class="input-group-addon">元</div>
+							<div class="input-group-addon">手续费</div>
+							<input type="text" name="handling_fee8" class="form-control" value="{$item['handling_fee8']}" />
+							<div class="input-group-addon">%</div>
+						</div>
+						<div class="help-block">支持到小数点后两位，手续费为0则使用系统手续费</div>
+					</div>
+				</div>
+				
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">二唯码模式金额</label>
+					<div class="col-sm-9 col-xs-12">
+						<div class="input-group">
+							<div class="input-group-addon">广告总额下限</div>
+							<input type="text" name="total_min9" class="form-control" value="{$item['total_min9']}" />
+							<div class="input-group-addon">元</div>
+							<div class="input-group-addon">广告总额上限</div>
+							<input type="text" name="total_max9" class="form-control" value="{$item['total_max9']}" />
+							<div class="input-group-addon">元</div>
+							<div class="input-group-addon">广告平均额下限</div>
+							<input type="text" name="avg_min9" class="form-control" value="{$item['avg_min9']}" />
+							<div class="input-group-addon">元</div>
+							<div class="input-group-addon">手续费</div>
+							<input type="text" name="handling_fee9" class="form-control" value="{$item['handling_fee9']}" />
+							<div class="input-group-addon">%</div>
+						</div>
+						<div class="help-block">支持到小数点后两位，手续费为0则使用系统手续费</div>
+					</div>
+				</div>
+
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">团伙人数上限</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" name="groupmax" class="form-control" value="{$item['groupmax']}" />
+						<div class="help-block">商家可设置的最大团伙人数</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">任务模式是否提交任务稿</label>
+					<div class="col-sm-9 col-xs-12">
+						<label class="radio-inline"> <input type="radio" value="0" name="task_submit_switch" {if $item['task_submit_switch']==0}checked{/if} /> 关闭
+						</label> <label class="radio-inline"> <input type="radio" value="1" name="task_submit_switch" {if $item['task_submit_switch']==1}checked{/if} /> 开启
+						</label>
+
+						<div class="help-block">任务模式提交任务稿开关，如果选择开启，则粉丝需要提交图片和描述到平台。</div>
+					</div>
+				</div>
+
+				<div class="form-group" style="display:">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">手机端是否输入核销密码</label>
+					<div class="col-sm-9 col-xs-12">
+						<label class="radio-inline"> <input type="radio" value="0" name="hx_switch" {if $item['hx_switch']==0}checked{/if} /> 关闭
+						</label> <label class="radio-inline"> <input type="radio" value="1" name="hx_switch" {if $item['hx_switch']==1}checked{/if} /> 开启
+						</label>
+
+						<div class="help-block">如果选择开启,组团和普通和口令模式，发布者可以自定义核销密码.</div>
+					</div>
+				</div>
+
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">可置顶金额设置</label>
+					<div class="col-sm-9 col-xs-12">
+						<div class="input-group col-sm-2 col-xs-4">
+							<input type="text" name="top_line" class="form-control" value="{$item['top_line']}" />
+							<div class="input-group-addon">元</div>
+						</div>
+						<div class="help-block">当用户发布的广告金额大于等于该金额的广告将置顶展示（0为不可以进行置顶,支持到小数点后两位）</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">服务费率</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="input-group col-sm-2 col-xs-4">
+							<input type="text" name="percent" class="form-control" value="{$item['percent']}" />
+							<div class="input-group-addon">%</div>
+						</div>
+						<div class="help-block">每次抽取的服务费费率（单位：% ,支持到小数点后两位）</div>
+					</div>
+				</div>
+
+
+				<div class="form-group" style="display:">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">是否开启提现审核</label>
+					<div class="col-sm-9 col-xs-12">
+						<label class="radio-inline"> <input type="radio" value="0" name="tx_control" {if $item['tx_control']==0}checked{/if} /> 关闭
+						</label> <label class="radio-inline"> 
+						<input type="radio" value="1" name="tx_control" {if $item['tx_control']==1}checked{/if} /> 
+						马上开启
+						</label>
+
+						<div class="help-block">务必开启这个，安全一点。如果开启的话，粉丝的提现申请要后台确认才可以成功，安全点，<strong>账户里面的钱不要放太多，切记。</strong></div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">超过多少金额提现审核</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="input-group col-sm-2 col-xs-4">
+							<input type="text" name="tx_money" class="form-control" value="{$item['tx_money']}" />
+							<div class="input-group-addon">元</div>
+						</div>
+						<div class="help-block">金额可以设置1-2块，安全点。</div>
+					</div>
+				</div>
+				
+				<div class="form-group" style="display:">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">提现到账周期</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="input-group col-sm-2 col-xs-4">
+							<input type="text" name="tx_time" class="form-control" value="{$item['tx_time']}" />
+							<div class="input-group-addon">分钟</div>
+						</div>
+						<div class="help-block">如果设置了这个选项，那用户提现以后，在这个时间点以后才可以到账，防止被刷钱,开启了提现审核以后，这个选项才起作用</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">最小提现金额</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="input-group col-sm-2 col-xs-4">
+							<input type="text" name="tx_min" class="form-control" value="{$item['tx_min']}" />
+							<div class="input-group-addon">元</div>
+						</div>
+						<div class="help-block">最小允许提现的金额（支持到小数点后两位）</div>
+					</div>
+				</div>
+				
+		
+
+				<div class="form-group" style="display:">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">每天提现次数</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="input-group col-sm-2 col-xs-4">
+							<input type="text" name="tx_num" class="form-control" value="{$item['tx_num']}" />
+							<div class="input-group-addon">次</div>
+						</div>
+						<div class="help-block">每天提现次数，一般选1-2次为佳</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">提现费率</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="input-group col-sm-2 col-xs-4">
+							<input type="text" name="tx_percent" class="form-control" value="{$item['tx_percent']}" />
+							<div class="input-group-addon">%</div>
+						</div>
+						<div class="help-block">提现费率（单位：% ）</div>
+					</div>
+				</div>
+
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">抢钱上级提成</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="input-group col-sm-2 col-xs-4">
+							<input type="text" name="up_rob_fee" class="form-control" value="{$item['up_rob_fee']}" />
+							<div class="input-group-addon">%</div>
+						</div>
+						<div class="help-block">抢钱上级提成（单位：% ,支持到小数点后两位）</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">撒钱上级提成</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="input-group col-sm-2 col-xs-4">
+							<input type="text" name="up_send_fee" class="form-control" value="{$item['up_send_fee']}" />
+							<div class="input-group-addon">%</div>
+						</div>
+						<div class="help-block">撒钱上级提成（单位：% ,支持到小数点后两位）</div>
+					</div>
+				</div>
+				
+				
+			
+
+				{if !empty($id)} {if empty($yure)}
+				<div class="form-group" style="display:none">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">预热时间设置</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="input-group">
+							<div class="input-group-addon">广告总额</div>
+							<input type="text" class="form-control" value="" />
+							<div class="input-group-addon">元</div>
+							<div class="input-group-addon">*</div>
+							<div class="input-group-addon">时间数</div>
+							<input type="text" class="form-control" value="" />
+							<div class="input-group-addon">秒</div>
+							<div class="input-group-addon" onclick="bc_yr(this)" style="background-color: #4cc0c1; color: #fff; font-weight: bold">保存</div>
+							<div class="input-group-addon" onclick="del_yr(this)" style="background-color: #fb6b5b; color: #fff; font-weight: bold">删除</div>
+						</div>
+
+					</div>
+				</div>
+				{else} {php $temp_y=1;} {loop $yure $y}
+				<div class="form-group" style="display:none">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">{if $temp_y==1}预热时间设置{/if}</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="input-group">
+							<div class="input-group-addon">广告总额</div>
+							<input type="text" class="form-control" value="{$y['fee']}" />
+							<div class="input-group-addon">元</div>
+							<div class="input-group-addon">*</div>
+							<div class="input-group-addon">时间数</div>
+							<input type="text" class="form-control" value="{$y['time']}" />
+							<div class="input-group-addon">秒</div>
+							<div class="input-group-addon" onclick="bc_yr(this)" data-yureid="{$y['id']}" style="background-color: #4cc0c1; color: #fff; font-weight: bold">保存</div>
+							<div class="input-group-addon" onclick="del_yr(this)" data-yureid="{$y['id']}" style="background-color: #fb6b5b; color: #fff; font-weight: bold">删除</div>
+						</div>
+
+					</div>
+				</div>
+				{php $temp_y++;} {/loop} {/if}
+
+				<div class="form-group" id="yure">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="input-group col-sm-2 col-xs-4"></div>
+						<div class="help-block">
+							<span class="btn btn-success" onclick="new_yr()">添加新设置</span>
+						</div>
+						<div class="help-block">例：广告总额10元，时间数10秒，则表示用户发布10元以下的广告时，该广告可以预热金额乘以10的时间，比如5元，就代表可以预热50s，6元就可以60s</div>
+					</div>
+				</div>
+				{/if}
+				
+		
+				
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">管理人员openid</label>
+					<div class="col-sm-9 col-xs-12">
+						<textarea name="kf_openid" id="" cols="30" rows="10" class="form-control">{$item['kf_openid']}</textarea>
+						<div class="help-block">微信用户的openid,用英文逗号隔开</div>
+					</div>
+				</div>
+
+
+			</div>
+		</div>
+		{if !empty($id)}
+		<div class="panel panel-primary">
+			<div class="panel-heading">顶部幻灯片设置</div>
+			<div class="panel-body">
+				<a href="{php echo $this->createWebUrl('banner',array('quan_id'=>$id))}"><span class="btn btn-success">管理平台banner</span></a>
+
+			</div>
+
+		</div>
+		{/if}
+
+		<div class="panel panel-danger">
+			<div class="panel-heading">引导关注设置</div>
+			<div class="panel-body">
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">引导关注图标设置</label>
+					<div class="col-sm-7 col-xs-12">
+						{php echo tpl_form_field_image('follow_logo', $item['follow_logo']);}
+						<div class="help-block">请使用png图片，不设置则不显示</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">抢红包是否开启强制关注</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="col-sm-7 col-xs-12">
+							<label class="radio-inline"> <input type="radio" value="1" name="is_follow" {if $item[is_follow]==1}checked{/if} /> 开启
+							</label> <label class="radio-inline"> <input type="radio" value="0" name="is_follow" {if $item[is_follow]==0}checked{/if} /> 关闭
+							</label>
+						</div>
+						<div class="help-block"></div>
+					</div>
+				</div>
+
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">组团是否开启强制关注</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="col-sm-7 col-xs-12">
+							<label class="radio-inline"> <input type="radio" value="1" name="group_guanzhu" {if $item['group_guanzhu']==1}checked{/if} /> 开启
+							</label> <label class="radio-inline"> <input type="radio" value="0" name="group_guanzhu" {if $item['group_guanzhu']==0}checked{/if} /> 关闭
+							</label>
+						</div>
+						<div class="help-block"></div>
+					</div>
+				</div>
+
+
+
+
+
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">提现时候开启强制关注</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="col-sm-7 col-xs-12">
+							<label class="radio-inline"> <input type="radio" value="1" name="tx_follow" {if $item['tx_follow']==1}checked{/if} /> 开启
+							</label> <label class="radio-inline"> <input type="radio" value="0" name="tx_follow" {if $item['tx_follow']==0}checked{/if} /> 关闭
+							</label>
+							<div class="help-block">用户点提现的时候，弹出关注的链接</div>
+						</div>
+
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">领取任务开启强制关注</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="col-sm-7 col-xs-12">
+							<label class="radio-inline"> <input type="radio" value="1" name="task_guanzhu" {if $item['task_guanzhu']==1}checked{/if} /> 开启
+							</label> <label class="radio-inline"> <input type="radio" value="0" name="task_guanzhu" {if $item['task_guanzhu']==0}checked{/if} /> 关闭
+							</label>
+							<div class="help-block">用户领取任务的时候，弹出关注的链接</div>
+						</div>
+
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">关注提醒语</label>
+					<div class="col-sm-9 col-xs-12">
+						<textarea id="guanzhu_note" name="guanzhu_note" class="form-control" rows="5" cols="60">{$item['guanzhu_note']}</textarea>
+						<span style="font-size: 14px;" class="help-block"> <span>1.长按二维码加好友</span><br> <span>2. 添加时注明：来自xxx公众号</span><br> <span>3. 聊天注意财产安全，谨防受骗</span>
+
+						</span>
+					</div>
+				</div>
+
+
+
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">关注地址url</label>
+					<div class="col-sm-7 col-xs-12">
+						<input type="text" name="follow_url" class="form-control" value="{$item['follow_url']}" />
+						<div class="help-block">请于url前增加http://</div>
+					</div>
+				</div>
+
+
+                 	<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">广告页面帮助链接</label>
+					<div class="col-sm-7 col-xs-12">
+						<input type="text" name="help_url" class="form-control" value="{$item['help_url']}" />
+						<div class="help-block">请于链接前增加http://,显示在广告抢红包页面的帮助，指向一个外链，让用户知道如何玩。不填就不显示。</div>
+					</div>
+				</div>
+				
+			</div>
+		</div>
+		
+		
+		
+
+
+		<div class="panel panel-danger">
+			<div class="panel-heading">品牌模式设置</div>
+			<div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">是否开启品牌模式</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="col-sm-7 col-xs-12">
+							<label class="radio-inline"> <input type="radio" value="0" name="pp_mode" {if $item['pp_mode']==0}checked{/if} /> 关闭
+							</label> <label class="radio-inline"> <input type="radio" value="1" name="pp_mode" {if $item['pp_mode']==1}checked{/if} /> 开启
+							</label> <span class="help-block">品牌模式简单说，就是绑定用户的openid，只能这些用户才可以发布广告。适合包月，或者直接圈子包给品牌商发布广告</span>
+						</div>
+
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">品牌模式下的用户openid</label>
+					<div class="col-sm-9 col-xs-12">
+						<textarea name="pp_openid" id="" cols="30" rows="10" class="form-control">{$item['pp_openid']}</textarea>
+						用英文逗号隔开
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+		<div class="panel panel-danger">
+			<div class="panel-heading">神秘防封设置</div>
+			<div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">是否打通神秘防封模块</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="col-sm-7 col-xs-12">
+							<label class="radio-inline"> <input type="radio" value="0" name="yun_fkz" {if $item['yun_fkz']==0}checked{/if} /> 关闭
+							</label> <label class="radio-inline"> <input type="radio" value="1" name="yun_fkz" {if $item['yun_fkz']==1}checked{/if} /> 开启
+							</label> <span class="help-block">作用是:在神秘防封模块有上下级关系的才可以打开我们的圈子，起到防封杀的作用。
+							<strong>此功能需要安装神秘防封模块才可以起作用。</strong></span>
+						</div>
+
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">防作弊设置</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="col-sm-7 col-xs-12">
+							<div class="input-group">
+								<div class="input-group-addon">同个广告一个IP可抢</div>
+								<input type="text" name="ip_num_limit" class="form-control" value="{$item['ip_num_limit']}" />
+								<div class="input-group-addon">次</div>
+							</div>
+							<div class="help-block">如果开启了，系统会变卡，0表示不开启</div>
+						</div>
+
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">抢红包规则</label>
+					<div class="col-xs-12 col-sm-8">
+						<table class='table'>
+							<thead>
+								<tr>
+									<th>会员等级</th>
+									<th>可抢金额</th>
+
+									<th>操作</th>
+								</tr>
+							</thead>
+							<tbody id="rule_items">
+								{loop $item['yun_rule'] $rule_item}
+								<tr>
+									<td><input name="member_level[]" type="text" class="form-control span6" value="{$rule_item['member_level']}" placeholder="请输入1,2,3,4代表会员等级" /></td>
+									<td><input name="rob_money[]" type="text" class="form-control span6" value="{$rule_item['rob_money']}" /></td>
+
+									<td><a href='javascript:;' onclick='removeRuleItem(this)'> &nbsp;<i class='glyphicon glyphicon-remove'></i>删除
+									</a></td>
+								</tr>
+								{/loop}
+							</tbody>
+						</table>
+						<a href="javascript:;" onclick="addRuleItem();"><i class="glyphicon glyphicon-plus" title="添加规则"></i>添加规则</a>
+					</div>
+				</div>
+
+
+			</div>
+		</div>
+		
+		
+
+
+
+		<div class="panel panel-danger">
+			<div class="panel-heading">自定义关注公众号选项(如果要诱导到其他公众号上面，需要复制关注链接，一般用在订阅号玩法上面)</div>
+			<div class="panel-body">
+
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">是否开启关注直达链接</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="col-sm-7 col-xs-12">
+							<label class="radio-inline"> <input type="radio" value="0" name="guanzhu_direct" {if $item['guanzhu_direct']==0}checked{/if} /> 关闭
+							</label> <label class="radio-inline"> <input type="radio" value="1" name="guanzhu_direct" {if $item['guanzhu_direct']==1}checked{/if} /> 开启
+							</label>
+							<div class="help-block">这个有点难懂，效果就是一个圈子对应一个公众号，
+							多公众号的玩法。可以诱导过去来玩，不懂来问。缺点就是无法接收到模板消息，要关注的公众号必须和这个认证服务号是一个公司注册的。</div>
+						</div>
+
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">关注直达链接的秘钥</label>
+					<div class="col-sm-7 col-xs-12">
+						<input type="text" name="guanzhu_key" class="form-control" value="{$item['guanzhu_key']}" />
+						<div class="help-block">为了保护直达链接，如果被人复制了，这里可以修改。直达链接的秘钥,随便输入，例如:dadaafafada，不要设置中文。不懂的话不要设置。</div>
+					</div>
+				</div>
+
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">自定义关注二维码</label>
+					<div class="col-sm-7 col-xs-12">
+						{php echo tpl_form_field_image('guanzhu_qrcode', $item['guanzhu_qrcode']);}
+						<div class="help-block">不设置则显示系统的关注二维码</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">圈子的公众号名称</label>
+					<div class="col-sm-7 col-xs-12">
+						<input type="text" name="guanzhu_name" class="form-control" value="{$item['guanzhu_name']}" />
+						<div class="help-block">不设置则显示系统的公众号名称</div>
+					</div>
+				</div>
+
+			</div>
+		</div>
+
+
+
+
+		<div class="panel panel-danger">
+			<div class="panel-heading">底部菜单设置</div>
+			<div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">底部菜单名称</label>
+					<div class="col-sm-7 col-xs-12">
+						<input type="text" name="menu_name" class="form-control" value="{$item['menu_name']}" />
+						<div class="help-block">连接外部模块或者链接的菜单</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">底部菜单链接</label>
+					<div class="col-sm-7 col-xs-12">
+						<input type="text" name="menu_url" class="form-control" value="{$item['menu_url']}" />
+						<div class="help-block">http开头</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		
+		<div class="panel panel-success">
+			<div class="panel-heading">vip模式设置</div>
+			<div class="panel-body">
+				 <div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">是否开启vip会员规则</label>
+					<div class="col-sm-7 col-xs-12">
+						<div class="col-sm-7 col-xs-12">
+							<label class="radio-inline"> <input type="radio" value="0" name="vip_valid" 
+							{if empty($item['vip_valid'])}checked{/if} /> 关闭
+							</label> 
+							<label class="radio-inline"> 
+							<input type="radio" value="1" name="vip_valid" {if $item['vip_valid']==1}checked{/if} />
+							 开启
+							</label>
+						</div>
+						
+					</div>
+				</div>
+				
+					<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+				<div class="col-sm-7 col-xs-12">
+				  <div class="input-group col-sm-2 col-xs-4"></div>						
+				  <div class="help-block">开启了，然后设置下业务菜单的vip会员规则。</div>
+				</div>
+				</div>
+		
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">普通用户可抢金额</label>
+					<div class="col-xs-12 col-sm-8">
+						<div class="input-group col-sm-2 col-xs-4">
+							<input type="text" name="regular_user_momeny" class="form-control" value="{$item['regular_user_momeny']}" />
+							<div class="input-group-addon">元</div>							
+						</div>
+					</div>
+				</div> 
+				
+				<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+				<div class="col-sm-7 col-xs-12">
+				  <div class="input-group col-sm-2 col-xs-4"></div>						
+				  <div class="help-block">说明:如果开启了vip会员规则，必须设置这个选项。如果没开启的话，不用设置。</div>
+				</div>
+				</div>
+		
+		
+		
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">普通用户广告权限</label>
+					<div class="col-xs-12 col-sm-9">
+						<label class="checkbox-inline"> 
+							<input type="checkbox" value="1" name="piece_model_authority[]" {if in_array('1',$item['piece_model_authority'])}checked{/if}/> 普通模式
+						</label> 
+						<label class="checkbox-inline"> 
+							<input type="checkbox" value="2" name="piece_model_authority[]" {if in_array('2',$item['piece_model_authority'])}checked{/if}/> 团伙模式
+						</label> 
+						<label class="checkbox-inline"> 
+							<input type="checkbox" value="3" name="piece_model_authority[]" {if in_array('3',$item['piece_model_authority'])}checked{/if}/> 免费模式
+						</label> 
+						<label class="checkbox-inline"> 
+							<input type="checkbox" value="4" name="piece_model_authority[]" {if in_array('4',$item['piece_model_authority'])}checked{/if}/> 任务模式
+						</label> 
+						<label class="checkbox-inline"> 
+							<input type="checkbox" value="5" name="piece_model_authority[]" {if in_array('5',$item['piece_model_authority'])}checked{/if}/> 文章转发模式
+						</label> 
+						<label class="checkbox-inline"> 
+							<input type="checkbox" value="6" name="piece_model_authority[]" {if in_array('6',$item['piece_model_authority'])}checked{/if}/> 语音红包模式
+						</label> 
+						<label class="checkbox-inline"> 
+							<input type="checkbox" value="7" name="piece_model_authority[]" {if in_array('7',$item['piece_model_authority'])}checked{/if}/> 口令红包模式
+						</label>
+						<label class="checkbox-inline"> 
+							<input type="checkbox" value="8" name="piece_model_authority[]" {if in_array('8',$item['piece_model_authority'])}checked{/if}/> 卡券红包模式
+						</label>
+						<label class="checkbox-inline"> 
+							<input type="checkbox" value="9" name="piece_model_authority[]" {if in_array('9',$item['piece_model_authority'])}checked{/if}/> 二唯码红包模式
+						</label>
+					</div>
+				</div>
+		
+		
+			</div>
+		</div>
+		
+
+
+		<div class="panel panel-default">
+			<div class="panel-heading">分享设置</div>
+			<div class="panel-body">
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">分享标题</label>
+					<div class="col-sm-7 col-xs-12">
+						<input type="text" name="sharetitle" class="form-control" value="{$item['sharetitle']}" />
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">分享描述</label>
+					<div class="col-sm-7 col-xs-12">
+						<input type="text" name="sharedesc" class="form-control" value="{$item['sharedesc']}" />
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">分享logo</label>
+					<div class="col-sm-7 col-xs-12">{php echo tpl_form_field_image('sharelogo', $item['sharelogo']);}</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+					<div class="col-sm-9 col-xs-12">
+						<input name="submit" type="submit" value="提交" class="btn btn-primary span3"> <input type="hidden" name="token" value="{$_W['token']}" />
+					</div>
+				</div>
+
+			</div>
+		</div>
+
+		<script type="text/javascript">
+			function new_yr()
+			{
+				$("#yure").prepend('<div class="form-group"><label class="col-xs-12 col-sm-3 col-md-2 control-label"></label><div class="col-sm-7 col-xs-12"><div class="input-group"><div class="input-group-addon">广告总额</div><input type="text"  class="form-control" value="" /><div class="input-group-addon">元</div><div class="input-group-addon">*</div><div class="input-group-addon">时间数</div><input type="text" class="form-control" value="" /><div class="input-group-addon">秒</div><div class="input-group-addon" onclick="bc_yr(this)" style="background-color: #4cc0c1;color: #fff;font-weight: bold">保存</div><div class="input-group-addon" onclick="del_yr(this)" style="background-color: #fb6b5b;color: #fff;font-weight: bold">删除</div></div></div></div>');
+			}
+			function del_yr(obj)
+			{
+				var self=obj;
+				var yureid=$(self).data('yureid');
+				if(!yureid)
+				{
+					$(self).parent().parent().remove();
+					alert("删除成功!");
+				}
+				else
+				{
+					$.post("{php echo $_W['siteroot'].'web/'.substr($this->createWebUrl('quan',array('op'=>'yure_del','quan_id'=>$id)),2)}"+"&yureid="+yureid,function(data){
+			              if (data == 1) {
+			              	  $(self).parent().parent().remove();
+			                  alert("删除成功!");
+			              }
+			              else{
+			                  alert("删除失败!错误日志为："+data);
+			              }
+			          });
+				}
+			}
+			function bc_yr(obj)
+			{
+				var self=obj;
+				var fee=$(self).parent().find('input').eq(0).val();
+				var time=$(self).parent().find('input').eq(1).val();
+				var myreg=/^\d+(\.\d{2})?$/;
+				if(myreg.test(fee))
+				{
+					if(myreg.test(time))
+					{
+						var yureid=$(self).data('yureid');
+						$.post("{php echo $_W['siteroot'].'web/'.substr($this->createWebUrl('quan',array('op'=>'yure','quan_id'=>$id)),2)}"+"&fee="+fee+"&time="+time+"&yureid="+yureid,function(data){
+				              if (data.status == 1) {
+
+				              	  $(self).data('yureid',data.yureid);
+				              	  $(self).next('div').data('yureid',data.yureid);
+				                  alert("保存成功!");
+				              }
+				              else if (data.status==2)
+				              {
+				                  alert("保存失败!已存在您设置广告总额，不得重复!");
+				              }
+				              else{
+				                  alert("保存失败!错误日志为："+data.status);
+				              }
+				          },'json');
+
+					}
+					else
+					{
+						alert("保存失败!请填写正确的时间数!");
+					}
+				}
+				else
+				{
+					alert("保存失败!请填写正确的广告总额!");
+				}
+			}
+			
+			
+			
+			
+		</script>
+
+
+		<script type="text/javascript">
+   function addRuleItem() {
+	    var html = "<tr>";
+	    html += '<td><input name="member_level[]" placeholder="请输入1,2,3,4代表会员等级" type="text" class="form-control span6" value="" /></td>';
+	    html += '<td><input name="rob_money[]" type="text" class="form-control span6" value="" /></td>';   
+	    html += '<td>&nbsp;<a href="javascript:;" onclick="removeRuleItem(this)" ><i class="glyphicon glyphicon-remove"></i> 删除</a></td>';
+	    html += "</tr>";
+	    $("#rule_items").append(html);
+	}
+   
+   function addVipRuleItem() {
+	    var html = "<tr>";
+	    html += '<td><input name="vip_name[]" type="text" class="form-control span6" value="" /></td>';
+	    html += '<td><input name="vip_recharge[]" type="text" class="form-control span6" value="" /></td>';
+	    html += '<td><input name="vip_rob[]" type="text" class="form-control span6" value="" /></td>';   
+	    html += '<td>&nbsp;<a href="javascript:;" onclick="removeRuleItem(this)" ><i class="glyphicon glyphicon-remove"></i> 删除</a></td>';
+	    html += "</tr>";
+	    $("#vip_rule_items").append(html);
+	}
+	
+	function removeRuleItem(obj) {
+	    $(obj).parent().parent().remove();
+	}
+</script>
+	</form>
+</div>
+{/if}

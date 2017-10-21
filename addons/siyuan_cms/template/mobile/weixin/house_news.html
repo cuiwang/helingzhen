@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head> 
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+<meta name="format-detection" content="telephone=no" />
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+<title>{$news['title']}</title>
+<link href="{$_W['siteroot']}addons/siyuan_cms/img/css.css" rel="stylesheet" />
+<script src="http://libs.baidu.com/jquery/1.7.2/jquery.min.js"></script>
+</head>
+<body onLoad="showPage();">
+<div id="divPageLoading">
+<img src="{$_W['siteroot']}addons/siyuan_cms/img/loading.gif" style="position:absolute;left:40%;top:250px;"/>
+</div>
+<div id="divPageBody" style="display:none;">
+{template 'top'}
+<div class="pogoSlider" id="js-main-slider">
+{loop $flash $item} 
+<a href="{$item['url']}">
+<div class="pogoSlider-slide" style="background-image:url({$_W['attachurl']}{$item['attachment']});">
+</div>
+</a>
+{/loop}
+<script>
+var myFlash = {
+height: "120",
+};
+</script>
+<script src="{$_W['siteroot']}addons/siyuan_cms/img/js/flash.js"></script> 
+</div>
+<div class="m-detail-top"> 
+<h1>{$news['title']}</h1> 
+<p class="m-post-author"> {php echo date('Y-m-d H:i', $news['time'])} &nbsp;&nbsp;来源:{$news['laiyuan']}&nbsp;&nbsp;阅读:{$news['yuedu']}</p> 
+<p class="m-post-com-num"><a href="#comment">{$news['pinglun']}条评论</a></p> 
+</div>
+<article id="news-article" class="xuxian"> {$news['content']}</article>
+<div class="opt-zan"> 
+<ul> 
+<li class="ico-zan"><a href="{php echo $this->createMobileUrl('news', array('act' => 'zan', 'id' => $news['id']))}"><i></i>赞({$news['zan']})</a></li> 
+<li class="ico-cai"><a href="{php echo $this->createMobileUrl('news', array('act' => 'cai', 'id' => $news['id']))}"><i></i>踩({$news['cai']})</a></li> 
+<li class="ico-favorite" id="shoucang_xia"><a href="#comment"><i></i>评论({$news['pinglun']})</a></li> 
+<li class="ico-share"><a href="javascript:;" onclick="document.getElementById('mcover').style.display='block';"><i></i> 分享</a></li> 
+</ul> 
+<div class="clear"> </div> 
+</div>
+<div id="mcover" onclick="document.getElementById('mcover').style.display='';" style="display: none;">
+<img src="{$_W['siteroot']}addons/siyuan_cms/img/fenxiang.jpg">
+</div>
+<div class="slide_container">
+<ul class="rslides" id="slider2">
+{loop $ad $row}
+<li><a href="{$row['url']}"><img src="{$_W['attachurl']}{$row['attachment']}"></a></li>
+{/loop}
+</ul>
+</div>
+<div class="public-module-title"> 
+<p><span class="base-bgcolor public-title-icon" style="background:{$set['color']}"></span>推荐信息</p>
+</div>
+<div class="card-news card-news-list"> 
+<ul>
+{loop $list $row}
+<li><a href="{php echo $this->createMobileUrl('weixin', array('act' => 'news', 'id' => $row['id']))}">
+<div class="img-box"><img src="{$_W['attachurl']}{$row['thumb']}" /></div>
+<h4>{$row['title']}</h4>
+<em><span class="time right">{php echo date('m-d', $row['time'])}</span>
+<span class="yuedu">{$row['yuedu']}</span>
+<span class="pinglunicon">{$row['pinglun']}</span>
+</em>
+</a>
+</li>
+{/loop}
+</ul>
+</div>
+<div class="public-module-title"> 
+<p><span class="base-bgcolor public-title-icon" style="background:{$set['color']}"></span>网友评论</p>
+</div>
+<div class="fabiao" id="comment">
+<form action="" method="post">
+<input type="hidden" name="newsid" value="{$news['id']}">
+<textarea class="form-control"  placeholder="文明上网，理性发言，请填写评论内容..."  name="content" rows="4"></textarea>
+<input type="hidden" name="token" value="{$_W['token']}">
+<button class="tijiao" type="submit" name="submit" value="yes" style="background: {$set['color']}">发表评论</button>
+</form>
+</div>
+<div id="lists"></div> 
+<div class="nodata"></div>
+<script type="text/javascript">
+$(function() {
+i = 1;
+var totalpage = 100; //总页数，防止超过总页数继续滚动
+var winH = $(window).height(); //页面可视区域高度 
+$(window).scroll(function() {
+if (i < totalpage) { // 当滚动的页数小于总页数的时候，继续加载
+var pageH = $(document.body).height();
+var scrollT = $(window).scrollTop(); //滚动条top 
+var aa = (pageH - winH - scrollT) / winH;
+if (aa < 0.01) {
+getJson(i)
+}
+} else { //否则显示无数据
+showEmpty();
+}
+});
+getJson(0); //加载第一页
+});
+function getJson(page) {
+$(".nodata").show().html("<img style='position: absolute;left:40%;bottom:28%' src='{$_W['siteroot']}addons/siyuan_cms/img/loading.gif'/>");
+$.getJSON("{php echo $this->createMobileUrl('weixin', array('act' => 'pinglun', 'id' => $news['id']))}", {page: i}, function(json) {
+if (json) {
+var str = "";
+$.each(json, function(index, array) {
+var str = "<div class='per'>";
+var str = str + "<div class='pinglun'><div class='pinglunleft'><img src='" + array['avatar'] + "'></div><div class='pinglunright'><p class='title'>" + array['name'] + "<span class='right'>" + array['time'] + "</span></p><p class='neirong'>" + array['content'] + "</p></div><div class='clear'></div></div>";
+$("#lists").append(str);
+});
+$(".nodata").hide()
+} else {
+showEmpty();
+}
+});
+i++;
+}
+function showEmpty() {
+$(".nodata").show().html("所有评论内容已经加载完了...");
+}
+</script>
+{php echo register_jssdk(false);}
+<script type="text/javascript">
+wx.ready(function () {
+sharedata = {
+title: "{$news['title']}",
+desc: "{$news['title']}",
+link: window.location.href,
+imgUrl: "{$_W['attachurl']}{$news['thumb']}",
+success: function (res) {},
+cancel: function(){
+}
+};
+wx.onMenuShareAppMessage(sharedata);
+wx.onMenuShareTimeline(sharedata);
+wx.onMenuShareQQ(sharedata);
+wx.onMenuShareWeibo(sharedata);
+wx.onMenuShareQZone(sharedata);
+});
+</script>
+{template 'bottom'}
+</div>
+<script>
+setTimeout(function(){
+$('#divPageLoading').remove();
+$('#divPageBody').show();  
+ },100);
+</script>
+</body>
+</html>

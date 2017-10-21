@@ -1,0 +1,257 @@
+<!DOCTYPE HTML>
+
+<html>
+
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0,maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
+
+<title>{$_W[account]['name']}红包</title>
+
+<link rel="stylesheet" href="../addons/han_hongbao/template/mobile/css/chaikai.css" />
+
+<script src="../addons/han_hongbao/template/mobile/js/jquery.js"></script>
+
+<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+
+<script type="text/javascript" src="../addons/han_hongbao/template/mobile/js/jquery-1.7.2.min.js"></script>
+
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=5PESLgvMcSbSUbPjmDKgvGZ3"></script>
+
+<script type='text/javascript' src="../addons/han_hongbao/template/mobile/js/jquery.blockUI.js"></script>
+
+<script>
+
+</script>
+
+<script>	
+
+wx.config({
+
+	debug: false,   
+
+	appId: '<?php echo $signPackage["appId"];?>',
+
+	timestamp: '<?php echo $signPackage["timestamp"];?>',
+
+	nonceStr: '<?php echo $signPackage["nonceStr"];?>',
+
+	signature: '<?php echo $signPackage["signature"];?>',
+
+	jsApiList: ['checkJsApi','onMenuShareTimeline','onMenuShareAppMessage','onMenuShareQQ','onMenuShareWeibo',]
+
+});
+
+var user_image="{$fromUserJson['user_image']}";
+
+var user_name="{$fromUserJson['user_name']}";
+
+var title="{$settings['sharetitle']}".replace("{fromuser}",user_name);
+
+var desc="{$settings['sharedescription']}".replace("{fromuser}",user_name);
+
+
+
+wx.ready(function () {
+
+	var shareData = {
+
+		title: "{php echo $set['title']}",
+
+		desc: desc,
+
+		link: "{$_W['siteroot']}app/{php echo $this->createMobileUrl('yedh')}",
+
+		imgUrl: "{php echo toimage($set['shareimg'])}",
+
+		trigger: function (res) {},
+
+		complete: function (res) {},
+
+		success: function (res) {
+
+		 },
+
+		cancel: function (res) {},
+
+		fail: function (res) {}
+
+	};
+
+	wx.onMenuShareAppMessage(shareData);
+
+	wx.onMenuShareQQ(shareData);
+
+	wx.onMenuShareWeibo(shareData);
+
+	wx.onMenuShareTimeline(shareData);
+
+});
+
+
+
+$(document).ready(function(){
+	
+	var geolocation = new BMap.Geolocation();
+    geolocation.getCurrentPosition(function(r) {
+	  var address = r.address;
+	  
+	  $.post("{php echo $this->createMobileUrl('checkaddr');}",{pro:address['province'],city:address['city'],tablename:'han_hongbao_yedh'},function(data){ 
+	   
+	   if (data.code=='no'){
+	     alert(data.msg);
+		 WeixinJSBridge.invoke('closeWindow',{},function(res){});
+		 return false;
+
+	   }else if(data.code=='yes'){
+		 
+		 $(".first-box").show();
+		 //location.href = "{php echo $this->createMobileUrl('checksex')}";
+		 /*$.post("{php echo $this->createMobileUrl('checksex');}",{},function(dat){
+			 alert(dat)
+			 if (dat.code=='no'){
+	           alert(dat.msg);
+		       WeixinJSBridge.invoke('closeWindow',{},function(res){});
+		       return false;
+	         }else if(dat.code=='yes'){
+				 
+		        $(".first-box").show();
+		     }
+			 			 
+		 },"text");*/
+		 //WeixinJSBridge.invoke('closeWindow',{},function(res){});
+		 //return false;  
+		   
+	   }
+	
+	 },"json");
+	 
+	}, {
+    enableHighAccuracy: true
+   });
+
+
+	$(".hot-click").click(function(){
+		
+		 $.blockUI({ message:"拆开中...", css: { backgroundColor: '#f00', color: '#fff'}});	
+
+		 $.post("{php echo $this->createMobileUrl('dhhb');}",{},function(data){
+			 
+			  $.unblockUI();
+
+			  var code=data.result_code;
+
+		      if (code=='FAIL'){
+			
+				alert(data.err_code_des);
+
+		       	WeixinJSBridge.invoke('closeWindow',{},function(res){});
+				return false;
+
+		      }else if(code=='SUCCESS'){
+
+				alert("已兑换成功，请查看‘微信支付’明细！");
+				WeixinJSBridge.invoke('closeWindow',{},function(res){});				  		 
+
+			  }else{
+				
+				alert(data.msg);
+					
+		        WeixinJSBridge.invoke('closeWindow',{},function(res){});
+
+				return false;   
+
+			  }
+
+		     
+
+		 },"json");
+		 
+
+	});
+
+	
+
+	$('.sendMoney').click(function(){
+
+		$(".share").show();
+
+	})
+
+	$(".close").click(function(){
+
+		$(".share").fadeTo(500,0,function(){
+
+			$(".share").hide();
+
+		});
+
+	});
+
+});
+
+</script>
+ 
+</head>
+
+<body>
+
+
+
+<div class="first-box" style="display:none"> 
+
+  <img class="body" src="../addons/han_hongbao/template/mobile/images/fools_1.png">
+
+  <img class="user-headimg" src="../addons/han_hongbao/template/mobile/images/hbss_icon.jpg">
+
+  <div class="hot-click"></div>
+
+  <div class="nickname">{$_W['account']['name']}公众号</div>
+
+</div>
+
+
+
+<div class="second-box" style="display:none">
+
+  <div class="second-wrapper"> 
+
+    <img class="second-bg" src="../addons/han_hongbao/template/mobile/images/fools_2.png"> 
+
+    <img class="second-headimg" src="{php echo $_W['attachurl'];}headimg_{php echo $_W['uniacid'];}.jpg" />
+
+    <div class="second-nickname">
+
+	   {$_W['account']['name']}公众号的红包
+
+       <p style="font-size:13px; color:#999999">成功关注公众号</p>
+
+    </div>
+
+    <!--领取成功-->
+
+    <div class="money3"><span class="money-number"></span> <span class="yuan">元</span> 
+
+      <p style="color:#70A0D7;font-size:1em;">已存入零钱,可直接提现</p>
+
+    </div>
+
+
+
+  </div>
+
+</div>
+
+<div class="share" style="display:none"> <span class="share-p">去发礼物吧！</span> 
+
+  <img class="pointer" src="../addons/han_hongbao/template/mobile/images/share_arrow.gif"> 
+
+  <img class="close" src="../addons/han_hongbao/template/mobile/images/close-black.gif"> 
+
+</div>
+
+</body>
+
+</html>

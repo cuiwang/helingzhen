@@ -1,0 +1,190 @@
+{template '_header'}
+<div class='fui-content member-page navbar'>
+	<div class="headinfo">
+		<div class="child userinfo">
+			<div class="face">
+				<img src="{$member['avatar']}"/>
+				<div class="name">{$member['nickname']}</div>
+				<div class="name" style="height:1.2rem;">{$userxinxi['tag']['country']} {$userxinxi['tag']['province']} {$userxinxi['tag']['city']}</div>
+                {if $signtype==3}
+                <div class="name">金额:<span id="credit">{$binduser['amount']}元</span></div>
+                {else}
+                <div class="name">余额:<span id="credit">{$member['credit2']}元</span>&nbsp;&nbsp;积分:<span id="credit">{$member['credit1']}</span></div>
+                {/if}
+            </div>
+            <div class="level" style="padding-top: 0.5rem;padding-left: 0.6rem;text-align: left;">
+              {if empty($cur_records_count)}<div class="btn sign" id="btn-sign">点击签到</div>{else}<div class="btn sign">今日已签</div>{/if}
+            </div>
+		</div>
+        <div class="child">
+            <div class="title" style="padding:0;">连续签到</div>
+            <div class="num"><span id="signorder">{if empty($binduser['continueday'])}0{else}{$binduser['continueday']}{/if}</span>天</div>
+            <div class="title" style="padding:0;">总签到数</div>
+            <div class="num"><span id="signsum">{if empty($counts)}0{else}{$counts}{/if}</span>天</div>
+            <div class="title" style="padding: .6rem 0;">
+            	<a href="{php echo $this->createMobileUrl('rank') }">排行榜</a>
+            </div>
+        </div>
+    </div>
+	<div class="calendar">
+        <div class="title">
+            <span class="date">
+                <div style="float: left;"><img src="../addons/hy_qiandao_cur/template/mobile/images/r.png" style="width: 65%; margin-top: 0.5rem;"></div>
+                <select id="date" class="select-date" name="cdate">
+                    <?php 
+                        $cval = $year."-".$month;
+                        $cstr = $year."年".$month."月";
+                    ?>
+                    <option value="<?php echo $cval;?>" selected><?php echo $cstr;?></option>
+                </select>
+            </span>
+        </div>
+        <div class="body" id="calendar">
+            <div class="week mon"> 
+                <nav class="day" data-day="" data-month="2" data-date="" data-signed=""><p class="num">周日</p></nav>
+                <nav class="day" data-day="" data-month="2" data-date="" data-signed=""><p class="num">周一</p></nav>
+                <nav class="day" data-day="" data-month="2" data-date="" data-signed=""><p class="num">周二</p></nav>
+                <nav class="day" data-day="" data-month="2" data-date="" data-signed=""><p class="num">周三</p></nav>
+                <nav class="day" data-day="" data-month="2" data-date="" data-signed=""><p class="num">周四</p></nav>
+                <nav class="day" data-day="" data-month="2" data-date="" data-signed=""><p class="num">周五</p></nav>
+                <nav class="day" data-day="" data-month="2" data-date="" data-signed=""><p class="num">周六</p></nav>
+            </div>
+            <?php 
+            $start_week_html = ''; 
+            $strhtml = '';
+            $weekcounts = 0;
+            foreach ($week as $key => $val  ) {  
+                echo  '<div class="week">';	
+                for($i1 = 0; $i1 < 7; $i1 ++) {
+                     $style = "day"; 
+                     if ($day== $val[$i1])
+                     {
+                        $style = "day today"; 
+                     }
+                     $strhtml= '<nav class="'.$style.'" data-day="" data-month="'.$val[$i1].'" data-date="" data-signed=""><p class="num">'.$val[$i1].'</p>';
+                    if (!empty($qianday_list[$weekcounts])&&intval(date("d",strtotime($qianday_list[$weekcounts])))== $val[$i1])
+                    {   
+                        $strhtml.= '<div class="signed"><img src="../addons/hy_qiandao_cur/template/mobile/images/q.png"><div class="u">已签</div></div>';
+                    }
+                    $weekcounts++;                                   
+                   $strhtml.= '</nav>';
+                    echo  $strhtml; 
+                }  
+                echo '</div>';	 
+            }  
+            ?>
+        </div>
+        <div class="title" style="margin-top: 0.5rem;">
+			<div style="float: left;"><img src="../addons/hy_qiandao_cur/template/mobile/images/n.png" style="width: 65%; margin-top: 0.5rem;"></div>
+			<marquee id="affiche" align="left" behavior="scroll" direction="left" hspace="50" vspace="20" loop="-1" scrollamount="5"
+scrolldelay="100" style="float: left; width: 90%">{$gonggao}</marquee>
+        </div>
+    </div>
+</div>
+<style>
+body .layer-myskin .layui-layer-content{ border-radius:10px;}
+body .layer-myskin{ border-radius:10px;}
+</style>
+<script src="../addons/hy_qiandao_cur/template/mobile/js/layer/layer.js"></script>
+<script>
+/*$("#btn-sign").click(function(){
+   url = "{php echo $this->createMobileUrl('index',array('action'=>'add')) }"; 
+     
+   location.replace(url);
+});*/
+//Ajax获取
+$("#btn-sign").click(function(){
+	var awareurl="{php echo $this->createMobileUrl('aware') }";
+	$.get(awareurl,function(data){
+		var passJson = jQuery.parseJSON(data); 
+		if(passJson.code==1){
+			//未关注
+			if (confirm("如果您想签到，需要您关注我们的公众号，点击【确定】关注后再来签到吧")) {  
+				var actionurl="{php echo $this->createMobileUrl('action') }";
+				window.location.href=actionurl;
+				return;
+			}  
+			else {  
+			}  
+		}else{
+			dianji();
+			return;
+		}
+	});
+});
+
+function dianji(){
+	var url="{php echo $this->createMobileUrl('index',array('action'=>'add')) }";
+	$.get(url,function(data){
+		var passJson = jQuery.parseJSON(data); 
+		if(passJson.code==1){
+			alert(passJson.mag);
+		}else{
+			var fee=passJson.fee
+			layer.open({
+				skin: 'layer-myskin',
+				title: false,   //标题
+				offset: '100px',
+				closeBtn: 0,  //关闭按钮 0不显示 1 2
+				type: 2,
+				anim: 3, //0-6的动画形式，-1不开启
+				maxmin: false,  //最大化最小化
+				shadeClose: false, //点击遮罩关闭层
+				area : ['80%' , '220px'],  //页面大小
+				content: ['{php echo $this->createMobileUrl('tip') }&fee='+fee, 'no'],
+				end: function(){
+				  window.location.reload();
+				}
+			});
+		};
+	  
+	});
+};
+
+$("#btnsign").click(function(){
+  bbot=false;
+  layer.open({
+	  skin: 'layer-myskin',
+	  title: false,   //标题
+	  offset: '100px',
+	  closeBtn: 0,  //关闭按钮 0不显示 1 2
+	  type: 2,
+	  anim: 3, //0-6的动画形式，-1不开启
+	  maxmin: false,  //最大化最小化
+	  shadeClose: false, //点击遮罩关闭层
+	  area : ['80%' , '200px'],  //页面大小
+	  //content: 'money.html',
+	  content: ["{php echo $this->createMobileUrl('tip') }", 'no'],
+	  end: function(){
+		window.location.reload();
+	  }
+  });
+});
+
+</script>
+<div class="mainMenu">
+        <a href="{php echo $this->createMobileUrl('index') }"><div class="myHome on">首页</div></a>
+        <a href="{php echo $this->createMobileUrl('log') }"><div class="myHome" style="background-position:50% -162px;background-size:40px auto;">记录</div></a>
+        <a href="{php echo $this->createMobileUrl('rule') }"><div class="myHome" style="background-position:50% -107px;">规则</div></a>
+        <a href="{php echo $linkurl }"><div class="myHome my" style="background-position:50% -158px;">更多</div></a>
+    </div>
+</div>
+<script>
+// 自定义分享数据的调用
+sharedata = {
+	title: '签到送积分',
+	desc: '签到送积分',
+	link: 'http://v.nfree.cn/app/index.php?i={$uniacid}&c=entry&do=index&m=hy_qiandao_cur',
+	imgUrl: 'http://v.nfree.cn/addons/hy_qiandao_cur/icon.jpg',
+	success: function(){
+		var url="{php echo $this->createMobileUrl('tip',array('action'=>'share')) }";
+		$.get(url,function(data){
+			var passJson = jQuery.parseJSON(data); 
+			alert(passJson.mag);
+			parent.layer.closeAll();
+		});	
+	}
+};
+</script>
+{template 'common/footer'}
+  

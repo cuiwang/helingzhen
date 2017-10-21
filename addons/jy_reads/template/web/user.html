@@ -1,0 +1,116 @@
+{template 'common/header'}
+<div class="main">
+<ul class="nav nav-tabs">
+	<li {if empty($status)}class="active"{/if}><a href="{php echo $this->createWebUrl('user',array('replyid'=>$replyid));}">参与人管理</a></li>
+	<li {if $status==2}class="active"{/if}><a href="{php echo $this->createWebUrl('user',array('replyid'=>$replyid,'status'=>2));}">已领取人员</a></li>
+	<li {if $status==3}class="active"{/if}><a href="{php echo $this->createWebUrl('user',array('replyid'=>$replyid,'status'=>3));}">已核销人员</a></li>
+	<li><a href="{php echo $this->createWebUrl('prize',array('replyid'=>$replyid));}">奖项列表</a></li>
+	<li><a href="{php echo url('platform/reply/post',array('m'=>$this->m))}">添加活动</a></li>
+	<li><a href="{php echo url('platform/reply/post',array('m'=>$this->m,'rid'=>$reply['rid']))}">编辑当前活动</a></li>
+</ul>
+	<div style="padding: 15px;">
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				{if empty($status)}<a class="btn btn-default" href="{php echo $this->createWebUrl('userexport',array('replyid'=>$replyid));}">导出</a>{/if}
+				{if $status==2}<a class="btn btn-default" href="{php echo $this->createWebUrl('userexport',array('replyid'=>$replyid,'status'=>2));}">导出</a>{/if}
+				{if $status==3}<a class="btn btn-default" href="{php echo $this->createWebUrl('userexport',array('replyid'=>$replyid,'status'=>3));}">导出</a>{/if}
+			</div>
+			<div class="panel-body table-responsive">
+				<table class="table table-hover">
+					<thead class="navbar-inner">
+						<tr>
+							<th style="width:5%;text-align:center;">ID</th>
+							<th style="width:5%;text-align:center;">头像</th>
+							<th style="width:10%;text-align:center;">昵称</th>
+							<th style="width:10%;text-align:center;">个人信息</th>
+							<th style="width:8%;text-align:center;">SN</th>			
+							<th style="width:7%;text-align:center;">阅数(查看)</th>
+							<th style="width:12%;text-align:center;">参加时间</th>
+							<th style="width:5%;text-align:center;">状态</th>
+							<th style="width:15%;text-align:center;">奖品名称</th>
+							<th style="width:8%;text-align:center;">核销</th>
+						</tr>
+					</thead>
+					<tbody>
+						{loop $list $row}
+						<tr>		
+							<td align="center" style="text-align:center;">{$row['id']}</td>
+							<td align="center" style="text-align:center;"><img width="100%" src="{$row['avatar']}"/></td>
+							<td align="center" style="text-align:center;">{$row['nickname']}</td>
+							<td align="center" style="text-align:center;white-space:normal; word-break:break-all;">
+							{if $row['userinfo'] == ''}暂无
+							{else}
+							{$row['userinfo']}{/if}
+							</td>
+							<td align="center" style="text-align:center;">{if empty($row['sn'])}暂未选择奖项{else}{$row['sn']}{/if}</td>
+							<td align="center" style="font-size:12px; color:#666; text-align:center;">
+								<span class="label label-danger log" data-id="{$row['id']}">{$row['hits']}</span>
+							</td>
+							<td align="center" style="font-size:12px; color:#666; text-align:center;">{$row['createtime']}</td>
+							<td align="center" style="font-size:12px; color:#666; text-align:center;">
+								{if $row['status'] == 3}<span class="label label-success">已核销</span>{/if}
+								{if $row['status'] == 2}<span class="label label-info">已兑奖</span>{/if}
+								{if $row['status'] == 1}<span class="label label-default">正常</span>{/if}
+							</td>
+							<td align="center" style="font-size:12px; color:#666; text-align:center;">{if !$row['prizename']}暂无{else}{$row['prizename']}{/if}</td>
+							<td style="text-align:center;">
+								{if $row['status'] == 2}
+								<a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('user',array('replyid'=>$replyid,'page'=>$pindex,'op'=>'verify','userid'=>$row['id']))}" title="手动兑奖"> 
+									<i class="fa fa-gift"> 核</i>
+								</a>
+								{else}
+								无
+								{/if}
+							</td>
+						</tr>
+						{/loop}
+					</tbody>
+				</table>
+				{$page}
+			</div>
+		</div>
+	</div>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  	<div class="modal-dialog" role="document">
+    	<div class="modal-content">
+      		<div class="modal-header">
+        		<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        		<h4 class="modal-title" id="modaltitle"></h4>
+      		</div>
+      		<div class="modal-body" id="modalcontent" style="text-align: center;">
+      		</div>
+      		<div class="modal-footer">
+        		<button type="button" class="btn btn-default" data-dismiss="modal">确定</button>
+      		</div>
+    	</div>
+  	</div>
+</div>
+<script>
+$(function(){
+	$('.log').click(function(){
+		var id = $(this).data('id');
+		$('#modalcontent').html('');
+		var url ='{php echo $this->createWebUrl("userlog",array("replyid"=>$replyid))}'
+		$.ajax({
+			url: url,
+			data: {'userid':id},
+			success: function(data){
+				  	if(data.result){
+				  		$('#modaltitle').text("阅读熟来源");
+						$('#modalcontent').html(data.msg);
+						$('#myModal').modal('show');
+				  	}else{
+					  	alert(data.msg);
+				  	}
+			  },
+			  error: function(){
+				  alert('网络错误');
+			  },
+			  dataType: 'json'
+		});
+	});
+});
+</script>
+{template 'common/footer'}

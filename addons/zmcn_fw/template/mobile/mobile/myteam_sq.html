@@ -1,0 +1,260 @@
+{template '_header'}
+<?php
+if(strlen($settings['que']['agenttype'])>1){$agenttype=explode("#" , $settings['que']['agenttype']);}else{$agenttype='#';}
+if(strlen($settings['que']['product'])>1){$product=explode("#" , $settings['que']['product']);}else{$product='#';}
+if(strlen($settings['que']['channel'])>1){$channel=explode("#" , $settings['que']['channel']);}else{$channel='#';}
+if(strlen($settings['que']['idtype'])>1){$idtype=explode("#" , $settings['que']['idtype']);}else{$idtype=array('身分证','营业执照','香港身分证','澳门身分证','台湾身分证','护照','户口本','学生证','士兵证','党员证','签证','居住证','军官证');;}
+?>
+	<form action="" method="post">		
+		<div class="weui_cells">
+			<div class="weui_cell">
+				<div class="weui_cell_bd weui_cell_primary">
+					<p>
+						<div class="weui-avatar">
+							<img class="weui-avatar-img1" src="{php echo tomedia($agent['avatar'])}" >
+						</div>
+					</p>
+				</div>
+				<div class="weui_cell_ft">{$agent['name']}</div>
+			</div>
+			{php $fans=mc_fansinfo($agent['openid'])}
+			<div class="weui_cell">
+				<div class="weui_cell_bd weui_cell_primary">
+					<p>
+						<div class="weui-avatar">
+							<img class="weui-avatar-img1" src="{$fans['tag']['avatar']}" >
+						</div>
+					</p>
+				</div>
+				<div class="weui_cell_ft">{$fans['tag']['nickname']}</div>
+			</div>
+		</div>
+		
+		
+	{if '1'==$settings['sys']['sjqx']['sq'] || (!empty($settings['sys']['openid']) && $openid==$settings['sys']['openid'])}
+        <div class="weui_cells_title">授权操作</div>		
+		<div class="weui_cells">
+			{if empty($agent['number'])}
+				{if !empty($settings['sys']['openid']) && $openid==$settings['sys']['openid']}
+					<div class="weui_cell weui_cell_select weui_select_after">
+						<div class="weui_cell_hd"><label class="weui_label">授权证书：</label></div>
+						<div class="weui_cell_bd weui_cell_primary"> 
+							<select class="weui_select" name="agent[cerid]">
+								<option value="{$cer['id']}" {if $cer['id']==$agent['cerid']}selected{/if}>{$cer['title']}</option>
+							</select>
+						</div>
+					</div>
+				{else}
+					<input type="hidden" name="agent[cerid]" value="{$fagent['cerid']}" />
+				{/if}
+			{/if}
+			<div class="weui_cell weui_cell_select weui_select_after">
+				<div class="weui_cell_hd"><label class="weui_label">授权产品：</label></div>
+				<div class="weui_cell_bd weui_cell_primary"> 
+					{if $product=='#'}
+						<input type="text" class="weui_input"  name="agent[product]" placeholder="请输入授权产品" value="{$agent['product']}">
+					{else}
+						<select class="weui_select" name="agent[product]">
+							{loop $product $idt}
+								<option value="{$idt}" {if $idt==$agent['product']}selected{/if}>{$idt}</option>
+							{/loop}
+						</select>
+					{/if}
+				</div>
+			</div>
+			<div class="weui_cell">
+				<div class="weui_cell_hd"><label class="weui_label">授权地区：</label></div>
+				<div class="weui_cell_bd weui_cell_primary"> 
+					<input type="text" class="weui_input"  name="agent[area]" placeholder="请输入授权地区" value="{$agent['area']}">
+				</div>
+			</div>
+             <div class="weui_cell weui_cell_select weui_select_after">
+				<div class="weui_cell_hd"><label class="weui_label">授权渠道：</label></div>
+                <div class="weui_cell_bd weui_cell_primary">
+					{if $channel=='#'}
+						<input type="text" class="weui_input"  name="agent[channel]" placeholder="请输入授权渠道" value="{$agent['channel']}">
+					{else}
+						<select class="weui_select" name="agent[channel]">
+							{loop $channel $idt}
+								<option value="{$idt}" {if $idt==$agent['channel']}selected{/if}>{$idt}</option>
+							{/loop}
+						</select>
+					{/if}
+                </div>
+            </div>
+             <div class="weui_cell weui_cell_select weui_select_after">
+				<div class="weui_cell_hd"><label class="weui_label">授权等级：</label></div>
+                <div class="weui_cell_bd weui_cell_primary">
+						<select class="weui_select" name="agent[level]">
+							{loop $levs $cla}
+								<option value="{$cla['id']}" {if $cla['id']==$agent['level']}selected{/if}>{$cla['title']}</option>
+							{/loop}
+						</select>
+                </div>
+            </div>
+			<div class="weui_cell">
+				<div class="weui_cell_hd"><label for="date1" class="weui_label">授权时间：</label></div>
+				<div class="weui_cell_bd weui_cell_primary"><input class="weui_input" id="date1" name="agent[cer_start_time]" type="text" value="{php echo date('Y-m-d', $agent['cer_start_time'])}"></div>
+			</div>
+			<div class="weui_cell">
+				<div class="weui_cell_hd"><label for="date2" class="weui_label">有效期至：</label></div>
+				<div class="weui_cell_bd weui_cell_primary"><input class="weui_input" id="date2" name="agent[cer_end_time]" type="text" value="{php echo date('Y-m-d', $agent['cer_end_time'])}"></div>
+			</div>
+            <div class="weui_cell weui_cell_select weui_select_after">
+				<div class="weui_cell_hd"><label class="weui_label">授权状态：</label></div>
+                <div class="weui_cell_bd weui_cell_primary">
+                    <select class="weui_select" name="agent[type]">
+						<option value="1" {if '1'==$agent['type']}selected{/if}>不通过</option>
+						<option value="2" {if '2'==$agent['type']}selected{/if}>新注册</option>
+						<option value="3" {if '3'==$agent['type']}selected{/if}>通过审核</option>
+                    </select>
+                </div>
+            </div>
+		</div>
+	{/if}
+
+	{if '2'==$settings['sys']['sjqx']['lx'] || (!empty($settings['sys']['openid']) && $openid==$settings['sys']['openid'])}
+        <div class="weui_cells_title">联系资料</div>		
+		<div class="weui_cells">
+			<div class="weui_cell">
+				<div class="weui_cell_hd"><label class="weui_label">联系人：</label></div>
+				<div class="weui_cell_bd weui_cell_primary"> 
+					<input type="text" class="weui_input"  name="agent[user]" placeholder="请输入联系人姓名" value="{$agent['user']}">
+				</div>
+			</div>
+            <div class="weui_cell weui_cell_select weui_select_before">
+                <div class="weui_cell_hd">
+                    <select class="weui_select" name="select2">
+                        <option value="+86">+86</option>
+                        <option value="00852">+852</option>
+                        <option value="00853">+853</option>
+                        <option value="00886">+886</option>
+                    </select>
+                </div>
+                <div class="weui_cell_bd weui_cell_primary">
+                    <input class="weui_input" type="tel" name="agent[phone]" pattern="[0-9]*" value="{$agent['phone']}" placeholder="请输入手机号码"/>
+                </div>
+            </div>
+			<div class="weui_cell">
+				<div class="weui_cell_hd"><label class="weui_label">微信：</label></div>
+				<div class="weui_cell_bd weui_cell_primary"> 
+					<input type="text" class="weui_input"  name="agent[wechat]" placeholder="请输入微信号码" value="{$agent['wechat']}">
+				</div>
+			</div>
+			<div class="weui_cell">
+				<div class="weui_cell_hd"><label class="weui_label">EMAIL：</label></div>
+				<div class="weui_cell_bd weui_cell_primary"> 
+					<input type="text" class="weui_input"  name="agent[email]" placeholder="请输入EMAIL" value="{$agent['email']}">
+				</div>
+			</div> 
+            <div class="weui_cell">
+                <div class="weui_cell_hd"><label class="weui_label">QQ：</label></div>
+                <div class="weui_cell_bd weui_cell_primary">
+                    <input class="weui_input" type="number" name="agent[qq]" pattern="[0-9]*" placeholder="请输入qq号" value="{$agent['qq']}" />
+                </div>
+            </div>
+            <div class="weui_cell">
+                <div class="weui_cell_hd"><label for="" class="weui_label">省市县:</label></div>
+                <div class="weui_cell_bd weui_cell_primary">
+                    <input class="weui_input" type="text"  name="ssx" value="{$agent['province']} {$agent['city']} {$agent['district']}" id="ssx" placeholder="请选择省市县" />
+                </div>
+            </div>  
+            <div class="weui_cell">
+                <div class="weui_cell_hd"><label class="weui_label">地址：</label></div>
+                <div class="weui_cell_bd weui_cell_primary">
+                    <input class="weui_input" type="text" name="agent[address]" placeholder="请输入发货地址" value="{$agent['address']}" />
+                </div>
+            </div>
+		</div>
+	{elseif '1'==$settings['sys']['sjqx']['lx']}
+        <div class="weui_cells_title">联系资料</div>		
+		<div class="weui_cells">
+			<div class="weui_cell">
+				<div class="weui_cell_bd weui_cell_primary"><p>联系人：</p></div>
+				<div class="weui_cell_ft">{$agent['user']}</div>
+			</div>
+			<div class="weui_cell">
+				<div class="weui_cell_bd weui_cell_primary"><p>手机号：</p></div>
+				<div class="weui_cell_ft">{$agent['phone']}</div>
+			</div>
+			<div class="weui_cell">
+				<div class="weui_cell_bd weui_cell_primary"><p>微信号：</p></div>
+				<div class="weui_cell_ft">{$agent['wechat']}</div>
+			</div>
+			<div class="weui_cell">
+				<div class="weui_cell_bd weui_cell_primary"><p>EMAIL：</p></div>
+				<div class="weui_cell_ft">{$agent['email']}</div>
+			</div>
+			<div class="weui_cell">
+				<div class="weui_cell_bd weui_cell_primary"><p>QQ号：</p></div>
+				<div class="weui_cell_ft">{$agent['qq']}</div>
+			</div>
+			<div class="weui_cell">
+				<div class="weui_cell_bd weui_cell_primary"><p>地区：</p></div>
+				<div class="weui_cell_ft">{$agent['province']}{$agent['city']}{$agent['district']}</div>
+			</div>
+			<div class="weui_cell">
+				<div class="weui_cell_bd weui_cell_primary"><p>地址：</p></div>
+				<div class="weui_cell_ft">{$agent['address']}</div>
+			</div>
+		</div>
+	{/if}
+
+	{if '2'==$settings['sys']['sjqx']['lx'] || (!empty($settings['sys']['openid']) && $openid==$settings['sys']['openid'])}
+        <div class="weui_cells_title">其他资料</div>		
+		<div class="weui_cells">
+			<div class="weui_cell">
+				<div class="weui_cell_hd"><label class="weui_label">名称：</label></div>
+				<div class="weui_cell_bd weui_cell_primary"> 
+					<input type="text" class="weui_input"  name="agent[name]" placeholder="单位名称或个人姓名" value="{$agent['name']}">
+				</div>
+			</div>
+            <div class="weui_cell weui_cell_select weui_select_before">
+                <div class="weui_cell_hd">
+                    <select class="weui_select" name="agent[idtype]">
+						{loop $idtype $idt}
+							<option value="{$idt}" {if $idt==$agent['idtype']}selected{/if}>{$idt}</option>
+						{/loop}
+                    </select>
+                </div>
+                <div class="weui_cell_bd weui_cell_primary">
+                    <input class="weui_input" type="tel" name="agent[idno]" value="{$agent['idno']}" placeholder="请输入证件编号"/>
+                </div>
+            </div>
+             <!---div class="weui_cell weui_cell_select weui_select_after">
+				<div class="weui_cell_hd"><label class="weui_label">授权称号：</label></div>
+                <div class="weui_cell_bd weui_cell_primary">
+					{if $agenttype=='#'}
+						<input type="text" class="weui_input"  name="agent[agenttype]" placeholder="请输入授权称号" value="{$agent['agenttype']}">
+					{else}
+						<select class="weui_select" name="agent[agenttype]">
+							{loop $agenttype $idt}
+								<option value="{$idt}" {if $idt==$agent['agenttype']}selected{/if}>{$idt}</option>
+							{/loop}
+						</select>
+					{/if}
+                </div>
+            </div------>
+		</div>
+	{elseif '1'==$settings['sys']['sjqx']['lx']}
+        <div class="weui_cells_title">其他资料</div>		
+		<div class="weui_cells">
+			<div class="weui_cell">
+				<div class="weui_cell_bd weui_cell_primary"><p>{$agent['idtype']}：</p></div>
+				<div class="weui_cell_ft">{$agent['idno']}</div>
+			</div>
+			<!----div class="weui_cell">
+				<div class="weui_cell_bd weui_cell_primary"><p>授权称号：</p></div>
+				<div class="weui_cell_ft">{$agent['agenttype']}</div>
+			</div---->
+		</div>
+	{/if}
+		<div class="weui_btn_area">
+			<input type="hidden" name="token" value="{$_W['token']}" />
+			<input name="submit" type="submit" class="weui_btn weui_btn_primary"   value="提 交 授 权" />
+		</div>
+	</form>
+{template '_footer1'}
+<script>$("#date1").calendar();$("#date2").calendar();</script>
+<script src="{MODULE_URL}template/mobile/zmuijs/zm_citypicker.min.js"></script>
+<script>$("#ssx").cityPicker({title: "选择您所在地区"});</script>

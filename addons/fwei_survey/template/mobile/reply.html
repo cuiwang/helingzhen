@@ -1,0 +1,134 @@
+{template 'common/header'}
+<link href="{MODULE_URL}images/style.css" rel="stylesheet" type="text/css">
+<div class="container">
+    <div class="lead_box" id="success_box" {if $survey_status == ''} style="display:none;"{/if}>
+        <img width="100%" src="{MODULE_URL}images/success.jpg">
+        <div class="success_info">{$survey_status}</div>
+        <center><a href="javascript:void(0);" onclick="WeixinJSBridge.call('closeWindow');" class="btn btn-primary">返回微信</a></center>
+    </div>
+    {if $survey_status == ''}
+    <form action="" class="form-horizontal form" method="post">
+        <input type="hidden" name="sid" value="{$sinfo['sid']}">
+        <input type="hidden" name="token" value="{$_W['token']}" />
+        <input type="hidden" name="submit" value="submit" />
+        <div class="lead_box" id="step_1">
+            <h6>{$sinfo['title']}</h6>
+            <div class="lead_content">
+                {$sinfo['content']}
+            </div>
+            <center><a href="###" class="btn btn-primary" id="go2">马上开始</a></center>
+        </div>
+        <div class="lead_box" id="step_2" style="display:none;">
+            <h6>{$sinfo['title']}</h6>
+            <div class="lead_content">
+                <div class="form-group">
+                    <label class="col-xs-12 item-label">输入您的姓名</label>
+                    <div class="col-xs-12">
+                        <input type="text" name="username" value="{$members['realname']}" class="form-control" placeholder="输入你的名称" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 item-label">输入您的手机号</label>
+                    <div class="col-xs-12">
+                        <input type="text" name="mobile" value="{$members['mobile']}" class="form-control" placeholder="输入你的联系电话" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-xs-12">
+                        <span class="help-block">对于您个人的信息我们将严格保密，请您放心作答。</span>
+                    </div>
+                </div>
+            </div>
+            <center><a href="###" class="btn btn-primary" id="go3">开始调研</a></center>
+        </div>
+        <div class="lead_box" id="step_3" style="display:none;">
+            <h6>{$sinfo['title']}</h6>
+            <div class="lead_content">
+                {loop $question_list $row}       
+                <div class="form-group">
+                    <label class="col-xs-12 item-label">{$row['title']}<span class="check-tips">({$types[$row['type']]})</span></label>
+                    <div class="col-xs-12">
+                    {if $row['type'] == 'text'}
+                    <input type="text" name="submit_data[{$row['sqid']}]" value="{$row['defvalue']}" class="form-control {if $row['is_must']}required{/if}" />
+                    {elseif $row['type'] == 'textarea'}
+                    <textarea name="submit_data[{$row['sqid']}]" class="form-control {if $row['is_must']}required{/if}" cols="70" rows="5">{$row['defvalue']}</textarea>
+                    {elseif $row['type'] == 'radio'}
+                        {loop $row['extra'] $erow}
+                            <label class="inpbox">
+                                <input type="radio" value="{$erow}" name="submit_data[{$row['sqid']}]" {if $row['defvalue']==$erow}checked{/if}> {$erow}
+                            </label>
+                        {/loop}
+                    {elseif $row['type'] == 'checkbox'}
+                        {loop $row['extra'] $erow}
+                            <label class="inpbox">
+                                <input type="checkbox" value="{$erow}" name="submit_data[{$row['sqid']}][]" {if $row['defvalue']==$erow}checked{/if}> {$erow}
+                            </label>
+                        {/loop}
+                    {elseif $row['type'] == 'select'}
+                        <select name="submit_data[{$row['sqid']}]" class="form-control {if $row['is_must']}required{/if}">
+                        {loop $row['extra'] $erow}
+                            <option value="{$erow}"  {if $row['defvalue']==$erow}selected{/if}>{$erow}</option>
+                        {/loop}
+                        </select>
+                    {else}
+                    {/if}
+                    {if $row['description']!=''}
+                        <span class="help-block">{$row['description']}</span>
+                    {/if}
+                    </div>
+                </div>
+                {/loop}   
+            </div>
+            <center><a href="###" class="btn btn-primary" id="dosave">提交</a></center>
+        </div>
+    </form>
+    {/if}
+</div>
+<script type="text/javascript">
+    $(function(){
+        $("#go2").on('click', function(){
+            $("#step_1").hide();
+            if( $(':text[name="username"]').val()!='' && $(':text[name="mobile"]').val()!=''){
+                $("#step_3").show();
+            } else {
+                $("#step_2").show();
+            }
+        });
+        $("#go3").on('click', function(){
+            if($.trim($(':text[name="username"]').val()) == '') {
+                alert('请输入您的姓名！')
+                return false;
+            }
+            var re = /1[3-8]+\d{9}/;
+            if( !re.test($(':text[name="mobile"]').val()) ) {
+                alert('请输入正确的手机号！')
+                return false;
+            }
+            $("#step_2").hide();
+            $("#step_3").show();
+        });
+        $("#dosave").on('click', function(){
+            $.ajax({
+                cache: true,
+                type: "POST",
+                url: $(".form").attr('action'),
+                data:$('.form').serialize(),// 你的formid
+                async: false,
+                dataType: 'json',
+                error: function(request) {
+                    alert("现现问题了。麻烦告诉我们一声！");
+                },
+                success: function(data) {
+                    if( data.s == '200' ){
+                        $(".form").remove();
+                        $("#success_box").show();
+                        $("#success_box .success_info").html( data.msg );
+                    } else {
+                        alert( data.msg );
+                    }
+                }
+            });
+        })
+    })
+</script>
+{template 'common/footer'}

@@ -1,0 +1,135 @@
+
+{template 'common/header'}
+{template 'nav'}
+<div class="main">
+{if $op == 'display'}
+	<ul class="nav nav-tabs">
+		<li class="active"><a href="{php echo $this->createWebUrl('member', array('op' => 'display','regionid'=>$_GPC['regionid']));}">管理</a></li>
+	</ul>
+	<div class="panel panel-info">
+		<div class="panel-heading">筛选</div>
+		<div class="panel-body">
+			<form action="" method="post" class="form-horizontal" role="form">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 control-label">业主姓名</label>
+					<div class="col-sm-3 col-md-3 col-lg-3 col-xs-3">
+						<input type="text" name="realname" value="{$_GPC['realname']}" class="form-control"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 control-label">业主手机</label>
+					<div class="col-sm-3 col-md-3 col-lg-3 col-xs-3">
+						<input type="text" name="mobile" value="{$_GPC['mobile']}" class="form-control"/>
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="pull-right col-xs-3 col-sm-2 col-md-2 col-lg-2">
+						<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+	<div style="padding:15px;">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<th style="width:100px;">住户姓名</th>
+					<th style="width:100px;">住户手机</th>
+					<th style="width:100px;">地址</th>
+					<th style="width:150px;">注册时间</th>
+					<th style="width:100px;">状态</th>
+					<th style="min-width:100px; width:30%;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $item}
+				<tr>
+					<td>{$item['realname']}</td>
+					<td>{$item['mobile']}</td>
+					<td>{php echo cutstr(htmlspecialchars_decode($item['address']), 5, true)}</td>
+					<td>{php echo date('Y-m-d H:i',$item['createtime'])}</td>
+					<td>{if $item['status']}<span class="label label-success">通过</span>{else}<span class="label label-error">禁止</span>{/if}</td>
+					<td>
+						{if empty($item['status'])}<a href="{php echo $this->createWebUrl('member', array('op'=>'verify', 'status' => 1, 'regionid' => $regionid, 'id' => $item['id']));}">审核通过</a>&nbsp;|&nbsp;{else}<a href="{php echo $this->createWebUrl('member', array('op'=>'verify', 'status' => 0, 'regionid' => $regionid, 'id' => $item['id']));}">禁止用户</a>&nbsp;|&nbsp;{/if}
+						<a href="{php echo $this->createWebUrl('member', array('op'=>'post', 'id' => $item['id'], 'regionid' => $regionid));}">查看</a>&nbsp;|&nbsp;
+						<a onclick="return confirm('删除操作不可恢复，确认吗？')" href="{php echo $this->createWebUrl('member', array('op'=>'delete', 'id' => $item['id'], 'regionid' => $regionid));}">删除</a>&nbsp;|&nbsp;
+						{if empty($item['manage_status'])}<a onclick="return confirm('授权管理员，确认吗？')" 
+						href="{php echo $this->createWebUrl('member', array('op'=>'warrant', 'id' => $item['id'], 'regionid' => $regionid,'manage_status' => 1,));}">授权成功</a>{else}<a onclick="return confirm('取消管理员授权，确认吗？')" href="
+						{php echo $this->createWebUrl('member', array('op'=>'warrant', 'id' => $item['id'], 'regionid' => $regionid,'manage_status' => 0,));}">取消授权</a>{/if}
+					</td>
+				</tr>
+				{/loop}
+			</tbody>
+		</table>
+		{$pager}
+	</div>
+	
+{elseif $op == 'post'}
+	<ul class="nav nav-tabs">
+		<li><a href="{php echo $this->createWebUrl('member', array('op' => 'display','regionid'=>$_GPC['regionid']));}">管理</a></li>
+		<li class="active"><a href="{php echo $this->createWebUrl('member', array('op' => 'post','regionid'=>$_GPC['regionid'],'id'=>$_GPC['id']));}">编辑</a></li>
+	</ul>
+	<form action="" class="form-horizontal form" method="post">
+		<div class="panel panel-default">
+		  <div class="panel-heading">
+		    <h3 class="panel-title">业主信息</h3>
+		  </div>
+		  <div class="panel-body">
+		     <div class="form-group">
+			    <label for="realname" class="col-sm-2 control-label">姓名</label>
+			    <div class="col-sm-10">
+			      <input name="realname" id='realname' type="text" value="{$member['realname']}" class='form-control'/>
+			    </div>
+			 </div>
+		  </div>
+		  <div class="panel-body">
+		     <div class="form-group">
+			    <label for="mobile" class="col-sm-2 control-label">手机</label>
+			    <div class="col-sm-10">
+			      <input type="text" id="mobile" name="mobile" value="{$member['mobile']}" class='form-control'/>
+			    </div>
+			 </div>
+		  </div>
+		  <div class="panel-body">
+		     <div class="form-group">
+			    <label for="mobile" class="col-sm-2 control-label">小区</label>
+			    <div class="col-sm-10">
+			        <select id="regionid" name="_regionid" class='form-control'>
+						{loop $regions $region}
+						<option value="{$region['id']}" {if $member['regionid']==$region['id']}selected{/if}>{$region['title']}</option>
+						{/loop}
+					</select>
+			    </div>
+			 </div>
+		  </div>
+		  <div class="panel-body">
+		     <div class="form-group">
+			    <label for="address" class="col-sm-2 control-label">地址</label>
+			    <div class="col-sm-10">
+			        <input type="text" id="address" name="address" value="{$member['address']}" class='form-control'/>
+			    </div>
+			 </div>
+		  </div>
+		  <div class="panel-body">
+		     <div class="form-group">
+			    <label for="remark" class="col-sm-2 control-label">备注</label>
+			    <div class="col-sm-10">
+			        <input type="text" id="remark" name="remark" id='remark' value="{$member['remark']}" class='form-control'/>
+			    </div>
+			 </div>
+		  </div>
+		  <div class="panel-body">
+		     <div class="form-group">
+			    <label for="" class="col-sm-2 control-label"></label>
+			    <div class="col-sm-10">
+			        <input type="hidden" name="token" value="{$_W['token']}"/>
+					<button type="submit" class="btn btn-primary span1" name="submit" value="提交">提交</button> 
+			    </div>
+			 </div>
+		  </div>
+		</div>
+	</form>
+{/if}
+</div>
+{template 'common/footer'}

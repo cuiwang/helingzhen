@@ -1,0 +1,184 @@
+{template 'common/header'}
+<div class="main">
+<ul class="nav nav-tabs">
+	<li{if $_GPC['do'] == 'display'} class="active"{/if}><a href="{php echo create_url('site/module/display', array('name' => 'lxybuilding'));}">楼盘管理</a></li>
+	<li{if $_GPC['do'] == 'post'} class="active"{/if}><a href="{php echo create_url('site/module/post', array('name' => 'lxybuilding'));}">添加楼盘</a></li>
+</ul>
+<form action="" class="form-horizontal form" method="post" enctype="multipart/form-data">
+	<input type="hidden" name="id" value="{$item['id']}">
+  <h4>商户基本信息</h4>
+	<table class="tb">
+		<tr>
+			<th>楼盘名称</th>
+			<td><input type="text" name="title" value="{$item['title']}" class="span5"></td>
+		</tr>
+        <tr>
+			<th>楼盘简介</th>
+			<td><textarea style="height:100px;" class="span7 richtext-clone" name="buildingintro" cols="70" id="buildingintro">{$item['buildingintro']}</textarea></td>
+		</tr>
+		<tr>
+			<th><label for="">宣传图</label></th>
+			<td>
+				<div class="fileupload fileupload-new" data-provides="fileupload">
+					<div class="fileupload-preview thumbnail" style="width: 200px; height: 150px;">{if $item['thumb']}<img src="{$_W['attachurl']}{$item['thumb']}" width="200" />{/if}</div>
+					<div>
+						<span class="btn btn-file"><span class="fileupload-new">选择图片</span><span class="fileupload-exists">更改</span><input name="thumb" type="file" /></span>
+						<a href="#" class="btn fileupload-exists" data-dismiss="fileupload">移除</a>
+						{if $item['thumb']}<button type="submit" name="fileupload-delete" value="{$item['thumb']}" class="btn fileupload-new">删除</button>{/if}
+					</div>
+				</div>
+				<span class="help-block"></span>
+			</td>
+		</tr>
+		<tr>
+			<th>交通配套</th>
+			<td>
+				<textarea style="height:100px;" class="span7 richtext-clone" name="traffic" cols="70" id="reply-add-text">{$item['traffic']}</textarea>
+			</td>
+		</tr>
+		<tr>
+			<th>项目简介</th>
+			<td><textarea style="height:100px;" class="span7 richtext-clone" name="projectintro" cols="70" id="xmjj">{$item['projectintro']}</textarea></td>
+		</tr>
+		<tr>
+			<th><label for="">售楼电话</label></th>
+			<td><input type="text" id="phone" name="phone" value="{$item['phone']}"  class="span5" /></td>
+		</tr>
+		<tr>
+			<th><label for="">地区</label></th>
+			<td>
+				<select name="resideprovince" id="sel-provance" onChange="selectCity();bmap.searchMapByPCD();" style="width:100px;">
+					<option value="" selected="true">省/直辖市</option>
+				</select>
+				<select name="residecity" id="sel-city" onChange="selectcounty();bmap.searchMapByPCD();" style="width:100px;">
+					<option value="" selected="true">请选择</option>
+				</select>
+				<select name="residedist" id="sel-area" onchange="bmap.searchMapByPCD();" style="width:100px;">
+					<option value="" selected="true">请选择</option>
+				</select>
+				<span class="help-block">先选择地区，可以快速的定位地图位置。</span>
+			</td>
+		</tr>
+		<tr>
+			<th><label for="">详细地址</label></th>
+			<td><div class="input-append"><input type="text" id="address" name="address" value="{$item['address']}"  class="span5" /><button type="button" class="btn" name="submit" value="搜索" onclick="bmap.searchMapByAddress($('#address').val())">搜索</button></div><span class="help-block">可以通过查询地址，快速定位地图位置。</span></td>
+		</tr>
+		<tr>
+			<th><label for="">坐标：</label></th>
+			<td><input type="text" name="lng" id="lng" value="{$item['lng']}"  class="span3" /> - <input type="text" id="lat" name="lat" value="{$item['lat']}"  class="span3" /></td>
+		</tr>
+		<tr>
+			<th></th>
+			<td>
+				<button type="submit" class="btn btn-primary span3" name="submit" value="提交">提交</button>
+				<input type="hidden" name="token" value="{$_W['token']}" />
+			</td>
+		</tr>
+		<tr>
+			<th></th>
+			<td><div id="baidumap" style="width:600px; height:500px;"></div></td>
+		</tr>
+	</table>
+</form>
+<script type="text/javascript" src="./resource/script/cascade.js"></script>
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=1.4"></script>  
+<script type="text/javascript">
+kindeditor($('#buildingintro'));
+cascdeInit('{$item['province']}','{$item['city']}','{$item['dist']}'); //开启地区三级联动
+var bmap = {
+	'option' : {
+		'lock' : false,
+		'container' : 'baidumap',
+		'infoWindow' : {'width' : 250, 'height' : 100, 'title' : ''},
+		'point' : {'lng' : 116.403851, 'lat' : 39.915177}
+	},
+	'init' : function(option) {
+		var $this = this;
+		$this.option = $.extend({},$this.option,option);
+		
+		$this.option.defaultPoint = new BMap.Point($this.option.point.lng, $this.option.point.lat);
+		$this.bgeo = new BMap.Geocoder();
+		$this.bmap = new BMap.Map($this.option.container);
+		$this.bmap.centerAndZoom($this.option.defaultPoint, 15);
+		$this.bmap.enableScrollWheelZoom();
+		$this.bmap.enableDragging();
+		$this.bmap.enableContinuousZoom();
+		$this.bmap.addControl(new BMap.NavigationControl());
+		$this.bmap.addControl(new BMap.OverviewMapControl());
+		//添加标注
+		$this.marker = new BMap.Marker($this.option.defaultPoint);
+		$this.marker.setLabel(new BMap.Label('请您移动此标记，选择您的坐标！', {'offset':new BMap.Size(10,-20)}));
+		$this.marker.enableDragging();
+		$this.bmap.addOverlay($this.marker);
+		//$this.marker.setAnimation(BMAP_ANIMATION_BOUNCE);
+		$this.showPointValue($this.marker.getPosition());
+		//拖动地图事件
+		$this.bmap.addEventListener("dragging", function() {
+			$this.setMarkerCenter();
+			$this.option.lock = false;
+		});
+		//缩入地图事件
+		$this.bmap.addEventListener("zoomend", function() {
+			$this.setMarkerCenter();
+			$this.option.lock = false;
+		});
+		//拖动标记事件
+		$this.marker.addEventListener("dragend", function (e) {
+			$this.showPointValue();
+			$this.showAddress();
+			$this.bmap.panTo(new BMap.Point(e.point.lng, e.point.lat));
+			$this.option.lock = false;
+			$this.marker.setAnimation(null);
+		});
+	},
+	'searchMapByAddress' : function(address) {
+		var $this = this;
+		 $this.bgeo.getPoint(address, function (point) {
+			if (point) {
+				$this.showPointValue();
+				$this.showAddress();
+				$this.bmap.panTo(point);
+				$this.setMarkerCenter();
+			}
+		});
+	},
+	'searchMapByPCD' : function(address) {
+		var $this = this;
+		$this.option.lock = true;
+		$this.searchMapByAddress($('#sel-provance').val()+$('#sel-city').val()+$('#sel-area').val());
+	},
+	'setMarkerCenter' : function() {
+		var $this = this;
+		var center = $this.bmap.getCenter();
+		$this.marker.setPosition(new BMap.Point(center.lng, center.lat));
+		$this.showPointValue();
+		$this.showAddress();
+	},
+	'showPointValue' : function() {
+		var $this = this;
+		var point = $this.marker.getPosition();
+		$('#lng').val(point.lng);
+		$('#lat').val(point.lat);
+	},
+	'showAddress' : function() {
+		var $this = this;
+		var point = $this.marker.getPosition();
+		$this.bgeo.getLocation(point, function (s) {
+			if (s) {
+				$('#address').val(s.address);
+				if (!$this.option.lock) {
+					cascdeInit(s.addressComponents.province,s.addressComponents.city,s.addressComponents.district);
+				}
+			}
+		});
+	}
+};
+$(function(){
+	var option = {};
+	{if !empty($item['lng']) && !empty($item['lat'])}
+	option = {'point' : {'lng' : '{$item['lng']}', 'lat' : '{$item['lat']}'}}
+	{/if}
+	bmap.init(option);
+});
+</script>
+{template 'common/footer'}

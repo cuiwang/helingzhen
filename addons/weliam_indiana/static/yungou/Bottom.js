@@ -1,0 +1,1 @@
+Base.getScript(($("#hidIsHttps").val()=="1"?"https://mskin.1yyg.com/":"http://mskin.1yyg.com/")+"/JS/BottomFun.js?v=160121");

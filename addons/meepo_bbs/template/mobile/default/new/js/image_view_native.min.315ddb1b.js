@@ -1,0 +1,1 @@
+var ImageView={init:function(a,b,c){var d=Util.getIPadVersion();if(mqq&&mqq.invoke&&mqq.compare("5.2")>=0||d&&d[1]>="5.6"){var e=[];$(a).each(function(a,b){e.push(b.mbimg)}),window.useImage=!0,d?mqq.invoke("media","showPicture",{imageIDs:e,index:+b||0,isNotShowIndex:!1,srcID:"2"}):mqq.invoke("troopNotice","showPicture",{imageIDs:e,index:+b||0,isNotShowIndex:!1,srcID:"2"})}}};

@@ -1,0 +1,157 @@
+{template 'header'}
+<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="#">{$noticeField['title']}</a>
+    </div>
+    <div class="collapse navbar-collapse container" id="bs-example-navbar-collapse-1">
+        <ul class="nav navbar-nav navbar-right">
+            <li class="active"><a href="#">快捷链接</a></li>
+            <li><a href="http://m.hshcs.com/url/?id=1">好生活首页</a></li>
+            <li><a href="http://m.hshcs.com/url/?id=2">下馆子</a></li>
+            <li><a href="http://m.hshcs.com/url/?id=3">撇脱哥</a></li>
+        </ul>
+
+    </div>
+</nav>
+<div class="container" style="height:60px;"> </div>
+<div class="container" id="MessageBox"></div>
+<div class="container" id="CheckForm">
+    <form action="" name="noticeForm" id="noticeForm" method="POST">
+        <label for="tb">请填写相关信息:</label>
+        {loop $fieldSetting $key $value}
+        {if $value['type'] == 'text'}  
+        <div class="form-group form-inline">
+            <div class="input-group">
+                <span class="input-group-addon">{$value['prompt']}</span>
+                <input type="text" id="{$key}" name="{$key}" value="" placeholder="请输入{$value['prompt']}..." class="form-control">		
+            </div>
+        </div>
+        {else if $value['type'] == 'textarea'}  
+        <div class="form-group">
+            <div class="input-group">
+                <span class="input-group-addon">{$value['prompt']}</span>
+                <textarea class="form-control" id="{$key}" name="{$key}" placeholder="请输入{$value['prompt']}..." rows="3"></textarea>
+            </div>
+        </div>
+        {else if $value['type'] == 'select'}  
+        <div class="form-group form-inline">
+            <div class="input-group">
+                <span class="input-group-addon">{$value['prompt']}</span>
+                <select  name="{$key}" class="form-control">
+                    {loop $value['options'] $s_key $s_value}
+                    <option value="{$s_key}"{if $value['default'] == $s_value } selected="selected"{/if} >{$s_value}</option>
+                    {/loop}
+                </select>
+            </div>
+        </div>
+        {else if $value['type'] == 'radio'}  
+        <div class="form-group">
+            {loop $value['options'] $s_key $s_value}
+            <label class="radio-inline"><input name="{$key}" {if $value['default'] == $s_key }checked="checked"{/if}  type="radio" value="{$s_key}">{$s_value}</label> 
+            {/loop}
+        </div>
+        {else if $value['type'] == 'datatime'} 
+        <div class="form-group">
+            <div class="input-group">
+                <span class="input-group-addon">{$value['prompt']}</span>
+                {php echo tpl_form_field_date($key, '', true);}
+            </div>
+        </div>
+        {else if $value['type'] == 'img'} 
+        <div class="form-group">
+            <div class="input-group">
+                {$value['prompt']}
+                {php echo tpl_form_field_image($key, '');}
+            </div>
+        </div>
+        {else}  
+        <div class="form-group">
+            fields type error:[{$value['type']}]
+        </div>
+        {/if}
+        {/loop}
+
+
+        <input type="hidden" name='notice_id' value="{$noticeId}" >
+        <input type="hidden" name='openid' value="{$openId}" >
+        <button type="button" class="btn btn-block btn-primary" disabled="disabled" id="submitButton" onclick="sendData();" >正在初始化...</button>
+    </form>
+
+</div>
+<div class="container">
+    <p></p>
+    {$noticeField['foot_info']}
+    <br />
+</div>
+<!--div class="container text-center" style="">技术支持:<a href="http://mp.weixin.qq.com/s?__biz=MzA3NTU5MTAzMQ==&mid=200529207&idx=1&sn=d33b71a3aa6cf21746f1166777ce70af#rd" >赤水好生活</a></div-->
+<script type="text/javascript">
+    require(['jquery'], function ($) {
+        $("#submitButton").html("提交");
+        $("#submitButton").removeAttr("disabled");
+    });
+    function sendData()
+    {
+        if (false)
+        {
+        }
+        {loop $fieldSetting $key $value}
+        {if $value['valid'] == 'empty'}
+        else if ($("#{$key}").val() == "")
+        {
+        alert("请输入{$value['prompt']}！");
+                $("#{$key}").focus();
+        }
+        { else if $value['valid'] == 'tel'}
+        else if (!checkTel($("#{$key}").val()))
+        {
+        alert("请输入有效的{$value['prompt']}！");
+                $("#{$key}").focus();
+        }
+        {/if}
+        {/loop}
+                else
+        {
+            $("#submitButton").attr("disabled", true);
+            $("#submitButton").attr("value", "提交中。。。");
+            $.ajax({
+                type: "POST",
+                async: false,
+                url: "{php echo $this->createMobileUrl('notice_receiver',array(),true)}&callback=?",
+                data: $('#noticeForm').serialize(), // 你的formid
+                dataType: "jsonp",
+                jsonp: "callbackparam", //服务端用于接收callback调用的function名的参数
+                jsonpCallback: "success_jsonpCallback", //callback的function名称
+                success: function (json) {
+                    window.location.href = "{php echo $this->createMobileUrl('hint',array(),true);}" + "&msg=" + json.msg;
+                    //resetButton();
+                },
+                error: function () {
+                    resetButton();
+                    alert("数据传输失败,请重试");
+                }
+            });
+        }
+    }
+    function resetButton()
+    {
+        $("#submitButton").attr("disabled", false);
+        $("#submitButton").attr("value", "提交");
+    }
+    function checkTel(tel)
+    {
+        var mobile = /^1[3-8]\d{9}$/, phone = /^(0\d{2,3}-?\d{7,8})$/, phone2 = /^(\d{7,8})$/;
+        return mobile.test(tel) || phone.test(tel) || phone2.test(tel);
+    }
+
+</script>	
+<div class="text-center footer" style="margin:10px 0; width:100%; text-align:center; word-break:break-all;">
+    <a href="http://m.hshcs.com">赤水好生活</a>
+</div>
+<script>require(['bootstrap']);</script>
+{template 'footer'}

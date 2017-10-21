@@ -1,0 +1,334 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>详情</title>
+ <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+  <link rel="stylesheet" href="{php echo $this->yobyurl}weui/weuix.min.css"/>
+      <script src="{php echo $this->yobyurl}weui/zepto.min.js"></script>
+</head>
+
+<body ontouchstart>
+ {if empty($fans1['phone'])} 
+       
+        <script>
+ window.location.href="{$_W['siteroot']}app/index.php?i={$weid}&c=entry&do=index&m=yoby_car";
+</script>
+{/if} 
+ <div class="weui_btn_primary weui-header "> 
+  <div class="weui-header-left"> <a class="icon icon-76 f-white" href="{$_W['siteroot']}app/index.php?i={$weid}&c=entry&do=chenke&m=yoby_car">首页</a>  </div>
+   <h1 class="weui-header-title">{$fans['title']}的出行记录</h1>
+     
+    </div>
+ <div class="ui-wx">
+ <div class="ui-banner"></div>
+<div class="ui-inner">
+  <!--页面开始-->
+    <div class="ui-page">
+   
+   <div class="ui-page-meta-list"><!--meta-->
+                     <!--span class="ui-page-meta-text ui-page-meta">最新消息</span-->
+                      <span class="ui-page-meta-text ui-page-meta" >{php echo  date('Y-m-d H:i',$rs['createtime'])}</span>
+                       <a class=" ui-page-meta ui-page-meta-nickname" href="{$guanzhu}" >{$weixin}</a>
+                    </div><!--meta结束-->
+                                        
+    <div class="ui-page-content"><!--内容-->
+                   
+                    
+                    出发地: {$rs['address1']}<br>
+                    目的地: {$rs['address2']}<br>
+                    出行时间: {$rs['sendtime']}<br>
+                    联系人: {if $fans['isok']==1}<label class="ui-label-s">已认证</label>{/if} {$fans['title']} ({if $fans['sex']==1}男{else}女{/if})<br>
+                    联系方式:<a href="tel:{$fans['phone']}"> <span class="icon icon-94 f-green"></span></a> 联系时请说在"<a href="{$guanzhu}">{$weixin}</a>"上看到的.<br>
+                   {if $rs['type']==1} 出行人数: {$rs['num']}人<br>{else} 剩余座位: {$rs['num']}<br>票价: {$rs['rmb']} 元(每人)<br>{/if}
+                    
+                    备注:
+                    <?php 
+                  $txt=   htmlspecialchars_decode($rs['beizhu']);
+                   $desc =  cutstr(strip_tags($txt), 25, true);
+                   echo $txt;
+                  
+                    ?><br>
+                    发布时间: {php echo  $this->timeline($rs['createtime'])}<br>
+                    <?php if(time()>strtotime($rs['sendtime'])){echo "<span class='icon icon-19 f-red'></span><span class='f-red'>出行已过期</span><br>";}else{
+                    if($rs['type']==2){
+                    
+                    $rs1 = pdo_fetch('SELECT * FROM ' . tablename('yoby_car_add') . " WHERE weid =$weid  and  cid=$id  and openid='".$this->openid."' ");
+                    if(!empty($rs1)){
+                    echo'<a  href="javascript:void(0)"  class="weui_btn weui_btn_disabled weui_btn_warn" ><i class="icon icon-78 f20"></i>已加入车主行程</a>';
+                    }else{
+                    if($rs['num']<=0){
+                    echo'<a  href="javascript:void(0)"  class="weui_btn weui_btn_disabled weui_btn_warn" ><i class="icon icon-78 f20"></i>人数已满</a>';
+                    }else{
+                     ?>
+                    <div class="divider">加入车主发布的行程</div>
+                     
+                    <a id="add" href="javascript:void(0)"  class="weui_btn weui_btn_primary" ><i class="icon icon-78 f20"></i>加入车主行程</a>
+   <script>
+   $(function(){
+   $('#add').click(function(){
+   var id="{$id}";
+   var fopenid = "{$rs['openid']}";
+    $.post("{$_W['siteroot']}app/index.php?i={$weid}&c=entry&do=add&m=yoby_car",{id:id,openid:fopenid},function(data){  
+            if(data==1){
+            $.toast("加入成功");
+            location.reload(true);
+            }else{
+              $.toast("加入失败了", "forbidden");
+            }
+}); 
+   
+   });
+   });
+   </script>                
+                    <?php }}}
+                    
+        $list2 = pdo_fetchall('SELECT * FROM ' . tablename('yoby_car_add') . " WHERE weid =$weid  and  cid=$id ");            
+ if(!empty($list2)) {
+ echo '<div class="weui_cells_title">已参与用户</div><div class="weui_cells"><div class="weui_cell">
+                <div class="weui_cell_hd">头像</div>
+                <div class="weui_cell_bd weui_cell_primary">
+                    昵称
+                </div>
+                <div class="weui_cell_ft">加入时间</div>
+            </div>';
+ foreach($list2 as  $v2){
+ $fans2 = pdo_fetch('SELECT * FROM ' . tablename('yoby_car_fans') . " WHERE weid =$weid and openid='".$v2['openid']."' ");
+ 
+ echo '<div class="weui_cell">
+ <div class=""><img style="width:30px;margin-right:5px;display:block" alt="" src="'.$fans2['headimgurl'].'"></div>
+                <div class=" weui_cell_primary">
+                    <span>'.$fans2['nickname'].'</span>
+                </div>
+                <div class="weui_cell_ft">'.date('Y-m-d H:i',$v2['createtime']).'</div>
+            </div>';
+ }
+echo " </div>";
+ }                  
+                    } ?>
+                    <div class="divider">分享出去找到同行的朋友</div>
+                   
+                    <a href="javascript:void(0)" class="weui_btn weui_btn_primary" onclick="$('.share').show().addClass('ani-fade hand');"><i class="icon icon-9 f20"></i>分享给好友或朋友圈</a>
+                   
+                    </div><!--内容结束-->
+
+
+
+</div><!--页面结束-->
+
+   
+  </div>
+</div>
+
+
+<div class="p">
+ <ul class="discuss_list">
+ <?php  
+ $list  = pdo_fetchall("SELECT *  FROM ".tablename('yoby_car_say') ." WHERE weid=$weid  and  cid=".$rs['id']."  order by id desc  limit 100");
+ if(!empty($list)){
+ foreach($list as $v2){
+ 
+ $topenid = $v2['fopenid'];
+ 
+ $fansx = pdo_fetch('SELECT * FROM ' . tablename('yoby_car_fans') . " WHERE weid =$weid and openid='".$topenid."' ");
+$fs= ($oid==$topenid)?"<span class='f-red'>管理员</span>":$fansx['nickname'];
+$fs1= ($oid==$topenid)?"管理员":$fansx['nickname'];
+$fs = (empty($fs1))?"匿名用户":$fs;
+$headimgurl = (empty($fansx['headimgurl']))?$yobyurl."weui/1.png":$fansx['headimgurl'];
+ ?>
+ 
+ <li class="discuss_item"> <div class="discuss_opr "> <span class="icon icon-45"  onclick="$('#say').focus();$('#topenid').val('{$topenid}');$('#say').val('@{$fs1} ');"></span>{if ($openid==$v2['fopenid'])||($openid==$oid)}&nbsp;&nbsp;&nbsp;&nbsp;<span onclick="delsay({$v2['id']})" class="icon icon-25 f-red"></span> {/if}</div>
+ <div class="discuss_opr hide"> <span class="media_tool_meta tips_global meta_praise praised hide"> <i class="icon_praise_gray "></i> <span class="praise_num">11</span> </span> </div> <div class="user_info"> <strong class="nickname">{$fs} </strong> <img src="{$headimgurl}" class="avatar"> </div> <div class="discuss_message"> <span class="discuss_status"></span> <div class="discuss_message_content">{php echo emojide($v2['content'])}</div> </div> <p class="discuss_extra_info">{php echo $this->timeline($v2['createtime']);}  </p> 
+ 
+  </li>
+
+ <?php }
+ 
+ } ?>
+  </ul>
+  </div>
+ 
+ <div class="weui_cells weui_cells_form">
+ <div class="weui_cell">
+                <div class="weui_cell_bd weui_cell_primary">
+                    <textarea style='color:#000' rows="3" placeholder="请输入留言" class="weui_textarea" id="say"></textarea>
+                    <div class="weui_textarea_counter"><span id="textarea_num">剩余200字</span></div>
+                </div>
+            </div>
+ 
+ </div>
+ <script>
+
+var delsay = function(id){
+$.confirm("您确定要删除吗?", "确认删除?", function() {
+var url2 = "{$_W['siteroot']}app/index.php?i={$weid}&c=entry&do=delsay&m=yoby_car";
+$.post(url2,{id:id},function(data){  
+            if(data.code==1){
+            $.toast("删除成功");
+          location.reload();
+            }else{
+            $.toast("操作失败",'forbidden');
+            }
+},'json');	
+}, function() {
+          $.toast("取消操作", "cancel");
+        });		
+}
+$(function(){
+	$(".weui_textarea").on("input paste" , function(){
+				var num_left=200-$(this).val().length;
+				if(num_left<0){
+					$("#textarea_num").text("超过"+(-num_left)+"字");
+					$("#textarea_num").css("color","#E44443");
+				}else{
+					$("#textarea_num").text("剩余"+(num_left)+"字");
+					$("#textarea_num").css("color","#999999");
+				}
+			});
+
+$("#showTooltips").click(function(){
+var say = $("#say").val();
+var topenid=$("#topenid").val();
+if(empty(say)){
+$.alert('请说点什么吧');
+    return false;
+}else if(strlen(say)<10){
+$.alert('不少于5个汉字');
+    return false;
+}else{
+
+$.post("{$_W['siteroot']}app/index.php?i={$weid}&c=entry&do=say&m=yoby_car",{id:"{$rs['id']}",say:say,topenid:topenid},function(data){  
+            if(data.code==1){
+            $.toast("回复成功");
+          location.reload();
+            }else{
+            $.toast("回复失败",'forbidden');
+            }
+},'json');	
+}
+
+});
+
+})
+</script>
+<input type="hidden" name="topenid" value="{$rs['openid']}" id="topenid"/>
+<div class="weui_btn_area">
+            <a id="showTooltips" href="javascript:;" class="weui_btn weui_btn_primary">写好啦</a>
+        </div>
+  <div class="weui_cells_title" style="margin-top:5px">&nbsp;</div> 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <div onclick="$(this).fadeOut();$(this).removeClass('ani-fade hand')" class="share" style="display:none;">
+<div class="sharebox">
+点击右上角发送给指定朋友或分享到朋友圈 <i></i>
+</div>
+</div>      
+<script type="text/javascript" src='http://res.wx.qq.com/open/js/jweixin-1.0.0.js'></script>
+	<?php
+$wx = $_W['account']['jssdkconfig'];
+$wx['url'] ='http://'.$_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] ;
+$title_desc = ($rs['type']==2)?"车找人,从":"人找车,从";
+$desc_1 = $title_desc.preg_replace("/\s/","",$rs['address1']."到".$rs['address2']);
+
+?> 
+<script>
+    var appIdstr = "{$wx['appId']}";
+    var timestampstr = "{$wx['timestamp']}";
+    var nonceStrstr = "{$wx['nonceStr']}";
+    var signaturestr = "{$wx['signature']}";
+wx.config({
+	debug: false,
+	appId: appIdstr,
+	timestamp: timestampstr,
+	nonceStr: nonceStrstr,
+	signature: signaturestr,
+		jsApiList: [
+		'checkJsApi',
+		'onMenuShareTimeline',
+		'onMenuShareAppMessage','showMenuItems','hideOptionMenu'
+	]
+});
+wx.ready(function () {
+//要分享的数据
+  var shareData = {
+    title:"{$desc}",
+    desc: "{$desc_1}",
+    link:"{$wx['url']}" ,
+    imgUrl:"{$fans['headimgurl']}",
+    type:'', // 分享类型,music、video或link，不填默认为link 分享给朋友
+    dataUrl:'', // 如果type是music或video，则要提供数据链接，默认为空 分享给朋友
+  };
+  
+
+
+wx.hideOptionMenu();
+		wx.showMenuItems({
+			menuList: [
+			'menuItem:share:timeline', 
+			'menuItem:share:appMessage',
+			'menuItem:copyUrl',
+			],
+		});
+//分享给朋友
+wx.onMenuShareAppMessage({
+      title: shareData.title,
+      desc: shareData.desc,
+      link: shareData.link,
+      imgUrl:shareData.imgUrl,
+      type: shareData.type,
+    dataUrl: shareData.dataUrl,
+      trigger: function (res) {//菜单
+        
+      },
+      success: function (res) {//成功
+        
+      },
+      cancel: function (res) {//取消
+        
+      },
+      fail: function (res) {//失败
+        alert(JSON.stringify(res));
+      },
+      complete:function(res){//完成
+      
+      },
+    });	
+
+//分享到朋友圈
+    wx.onMenuShareTimeline({
+      title:shareData.desc,
+      link:shareData.link,
+      imgUrl:shareData.imgUrl,
+      trigger: function (res) {
+        
+      },
+      success: function (res) {   
+            
+      },
+      cancel: function (res) {
+       
+      },
+      fail: function (res) {
+        alert(JSON.stringify(res));
+      },
+      complete:function(res){//完成
+      	 //alert('完成');
+      },
+    });	
+
+});
+</script></body>
+</html>
+

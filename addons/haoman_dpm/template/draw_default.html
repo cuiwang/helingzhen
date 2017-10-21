@@ -1,0 +1,122 @@
+{template 'common/header'}
+<div class="main">
+	<ul class="nav nav-tabs">
+		<li{if $_GPC['do'] == 'draw_default'} class="active"{/if}><a href="{php echo $this->createWebUrl('draw_default',array('rid'=>$rid,'turntable'=>$turntable));}">内定人员管理</a></li>
+        <li{if $_GPC['do'] == 'newneiding'} class="active"{/if}><a class="btn-lg" href="{php echo $this->createWebUrl('newneiding',array('rid'=>$rid,'turntable'=>$turntable));}">添加内定人员</a></li>
+	</ul>
+
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			内定人员管理
+			<!--<a href="{php echo $this->createWebUrl('UDownloadx')}"  class="btn btn-success btn-sm" data-toggle="tooltip" data-placement="bottom" title="导出"><i class="fa fa-times"></i>导出全部核销记录</a>-->
+		</div>
+		<div class="panel-body table-responsive">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<!--<th class='with-checkbox' style="width:50px;">-->
+						<!--<input type="checkbox" class="check_all" />-->
+					<!--</th>-->
+					<th style="width:100px;">名称</th>
+					<th style="width:280px;">openid</th>
+					<th style="width:100px;">电话</th>
+					<th style="width:100px;">指定奖品</th>
+					<th style="width:100px;">状态</th>
+					<th style="width:320px;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+                    {loop $list $row}
+				<tr>
+					<!--<td class="with-checkbox"><input type="checkbox" name="check" value="{$row['id']}"></td>-->
+					<td>{$row['realname']} </td>
+					<td>{$row['openid']} </td>
+					<td>{$row['mobile']} </td>
+					<td>{$row['prizename']}</td>
+					<td>{if $row['status']==1}<strong class="btn btn-success">已启用{else}<strong class="btn btn-default">未启用</strong>{/if}</td>
+					<td>
+                        <!--<a class="btn btn-default xiangqing userinfo" href="javascript:void(0)"  data-placement="top" title="详情" id="{$row['id']}"><i class="fa fa-bullseye" ></i></a>-->
+                        <a class="btn btn-default bianji" href="{php echo $this->createWebUrl('newneiding',array('uid'=>$row['id'],'rid'=>$row['rid'],'op'=>'up','turntable'=>$row['turntable']));}" data-placement="top" title="编辑"><i class="fa fa-edit" ></i></a>
+                        <a class="btn btn-default" data-toggle="tooltip" data-placement="top" href="#" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('newneiding',array('id'=>$row['id'],'op'=>'del','rid'=>$row['rid'],'turntable'=>$row['turntable']))}');" title="删除"><i class="fa fa-times"></i></a>
+                  	</td>
+				</tr>
+                {/loop}
+				<!-- <tr>
+					<td colspan="7">
+						<input type="button" class="btn btn-primary" name="deleteall" value="删除选择的" />
+					</td>
+				</tr> -->
+			</tbody>
+		</table>
+	</div>
+	</div>
+	{$pager}
+</div>
+<script>
+	require(['jquery', 'util'], function($, u){
+		$('.userinfo').click(function(){
+			var fansid = parseInt($(this).attr('id'));
+			$.get("{php echo $this->createWebUrl('Userinfo')}&fansid=" + fansid, function(data){
+				if(data == 'dataerr') {
+					u.message('未找到指定粉丝资料', '', 'error');
+				} else {
+					var obj = u.dialog('核销记录', data, $('#guanbi').html());
+				}
+				obj.modal('show');
+			});
+		})
+	});
+</script>
+<script>
+	require(['bootstrap'],function($){
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+	});
+
+
+
+$(function(){
+
+    $(".check_all").click(function(){
+       var checked = $(this).get(0).checked;
+
+       $("input[type=checkbox]").attr("checked",checked);
+    });
+	$("input[name=deleteall]").click(function(){
+		var check = $("input:checked");
+
+		if(check.length<2){
+			alert('请选择要删除的记录!');
+			return false;
+		}
+        if( confirm("确认要删除选择的记录?")){
+		var id = new Array();
+		check.each(function(i){
+			id[i] = $(this).val();
+		});
+		$.post('{php echo $this->createWebUrl('deleteAllcard')}', {idArr:id},function(data){
+			if (data.errno ==0)
+			{
+				location.reload();
+			} else {
+				alert(data.error);
+			}
+
+
+		},'json');
+		}
+
+	});
+});
+</script>
+<script>
+function drop_confirm(msg, url){
+    if(confirm(msg)){
+        window.location = url;
+    }
+}
+</script>
+{template 'common/footer'}

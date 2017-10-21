@@ -1,0 +1,202 @@
+{template 'common/header'}
+{if $rid!=''}
+		{template 'nav'}
+	{/if}
+
+	{if $foo == 'display'}
+	
+<div class="main table-responsive">
+	<div class="alert alert-warning" role="alert">
+		注意:如果发现有作弊的IP，可以 <a class="label label-info" href="{php echo $this->createWebUrl('iplist', array('rid' => $rid))}" target="_blank">点击这里</a> 进行屏蔽。
+		<p>（当前ip：{php echo getrealip();}）：</p>
+		
+		
+	</div>
+	
+	<form method="post" class="form-horizontal" id="form1">
+		<div class="panel panel-default">
+			<div class="panel-body table-responsive">
+				<table class="table table-hover">
+					<thead class="navbar-inner">
+					<tr>
+						<th style="width:50px;">排行</th>
+						<th style="width:200px;">ip段开始</th>
+						<th style="width:200px;">ip段结束</th>
+						<th style="width:100px;">ip地区</th>
+						<th style="width:50px;">投票次数</th>
+					</tr>
+					</thead>
+					<tbody id="list">					
+						{php $n = 0}
+						{loop $tvtotal $mid $t}
+						{php $iparr = $this->_getip($rid, $mid);}
+						<?php if ($n == 15) {break;}?>
+							<tr>								
+								<td>{php echo $n +1}</td>
+								<td><input type="text" name="ipstart" class="form-control" readonly="readonly" style="width:200px" value="{$mid}" /></td>
+								<td><input type="text" name="ipend" class="form-control"  readonly="readonly" style="width:200px" value="{$mid}" /></td>
+								<td><input type="text" name="ipadd" class="form-control"  readonly="readonly" style="width:150px" value="{$iparr['country']}|{$iparr['province']}|{$iparr['city']}" /></td>
+								<td><input type="text" name="t" class="form-control"  readonly="readonly" style="width:80px" value="{$t}" /></td>
+							</tr>
+							{php $n++}
+						{/loop}
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<div>
+			<input name="token" type="hidden" value="{$_W['token']}" />
+			
+		</div>
+		<div>
+		
+		</div>
+	</form>
+</div>
+	{elseif $foo == 'post'}
+<div class="main table-responsive">
+	<div class="alert alert-warning" role="alert">
+		注意：ip范围和ip地区均不能有重复。如果设置某一个ip，请把起始和结束ip设置为同一个即可
+		<p>查看当前投票ip次数最多的点击这里 <a class="label label-info" href="{php echo $this->createWebUrl('iplist', array('rid' => $rid, 'foo' => 'display'))}">查看IP</a>（当前ip：{php echo getrealip();}）：</p>
+		
+		
+	</div>
+	<form method="post" class="form-horizontal" id="form1">
+		<div class="panel panel-default">
+			<div class="panel-body table-responsive">
+				<table class="table table-hover">
+					<thead class="navbar-inner">
+					<tr>
+						<th style="width:50px;">删？</th>
+						<th style="width:200px;">ip段开始</th>
+						<th style="width:200px;">ip段结束</th>
+						<th style="width:150px;">ip地区</th>
+					</tr>
+					</thead>
+					<tbody id="list">
+						{loop $iplist $item}
+						{php $iparr = iunserializer($item['iparr']);}
+							<tr>
+								<td style="vertical-align:middle;"><input type="checkbox" name="delete[]" value="{$item['id']}" /></td>
+								<td><input type="text" name="ipstart[{$item['id']}]" class="form-control" style="width:250px" value="{$iparr['ipstart']}" /></td>
+								<td><input type="text" name="ipend[{$item['id']}]" class="form-control" style="width:250px" value="{$iparr['ipend']}" /></td>
+								<td><input type="text" name="ipadd[{$item['id']}]" class="form-control" style="width:250px" value="{$item['ipadd']}" /></td>
+							</tr>
+						{/loop}
+					</tbody>
+					<tbody style="border-top:0;">
+					<tr>
+						<td></td>
+						<td colspan="3">
+							<a href="javascript:;" onclick="addItem()"><i class="icon-plus-sign-alt"></i> 添加</a>
+						</td>
+					</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<div>
+			<input name="token" type="hidden" value="{$_W['token']}" />
+			<input type="submit" class="btn btn-primary col-lg-1" name="submit" value="提交" />
+		</div>
+		<div>
+		
+		</div>
+	</form>
+	
+</div>
+<script type="text/javascript">
+<!--
+	function addItem() {
+		var html = '' +
+				'<tr>' +
+					'<td></td>' +
+					'<td><input type="text" name="ipstart-new[]" class="form-control ipstart-new" style="width:250px" value="" /></td>' +
+					'<td><input type="text" name="ipend-new[]" class="form-control ipend-new" style="width:250px" value="" /></td>' +
+					'<td><input type="text" name="ipadd-new[]" class="form-control ipadd-new" style="width:250px;display:inline" value="" />' +
+					'<a href="javascript:;"  style="padding-left:20px;"onclick="deleteItem(this);"><i class=""></i>删除</a>' +
+					'</td>' +
+				'</tr>';
+		$('#list').append(html);
+	}
+	function deleteItem(o) {
+		$(o).parent().parent().remove();
+	}
+
+require(['jquery', 'util'], function($, u){
+	$("#form1").submit(function(){
+		var colarr=new Array();
+		var col;
+		var titlearr=new Array();
+		var tit;
+		var bool=true;		
+		var re =  /^([0-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.([0-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.([0-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.([0-9]|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])$/;
+		
+		
+		
+		$(":text[name^=ipadd]").each(function(index){
+			ipadd=$(this).val().trim();
+			if(ipadd==""){
+				u.message('ip地区 不能为空.', '', 'error');
+				bool = false;
+			}
+			if(ipadd !=""){
+				for(tit in titlearr){
+					if(titlearr[tit]==ipadd){
+						u.message('ip地区 重复.', '', 'error');
+						bool = false;
+					}		
+				}
+				titlearr[index+1]=ipadd;
+			}	
+		})  
+
+		$(":text[name^=ipend]").each(function(index){
+			ipend=$(this).val().trim();
+			if(ipend==""){
+				u.message('ip段结束 不能为空.', '', 'error');
+				bool = false;
+			}
+			if(!re.test(ipend)){  
+				u.message('ip段结束 格式不正确，请修改.', '', 'error');
+				bool = false;
+			}/**
+			if(ipend !=""){
+				for(tit in titlearr){
+					if(titlearr[tit]==ipend){
+						u.message('ip段结束 重复.', '', 'error');
+						bool = false;
+					}		
+				}
+				titlearr[index+1]=ipend;
+			}	**/
+		})
+		
+		$(":text[name^=ipstart]").each(function(index){
+			ipstart=$(this).val().trim();
+			if(ipstart==""){
+				u.message('ip段开始 不能为空.', '', 'error');
+				bool = false;
+			}
+			if(!re.test(ipstart)){  
+				u.message('ip段开始 格式不正确，请修改.', '', 'error');
+				bool = false;
+			}
+			if(ipstart !=""){
+				for(tit in titlearr){
+					if(titlearr[tit]==ipstart){
+						u.message('ip段开始 重复.', '', 'error');
+						bool = false;
+					}		
+				}
+				titlearr[index+1]=ipstart;
+			}	
+		})
+		
+		if(!bool) return false;
+	});
+});
+//-->
+</script>
+{/if}
+{template 'common/footer'}

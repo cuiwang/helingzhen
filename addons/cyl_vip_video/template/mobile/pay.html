@@ -1,0 +1,55 @@
+{template 'common/header'}
+<style>
+	.mui-input-group:before {
+		height:0px;
+	}
+	.mui-input-group:after {
+		height:0px;
+	}
+	.mui-input-group .mui-input-row:after {
+		height:1px;
+		background-color: #c8c7cc;
+		left:0px;
+	}
+</style>
+<div style="margin-top:50px;margin-left:20px;margin-right:20px">
+	<form class="mui-input-group">
+	    <div class="mui-input-row">
+	        <label>金额（元）</label>
+	    	<input id="money" type="number" class="mui-input-clear" placeholder="请输入金额">
+	    </div>
+	    <div class="mui-button-row" style="margin-top:20px">
+	        <button type="button" class="mui-btn mui-btn-primary mui-btn-block mui-disabled js-wechat-pay" >确认支付</button>
+	    </div>
+	</form>
+</div>
+<script>
+document.addEventListener('WeixinJSBridgeReady', function onBridgeReady() {
+    $('.js-wechat-pay').removeClass('mui-disabled');
+    $('.js-wechat-pay').click(function(){
+        //先通过AJAX获取最新的订单号
+        $.getJSON("{php echo $this->createMobileUrl('order');}", {money:$("#money").val()}, function(data, status){
+            if(status == 'success'){
+                util.pay({
+                    orderFee :data.fee,
+                    payMethod : 'wechat',
+                    orderTitle : '充值' +data.fee+ '元',
+                    orderTid : data.pay_tid,
+                    module : 'recharge',
+                    success : function(result) {
+                        alert('支付成功');
+                    },
+                    fail : function(result) {
+                        alert('fail : ' + result.message);
+                    },
+                    complete : function(result) {
+                        location.reload();
+                    }
+                });
+            }
+        });
+    });
+    //$('.js-wechat-pay').html('微信支付');
+});
+</script>
+{template 'common/header'}

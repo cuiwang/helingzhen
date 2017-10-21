@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>管理收货地址</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1,user-scalable=no">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black">
+	<meta name="format-detection" content="telephone=no" />
+	<!--标准mui.css-->
+	<link rel="stylesheet" href="../addons/cy163_goodssales/static/mui/css/mui.min.css">
+	{if $operation == 'post'}
+	<link href="../addons/cy163_goodssales/static/mui/css/mui.picker.min.css" rel="stylesheet" />
+	{/if}
+	{if $operation == 'display'}
+	<style>
+	.default-address{border:solid 1px #FF6537;border-radius:24px;margin-right:5px;color:#FF6537;}
+	.mui-icon{font-size:20px;}
+	</style>
+	{/if}
+</head>
+<body>
+{if $operation == 'display'}
+<header class="mui-bar mui-bar-nav">
+	<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+	<h1 class="mui-title" id="info">管理收货地址</h1>
+</header>
+<div class="mui-content" style="padding-bottom:35px;">
+	{loop $addresslist $row}
+	<ul class="mui-table-view" style="margin-top:0px;margin-bottom:15px;">
+		<li class="mui-table-view-cell">
+			<div class="mui-row">
+				<div class="mui-col-sm-6 mui-col-xs-6">{$row['realname']}</div>
+				<div class="mui-col-sm-6 mui-col-xs-6" style="text-align:right;">{$row['telphone']}</div>
+			</div>
+			<div class="mui-row" style="font-size:16px;margin-top:5px;">
+				<div class="mui-col-sm-12 mui-col-xs-12">{$row['province']}{$row['city']}{$row['district']}{$row['address']}</div>
+			</div>
+		</li>
+		<div class="mui-row" style="font-size:14px;padding:11px 15px;">
+			<div class="mui-col-sm-6 mui-col-xs-6" style="color:#FF6537;">
+				{if $row['isauto'] == 1}
+				<span class="mui-icon mui-icon-checkmarkempty default-address"></span>默认地址
+				{/if}
+			</div>
+			<div class="mui-col-sm-6 mui-col-xs-6" style="text-align:right;">
+				<span class="mui-icon mui-icon-compose" onclick="editadd({$row['id']});"></span>修改
+				<span class="mui-icon mui-icon-trash" onclick="deladd({$row['id']});"></span>删除
+			</div>
+		</div>
+	</ul>
+	{/loop}
+</div>
+<div class="mui-bar mui-bar-tab" id="addaddress" style="text-align:center;line-height:50px;background:#FF6537;color:#fff;font-size:18px;">添加新地址</div>
+{/if}
+{if $operation == 'post'}
+<header class="mui-bar mui-bar-nav">
+	<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+	<h1 class="mui-title">{if $address}编辑{else}添加{/if}地址</h1>
+</header>
+<div class="mui-content">
+	<form class="mui-input-group" style="padding-bottom:5px;">
+		<div class="mui-input-row">
+			<label>姓名</label>
+			<input type="text" class="mui-input-clear" id="realname" value="{$address['realname']}" placeholder="请输入姓名">
+		</div>
+		<div class="mui-input-row">
+			<label>电话</label>
+			<input type="tel" class="mui-input-clear" id="telphone" value="{$address['telphone']}" placeholder="请输入电话">
+		</div>
+		
+		<div class="mui-table-view-cell">
+			<a class="mui-navigate-right" id='showCity'>
+				<span class="mui-badge mui-badge-purple" id="showCitytxt">{if $address['province']}{$address['province']}{$address['city']}{$address['district']}{else}选择地区{/if}</span>
+				选择地区
+			</a>
+			<input type="hidden" id="province" value="{$address['province']}"><input type="hidden" id="city" value="{$address['city']}"><input type="hidden" id="district" value="{$address['district']}">
+		</div>
+		
+		<div class="mui-input-row">
+			<label>详细地址</label>
+			<input type="text" class="mui-input-clear" id="address" value="{$address['address']}" placeholder="请输入详细地址">
+		</div>
+		<div class="mui-input-row">
+			<label>邮编</label>
+			<input type="tel" class="mui-input-clear" id="zipcode" value="{$address['zipcode']}" placeholder="请输入邮编">
+		</div>
+		<div class="mui-input-row">
+			<label>默认地址</label>
+			<span></span>
+			{if $address['isauto'] == 1}
+			<div class="mui-switch mui-active" id="isauto-switch">
+			{else}
+			<div class="mui-switch" id="isauto-switch">
+			{/if}
+				<div class="mui-switch-handle"></div>
+				<input type="hidden" id="isauto" value="{$address['isauto']}">
+			</div>
+		</div>
+		<div class="mui-content-padded">
+			<input type="hidden" id="id" value="{$_GPC['id']}">
+			<button type="button" class="mui-btn mui-btn-block mui-btn-primary" id="sub" style="padding:7px 0;">确认</button>
+		</div>
+	</form>
+</div>
+{/if}
+<script src="../addons/cy163_goodssales/static/mui/js/jquery.min.js"></script>
+<script src="../addons/cy163_goodssales/static/mui/js/mui.min.js"></script>
+{if $operation == 'display'}
+<script>
+	mui.init();
+	document.getElementById('addaddress').addEventListener('tap', function() {
+		mui.openWindow({
+			url:"{php echo $this->createMobileUrl('myaddress',array('op'=>'post'));}",
+			id:'list',
+			styles:{
+			  top:'45px',//新页面顶部位置
+			  bottom:'0px',//新页面底部位置
+			},
+			createNew:false,//是否重复创建同样id的webview，默认为false:不重复创建，直接显示
+			show:{
+			  autoShow:true,//页面loaded事件发生后自动显示，默认为true
+			  aniShow:'slide-in-top',
+			},
+			waiting:{
+			  autoShow:true,//自动显示等待框，默认为true
+			  title:'正在加载...',//等待对话框上显示的提示内容
+			}
+		})
+	});
+	
+	function editadd(id){
+		mui.openWindow({
+			url:"{php echo $this->createMobileUrl('myaddress',array('op'=>'post'));}"+"&id="+id,
+			id:'list',
+			styles:{
+			  top:'45px',//新页面顶部位置
+			  bottom:'0px',//新页面底部位置
+			},
+			createNew:false,//是否重复创建同样id的webview，默认为false:不重复创建，直接显示
+			show:{
+			  autoShow:true,//页面loaded事件发生后自动显示，默认为true
+			  aniShow:'slide-in-top',
+			},
+			waiting:{
+			  autoShow:true,//自动显示等待框，默认为true
+			  title:'正在加载...',//等待对话框上显示的提示内容
+			}
+		})
+	}
+	function deladd(id){
+		var btnArray = ['是', '否'];
+		mui.confirm('确认要删除该地址吗？', '删除地址', btnArray, function(e) {
+			if (e.index == 0) {
+				window.location = "{php echo $this->createMobileUrl('myaddress',array('op'=>'delete'));}"+"&id="+id;
+			}
+		})
+	}
+</script>
+{/if}
+{if $operation == 'post'}
+<script src="../addons/cy163_goodssales/static/mui/js/mui.picker.min.js"></script>
+<script src="../addons/cy163_goodssales/static/mui/js/city.data-3.js" type="text/javascript" charset="utf-8"></script>
+<script>
+mui.init();
+var citypicker = new mui.PopPicker({layer: 3});
+citypicker.setData(cityData3);
+document.getElementById('showCity').addEventListener('tap', function(event) {
+	citypicker.show(function(items) {
+		document.getElementById('showCitytxt').innerHTML = (items[0] || {}).text + " " + (items[1] || {}).text + " " + (items[2] || {}).text;
+		$('#province').val((items[0] || {}).text);
+		$('#city').val((items[1] || {}).text);
+		$('#district').val((items[2] || {}).text);
+		//返回 false 可以阻止选择框的关闭
+		//return false;
+	});
+}, false);
+document.getElementById('isauto-switch').addEventListener('toggle', function(event) {
+	//event.detail.isActive 可直接获取当前状态
+	var isauto = event.detail.isActive ? 1 : 0;
+	$('#isauto').val(isauto);
+});
+document.getElementById('sub').addEventListener('click', function(event) {
+	$.ajax({
+		url:"{php echo $this->createMobileUrl('myaddress',array('op'=>'post'))}",   
+		type:'post', 
+		data:{
+			isdo:1,
+			id:$('#id').val(),
+			realname:$('#realname').val(),
+			telphone:$('#telphone').val(),
+			province:$('#province').val(),
+			city:$('#city').val(),
+			district:$('#district').val(),
+			address:$('#address').val(),
+			zipcode:$('#zipcode').val(),
+			isauto:$('#isauto').val(),
+		},
+		dataType:'json',
+		success:function(data){
+			if (data.error == 1) {
+				mui.toast(data.msg);
+			}else{
+				mui.back();
+			}
+		}
+	});
+});
+</script>
+{/if}
+</body>
+</html>

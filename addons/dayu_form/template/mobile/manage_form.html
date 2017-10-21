@@ -1,0 +1,848 @@
+{template 'weheader'}
+<style>
+body{background-color:#f0f0f0;font-weight:300;}
+a{color:#666}
+.weui_navbar{line-height:20px;}
+.weui_media_box.weui_media_text .weui_media_info {margin-top: 0px;}
+.weui_tabbar{height:50px;}
+.weui_tabbar_icon {height: 20px;}
+.weui_bar_item_on .weui_tabbar_icon i {color: #09BB07;}
+.weui_cell_bd i {color:#666;}
+
+.dayu_cells {overflow: hidden;position: relative;}
+.sticky-fixed {width: 100%;position: fixed;bottom: 0;z-index:999;}
+
+.weui_dialog {width: 90%;top: 45%;left: 5%;}
+</style>
+{if $operation == 'display'}
+{if $reid}
+<script type="text/javascript">
+$(function(){
+	var rhtml = '<span class="weui-badge" style="position: absolute;top: 2px;right: 2px;">{$total}</span>';
+	$('.weui_bar_item_on').append(rhtml);
+});
+</script>
+<style>
+.weui_tabbar_item {position: relative;}
+.record-start-btn {width:18px;height:18px;margin-right:5px;}
+.weui_cells {margin-top:0px;}
+.weui_cell img, .weui_media_title img{width:25px;height:25px;}
+.weui_media_desc{padding:0;}
+.weui_media_info_meta{margin-top:5px;}
+.bg-gray{background-color:#fhfhfh;}
+.dayu_list{font-size:14px;}
+.weui_cell_primary .middle{margin-right:10px;}
+.ico_scored{margin:5px 0 0 5px;}
+</style>
+<div class="weui_tab_bd">
+	<div class="weui_btn_primary weui-header "> 
+		<div class="weui-header-left"><a href="javascript:;" id="show-actions" class="f-white">主题切换</a></div>
+		<h1 class="weui-header-title"></h1>
+		{if $openid == $activity['kfid']}
+		<a class="weui-header-right" href="javascript:;" id="show-power" class="weui_btn weui_btn_primary">管理交接</a>
+		{/if}
+	</div>
+         <div class="weui_panel weui_panel_access">
+
+	{loop $rows $item}
+            <div class="weui_panel_bd" onclick="location.href='{php echo $this->createMobileUrl('manageform', array('op' => 'detail', 'rerid' => $item['rerid'], 'id' => $reid))}'">
+                <div class="weui_media_box weui_media_text weui_panel_ft">
+                    <h4 class="weui_media_title">
+						<img src="{if !empty($item['user']['tag']['avatar'])}{$item['user']['tag']['avatar']}{else}{MODULE_URL}template/weui/images/noface.jpg{/if}" class="middle img-circle">
+						{if $activity['paixu']!=2}{$item['member']} <small class="">{$item['mobile']}</small>{else}{$item['user']['nickname']}{/if}
+					</h4>
+                    <p class="weui_media_desc">
+						{loop $children[$item['rerid']] $d}
+							{if strstr($d['data'], 'images') || strstr($d['data'], 'attachment')}
+								有图,
+							{elseif $d['data']}
+								{$d['data']},
+							{else}
+							{/if}
+						{/loop}
+					</p>
+                    <ul class="weui_media_info">
+                        <li class="weui_media_info_meta">提交时间：{php echo date('Y/m/d H:i', $item['createtime'])}</li>
+						{if !empty($item['commentid'])}
+						<span class="ico_scored right"><strong class="score_{$item['comment']['score']}"></strong></span>
+						{/if}
+                    </ul>
+                </div>
+            </div>
+		<div class="dayu_cells bg-gray">
+        <div class="weui_cell">
+			<div class="weui_cell_bd weui_cell_primary">
+				{if $openid == $activity['kfid']}
+					<a data="{if $activity['paixu']!=2}{$item['member']} {$item['mobile']}{else}{$item['user']['nickname']}{/if}" onclick="manage(this,{$item['rerid']})" class="left weui_btn weui_btn_mini bg-orange">{if !empty($item['kf'])}已派单{else}派单{/if}</a>
+					{if !empty($item['kf'])}<img src="{if !empty($item['kf']['tag']['avatar'])}{$item['kf']['tag']['avatar']}{else}{MODULE_URL}template/weui/images/noface.jpg{/if}" class="right middle img-circle"> {/if}
+				{/if}
+			</div>
+			<div class="weui_cell_ft">
+				{if !empty($item['revoice'])}<div class="record-start-btn iconfont f18 f-white left">&#xe62a;</div>{/if}
+					<span class="weui_btn weui_btn_mini {$item['status']['css']} right">{$item['status']['name']}</span>
+			</div>
+		</div>
+		</div>
+	{/loop}
+        </div>
+	{if $pager}<div class="p bg-gray" style="height:32px;">{$pager}</div>{/if}
+
+
+    </div>
+
+
+    <div id="actionSheet_wrap">
+        <div class="weui_mask_transition" id="mask"></div>
+        <div class="weui_actionsheet" id="weui_actionsheet">
+            <div class="weui_actionsheet_menu">
+			{loop $staff $s}
+				<div class="weui_actionsheet_cell"><a data="{$s['nickname']}" onclick="power(this,{$reid},'{$s['openid']}','manage')" class=" {if $s['openid']==$openid}f-orange{/if}">{$s['nickname']}</a></div>
+			{/loop}
+            </div>
+            <div class="weui_actionsheet_action">
+                <div class="weui_actionsheet_cell" id="actionsheet_cancel">取消</div>
+            </div>
+        </div>
+    </div>
+<script>
+	function power(obj,reid,openid,table){
+		$.confirm("确定要转移给 "+obj.getAttribute("data")+" 吗？", "转移管理权", function() {
+			$.post("{php echo $this->createMobileUrl('power');}",{'reid':reid,'openid':openid,'table':table},function(d){
+				if (d.message.status == 1) {
+					$.alert(d.message.msg)
+					setTimeout(function() {
+						window.location.reload();
+						return;
+					}, 2500)
+				}else{
+					$.alert(d.message.msg);
+					return false;
+				}
+			},"json");
+		}, function() {
+			$.toast("取消转移", "cancel");
+		});
+	}
+	function manage2(rerid,name,openid){
+		$.confirm("确定要指派给 "+name+" 吗？", "指派受理客服", function() {
+			$.post("{php echo $this->createMobileUrl('power');}",{'reid':'{$reid}','rerid':rerid,'openid':openid,'table':'case'},function(d){
+				if (d.message.status == 1) {
+					$.alert(d.message.msg)
+					setTimeout(function() {
+						window.location.reload();
+						return;
+					}, 2500)
+				}else{
+					$.alert(d.message.msg);
+					return false;
+				}
+			},"json");
+		}, function() {
+			$.toast("取消派单", "cancel");
+		});
+	}
+	function manage(obj,rerid){
+		$.actions({
+			title: obj.getAttribute("data")+" 派单给",
+			onClose: function() {
+				console.log("close");
+			},
+			actions: [
+				{loop $staff $sf}
+				{if $sf['openid']==$openid}
+				{else}
+					{
+					text: "{$sf['nickname']}",
+					className: "color-primary",
+					onClick: function() {
+						manage2(rerid,"{$sf['nickname']}","{$sf['openid']}")
+					}
+					},
+				{/if}
+				{/loop}
+			]
+		});
+	}
+	$(document).on("click", "#show-actions", function() {
+		$.actions({
+			title: "切换表单主题",
+			onClose: function() {
+				console.log("close");
+			},
+			actions: [
+				{loop $list $item}
+				{if $item['reid']==$reid}
+					{
+					text: "{$item['title']}",
+					className: "f-orange"
+					},
+				{else}
+					{
+					text: "{$item['title']}",
+					className: "color-primary",
+					onClick: function() {
+						window.location.href = '{php echo $this->createMobileUrl('manageform', array('id' => $item[reid]))}';
+					}
+					},
+				{/if}
+				{/loop}
+			]
+		});
+	});
+	$("#show-power").click(function(){
+		var mask = $('#mask');
+		var weuiActionsheet = $('#weui_actionsheet');
+		weuiActionsheet.addClass('weui_actionsheet_toggle');
+		mask.show().addClass('weui_fade_toggle').one('click', function () {
+			hideActionSheet(weuiActionsheet, mask);
+		});
+		$('#actionsheet_cancel').one('click', function () {
+			hideActionSheet(weuiActionsheet, mask);
+		});
+		weuiActionsheet.unbind('transitionend').unbind('webkitTransitionEnd');
+
+		function hideActionSheet(weuiActionsheet, mask) {
+			weuiActionsheet.removeClass('weui_actionsheet_toggle');
+			mask.removeClass('weui_fade_toggle');
+			weuiActionsheet.on('transitionend', function () {
+				mask.hide();
+			}).on('webkitTransitionEnd', function () {
+				mask.hide();
+			})
+		}
+	});
+</script>
+{else}
+<style>
+.dayu-header {padding: 25px 0;}
+.dayu-title {text-align: center;font-size: 25px;color: #3cc51f;font-weight: 400;margin: 0;}
+.dayu-sub-title {color: #888;padding:0 10px;font-size: 14px;text-indent:2em;}
+.dayu-content-padded {padding: 15px;}
+.dayu-second-title {text-align: center;font-size: 24px;color: #3cc51f;font-weight: 400;margin: 0 15%;}
+</style>
+    <header class='dayu-header'>
+      <h1 class="dayu-title">选择主题</h1>
+    </header>
+	
+<div class="weui_tab" style="margin:0 10%;">
+{loop $list $item}
+	<a href="{php echo $this->createMobileUrl('manageform', array('weid' => $item[weid], 'id' => $item[reid]))}" class="weui_btn weui_btn_primary" style="color:#fff;">{$item['title']}</a>
+{/loop}
+</div>
+{/if}
+
+{elseif $operation == 'detail'}
+<style>
+.weui_cell_ft {margin-left:10px;font-size:14px;}
+.weui_cell_bd {font-size:16px;}
+.weui_cells_title {margin-top: 10px;}
+.weui_cells_title img{width:1.2rem;height:1.2rem;}
+#allmap{width:100%;height:200px;display:block}
+#allmap img{height:1rem;}
+.weui_actionsheet {z-index: 99;position: fixed;}
+.weui-picker-modal{z-index:9999;top: 0;position: fixed;}
+.ui-label-s{width:33.33%;}
+.f-grays{color:#999;}
+</style>
+		<div class="weui-header bg-orange"> 
+			<div class="weui-header-left">
+				<a href="javascript:history.go(-1)">
+					<svg class="icon f-white" aria-hidden="true">
+						<use xlink:href="#icon-left"></use>
+					</svg>
+				</a>
+			</div>
+			<h1 class="weui-header-title f12">{$titles}</h1>
+			<div class="weui-header-right">
+				<a href="{php echo $this->createMobileUrl('list', array('id' => $reid))}">
+					<svg class="icon f-white" aria-hidden="true">
+						<use xlink:href="#icon-home"></use>
+					</svg>
+				</a>
+				<a class="" href="{php echo $this->createMobileUrl('manageform', array('id' => $reid))}">
+					<svg class="icon f-white" aria-hidden="true">
+						<use xlink:href="#icon-dd"></use>
+					</svg>
+				</a>
+			</div> 
+		</div>
+
+	<div class="weui_panel weui_panel_access">
+		<div class="weui_media_box weui_media_small_appmsg">
+			<div class="weui_cells weui_cells_access">
+				<div class="weui_cell" style="line-height:12px;">
+					<div class="weui_cell_hd">
+						<svg class="icon f20 f-orange" aria-hidden="true">
+							<use xlink:href="#icon-jihuajindu"></use>
+						</svg>
+					</div>
+					<div class="weui_cell_bd weui_cell_primary">
+						<label class="f14">表单状态</label>
+					</div>
+					<div class="right block">
+						{if $row['status'] == 0}<span class="weui_btn f12 weui_btn_mini weui_btn_default">{$state1}</span>
+						{elseif $row['status'] == 1}<span class="weui_btn f12 weui_btn_mini weui_btn_primary">{$state2}</span>
+						{elseif $row['status'] == 2}<span class="weui_btn f12 weui_btn_mini weui_btn_warn">{$state4}</span>
+						{elseif $row['status'] == 3}<span class="weui_btn f12 weui_btn_mini bg-blue">{$state3}</span>
+						{elseif $row['status'] == -1}<span class="weui_btn f12 weui_btn_mini weui_btn_disabled weui_btn_warn">{$state5}</span>
+						{/if}
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="weui_panel_bd" id="comment">
+			<div class="weui_media_box weui_media_appmsg">
+				<div class="weui_media_bd">
+					<h4 class="weui_media_title">{if $activity['paixu']!=2}{$row['member']} <small style="margin-left:10px;"><a href="tel:{$row['mobile']}">{$row['mobile']}</a></small>{else}{$row['user']['nickname']}{/if}</h4>
+					<p class="weui_media_desc">提交时间：{$row['createtime']}</p>
+				</div>
+			</div>
+		</div>
+	</div>		
+	<div class="weui_panel">
+        <div class="weui_panel_bd">
+            <div class="weui_media_box weui_media_small_appmsg">
+                <div class="weui_cells weui_cells_access">
+                    <a href="javascript:;" class="weui_cell" style="line-height:12px;" {if $row['status'] != 0}onclick="selectmenu('1');"{/if}>
+                        <div class="weui_cell_hd">
+							<svg class="icon f20 f-orange" aria-hidden="true">
+								<use xlink:href="#icon-xinzeng"></use>
+							</svg>
+						</div>
+                        <div class="weui_cell_bd weui_cell_primary">
+                            <label class="f14">受理进度</label>
+                        </div>
+								<span class="weui_btn f12 weui_btn_mini {$status['css']}" style="margin-right:10px;">{$status['name']}</span>
+						{if $row['status'] != 0}
+                        <span id="cell_1">
+							<svg class="icon f14" aria-hidden="true">
+								<use xlink:href="#icon-down"></use>
+							</svg>
+						</span>
+						{/if}
+                    </a>
+                </div>
+            </div>
+		</div>
+        
+		<div style="display:none;" id="menu_1" style="padding:0;">
+			<div class="timeline" style="padding:0;">
+		<div class="weui_cells weui_cells_access" style="margin:-1px 0 0;">
+			{if !empty($row['kfinfo'])}
+			<div class="weui_cell">
+				<div class="weui_cell_bd weui_cell_primary">
+					<span class="weui_textarea">{$row['kfinfo']}</span>
+					<div class="weui_textarea_counter f12">客服回复 {$row['yuyuetime']}</div>
+				</div>
+			</div>
+			{/if}
+			{if $activity['isrethumb'] && !empty($row['rethumb'])}
+			<div class="weui_cell">
+				<div class="weui_cell_bd weui_cell_primary">
+					<div class="weui_uploader">
+						<div class="weui_uploader_bd">
+							<ul class="weui_uploader_files">                        
+								<image class="weui_uploader_file weui_uploader_status" id="rethumb" src="{$row['rethumbs']}" />
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+			<script>
+				document.querySelector('#rethumb').onclick = function () {
+					wx.previewImage({
+						current: '{$row['rethumbs']}',
+						urls: [
+							'{$row['rethumbs']}'
+						]
+					});
+				};
+			</script>
+			{/if}
+			{if $activity['isrevoice'] && !empty($row['revoice'])}
+				<div class="weui_cell">
+					<div class="weui_cell_bd weui_cell_primary">
+						<span id="voice"><audio preload="auto" controls><source src="{$row['revoices']}" /></audio>
+					</div>
+					<div class="weui_cell_ft">语音答复</div>
+				</div>
+			{/if}
+			{if !empty($row['file'])}
+				{php $file=1;}
+				{loop $row['file'] $f}
+				<a class="weui_cell" href="{$f}">
+					<div class="weui_cell_bd weui_cell_primary">
+						<p>点击保存到手机</p>
+					</div>
+					<div class="weui_cell_ft">文件下载 {$file}</div>
+				</a>
+				{php $file++}
+				{/loop}
+			{/if}
+		</div>
+			</div>
+		</div>
+	</div>
+        <div class="weui_btn_area">
+			<a href="javascript:;" id="reply" class="weui_btn weui_btn_primary" {if $row['status'] ==2}disabled{/if}>更 新 状 态</a>
+        </div>
+	<div class="weui_panel weui_panel_access">
+		<div class="weui_media_box weui_media_small_appmsg">
+			<div class="weui_cells weui_cells_access">
+				<div class="weui_cell" style="line-height:12px;">
+					<div class="weui_cell_hd">
+						<svg class="icon f20 f-orange" aria-hidden="true">
+							<use xlink:href="#icon-wancheng"></use>
+						</svg>
+					</div>
+					<div class="weui_cell_bd weui_cell_primary">
+						<label class="f14">表单内容</label>
+					</div>
+					<div class="right block">
+						<span>{$face['nickname']}</span>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="weui_panel_bd">
+			{if pdo_tableexists('dayu_kami') && !empty($par['kami']) && !empty($row['kid'])}
+			<div class="weui_cell">
+				<div class="weui_cell_bd weui_cell_primary f14">{$kami['number']}</div>
+				<div class="weui_cell_ft f12">卡密</div>
+			</div>
+			{/if}
+			{if pdo_tableexists('dayu_sendkami') && !empty($par['sendkami']) && !empty($row['kid'])}
+			<div class="weui_cell">
+				<div class="weui_cell_bd weui_cell_primary f14">{$kami['number']}</div>
+				<div class="weui_cell_ft f12">卡密</div>
+			</div>
+			<div class="weui_cell">
+				<div class="weui_cell_bd weui_cell_primary f14">{$kami['password']}</div>
+				<div class="weui_cell_ft f12">密码</div>
+			</div>
+			{/if}
+			{if !empty($row['linkage'])}
+			<div class="weui_cell">
+				<div class="weui_cell_bd weui_cell_primary f14">{$linkage['l1']['title']}</div>
+				<div class="weui_cell_ft f12">{$la['l1']}</div>
+			</div>
+			<div class="weui_cell">
+				<div class="weui_cell_bd weui_cell_primary f14">{$linkage['l2']['title']}</div>
+				<div class="weui_cell_ft f12">{$la['l2']}</div>
+			</div>
+			{/if}
+		{loop $ds $fid $ftitle}
+			{if $ftitle['type'] == 'image' && !empty($ftitle['loc'])}
+			{else}
+			<div class="weui_cell">
+				<div class="weui_cell_bd weui_cell_primary f-grays f12">
+					{$ftitle['fid']}
+				</div>
+				<div class="weui_cell_ft f-black -wrap">
+                {if in_array($ftitle['type'], array('image', 'photograph'))}
+					{if $row['fields'][$fid]}
+						<image class="weui_uploader_file weui_uploader_status" id="p{$fid}" src="{php echo tomedia($row['fields'][$fid]);}" height="50">
+						<script>
+						document.querySelector('#p{$fid}').onclick = function () {
+							wx.previewImage({
+								current: '{php echo tomedia($row['fields'][$fid]);}',
+								urls: [
+								'{php echo tomedia($row['fields'][$fid]);}'
+								]
+							});
+						};
+						</script>
+					{else}
+						未上传
+					{/if}
+				{else}
+					{if !empty($row['fields'][$fid])}{$row['fields'][$fid]}{else}未填{/if}
+                {/if}
+				</div>
+			</div>
+			{/if}
+		{/loop}
+		</div>
+	</div>
+	{if !empty($row['voice']) || !empty($row['thumb'])}
+	<div class="weui_panel weui_panel_access">
+		<div class="weui_media_box weui_media_small_appmsg">
+			<div class="weui_cells weui_cells_access">
+				<div class="weui_cell" style="line-height:12px;">
+					<div class="weui_cell_hd">
+						<svg class="icon f20 f-orange" aria-hidden="true">
+							<use xlink:href="#icon-jihua"></use>
+						</svg>
+					</div>
+					<div class="weui_cell_bd weui_cell_primary">
+						<label class="f14">多媒体内容</label>
+					</div>
+					<small class="right f-orange">
+					</small>
+				</div>
+			</div>
+		</div>
+
+		<div class="weui_panel_bd">
+		{if $activity['isvoice']==1 && !empty($row['voice'])}
+		<div class="weui_cell">
+			<div class="weui_cell_hd weui_cell_primary">
+				<audio id="mp3" src="{if strstr($row['voices'], 'http://')}{$row['voices']}{else}{$setting['qiniu']['host']}/{$row['voices']}{/if}" preload="meta" controls></audio>
+			</div>
+			<div class="weui_cell_bd f12" id="voice">
+				{$activity['voice']}
+			</div>
+		</div>
+		{/if}
+		{if !empty($row['thumb'])}
+        <div class="weui_cell">
+            <div class="weui_cell_bd weui_cell_primary">
+                <div class="weui_uploader">
+                    <div class="weui_uploader_bd">
+                        <div class="weui_uploader_files" id="previewImage">
+						    {loop $row['thumb'] $pic}
+								<img src="{php echo tomedia($pic)}" class="weui_uploader_file" style="height:80px;width:auto;">
+						    {/loop}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+		<script>
+		$(document).ready(function(){
+			$("#previewImage").on("click","img",function(event){
+				var imgArray = [];
+				var curImageSrc = $(this).attr('src');
+				var oParent = $(this).parent();
+				if (curImageSrc && !oParent.attr('href')) {
+					$('#previewImage img').each(function(index, el) {
+						var itemSrc = $(this).attr('src');
+						imgArray.push(itemSrc);
+					});
+					wx.previewImage({
+						current: curImageSrc,
+						urls: imgArray
+					});
+				}
+			});
+		});
+		</script>
+		{/if}
+		</div>
+	</div>
+	{/if}
+		<script>
+		$("#reply").click(function(){
+                    var mask = $('#mask');
+                    var weuiActionsheet = $('#weui_actionsheet');
+                    weuiActionsheet.addClass('weui_actionsheet_toggle');
+                    mask.show().addClass('weui_fade_toggle').one('click', function () {
+                        hideActionSheet(weuiActionsheet, mask);
+                    });
+                    $('#actionsheet_cancel').one('click', function () {
+                        hideActionSheet(weuiActionsheet, mask);
+                    });
+                    weuiActionsheet.unbind('transitionend').unbind('webkitTransitionEnd');
+
+                    function hideActionSheet(weuiActionsheet, mask) {
+                        weuiActionsheet.removeClass('weui_actionsheet_toggle');
+                        mask.removeClass('weui_fade_toggle');
+                        weuiActionsheet.on('transitionend', function () {
+                            mask.hide();
+                        }).on('webkitTransitionEnd', function () {
+                            mask.hide();
+                        })
+                    }
+		});
+</script>
+	<div id="actionSheet_wrap">
+        <div class="weui_mask_transition" id="mask"></div>
+        <div class="weui_actionsheet" id="weui_actionsheet" style="z-index:9999;">
+			<form action="" enctype="multipart/form-data" method="POST" id="form1">
+				<input type="hidden" name="repeat" value="<?php echo md5(sha1(time())); ?>">
+				<input type="hidden" name="rerid" value="{$rerid}" />
+				<input type="hidden" name="token" value="{$_W['token']}" />
+				<div class="weui_actionsheet_menu">
+					<div class="weui_cells weui_cells_form" style="margin:0;">
+						<div class="weui_cell weui_cell_select">
+							<div class="weui_cell_bd weui_cell_primary">
+								<select class="weui_select" id="status" name="status">
+								{loop $arr2 $c}
+									{loop $state[$c] $d}
+										<option value="{$c}" {if $row['status'] == $c}selected="selected"{/if}>{$d['name']}</option>
+									{/loop}
+								{/loop}
+								</select>
+							</div>
+						</div>
+
+						<div class="weui_cell">
+							<div class="weui_cell_hd"><label class="weui_label f14">更新时间</label></div>
+							<div class="weui_cell_bd weui_cell_primary">
+								<input class="weui_input" type="text" name="yuyuetime" value="{$yuyuetime}" placeholder="" id="appDateTime" />
+							</div>
+						</div>
+						<script>
+						$("#appDateTime").datetimePicker();
+						</script>
+	
+						{if $activity['isrethumb']}
+						<div class="weui_cell">
+							<div class="weui_cell_bd weui_cell_primary">
+								<div class="weui_uploader">
+									<div class="weui_uploader_bd">
+										<ul class="weui_uploader_files">   
+											<input type="hidden" name="rethumb" accept="image/*" capture="camera" value="{$row['rethumb']}" />
+											<image class="weui_uploader_file weui_uploader_status" id="showthumb" src="{$row['rethumbs']}" />
+										</ul>
+										<div class="weui_uploader_input_wrp" id="rethumb">
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+<script>
+document.querySelector('#showthumb').onclick = function () {
+  wx.previewImage({
+    current: '{$row['rethumbs']}',
+    urls: [
+      '{$row['rethumbs']}'
+    ]
+  });
+};
+          var btn = document.getElementById('rethumb');
+          var images = {
+              localId: [],
+              serverId: []
+          };
+          btn.onclick = function(){
+              wx.chooseImage({
+                   success:function(res){
+
+                        images.localId = res.localIds;
+                        var i = 0, length = images.localId.length;
+
+                        document.getElementById('showthumb').src = images.localId;
+					var wxUpload = function() {
+                        wx.uploadImage({
+                            localId: images.localId[i], // 需要上传的图片的本地ID，由chooseImage接口获得
+                            isShowProgressTips: 1, // 默认为1，显示进度提示
+                            success: function (res) {
+                                images.serverId.push(res.serverId);
+                                $.get("{php echo $this->createMobileUrl('upload', array('id' => $reid))}", { media_id: res.serverId, time: "2pm" },
+                                function(data){
+                                    $('input[name="rethumb"]').val(data);
+                                });                 
+
+                                i++;
+                                if(i < length){
+                                    wxUpload();
+                                }
+                            },
+							fail: function (res) {
+								$.alert(JSON.stringify(res));
+							}
+                        });
+						
+					};
+					wxUpload();
+                   }
+              });
+  
+          }
+</script>
+	{/if}
+			{if $custom}
+			<div class="weui_cell">
+				<div class="weui_cell_hd"><label class="weui_label f14">快捷回复</label></div>
+				<div class="weui_cell_bd weui_cell_primary">
+					{loop $custom $v}
+						<p class="ui-label-s -wrap f13" onclick="document.getElementById('kfinfo').value+='{$v['raply']}'">{$v['raply']}</p>
+					{/loop}
+				</div>
+			</div>
+			{/if}
+			<div class="weui_cell">
+				<div class="weui_cell_bd weui_cell_primary">
+				<textarea class="weui_textarea" id="kfinfo" name="kfinfo" rows="3" placeholder="请输入回复内容">{$row['kfinfo']}</textarea>
+					<div class="weui_textarea_counter"></div>
+				</div>
+			</div>
+	{if $activity['isrevoice']==1}
+		{if !empty($row['revoice'])}
+		<div class="weui_cell">
+				<div class="weui_cell_bd weui_cell_primary" id="voice">
+					<audio preload="auto" controls><source src="{if strstr($row['revoices'], 'http://')}{$row['revoices']}{else}{$setting['qiniu']['host']}/{$row['revoices']}{/if}" /></audio>					
+				</div>
+			<input type="hidden" name="revoice" id="showvoice" value="{$row['revoices']}" />
+		</div>
+		{else}
+		<div class="weui_cell">
+		<div class="weui_cell_hd weui_cell_primary">
+			<div class="record-start-btn iconfont f35 f-white left" id="record-start">&#xe62a;</div>
+			<div class="record-stop-btn iconfont f35 f-white left" id="record-stop">&#xe62a;</div>
+			<div class="record-time f-orange f12 right"></div>
+			<div class="record-prompt f-orange f12 middle right"><span class="block f-blue">蓝色开始录音</span><span class="block f-red">红色停止录音</span></div>
+			<input type="hidden" name="revoice" id="showvoice" value="" />
+		</div>
+		<div class="weui_cell_bd weui_cell_primary">
+			<div class="send-control right">
+				<div class="send-record-btn" id="send-record-btn">上传录音</div>
+				<div class="send-success weui_btn_disabled" id="send-success" style="display:none;">上传成功</div>
+			</div>
+		</div>
+		</div>
+		<script>
+		var upload_url='{php echo $_W['siteroot'].'app/'.$this->createMobileUrl('uploadvoice',array());}';
+		var getprefop_url='{php echo $_W['siteroot'].'app/'.$this->createMobileUrl('getprefop',array());}';
+		var btn = document.getElementById('send-record-btn');		  
+		var localId = null;
+		var serverId = null;
+        var timer = null;
+        var timerTime = 0;
+		
+		$(".record-start-btn").click(function () {
+            $(".record-start-btn").hide();
+            $(".record-stop-btn").show();
+            $(".record-prompt").hide();
+            timerTime = 0;
+            $(".record-time").text("");
+            timer = setInterval(function () {
+                timerTime++;
+                $(".record-time").text("时长:" + timerTime + "秒");
+				if (timerTime >58) {
+					wx.stopRecord({
+						success: function (res) {
+							localId = res.localId;
+							recordComplete();
+						},
+						fail: function (res) {
+							$.alert(JSON.stringify(res));
+						}
+					});
+				}
+            }, 1000);
+			wx.startRecord({
+				cancel: function () {
+					$.alert('您拒绝了授权录音');
+				}
+			});
+            wx.onVoiceRecordEnd({
+                complete: function (res) {
+                    localId = res.localId;
+                    recordComplete();
+					$.alert('录音时间已超过一分钟');
+                }
+            });
+        });
+        $(".record-stop-btn").mouseup(function () {
+            wx.stopRecord({
+                success: function (res) {
+                    localId = res.localId;
+                    recordComplete();
+                },
+				fail: function (res) {
+					$.alert(JSON.stringify(res));
+				}
+            });
+        });
+        function recordComplete() {
+            wx.playVoice({
+                localId: localId // 需要播放的音频的本地ID，由stopRecord接口获得
+            });
+            clearInterval(timer);
+            $(".record-stop-btn").hide();
+            $(".record-start-btn").show();
+            $(".send-control").show();
+        }
+
+		$(".send-record-btn").click(function () {
+            if (localId == null)
+                return;
+            wx.uploadVoice({
+                localId: localId, // 需要上传的音频的本地ID，由stopRecord接口获得
+                serverId: serverId,
+                isShowProgressTips: 1, // 默认为1，显示进度提示
+                success: function (res) {
+				
+                $.ajax({
+                  type: 'POST',
+                  url: upload_url,
+                  data:{serverId:res.serverId},
+                  timeout: 15000,
+                  success: function(res){
+                    if (/^qiniu-persistentId.*$/.test(res)) {
+                        var tmp=res.split(':');
+                        setInterval(function () {
+                            $.ajax({
+                                type: 'POST',
+                                url: getprefop_url,
+                                data:{persistentId:tmp[1]},
+                                success: function(res) {
+                                    if (res == 1) location.href =tmp[2];
+                                },
+                                fail: function(err) {
+                                    $.alert(JSON.stringify(err));
+                                }
+                            });
+                        },1000);
+                    }else{
+                    }
+                  },
+                  fail: function(err) {
+                      $.alert(JSON.stringify(err));
+                  }
+                });
+					serverId = res.serverId; // 返回音频的服务器端ID
+					document.getElementById('showvoice').value = "dayu_form_{$_W['uniacid']}_"+serverId+".mp3";
+					$('#send-record-btn').css('display','none');
+					$('#send-success').css('display','');
+
+                },
+				fail:function() {
+					$.alert(JSON.stringify(res));
+				}
+            });
+		});
+		</script>
+				{/if}
+			{/if}
+			</div>
+		</div>
+		<div class="weui_btn_area weui_btn_area_inline">
+			<a href="javascript:;" class="weui_btn weui_btn_default" id="actionsheet_cancel"><i class="weui_icon_cancel"></i> 取消</a>
+			<button type="submit" name="button" class="weui_btn weui_btn_primary" {if $row['status'] ==2}disabled{/if}>更 新</button>
+		</div>
+	</form>
+	</div>
+</div>
+{if !empty($par['comment']) && pdo_tableexists('dayu_comment')}
+	{template 'comment'}
+{/if}
+<script type="text/javascript">
+	function selectmenu(n){
+		var eleMore = document.getElementById("menu_"+n);
+		if(eleMore.style.display=="none"){
+			eleMore.style.display = 'block';
+			$("#cell_"+n+" svg").addClass("f-orange");
+		}else{
+			eleMore.style.display = 'none';
+		}
+	}
+	{if $activity['isvoice']==1 || $activity['isrevoice']==1}
+		function audioplay(id){
+			var audio = document.getElementById(id);
+			!audio.paused?audio.pause():audio.play();
+			document.addEventListener("WeixinJSBridgeReady", function () {
+				!audio.paused?audio.pause():audio.play();
+			}, false); 
+		}
+		$(function(){
+			audioplay('mp3');
+		})
+	{/if}
+</script>
+
+</div>
+{/if}
+{template 'footers'}

@@ -1,0 +1,81 @@
+<script src="../addons/jy_reads/public/web/js/area_id.js"></script>
+<script>
+$(function(){
+
+  {if ($reply['location']=='1') && ($reply['locationtype']==1)}
+ 
+  wx.ready(function() {
+	   wx.getLocation({
+	        type: 'wgs84',// 默认为wgs84的gps坐标，如果要返回直接给openLocation用的火星坐标，可传入'gcj02'
+	        success: function (res) {
+	            var latitude = res.latitude; // 纬度，浮点数，范围为90 ~ -90
+	            var longitude = res.longitude; // 经度，浮点数，范围为180 ~ -180。
+	            var speed = res.speed; // 速度，以米/每秒计
+	            var accuracy = res.accuracy; // 位置精度          
+	            showPosition(res);
+	         }
+	     });
+    });
+  {/if}
+  
+});
+
+
+
+function errorPosition(error){
+
+}
+
+function showPosition(position)
+{
+	var location= position.latitude+"," + position.longitude;
+	//百度接口
+	var url="http://api.map.baidu.com/geocoder/v2/"+
+	 "?ak=qen1OGw9ddzoDQrTX35gote2&callback=renderReverse&location="+location+"&output=json&pois=0";
+	$.ajax({
+	      type : "get",
+	      async:false,
+	      url : url,
+	      dataType : "jsonp",
+	      jsonp: "callback",//传递给请求处理程序或页面的，用以获得jsonp回调函数名的参数名(默认为:callback)
+	      jsonpCallback:"renderReverse",//自定义的jsonp回调函数名称，默认为jQuery自动生成的随机函数名
+	      success : function(json){   	
+	          if (json.status=="0"){
+	        	 var address=json.result.addressComponent;
+	        	 var str=address.province+","+address.city+","+address.district;	
+	       
+	        	 {if !empty($reply['area_title'])}
+	               var area_title = "{$reply['area_title']}";
+	           
+	        	   if(area_title.indexOf(address.city)<0){
+	        		   {if $reply["zdy_url"]}
+	        			window.location.href="{$reply["zdy_url"]}";
+	        			{/if}
+	        	
+	        		} else {
+	        			 // alert("定位成功");
+	        			
+	        		}
+	        	  {/if}	
+	         } else {
+	        	 swal({title: "尊敬的粉丝",   
+       			  text: "很抱歉，定位失败",  
+       		      type: "warning",    
+       		      confirmButtonColor: "#DD6B55",  
+       			  confirmButtonText: "确定",   closeOnConfirm: false }, 
+       			  function(){   
+       				window.location.href="{$reply["zdy_url"]}";
+       		     });
+	         }
+	      },
+	      error:function(){
+	    	  alert("获取定位失败fail");   
+	    	  window.location.href="{$reply["zdy_url"]}";
+	      }
+	  });
+
+}
+	
+
+
+</script>

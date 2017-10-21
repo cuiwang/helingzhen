@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="UTF-8">
+<meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0' />
+<title>{$_W['account']['name']}</title>
+<script src="../app/resource/js/lib/jquery-1.11.1.min.js" ></script>
+<script src="{RES}js/sweetalert.min.js" ></script>
+<link href="{RES}css/sweetalert.css?v={TIMESTAMP}" rel="stylesheet" type="text/css">
+</head>
+<style type="text/css">
+body
+{
+    background-color: ghostwhite;
+}
+*{
+	margin:0;
+	padding:0;
+}
+a{
+	text-decoration: none;
+	color: #000;
+}
+ul li{
+	list-style:none;
+}
+#header
+{
+	width: 100%;
+	height: 40px;
+	position: fixed;
+	z-index: 5;
+	text-align: center;
+    line-height: 40px;
+    font-size: 18pt;
+    background-color: {if $cfg['bgtheme']}{$cfg['bgtheme']}{else}#FA6141{/if};
+	color: {if $cfg['fonttheme']}{$cfg['fonttheme']}{else}white{/if};
+}
+.logo_img{
+    height: 30px;
+    left: 3%;
+    margin-top: 5px;
+    position: absolute;
+}
+.content{
+	width: 100%;
+	height:auto;
+	padding-top:50px;
+	margin-bottom: 80px;
+}
+.content .sel_img{
+	width: 96%;
+    height: auto;
+    padding-left: 3%;
+    text-align: center;
+    background: #fff;
+    padding: 20px 0px 20px 3%;
+}
+.content .sel_img .sel_info{
+    padding: 10px 10%;
+    background: #fff;
+    border: 1px solid #2b99ff;
+    border-radius: 5px;
+    color: #2b99ff;
+}
+
+.publishedAddImg{
+	display:none;
+	background: white;
+    margin: 10px;
+    padding-left: 2%;
+    padding-top: 5px;
+}
+.publishedAddImg div {
+    display: inline-block;
+    width: 30%;
+	margin-right: 1%;
+    position: relative;
+}
+.publishedAddImg img {
+	width: 100%;
+	margin-left: 3%;
+	margin-top: 10px;
+	height: 100px;
+}
+.publishedAddImg span.close {
+    position: absolute;
+    right: -10px;
+    border-radius: 50%;
+    text-align: center;
+    display: inline-block;
+    color: white;
+    border: 1px solid ghostwhite;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    background: orangered;
+    font-size: 20px;
+}
+.content .btn_info{
+	width: 40%;
+	margin-top: 20px;
+	padding: 10px 10%;
+	margin-left: 3%;
+	border: 1px solid #2b99ff;
+	color: #2b99ff;
+	border-radius: 5px;
+	font-size:16px;
+    background: #fff;
+}
+.content .remain{
+    text-align: center;
+    font-size: 18pt;
+    margin-bottom: 15px;
+}
+.content .remain p{
+	font-size: 14pt;
+	color:#666;
+	margin-top: 10px;
+}
+.price_info{
+	display:none;
+}
+.price_info .now_info{
+	font-size: 14pt;
+}
+.meals_info{
+    margin-top: 10px;
+    color: #666;;
+}
+.sweet-alert button.cancel{
+	background: #8CD4F5 !important;
+}
+</style>
+<body>
+<div id="header">
+	<a href="{php echo $this->createMobileUrl('printorder');}"><img class="logo_img" src="../addons/junsion_album/template/mobile/img/pre.png" /></a>
+	选择相片
+</div>
+<!--  -->
+<div class="content">
+	<form action="{php echo $this->createMobileUrl('printconfirm')}" method="post" id="img_form" onsubmit="return oncheck()" enctype="multipart/form-data">
+		{if empty($item['pics'])}
+		<div class="weui_cell" style="padding: 0;text-align: center;margin-bottom: 15px;">
+		    <div class="weui_cell_bd weui_cell_primary">
+		        <img class="type_icon" src="../addons/junsion_album/template/mobile/img/nothing.png">
+		    </div>
+		</div>
+		<div class="remain">你还未添加照片<p>立即添加您的照片</p></div>
+		{else}
+		<input type="hidden" name="id" value="{$item['id']}">
+		{/if}
+		<div class="publishedAddImg">
+			{loop $pics $p}
+			<div>
+			<span class="close">×</span>
+			<img src="{$p}">
+			<input type="hidden" name="imgs[]" value="{$p}">
+			</div>
+			{/loop}
+		</div>
+		
+<div class="sel_img">
+
+	<div class="price_info">
+	<span class="now_info">当前选中<span id="now_num"></span>张照片,共<span id="now_price"></span>元</span>
+	{loop $meals $m}
+	<p class="meals_info">{$m['num']}张以内{$m['price']}元</p>
+	{/loop}
+	</div>
+<div style="clear:both;"></div>
+<a class="btn_info" id="chooseimg">选择相片</a>
+<button class="btn_info" id="submitbtn" type="submit" value="1" name="submit">立即打印</button>
+</div>	
+<input type="hidden" name="token" value="{$_W['token']}">
+		
+	</form>
+</div>
+{template 'loading'}
+{template 'printfooter'}
+{if !empty($item['pics'])}
+<script>
+$(function(){
+	$(".publishedAddImg").show();
+	$(".close").click(function(){
+		$(this).parent().remove();
+	});
+});
+</script>
+{/if}
+<script type="text/javascript" src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js?v=20150120"></script>
+<script>
+var meals = '{php echo json_encode($meals)}';
+var meals_info = JSON.parse(meals);
+
+var images = new Array();
+var now_price = 0;
+wx.ready(function() {
+	//选择照片
+	$("#chooseimg").click(function() {
+		wx.chooseImage({
+			count : 9, // 默认9
+			sizeType: ['original'], 
+			success : function(res) {
+				LOADING(true);
+				for(var i = 0; i < res.localIds.length; i++){
+					$(".publishedAddImg").append('<div><span class="close">×</span><img src="'+res.localIds[i]+'"></div>');
+					images.push(res.localIds[i]);
+				}
+				if($(".type_icon").is(':visible')){
+					$(".type_icon").hide();
+					$(".remain").hide();
+				}
+				var now_num = $('.publishedAddImg img').length;
+				$("#now_num").html(now_num);
+				for (var k = 0 in meals_info){
+					if(parseInt(now_num) <= parseInt(meals_info[k].num)){
+						now_price = meals_info[k].price;
+						break;
+					}
+				}
+				$("#now_price").html(now_price);
+				$(".price_info").show();
+				
+				$('.publishedAddImg').show();
+				$('.publishedAddImg img').click(function(){
+					wx.previewImage({
+					      current: $(this).attr('src'),
+					      urls: images
+					});     
+				});
+				$('.publishedAddImg span.close').click(function(){
+					var that = $(this);
+					$(this).parent().remove();
+					if($('.publishedAddImg img').length == 0){
+						$('.publishedAddImg').hide();
+					}
+					var del_id = that.siblings("img").attr('src');
+					images = $.grep(images, function(value) {
+						 return value != del_id;
+						});
+					//images.remove(that.index());
+				});
+				LOADING(false);
+			}
+		});
+	});
+});
+var iii = 0;
+var imgIndex = 0;
+var urls = new Array();
+var over = false;
+
+function oncheck(){
+	if(over) return true;
+	if(iii != 0) return false;
+	iii++;
+	var now_num = $('.publishedAddImg img').length;
+	if(now_num == 0){
+		over = false;
+		swal("请先上传要打印的相片",'','warning');
+		iii = 0;
+		return false;
+	}
+	var max = 0;
+	for (var k = 0 in meals_info){
+		if(parseInt(now_num) <= parseInt(meals_info[k].num)){
+			max = meals_info[k].num;
+			break;
+		}
+	}
+	if(now_num < max){
+		swal({
+			title:'您只添加了'+now_num+'张相片,未满'+max+'张，是否返回继续添加照片呢？',
+			text:'',
+			showCancelButton:true,
+			showConfirmButton:true,
+			confirmButtonColor: "#DD6B55",
+			confirmButtonText:'确定打印',
+			cancelButtonText:'继续添加',
+			closeOnConfirm: false
+		},function(confirm){
+			if(confirm){
+				if(images.length != 0){
+					LOADING(true);
+					swal.close();
+					upload();
+				}else if('{php echo count($pics)}' > 0){
+					LOADING(true);
+					over = true;
+					$('#submitbtn').click();
+				}
+			}else iii = 0;
+		});
+		return false;
+	}
+	if(now_num > max){
+		over = false;
+		iii = 0;
+		alert("相片总数已超过最大值，无法打印");
+		return false;
+	}
+	if(images.length != 0){
+		LOADING(true);
+		upload();
+	}else if('{php echo count($pics)}' > 0){
+		LOADING(true);
+		return true;
+	}else{
+		over = false;
+		alert("请先上传要打印的相片");
+		iii = 0;
+		return false;
+	}
+	return false;
+}
+var curCount = 0;
+function upload(){
+	wx.uploadImage({
+		localId : images[imgIndex], // 需要上传的图片的本地ID，由chooseImage接口获得
+		isShowProgressTips : 0, // 默认为1，显示进度提示
+		success : function(res) {
+			$.ajax({
+				type:"POST",
+				url:"{php echo $this->createMobileUrl('upload')}",
+				data:{imgid:res.serverId},
+				cache:false,
+				success:function(data){
+					var data = $.parseJSON(data);
+					if(data.code == 1){
+						curCount++;
+						$('.weui_toast_content').text('相片上传中('+curCount+'/'+images.length+')');
+						urls.push(data.thumb);
+						$('#img_form').append('<input type="hidden" id="'+images[imgIndex++]+'" name="imgs[]" value="'+data.thumb+'">');
+						if(urls.length == images.length){//最后一个图片
+							over = true;
+							$('#submitbtn').click();
+							return;
+						}
+					}
+					upload();
+				}
+			});
+		}
+	});
+	return false;
+}
+
+</script>

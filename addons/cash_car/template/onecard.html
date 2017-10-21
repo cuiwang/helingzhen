@@ -1,0 +1,523 @@
+<!--
+ * ============================================================================
+ * 版权所有 2015-2016 米粒源码，并保留所有权利。
+ * 网站地址: http://www.webmili.com；
+ * ----------------------------------------------------------------------------
+ * 这不是一个自由软件！已购买用户允许对程序代码进行修改和使用，但是不允许对
+ * 程序代码以任何形式任何目的的再发布，作者将保留追究法律责任的权力和最终解
+ * 释权。
+ * ============================================================================
+-->
+{template 'common/header'}
+<style>
+.table td span{display:inline-block;}
+.table td input{margin-bottom:0;}
+</style>
+<ul class="nav nav-tabs">
+	<li {if empty($_GPC['op'])}class="active"{/if}><a href="{php echo $this->createWebUrl('onecard')}">洗车卡列表</a></li>
+	<li {if $_GPC['op']=='post'}class="active"{/if}><a href="{php echo $this->createWebUrl('onecard', array('op'=>'post'))}">新增洗车卡</a></li>
+	<li {if $_GPC['op']=='order'}class="active"{/if}><a href="{php echo $this->createWebUrl('onecard', array('op'=>'order'))}">洗车卡订单</a></li>
+	<li {if $_GPC['op']=='membercard'}class="active"{/if}><a href="{php echo $this->createWebUrl('onecard', array('op'=>'membercard'))}">会员洗车卡列表</a></li>
+	<li {if $_GPC['op']=='addmembercard'}class="active"{/if}><a href="{php echo $this->createWebUrl('onecard', array('op'=>'addmembercard'))}">新增会员洗车卡</a></li>
+	<li {if $_GPC['op']=='give'}class="active"{/if}><a href="{php echo $this->createWebUrl('onecard', array('op'=>'give'))}">洗车卡转赠记录</a></li>
+	<li {if $_GPC['op']=='onecardRecord'}class="active"{/if}><a href="{php echo $this->createWebUrl('onecard', array('op'=>'onecardRecord'))}">会员洗车卡明细</a></li>
+</ul>
+{if $operation=='display'}
+<div class="main">
+    <div class="panel panel-info">
+		<div class="panel-heading">筛选</div>
+		<div class="panel-body">
+			<form action="./index.php" method="get" class="form-horizontal" role="form">
+				<input type="hidden" name="c" value="site">
+                <input type="hidden" name="a" value="entry">
+                <input type="hidden" name="m" value="cash_car">
+                <input type="hidden" name="do" value="onecard">
+                <input type="hidden" name="op" value="display">
+				<div class="form-group">
+                    <div class="col-xs-12 col-sm-9">
+						<span style="color:red;padding-left:2em;">警告：请不要随意删除洗车卡，否则已购买该洗车卡的用户将无法正常使用。</span>
+					</div>
+					<div class="col-xs-12 col-sm-9">
+						<span style="padding-left:2em;">洗车卡原理：当服务项目A，支持B洗车卡时，A会存储洗车B的标识，当用户购买了洗车卡B时，会员洗车卡表会记录洗车卡B的标识。用户下单时，系统会自动识别用户已选的服务项目和用户拥有的洗车卡标识是否对应。</span>
+					</div>
+                </div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">洗车卡</label>
+					<div class="col-xs-12 col-sm-3 col-lg-3">
+						<input class="form-control" name="title" id="" type="text" value="{$_GPC['title']}">
+					</div>
+					<div class=" col-xs-12 col-sm-2 col-lg-2">
+						<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<form action="" method="post" class="form-horizontal form">
+		<div class="panel panel-default">
+			<div class="panel-body table-responsive">
+				<table class="table table-hover">
+					<thead class="navbar-inner">
+						<tr>
+							<th style="width:8%;text-align:center;">排序</th>
+							<th style="width:20%;">洗车卡名称</th>
+							<th style="width:11%;text-align:center;">可洗车次数</th>
+							<th style="width:12%;text-align:center;">洗车卡总额</th>
+							<th style="width:15%;text-align:center;">洗车卡标识</th>
+							<th style="width:15%;text-align:center;">洗车卡类型</th>
+							<th style="width:15%;text-align:center;">状态</th>
+							<th style="width:12%;text-align:center;">操作</th>
+						</tr>
+					</thead>
+					<tbody>
+						{loop $list $row}
+						<tr>
+							<td style="text-align:center;"><input type="text" class="form-control" name="soft[{$row['id']}]" value="{$row['soft']}"></td>
+							<td>{$row['title']}</td>
+							<td style="text-align:center;">{$row['number']} 次</td>
+							<td style="text-align:center;">{$row['amount']} 元</td>
+							<td style="text-align:center;">{$row['onlycard']}</td>
+							<td style="text-align:center;">{if $row['validity']=='31'}月卡{elseif $row['validity']=='93'}季度卡{elseif $row['validity']=='183'}半年卡{elseif $row['validity']=='366'}年卡{/if}</td>
+							<td style="text-align:center;">
+								{if $row['status']==1}
+								<span class="label label-success">上架</span>
+								{else}
+								<span class="label label-danger">下架</span>
+								{/if}
+							</td>
+							<td style="text-align:center;">
+								<a href="{php echo $this->createWebUrl('onecard', array('op'=>'post','id' => $row['id']))}" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="编辑"><i class="fa fa-edit"></i></a>
+								<a href="{php echo $this->createWebUrl('onecard', array('op'=>'delete','id' => $row['id']))}" onclick="return confirm('删除该洗车卡会影响到该城市的所有门店，确认删除？');return false;" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="删除"><i class="fa fa-remove"></i></a>
+							</td>
+						</tr>
+						{/loop}
+					</tbody>
+					<tfoot>
+                    <tr>
+                        <td colspan="9">
+                            <input name="submit" type="submit" class="btn btn-primary" value="批量修改排序">
+                            <input type="hidden" name="token" value="{$_W['token']}">
+                        </td>
+                    </tr>
+                    </tfoot>
+				</table>
+			 </div>
+		 </div>
+	</form>
+  {$pager}
+</div>
+
+{elseif $operation=='post'}
+<div class="main">
+	<form class="form-horizontal form" action="" method="post">
+    	<div class="panel panel-default">
+            <div class="panel-heading">
+                 <span class="text-muted">添加洗车卡</span>
+            </div>
+			<div class="panel-body">
+			    <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+                    <div class="col-xs-12 col-sm-9">
+					  <span style="color:red;">同一类型洗车卡标识必须一致，否则洗车卡将不能使用。<br/>例如，标准水洗车月卡(2次)和标准水洗车月卡(4次)的洗车卡标识必须一致，都是BZXC。</span>
+					</div>
+                </div>
+            <div class="panel-body">
+			    <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">洗车卡名称</label>
+                    <div class="col-xs-12 col-sm-9">
+                         <input type="text" class="form-control" placeholder="" name="title" value="{$item['title']}">
+                    </div>
+                </div>
+				<div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">促销活动</label>
+                    <div class="col-xs-12 col-sm-9">
+                         <input type="text" class="form-control" placeholder="" name="content" value="{$item['content']}" maxlength="45">
+						 <div>最多不得超过40个字</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">可洗车次数</label>
+                    <div class="col-xs-12 col-sm-9">
+                         <input type="text" class="form-control" placeholder="" name="number" value="{$item['number']}">
+						 <div>例如：2表示该洗车卡一共含有2次</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">洗车卡总额</label>
+                    <div class="col-xs-12 col-sm-9">
+                         <input type="text" class="form-control" placeholder="" name="amount" value="{$item['amount']}">
+                    </div>
+                </div>
+				<div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">洗车卡标识</label>
+                    <div class="col-xs-12 col-sm-9">
+                         <input type="text" class="form-control" placeholder="" name="onlycard" {if !empty($item['onlycard'])}value="{$item['onlycard']}" readonly{/if}>
+						 <div>格式：项目名首拼音，例如标准洗车洗车卡(BZXC)，车内精洗洗车卡(CNJX)。</div>
+                    </div>
+                </div>
+				<div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">标识名称</label>
+                    <div class="col-xs-12 col-sm-9">
+                         <input type="text" class="form-control" placeholder="" name="onlycard_name" {if !empty($item['onlycard_name'])}value="{$item['onlycard_name']}" readonly{/if}>
+						 <div>同一洗车卡标识的标识名称要一致，例如车内清洗月卡(2次)和车内清洗年卡(10次)的标识名称都是“车内清洗”</div>
+                    </div>
+                </div>
+				<div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">有效期</label>
+                    <div class="col-xs-12 col-sm-9">
+						 <select class="form-control" name="validity">
+					     <option value="">请选择...</option>
+						 <option value="31"  {if $item['validity']==31}selected{/if}>月卡(31天)</option>
+						 <option value="93"  {if $item['validity']==93}selected{/if}>季度卡(93天)</option>
+						 <option value="183" {if $item['validity']==183}selected{/if}>半年卡(183天)</option>
+						 <option value="366" {if $item['validity']==366}selected{/if}>年卡(366天)</option>
+					   </select>
+					   <div>由于月份有28/29/30/31天，故月卡有效期定为31天(其他类型卡以此类推)</div>
+                    </div>
+                </div>
+				<div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">状态</label>
+                    <div class="col-sm-9">
+                        <label class="radio-inline"><input type="radio" name="status" value="1" {if $item['status']==1}checked="true"{/if}> 上架</label>
+                        &nbsp;&nbsp;&nbsp;
+                        <label class="radio-inline"><input type="radio" name="status" value="0" {if $item['status']==0}checked="true"{/if}> 下架</label>
+                        <span class="help-block">下架的洗车卡将不能被购买，但是已购买的用户可继续使用</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">排序</label>
+                    <div class="col-xs-12 col-sm-9">
+                         <input type="text" class="form-control" placeholder="" name="soft" value="{$item['soft']}">
+                    </div>
+                </div>
+				<div class="form-group col-sm-12">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+					<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1">
+					<input type="hidden" name="token" value="{$_W['token']}">
+					<input type="hidden" name="id" value="{$item['id']}">
+				</div>
+			</div>
+		</div>
+	</form>
+</div>
+
+{elseif $operation=='order'}
+<div class="main">
+    <div class="panel panel-info">
+		<div class="panel-heading">筛选</div>
+		<div class="panel-body">
+			<form action="./index.php" method="get" class="form-horizontal" role="form">
+				<input type="hidden" name="c" value="site">
+                <input type="hidden" name="a" value="entry">
+                <input type="hidden" name="m" value="cash_car">
+                <input type="hidden" name="do" value="onecard">
+                <input type="hidden" name="op" value="order">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">订单状态</label>
+					<div class="col-xs-12 col-sm-8 col-lg-3">
+						<select name="status" class="form-control">
+							<option value="">请选择...</option>
+							<option value="0" {if $_GPC['status']=='0'}selected{/if}>未支付</option>
+							<option value="1" {if $_GPC['status']=='1'}selected{/if}>已支付</option>
+						 </select>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">手机号码</label>
+					<div class="col-xs-12 col-sm-8 col-lg-3">
+						<input class="form-control" name="mobile" id="" type="text" value="{$_GPC['mobile']}">
+					</div>
+					<div class=" col-xs-12 col-sm-2 col-lg-2">
+						<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<form action="" method="post" class="form-horizontal form">
+		<div class="panel panel-default">
+			<div class="panel-body table-responsive">
+				<table class="table table-hover">
+					<thead class="navbar-inner">
+						<tr>
+							<th style="width:8%;text-align:center;">ID</th>
+							<th style="width:15%;">订单编号</th>
+							<th style="width:10%;">手机号码</th>
+							<th style="width:8%;">会员昵称</th>
+							<th style="width:15%;text-align:center;">洗车卡名称</th>
+							<th style="width:10%;text-align:center;">洗车卡总额</th>
+							<th style="width:15%;text-align:center;">下单时间</th>
+							<th style="width:6%;text-align:center;">订单状态</th>
+							<th style="width:8%;text-align:center;">支付方式</th>
+						</tr>
+					</thead>
+					<tbody>
+						{loop $list $row}
+						<tr>
+							<td style="text-align:center;" title="{$row['id']}">{$row['id']}</td>
+							<td title="{$row['order_sn']}">{$row['order_sn']}</td>
+							<td title="{$row['user']['mobile']}">{$row['user']['mobile']}</td>
+							<td title="{$row['user']['nickname']}">{$row['user']['nickname']}</td>
+							<td style="text-align:center;" title="{$row['title']}">{$row['title']}</td>
+							<td style="text-align:center;" title="{$row['amount']} 元">{$row['amount']} 元</td>
+							<td style="text-align:center;" title="{php echo date('Y-m-d H:i:s',$row['add_time']);}">{php echo date('Y-m-d H:i:s',$row['add_time']);}</td>
+							<td style="text-align:center;" title="{if $row['status']=='0'}未支付{elseif $row['status']=='1'}已支付{/if}">{if $row['status']=='0'}<span class="label label-danger">未支付</span>{elseif $row['status']=='1'}<span class="label label-success">已支付</span>{/if}</td>
+							<td style="text-align:center;" title="{if $row['paytype']=='1'}余额支付{elseif $row['paytype']=='2'}微信支付{elseif $row['paytype']=='3'}支付宝{/if}">{if $row['paytype']=='1'}余额支付{elseif $row['paytype']=='2'}微信支付{elseif $row['paytype']=='3'}支付宝{/if}</td>
+						</tr>
+						{/loop}
+					</tbody>
+				</table>
+			 </div>
+		 </div>
+	</form>
+  {$pager}
+</div>
+
+{elseif $operation=='membercard'}
+<div class="main">
+    <div class="panel panel-info">
+		<div class="panel-heading">筛选</div>
+		<div class="panel-body">
+			<form action="./index.php" method="get" class="form-horizontal" role="form">
+				<input type="hidden" name="c" value="site">
+                <input type="hidden" name="a" value="entry">
+                <input type="hidden" name="m" value="cash_car">
+                <input type="hidden" name="do" value="onecard">
+                <input type="hidden" name="op" value="membercard">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">手机号码</label>
+					<div class="col-xs-12 col-sm-8 col-lg-3">
+						<input class="form-control" name="mobile" id="" type="text" value="{$_GPC['mobile']}">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">状态</label>
+					<div class="col-xs-12 col-sm-8 col-lg-3">
+						<select name="status" class="form-control">
+							<option value="">请选择...</option>
+							<option value="1" {if $_GPC['status']=='1'}selected{/if}>有效</option>
+							<option value="2" {if $_GPC['status']=='2'}selected{/if}>失效</option>
+						 </select>
+					</div>
+					<div class=" col-xs-12 col-sm-2 col-lg-2">
+						<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<form action="" method="post" class="form-horizontal form">
+		<div class="panel panel-default">
+			<div class="panel-body table-responsive">
+				<table class="table table-hover">
+					<thead class="navbar-inner">
+						<tr>
+							<th style="width:10%;text-align:center;">ID</th>
+							<th style="width:15%;">手机号码</th>
+							<th style="width:15%;">会员昵称</th>
+							<th style="width:20%;text-align:center;">洗车卡名称</th>
+							<th style="width:15%;text-align:center;">剩余洗车卡次数</th>
+							<th style="width:15%;text-align:center;">有效期</th>
+						</tr>
+					</thead>
+					<tbody>
+						{loop $list $row}
+						<tr>
+							<td style="text-align:center;">{$row['id']}</td>
+							<td>{$row['user']['mobile']}</td>
+							<td>{$row['user']['nickname']}</td>
+							<td style="text-align:center;">{$row['title']}</td>
+							<td style="text-align:center;">{$row['number']} 次</td>
+							<td style="text-align:center;">{php echo date('Y-m-d H:i:s',$row['validity']);}</td>
+						</tr>
+						{/loop}
+					</tbody>
+				</table>
+			 </div>
+		 </div>
+	</form>
+  {$pager}
+</div>
+
+{elseif $operation=='addmembercard'}
+<div class="main">
+	<form class="form-horizontal form" action="" method="post">
+    	<div class="panel panel-default">
+            <div class="panel-heading">
+                 <span class="text-muted">新增会员洗车卡</span>
+            </div>
+            <div class="panel-body">
+			    <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">会员手机号码</label>
+                    <div class="col-xs-12 col-sm-3">
+                         <input type="text" name="mobile" class="form-control">
+                    </div>
+                </div>
+				<div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">洗车卡名称</label>
+                    <div class="col-xs-12 col-sm-3">
+					   <select class="form-control" name="onecard_id">
+					     <option value="">请选择...</option>
+						 {loop $onecard_list $onecard}
+						  <option value="{$onecard['id']}">{$onecard['title']}</option>
+						 {/loop}
+					   </select>
+                   </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">可洗车次数</label>
+                    <div class="col-xs-12 col-sm-3">
+                         <input type="text" class="form-control" placeholder="" name="number">
+						 <div>留空使用已选洗车卡次数</div>
+                    </div>
+                </div>
+			</div>
+        </div>
+        <div class="form-group col-sm-12">
+			<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1">
+			<input type="hidden" name="token" value="{$_W['token']}">
+		</div>
+	</form>
+</div>
+
+{elseif $operation=='give'}
+<div class="main">
+    <div class="panel panel-info">
+		<div class="panel-heading">筛选</div>
+		<div class="panel-body">
+			<form action="./index.php" method="get" class="form-horizontal" role="form">
+				<input type="hidden" name="c" value="site">
+                <input type="hidden" name="a" value="entry">
+                <input type="hidden" name="m" value="cash_car">
+                <input type="hidden" name="do" value="onecard">
+                <input type="hidden" name="op" value="give">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">赠送人</label>
+					<div class="col-xs-12 col-sm-8 col-lg-3">
+						<input class="form-control" name="give" id="" type="text" value="{$_GPC['give']}">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">接收人</label>
+					<div class="col-xs-12 col-sm-8 col-lg-3">
+						<input class="form-control" name="receiver" id="" type="text" value="{$_GPC['receiver']}">
+					</div>
+					<div class=" col-xs-12 col-sm-2 col-lg-2">
+						<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<form action="" method="post" class="form-horizontal form">
+		<div class="panel panel-default">
+			<div class="panel-body table-responsive">
+				<table class="table table-hover">
+					<thead class="navbar-inner">
+						<tr>
+							<th style="width:10%;text-align:center;">ID</th>
+							<th style="width:15%;">赠送人手机号码</th>
+							<th style="width:15%;">接收人手机号码</th>
+							<th style="width:15%;">洗车卡名称</th>
+							<th style="width:10%;text-align:center;">赠送次数</th>
+							<th style="width:20%;text-align:center;">赠送时间</th>
+						</tr>
+					</thead>
+					<tbody>
+						{loop $list $row}
+						<tr>
+							<td style="text-align:center;">{$row['id']}</td>
+							<td>{$row['give_mobile']}</td>
+							<td>{$row['receiver_mobile']}</td>
+							<td>{$row['title']}</td>
+							<td style="text-align:center;">{$row['number']} 次</td>
+							<td style="text-align:center;">{php echo date('Y-m-d H:i:s',$row['add_time']);}</td>
+						</tr>
+						{/loop}
+					</tbody>
+				</table>
+			 </div>
+		 </div>
+		 共计：{$numbers}次
+	</form>
+  {$pager}
+</div>
+
+{elseif $operation=='onecardRecord'}
+<div class="main">
+    <div class="panel panel-info">
+		<div class="panel-heading">筛选</div>
+		<div class="panel-body">
+			<form action="./index.php" method="get" class="form-horizontal" role="form">
+				<input type="hidden" name="c" value="site">
+                <input type="hidden" name="a" value="entry">
+                <input type="hidden" name="m" value="cash_car">
+                <input type="hidden" name="do" value="onecard">
+                <input type="hidden" name="op" value="onecardRecord">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">会员昵称</label>
+					<div class="col-xs-12 col-sm-8 col-lg-3">
+						<input class="form-control" name="nickname" placeholder="会员昵称" type="text" value="{$_GPC['nickname']}">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">手机号码</label>
+					<div class="col-xs-12 col-sm-8 col-lg-3">
+						<input class="form-control" name="mobile" placeholder="手机号码" type="text" value="{$_GPC['mobile']}">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">洗车卡</label>
+					<div class="col-xs-12 col-sm-8 col-lg-3">
+						<input class="form-control" name="title" placeholder="洗车卡名称" type="text" value="{$_GPC['title']}">
+					</div>
+					<div class=" col-xs-12 col-sm-2 col-lg-2">
+						<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<form action="" method="post" class="form-horizontal form">
+		<div class="panel panel-default">
+			<div class="panel-body table-responsive">
+				<table class="table table-hover">
+					<thead class="navbar-inner">
+						<tr>
+							<th style="width:6%;text-align:center;">ID</th>
+							<th style="width:10%;text-align:center;">会员昵称</th>
+							<th style="width:10%;text-align:center;">手机号码</th>
+							<th style="width:15%;text-align:center;">洗车卡名称</th>
+							<th style="width:7%;text-align:center;">变动次数</th>
+							<th style="width:7%;text-align:center;">剩余次数</th>
+							<th style="width:24%;text-align:center;">变动描述</th>
+							<th style="width:12%;text-align:center;">变动时间</th>
+						</tr>
+					</thead>
+					<tbody>
+						{loop $list $row}
+						<tr>
+							<td style="text-align:center;">{$row['id']}</td>
+							<td style="text-align:center;">{$row['nickname']}</td>
+							<td style="text-align:center;">{$row['mobile']}</td>
+							<td style="text-align:center;">{$row['title']}</td>
+							<td style="text-align:center;">{$row['reduce']} 次</td>
+							<td style="text-align:center;">{$row['total']} 次</td>
+							<td>{$row['remark']}</td>
+							<td style="text-align:center;">{php echo date('Y-m-d H:i',$row['add_time']);}</td>
+						</tr>
+						{/loop}
+					</tbody>
+				</table>
+			 </div>
+		 </div>
+	</form>
+  {$pager}
+</div>
+{/if}
+{template 'common/footer'}

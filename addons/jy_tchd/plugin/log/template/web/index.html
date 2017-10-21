@@ -1,0 +1,163 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+    <li {if empty($op)} class="active" {/if} ><a href="{php echo $this->createWebUrl('log');}">日志管理</a></li>
+    {if $this->perm_check('del',$user_perm,$perm_route)}
+    <li {if $op=="del"} class="active" {/if} ><a href="{php echo $this->createWebUrl('log',array('op'=>'del'));}">清除日志</a></li>
+    {/if}
+</ul>
+
+{if empty($op)}
+    <div class="panel panel-info">
+        <div class="panel-heading">筛选</div>
+
+        <div class="panel-body">
+
+            <form action="./index.php" method="get" class="form-horizontal" role="form">
+
+                <input type="hidden" name="c" value="site" />
+                <input type="hidden" name="a" value="entry" />
+                <input type="hidden" name="m" value="{MD}" />
+                <input type="hidden" name="do" value="log" />
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">关键字</label>
+                    <div class="col-xs-12 col-sm-8 col-lg-9">
+                        <input class="form-control" name="keyword" type="text" value="{$_GPC['keyword']}" placeholder="请输入日志内容/操作员">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">日志类型</label>
+                    <div class="col-xs-12 col-sm-8 col-lg-9">
+                        <select class="form-control" name="type">
+                            <option value="0" {if empty($_GPC['type'])} selected  {/if}>请选择日志类型</option>
+                            {loop $log_name $t}
+                            <option value="{$t['name']}" {if $_GPC['type']==$t['name']} selected  {/if}>{$t['name']}</option>
+                            {/loop}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">时间筛选</label>
+                    <div class="col-xs-12 col-sm-8 col-lg-9">
+                        {php echo tpl_form_field_daterange('time', $time);}
+                    </div>
+                </div>
+
+
+                <div class="form-group">
+                    <div class=" col-xs-12 col-sm-2 col-lg-2">
+
+                        <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="panel panel-default">
+
+
+
+        <div class="panel-heading">{if !empty($condition)}<span style="color:red">【符合搜索条件】</span>{/if}日志记录详细数据  |  总数:{$total}</div>
+
+        <div class="panel-body table-responsive">
+
+            <form action="" method="post" onsubmit="">
+
+                <table class="table table-hover">
+
+                    <thead class="navbar-inner">
+
+                    <tr>
+                        <th style="width:1%;" class="row-first"></th>
+
+                        <th style="width:5%;" class="row-first">ID</th>
+
+                        <th style="width:10%;">操作员</th>
+
+                        <th style="width:10%;">类型</th>
+
+                        <th style="width:28%;">操作内容</th>
+
+                        <th style="width:10%;">IP</th>
+
+                        <th style="width:12%;">操作时间</th>
+
+                    </tr>
+
+                    </thead>
+
+                    <tbody id="main">
+
+                    {loop $feedback $row}
+
+                    <tr class="selectedTr">
+
+                        <td><input  style="display:none" type="checkbox" name="ids[]" value="{$row['id']}" /></td>
+
+                        <td>{$row['id']}</td>
+
+                        <td style="white-space:normal;word-break:break-all">{$row['user']}</td>
+
+                        <td style="white-space:normal;word-break:break-all">{$row['name']}</td>
+
+                        <td style="white-space:normal;word-break:break-all">{$row['op']}</td>
+
+                        <td style="white-space:normal;word-break:break-all">{$row['ip']}</td>
+
+                        <td>{php echo date('Y-n-j G:i', $row['createtime']);}</td>
+
+
+                    </tr>
+
+                    {/loop}
+                    </tbody>
+
+                </table>
+
+
+            </form>
+
+        </div>
+
+    </div>
+    {$pager}
+
+
+    </div>
+{/if}
+{if $op=="del"}
+    <form action="" method="post" class="form-horizontal form" enctype="multipart/form-data">
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            清除日志
+        </div>
+        <div class="panel-body">
+
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">设定天数</label>
+                <div class="col-sm-7 col-xs-12">
+                    <input type="text" name="day" class="form-control" placeholder="可以删除设定天数之前的日志，以避免日志数据过多，影响程序交互体验" />
+                    <span class="help-block">建议值为7天</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+        <div class="col-sm-9 col-xs-12">
+            <input name="submit" type="submit" value="提交" class="btn btn-primary span3">
+            <input type="hidden" name="token" value="{$_W['token']}" />
+        </div>
+    </div>
+
+</form>
+{/if}
+
+{php echo $this->webnotice()}
+{template 'common/footer'}

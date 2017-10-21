@@ -1,0 +1,244 @@
+{php include $this->template('_header');}
+<style type="text/css">
+.label {
+    display: inline;
+    padding: .2em .6em .3em;
+    font-size: 75%;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: .25em;
+}
+.label-success{background-color: #5cb85c;}
+.label-red{background-color: #AD0808;}
+.label-gray{background-color: #B9B7B7;}
+</style>
+<tr>
+    <td class="menutd" valign="top" width="161">
+	   <div id="mainMenu" class="main-menu">
+	      <ul id="sort_store" style="display: block;">
+             <li><a href="{php echo $this->createMobileUrl('settle');}" class="selected">结算管理</a></li>
+		  </ul>
+	   </div>
+	</td>
+	<td valign="top" width="100%">
+	   <div class="fixed-bar">
+          <div class="item-title">
+             <h3>结算管理</h3>
+			    <ul class="tab-base">
+				  <li><a href="{php echo $this->createMobileUrl('settle');}" {if empty($_GPC['op'])}class="current"{/if}><span>全部结算</span></a></li>
+				  {if $op=='details'}
+				  <li><a href="javascript:;" class="current"><span>账单详情</span></a></li>
+				  {/if}
+				  {if $op=='orders'}
+				  <li><a href="{php echo $this->createMobileUrl('settle', array('op'=>'details', 'sn'=>$_GPC['sn']));}"><span>账单详情</span></a></li>
+				  <li><a href="javascript:;" class="current"><span>订单详情</span></a></li>
+				  {/if}
+			    </ul>
+          </div>
+        </div>
+
+{if $op=='display'}
+		<div class="page" id="page">
+		  <form method="get" name="formSearch">
+		    <input type="hidden" name="i" value="{$_W['uniacid']}">
+		    <input type="hidden" name="c" value="entry">
+			<input type="hidden" name="do" value="settle">
+			<input type="hidden" name="m" value="fy_car">
+			<table class="tb-type1 noborder search">
+			  <tbody>
+				<tr style="background: rgb(255, 255, 255);">
+				  <th>账单单号</th>
+				  <td><input type="text" value="{$_GPC['settle_sn']}" name="settle_sn" class="txt"></td>
+				  <th>状态</th>
+				  <td>
+					  <select name="status">
+						<option value="">请选择...</option>
+						<option value="1" {if $_GPC['status']=='1'}selected{/if}>已出账</option>
+						<option value="2" {if $_GPC['status']=='2'}selected{/if}>已结算</option>
+					  </select>
+				  </td>
+				  <th>导出Excel</th>
+				  <td>
+					  <select name="out_put">
+						<option value="0" {if $_GPC['out_put']=='0'}selected{/if}>不导出</option>
+						<option value="output" {if $_GPC['out_put']=='output'}selected{/if}>导出</option>
+					  </select>
+				  </td>
+				  <td><a href="javascript:document.formSearch.submit();" class="btn-search tooltip" title="查询">&nbsp;</a></td>
+				</tr>
+			  </tbody>
+			</table>
+		  </form>
+		  <table class="table tb-type2" id="prompt">
+			<tbody>
+			  <tr class="space odd" style="background: rgb(255, 255, 255);">
+				<th colspan="12" class="nobg">
+					<div class="title ac">
+						<h5>操作提示</h5>
+						<span class="arrow up"></span>
+					</div>
+				</th>
+			  </tr>
+			  <tr class="odd" style="background: rgb(255, 255, 255);">
+				<td>
+				  <ul>
+				    <li>佣金总额 = 营业总额 * 佣金比例</li>
+					<li>积分总额 = 赠送积分总数 * {$fysetting['conver']}%</li>
+					<li>应付金额 = 营业总额 - 佣金总额 - 积分总额</li>
+				  </ul>
+				</td>
+			  </tr>
+			</tbody>
+		  </table>
+		  <table class="table tb-type2">
+			 <thead>
+				<tr class="space">
+				  <th colspan="15" class="nobg">列表 <span style="color:#000">(共计 <span style="color:red;">{$total}</span> 条账单)</span></th>
+				</tr>
+				<tr class="thead">
+				  <th>账单单号</th>
+				  <th style="text-align:center;">营业总额</th>
+				  <th style="text-align:center;">佣金总额</th>
+				  <th style="text-align:center;">赠送积分</th>
+				  <th style="text-align:center;">积分换金额率</th>
+				  <th style="text-align:center;">应付积分总额</th>
+				  <th style="text-align:center;">结算金额</th>
+				  <th style="text-align:center;">结算阶段</th>
+				  <th>结算状态</th>
+				  <th class="align-center">操作</th>
+				</tr>
+			 </thead>
+			 <tbody>
+			 {loop $settlelist $settle}
+				<tr class="hover edit" style="background: rgb(255, 255, 255);">
+				  <td>{$settle['settle_sn']}</td>
+				  <td style="text-align:center;">{$settle['business_amount']} 元</td>
+				  <td style="text-align:center;">{$settle['commission_amount']} 元</td>
+				  <td style="text-align:center;">{$settle['totalIntegral']} 积分</td>
+				  <td style="text-align:center;">{$settle['conver']}%</td>
+				  <td style="text-align:center;">{$settle['integralAmount']} 元</td>
+				  <td style="text-align:center;">{$settle['settle_amount']} 元</td>
+				  <td style="text-align:center;">{$settle['settle_date']}</td>
+				  <td>
+					  {if $settle['settle_status']==1}<span class="label" style="background:#DC3005;">已出账</span>{/if}
+					  {if $settle['settle_status']==2}<span class="label" style="background:#56af45;">已结算</span>{/if}
+				  </td>
+				  <td class="align-center"> 
+					 <a href="{php echo $this->createMobileUrl('settle', array('op'=>'details','sn'=>$settle['settle_sn']));}">查看详情</a>
+				  </td>
+				</tr>
+			 {/loop}
+			 </tbody>
+			   <tfoot>
+				<tr class="tfoot">
+				  <td id="batchAction" colspan="15">
+					<div class="pagination">{$pager}</div>
+				  </td>
+				</tr>
+			  </tfoot>
+			</table>
+		</div>
+{elseif $op=='details'}
+        <div class="page" id="page">
+		  <h1>结算周期：{$settle['settle_date']}</h1>
+		  <table class="table tb-type2">
+			 <thead>
+				<tr class="space">
+				  <th colspan="15" class="nobg">
+					  列表 <span style="color:#000">(共计 <span style="color:red;">{php echo count($storelist);}</span> 条账单)</span>
+					  <span style="float:right;display:inline-block;"><a href="{php echo $refurl.'&out_put=output';}">导出Excel</a></span>
+				  </th>
+				</tr>
+				<tr class="thead">
+				  <th>账单编号</th>
+				  <th>所属服务点</th>
+				  <th style="text-align:center;">营业总额</th>
+				  <th style="text-align:center;">佣金比例</th>
+				  <th style="text-align:center;">佣金总额</th>
+				  <th style="text-align:center;">赠送积分</th>
+				  <th style="text-align:center;">积分换金额率</th>
+				  <th style="text-align:center;">应付积分总额</th>
+				  <th style="text-align:center;">结算金额</th>
+				  <th style="text-align:center;">结算阶段</th>
+				  <th style="text-align:center;">操作</th>
+				</tr>
+			 </thead>
+			 <tbody>
+			 {loop $storelist $key $store}
+				<tr class="hover edit" style="background: rgb(255, 255, 255);">
+				  <td>{$settle['settle_sn']}-{$store['id']}</td>
+				  <td>{$store['title']}</td>
+				  <td style="text-align:center;">{$store['business_amount']} 元</td>
+				  <td style="text-align:center;">{$store['commission']} %</td>
+				  <td style="text-align:center;">{$store['commission_amount']} 元</td>
+				  <td style="text-align:center;">{$store['totalintegral']} 积分</td>
+				  <td style="text-align:center;">{$settle['conver']}%</td>
+				  <td style="text-align:center;">{php echo round($store['totalintegral']*$settle['conver']*0.01 ,2);} 元</td>
+				  <td style="text-align:center;">{php echo round($store['business_amount']-$store['commission_amount']-$store['totalintegral']*$settle['conver']*0.01 ,2);} 元</td>
+				  <td style="text-align:center;">{$settle['settle_date']}</td>
+				  <td style="text-align:center;"><a href="{php echo $this->createMobileUrl('settle', array('op'=>'orders','storeid'=>$store['id'],'sn'=>$settle['settle_sn']));}">查看详情</a></td>
+				</tr>
+			 {/loop}
+			 </tbody>
+			   <tfoot>
+				<tr class="tfoot">
+				  <td id="batchAction" colspan="15">
+					<div class="pagination">{$pager}</div>
+				  </td>
+				</tr>
+			  </tfoot>
+			</table>
+		</div>
+
+{elseif $op=='orders'}
+        <div class="page" id="page">
+		  <h1 style="padding-left:18px;">服务点：{$store['title']}</h1>
+		  <h1>结算周期：{$settle['settle_date']}</h1>
+		  <table class="table tb-type2">
+			 <thead>
+				<tr class="space">
+				  <th colspan="15" class="nobg">列表 <span style="color:#000">(共计 <span style="color:red;">{php echo count($orderlist);}</span> 条订单)</span></th>
+				</tr>
+				<tr class="thead">
+				  <th>订单编号</th>
+				  <th>所属服务点</th>
+				  <th style="text-align:center;">订单总额</th>
+				  <th style="text-align:center;">赠送积分</th>
+				  <th style="text-align:center;">下单时间</th>
+				  <th style="text-align:center;">完成时间</th>
+				  <th style="text-align:center;">完成角色</th>
+				  <th style="text-align:center;">操作</th>
+				</tr>
+			 </thead>
+			 <tbody>
+			 {loop $orderlist $order}
+				<tr class="hover edit" style="background: rgb(255, 255, 255);">
+				  <td>{$order['id']}</td>
+				  <td>{$store['title']}</td>
+				  <td style="text-align:center;">{$order['order_total']} 元</td>
+				  <td style="text-align:center;">{$order['totalintegral']} 积分</td>
+				  <td style="text-align:center;">{php echo date('Y-m-d H:i:s', $order['dateline']);}</td>
+				  <td style="text-align:center;">{php echo date('Y-m-d H:i:s', $order['finish_time']);}</td>
+				  <td style="text-align:center;">{if $order['finisher']=='user'}用户{elseif $order['finisher']=='admin'}管理员{else}洗车师傅{/if}</td>
+				  <td style="text-align:center;"><a href="{php echo $this->createMobileUrl('store', array('op'=>'orderdetails','storeid'=>$store['id'],'orderid'=>$order['id']));}" target="_blank">查看详情</a></td>
+				</tr>
+			 {/loop}
+			 </tbody>
+			   <tfoot>
+				<tr class="tfoot">
+				  <td id="batchAction" colspan="15">
+					<div class="pagination">{$pager}</div>
+				  </td>
+				</tr>
+			  </tfoot>
+			</table>
+		</div>
+{/if}
+	</td>
+</tr>
+
+{php include $this->template('_footer');}

@@ -1,0 +1,415 @@
+{template 'weheader'}
+<script type="text/javascript" src="{TEMPLATE_WEUI}picker.js"></script>
+<script type="text/javascript" src="{TEMPLATE_WEUI}select.js"></script>
+{if $reside}
+<script src="{TEMPLATE_WEUI}city-picker.min.js"></script>
+{/if}
+<style>
+body{background-color:#fbf9ff;}
+
+.weui_textarea_counter span {font-size:12px;}
+.weui_label span{color: #E64340;}
+.weui-popup-container{z-index:9999;}
+.weui_cell_select .weui_cell_td {padding-left: 1em;}
+.weui_cell_select .weui_cell_hd .weui_select {line-height:45px;padding:0 25px 0 5px;color: #555;}
+
+.weui_extra_area {z-index:0;}
+.record .weui_cells:first-child {margin-top:30px;}
+.record .weui_cells {margin:0;}
+.record img{width:1.2rem;height:1.2rem;}
+.m-img {background-position: top center;padding-bottom: 0;}
+.m-img img{width:100%;height:auto;}
+.m-masker {background-color: rgba(0, 0, 0, 0);}
+label{font-size:14px;}
+#allmap{width:100%;height:200px;display:block}
+</style>
+		<div class="weui-header bg-blue">
+			<div class="weui-header-left">
+				<a href="javascript:history.go(-1)" class="f-white">
+					<svg class="icon f-white" aria-hidden="true">
+						<use xlink:href="#icon-left"></use>
+					</svg>
+				</a>
+			</div>
+			<h1 class="weui-header-title f16">{$activity['title']}</h1>
+			<div class="weui-header-right">
+				<a href="{php echo $this->createMobileUrl('list');}">
+					<svg class="icon f-white" aria-hidden="true">
+						<use xlink:href="#icon-home"></use>
+					</svg>
+				</a>
+				<a class="" href="{php echo $this->createMobileUrl('members');}">
+					<svg class="icon f-white" aria-hidden="true">
+						<use xlink:href="#icon-huiyuan"></use>
+					</svg>
+				</a>
+			</div> 
+		</div>
+    <div class="weui_tab_bd">
+<form action="{php echo $this->createMobileUrl('edit', array('reid' => $reid,'rerid' => $rerid))}" class="" enctype="multipart/form-data" method="POST" id="form">
+
+       <div class="weui_panel weui_panel_access">
+            <div class="weui_panel_bd">
+                <div class="weui_media_box weui_media_appmsg weui_panel_ft">
+                    <div class="weui_media_hd">
+                        <img class="weui_media_appmsg_thumb" src="{if !empty($member['avatar'])}{$member['avatar']}{else}{$fans['tag']['avatar']}{/if}" alt="">
+                    </div>
+					{if $member['realname'] && $member['mobile']}
+                    <div class="weui_media_bd">
+                        <h4 class="weui_media_title f-black">{$member['realname']}</h4>
+                        <p class="weui_media_desc f16 f-black">{$member['mobile']}</p>
+                    </div>
+					{else}
+					<div class="weui_media_bd">完善我的资料</div>
+					{/if}
+                </div>
+            </div>
+        </div>
+	
+	<div class="weui_cells weui_cells_access">
+	{loop $ds $fid $field}
+				
+		{if $field['type'] == 'text'}
+		<div class="weui_cell">
+			<div class="weui_cell_hd"><label class="weui_label">{$field['fid']}{if $field['essential']}<span>*</span>{/if}</label></div>
+			<div class="weui_cell_bd weui_cell_primary">
+			{if $field['bind'] == 'birth'}
+				<input class="weui_input" name="{$info['redid'][$fid]}" type="text" value="{$info['fields'][$fid]}" placeholder="{$field['tixing']}" {if $field['essential']}required{/if}>
+			{else}
+				<input class="weui_input" name="{$info['redid'][$fid]}" type="text" value="{$info['fields'][$fid]}" placeholder="{$field['tixing']}" {if $field['only']}id="n_{$field['refid']}" onblur="check(this,'{$field['refid']}')" data="{$field['fid']}"{/if} {if $field['essential']}required{/if}>
+			{/if}
+			</div>
+			<div class="weui_cell_ft"></div>
+		</div>
+		{/if}
+		
+		{if $field['type'] == 'tingli'}
+		<div class="weui_cell">
+			<div class="weui_cell_hd"><label class="weui_label">{$field['fid']}{if $field['essential']}<span>*</span>{/if}</label></div>
+			<div class="weui_cell_bd weui_cell_primary">
+				<input class="weui_input" name="{$info['redid'][$fid]}" type="text" value="{$field['default']}" placeholder="{$field['tixing']}" readonly>
+			</div>
+			<div class="weui_cell_ft"></div>
+		</div>
+		{/if}
+		
+		{if $field['type'] == 'photograph'}
+        <div class="weui_cell">
+            <div class="weui_cell_bd weui_cell_primary">
+                <div class="weui_uploader">
+                    <div class="weui_uploader_hd weui_cell">
+                        <div class="weui_cell_bd weui_cell_primary"><label class="weui_label">{$field['fid']}{if $field['essential']}<span>*</span>{/if}</label></div>
+                        <div class="weui_cell_ft"></div>
+                    </div>
+                    <div class="weui_uploader_bd">
+                        <ul class="weui_uploader_files">   
+                            <input type="hidden" name="{$info['redid'][$fid]}" value="{$field['default']}" {if $field['essential']}required tips="{$field['tixing']}"{/if}>                        
+                            <image class="weui_uploader_file weui_uploader_status" onclick="show(this,'show{$field['refid']}')" id="show{$field['refid']}" src="{php echo tomedia($field['default'])}" />
+                        </ul>
+                        <a class="weui_uploader_input_wrps right" href="{$field['photograph_url']}" style="line-height:300%;">
+							<svg class="icon" aria-hidden="true" style="width:20vw;height:20vw;color:#999">
+								<use xlink:href="#icon-xiangji"></use>
+							</svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+		{/if}
+		
+		{if $field['type'] == 'email'}
+		<div class="weui_cell">
+			<div class="weui_cell_hd"><label class="weui_label">{$field['fid']}{if $field['essential']}<span>*</span>{/if}</label></div>
+			<div class="weui_cell_bd weui_cell_primary">
+				<input class="weui_input" type="text" name="{$info['redid'][$fid]}" value="{$info['fields'][$fid]}" placeholder="{$field['tixing']}" {if $field['essential']}required{/if}>
+			</div>
+		</div>
+		{/if}
+				
+		{if $field['type'] == 'number'}
+		<div class="weui_cell">
+			<div class="weui_cell_hd"><label class="weui_label">{$field['fid']}{if $field['essential']}<span>*</span>{/if}</label></div>
+			<div class="weui_cell_bd weui_cell_primary">
+				<input class="weui_input" type="tel" name="{$info['redid'][$fid]}" value="{$info['fields'][$fid]}" pattern="[0-9]*" placeholder="{$field['tixing']}">
+			</div>
+		</div>
+		{/if}
+				
+		{if $field['type'] == 'textarea'}
+        <div class="weui_cell">
+            <div class="weui_cell_bd weui_cell_primary">
+			<textarea class="weui_textarea" name="{$info['redid'][$fid]}" rows="3" placeholder="{$field['tixing']}">{$info['fields'][$fid]}</textarea>
+                <div class="weui_textarea_counter"><span id='textarea_num'>限200字</span></div>
+            </div>
+        </div>
+		<script>
+			$(function(){
+				$(".weui_textarea").on("input paste" , function(){
+					var num_left=$(this).val().length;
+					if((200-num_left)<0){
+						$("#textarea_num").text("超出"+(num_left-200)+"字");
+						$("#textarea_num").css("color","#E44443");
+					}else{
+						$("#textarea_num").text((num_left)+"字");
+						$("#textarea_num").css("color","#999999");
+					}
+				});
+
+			})
+		</script> 
+		{/if}
+				
+		{if $field['type'] == 'radio'}
+		<div class="weui_cell">
+			<div class="weui_cell_hd"><label for="name" class="weui_label">{$field['fid']}{if $field['essential']}<span>*</span>{/if}</label></div>
+				<div class="weui_cell_bd weui_cell_primary">
+					<input type="text" class="weui_input" id="{$field['refid']}" name="{$info['redid'][$fid]}" placeholder="{$field['tixing']}" value="{$info['fields'][$fid]}">
+				</div>
+				<div class="weui_cell_ft"></div>
+		</div>
+		<script>
+		$("#{$field['refid']}").select({
+			title: "{$field['title']}",
+			items: [
+				{loop $field['options'] $v}
+					"{$v}",
+				{/loop}
+			],
+			onChange: function(d) {
+				console.log(this, d);
+			}
+		});
+		</script>
+		{/if}
+				
+		{if $field['type'] == 'checkbox'}		
+		<div class="weui_cell">
+			<div class="weui_cell_hd"><label for="name" class="weui_label">{$field['fid']}{if $field['essential']}<span>*</span>{/if}</label></div>
+				<div class="weui_cell_bd weui_cell_primary">
+					<input type="text" class="weui_input" id="{$field['refid']}" name="{$info['redid'][$fid]}" placeholder="{$field['tixing']}" value="{$info['fields'][$fid]}">
+				</div>
+		</div>
+		<script>
+		$("#{$field['refid']}").select({
+			title: "{$field['title']}",
+			multi: true,
+			split:',',
+			closeText:'确定',
+			items: [
+			{loop $field['options'] $v}
+			{
+				title: "{$v}",
+				value: "{$v}"
+			},
+			{/loop}
+			],
+			onChange: function(d) {
+	//			$.alert("你选择了"+d.values+d.titles);
+			}
+		}); 
+		</script>
+		{/if}
+						
+		{if $field['type'] == 'select'}		
+		<div class="weui_cell">
+			<div class="weui_cell_hd"><label for="date" class="weui_label">{$field['fid']}{if $field['essential']}<span>*</span>{/if}</label></div>
+			<div class="weui_cell_bd weui_cell_primary">
+				<input type="text" class="weui_input" id="{$field['refid']}" name="{$info['redid'][$fid]}" placeholder="{$field['tixing']}" value="{$info['fields'][$fid]}">
+			</div>
+		</div>
+		<script>
+		{php $c=end(array_keys($field['options']));}
+		$("#{$field['refid']}").picker({
+			title: "请选择{$field['fid']}",
+			cols: [
+			{
+				textAlign: 'center',
+				values: [
+					{loop $field['options'] $like $v}
+					'{$v}'{if $like!=$c},{/if}
+					{/loop}
+				]
+			}
+			]
+		});
+		</script>
+		{/if}
+
+		{if $field['type'] == 'image'}
+		</div>
+
+		<div class="weui_cells weui_cells_form">
+			<div class="weui_cell">
+				<div class="weui_cell_bd weui_cell_primary">
+					<div class="weui_uploader">
+						<div class="weui_uploader_hd weui_cell">
+							<div class="weui_cell_bd weui_cell_primary">{$field['fid']}{if $field['essential']}<span>*</span>{/if}</div>
+							<div class="weui_cell_ft"></div>
+						</div>
+						<div class="weui_uploader_bd">
+							<ul class="weui_uploader_files">   
+								<input type="hidden" name="{$info['redid'][$fid]}" accept="image/*" capture="camera" value="{$info['fields'][$fid]}" />                        
+								<image class="weui_uploader_file weui_uploader_status" id="show{$field['refid']}" src="{php echo tomedia($info['fields'][$fid])}" />
+							</ul>
+							<div class="weui_uploader_input_wrp" id="{$field['refid']}">
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	<script>
+          var btn = document.getElementById('{$field['refid']}');
+          var images = {
+              localId: [],
+              serverId: []
+          };
+          btn.onclick = function(){
+              wx.chooseImage({
+					count: 1,
+					sourceType: ['album', 'camera'],
+					success:function(res){
+
+                        images.localId = res.localIds;
+                        var i = 0, length = images.localId.length;
+
+                        document.getElementById('show{$field['refid']}').src = images.localId;
+					var wxUpload = function() {
+                        wx.uploadImage({
+                            localId: images.localId[i], // 需要上传的图片的本地ID，由chooseImage接口获得
+                            isShowProgressTips: 1, // 默认为1，显示进度提示
+                            success: function (res) {
+                                i++;
+                                //将上传成功后的serverId保存到serverid
+                                images.serverId.push(res.serverId);
+                                //(serverId 即 media_id,公众号此后可根据该media_id来获取多媒体)将上传的图片通过AJAX远程提交给php下载到本地服务器
+								var url = "{php echo $this->createMobileUrl('uploads',array('type'=>'image'));}&serverId=" + res.serverId + "&localId=" + i;
+								$.post(url, function(dat){
+									var dat = eval("("+dat+")");
+									if (dat.status == 'success') {
+										$.toast(dat.message, "success");
+										$('input[name="{$info['redid'][$fid]}"]').val(dat.path);
+									}else{
+										$.toast(dat.message, "cancel");
+										document.getElementById('show{$field['refid']}').src = "";
+									}
+								});
+                                if(i < length){
+                                    wxUpload();
+                                }
+                            },
+							fail: function (res) {
+								alert(JSON.stringify(res));
+							}
+                        });
+						
+					};
+					wxUpload();
+
+                   }
+              });
+  
+          }
+		</script>
+		<div class="weui_cells weui_cells_form">
+		{/if}
+		
+		{if $field['type'] == 'calendar'}
+		<div class="weui_cell">
+			<div class="weui_cell_hd"><label for="" class="weui_label">{$field['fid']}{if $field['essential']}<span>*</span>{/if}</label></div>
+				<div class="weui_cell_bd weui_cell_primary">
+					<input class="weui_input" name="{$info['redid'][$fid]}" type="text" value="{$info['fields'][$fid]} " placeholder="{$field['tixing']}" id="{$field['refid']}">
+					<script>
+						$("#{$field['refid']}").datetimePicker({title:"选择{$field['fid']}",m:1});
+					</script>
+				</div>
+		</div>
+		{/if}
+		
+		{if $field['type'] == 'range'}
+		<div class="weui_cell">
+			<div class="weui_cell_hd"><label for="" class="weui_label">{$field['fid']}{if $field['essential']}<span>*</span>{/if}</label></div>
+				<div class="weui_cell_bd weui_cell_primary">
+					<input class="weui_input" type="text" name="{$info['redid'][$fid]}" value="{$info['fields'][$fid]}" placeholder="{$field['tixing']}" id="{$field['refid']}" />
+				</div>              
+		</div>
+		<script>
+			$("#{$field['refid']}").datetimePicker({title:"选择{$field['fid']}",m:0});
+		</script>
+		{/if}
+		
+		{if $field['type'] == 'reside'}
+		<div class="weui_cell">
+			<div class="weui_cell_hd"><label for="" class="weui_label">{$field['fid']}{if $field['essential']}<span>*</span>{/if}</label></div>
+				<div class="weui_cell_bd weui_cell_primary">
+					<input class="weui_input" type="text" name="{$info['redid'][$fid]}" value="{$info['fields'][$fid]}" placeholder="{$field['tixing']}" id="{$field['refid']}"/>
+				</div>
+		</div>
+		<script>
+		$("#{$field['refid']}").cityPicker({
+			title: "{$field['fid']}"
+		});
+		</script>
+		{/if}		
+		{/loop}
+</div>
+	
+    <div class="weui_btn_area row">
+		<input type="hidden" name="token" value="{$_W['token']}" />
+        <button class="weui_btn weui_btn_primary" name="submit" type="submit" id="showTool">{$submitname}</button>
+    </div>
+</form>
+</div>
+<script type="text/javascript">
+function show(obj,id){
+	var pic=document.getElementById(id).src;
+	wx.previewImage({
+		current: pic,
+		urls: [pic]
+		
+	});
+}
+$(function(){
+	$("#showTool").click(function(){
+		{loop $ds $fid $field}
+		{if $field['essential']}
+		{if in_array($field['type'], array('text', 'calendar', 'email', 'radio', 'checkbox', 'select', 'range'))}
+		if($('input[name="{$info['redid'][$fid]}"]').val() == '') {
+			$.toast("{$field['fid']} 不能为空", "cancel");
+			return false;
+		}
+		{/if}
+		{if in_array($field['type'], array('image'))}
+		if($(':input[name="{$info['redid'][$fid]}"]').val() == '') {
+			$.toast("{$field['fid']} 必须上传", "cancel");
+			return false;
+		}
+		{/if}
+		{if in_array($field['type'], array('textarea'))}
+		if($('textarea[name="{$info['redid'][$fid]}"]').val() == '') {
+			$.toast("{$field['fid']} 必须填写", "cancel");
+			return false;
+		}
+		{/if}
+		{if in_array($field['type'], array('number'))}
+		var num = parseFloat($(':input[name="{$info['redid'][$fid]}"]').val());
+		if(isNaN(num)) {
+			$.toast('{$field['fid']} 必须输入数字.');
+			return false;
+		}
+		{/if}
+		{if in_array($field['type'], array('email'))}
+		var mail = $(':text[name="{$info['redid'][$fid]}"]').val();
+		if(!(/^\w+((-\w+)|(\.\w+))*\@[A-Za-z0-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z0-9]+$/i).test(mail)) {
+			$.toast("{$field['fid']} 请正确邮箱地址", "cancel");
+			return false;
+		}
+		{/if}
+		{/if}
+		{/loop}
+		return true;
+	});
+});
+
+</script>
+{template 'footers'}

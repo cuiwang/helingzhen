@@ -1,0 +1,161 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+    <li {if $op == 'display'} class="active" {/if}><a href="{php echo $this->createWebUrl('slide',array('op' =>'display'))}">幻灯片</a></li>
+    <li{if empty($slide['id']) && $op== 'post'} class="active" {/if}><a href="{php echo $this->createWebUrl('slide',array('op' =>'post'))}">添加幻灯片</a></li>
+    {if !empty($slide['id']) &&  $op== 'post'}<li  class="active"><a href="{php echo $this->createWebUrl('slide',array('op' =>'post','id'=>$slide['id']))}">编辑幻灯片</a></li>{/if}
+</ul>
+
+{if $op == 'display'}
+<link rel="stylesheet" href="../addons/amouse_article/style/css/jquery-ui-tooltip.min.css?v=20140603" />
+<script type="text/javascript" src="../addons/amouse_article/style/css/jquery-ui-tooltip.min.js?v=20140601" ></script>
+<div class="panel panel-info">
+    <div class="panel-heading">筛选</div>
+    <div class="panel-body">
+        <form role="form" class="form-horizontal" method="get" action="./index.php">
+            <input type="hidden" name="m" value="amouse_article" >
+            <input type="hidden" name="do" value="slide" >
+            <input type="hidden" name="c" value="site" />
+            <input type="hidden" name="a" value="entry" />
+            <input type="hidden" value="display" name="op">
+
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-2 col-md-2 control-label">关键字</label>
+                <div class="col-sm-8 col-md-8 col-lg-8">
+                    <input class="form-control" name="keyword" id="" type="text" value="{$_GPC['keyword']}">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-2 col-md-2 control-label">分类</label>
+                <div class="col-sm-8 col-md-8 col-lg-8 col-xs-12">
+                    <select id="cid" name="cid" class="form-control">
+                        <option value="0">选择分类</option>
+                        {loop $category $row}
+                        <option value="{$row['id']}">{$row['name']}</option>
+                        {/loop}
+                    </select>
+                </div>
+                <div class="pull-right col-xs-12 col-sm-2 col-md-2 col-lg-2">
+                    <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<div class="main panel panel-default">
+    <div class="panel-body table-responsive">
+        <table class="table table-hover">
+            <thead class="navbar-inner">
+            <tr>
+                <th style="width:30px;">ID</th>
+                <th>标题</th>
+                <th>幻灯片图片</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {loop $list $slide}
+            <tr>
+                <td>{$slide['id']}</td>
+                <td>{if !empty($slide['pid'])}<span class="text-error">[{$category[$slide['pid']]['name']}]</span>{/if}
+                    {$slide['title']}</td>
+                <td>
+                    <img src="{php echo strpos($slide['thumb'],'http://')=== FALSE?($_W['attachurl'].$slide['thumb']):$slide['thumb']}" height="45px" width="45px" />
+                </td>
+                <td style="text-align:left;">
+                    <a href="{php echo $this->createWebUrl('slide', array('op' => 'post', 'id' => $slide['id']))}" class="btn btn-mini btn-primary"><i class="fa fa-edit"></i></a>
+                    <a onclick="return confirm('此操作不可恢复，确认吗？'); return false;"
+                       href="{php echo $this->createWebUrl('slide', array('id' => $slide['id'],'op'=>'deleteop'))}" title="删除" class="btn btn-mini btn-danger">
+                        <i class="fa fa-times"></i></a>
+
+                </td>
+            </tr>
+            {/loop}
+            </tbody>
+        </table>
+        <div style="margin:0 auto;margin-right: auto;vertical-align: middle;text-align: center;" >
+            {$pager}
+        </div>
+    </div>
+</div>
+<script>
+    $("td.qrcode").tooltip({
+        items:'img',
+        content: function() {
+            return "<img width='300px' height='300px' src='"  + $(this).attr("src") + "'></img>";
+        },
+        position: {
+            my : "right bottom-300",
+            collision: "fit"
+        }
+    });
+</script>
+{elseif $op == 'post'}
+<div class="main">
+    <form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" onsubmit='return formcheck()'>
+        <input type="hidden" name="id" value="{$slide['id']}" />
+        <div class="panel panel-default">
+        <div class="panel-heading">
+            幻灯片设置
+        </div>
+        <div class="panel-body">
+
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style="color:red">*</span>幻灯片标题</label>
+                <div class="col-sm-9">
+                    <input type="text" id='title' name="title" class="form-control" value="{$slide['title']}" />
+                </div>
+            </div>
+
+
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">类别</label>
+                <div class="col-sm-8 col-xs-12">
+                    <select id="pid" name="pid" class="form-control">
+                        <option value="0">选择父分类</option>
+                        {loop $category $row}
+                        {if $pid}
+                        <option value="{$row['id']}" {if $row['id']==$pid} selected="selected"{/if}>{$row['name']}</option>
+                        {else}
+                        <option value="{$row['id']}" {if $row['id']==$slide['pid']} selected="selected"{/if}>{$row['name']}</option>
+                        {/if}
+                        {/loop}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">幻灯片图片</label>
+                <div class="col-sm-9">
+                    {php echo tpl_form_field_image('thumb', $slide['thumb'])}
+                    <span>建议尺寸：640像素 * 425像素</span>
+                </div>
+
+            </div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">幻灯片连接</label>
+                <div class="col-sm-9">
+                    <input type="text" name="link" class="form-control" value="{$slide['link']}" />
+                </div>
+            </div>
+
+        </div>
+    </div>
+        <div class="form-group col-sm-12">
+            <input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+            <input type="hidden" name="token" value="{$_W['token']}" />
+        </div>
+    </form>
+</div>
+
+<script language='javascript'>
+    function formcheck() {
+        if ($("#title").isEmpty()) {
+            Tip.focus("title", "请填写幻灯片名称!");
+            return false;
+        }
+        return true;
+    }
+</script>
+{/if}

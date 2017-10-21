@@ -1,0 +1,517 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+    <li {if $op =='post' && empty($id)}class="active"{/if}><a href="{php echo $this->createWebUrl('Paper', array('op' => 'post'));}">添加精美图文</a>
+    </li>
+    <li {if $op =='display'}class="active"{/if}><a href="{php echo $this->createWebUrl('Paper',array('op'=>'display'));}">管理精美图文</a></li>
+    <li {if $_GPC['do'] == 'art'}class="active"{/if}><a href="{php echo $this->createWebUrl('art')}">导入文章</a></li>
+    {if !empty($id) && $op == 'post'}
+    <li class="active">  <a href="{php echo $this->createWebUrl('paper',array('op'=>'post','id'=>$id));}">编辑精美图文</a> </li> {/if}
+    <li {if $op =='list'}class="active"{/if}><a href="{php echo $this->createWebUrl('comment',array('op'=>'list'));}">留言记录</a></li>
+    {if !empty($articleid) && $op =='alist'}
+    <li class="active"><a href="{php echo $this->createWebUrl('admire',array('op'=>'alist','articleid'=>$articleid));}">
+        赞赏记录</a></li>{/if}
+    {if $op =='setadmire' && !empty($articleid) }
+    <li class="active"><a href="{php echo $this->createWebUrl('paper',array('op'=>'setadmire','articleid'=>$articleid));}">赞赏设置</a></li>{/if}
+</ul>
+<style>
+    .table td span {
+        display: inline-block;
+        margin-top: 4px;
+    }
+    .table td input {
+        margin-bottom: 0;
+    }
+</style>
+{if $op == 'display'}
+<div class="alert alert-info">
+    提示: 点击是否评论 可自动切换评论开启关闭功能。如果开启评论，则需要调用网页授权接口获取昵称头像信息。<br>
+    点击是否赞赏 可自动切换赞赏开启关闭功能。如果开启赞赏，则需要调用网页授权接口获取昵称头像信息。
+</div>
+<div class="panel panel-info">
+    <div class="panel-heading">筛选</div>
+    <div class="panel-body">
+        <form action="./index.php" method="get" class="form-horizontal" role="form">
+            <input type="hidden" name="c" value="site"/>
+            <input type="hidden" name="a" value="entry"/>
+            <input type="hidden" name="m" value="amouse_article"/>
+            <input type="hidden" name="do" value="paper"/>
+            <input type="hidden" name="op" value="display"/>
+
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-2 col-md-2 control-label">关键字</label>
+
+                <div class="col-sm-8 col-md-8 col-lg-8">
+                    <input class="form-control" name="keyword" id="" type="text" value="{$_GPC['keyword']}">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-2 col-md-2 control-label">文章分类</label>
+
+                <div class="col-sm-8 col-md-8 col-lg-8 col-xs-12">
+                    {php echo tpl_form_field_category_2level('category', $parent, $children,$_GPC['category']['parentid'], $_GPC['category']['childid']);}
+                </div>
+                <div class="pull-right col-xs-12 col-sm-2 col-md-2 col-lg-2">
+                    <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<form action="" id="form2" method="post" onsubmit="return formcheck(this)">
+    <div class="panel panel-default">
+        <div class="table-responsive panel-body">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th style="width:5%;">全选</th>
+                    <th style="width:25%;">标题</th>
+                    <th style="width:12%;">创建时间</th>
+                    <th style='width:8%;'>是否评论</th>
+                    <th style='width:8%;'>是否赞赏</th>
+                    <th style="width:42%; text-align:center;">操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                {loop $list $item}
+                <tr>
+                    <td>
+                        <input type="checkbox" value="{$item['id']}" name="delete[{$item['id']}]">
+                    </td>
+                    <td>
+                        {if !empty($item['pcate'])}<span class="text-error">[{$category[$item['pcate']]['name']}]</span>{/if}{if
+                        !empty($item['ccate'])}<span class="text-info">[{$category[$item['ccate']]['name']}]</span>{/if}
+                        <a href="{php echo $this->createWebUrl('paper', array('op' => 'post', 'id' => $item['id']))}"
+                           style="color:#333;">{$item['title']}
+                        </a>
+                    </td>
+                    <td>
+                        <p class="form-control-static form-control-static-list" style="line-height:1.8em;">
+                            <span class="label label-primary">{php echo date('Y-m-d H:i', $item['createtime'])}</span>
+                        </p>
+                    </td>
+                    <td>
+                        <label title="点击自动切换关闭开启评论" data="{$item['iscomment']}" class='label label-default {if $item['iscomment']==1}label-success{/if}'
+                        onclick="setProperty(this,{$item['id']},'iscomment')">{if $item['iscomment']==0}开启{else}关闭{/if}
+                        </label>
+                    </td>
+                    <td>
+                        <label title="点击自动切换关闭开启评论" data="{$item['isadmire']}" class='label label-default {if $item['isadmire']==1}label-success{/if}'
+                        onclick="setProperty(this,{$item['id']},'isadmire')">{if $item['isadmire']==0}开启{else}关闭{/if}
+                        </label>
+                    </td>
+                    <td style="width:40%;text-align:center;">
+
+                        <a href="{php echo $this->createWebUrl('paper', array('op' => 'setadmire', 'articleid' => $item['id']))}"
+                           title="评论" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm"><i
+                                class="fa fa-adjust">赞赏设置</i>
+                        </a>
+                        <a href="{php echo $this->createWebUrl('admire', array('op' => 'alist', 'articleid' => $item['id']))}"
+                           title="评论" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm"><i
+                                class="fa fa-list">赞赏记录</i>
+                        </a>
+
+                        <a data-url="{php echo $_W['siteroot'].'app/'.substr($this->createMobileUrl('detail',array('id'=>$item[id]),true),2);}" href="{php echo $_W['siteroot'].'app/'.substr($this->createMobileUrl('detail',array('id'=>$item[id]),true),2);}"
+                           target="_blank" class="btn btn-default btn-sm">  <i class="fa fa-eye">查看</i>
+                        </a>
+                        <a href="{php echo $this->createWebUrl('comment', array('op' => 'list', 'articleid' => $item['id']))}"
+                           title="评论" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm"><i
+                                class="fa fa-list">评论</i>
+                        </a>
+                        <a href="{php echo $this->createWebUrl('paper', array('op' => 'post','page'=>$pindex, 'id' => $item['id']))}" title="编辑" data-toggle="tooltip"
+                           data-placement="top" class="btn btn-default btn-sm"><i  class="fa fa-edit">编辑</i>
+                        </a>
+                        <a onclick="return confirm('删除文章会删除关联的评论，以及关键字，确认吗？'); return false;"
+                           href="{php echo $this->createWebUrl('paper', array('op' => 'delete', 'id' => $item['id']))}"
+                           title="删除" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-times"></i>删除</a>
+                    </td>
+                </tr>
+                {/loop}
+                <tr>
+                    <td colspan="3">
+                        <input type="checkbox"  onclick="var ck = this.checked;$(':checkbox').each(function(){this.checked = ck});" name=''>
+                        <input class="btn btn-primary" type="submit" value="删除" name="submit" >
+                        <!--<input type="hidden" value="paper" name="do">
+                        <input type="hidden" value="delete" name="op">
+                        <input type="hidden" name="token" value="{$_W['token']}" />-->
+                    </td>
+                    <!--<td colspan="3">
+                        <input name="submit" type="submit" class="btn btn-primary" value="批量更新排序">
+                        <input type="hidden" name="token" value="{$_W['token']}" />
+                    </td>-->
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</form>
+{$pager}
+<script type="text/javascript">
+    var category = {php echo json_encode($children)};
+    require(['bootstrap'], function ($) {
+        $('.btn').hover(function () {
+            $(this).tooltip('show');
+        }, function () {
+            $(this).tooltip('hide');
+        });
+    });
+
+    $('#form2').submit(function(){
+        if($(":checkbox[name='delete[]']:checked").size() > 0){
+            return confirm('删除文章会删除关联的评论，以及关键字，您确定删除吗？');
+        }
+        return false;
+    });
+
+    function setProperty(obj, id,type) {
+        $(obj).html($(obj).html() + "...");
+        $.post("{php echo $this->createWebUrl('paper',array('op'=>'setstatus'))}",{id: id,type: type,data: obj.getAttribute("data")},function (d) {
+            $(obj).html($(obj).html().replace("...", ""));
+            $(obj).html(d.data == '1' ? '关闭' : '开启');
+            $(obj).attr("data", d.data);
+            if (d.result == 1) {
+                $(obj).toggleClass("label-info");
+                //  location.reload();
+            }
+        }, "json");
+    }
+</script>
+{elseif $op == 'post'}
+<div class="clearfix">
+    <form class="form-horizontal form" action="" method="post" enctype="multipart/form-data">
+        <div class="panel panel-default">
+            <div class="panel-heading">文章管理</div>
+            <div class="panel-body">
+                <input type="hidden" name="id" value="{$item[id]}">
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">访问地址</label>
+                    <div class="col-sm-8">
+                        <p class="form-control-static">
+                            <a class="preview_url"
+                               href="{php echo '/app/'.substr($this->createMobileUrl('detail',array('id'=>$item[id]),true),2);}"
+                               target="_blank">
+                                {php echo $_W['siteroot'].'app/'.substr($this->createMobileUrl('detail',array('id'=>$item[id]),true),2);}
+                            </a>
+                        </p>
+                        <div class="help-block">如果设置了外链，会直接访问外链地址</div>
+                    </div>
+                </div>
+
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">是否开启评论</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <div style="float: left">
+                            <label for="isshow3" class="radio-inline">
+                                <input type="radio" name="iscomment" value="0" id="isshow3" {if $item['iscomment']==0}checked{/if}> 开启</label>
+                            <label for="isshow4" class="radio-inline">
+                                <input type="radio" name="iscomment" value="1" id="isshow4" {if $item['iscomment']==1}checked{/if} > 关闭</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">标题</label>
+                    <div class="col-sm-8">
+                        <input type="text" class="form-control" placeholder="" name="title" value="{$item['title']}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">文章触发关键字</label>
+                    <div class="col-sm-8 col-xs-12">
+                        <input type="text" class="form-control" placeholder="" name="keyword" value="{$keywords}">
+                        <div class="help-block">添加关键字以后,系统将生成一条图文规则,用户可以通过输入关键字来阅读文章</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">是否开启赞赏</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <div style="float: left">
+                            <label for="isadmire1" class="radio-inline">
+                                <input type="radio" id="isadmire1" name="isadmire" onclick="sendtypeshow(false)"  value="0"{if $item['isadmire']==0}checked{/if}>开启</label>
+                            <label for="isadmire2" class="radio-inline">
+                                <input type="radio" id="isadmire2" name="isadmire" value="1" onclick="sendtypeshow(true)" {if $item['isadmire']==1}checked{/if}>关闭</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group model0">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">赞赏引导语</label>
+                    <div class="col-sm-8">
+                        <input type="text" class="form-control" placeholder="" name="admiretxt" value="{$item['admiretxt']}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">排序</label>
+                    <div class="col-sm-8 col-xs-12">
+                        <input type="text" class="form-control" placeholder="" name="displayorder" value="{$item['displayorder']}">
+                        <span class="help-block">文章的显示顺序，越大则越靠前</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">虚拟发布时间</label>
+                    <div class="col-sm-8 col-xs-12">
+                        <input type="text" name="createtime" class="form-control judge" style="padding-left: 12px; "
+                               value="{if $id}{php echo date('Y-m-d H:i', $item['createtime'])}{else}{php echo date('Y-m-d H:i');}{/if}"
+                               placeholder="虚拟发布时间 (格式: {php echo date('Y-m-d  H:i');})" bind-in="art_date_v" bind-de="{php echo date('Y-m-d H:i');}">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">缩略图</label>
+                    <div class="col-sm-9">
+                        {php echo tpl_form_field_image('thumb', $item['thumb'])}
+                        <span class="help-block">
+                            建议图片大小为：400*240
+                        </span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">文章类别</label>
+                    <div class="col-sm-8 col-xs-12">
+                        {php echo tpl_form_field_category_2level('category', $parent, $children, $pcate, $ccate)}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">来源</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="图文消息的来源地址" name="outLink" value="{$item['outLink']}"/>
+                            <span class="input-group-btn">
+                                <button class="btn btn-default link_select" type="button"><i class="fa fa-external-link"></i> 系统链接</button>
+                            </span>
+
+                        </div>
+                        <span>
+                            也可以填写外表连接。如果填写连接，会跳转到此连接,转成短地址。<a target="_blank" href="http://www.dwz.cn/">短网址转换</a>
+                             </span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">简介</label>
+                    <div class="col-sm-8 col-xs-12">
+                        <textarea class="form-control" name="description" rows="5">{$item['description']}</textarea>
+                    </div>
+                </div>
+
+
+                {if empty($item['outLink'])}
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">文章作者</label>
+                    <div class="col-sm-8 col-xs-12">
+                        <input type="text" class="form-control" id="author" name="author" value="{$item['author']}">
+                    </div>
+                </div>
+
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">是否开启背景音乐</label>
+                    <div class="col-sm-9">
+                        <label for="status_01">
+                            <input type="radio" name="bg_music_switch" value="1" class="js_music_open" id="status_01"{if $item['bg_music_switch']==1}checked{/if}/>开启
+                        </label>
+
+                        <label for="status_02">
+                            <input type="radio" name="bg_music_switch" value="2" class="js_music_close" id="status_02" {if $item['bg_music_switch']==2}checked{/if}/>关闭</label>
+                        <span class="help-block">如果关闭的话，前端不会出现音乐播放器</span>
+                    </div>
+                </div>
+                <div class="form-group" id="js_music_div">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">音频链接</label>
+                    <div class="col-sm-9 col-xs-12">
+                        {php echo tpl_form_field_audio('musicurl', $item['musicurl']);}
+                    <span class="help-block">选择上传的音频文件或直接输入URL地址，常用格式：mp3 (保证浏览网页的加载速度,上传音乐最大为 2MB
+                        <!-- <a  href="http://mp.weixin.qq.com/s?__biz=MjM5MTM3MjMzMQ==&amp;mid=206141649&amp;idx=1&amp;sn=95b617a001b9d9371d4f66d73404be91##wechat_redirect" target="_blank">查看音乐上传帮助
+                    </a>-->)
+                    </span>
+
+                    </div>
+                </div>
+
+                <div class="form-group clearfix">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">选择内容页面模板</label>
+                    <div class="col-sm-8 col-xs-12">
+                        {template 'a_tpl'}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label"></label>
+                    <div class="col-sm-8">
+                        <div class="help-block">
+                            <label class="checkbox-inline">
+                                <input type="checkbox" name="autolitpic" value="1"{if empty($item['thumb'])} checked{/if}>提取内容的第一个图片为缩略图
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">内容</label>
+                    <div class="col-sm-8">
+                        {php echo tpl_ueditor('content', $item['content']);}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">一键拨号</label>
+                    <div class="col-sm-8 col-xs-12">
+                        <input type="text" class="form-control" id="tel" name="tel" value="{$item['tel']}">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">阅读量</label>
+                    <div class="col-sm-8 col-xs-12">
+                        <input type="text" class="form-control" id="clickNum" name="clickNum" value="{$item['clickNum']}">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">点赞量</label>
+                    <div class="col-sm-8 col-xs-12">
+                        <input type="text" class="form-control" id="zanNum" name="zanNum" value="{$item['zanNum']}">
+                    </div>
+                </div>
+                {/if}
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-sm-12">
+                <input name="submit" type="submit" value="提交" class="btn btn-primary col-lg-1">
+                <input type="hidden" name="token" value="{$_W['token']}"/>
+            </div>
+        </div>
+    </form>
+</div>
+<script type="text/javascript">
+    require(['jquery', 'util'], function ($, u) {
+        {if $item['bg_music_switch']==2}
+        $("#js_music_div").toggleClass('hide', $(this).prop("checked"));
+        {/if}
+
+        $(".js_music_close").on("change", function () {
+            $("#js_music_div").toggleClass('hide', $(this).prop("checked"));
+        });
+        $(".js_music_open").on("change", function () {
+            $("#js_music_div").toggleClass('hide', !$(this).prop("checked"));
+        });
+        $('#credit1').click(function () {
+            $('#credit-status1').show();
+        });
+        $('#credit0').click(function () {
+            $('#credit-status1').hide();
+        });
+
+        $('.link_select').unbind('click').click(function(){
+            var ipt = $(this).parent().prev();
+            util.linkBrowser(function(href){
+                ipt.val(href);
+            });
+        });
+    });
+    function sendtypeshow(sf){
+        if (sf){
+            $(".model0").hide();
+        } else {
+            $(".model0").show();
+        }
+    }
+</script>
+<script type="text/javascript">
+    //放大图片
+    $(function () {
+        // 链接二维码
+        $(".preview_url").mouseover(function (e) {
+            var encodeurl = $(this).attr("href").replace(/&/g, "%26");
+            var qrcodeimg = "<div id='qrcodeimg'><img src='http://qr.liantu.com/api.php?bg=f3f3f3&fg=ff0000&gc=222222&el=l&w=200&m=10&text=" + encodeurl + "' width='300' alt='二维码'/><\/div>";
+            $("body").append(qrcodeimg); //把它追加到文档中
+            $("#qrcodeimg").css({
+                "z-index": 9999,
+                "position": "absolute",
+                "top": (e.pageY + 10) + "px",
+                "left": (e.pageX + 10) + "px"
+            }).show("fast");   //设置x坐标和y坐标，并且显示
+        }).mouseout(function () {
+            $("#qrcodeimg").remove();  //移除
+        }).mousemove(function (e) {
+            $("#qrcodeimg").css({
+                "z-index": 9999,
+                "position": "absolute",
+                "top": (e.pageY + 10) + "px",
+                "left": (e.pageX + 10) + "px"
+            });   //设置x坐标和y坐标，并且显示
+        });
+
+    });
+</script>
+{elseif $op == 'setadmire'}
+<div class="alert alert-info">
+    最多设置6个价格
+</div>
+<div class="alert alert-info">
+    赞赏文章:【 {$item['title']} 】
+</div>
+<div class="main">
+    <form class="form-horizontal form" action="" method="post" onsubmit="return formcheck(this)">
+        <input type="hidden" name="articleid" value="{$articleid}">
+        <table class="table table-hover">
+            <thead class="navbar-inner">
+            <tr>
+                <th style='width:100px;'>排序<i></i></th>
+                <th style='width:250px;'>价格<i></i></th>
+                <th class="row-hover span1" style="text-align:right;width:60px;">操作</th>
+            </tr>
+            </thead>
+            <tbody id="status-items">
+            {loop $adsets $adset}
+            <tr>
+                <td>
+                    <input name="ids[]" type="hidden" value="{$adset['id']}">
+                    <input class="form-control" name="displayorder[]" type="text" value="{$adset['displayorder']}">
+                </td>
+                <td>
+                    <input class="form-control" name="price[]" type="text" value="{$adset['price']}">
+                </td>
+                <td style="text-align:right;" class="span1">
+                    <a onclick="if (confirm('删除操作不可恢复，确认吗？')){ $(this).parent().parent().next().remove(); return true;} else {return false;}"
+                       href="{php echo $this->createWebUrl('paper', array('op' => 'deletead', 'id' => $adset['id']))}"
+                       class="btn btn-default btn-sm" data-original-title="删除"><i class="fa fa-times"></i></a>
+
+                </td>
+            </tr>
+            {/loop}
+            </tbody>
+            <tr>
+                <td colspan="5">
+                    <a href="javascript:;" onclick="addStatusItem()"><i class="icon-plus-sign-alt"></i> 添加价格</a>
+                </td>
+            </tr>
+        </table>
+        <table class="tb">
+            <tr>
+                <td colspan="6">
+                    <button type="submit" class="btn btn-primary span3" name="submit" value="提交">提交</button>
+                    <input type="hidden" name="token" value="{$_W['token']}"/>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+<script type="text/javascript">
+
+    function addStatusItem() {
+        var html =
+                '<tr>' +
+                '<td><input class="form-control" name="displayorder[]" title="排序" placeholder="排序" type="text" value=""/></td>' +
+                '<td><input class="form-control" name="price[]" title="赞赏价格（元）" placeholder="赞赏价格（元）" type="text" value=""/></td>' +
+                '<td></td>' +
+                '<td style="text-align:right;"><a href="javascript:;" onclick="$(this).parent().parent().remove();" class="btn btn-small" title="删除此条目"><i class="icon-remove"></i></a></td>' +
+                '</tr>';
+        $('#status-items').append(html);
+    }
+
+</script>
+{/if}

@@ -1,0 +1,198 @@
+<!-- 
+ * 个人中心
+ * ============================================================================
+-->
+{php include $this->template('_header');}
+
+{if $op=='display'}
+<link href="{MODULE_URL}template/mobile/style/self.css?v=1.4.4" rel="stylesheet" />
+<div class="swiper-container swiper-container-horizontal swiper-container-autoheight">
+	<div class="swiper-wrapper">
+		<div id="box_status_0" class="swiper-slide swiper-slide-active">
+			<ul class="myvip-list">
+				<li>
+					{if $lessonmember['vip']==0 && $setting['vipdiscount']>0}
+					<div class="myvip-info cbox">
+						<div class="vip-discount-notice">开通会员VIP即可学习海量VIP免费课程，购买课程即可享受{php echo $setting['vipdiscount']/10;}折。</div>
+					</div>
+					{/if}
+					<div class="myvip-info cbox {php echo $lessonmember['vip']==0?'disabled':'normal';}">
+						<div class="flex">
+							<span>我的VIP：{if $lessonmember['vip']==0 && $lessonmember['validity']>0}已过期{elseif $lessonmember['vip']==0 && $lessonmember['validity']==0}未开通{elseif $lessonmember['vip']==1}已开通{/if}</span>
+							<span class="myvip-time">{if $lessonmember['vip']==1 || ($lessonmember['vip']==0 && $lessonmember['validity']>0)}过期时间：{php echo date('Y-m-d H:i:s', $lessonmember['validity']);}{/if}</span>
+						</div>
+					</div>
+
+					<div class="course-list2 wider">
+					{if !empty($vipserver)}
+						{loop $vipserver $vip}
+						<ul class="buyvip">
+							<li class="align">{$vip['viptime']}天</li>
+							<li class="align">{$vip['vipmoney']} 元</li>
+							<li class="buybtn"><a onclick="return confirm('确定提交订单?');return false;" href="{php echo $this->createMobileUrl('vip', array('op'=>'buyvip', 'viptime'=>$vip['viptime']));}">{if $lessonmember['vip']==0 && $lessonmember['validity']==0}开 通{else}续 费{/if}</a></li>
+						</ul>
+						{/loop}
+					{else}
+						<div class="no-content">
+							<i class="ico-none ico"></i>
+							<div>没找到任何会员服务价格表哦~</div>
+						</div>
+					{/if}
+						<div class="vip-card">
+							<a class="vip-gallery" href="{php echo $this->createMobileUrl('vip', array('op'=>'vipcard'));}">我有VIP服务卡?</a>
+						</div>
+					</div>
+				</li>
+				{if !empty($setting['vipdesc'])}
+				<li>
+					<div style="width:94%;font-size:.14rem;padding:0 3%;overflow-y:auto;">{$setting['vipdesc']}</div>
+				</li>
+				{/if}
+			</ul>
+			<ul id="loglist" class="order-list">
+			</ul>
+		</div>
+	</div>
+</div>
+
+<div id="loading" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:9999;"><div class="spinner"><div class="bounce1"></div><div class="bounce2"></div><div class="bounce3"></div></div></div>
+<div style="font-size:.12rem; text-align: center; {if empty($memberorder_list)}display:none;{/if}">
+	<a href="javascript:void(0);" id="btn_Page">点击加载更多</a>
+</div>
+
+<script type="text/javascript">
+var i = 1; //设置当前页数，全局变量
+var ajaxurl   = "{php echo $this->createMobileUrl('vip', array('op'=>'ajaxgetlist'));}";
+var loading = document.getElementById("loading");
+$(function () {
+    //根据页数读取数据  
+    function getData(page) {  
+        i++; //页码自动增加，保证下次调用时为新的一页。  
+        $.get(ajaxurl, {page: page}, function (data) {  
+            if (data.length > 0) {
+				loading.style.display = 'none';
+                var jsonObj = JSON.parse(data);
+                insertDiv(jsonObj);  
+            }
+        });  
+       
+    } 
+    //初始化加载第一页数据  
+    getData(1);
+
+    //生成数据html,append到div中  
+    function insertDiv(result) {  
+        var mainDiv =$("#loglist");
+        var chtml = '';  
+        for (var j = 0; j < result.length; j++) {  
+            chtml += '<li>';  
+            chtml += '	 <div class="order-info cbox">'; 
+			chtml += '		<div class="flex num-time">';
+			chtml += '			<span>订单ID：' + result[j].id + '</span>';
+			chtml += '			<span class="order-time">下单时间：' + result[j].addtime + '</span>';
+			chtml += '		</div>';
+			chtml += '		<span class="pay-state">' + result[j].status + '</span>';
+			chtml += '	 </div>';
+			chtml += '	 <div class="course-list row2 wider">';		
+			chtml += '		<a href="javascript:;" class="item">';
+			chtml += '			<div class="vbox myviplog">'; 
+			chtml += '				<h3 class="te2 flex" style="color:#0E2ED4;">购买详情：购买' + result[j].viptime + '天VIP服务</h3>'; 
+			chtml += '				<span>支付方式：' + result[j].paytype + '</span>';
+			chtml += '				<span>付款时间：' + result[j].paytime + '</span>';
+			chtml += '				<span style="color:#F75200;">应付金额：' + result[j].vipmoney + ' 元</span>';
+			chtml += '			</div>';
+			chtml += '		</a>';
+			chtml += '	</div>';
+			chtml += '</li>';
+        }
+		mainDiv.append(chtml);
+		if(result.length==0){
+			document.getElementById("btn_Page").innerHTML="已全部加载完成";
+		}
+    }  
+  
+    //==============核心代码=============  
+    var winH = $(window).height(); //页面可视区域高度   
+  
+    var scrollHandler = function () {  
+        var pageH = $(document.body).height();  
+        var scrollT = $(window).scrollTop(); //滚动条top   
+        var aa = (pageH - winH - scrollT) / winH;  
+        if (aa < 0.02) { 
+            if (i % 1 === 0) {
+                getData(i);  
+                $(window).unbind('scroll');  
+                $("#btn_Page").show();
+            } else {  
+                getData(i);  
+                $("#btn_Page").hide();
+            }  
+        }  
+    }  
+    //定义鼠标滚动事件
+    $(window).scroll(scrollHandler);
+    //继续加载按钮事件
+    $("#btn_Page").click(function () {
+		loading.style.display = 'block';
+        getData(i);
+        $(window).scroll(scrollHandler);
+    });
+  
+});  
+</script>
+
+{elseif $op=='vipcard'}
+<style type="text/css">
+body {margin:0px; background:#efefef; -moz-appearance:none;}
+input {-webkit-appearance:none; outline:none;}
+.balance_num {width:100%; margin-top:10px; text-align:center; line-height:24px; font-size:22px; color:#444;}
+.balance_sub {height:44px; width:94%; margin:14px 3% 0px; background:#31cd00; border-radius:4px; text-align:center; font-size:18px; line-height:44px; color:#fff;}
+.disabled { background:#ccc;}
+</style>
+
+<div id="spinners" style="display:none;"><div class="spinner"><div class="bounce1"></div><div class="bounce2"></div><div class="bounce3"></div></div></div>
+<form method="post" action="" onsubmit="return checknum();">
+	<div class="balance_num">
+	   <input type="text" name="card_password" id="card_password" style="width:90%; height:38px; font-size:16px; margin:auto; border:1px solid #eee; padding:0px 2%; text-align:center;" placeholder="请输入VIP服务卡密">
+	</div>
+	<div class="balance_num">
+		<input type="submit" name="submit" class="balance_sub" value="立即开通" />
+		<input type="hidden" name="token" value="{$_W['token']}" />
+	</div>
+</form>
+<script type="text/javascript">
+function checknum(){
+	var card_password = $("#card_password").val();
+	if(card_password==''){
+		alert("请输入VIP服务卡密");
+		return false;
+	}
+	document.getElementById("spinners").style.display = 'block';	
+}
+</script>
+{/if}
+
+{php echo register_jssdk(false);}
+<script type="text/javascript">
+wx.ready(function(){
+	var shareData = {
+		title: "{$sharelink['title']} - {$setting['sitename']} - {$_W['account']['name']}",
+		desc: "{$sharelink['desc']}",
+		link: "{php echo $shareurl;}",
+		imgUrl: "{php echo $_W['attachurl'];}{$sharelink['images']}",
+		trigger: function (res) {},
+		complete: function (res) {},
+		success: function (res) {},
+		cancel: function (res) {},
+		fail: function (res) {}
+	};
+	wx.onMenuShareTimeline(shareData);
+	wx.onMenuShareAppMessage(shareData);
+	wx.onMenuShareQQ(shareData);
+	wx.onMenuShareWeibo(shareData);
+	wx.onMenuShareQZone(shareData);
+	
+});
+</script>
+
+{php include $this->template('_footer');}

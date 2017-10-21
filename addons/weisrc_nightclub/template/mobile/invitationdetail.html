@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>微夜店</title>
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1">
+    <meta content="telephone=no" name="format-detection">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="stylesheet" href="{RES}css/reset.css?v={php echo $this->cur_version}" />
+    <link rel="stylesheet" href="{RES}css/bar.css?v={php echo $this->cur_version}" />
+    <style type="text/css">
+        #mask {
+            width: 100%;
+            height: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 10;
+            background: url({RES}images/opacity_6.png?v=1);
+            display: none;
+        }
+        #mask img {
+            float: right;
+            width: 80%;
+        }
+    </style>
+</head>
+<body>
+<!-- app底部导航栏 START -->
+{php include $this->template('/_menu');}
+<script>
+    function SetactivedIndex(url) {
+        if (url == null || url == undefined || url.trim() == "") return;
+        var $nav = $("nav.app li a[href='" + url + "']");
+        if ($nav) {
+            $("nav.app li.actived").removeClass("actived");
+            var $img = $nav.closest("li").addClass("actived").find("img");
+            if ($img)$img.attr("src", $img.attr("src").replace("white.png", "red.png"));
+        }
+    }
+</script>
+<!-- app底部导航栏 END -->
+<div id="content">
+    <img src="{RES}/images/invitation-header.jpg" style="display: block; width: 100%;">
+    <!-- 邀友帖列表 -->
+    <div class="outer-wrap">
+        <div class="inner-wrap invitation-details">
+            <p>不够嗨？还是把那群叽叽歪歪的哥们闺蜜喊出来，请选择一个雷人的请帖主题：</p>
+            <img src="{$invitation_bg}" class="invitation-img">
+            <p>来自酒吧的呼唤</p>
+            <div>
+                <p>
+                    亲，夜色太美，
+                    <br>
+                    人生太快，
+                    <br>
+                    来与不来，给个回信。
+                </p>
+                <img src="{$headimgurl}" onerror="javascript:this.src='{RES}/images/default-headimg.jpg';" alt="pic"  >
+                <p>{$nickname}</p>
+                <a href="#" class="ui-button button-30 button-orange" id="button-share">马上喊人</a>
+            </div>
+            <a href="{php echo $this->createMobileUrl('introduce')}" class="ui-button button-36 button-orange">酒吧介绍</a>
+        </div>
+    </div>
+</div>
+<div id="mask"><img src="{RES}images/share0.png?v=1"></div>
+<!-- app底部导航栏 END -->
+<script type="text/javascript" src="{RES}js/jquery-1.11.0.min.js?v={php echo $this->cur_version}"></script>
+<script type="text/javascript" src="{RES}js/swipe.js?v={php echo $this->cur_version}"></script>
+<script type="text/javascript" src="{RES}js/tocca.min.js?v={php echo $this->cur_version}"></script>
+<script type="text/javascript" src="{RES}js/bar.js?v={php echo $this->cur_version}"></script>
+<script>
+    $(function () {
+        //SetactivedIndex("invitation.aspx");
+    })
+</script>
+<script>
+    $(function () {
+        $("#mask").click(function () {
+            $(this).hide();
+        });
+
+
+        $("#button-share").click(function () {
+            //$.modal.close();
+            var h = $(document).height();
+            $("#mask").height(h);
+            $("#mask").show();
+            return false;
+        });
+    });
+</script>
+<script type="text/javascript">
+    function onBridgeReady() {
+        WeixinJSBridge.call('showOptionMenu');
+    }
+    if (typeof WeixinJSBridge == "undefined") {
+        if (document.addEventListener) {
+            document.addEventListener('WeixinJSBridgeReady', onBridgeReady, false);
+        } else if (document.attachEvent) {
+            document.attachEvent('WeixinJSBridgeReady', onBridgeReady);
+            document.attachEvent('onWeixinJSBridgeReady', onBridgeReady);
+        }
+    } else {
+        onBridgeReady();
+    }
+</script>
+<script language='javascript' src='{RES}/js/WeixinApi.min.js'></script>
+<script type="text/javascript">
+    var tScore = "{$page_score}";
+    var scoreArr = new Array();
+    WeixinApi.ready(function(Api) {
+        Api.showOptionMenu();
+        var wxData = {
+            "appId": "{$_W['account']['key']}",
+            "title" : '{$share_title}',
+            "imgUrl" : "{$share_image}",
+            "desc" : '{$share_desc}',
+            "link" : '{$share_url}'
+        };
+        // 分享的回调
+        var wxCallbacks = {
+            // 分享操作开始之前
+            ready:function () {
+//                wxData['title']=wxData['title'].replace('#score#',tScore);
+//                wxData['title']=wxData['title'].replace('#title#',"{$r[title]}");
+//                wxData['desc']=wxData['desc'].replace('#score#',tScore);
+//                wxData['desc']=wxData['desc'].replace('#title#',"{$r[title]}");
+            },
+            // 分享被用户自动取消
+            cancel : function(resp) {
+                alert("{$share_cancel}");
+            },
+            // 分享失败了
+            fail : function(resp) {
+                alert("分享失败，可能是网络问题，一会儿再试试？");
+            },
+            // 分享成功
+            confirm : function(resp) {
+                $.get("{php echo $this->createMobileUrl('share')}", {id: "{$r[id]}",op:'share'});
+                "{if !empty($follow_url)}"
+                window.location.href='{$follow_url}';
+                "{/if}"
+            }
+        };
+        Api.shareToFriend(wxData,wxCallbacks);
+        Api.shareToTimeline(wxData,wxCallbacks);
+        Api.shareToWeibo(wxData,wxCallbacks);
+    });
+</script>
+</body>
+</html>

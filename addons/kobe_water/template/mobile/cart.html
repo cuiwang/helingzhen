@@ -1,0 +1,185 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="pragma" content="no-cache" >
+    <meta http-equiv="Cache-Control" content="no-store,must-revalidate" >
+    <meta http-equiv="expires" content="Web, 26 Feb 1997 08:21:57 GMT">
+    <meta http-equiv="expires" content="0">
+	<title>{$setting['title']}</title>
+	<meta name="keywords" content="微订水">
+	<meta name="description" content="微订水">
+	<meta author="kobe" contet="QQ:2779736086">
+	<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+	<script type="text/javascript" src="../addons/kobe_water/template/js/jquery.min.js" ></script>
+	<script type="text/javascript" src="../addons/kobe_water/template/js/jquery.lazyload.min.js"></script>
+	<script type="text/javascript" src="../addons/kobe_water/template/js/bootstrap.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="../addons/kobe_water/template/css/font-awesome.min.css">
+	<link rel="stylesheet" type="text/css" href="../addons/kobe_water/template/css/main.css">
+	<meta content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0" name="viewport">
+	<meta name="format-detection" content="telephone=no">
+	<script type="text/javascript" src="../addons/kobe_water/template/js/target-script-min.js"></script>
+</head>
+<body>
+    <form method="post" action="{php echo $this->createMobileUrl('paycheck')}" >
+    <div class="shopPage">
+        <div class="topFloatBar">
+            <div class="topMenu">
+	            <div class="topBack">
+	                <a href="javascript:history.go(-1)">
+	                    <img src="../addons/kobe_water/template/images/icon-back.png" style="-webkit-touch-callout:none;-webkit-user-select:none;">
+	                </a>
+	            </div>
+	            <div class="topMore">
+	                <a href="javascript:history.go(-1)">
+	                    <img src="../addons/kobe_water/template/images/icon-cato.png" style="-webkit-touch-callout:none;-webkit-user-select:none;">
+	                </a>
+	            </div>
+	            <div class="topTitle">购物车</div>
+            </div>
+        </div>
+        <div class="cart-list">
+            <ul>
+                {loop $carts $id $cart}
+                {php $shop = pdo_fetch("SELECT * FROM ".tablename('hao_water_goods')." WHERE id = :id LIMIT 1", array(':id' => $cart['shop_id']));}
+                <li>                  
+                    <input type="hidden" class="price" value="{php echo $shop['goods_price']*$cart['shop_count'];}" >
+                    <div class="item">
+                        <div class="img">
+                            <a href="#">
+                               <img src="{php echo tomedia($shop['goods_image'])}" class="img-responsive" style="-webkit-touch-callout:none;-webkit-touch-callout:none;-webkit-user-select:none;" >
+                            </a>
+                        </div>
+                        <div class="info">
+                            <h3>{$shop['goods_title']}</h3>
+                            <strong>单价：￥{php echo number_format($shop['goods_price'],2);}</strong>
+                            <br>
+                            <p class="green">
+                               小计：￥
+                               <span>{php echo number_format($shop['goods_price']*$cart['shop_count'],2);}</span>
+                            </p>
+                            <div class="setNumber">
+                                <div class="setNumber">
+                                    <input type="button" value="-" class="reduceNum">
+                                    <input type="number" value="{$cart['shop_count']}" class="inputText" id="goodsNum" onchange="changeNum();" name="goodsNum[]">
+                                    <input type="button" value="+" class="addNum" style="float:right;" >
+                                    <input type="hidden" value ={$shop['goods_price']} />
+                                    <input type="hidden" name="shop_id[]" value="{$shop['id']}" />
+                                    <input type="hidden" name="cart_id[]" value="{$cart['id']}" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="oprate">
+                            <a onclick="del({$cart['id']})">
+                                <img src="../addons/kobe_water/template/images/icon-delete.png" style="-webkit-touch-callout:none;-webkit-user-select:none;">
+                            </a>
+                        </div>
+                    </div>  
+                </li>
+                {/loop}
+            </ul>
+            <script type="text/javascript">
+                $(function(){
+                    $length = $('.cart-list ul li').length;
+                    $val = 0;
+                    for (var i = 0; i < $length; i++) {
+                        $val += parseInt($('.cart-list ul li').eq(i).children().eq(0).val());
+                    }
+                    $('#pricetotal').text($val.toFixed(2));
+                });
+            </script>
+            <!-- <div class="recommoned" style="padding:10px;" >
+                <div class="content">
+                    <div class="item first">
+                        <img class="icon" src="../addons/kobe_water/template/images/icon-ticket.png" >
+                        可用优惠
+                    </div>
+                    <div id="recommondedShow">
+                        <div class="item">
+                            <strong style="color:#03F">赠：</strong>
+                            有米商城购物卡
+                            <div class="right"></div>
+                        </div>
+                    </div>
+                </div>
+            </div> -->
+        </div>
+        {if !empty($carts)}
+        <div class="cart-list">
+            <div class="total">
+                选<strong id="numbertotal">{$count[0]['count']}</strong>
+                件商品
+                <span>
+                ,应付
+                <strong id="pricetotal">71.00</strong>
+                元
+                </span>
+            </div>
+        </div>
+        {else}
+        <div class="cart-list">
+            <div class="total">
+                暂无任何商品
+            </div>
+        </div>
+        {/if}
+        {if !empty($carts)}
+        <div class="btnBar">
+            <button class="bigBtn orangeBtn" name="submit" type="submit" style="width:100%">去结算</button>
+            <input type="hidden" value="{$_W['token']}" name="token" />
+        </div>
+        {else}
+        <div class="btnBar">
+            <button class="bigBtn orangeBtn" style="width:100%;background-color:green;"><a href="{php echo $this->createMobileUrl('index');}" style="color:#fff;">去逛逛</a></button>
+        </div>
+        {/if}
+    </div>
+    </form>
+</body>
+<script type="text/javascript">
+    function del(id){
+        var msg = "您真的确定要删除吗？\n\n请确认！";
+        if (confirm(msg)==true){
+            var url = "{php echo $this->createMobileUrl('delcart')}";
+            $.ajax({
+                url:url,
+                type:'POST',
+                dataType:'json',
+                data:{'id':id},
+                success:function(data){
+                    if(data == 'success'){
+                        window.location.href = "{php echo $this->createMobileUrl('cart')}";
+                    }else{
+                        alert('删除失败！');
+                    }
+                }
+            });
+        }else{
+            return false;
+        }
+    }
+
+    $('.cart-list ul li .item .info .setNumber .setNumber .reduceNum').click(function(){
+        var num = $(this).siblings().eq(0).val();
+        var price = $(this).siblings().eq(2).val();
+        var pricetotal = $('#pricetotal').text();
+        var numbertotal = $('#numbertotal').text();
+        if(num == 1){
+          $(this).siblings().eq(0).val(1);
+        }else{
+          $(this).siblings().eq(0).val(parseInt(num)-1);
+          $('#pricetotal').text(parseInt(pricetotal)-parseInt(price));
+          $('#numbertotal').text(parseInt(numbertotal)-1);
+        }
+    });
+    $('.cart-list ul li .item .info .setNumber .setNumber .addNum').click(function(){
+        var num = $(this).siblings().eq(1).val();
+        var price = $(this).siblings().eq(2).val();
+        var pricetotal = $('#pricetotal').text();
+        var numbertotal = $('#numbertotal').text();
+        $(this).siblings().eq(1).val(parseInt(num)+1);
+        $('#pricetotal').text(parseInt(pricetotal)+parseInt(price));
+        $('#numbertotal').text(parseInt(numbertotal)+1);
+    });
+</script>
+</html>

@@ -1,0 +1,218 @@
+{template 'web/common/header-base'}
+{template 'web/common/header-nav'}
+{template 'web/common/header'}
+<link rel="stylesheet" href="{GARCIA_CSS}web/order.css">
+<script src="{GARCIA_JS}template.js"></script>
+<div class="mededed">
+ <div class="wrap">
+
+   <div class="grzxTabBox moduleItem ng-scope" ui-view="">
+     <ul class="grzxTabUl ng-scope">
+       <li class="grzxTabLi {if $type==3}cur{/if}"><a href="{php echo $this->createMobileUrl('myorder',array('display'=>'order','type'=>3))}">全部订单</a></li>
+       <li class="grzxTabLi {if $type==2}cur{/if}"><a href="{php echo $this->createMobileUrl('myorder',array('display'=>'order','type'=>2))}">未支付</a></li>
+       <li class="grzxTabLi {if $type==1}cur{/if}"><a href="{php echo $this->createMobileUrl('myorder',array('display'=>'order','type'=>1))}">已支付</a></li>
+   </ul>
+   <div class="grzxTabCBox ng-scope" id="grzxTabCBox">
+       <div class="grzxTabItem" ng-show="loading==false">
+           <div class="grzx_ddList">
+               <table class="gqDDListTable ng-hide" ng-show="list.length">
+                   <colgroup>
+                       <col width="300px">
+                       <col width="60px">
+                       <col width="160px">
+                       <col width="80px">
+                       <col width="50px">
+                       <col width="90px">
+                       <col wdith="auto">
+                   </colgroup>
+                   <thead>
+                   <tr>
+                       <th>项目信息</th>
+                       <th>项目状态</th>
+                       <th>筹资进度</th>
+                       <th>支付总额</th>
+                       <th>份数</th>
+                       <th>状态</th>
+                       <th>操作</th>
+                   </tr>
+                   </thead>
+
+                   {loop $list $row}
+               <tbody ng-repeat="order in list" class="ng-scope">
+                        <tr><td colspan="7"></td></tr>
+                <tr class="ftTr">
+                    <td colspan="6" class="ng-binding">{php echo date('Y-m-d H:i:s',$row['upbdate'])}
+                            <span class="dingdan">订单号码：
+                                <span class="fqr_linkA  ng-binding">{$row['tid']}</span>
+                            </span>
+                            <span class="dingdan" style="text-indent:0px;">发起人:
+                                <a tooltip="" class="fqr_linkA colorA02Link  ng-binding ng-isolate-scope" style="text-indent:0px;">
+                                    {php echo urldecode($row['nickname'])}</a>
+                            </span>
+                    </td>
+                    <td>
+                       <a  href="{php echo $this->createMobileUrl('myorder',array('display'=>'del_order','id'=>$row['id']))}" class="ftTr_delA site_ALink ng-scope" onclick="return confirm('确定删除还订单？')"></a>
+                    </td>
+                </tr>
+                <tr class="inforTr">
+                    <td>
+                        <div class="ddImgBox siteImgBox">
+                            <a  href="">
+                                <img src="{php echo tomedia($this->sys['logo'])}">
+                            </a>
+                        </div>
+                        <div class="ddImgText">
+                            <a href="{php echo $this->createMobileUrl('detail',array('id'=>$row['fid']))}" target="_blank" class="site_ALink ng-binding" href="/deal-show/id-577735">{$row['title']}</a>
+
+                        </div>
+                    </td>
+                    <td>
+                        <div>
+
+                            <p class="inforText_p ng-binding">{if $row['sstatus']==2}已完成{elseif $row['sstatus']==1}进行中{elseif $row['sstatus']==3}已过期{elseif $row['sstatus']==6}已删除{/if}</p>
+                        </div>
+                    </td>
+                    <td>
+                        <div>
+                            <p class="inforText_p ng-binding">目标：{$row['tar_monet']}元</p>
+
+                            <div class="inforRatioBox">
+                                <div class="inforRatio">
+                                    <div class="inner" ng-style="{width: order.project.progress+'%'}" style="width: {$row['present']}%;"></div>
+                                </div>
+                                <span class="ng-binding">{$row['present']}%</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div>
+                            <p class="inforText_p ng-binding">{$row['fee']}元</p>
+
+                        </div>
+                    </td>
+                    <td>
+                        <div>
+                            <p class="inforText_p ng-binding">1</p>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="tc">
+                            <p class="inforText_p ng-binding">{if $row['status']==1}已支付{else}
+                              {if $row['sstatus']==6}
+                               已删除
+                              {else}
+                              未支付
+                              {/if}
+                              {/if}</p>
+                        </div>
+                    </td>
+
+                    <td class="btnTd">
+
+                      {if $row['status']==1}
+                      <a target="_blank" class="ddLastbtn_B btn_ALink ng-scope" >已支付</a>
+                        {if $row['is_reward']==1}
+                        <br>
+                        {if $row['eid']==''}
+
+                         <a target="_blank" onclick="alert('暂无物流信息')" class="ddLastbtn_A btn_ALink ng-scope" >查看物流</a>
+                         {else}
+                         <a target="_blank" onclick="_showwl({$row['eid']})" class="ddLastbtn_A btn_ALink ng-scope" >查看物流</a>
+                         {/if}
+                        {/if}
+                      {else}
+                          {if $row['sstatus']==6}
+                              <a target="_blank" class="ddLastbtn_A btn_ALink ng-scope" >已删除</a>
+                          {else}
+                              {if $row['sstatus']==3}
+                              <a onclick="_tips('项目已过去无法支付')" target="_blank" class="ddLastbtn_A btn_ALink ng-scope" >去支付</a>
+                              {else}
+                              <a href="{php echo $this->createMobileUrl('pay',array('type'=>'reward','id'=>$row['reid'],'fid'=>$row['fid'],'tid'=>$row['tid']))}" target="_blank" class="ddLastbtn_A btn_ALink ng-scope" >去支付</a>
+                              {/if}
+                          {/if}
+                      {/if}
+                    </td>
+                </tr>
+                </tbody>
+                {/loop}
+               </table>
+           </div>
+           <div class="xxPageBox">
+              {$pager}
+           </div>
+
+       </div>
+   </div>
+   </div>
+
+ </div>
+ </div>
+
+ <div class="loadingbar">
+
+ </div>
+       <div class="loadtiaobox">
+         <p>上传中</p>
+         <div class="loadtiao"></div>
+       </div>
+
+
+<div class="" id="wuliublock"></div>
+<div class="modal-content" id="wxcoentent">
+        <div class="modal-header">
+            <button data-dismiss="modal" class="close iclose" type="button">×</button>
+            <h4 class="modal-title">查看物流</h4>
+        </div>
+        <div class="modal-body">
+          <div class="list-main">
+
+            </div>
+
+        </div>
+        <div class="modal-footer">
+            <button data-dismiss="modal" class="btn btn-default iclose" type="button" >关闭</button>
+        </div>
+    </div>
+
+    <script id="twl" type="text/html">
+      {{each data as row}}
+        <div class="list">
+            <div class="info" style="border:none">
+              <div class="step">{{row.context}}</div>
+              <div class="time">{{row.ftime}}</div>
+            </div>
+          <div class="dot"></div>
+        </div>
+        {{/each}}
+    </script>
+<script>
+
+ $(function(){
+     $(".iclose").bind('click',function(){
+         $("#wuliublock").fadeOut();
+         $("#wxcoentent").fadeOut();
+     })
+ })
+  function _showwl(id){
+    $.ajax({
+       url:base_url,
+       type:"post",
+       dataType:'json',
+       data:{
+           func:'wuliu',
+           action:'saerch',
+           apikey:apikey,
+           id:id
+       },success:function(res){
+
+
+          var h = template('twl',res.res);
+
+          $(".list-main").html(h);
+          var wuliublock = $("#wuliublock").fadeIn();
+          var wxcoentent = $("#wxcoentent").fadeIn();
+       }
+     })
+  }
+</script>
+{template 'web/common/footer'}

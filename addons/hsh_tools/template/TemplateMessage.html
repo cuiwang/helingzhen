@@ -1,0 +1,125 @@
+{template 'common/header'}
+{if $operation == 'post'}
+<div class="panel panel-default">
+	<div class="panel-heading">
+		添加模板消息内容
+	</div>
+	<div class="panel-body">
+		<form action="" method="post" onsubmit="return check();" class="form-horizontal form" enctype="multipart/form-data">
+			<input type="hidden" name="token" value="{$_W['token']}" />
+			<input type="hidden" name="id" value="{$_GPC['id']}" />
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">模板名称</label>
+				<div class="col-sm-9">
+					<input type="text" value="{$messageTemplate['title']}" class="form-control" name="title" id="title" />
+					<span class="help-block"></span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">模板ID</label>
+				<div class="col-sm-9">
+					<input type="text" value="{$messageTemplate['template_id']}" class="form-control" name="template_id" />
+					<span class="help-block"></span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">链接地址</label>
+				<div class="col-sm-9">
+					{php echo tpl_form_field_link('url', $messageTemplate['url']);}
+					<span class="help-block"></span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">顶部颜色</label>
+				<div class="col-sm-9">
+					{php echo tpl_form_field_color('topcolor', $messageTemplate['topcolor']);}
+					<span class="help-block"></span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">字段属性</label>
+				<div class="col-sm-9">
+					<input type="text" value="{$messageTemplate['data']}" class="form-control" name="data" placeholder="{&quot;key1&quot;:{&quot;color&quot;:&quot;颜色&quot;,&quot;tip&quot;:&quot;提示文字&quot;},&quot;key2&quot;:{&quot;color&quot;:&quot;颜色&quot;,&quot;tip&quot;:&quot;提示文字&quot;}}" />
+					<span class="help-block">格式：{&quot;key1&quot;:{&quot;color&quot;:&quot;颜色&quot;,&quot;tip&quot;:&quot;提示文字&quot;},&quot;key2&quot;:{&quot;color&quot;:&quot;颜色&quot;,&quot;tip&quot;:&quot;提示文字&quot;}}</span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+				<div class="col-sm-9">
+					<button name="submit" type="submit" class="btn btn-success" value="submit"><i class="icon-plus"></i>提交</button>
+					<button type="button" class="btn btn-danger" onclick="document.location.href = '{php echo $this->createWebUrl('TemplateMessage', array('op' => 'display'))}'"><i class="icon-plus"></i>返回</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+{elseif $operation == 'display'}
+<div class="panel panel-default">
+	<div class="panel-heading">
+		操作
+	</div>
+	<div class="table-responsive panel-body">
+		<a class="btn btn-danger" href="{php echo $this->createWebUrl('TemplateMessage', array('op' => 'post'))}"><i class="icon-plus"></i>添加</a>
+		<a class="btn btn-success" href="javascript:location.reload()"><i class="icon-refresh"></i>刷新</a>
+	</div>
+</div>
+
+<div class="panel panel-default">
+	<div class="panel-heading">
+		模板消息列表
+	</div>
+	<div class="table-responsive panel-body">
+		<table class="table table-hover">
+			<thead>
+				<tr>
+					<th style="width:120px;">模板名称</th>
+					<th>模板ID</th>
+					<th>链接地址</th>
+					<th>顶部颜色</th>
+					<th style="width:150px;">操作</th>
+				</tr>
+			</thead>
+			<tbody id="level-list">
+				{loop $messageTemplates $row}
+				<tr>
+					<td>{$row['title']}</td>
+					<td>{$row['template_id']}</td>
+					<td>{$row['url']}</td>
+					<td>{$row['topcolor']}</td>
+					<td>
+						<a href="javascript:;" class="btn btn-default btn-sm sendTemplateMessage" title="发送消息" ><i class="fa fa-weixin"></i></a>
+						&nbsp;&nbsp;
+						<a href="{php echo $this->createWebUrl('TemplateMessage', array('op' => 'post', 'id' => $row['id']))}" class="btn btn-default btn-sm" title="编辑内容"><i class="fa fa-pencil"></i></a>
+						&nbsp;&nbsp;
+						<a href="{php echo $this->createWebUrl('TemplateMessage', array('op' => 'delete', 'id' => $row['id']))}" onclick="return confirm('确认删除此分类吗？');
+								return false;" class="btn btn-default btn-sm" title="删除"><i class="fa fa-times"></i></a>
+					</td>
+				</tr>
+				{/loop}
+				<tr>
+					<td colspan="5">
+						{$pager}
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</div>
+<div style="display: none;" id="messageTemplate">
+	<div class="input-group">
+		<span class="input-group-addon">功能开发中</span>
+		<input name="tset" value="test" class="form-control">
+	</div>
+</div>
+<script type="text/javascript">
+	require(['jquery', 'util'], function ($, util) {
+		$(function () {
+			$('.sendTemplateMessage').click(function () {
+				var modalobj = util.ajaxshow("{php echo $this->createWebUrl('SendMessage', array('op' => 'post', 'id' => $row['id']))}",'test',{'show' : true,'remote':true}, {'hidden' : function(obj) {obj.remove();}});
+				modalobj.modal('show');
+			});
+		});
+	});
+</script>
+{/if}
+{template 'common/footer'}

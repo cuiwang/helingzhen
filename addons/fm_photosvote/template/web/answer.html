@@ -1,0 +1,141 @@
+{template 'common/header'}
+	{if $rid!=''}
+		{template 'web/nav'}
+	{/if}
+ {if $operation == 'post'}
+<div class="main">
+	<form action="" method="post" class="form-horizontal form"	enctype="multipart/form-data">
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				<div class="row-fluid">
+					<div class="span8 control-group">
+						<a class="btn btn-default" href="{php echo $this->createWebUrl('answer', array('rid' => $rid, 'op' => 'display' ))}"><i class="fa fa-search"></i>题目</a>
+						<a class="btn {if $operation == 'post'}btn-primary {else}btn-default"{/if} href="{php echo $this->createWebUrl('answer', array('rid' => $rid, 'op' => 'post' ))}"><i class="fa fa-edit"></i>添加题目</a>
+					</div>
+				</div>
+			</div>
+			<div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">排序</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" name="displayorder" class="form-control" value="{$answer['displayorder']}" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style="color:red">*</span>题目标题</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" name="title" class="form-control" value="{$answer['title']}" />
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">题目图片</label>
+					<div class="col-sm-9 col-xs-12">
+						{php echo tpl_form_field_image('thumb', $answer['thumb'])}
+
+					<div class="help-block">建议图片大小为：450*300 </div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style="color:red">*</span>答案</label>
+					<div class="col-sm-9 col-xs-12">
+						<table class="table table-hover">
+
+							<tbody id="list">
+								{if empty($answer)}
+									<tr>
+										<td style="width: 100%;"><input type="text" name="keyid0" class="form-control" style="width:10%;float: left;text-align: center;" value="A" readonly="readonly" /><input type="text" name="content0" class="form-control" style="width:90%" value="" /></td>
+									</tr>
+									<tr>
+										<td style="width: 100%;"><input type="text" name="keyid1" class="form-control" style="width:10%;float: left;text-align: center;" value="B" readonly="readonly"/><input type="text" name="content1" class="form-control" style="width:90%" value="" /></td>
+									</tr>
+									<tr>
+										<td style="width: 100%;"><input type="text" name="keyid2" class="form-control" style="width:10%;float: left;text-align: center;" value="C" readonly="readonly"/><input type="text" name="content2" class="form-control" style="width:90%" value="" /></td>
+									</tr>
+									<tr>
+										<td style="width: 100%;"><input type="text" name="keyid3" class="form-control" style="width:10%;float: left;text-align: center;" value="D" readonly="readonly"/><input type="text" name="content3" class="form-control" style="width:90%" value="" /></td>
+									</tr>
+								{else}
+									{loop $answers $key $item}
+									<tr>
+										<td style="width: 100%;">
+											<input type="text" name="keyid{$key}" class="form-control" style="width:10%;float: left;text-align: center;" value="{php echo $item['keyid'.$key]}" readonly="readonly"/>
+											<input type="text" name="content{$key}" class="form-control" style="width:90%" value="{php echo $item['content'.$key]}" /></td>
+									</tr>
+									{/loop}
+								{/if}
+							</tbody>
+						</table>
+					</div>
+				</div>
+				 <div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">填写正确答案</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" name="key" class="form-control" style="width:10%" value="{$answer['key']}" />
+						<div class="help-block">请填写正确答案，仅填写：  A  或者  B  或者  C   或者  D (注意：字母必须全部大写)</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="form-group col-sm-12">
+			<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+			<input type="hidden" name="token" value="{$_W['token']}" />
+		</div>
+	</form>
+</div>
+{elseif $operation == 'display'}
+<div class="main">
+
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				<div class="row-fluid">
+					<div class="span8 control-group">
+						<a class="btn {if $operation == 'post'}btn-primary {else}btn-default"{/if} href="{php echo $this->createWebUrl('answer', array('rid' => $rid, 'op' => 'post' ))}"><i class="fa fa-edit"></i>添加题目</a>
+					</div>
+				</div>
+			</div>
+			<form method="post" class="form-horizontal" id="formfans">
+			<input type="hidden" name="op" value="del" />
+			<div style="position:relative">
+				<div class="panel-body table-responsive">
+					<table class="table table-hover" style="position:relative">
+					<thead class="navbar-inner">
+						<tr>
+							<th style="width:30px;">ID</th>
+									<th style="width: 5%;">显示顺序</th>
+									<th style="width: 15%;">标题</th>
+									<th style="width: 15%;">缩略图</th>
+									<th style="width: 50%;">答案</th>
+									<th >操作</th>
+						</tr>
+					</thead>
+					<tbody>
+						{loop $list $answer}
+						{php $answers = iunserializer($answer['answer'])}
+							<tr>
+								<td>{$answer['id']}</td>
+								<td>{$answer['displayorder']}</td>
+								<td>{$answer['title']}</td>
+								<td><img src="{php echo tomedia($answer['thumb'])}" width="50"></td>
+								<td>
+									{loop $answers $key $item}
+										<p><span class="label {if $item['keyid'.$key] == $answer['key']}label-success{else}label-info{/if}">{php echo $item['keyid'.$key]} : {php echo $item['content'.$key]}</span></p>
+									{/loop}
+								</td>
+								<td style="text-align:left;">
+									<a href="{php echo $this->createWebUrl('answer', array('op' => 'post', 'id' => $answer['id'], 'rid' => $rid))}" data-toggle="tooltip" data-placement="top"  class="btn btn-default btn-sm manage"><i class="fa fa-edit"></i>修改</a>
+									<a href="{php echo $this->createWebUrl('answer', array('op' => 'delete', 'id' => $answer['id'],'rid' => $rid))}" data-toggle="tooltip" data-placement="top"  class="btn btn-default btn-sm manage"><i class="fa fa-del"></i>删除</a>
+								</td>
+							</tr>
+						{/loop}
+
+					</tbody>
+					</table>
+				</div>
+			</div>
+			</form>
+			{$pager}
+		</div>
+    </div>
+{/if}
+{template 'web/_footer'}

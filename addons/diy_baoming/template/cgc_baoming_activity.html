@@ -1,0 +1,1020 @@
+{template 'common/header'}
+<script type="text/javascript" src="./resource/js/lib/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="./resource/js/lib/jquery-ui-1.10.3.min.js"></script>
+<ul class="nav nav-tabs">
+	<li class="{if $op=='post'}active{/if}">
+		<a href="{php echo $this->createWebUrl('cgc_baoming_activity',array('op'=>'post'));}">添加报名</a>
+	</li>
+	<li class="{if $op== 'display'}active{/if}">
+		<a href="{php echo $this->createWebUrl('cgc_baoming_activity',array('op'=>'display'));}">报名管理</a>
+	</li>
+	<li class="">
+		<a href="{php echo $this->createWebUrl('cgc_baoming_code',array('op'=>'display'));}">抽奖码管理</a>
+	</li>
+
+</ul>
+
+{if $op== 'display'}
+<div class="main">
+	<div class="panel panel-info">
+		<div class="panel-heading">筛选</div>
+		<div class="panel-body">
+			<form action="./index.php" method="get" class="form-horizontal" role="form">
+				<input type="hidden" name="c" value="site" />
+				<input type="hidden" name="a" value="entry" />
+				<input type="hidden" name="m" value="diy_baoming" />
+				<input type="hidden" name="do" value="cgc_baoming_activity" />
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">状态</label>
+					<div class="col-xs-12 col-sm-8 col-lg-5">
+						<select name="status" class="form-control">
+							<option value="">所有状态</option>
+							<option value="0" {if $_GPC['status']==='0'}selected{/if}>正常</option>
+							<option value="1" {if $_GPC['status'] ==1}selected{/if}>结束</option>
+
+						</select>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<div class=" col-xs-12 col-sm-2 col-lg-2" style="width: 9%">
+						<button class="btn btn-default">
+							<i class="fa fa-search"></i>搜索
+						</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<div class="panel panel-info">
+
+		<button type="button" class="btn btn-default" onclick="delete_all()">删除所有记录</button>
+		<button type="button" class="btn btn-default" onclick="help()">配置和帮助文档</button>
+		<label>全部记录:{$total}</label>
+
+	</div>
+
+	<style>
+.label {
+cursor: pointer;
+}
+</style>
+	<div class="panel panel-default">
+		<div class="panel-body table-responsive" style="overflow: visible;">
+			<table class="table table-hover">
+				<thead class="navbar-inner">
+					<tr>
+						<th style="width: 20%;">活动标题</th>
+						<th style="width: 20%;">logo图片</th>
+						<th style="width: 10%;">状态</th>
+						<th style="width: 10%;">类型</th>
+						<th style="width: 20%;">开始时间</th>
+						<th style="width: 20%;">结束时间</th>
+						<th style="width: 20%;">开奖时间</th>
+						<th style="width: 10%;">中奖码</th>
+						<th style="width: 10%;">抽奖码初始值</th>
+						<th style="width: 20%;">创建时间</th>
+						<th style="width: 35%;">操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					{loop $list $item}
+					<tr>
+						<td style="white-space: normal; word-break: break-all; overflow: visible;">{$item['title']}</td>
+						<td style="white-space: normal; word-break: break-all; overflow: visible;"><img img style="width: 80%;" src='{php echo tomedia($item['logo'])}'/></td>
+						<td style="white-space: normal; word-break: break-all; overflow: visible;">{if empty($item['status'])}开始{else}结束{/if}</td>
+						<td style="white-space: normal; word-break: break-all; overflow: visible;">{if empty($item['activity_type'])}抽奖券{/if}{if $item['activity_type']==1}优惠券{/if}{if $item['activity_type']==2}支付订单{/if}</td>
+						<td style="white-space: normal; word-break: break-all; overflow: visible;" title="{php echo date('Y-m-d H:i:s', $item['start_time'])}">{php echo date('Y-m-d H:i:s', $item['start_time'])}</td>
+						<td style="white-space: normal; word-break: break-all; overflow: visible;" title="{php echo date('Y-m-d H:i:s', $item['end_time'])}">{php echo date('Y-m-d H:i:s', $item['end_time'])}</td>
+						<td style="white-space: normal; word-break: break-all; overflow: visible;" title="{php echo date('Y-m-d H:i:s', $item['kj_time'])}">{php echo date('Y-m-d H:i:s', $item['kj_time'])}</td>
+						<td style="white-space: normal; word-break: break-all; overflow: visible;">{$item['cj_code']}</td>
+						<td style="white-space: normal; word-break: break-all; overflow: visible;">{$item['cj_code_start']}</td>
+						<td style="white-space: normal; word-break: break-all; overflow: visible;" title="{php echo date('Y-m-d H:i:s', $item['createtime'])}">{php echo date('Y-m-d H:i:s', $item['createtime'])}</td>
+						<td style="white-space: normal; word-break: break-all; overflow: visible;">
+
+							<div class="btn-group btn-group-sm">
+								<a class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-expanded="false" href="javascript:;">
+									链接入口 <span class="caret"></span>
+								</a>
+								<ul class="dropdown-menu dropdown-menu-right" role="menu">
+									{php $item['baoming_url']=murl('entry', array('m' => $this->module['name'], 'do' => 'enter', 'id' => $item['id'],'form'=>'login'),true,true);}
+									<li role="presentation">
+										<a href="javascript:;" onclick="displayQr('{php echo $_W['siteroot'] . 'web/'.substr($this->createWebUrl('qr', array('raw' => base64_encode($item['baoming_url']))),2)}');">
+											<i class="fa fa-qrcode fa-fw"></i> 查看报名二维码
+										</a>
+									</li>
+									<li role="presentation">
+										<a href="javascript:;" onclick="displayUrl('{php echo  murl('entry', array('m' => $this->module['name'], 'do' => 'enter', 'id' => $item['id'],'form'=>'login'),true,true);}','{php echo  murl('entry', array('m' => $this->module['name'], 'do' => 'enter', 'id' => $item['id'],'form'=>'user'),true,true);}','{php echo  murl('entry', array('m' => $this->module['name'], 'do' => 'enter', 'id' => $item['id'],'form'=>'result'),true,true);}','{php echo  murl('entry', array('m' => $this->module['name'], 'do' => 'is_hx', 'id' => $item['id']),true,true);}');">
+											<i class="fa fa-link fa-fw"></i> 查看链接
+										</a>
+									</li>
+								</ul>
+							</div> <a class="btn btn-default" href="{php echo $this->createWebUrl('cgc_baoming_user', array('activity_id' => $item['id'],'qishu' => $item['qishu']))}">记录</a> <br /> <a class="btn btn-default" href="{php echo $this->createWebUrl('cgc_baoming_activity', array('op' => 'post', 'id' => $item['id']))}"> 修改</a> <a class="btn btn-default" href="{php echo $this->createWebUrl('cgc_baoming_activity', array('op' => 'delete', 'id' => $item['id']))}" onclick="return confirm('确认删除信息吗？');return false;">删除</a>
+
+						</td>
+					</tr>
+					{/loop}
+				</tbody>
+
+			</table>
+			{$pager}
+		</div>
+	</div>
+</div>
+<script>
+require(
+		[ 'bootstrap' ], function($)
+		{
+
+			$('.btn').hover(function()
+			{
+
+				$(this).tooltip('show');
+
+			}, function()
+			{
+
+				$(this).tooltip('hide');
+
+			});
+
+		});
+		
+function displayUrl(lurl,surl,turl,hxurl) {
+	require(['jquery', 'util'], function($, u) {
+		var content = '<p class="form-control-static" style="word-break:break-all">报名链接: <br>' + lurl + '</p>';
+		content += '<p class="form-control-static" style="word-break:break-all">候选名单链接: <br>' + surl + '</p>';
+		content += '<p class="form-control-static" style="word-break:break-all">我的抽奖码链接: <br>' + turl + '</p>';
+		content += '<p class="form-control-static" style="word-break:break-all">核销链接: <br>' + hxurl + '</p>';
+		
+		var footer =
+				'<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>' +
+				'<button type="button" class="btn btn-primary">复制报名链接</button>'+
+				'<button type="button" class="btn btn-success">复制候选名单链接</button>'+
+				'<button type="button" class="btn btn-primary btn-zzz">复制我的抽奖码链接</button>'+
+				'<button type="button" class="btn btn-primary btn-hx">复制核销链接</button>';
+		var diaobj = u.dialog('查看URL', content, footer);
+		diaobj.find('.btn-default').click(function() {
+			diaobj.modal('hide');
+		});
+		diaobj.on('shown.bs.modal', function(){
+			u.clip(diaobj.find('.btn-primary')[0], lurl);
+			u.clip(diaobj.find('.btn-success')[0], surl);
+			u.clip(diaobj.find('.btn-zzz')[0], turl);
+			u.clip(diaobj.find('.btn-hx')[0], hxurl);
+		});
+		diaobj.modal('show');
+	});
+}
+</script>
+
+{elseif $op == 'post'}
+<div class="panel panel-default">
+	<div class="panel-heading">用户修改</div>
+	<div class="panel-body">
+		<form action="" method="post" class="form-horizontal" role="form" id="form1">
+			<input type="hidden" id="id" class="form-control span7" placeholder="" name="id" value="{$item['id']}">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">活动名称</label>
+				<div class="col-sm-9 col-xs-12">
+					<input type="text" id="cj_code" class="form-control span7" placeholder="" name="title" value="{$item['title']}">
+					<span class="help-block"> </span>
+				</div>
+
+				<div class="form-group" style="display:">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">手机端顶部logo图片：</label>
+					<div class="col-sm-9 col-xs-12">{php echo tpl_form_field_image('logo',$item['logo']);}</div>
+				</div>
+
+				<div class="form-group" style="display:">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">分享成功页面底部图片：</label>
+					<div class="col-sm-9 col-xs-12">
+						{php echo tpl_form_field_image('bottom_guide',$item['bottom_guide'],'../addons/diy_baoming/template/style/images/att-guide.png');} <span style="font-size: 14px;" class="help-block"> <mark> 图片比例:400*100</mark> <a href="../addons/diy_baoming/template/style/images/att-guide.png" target=_blank>查看默认图片 </a> 分享成功页面默认页面的底部图片.如果打算用自己的页面，就不用在设置下面的分享成功自定义页面参数。 <a href="{$testlink}" target=_blank>点此查看默认页面.</a>
+						</span>
+
+
+					</div>
+				</div>
+
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">分享成功自定义页面</label>
+					<div class="col-sm-9 col-xs-12">
+						<textarea id="succ_url" name="succ_url" class="form-control" rows="5" cols="60">{$item['succ_url']}</textarea>
+						<span style="font-size: 14px;" class="help-block"> 支持多个链接,随机跳转到不同链接，不同链接可以有不同的诱导公众号，这样就支持了多个公众号的玩法。 多个链接请用|隔开 ,例如<strong>http://xxx.com|http://xxx.com</strong>。 以http 开头。如果不设置则调用系统的例子，例如 <a href="{$testlink}" target=_blank>点此查看例子.</a>
+						</span>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">开始时间</label>
+					<div class="col-xs-12 col-sm-9">{php echo tpl_form_field_date('start_time', $item['start_time'], true)}</div>
+				</div>
+
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">结束时间</label>
+					<div class="col-xs-12 col-sm-9">{php echo tpl_form_field_date('end_time', $item['end_time'], true)}</div>
+				</div>
+
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">开奖时间</label>
+					<div class="col-xs-12 col-sm-9">{php echo tpl_form_field_date('kj_time', $item['kj_time'], true)}</div>
+				</div>
+
+
+
+				<div class="form-group">
+					<label class="col-sm-2 control-label">状态</label>
+					<div class="col-sm-10">
+						<div>
+							<label class="radio-inline">
+								<input type="radio" name="status" ng-model="type" value="0" {if empty($item['status'])} checked="checked" {/if}
+                                 class="ng-pristine ng-valid ng-touched">
+								开始
+							</label>
+							<label class="radio-inline">
+								<input type="radio" name="status" ng-model="type" {if !empty($item['status'])} checked="checked" {/if}
+                                value="1" class="ng-pristine ng-valid ng-touched">
+								结束
+							</label>
+
+						</div>
+
+					</div>
+				</div>
+				
+				
+				<div class="form-group">
+					<label class="col-sm-2 control-label">中奖以后是否发红包</label>
+					<div class="col-sm-10">
+						<div>
+							<label class="radio-inline">
+								<input type="radio" name="redbag_flag" ng-model="type" value="0" {if empty($item['redbag_flag'])} checked="checked" {/if}
+                                 class="ng-pristine ng-valid ng-touched">
+								否
+							</label>
+							<label class="radio-inline">
+								<input type="radio" name="redbag_flag" ng-model="type" {if !empty($item['redbag_flag'])} checked="checked" {/if}
+                                value="1" class="ng-pristine ng-valid ng-touched">
+								是
+							</label>
+						</div>
+					</div>
+				</div>
+				
+				<div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label">中奖金额</label>
+						<div class="col-sm-4">
+							<div class="input-group">
+								<input type="text" name="redbag_money"  class="form-control" value="{$item['redbag_money']}" />
+								<div class="input-group-addon">元</div>
+							</div>
+							<span style="font-size: 14px;" class="help-block"> <strong></strong>
+							</span>
+						</div>
+					</div>
+				
+				<div class="form-group">
+					<label class="col-sm-2 control-label">类型</label>
+					<div class="col-sm-10">
+						<div>
+							<label class="radio-inline">
+								<input type="radio" name="activity_type"  value="0" {if empty($item['activity_type'])} checked="checked" {/if}
+                                 class="ng-pristine ng-valid ng-touched">
+								抽奖券
+							</label>
+							<label class="radio-inline">
+								<input type="radio" name="activity_type" {if $item['activity_type']==1} checked="checked" {/if}
+                                value="1" class="ng-pristine ng-valid ng-touched">
+								优惠券
+							</label>
+							<label class="radio-inline">
+								<input type="radio" name="activity_type" {if $item['activity_type']==2} checked="checked" {/if}
+                                value="2" class="ng-pristine ng-valid ng-touched">
+								支付订单
+							</label>
+
+						</div>
+
+					</div>
+				</div>
+				
+				  <div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label">核销密码</label>
+						<div class="col-sm-9 col-xs-12">
+							<input type="text" id="hx_pass" class="form-control span7" placeholder="" name="hx_pass" value="{$item['hx_pass']}">
+							<span style="font-size: 14px;" class="help-block"> 
+							<strong>暂时用在 优惠券和支付订单核销上面 </strong>
+							</span>
+						</div>
+					</div>
+					
+					
+						<div id="model1"  class="model" style="display: {if $item['activity_type']==1}block;{else}none;{/if}">
+				
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label">可领取总数量</label>
+						<div class="col-sm-4">
+							<div class="input-group">
+								<input type="text" name="coupon_pay_num"  class="form-control" value="{$item['pay_num']}" />
+								<div class="input-group-addon">个</div>
+							</div>
+							<span style="font-size: 14px;" class="help-block"> <strong>为了控制用户的领取数量用，
+							如果不想控制这里可以设置0 </strong>
+							</span>
+						</div>
+					</div>
+					
+					
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label">已领取数量</label>
+						<div class="col-sm-4">
+							<div class="input-group">
+								<input type="text" name="coupon_pay_numed"  class="form-control" value="{$item['pay_numed']}" />
+								<div class="input-group-addon">个</div>
+							</div>
+							<span style="font-size: 14px;" class="help-block"> <strong>已领取数量 </strong>
+							</span>
+						</div>
+					</div>
+					
+					</div>
+				
+				
+					<div id="model2"  class="model" style="display: {if $item['activity_type']==2}block;{else}none;{/if}">
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label">报名支付金额</label>
+						<div class="col-sm-4">
+							<div class="input-group">
+								<input type="text" name="pay_money"  class="form-control" value="{$item['pay_money']}" />
+								<div class="input-group-addon">元</div>
+							</div>
+							<span style="font-size: 14px;" class="help-block"> <strong>支付订单报名支付金额必需大于0</strong>
+							</span>
+						</div>
+					</div>
+					
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label">报名总支付数量</label>
+						<div class="col-sm-4">
+							<div class="input-group">
+								<input type="text" name="pay_num"  class="form-control" value="{$item['pay_num']}" />
+								<div class="input-group-addon">个</div>
+							</div>
+							<span style="font-size: 14px;" class="help-block"> <strong>为了控制用户的支付数量用，
+							如果不想控制这里可以设置0 </strong>
+							</span>
+						</div>
+					</div>
+					
+					
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label">报名已支付数量</label>
+						<div class="col-sm-4">
+							<div class="input-group">
+								<input type="text" name="pay_numed"  class="form-control" value="{$item['pay_numed']}" />
+								<div class="input-group-addon">个</div>
+							</div>
+							<span style="font-size: 14px;" class="help-block"> <strong>已经被人购买了多少份 </strong>
+							</span>
+						</div>
+					</div>
+					
+					</div>
+					
+					
+					
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label">优惠券或者支付订单首页描述</label>
+						<div class="col-sm-9 col-xs-12">
+							<textarea name="top_desc" class="form-control" rows="5" cols="60">{$item['top_desc']}</textarea>
+							<span style="font-size: 14px;" class="help-block">							
+							<p>●本券为电子券，凭电子券到漫滩边餐厅并支付36元即可消费；</p>
+							<p>●此券不找零，不兑现；</p>
+							<p>●一经出售，概不退换，过期作废；</p>
+							<p>●本券使用时间为1月4日~2月4日。仅用于“鲈鱼纸包鱼”；</p>
+							<p>●本券每桌限用1份，此优惠不与店内任何其他优惠同享。</p> 
+							</span>
+						</div>
+					</div>
+					
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">活动结束跳转链接</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" id="" class="form-control span7" placeholder="" name="end_url" value="{$item['end_url']}">
+						<span class="help-block"> </span>
+					</div>
+
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label">中奖码</label>
+						<div class="col-sm-9 col-xs-12">
+							<input type="text" id="cj_code" class="form-control span7" placeholder="" name="cj_code" value="{$item['cj_code']}">
+							<span style="font-size: 14px;" class="help-block"> <strong>开奖后在手动设置即可. 公平起见，我们选用开奖当天（即2016年2月25日）收盘的上证指数数字的倒序六位，抽奖码 =（xxx,xxx÷1,000,000）* 报名成功的总人数，为中奖码。 如2月25日的上证指数为3627.91，则倒序六位为197,263。 那么中奖码 =（197,263÷1,000,000）* 活动报名成功的总人数。 </strong>
+							</span>
+						</div>
+					</div>
+
+
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label">用户抽奖码初始值</label>
+						<div class="col-sm-9 col-xs-12">
+							<input type="text" id="cj_code_start" class="form-control span7" placeholder="" name="cj_code_start" value="{$item['cj_code_start']}">
+							<span style="font-size: 14px;" class="help-block"> <strong>生成的用户抽奖码初始值，默认为1，首次用户报名的时候生效,如果已有用户报名，请到抽奖码管理那边修改抽奖码的值。 </strong>
+							</span>
+						</div>
+					</div>
+					
+				
+					
+					
+
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label">分享标题</label>
+						<div class="col-sm-9 col-xs-12">
+							<input type="text" id="share_title" class="form-control span7" placeholder="" name="share_title" value="{$item['share_title']}">
+							<span class="help-block"> #nickname#代表用户昵称 </span>
+						</div>
+
+						<div class="form-group">
+							<label class="col-xs-12 col-sm-3 col-md-2 control-label">分享描述</label>
+							<div class="col-sm-9 col-xs-12">
+								<input type="text" id="share_desc" class="form-control span7" placeholder="" name="share_desc" value="{$item['share_desc']}">
+								<span class="help-block"> #nickname#代表用户昵称 </span>
+							</div>
+
+							<div class="form-group" style="display:">
+								<label class="col-xs-12 col-sm-3 col-md-2 control-label">分享图片</label>
+								<div class="col-sm-9 col-xs-12">{php echo tpl_form_field_image('share_thumb',$item['share_thumb']);}</div>
+							</div>
+
+
+
+							<div class="form-group">
+								<label class="col-xs-12 col-sm-3 col-md-2 control-label">分享链接</label>
+								<div class="col-sm-9 col-xs-12">
+									<textarea id="share_url" name="share_url" class="form-control" rows="5" cols="60">{$item['share_url']}</textarea>
+									<span style="font-size: 14px;" class="help-block">随机跳转到不同链接， 多个链接请用|隔开 ,例如<strong>http://xxx.com|http://xxx.com</strong>
+
+									</span>
+								</div>
+							</div>
+						</div>
+					</div>
+
+
+
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label">诱导页面图片自定义</label>
+						<div class="col-sm-9 col-xs-12">
+							{php echo tpl_form_field_image('share_guide', $item['share_guide'],'../addons/diy_baoming/template/style/images/share-guide.jpg');}
+							<div class="help-block"></div>
+							<span class="help-block"> 不懂可以先默认为空 </span>
+						</div>
+					</div>
+
+
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label">诱导页面自定义文字</label>
+						<div class="col-sm-9 col-xs-12">
+							{php echo tpl_ueditor('share_guide_info', $item['share_guide_info'])} <span class="help-block">分享页面自定义文字,支持html。不懂可以先设置为空</span>
+						</div>
+					</div>
+
+
+
+
+
+
+
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label">字段显示设置</label>
+						<div class="col-sm-9 col-xs-12">
+							<label>
+								<input name="tel_show" type="checkbox" value="1" {if $item['tel_show']} checked="checked" {/if} />
+								手机显示
+							</label>
+							<label>
+								<input name="realname_show" type="checkbox" value="1" {if $item['realname_show']} checked="checked" {/if}  />
+								姓名
+							</label>
+							<label>
+								<input name="wechat_no_show" type="checkbox" value="1" {if $item['wechat_no_show']} checked="checked" {/if}  />
+								微信号
+							</label>
+							<label>
+								<input name="addr_show" type="checkbox" value="1" {if $item['addr_show']} checked="checked" {/if}  />
+								地址
+							</label>
+							<span style="font-size: 14px;" class="help-block"> 报名网页字段显示控制 ,不勾则不显示 </span>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label class="col-sm-2 control-label">用户资料是否写入系统表</label>
+						<div class="col-sm-10">
+							<div>
+								<label class="radio-inline">
+									<input type="radio" value="0" name="tj_sys" {if empty($item['tj_sys'])} checked="checked" {/if}
+                                 class="ng-pristine ng-valid ng-touched">
+									不写入
+								</label>
+								<label class="radio-inline">
+									<input type="radio" name="tj_sys" {if !empty($item['tj_sys'])} checked="checked" {/if}
+                                value="1" class="ng-pristine ng-valid ng-touched">
+									写入
+								</label>
+								<span class="help-block">用户资料是否写入微擎系统粉丝表（认证服务号非借用的模式才会写入系统信息，如果是借用，可能失效）</span>
+							</div>
+						</div>
+					</div>
+
+
+					<div class="form-group">
+						<label class="col-sm-2 control-label">用户积分</label>
+						<div class="col-sm-10">
+							<div>
+								<input type="text" id="credit1_sys" class="form-control span7" placeholder="" name="credit1_sys" value="{$item['credit1_sys']}">
+								</label>
+								<span class="help-block">报名获得积分， 如果为空，则无效（认证服务号非借用的模式才会写入系统信息，如果是借用，可能失效）</span>
+							</div>
+
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label class="col-sm-2 control-label">是否显示新的候选名单</label>
+						<div class="col-sm-10">
+							<div>
+								<label class="radio-inline">
+									<input type="radio" value="0" name="candidate_sys" {if empty($item['candidate_sys'])} checked="checked" {/if}
+                                 class="ng-pristine ng-valid ng-touched">
+									否
+								</label>
+								<label class="radio-inline">
+									<input type="radio" name="candidate_sys" {if !empty($item['candidate_sys'])} checked="checked" {/if}
+                                value="1" class="ng-pristine ng-valid ng-touched">
+									是
+								</label>
+								<span class="help-block">新的候选名单 可以看到自己的抽奖码，序号，活动规则等信息</span>
+							</div>
+
+						</div>
+					</div>
+
+
+
+					<div class="form-group">
+						<label class="col-xs-12 col-sm-3 col-md-2 control-label">新候选名单的规则描述</label>
+						<div class="col-sm-9 col-xs-12">
+							<textarea id="rule" name="rule" class="form-control" rows="5" cols="60">{$item['rule']}</textarea>
+							<span style="font-size: 14px;" class="help-block"> 活动将于2016-05-29 23:59:59截止报名。按照既定抽奖规则， 最终获奖者将由2016-05-31的大盘指数决定。最终获奖者序号=(2016-05-31大盘指数收盘价的倒数六位)÷10000×(本期报名总人数) </span>
+						</div>
+					</div>
+
+
+				</div>
+			</div>
+
+
+			<div class="form-group">
+				<label class="col-sm-2 control-label">是否跳过分享页面</label>
+				<div class="col-sm-10">
+					<div>
+						<label class="radio-inline">
+							<input type="radio" value="0" name="code_type" {if empty($item['code_type'])} checked="checked" {/if}
+                                 class="ng-pristine ng-valid ng-touched">
+							不跳过
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="code_type" {if !empty($item['code_type'])} checked="checked" {/if}
+                                value="1" class="ng-pristine ng-valid ng-touched">
+							跳过
+						</label>
+						<span class="help-block">不跳过是默认的玩法。有些场景希望直接不通过分享界面就可以得到抽奖码，所以这里加个跳过，让粉丝自发的分享，这样安全性高</span>
+					</div>
+				</div>
+			</div>
+
+
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">强制分享类型</label>
+				<div class="col-xs-12 col-sm-9">
+					<label class="radio-inline">
+						<input type="radio" name="share_type" value="0" {if empty($item['share_type'])} checked="checked"{/if}>
+						全部
+					</label>
+					<label class="radio-inline">
+						<input type="radio" name="share_type" value="1" {if $item['share_type']==1} checked="checked"{/if}>
+						强制分享到朋友圈
+					</label>
+					<label class="radio-inline">
+						<input type="radio" name="share_type" value="2" {if $item['share_type']==2} checked="checked"{/if}>
+						强制分享到朋友
+					</label>
+					<span class="help-block">分享方式，如果选择分享到朋友圈，则必须分享到朋友圈算报名成功。 </span>
+				</div>
+			</div>
+
+
+			<div class="form-group" style="display:none">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">多活动首页logo图片：</label>
+				<div class="col-sm-9 col-xs-12">
+					{php echo tpl_form_field_image('index_logo',$item['index_logo']);} <span class="help-block">图片比例大小460*180</span>
+				</div>
+			</div>
+
+
+		
+	</div>
+</div>
+
+<div class="panel panel-default">
+	<div class="panel-heading">地区和人数限制</div>
+	<div class="panel-body">
+
+		<div class="form-group" style="display:">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">最大参与人数</label>
+			<div class="col-sm-9 col-xs-12">
+				<input type="text" name="join_num" value="{$item['join_num']}" class="form-control">
+				<span class="help-block">最大参与人数,最多不要超过1000000 </span>
+			</div>
+		</div>
+
+
+
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">地区定位类型</label>
+			<div class="col-xs-12 col-sm-9">
+				<label class="radio-inline">
+					<input type="radio" name="locationtype" value="0" {if empty($item['locationtype'])} checked="checked"{/if}>
+					ip定位
+				</label>
+				<label class="radio-inline">
+					<input type="radio" name="locationtype" value="1" {if $item['locationtype']==1} checked="checked"{/if}>
+					gps定位
+				</label>
+				<label class="radio-inline">
+					<input type="radio" name="locationtype" value="2" {if $item['locationtype']==2} checked="checked"{/if}>
+					ip定位+gps定位
+				</label>
+				<span class="help-block">在非wifi网络下，利用ip地址定位地区的话，不准确。利用gps定位更准确， 不过页面会弹出获取用户地理信息的提示,页面也会出现一点卡顿.</span>
+			</div>
+		</div>
+
+
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">粉丝地区限制</label>
+			<div class="col-xs-12 col-sm-9">
+				<input type="text" name="iplimit" value="{$item['iplimit']}" class="form-control">
+				<span class="help-block"> 例如:南京 如果要多个地区请这样输入:南京|北京|厦门 ，如果是gps定位，可以支持到区县，比如你们可以直接输入海淀(不要加北京)就可以了， 如果不符合地区，下面给个自定义链接。不填则不限制。</span>
+			</div>
+		</div>
+
+
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">地区不符跳转</label>
+			<div class="col-xs-12 col-sm-9">
+				<input type="text" name="zdyurl" value="{$item['zdyurl']}" class="form-control">
+				<span class="help-block"> 以http开头</span>
+			</div>
+		</div>
+
+
+		<div class="form-group" style="display: none">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">是否打通人人商城</label>
+			<div class="col-xs-12 col-sm-9">
+				<label class="radio-inline">
+					<input type="radio" name="ewei_shop" value="0" {if empty($item['ewei_shop'])} checked="checked"{/if}>
+					否
+				</label>
+				<label class="radio-inline">
+					<input type="radio" name="ewei_shop" value="1" {if $item['ewei_shop']==1} checked="checked"{/if}>
+					是
+				</label>
+				<span class="help-block">上下级关系和人人商城打通</span>
+			</div>
+		</div>
+
+
+
+
+	</div>
+</div>
+
+<div class="panel panel-default">
+	<div class="panel-heading">模板设置</div>
+	<div class="panel-body">
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">我的抽奖码模板</label>
+			<div class="col-xs-12 col-sm-9">
+				<label class="radio-inline">
+					<input type="radio" name="my_mode" value="0" {if empty($item['my_mode'])} checked="checked"{/if}>
+					旧模板
+				</label>
+				<label class="radio-inline">
+					<input type="radio" name="my_mode" value="1" {if $item['my_mode']==1} checked="checked"{/if}>
+					新模板
+				</label>
+				<label class="radio-inline">
+					<input type="radio" name="my_mode" value="2" {if $item['my_mode']==2} checked="checked"{/if}>
+					苹果模板
+				</label>
+				<span class="help-block">新模板支持分享到朋友圈多一个抽奖码，还有界面美化了下，关键有一个防封杀秘籍。大家可以试试。</span>
+			</div>
+		</div>
+
+
+
+
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">新抽奖码模版活动说明:</label>
+			<div class="col-sm-9 col-xs-12">
+				<textarea id="wxtx" name="wxtx" class="form-control" rows="5" cols="60">{$item['wxtx']}</textarea>
+				<span style="font-size: 14px;" class="help-block">
+					<p>1.参与活动报名，获得1个抽奖码。</p>
+					<p>2.点击「发盆友圈」分享此次活动至盆友圈可获得额外1个抽奖码。</p>
+					<p>3.点击「发好友」每成功邀请1位好友参与活动，可额外获得1个抽奖码。</p> <strong>新模板起作用。</strong>
+				</span>
+			</div>
+		</div>
+
+
+
+
+
+
+
+
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">报名界面模板</label>
+			<div class="col-xs-12 col-sm-9">
+				<label class="radio-inline">
+					<input type="radio" name="new_login_mode" value="0" {if empty($item['new_login_mode'])} checked="checked"{/if}>
+					默认模板
+				</label>
+				<label class="radio-inline">
+					<input type="radio" name="new_login_mode" value="1" {if $item['new_login_mode']==1} checked="checked"{/if}>
+					新模板
+				</label>
+				<label class="radio-inline">
+					<input type="radio" name="new_login_mode" value="2" {if $item['new_login_mode']==2} checked="checked"{/if}>
+					苹果模板
+				</label>
+				<span class="help-block"></span>
+			</div>
+		</div>
+
+
+
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">报名界面活动简单说明</label>
+			<div class="col-sm-9 col-xs-12">
+				<textarea id="bm_wxtx" name="bm_wxtx" class="form-control" rows="5" cols="60">{$item['bm_wxtx']}</textarea>
+				<span class="help-block">报名界面活动简单说明,默认模板起作用。</span>
+			</div>
+		</div>
+
+
+
+
+
+
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">必须关注</label>
+			<div class="col-xs-12 col-sm-9">
+				<label class="radio-inline">
+					<input type="radio" name="must_guanzhu" value="0" {if empty($item['must_guanzhu'])} checked="checked"{/if}>
+					否
+				</label>
+				<label class="radio-inline">
+					<input type="radio" name="must_guanzhu" value="1" {if $item['must_guanzhu']==1} checked="checked"{/if}>
+					是
+				</label>
+				<span class="help-block">报名界面选择新模板的时候起作用</span>
+			</div>
+		</div>
+
+
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">关注提醒</label>
+			<div class="col-xs-12 col-sm-9">
+				<textarea name="must_guanzhu_msg" class="form-control" rows="5" cols="60">{$item['must_guanzhu_msg']}</textarea>
+				<span class="help-block">请长按下方二维码，关注xxxx公众号，点击右下角菜单「XXXXX」完成报名。</span>
+			</div>
+		</div>
+
+		<div class="form-group model0">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">报名界面背景图</label>
+			<div class="col-sm-9 col-xs-12">
+				{php echo tpl_form_field_image('jh_bg',$item['jh_bg'],'../addons/diy_baoming/template/style/jihe/bg.jpg');} <span class="help-block"> 新模板生效 。 <a href="../addons/diy_baoming/template/style/jihe/bg.jpg" target=_blank>点此查看图片 </a> <img src="../addons/diy_baoming/template/style/jihe/bg.jpg" width="60px" height="60px">
+				</span>
+			</div>
+		</div>
+
+	</div>
+</div>
+
+
+
+<div class="panel panel-default">
+	<div class="panel-heading">抽奖码设置</div>
+	<div class="panel-body">
+		<div class="form-group" style="display:">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">是否打开邀请模式</label>
+			<div class="col-xs-12 col-sm-9">
+				<label class="radio-inline">
+					<input type="radio" name="yq_mode" value="0" {if empty($item['yq_mode'])} checked="checked"{/if}>
+					否
+				</label>
+				<label class="radio-inline">
+					<input type="radio" name="yq_mode" value="1" {if $item['yq_mode']==1} checked="checked"{/if}>
+					是
+				</label>
+				<span class="help-block">邀请一个人报名获得一个抽奖码,此模式打开会对系统产生较大压力。</span>
+			</div>
+		</div>
+
+
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">单个人获得最多的抽奖码数量</label>
+			<div class="col-xs-12 col-sm-9">
+				<input type="text" name="max_yq_num" value="{$item['max_yq_num']}" class="form-control" />
+				<span class="help-block"> </span>
+			</div>
+		</div>
+
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">每个粉丝生成的抽奖码间隔</label>
+			<div class="col-xs-12 col-sm-9">
+				<input type="text" name="cjm_interval" value="{$item['cjm_interval']}" class="form-control" />
+				<span class="help-block">默认是1.粉丝生成的抽奖码本来是间隔1的，这里可以设置间隔多少。</span>
+			</div>
+		</div>
+
+
+
+
+
+
+	</div>
+</div>
+
+
+<div class="panel panel-default">
+	<div class="panel-heading">模板消息设置(认证服务号才可以用)</div>
+	<div class="panel-body">
+
+
+
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">奖品名称</label>
+			<div class="col-xs-12 col-sm-9">
+				<input type="text" name="jp_mc" value="{$item['jp_mc']}" class="form-control" />
+				<span class="help-block"> </span>
+			</div>
+		</div>
+
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">模板id</label>
+			<div class="col-xs-12 col-sm-9">
+				<input type="text" name="template_id" value="{$item['template_id']}" class="form-control" />
+				<span class="help-block">IT科技 - 互联网|电子商务:OPENTM206854010.标题:开奖结果通知</span>
+			</div>
+		</div>
+
+	</div>
+</div>
+
+
+
+<div class="panel panel-default">
+	<div class="panel-heading">中奖模式(此功能为定制，如没有完全清楚什么意思，请保持默认值,无视下面选项)</div>
+	<div class="panel-body">
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">中奖模式</label>
+			<div class="col-xs-12 col-sm-9">
+				<label class="radio-inline">
+					<input type="radio" name="award_mode" value="0" {if empty($item['award_mode'])} checked="checked"{/if}>
+					默认
+				</label>
+				<label class="radio-inline">
+					<input type="radio" name="award_mode" value="1" {if $item['award_mode']==1} checked="checked"{/if}>
+					概率中奖
+				</label>
+				<span class="help-block">默认就是和原来的一样.概率的话，就是根据概率来决定粉丝是否中奖，这就和抽奖码的玩法不一样了。</span>
+			</div>
+		</div>
+
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label">最大中奖数量</label>
+			<div class="col-xs-12 col-sm-9">
+				<input type="text" name="total_zj" value="{$item['total_zj']}" class="form-control" />
+				<span class="help-block">最大中奖数量，如果不设置就没有控制</span>
+			</div>
+		</div>
+
+
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label award">中奖几率</label>
+			<div class="col-sm-9 col-xs-12">
+				<input type="text" id="award_chance" class="form-control span7" placeholder="" name="award_chance" value="{$item['award_chance']}">
+				<span class="help-block"> 中奖几率，不低于100设置好，如果设置100就是和默认的中奖模式一样 </span>
+			</div>
+		</div>
+
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label award">中奖链接</label>
+			<div class="col-sm-9 col-xs-12">
+				<input type="text" id="award_url" class="form-control span7" placeholder="" name="award_url" value="{$item['award_url']}">
+				<span class="help-block"> 中奖以后的跳转链接 </span>
+			</div>
+		</div>
+
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label award">中奖提示</label>
+			<div class="col-sm-9 col-xs-12">
+				<input type="text" id="award_info" class="form-control span7" placeholder="" name="award_info" value="{$item['award_info']}">
+				<span class="help-block"> 中奖以后的弹出框提示 </span>
+			</div>
+		</div>
+
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label award">未中奖链接</label>
+			<div class="col-sm-9 col-xs-12">
+				<input type="text" id="not_award_url" class="form-control span7" placeholder="" name="not_award_url" value="{$item['not_award_url']}">
+				<span class="help-block"> 未中奖以后的跳转链接 </span>
+			</div>
+		</div>
+
+		<div class="form-group">
+			<label class="col-xs-12 col-sm-3 col-md-2 control-label award">未中奖提示</label>
+			<div class="col-sm-9 col-xs-12">
+				<input type="text" id="not_award_info" class="form-control span7" placeholder="" name="not_award_info" value="{$item['not_award_info']}">
+				<span class="help-block"> 未中奖提示 </span>
+			</div>
+		</div>
+
+
+
+
+		<div class="form-group">
+			<div class="col-sm-8">
+				<span class="btn btn-primary col-lg-1" onclick="tishi()">提交</span> 
+				<input style="display: none" type="submit" id="submit" name="submit" />
+				<input type="hidden" name="token" value="{$_W['token']}" />
+			</div>
+		</div>
+
+		</form>
+	</div>
+</div>
+{/if}
+<script type="text/javascript">
+	$(function(){
+		$('input[name="activity_type"]').click(function(){
+			  $('.model').hide();
+			  $("#model"+$(this).val()).show();
+	    });
+	});
+	
+	function help(){
+	  window.location.href = "../addons/diy_baoming/help.txt";
+	}
+	
+	function displayQr(url) {
+		require(['jquery', 'util'], function($, u) {
+			var content = '<div class="panel panel-default text-center"><img src="' + url + '" alt="活动地址二维码" class="img-rounded"></div>';
+			var footer =
+					'<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>';
+			var diaobj = u.dialog('查看URL二维码', content, footer);
+			diaobj.find('.btn-default').click(function() {
+				diaobj.modal('hide');
+			});
+			diaobj.modal('show');
+		});
+	}
+
+	function delete_all(){
+		if (confirm('确认删除所有信息吗,删除完不可恢复?')){
+	      location.href = "{php echo $this->createWebUrl('cgc_baoming_activity', array('op' => 'delete_all'))}";
+		}
+	}
+	
+	function tishi()
+	{
+		var activity_type= $('input[name=activity_type]:checked').val();
+		var pay=$('input[name=pay_money]').val();
+		
+		if(activity_type==2 && parseFloat(pay)<=0){
+			alert("支付金额必需大于0");
+			return false;
+		}
+		$("#submit").click();
+	}
+	
+</script>
+{template 'common/footer'}

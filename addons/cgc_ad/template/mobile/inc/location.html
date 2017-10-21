@@ -1,0 +1,245 @@
+<script type="text/javascript">
+			$(function(){	
+				
+				function mineLocation_bak(){	
+					var notice_location=$('#notice_location');
+					notice_location.find('.weui_cell_ft').html('定位中...');	
+									
+				    var options={
+				        enableHighAccuracy:true, 
+				        maximumAge:1000
+				    }
+				    if(navigator.geolocation){
+				        //浏览器支持geolocation
+				        navigator.geolocation.getCurrentPosition(showPosition,errorPosition,options);	        
+				    }else{	   
+				    	alert("浏览器不支持geolocation");
+				    }
+				}
+
+
+				function errorPosition(error){
+					 switch(error.code)
+					    {
+					    case error.PERMISSION_DENIED:
+					    	
+					    	notice_location.find('.weui_cell_ft').html('重新定位');
+							swal({
+								title:'确定放弃定位？',
+								text: '只有{$quan["city"]}范围的人才能玩哦~',
+								type: "warning",
+								showCancelButton: true,
+								confirmButtonText: "重新定位",
+								cancelButtonText: "关闭"
+							}, function(isConfirm){
+							
+								if(isConfirm){
+									mineLocation();
+								}else{
+									{if !empty($quan['addr_forward'])}
+									  {if !empty($quan['addr_forward_url'])}
+									  	window.location.href="{$quan['addr_forward_url']}";
+									  {else}
+									  	window.location.href="http://qq.com";
+									  {/if}
+									{/if}
+									
+									
+									notice_location.show();
+								}
+							});
+					    	
+						
+					      break;
+					    case error.POSITION_UNAVAILABLE:
+					    	notice_location.find('.weui_cell_ft').html('重新定位');
+							swal({
+								title:'定位失败',
+								text: '请开启手机定位功能后重试',
+								type: "warning",
+								showCancelButton: true,
+								confirmButtonText: "重新定位",
+								cancelButtonText: "关闭"
+							}, function(isConfirm){
+								if(isConfirm){
+									mineLocation();
+								}else{
+									{if !empty($quan['addr_forward'])}
+									  {if !empty($quan['addr_forward_url'])}
+									  	window.location.href="{$quan['addr_forward_url']}";
+									  {else}
+									  	window.location.href="http://qq.com";
+									  {/if}
+									{/if}
+								}
+							});
+					      break;
+					    case error.TIMEOUT:
+					    	notice_location.find('.weui_cell_ft').html('重新定位');
+							swal({
+								title:'定位失败',
+								text: '请开启手机定位功能后重试,重新进入本页面',
+								type: "warning",
+								showCancelButton: true,
+						
+								cancelButtonText: "关闭"
+							}, function(isConfirm){
+								
+								 wx.closeWindow();
+								/* if(isConfirm){
+									mineLocation();
+								}else{
+									notice_location.show();
+								} */
+							});
+					      break;
+					    case error.UNKNOWN_ERROR:
+					    	notice_location.find('.weui_cell_ft').html('重新定位');
+							swal({
+								title:'定位失败',
+								text: '请开启手机定位功能后重试,重新进入本页面',
+								type: "warning",
+								showCancelButton: true,
+				
+								cancelButtonText: "关闭"
+							}, function(isConfirm){
+								 wx.closeWindow();
+								if(isConfirm){
+									mineLocation();
+								}else{
+									notice_location.show();
+								}
+							});
+					      break;
+					    }
+			
+				}
+
+				function showPosition(position)
+				{
+					
+					//var res=position.coords;
+					var res=position;				
+					var url="{php echo $_W['siteroot'] . 'app/' . substr($this->createMobileUrl('foo',array('op'=>'location','quan_id'=>$quan_id,'id'=>$id)), 2)}";				
+					$.post(url,{
+						latitude:res.latitude,
+						longitude:res.longitude
+					},function(data) {					
+						notice_location.find('.weui_cell_ft').html('重新定位');
+				
+						if(data.status==0){
+							swal({
+								title:'定位失败',
+								text: data.info,
+								type: "warning",
+								showCancelButton: true,
+								confirmButtonText: "重新定位",
+								cancelButtonText: "关闭"
+							}, function(isConfirm){
+								
+								 wx.closeWindow();
+								if(isConfirm){
+									mineLocation();
+								}else{
+									notice_location.show();
+								}
+							});
+						}else{
+		
+							if(data.data!=1){										
+								if(data.data<0){//广告圈
+									{if !empty($quan['addr_forward'])}
+									  {if !empty($quan['addr_forward_url'])}
+									  	window.location.href="{$quan['addr_forward_url']}";
+									  {else}
+									  	window.location.href="http://qq.com";
+									  {/if}
+									{/if}
+								}
+								
+								notice_location.show();
+							}else{
+								sessionStorage["location"]="1";
+								notice_location.hide();
+							}
+						}
+					});	
+				}
+				
+				  // 定位相关
+					var notice_location=$('#notice_location');
+					var mineLocation=function(){
+					
+						notice_location.find('.weui_cell_ft').html('定位中...');
+						// 定位
+						wx.getLocation({
+							success: function (res) {						
+								showPosition(res);							
+							},
+							fail: function(){
+								notice_location.find('.weui_cell_ft').html('重新定位');
+								swal({
+									title:'定位失败',
+									text: '请开启手机定位功能后重试',
+									type: "warning",
+									showCancelButton: true,
+									confirmButtonText: "重新定位",
+									cancelButtonText: "关闭"
+								}, function(isConfirm){
+									if(isConfirm){
+										mineLocation();
+									}else{
+										notice_location.show();
+									}
+								});
+							},
+							cancel: function(){
+						    	notice_location.find('.weui_cell_ft').html('重新定位');
+								swal({
+									title:'确定放弃定位？',
+									text: '只有{$quan["city"]}范围的人才能玩哦~',
+									type: "warning",
+									showCancelButton: true,
+									confirmButtonText: "重新定位",
+									cancelButtonText: "关闭"
+								}, function(isConfirm){								
+									if(isConfirm){
+										mineLocation();
+									}else{
+										{if !empty($quan['addr_forward'])}
+										  {if !empty($quan['addr_forward_url'])}
+										  	window.location.href="{$quan['addr_forward_url']}";
+										  {else}
+										  	window.location.href="http://qq.com";
+										  {/if}
+										{/if}										
+										notice_location.show();
+									}
+								});
+						    	
+							}
+						});
+					};
+					
+					$('#notice_location a').click(function(){
+						mineLocation();
+					});
+					
+					   {if (!empty($adv['city']) &&  strexists($member['last_city'],$adv['city']))}
+					     return;
+					   {/if}
+					   
+
+					// 如果当前活动限制区域且我上次定位的区域不等于活动区域时，需触发自动定位	
+				     {if (($quan['city'] || $quan['is_page_addr'])  && (empty($member['last_city']) || empty($member['location_info'])))}						
+					
+						   wx.ready(function () {					        
+					         mineLocation();	
+						   });
+					 {/if}
+					
+
+					
+		
+			});
+		</script>

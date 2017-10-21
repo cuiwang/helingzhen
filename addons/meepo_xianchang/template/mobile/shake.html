@@ -1,0 +1,338 @@
+{template 'pc_header'}
+<link rel="stylesheet" type="text/css" href="{MODULE_URL}template/mobile/app/css/screen_shake.css">
+	<script type="text/javascript" src="{MODULE_URL}template/mobile/app/js/web_socket.js"></script>
+	<script type="text/javascript" src="{MODULE_URL}template/mobile/app/js/swfobject.js"></script>
+	<script>
+			if (typeof console == "undefined") {    this.console = { log: function (msg) {  } };}
+			WEB_SOCKET_SWF_LOCATION = "{MODULE_URL}template/mobile/app/js/WebSocketMain.swf";
+			WEB_SOCKET_DEBUG = true;
+	</script>
+<style>
+.player .head { border-radius: 100%;}
+.yyycj { padding: 10px; height: 100%; box-sizing: border-box; }
+.yyycj ul, .yyycj li { list-style: none; margin: 0; padding: 0; }
+.yyycj ul { height: 100%; background-color:{$shake_config['paodao_color']}; position: relative }
+.yyycj ul li { display: block; overflow: hidden; height: 10%; width: 100%; }
+.yyycj ul li:nth-child(2n) { background-color: rgba(255,255,255,0.15) }
+.yyycj .ltoux { width: 250px; float: left; height: 100%; background-color: rgba(0, 112, 9, 0.56); position: relative }
+.yyycj .paimin { width: 46px; height: 46px; display: block; line-height: 46px; text-align: center; position: absolute; left: 10px; top: 50%; margin-top: -23px; font-size: 24px; color: #fff; font-family: Arial, san-serif; }
+.yyycj li:nth-child(1) .paimin { text-indent: -9999px; background: url({MODULE_URL}template/mobile/app/images/shake/1.png) no-repeat center center; }
+.yyycj li:nth-child(2) .paimin { text-indent: -9999px; background: url({MODULE_URL}template/mobile/app/images/shake/2.png) no-repeat center center; }
+.yyycj li:nth-child(3) .paimin { text-indent: -9999px; background: url({MODULE_URL}template/mobile/app/images/shake/3.png) no-repeat center center; }
+.yyycj .touxiang { width: 36px;
+height: 36px;
+border-radius: 100%;
+position: absolute;
+right: 82px;
+top: 50%;
+margin-top: -18px;
+border: 2px solid #ffffff;}
+.yyycj .nicheng {line-height: 46px;
+height: 46px;
+font-size: 18px;
+overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
+display: block;
+position: absolute;
+right: 128px;
+top: 50%;
+margin-top: -23px;
+color: #FFF;
+text-align: right;}
+.yyycj .paoma { height: 100%; position: relative; overflow: hidden; }
+.yyycj .paoma .ma {  background-size: 80px 60px; width: 80px; height: 60px; display: block; position: absolute; left: 0; top: 50%; margin-top: -30px;  }
+.yyycj .paoma .tutu { background: url({MODULE_URL}template/mobile/app/images/shake/tutu.png) repeat-x left center; background-size: 120px 60px; width: 60px; height: 60px; display: block; position: absolute; left: -20px; top: 50%; margin-top: -30px;  }
+.yyycj .paoma .xxx { background: url({MODULE_URL}template/mobile/app/images/shake/xxx.png) repeat-y left center; background-size: 10px auto; top: 0; display: block; position: absolute; left: 90px; bottom: 0;  opacity: 0.5; }
+.yyycj .paoma .xxx i { display: block; width: 40px; height: 100%; line-height: 100%; font-size: 40px; text-align: center; color: rgba(255,255,255,0.9); font-family: Arial, san-serif; font-style: normal; -webkit-transform: rotate(90deg); }
+.yyycj .zd { background: url({MODULE_URL}template/mobile/app/images/shake/zd.png) no-repeat center center; background-size: 45px auto; width: 45px; height: 100%; display: block; position: absolute; right: 60px; top: 0;  opacity: 0.5 }
+.yyycj {position: relative;}
+.biaozhilogo {position: absolute;top: 50%;left: 50%;margin-left: -200px;margin-top: -200px;width: 400px;height: 400px;}
+.biaozhilogo img{width: 100%;height: 100%;}
+.btn-endgame {
+	width: 100px;
+	height: 60px;
+	background: url("{MODULE_URL}template/mobile/app/images/restart_bg.png") no-repeat center bottom;
+	position: absolute;
+	bottom: 70px;
+	right: 3px;
+	cursor: pointer
+}
+
+.restart-botton {
+	width: 70px;
+	height: 40px;
+	position: absolute;
+	background: url("{MODULE_URL}template/mobile/app/images/restart_button.png") no-repeat center bottom;
+	position: absolute;
+	bottom: 20px;
+	left: 50%;
+	margin: 0 0 0 -35px
+}
+</style>
+<script type="text/javascript">
+		var SHAKE_INFO = {php echo json_encode($shake_info);};
+		var paomatype =0;
+        /*当前轮次序号*/
+        var CURR_ROUND = -1;
+        var CURR_ROUND_ID = -1;
+        var SHAKE_LINE = 10;
+        var ROUNDS_LIST = ($.isArray(SHAKE_INFO['rotate_list'])) ? SHAKE_INFO['rotate_list'] : null;
+        var ROUND_COUNT = (ROUNDS_LIST ? ROUNDS_LIST.length : 0);
+        for(var i = 0;i<ROUND_COUNT;i++){
+            if(ROUNDS_LIST[i].status!='3'){
+                CURR_ROUND = i;
+                CURR_ROUND_ID = ROUNDS_LIST[i]['id'];
+                break;
+            }
+        }
+		var WEB_URL = "{MODULE_URL}template/mobile/app/";
+ 
+    </script>
+    <script src="{MODULE_URL}template/mobile/app/js/shake_base.js" type="text/javascript" charset="utf-8"></script>
+    <script src="{MODULE_URL}template/mobile/app/js/screen_paoma.js?t={php echo time()}" type="text/javascript" charset="utf-8"></script>
+</head>
+<body class="FUN SHAKE"  {if !empty($basic_config['bg_vedio'])}data-vide-bg="{php echo tomedia($basic_config['bg_vedio'])}"{/if}>
+<audio id="Audio_CutdownPlayer" src="{MODULE_URL}template/mobile/app/images/shake/shake_cutdown.mp3" preload="preload"></audio>
+<audio id="Audio_NewPlayer" src="{MODULE_URL}template/mobile/app/images/shake/shake_new.mp3" preload="preload"></audio>
+<audio id="Audio_Outride" src="{MODULE_URL}template/mobile/app/images/shake//shake_outride.mp3" preload="preload"></audio>
+<audio id="Audio_Gameover" src="{MODULE_URL}template/mobile/app/images/shake_gameover.wav" preload="preload"></audio>
+ {template 'top_panel'}
+<div class="Panel SloganList"></div>
+<div class="Panel Track" style=" opacity: 1;">
+      <div class="yyycj">
+      
+    <ul>
+          <li>
+        <div class="zd"></div>
+        <div class="paoma"> <span class="xxx"><i>1</i></span><span class="ma" style="width:0%"  id="ph0"  ><img class="touxiang" id="tx0" src="{MODULE_URL}template/mobile/app/images/shake/touxiang.jpg" > <span id="nc0" class="nicheng"></span> </span> <span  id="pxh0" class="tutu" style="width:0%"  ></span>  </div>
+      </li>
+          <li>
+       
+        <div class="paoma"> <span class="xxx"><i>2</i></span><span class="ma" style="width:0%" id="ph1"  ><img id="tx1" class="touxiang" src="{MODULE_URL}template/mobile/app/images/shake/touxiang.jpg" > <span id="nc1" class="nicheng"></span> </span> <span   id="pxh1" class="tutu"   style="width:0%"></span>  </div>
+      </li>
+          <li>
+       
+        <div class="paoma"><span class="xxx"><i>3</i></span> <span class="ma" style="width:0%" id="ph2"  ><img id="tx2" class="touxiang" src="{MODULE_URL}template/mobile/app/images/shake/touxiang.jpg" > <span id="nc2" class="nicheng"></span></span> <span   id="pxh2" class="tutu"   style="width:0%" ></span>  </div>
+      </li>
+          <li>
+        
+        <div class="paoma"><span class="xxx"><i>4</i></span> <span class="ma" style="width:0%" id="ph3" ><img id="tx3" class="touxiang" src="{MODULE_URL}template/mobile/app/images/shake/touxiang.jpg" > <span id="nc3" class="nicheng"></span></span> <span    id="pxh3" class="tutu" style="width:0%"  ></span>  </div>
+      </li>
+          <li>
+        
+        <div class="paoma"> <span class="xxx"><i>5</i></span><span class="ma" style="width:0%" id="ph4"   ><img id="tx4" class="touxiang" src="{MODULE_URL}template/mobile/app/images/shake/touxiang.jpg" > <span id="nc4" class="nicheng"></span></span> <span    id="pxh4" class="tutu"   style="width:0%" ></span>  </div>
+      </li>
+          <li>
+        
+        <div class="paoma"> <span class="xxx"><i>6</i></span> <span class="ma" style="width:0%" id="ph5"   ><img id="tx5" class="touxiang" src="{MODULE_URL}template/mobile/app/images/shake/touxiang.jpg" > <span id="nc5" class="nicheng"></span></span> <span   id="pxh5" class="tutu"   style="width:0%" ></span> </div>
+      </li>
+          <li>
+         
+        <div class="paoma"> <span class="xxx"><i>7</i></span><span class="ma" style="width:0%"  id="ph6"   ><img id="tx6" class="touxiang" src="{MODULE_URL}template/mobile/app/images/shake/touxiang.jpg" > <span id="nc6" class="nicheng"></span></span> <span   id="pxh6"  class="tutu"   style="width:0%" ></span>  </div>
+      </li>
+          <li>
+       
+        <div class="paoma"> <span class="xxx"><i>8</i></span><span class="ma" style="width:0%" id="ph7"   ><img id="tx7" class="touxiang" src="{MODULE_URL}template/mobile/app/images/shake/touxiang.jpg" > <span id="nc7" class="nicheng"></span></span> <span   id="pxh7" class="tutu"   style="width:0%" ></span>  </div>
+      </li>
+          <li>
+        
+        <div class="paoma"><span class="xxx"><i>9</i></span> <span class="ma" style="width:0%" id="ph8"   > <img id="tx8" class="touxiang" src="{MODULE_URL}template/mobile/app/images/shake/touxiang.jpg" > <span id="nc8" class="nicheng"></span></span> <span   id="pxh8" class="tutu"   style="width:0%" ></span>  </div>
+      </li>
+          <li>
+       
+        <div class="paoma"><span class="xxx"><i>10</i></span> <span class="ma" style="width:0%" id="ph9"   ><img id="tx9" class="touxiang" src="{MODULE_URL}template/mobile/app/images/shake/touxiang.jpg" > <span id="nc9" class="nicheng"></span></span> <span   id="pxh9" class="tutu"   style="width:0%"></span>  </div>
+      </li>
+          
+        </ul>
+		<div class="biaozhilogo"><img src="{if empty($shake_info['pp_img'])}{MODULE_URL}template/mobile/app/images/shake/car.png{else}{php echo tomedia($shake_info['pp_img'])}{/if}"></div>
+          </div>
+    </div>
+    <div class="cutdown-end"></div>
+    <div class="track-tool"></div>
+    <div class="track-result"></div>
+	 <a class="btn-endgame">
+        <div class="restart-botton"></div>
+        <div class="airplane"></div>
+    </a>
+</div>
+<!--round welcome-->
+
+<div class="round-welcome"  style="z-index:2">
+    <div class="label top">微信扫一扫、参与摇一摇</div>
+    <img class="qr" src="{if empty($shake_config['qr_code'])}{php echo str_replace('./','',$_W['siteroot'].'app/'.$this->createMobileUrl('makeqrcode',array('url'=>$this->createMobileUrl('app_'.$_GPC['do'],array('rid'=>$rid,'vote_id'=>$vote['id'])))))}{else}{php echo tomedia($shake_config['qr_code'])}{/if}" onerror="this.src='../attachment/qrcode_{$_W['uniacid']}.jpg';" >
+    <div class="label bottom"><span class="shake-icon shake"></span>听从现场指挥，游戏开始后不停摇动手机</div>
+	 <div class="radar" style="display: block">
+          
+            <div class="round w300">
+                <div class="round w200">
+                    <div class="round w100">
+                        <div class="round w1">
+                            <div class="line roundMove"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="users"></div>
+        </div>
+		
+    <div class="button-start">开始游戏</div>
+    <div class="round-label">ROUND 1</div>
+	<div class="round-label2" style="top:20%;left:13%">当前已有<span><i class="animate-rotate2">0</i></span>人加入</div>
+	<style>
+	.animate-rotate2 {
+	-webkit-animation: rotate2 1s linear;
+	-webkit-animation-delay: 0.01s
+}
+
+	.round-label2 span i.animate-rotate2 {
+		-webkit-animation: rotate2 0.8s linear
+	}
+	.round-label2 span i:nth-child(2).animate-rotate2 {
+	-webkit-animation-delay: 0.04s
+}
+
+.round-label2 span i:nth-child(3).animate-rotate2 {
+	-webkit-animation-delay: 0.08s
+}
+
+@-webkit-keyframes rotate1 {
+	from {
+		-webkit-transform: rotateY(0)
+	}
+
+	to {
+		-webkit-transform: rotateY(180deg)
+	}
+}
+
+@-webkit-keyframes rotate2 {
+	from {
+		-webkit-transform: rotateX(0)
+	}
+
+	to {
+		-webkit-transform: rotateX(720deg)
+	}
+}
+	.round-label2 i {
+	color:#fff;
+	border-radius: 5px;
+	background: #e8645a;
+	color: #fff;
+	display: inline-block;
+	margin: 0 5px;
+	width: 100px;
+	height: 40px;
+	font-style: normal;
+	line-height: 40px;
+	text-align: center;
+	
+	font-size: 24px
+}
+	</style>
+</div>
+<div class="result-layer" style="display: none;">
+    <div class="result-label">GAME OVER</div>
+    <div class="result-cup">
+        <span class="button nexttound">开始下一轮</span>
+        <span class="button allresult">全部排名</span>
+        <span class="button reset">重玩本轮</span>
+    </div>
+</div>
+<script>
+var top_user = [];
+var pc_data_time = null;
+var f=0;
+var max_user_shake_id = 0;
+var yuni=null;
+var msg_control = {
+			ws:{},
+			init:function(){
+				 this.ws = new WebSocket("ws://{$socket_url}");
+				 this.ws.onopen = this.ws_onopen;
+				 this.ws.onclose = this.ws_onclose;
+				 this.ws.onmessage = this.ws_onmessage;
+			},
+			ws_onopen:function(){
+				console.log('connection...');
+				var login_data = '{"type":"login","client_name":"com","client_avatar":"com","room_id":"'+CURR_ROUND_ID+'","openid":"meepo_xinchang","shakeTime":0}';
+				msg_control.ws.send(login_data);
+			},
+			ws_onclose:function(e){
+				console.log("连接关闭");
+				window.location.reload()
+		    },
+			ws_onmessage:function(e){
+				var data =  $.parseJSON(e.data);
+				switch(data.type){
+				// 服务端ping客户端
+				case 'ping':
+					//$("#J_userCount").text(data['client_count']);
+					msg_control.ws.send('{"type":"pong"}');
+					break;;
+				// 登录 更新用户列表
+				case 'login':
+				
+				break;
+				case 'game_over':
+					window.clearInterval(pc_data_time);
+					window.setTimeout(function() {
+						showGameResult();
+						hideSlogan()
+					},
+					660);
+					if(top_user.length>0){
+						var Post_user = top_user.slice(0,100);
+						$.post(PATH_ACTIVITY + Path_url('shake_tstop'),{"rid":scene_id,"rotate_id":CURR_ROUND_ID,"user":Post_user},function(d) {
+							console.log(d);
+						});
+					}
+					break;
+				// 发言
+				case 'ongaming':
+				  gameTimeRun(data.clients_list);
+				break;
+			}
+			},
+   };
+
+$(function(){
+	msg_control.init();
+	yuni = window.setInterval(function(){
+		getman()
+	},2000);
+});
+function getman(){
+  $.ajax({ 
+	type: "post", 
+	url : "{php echo $this->createMobileUrl('get_shake_man',array('rid'=>$rid))}",
+    dataType:'json', 
+    data:{rotate_id:CURR_ROUND_ID,max_id:max_user_shake_id},
+    success: function(data){
+		var user_shake = data.data;
+		$('.round-label2 span').html('<i>'+data.message+'</i>').find('i').toggleClass('animate-rotate2');
+		if(user_shake.length>0){
+			var newone = user_shake.pop();
+			max_user_shake_id = newone.id;
+			var n = '<div id="shake_user_' + newone.id + '" class="user-item"><div class="user-img"><img src="' + newone.avatar + '" /></div><p>' + newone.nick_name + "</p></div>";
+			f++;
+			if (f > 10) {
+				$(".users").html("");
+				f = 1
+
+			}
+			if($('#shake_user_'+newone.id).length==0){
+				$(n).appendTo(".users").animate({
+					opacity: 0.7
+				},
+				500);
+			}
+		}
+
+    }
+ });
+}
+</script>
+<div class="cutdown-start cutdownan-imation"></div>
+{template 'pc_footer'}

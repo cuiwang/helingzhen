@@ -1,0 +1,191 @@
+{template 'common/header'}
+{template 'nav'}
+{if $op == 'list'}
+<div class="main panel panel-danger">
+<div class="panel-heading ">
+	奖项列表
+</div>
+	<div class="panel-body table-responsive">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<th>排序</th>
+					<th>奖项</th>
+					<th>奖品名称</th>
+					<th>奖品图片</th>
+					<th>奖品数量</th>
+					<th>内定id</th>
+					<th>操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $cj}
+				<tr>
+				    <td><span class="label label-danger">{$cj['displayid']}</span></td>
+					<td><span class="label label-info">{$cj['tag_name']}</span></td>
+					<td><span class="label label-warning">{$cj['luck_name']}</span></td>
+					<td><img src="{php echo tomedia($cj['luck_img'])}" width=40px height=40px /></td>
+					<td><span class="label label-danger">{$cj['tag_num']}</span></td>
+					<td><span class="label label-danger">{$cj['nd_id']}</span></td>
+					<td style="text-align:left;">
+						<a href="{php echo $this->createWebUrl('zjd_manage', array('id' => $id,'op' => 'post', 'award_id' => $cj['id']))}" class="btn btn-success btn-sm" data-toggle="tooltip" data-placement="top" title="修改"><i class="fa fa-edit"></i></a>
+						<a href="{php echo $this->createWebUrl('zjd_manage', array('id' => $id,'op' => 'del', 'award_id' => $cj['id']))}"class="btn btn-danger btn-sm" data-toggle="tooltip" data-placement="top" title="删除" onclick="return confirm('删除将无法恢复，确认吗？');return false;"><i class="fa fa-times"></i></a>
+					</td>
+				</tr>
+				{/loop}
+			</tbody>
+		</table>
+		{$pager}
+	</div>
+</div>
+<script>
+	require(['bootstrap'],function($){
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+	});
+</script>
+{elseif $op == 'post'}
+
+<div class="main">
+	<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" onsubmit='return formcheck()'>
+		<input type="hidden" name="award_id" value="{$cj['id']}" />
+		<div class="panel panel-danger">
+			<div class="panel-heading">
+				添加奖项
+			</div>
+			<div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style="color:red">*</span><span class="label label-success">奖项排序</span></label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" id='displayid' name="displayid" class="form-control" value="{$cj['displayid']}" placeholder="奖项排序"/>
+						<span class="help-block">此奖项在抽奖选项列表里的排列位置</span>
+					</div>
+				</div>
+			   <div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style="color:red">*</span><span class="label label-success">奖项</span></label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" id='tagname' name="tag_name" class="form-control" value="{$cj['tag_name']}" placeholder="请填写奖项名称"/>
+						<span class="help-block">如一等奖,二等奖等</span>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style="color:red">*</span><span class="label label-success">奖品名称</span></label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" id='luck_name' name="luck_name" class="form-control" value="{$cj['luck_name']}" placeholder="请填写奖品名称" />
+						<span class="help-block">名称尽量简明扼要</span>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">奖品图片</label>
+					<div class="col-sm-9">
+						{php echo tpl_form_field_image('luck_img', $cj['luck_img']);}
+						<span class="help-block">奖品图片 规格200*200</span>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style="color:red">*</span><span class="label label-success">奖品总数</span></label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" id='tagNum' name="tag_num" class="form-control" value="{$cj['tag_num']}" placeholder="请填写奖品总数 需为整数"/>
+						<span class="help-block">请填写整数</span>
+					</div>
+				</div>
+				<!---nd--->
+				{if $cj['id']>0}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style="color:red">*</span><span class="label label-success">内定ID </span></label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" id='nd_id' name="nd_id" class="form-control" value="{$cj['nd_id']}"/>
+						<span class="help-block"><a class="btn btn-success" href="javascript:;" id="add-user">添加内定ID</a> </span>
+					</div>
+				</div>
+				{/if}
+				<!---nd end-->
+			</div>
+		</div>
+<div class="form-group col-sm-12">
+	<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+	<input type="hidden" name="token" value="{$_W['token']}" />
+	</div>
+	</form>
+</div>
+<!-- 添加用户模态框 -->
+<div class="modal fade" id="manage-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				
+			</div>
+			<div class="modal-body">
+
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+				<button type="button" class="btn btn-primary">提交</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+require(['jquery','util'], function($, u){
+		     $('#add-user').click(function(){
+				var uid = $(this).data('uid');
+				$.post("{php echo $this->createWebUrl('get_user')}", {'rid':{$rid}}, function(d){
+					if(d.ret==0) {
+						
+						$('#manage-modal .modal-body').html(d.data);
+						$('#manage-modal').modal('show');
+
+						$('#manage-modal .btn-primary').unbind('click');
+						$('#manage-modal .btn-primary').click(function(){
+							var select = $("input[name='select[]']:checked").length;
+							var nd_id = [];
+							if(select>0){
+									var nd_id = '';
+									 $.each($("input[name='select[]']:checked"), function(i,v){
+										 if(select==1){
+											 nd_id = $(v).val();
+										 }else{
+											 if(i==0){
+												nd_id = $(v).val();
+											 }else{
+												nd_id += ','+$(v).val();
+											 }
+										 }
+									});
+									$("#nd_id").val(nd_id);
+							}
+							$('#manage-modal').modal('hide');
+							return false;
+						});
+					} else {
+						u.message('系统出错', '', 'error');
+						return false;
+					}
+				},"json");
+			});
+});
+</script>
+
+<script language='javascript'>
+	function formcheck() {
+		if ($("#tagname").val()=='') {
+			alert("请填写奖项!");
+			return false;
+		}
+		if ($("#luck_name").val()=='') {
+			alert("请填写奖品名称!");
+			return false;
+		}
+		if ($("#tagNum").val()=='') {
+			alert("请填写奖品数量!");
+			return false;
+		}
+		return true;
+	}
+</script>
+{/if}
+{template 'common/footer'}

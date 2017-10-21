@@ -1,0 +1,112 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    <meta content="yes" name="apple-mobile-web-app-capable">
+    <meta content="black" name="apple-mobile-web-app-status-bar-style">
+    <meta content="telephone=no" name="format-detection">
+    <title>付款</title>
+    <link type="text/css" rel="stylesheet" href='{AMOUSE_HUFEN_RES}index/css/base.css' />
+    <link type="text/css" rel="stylesheet" href='{AMOUSE_HUFEN_RES}index/css/style.css' />
+    <link type="text/css" rel="stylesheet" href='{AMOUSE_HUFEN_RES}index/css/payto.css' />
+    <script src="{AMOUSE_HUFEN_RES}index/js/zepto.min.js?" type="text/javascript"></script>
+    <script src="{AMOUSE_HUFEN_RES}index/js/layer.m.js" type="text/javascript"></script>
+    <script src="{AMOUSE_HUFEN_RES}index/js/public.js" type="text/javascript"></script>
+    <style type="text/css">
+        .mcheck{
+            MARGIN-RIGHT: auto; MARGIN-LEFT: auto;height:100%;width:100%;
+        }
+        .mcheck img{position:absolute; top:0; right:0; bottom:0; left:0; margin:auto; max-height:100%;max-width:100%;}
+    </style>
+</head>
+<body>
+<div id="bodyDiv">
+    <div class="img img_index" id="bd">
+        <div class="payto_i1">
+          <!-- <img src="{AMOUSE_HUFEN_RES}index/img/payto_i1.png">-->
+            <img src="{php echo strpos($set2['top_thumb'],'http://')===FALSE?tomedia($set2['top_thumb']):$set2['top_thumb']}">
+        </div>
+       <!-- <div class="payto_i2">
+            <div class="num">
+                <ul>
+                    <li>5</li>
+                    <li>4</li>
+                    <li>8</li>
+                    <li>3</li>
+                    <li>8</li>
+                    <li>5</li>
+                </ul>
+            </div>
+        </div>-->
+        <div class="payto_i3">
+            <img src="{php echo strpos($set2['click_thumb'],'http://')===FALSE?tomedia($set2['click_thumb']):$set2['click_thumb']}">
+
+        </div>
+    </div>
+    <div class="clear"></div>
+    <div class="img">
+        <input type="hidden" name="setid" id="setid" value="{$set2['id']}" >
+        {if $set2['payto_2']}
+        <img src="{php echo strpos($set2['payto_2'],'http://')===FALSE?tomedia($set2['payto_2']):$set2['payto_2']}">{/if}
+        {if $set2['payto_3']}
+        <img src="{php echo strpos($set2['payto_3'],'http://')===FALSE?tomedia($set2['payto_3']):$set2['payto_3']}">{/if}
+        {if $set2['payto_4']}
+        <img src="{php echo strpos($set2['payto_4'],'http://')===FALSE?tomedia($set2['payto_4']):$set2['payto_4']}">{/if}
+        {if $set2['payto_5']}<img id="payto_5" src="{php echo strpos($set2['payto_5'],'http://')===FALSE?tomedia($set2['payto_5']):$set2['payto_5']}">{/if}
+
+    </div>
+</div>
+<!--为避免重复弹出好多次微支付输密码的界面，做此中间页面避免用户再次点击按钮-->
+<div class="qt" style="width:100%;height:100%;display:none;">
+    <div class="mcheck">
+        <div>
+            <img src="{AMOUSE_HUFEN_RES}index/img/quan.jpg"/>
+            <div style="position:absolute; top:55%;left:20%;font-size:18px;">微信支付连接中，请稍候...</div>
+        </div>
+    </div>
+</div>
+</body>
+<script type="text/javascript">
+    var baseUrl = '';
+    var clickFlag = false;  //标识是否已经点击过，只能点击一次
+    $(function(){
+        $(".payto_i3,#payto_5").on('click',function(){
+            //已经付费过的，提示不需要再付费
+            if(!clickFlag){
+                $(".qt").show();
+                $("#bodyDiv").hide();
+                clickFlag = true;
+                var num = 1;   //书本固定为1
+                var  setid =$('#setid').val();
+                var submitData ={
+                    'setid':setid
+                };
+                $.ajax({
+                    type : "post",
+                    url :"{php echo $this->createMobileUrl('AjaxIndexOrder', array(), true)}",
+                    data : submitData,
+                    dataType : "json",
+                    contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                    success : function(data){
+                        console.log(data);
+                        if(data && data.code==200){
+                            var oid= data.oid;
+                            window.location.href="{php echo $this->createMobileUrl('payment',array(),true)}&orderid="+oid;
+                        }else{
+                            $btn.removeProp('disabled');
+                            alert(data.msg);
+                            return;
+                        }
+                    },
+                    error : function(data){
+                        alert('网络出错');
+                    }
+                });
+            }
+        });
+    });
+</script>
+</body>
+</html>

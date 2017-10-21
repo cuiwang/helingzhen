@@ -1,0 +1,136 @@
+{template 'header'}
+{template 'header-common'}
+<link type="text/css" rel="stylesheet" href="{$_W['siteroot']}addons/superman_house/template/mobile/css/partner.css">
+<div class="partner_setting">
+	<form id="setting_form" method="post">
+		<input type="hidden" name="serverId" id="serverId"/>
+		<div class="card border-1px">
+			<div class="row">
+				<div class="col-xs-3 text-left">UID</div>
+				<div class="col-xs-9 text-right">{$member['uid']}</div>
+				<hr/>
+			</div>
+			<div class="row">
+				<a href="#" class="superman_house_block myavatar_wrap">
+					<div class="col-xs-3 text-left">头像</div>
+					<div class="col-xs-9 text-right">
+						<img src="{php echo tomedia($member['avatar'])}" class="avatar" onerror="this.src='resource/images/heading.jpg'">
+						<span class="fa fa-angle-right"></span>
+					</div>
+					<hr/>
+				</a>
+			</div>
+			<div class="row">
+				<div class="col-xs-3 text-left">昵称</div>
+				<div class="col-xs-9 text-right">
+					<input type="text" class="text-right" name="nickname" id="nickname" placeholder="昵称" value="{$member['nickname']}">
+				</div>
+				<hr/>
+			</div>
+			<div class="row">
+				<div class="col-xs-3 text-left">手机</div>
+				<div class="col-xs-9 text-right">
+					<input type="tel" class="text-right" name="mobile" id="mobile" placeholder="手机" value="{$member['mobile']}">
+				</div>
+				<hr/>
+			</div>
+			<div class="row">
+				<div class="col-xs-3 text-left">邮箱</div>
+				<div class="col-xs-9 text-right">
+					<input type="text" class="text-right" name="email" id="email" placeholder="邮箱" value="{if $has_email}{php echo $member['email']}{/if}">
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-xs-12  text-center">
+				<input type="hidden" name="token" value="{$_W['token']}" />
+				<button name="submit" type="button" class="btn btn-block btn-success btn-sm btn_save">保存</button>
+			</div>
+			<div class="col-xs-12  text-center">
+				<a href="{php echo $this->createMobileUrl('logout')}" class="btn btn-block btn-danger btn-sm">退出</a>
+			</div>
+		</div>
+	</form>
+</div>
+<script>
+	require(['jquery', 'util'], function($, u){
+		var localIds;
+		$('.myavatar_wrap').click(function () {
+			var t = this;
+			wx.chooseImage({
+				count: 1, // 默认9
+				sizeType: ['original', 'compressed'], // 可以指定是原图还是压缩图，默认二者都有
+				sourceType: ['album', 'camera'], // 可以指定来源是相册还是相机，默认二者都有
+				success: function (res) {
+					localIds = res.localIds; // 返回选定照片的本地ID列表，localId可以作为img标签的src属性显示图片
+					$('img', t).attr('src', localIds);
+				}
+			});
+
+		});
+		var saveMemberInfo = function() {
+			var serverId = $('#serverId').val();
+			var mobile = $('#mobile').val();
+			var nickname = $('#nickname').val();
+			var email = $('#email').val();
+			var token = $('input[name=token]').val();
+			var url = window.location.href;
+			$.ajax({
+				type: 'post',
+				data: 'serverId='+serverId+'&mobile='+mobile+'&email='+email+'&nickname='+nickname+'&token='+token+'&submit=yes',
+				url: url,
+				success: function(resp) {
+					$('input[name=submit]').removeClass('disabled');
+					if (resp == 'success') {
+						u.message('保存成功', '{php echo $this->createMobileUrl("partner")}', 'success');
+					} else {
+						$('.btn_save').removeClass('disabled');
+						u.message(resp, '', 'error');
+					}
+				}
+			});
+		};
+		$('.btn_save').click(function () {
+			var t = this;
+			$(t).addClass('disabled');
+			var mobile = $('#mobile').val();
+			var email = $('#email').val();
+			if (mobile != '') {
+				if (!/^1\d{10}$/.test(mobile)) {
+					u.message('请输入合法的手机号', '', 'error');
+					$(t).removeClass('disabled');
+					return false;
+				}
+			}
+			if (email != '') {
+				if (!/^(\w-*\.*)+@(\w-?)+(\.\w{2,})+$/.test(email)) {
+					u.message('请输入合法邮箱', '', 'error');
+					$(t).removeClass('disabled');
+					return false;
+				}
+			}
+			try {
+				if (localIds.length > 0) {
+					wx.uploadImage({
+						localId: localIds[0], // 需要上传的图片的本地ID，由chooseImage接口获得
+						isShowProgressTips: 0, // 默认为1，显示进度提示
+						success: function (res) {
+							var serverId = res.serverId; // 返回图片的服务器端ID
+							$('#serverId').val(serverId);
+							saveMemberInfo();
+						},
+						fail: function (res) {
+							$.alert(JSON.stringify(res));
+						}
+					});
+				} else {
+					saveMemberInfo();
+				}
+			} catch (e){
+				saveMemberInfo();
+			}
+		})
+	})
+</script>
+{template 'footer-common'}
+{template 'footer'}

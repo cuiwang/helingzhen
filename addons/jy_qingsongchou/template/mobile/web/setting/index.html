@@ -1,0 +1,138 @@
+{template 'web/common/header-base'}
+{template 'web/common/header-nav'}
+{template 'web/common/header'}
+<script src="{GARCIA_JS}/plupload.full.min.js"></script>
+<script src="{GARCIA_JS}/template.js"></script>
+<link rel="stylesheet" href="{GARCIA_CSS}web/setting.css">
+
+  <div class="wrap clearfix qsc-project-publish">
+      <h2 class="modules-title text-center">个人设置</h2>
+        <div class="qsc-tab">
+            <ul class="tab-item">
+                <li {if $display=='index'}class="active"{/if}><a href="{php echo $this->createMobileUrl('msetting',array('display'=>'index'))}">个人资料</a></li>
+                <li {if $display=='address'}class="active"{/if}><a href="{php echo $this->createMobileUrl('msetting',array('display'=>'address'))}">收件地址</a></li>
+                <li {if $display=='bank'}class="active"{/if}><a href="{php echo $this->createMobileUrl('msetting',array('display'=>'bank'))}">银行卡</a></li>
+            </ul>
+
+            <form method="post" class="form-horizontal" style="padding:40px 0;">
+              <input type="hidden" name="dopost" value="save_member">
+              <input type="hidden" name="mid" value="{php echo $this->conf['user']['mid']}">
+                <div class="form-group form-group-lg clearfix">
+                  <label for="" class="col-md-3 control-label">头像</label>
+                    <div class="col-md-9">
+                      <div class="webPicPicker" id="avatarUploader" style="position: relative; z-index: 1;">
+                        <div class="user-avatar uploader-list">
+                          <img src="{php echo tomedia($member['headimgurl'])}" width="120" height="120" class="user-avatar-img" alt="">
+                          <input type="hidden" name="headimgurl" id="headimgurl" value="{$member['headimgurl']}">
+                          <span>点击修改头像</span>
+                        </div>
+                      </div>
+                    </div>
+                </div>
+
+                <div class="form-group form-group-lg clearfix">
+                  <label for="" class="col-md-3 control-label">用户昵称</label>
+                  <div class="col-md-9">
+                      <input type="text" name="nickname" maxlength="12" class="form-control" placeholder="填写你的用户名" value="{php echo urldecode($member['nickname'])}">
+                  </div>
+                </div>
+
+                <div class="form-group form-group-lg clearfix">
+                  <label for="" class="col-md-3 control-label">绑定手机号</label>
+                  <div class="col-md-9">
+                      <p class="form-control-static">{php echo substr($member['mobile'],0,4)}****{php echo substr($member['mobile'],8,4)}</p>
+                  </div>
+                </div>
+                <div class="form-group form-group-lg clearfix">
+                  <label for="" class="col-md-3 control-label">微信</label>
+                  <div class="col-md-9">
+                      <p class="form-control-static">{if $member['openid']!=''}{php echo substr($member['openid'],0,5)}*****{php echo substr($member['openid'],strlen($member['openid'])-3)} {else} 未绑定{/if}</p>
+                  </div>
+                </div>
+            <div class="form-group form-group-lg clearfix">
+              <label for="" class="col-md-3 control-label"></label>
+              <div class="col-md-9">
+                  <button type="submit" name="submit" class="btn btn-primary btn-lg large"><strong>保存</strong></button>
+              </div>
+            </div>
+          </form>
+        </div>
+  </div>
+
+  <script>
+  var uploader = new plupload.Uploader({
+       runtimes : 'html5,flash,silverlight,html4',
+       browse_button : 'avatarUploader', // you can pass in id...
+       chunk_size : '200kb',
+       max_retries:2,
+       url : "{php echo $this->createMobileUrl('uploadimg',array('dopost'=>'downimg','machine'=>md5(GARCIA_MACHINE)))}",
+       filters : {
+         max_file_size : '5mb',
+         mime_types: [
+           {title : "Image files", extensions : "jpg,gif,png,jpeg"},
+           {title : "Zip files", extensions : "zip"}
+         ]
+       },
+       init: {
+         PostInit: function() {
+             return false;
+         },
+
+         FilesAdded: function(up, files) {
+
+             var _len =''; var  _f ='';var __len = '';
+              _f = uploader.files.length;
+             if(_f>1){
+                 _tips('不能超过1张图片');
+                 uploader.splice(0, _f);
+                 return  false;
+             }
+             uploader.start();
+         },
+         FilesRemoved:function(){
+
+         },
+         UploadProgress: function(up, file) {
+
+         },
+         FileUploaded:function(uploader,files,responseObject){
+               var response = responseObject.response;
+               response = eval('(' + response + ')');
+               //
+               console.log(response);
+
+               if(response.status==2){
+                   $("#loadingToast").hide();
+                   _tips(response.msg);
+                   return false;
+               }
+
+               $("#headimgurl").val(response.imgurl);
+               $(".user-avatar-img").attr('src',response.imgurl);
+
+         },
+         UploadComplete:function(uploader,files){
+             _tips('完成上传');
+             var i = 1;
+             uploader.splice(0,100);
+
+         },
+         Error: function(up, err) {
+                  $("#loadingToast").hide();
+           // document.getElementById('console').innerHTML += "\nError #" + err.code + ": " + err.message;
+           if(err.code==-200){
+               _tips('服务器无响应，请重试');
+               return  false;
+           }else if(err.code==-600){
+               _tips('图片不能超过5MB');
+               return  false;
+           }else{
+               _tips(err.code);
+               return  false;
+           }
+         }
+       }
+  })
+  uploader.init();
+  </script>
+{template 'web/common/footer'}

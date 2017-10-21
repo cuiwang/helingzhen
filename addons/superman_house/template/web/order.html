@@ -1,0 +1,310 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li {if !isset($_GPC['status']) && $act == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('order', array('act' => 'display'));}">全部</a></li>
+	<li {if isset($_GPC['status']) && $_GPC['status'] == 0 && $act == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('order', array('act' => 'display', 'status' => 0));}">未付款</a></li>
+	<li {if $_GPC['status'] == 1 && $act == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('order', array('act' => 'display', 'status' => 1));}">已付款</a></li>
+	<li {if $_GPC['status'] == -1 && $act == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('order', array('act' => 'display', 'status' => -1));}">已取消</a></li>
+	{if $_GPC['_id']}<li {if $act == 'post'}class="active"{/if}><a href="{php echo $this->createWebUrl('order', array('act' => 'post', '_id' => $_GPC['id']));}">订单详情</a></li>{/if}
+</ul>
+<style>
+	.table td span{display:inline-block;margin-top:4px;}
+	.table td input{margin-bottom:0;}
+	.alreadypay {background-color: #5cb85c; color: #ffffff; padding: 0 2px; border-radius: 2px;}
+	.neverpay {background-color: #d9534f; color: #ffffff; padding: 0 2px; border-radius: 2px;}
+</style>
+{if $act == 'display'}
+<div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+		<form action="./index.php" method="get" class="form-horizontal" role="form">
+			<input type="hidden" name="c" value="{$_GPC['c']}">
+			<input type="hidden" name="a" value="{$_GPC['a']}">
+			<input type="hidden" name="do" value="order">
+			<input type="hidden" name="m" value="superman_house">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">会员</label>
+				<div class="col-sm-6 col-md-8 col-lg-8 col-xs-12">
+					<input type="text" class="form-control" name="userfield" value="{$_GPC['userfield']}" placeholder="昵称 / uid" />
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">订单号</label>
+				<div class="col-sm-6 col-md-8 col-lg-8 col-xs-12">
+					<input type="text" class="form-control" name="orderno" value="{$_GPC['orderno']}" />
+				</div>
+			</div>
+			<!--<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">付款状态</label>
+				<div class="col-sm-6 col-md-8 col-lg-8 col-xs-12">
+					<select class="form-control" name="status">
+						<option {if $_GPC['status']==-99}selected{/if} value="-99">全部</option>
+						<option {if isset($_GPC['status']) && $_GPC['status']==0}selected{/if} value="0">未付款</option>
+						<option {if $_GPC['status']==1}selected{/if} value="1">已付款</option>
+						<option {if $_GPC['status']==-1}selected{/if} value="-1">已取消</option>
+					</select>
+				</div>
+			</div>-->
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">支付方式</label>
+				<div class="col-sm-6 col-md-8 col-lg-8 col-xs-12">
+					<select name="paytype" class="form-control">
+						<option value="-1">全部</option>
+						<option value="1" {if (isset($_GPC['paytype']) && $_GPC['paytype'] == 1)} selected="selected" {/if}>余额支付</option>
+						<option value="2" {if (isset($_GPC['paytype']) && $_GPC['paytype'] == 2)} selected="selected" {/if}>在线支付</option>
+					</select>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">下单时间</label>
+				<div class="col-sm-6 col-md-8 col-lg-8 col-xs-12">
+					{php echo tpl_form_field_daterange('time', array('starttime'=>date('Y-m-d', $starttime),'endtime'=>date('Y-m-d', $endtime)));}
+					<button class="btn btn-default" style="margin-left: 10px;">
+						<i class="fa fa-search"></i> 搜索
+					</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+<div class="panel panel-default">
+	<div class="table-responsive panel-body">
+		<table class="table">
+			<thead>
+			<tr>
+				<th style="width: 120px">订单号</th>
+				<th>会员</th>
+				<th>楼盘名称</th>
+				<th>状态</th>
+				<!--th>经纪人</th-->
+				<th>订单金额</th>
+				<th>下单时间</th>
+				<th>支付方式</th>
+				<th>支付时间</th>
+				<th style="width:200px;">操作</th>
+			</tr>
+			</thead>
+			<tbody>
+			{loop $list $item}
+			<tr>
+				<td>{$item['orderno']}</td>
+                <td>
+					<div class="clear">
+						<div class="pull-left" style="width: 40px;height: 40px; overflow: hidden; border-radius: 50%;">
+							<img src="{php echo tomedia($item['avatar'])}" onerror="this.src='../app/resource/images/heading.jpg'" style="width: 100%" />
+						</div>
+						<div class="pull-left" style="line-height: 40px; margin-left: 10px;">
+							{if $item['nickname']!=''}{$item['nickname']}{else}{$item['uid']}{/if}
+						</div>
+					</div>
+				</td>
+				<td>{$item['housename']}</td>
+				<td>
+					{if $item['status'] == -1}
+						<span class="label label-default">已取消</span>
+					{elseif $item['status'] == 0}
+						<span class="label label-danger">未付款</span>
+					{elseif $item['status'] == 1}
+						<span class="label label-success">已付款</span>
+					{/if}
+				</td>
+				<!--td>
+					{if !empty($li['parentavatar'])}
+					<div class="clear">
+						<div class="pull-left" style="width: 40px;height: 40px; overflow: hidden; border-radius: 50%;">
+							<img src="{php echo tomedia($li['parentavatar'])}" onerror="this.src='../app/resource/images/heading.jpg'" style="width: 100%" />
+						</div>
+						<div class="pull-left" style="line-height: 40px; margin-left: 10px;">
+							{if $li['parentnickname']!=''}{$li['parentnickname']}{else}{$li['parentuid']}{/if}
+						</div>
+					</div>
+					{else}
+						无
+					{/if}
+				</td-->
+				<td>{$item['amount']}元</td>
+				<td>{$item['dateline']}</td>
+				<td>
+					{if $item['paytype'] == 1}
+					<span class="label label-success">余额支付</span>
+					{elseif $item['paytype'] == 2}
+					{if !empty($item['transid'])}
+					<span class="label label-success">微信支付</span>
+					{else}
+					<span class="label label-success">支付宝</span>
+					{/if}
+					{elseif $item['paytype'] == 3}
+					<span class="label label-success">线下</span>
+					{/if}
+				</td>
+				<td>{$item['paytime']}</td>
+				<td>
+					<a href="{php echo $this->createWebUrl('order', array('act' => 'post', '_id' => $item['ordid']));}" class="btn btn-primary btn-sm">
+						查看订单
+					</a>
+					<a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('order', array('act' => 'delete', '_id' => $item['ordid']));}" title="删除" data-toggle="tooltip" data-placement="top" class="btn btn-default btn-sm"><i class="fa fa-times"></i></a>
+				</td>
+			</tr>
+			{/loop} </tbody>
+		</table>
+	</div>
+	<div class="panel-footer">
+		总共 <strong>{$total}</strong> 条
+	</div>
+</div>
+{$pager}
+<script type="text/javascript">
+	require(['bootstrap'],function($){
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+	});
+</script>
+{elseif $act == 'post'}
+<script type="text/javascript" src="resource/js/lib/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="resource/js/lib/jquery-ui-1.10.3.min.js"></script>
+<form class="form-horizontal form" action="" method="post" enctype="multipart/form-data">
+	<input type="hidden" name="_id" value="{$item['ordid']}">
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			{if empty($item['ordid'])}
+				添加订单
+			{else}
+				订单信息
+			{/if}
+		</div>
+		<div class="panel-body">
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">订单号</label>
+                <div class="col-sm-8 col-xs-12">
+                    <input type="text" class="form-control" disabled placeholder="" name="orderno" value="{$item['orderno']}">
+                </div>
+            </div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">会员</label>
+				<div class="col-sm-8 col-xs-12">
+					<div class="pull-left" style="width: 40px;height: 40px; overflow: hidden; border-radius: 50%;">
+						<img src="{php echo tomedia($item['avatar'])}" onerror="this.src='../app/resource/images/heading.jpg'" style="width: 100%" />
+					</div>
+					<div class="pull-left" style="line-height: 40px;margin-left: 5px;">
+						{$item['nickname']}
+					</div>
+				</div>
+			</div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">uid</label>
+                <div class="col-sm-8 col-xs-12">
+                    <input type="text" class="form-control" disabled placeholder="" name="uid" value="{$item['uid']}">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">楼盘名称</label>
+                <div class="col-sm-8 col-xs-12">
+					<input type="text" class="form-control" disabled placeholder="" name="uid" value="{$item['housename']}">
+                </div>
+            </div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">金额</label>
+				<div class="col-sm-8 col-xs-12">
+					<input type="text" class="form-control" disabled placeholder="" name="amount" value="{$item['amount']}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">订单状态</label>
+				<div class="col-sm-8 col-xs-12">
+					{if $item['status'] == -1}
+						<span class="label label-default">已取消</span>
+					{elseif $item['status'] == 0}
+						<span class="label label-danger">未付款</span>
+					{elseif $item['status'] == 1}
+						<span class="label label-success">已付款</span>
+					{/if}
+					<!--<select name="status" class="form-control" disabled>
+						<option class="form-control" {if $item['status'] == -1}selected="selected"{/if} value="-1">已取消</option>
+						<option class="form-control" {if $item['status'] == 0}selected="selected"{/if} value="0">未付款</option>
+						<option class="form-control" {if $item['status'] == 1}selected="selected"{/if} value="1">已付款</option>
+					</select>-->
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">姓名</label>
+				<div class="col-sm-8 col-xs-12">
+					<input type="text" class="form-control" disabled placeholder="" name="realname" value="{$item['realname']}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">手机号</label>
+				<div class="col-sm-8 col-xs-12">
+					<input type="text" class="form-control" disabled placeholder="" name="mobile" value="{$item['mobile']}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">备注</label>
+				<div class="col-sm-8 col-xs-12">
+					<textarea class="form-control" disabled name="remark">{$item['remark']}</textarea>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">下单时间</label>
+				<div class="col-sm-8 col-xs-12">
+					<input class="form-control" disabled name="dateline" value="{$item['dateline']}">
+				</div>
+			</div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">支付方式</label>
+                <div class="col-sm-8 col-xs-12">
+					{if $item['paytype'] == 1}
+						<span class="label label-success">余额支付</span>
+					{elseif $item['paytype'] == 2}
+						{if !empty($item['transid'])}
+							<span class="label label-success">微信支付</span>
+						{else}
+							<span class="label label-success">支付宝</span>
+						{/if}
+					{elseif $item['paytype'] == 3}
+						<span class="label label-success">线下</span>
+					{/if}
+					<!--<select name="paytype" class="form-control" disabled>
+						<option class="form-control" {if $item['paytype'] == 1}selected="selected"{/if} value="1">余额</option>
+						<option class="form-control" {if $item['paytype'] == 2}selected="selected"{/if} value="2">线上</option>
+						<option class="form-control" {if $item['paytype'] == 3}selected="selected"{/if} value="3">线下</option>
+					</select>-->
+                </div>
+            </div>
+			{if !empty($item['transid'])}
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">微信支付交易号</label>
+                <div class="col-sm-8 col-xs-12">
+                    <input type="text" class="form-control" disabled placeholder="" name="transid" value="{$item['transid']}">
+                </div>
+            </div>
+			{/if}
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">支付时间</label>
+				<div class="col-sm-8 col-xs-12">
+					<input class="form-control" disabled name="paytime" value="{$item['paytime']}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-4 col-md-3 col-lg-2 control-label">卡券</label>
+				<div class="col-sm-8 col-xs-12">
+					<textarea class="form-control" disabled name="paydetail">{$item['paydetail']}</textarea>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="form-group">
+		<div class="col-sm-12">
+			<input onclick="history.go(-1)" type="button" value="返回" class="btn btn-primary col-lg-1">
+		</div>
+	</div>
+	<!--<div class="form-group">
+		<div class="col-sm-12">
+			<input name="submit" type="submit" value="提交" class="btn btn-primary col-lg-1">
+			<input type="hidden" name="token" value="{$_W['token']}" />
+		</div>
+	</div>-->
+</form>
+{/if}
+{template 'common/footer'}

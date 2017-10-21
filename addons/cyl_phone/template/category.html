@@ -1,0 +1,163 @@
+{template 'common/header'}
+ 
+<ul class="nav nav-tabs">
+	<li {if $op == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('category', array('op'=>'display'));}">分类列表</a></li>
+	<li {if $op == 'create'}class="active"{/if}><a href="{php echo $this->createWebUrl('category', array('op'=>'create'));}">添加分类</a></li>
+</ul>
+ 
+{if $op == 'display'}
+<div class="main">
+	<form action="" method="post" class="form-horizontal form" id="form">
+		<div class="panel panel-default">
+			<div class="panel-heading">分类管理</div>
+			<div class="panel-body">
+				<div class="table-responsive panel-body">
+					<table class="table table-hover" style="min-width: 300px;">
+						<thead class="navbar-inner">
+							<tr>
+								<th style="width:120px;">分类名称</th>
+								<th style="width:80px;">排序</th>
+								<th style="width:120px;">操作</th>
+								<th></th>
+							</tr>
+						</thead>
+					<tbody>
+					{loop $categories $key $item}
+					{if $item['rid'] == '0'}
+						<tr>
+							<td class="text-left">
+								<input type="text" name="categories[{$key}][name]" value="{$item['name']}" class="form-control categories-name">
+							</td>
+
+							<td>
+								<input type="text" name="categories[{$key}][orderno]" value="{$item['orderno']}" class="form-control">
+							</td>								
+							<td>
+								<a href="{php echo $this->createWebUrl('category', array('op'=>'create', 'id'=>$key));}" class="btn btn-default" data-toggle="tooltip" data-placement="top" title="" data-original-title="编辑"><i class="fa fa-pencil"></i></a>
+								<a onclick="if(!confirm('删除后将不可恢复,确定删除吗?')) return false;" href="{php echo $this->createWebUrl('category', array('op'=>'delete', 'id'=>$key));}" class="btn btn-default btn-danger" data-toggle="tooltip" data-placement="top" title="" data-original-title="删除"><i class="fa fa-times"></i> </a>
+							</td>
+
+							<td class="text-left">
+							<div style="height:30px;line-height:30px">
+								{if $item['rid'] == '0'}
+									<a href="{php echo $this->createWebUrl('category',array('op'=>'create','rid' => $key))}" title="添加子分类"><i class="fa fa-plus"></i> 添加子分类</a>
+								{/if}
+							</div>
+							</td>	
+						</tr>
+						{/if}
+						{loop $rcate $id $rcates}
+						{if $rcates['rid'] == $key}
+							<tr>
+								<td class="text-left">
+									<div style="padding-left:50px;height:30px;line-height:30px;background:url('./resource/images/bg_repno.gif') no-repeat -245px -545px;">
+										<input type="text" name="categories[{$key}][name]" value="{$rcates['name']}" class="form-control categories-name">
+									</div>
+								</td>
+								<td>
+									<input type="text" name="categories[{$key}][orderno]" value="{$rcates['orderno']}" class="form-control">
+								</td>								
+								<td>
+									<a href="{php echo $this->createWebUrl('category', array('op'=>'create', 'id'=>$rcates['id'], 'rid'=>$rcates['rid']));}" class="btn btn-default" data-toggle="tooltip" data-placement="top" title="" data-original-title="编辑"><i class="fa fa-pencil"></i></a>
+									<a onclick="if(!confirm('删除后将不可恢复,确定删除吗?')) return false;" href="{php echo $this->createWebUrl('category', array('op'=>'delete', 'id'=>$rcates['id']));}" class="btn btn-default btn-danger" data-toggle="tooltip" data-placement="top" title="" data-original-title="删除"><i class="fa fa-times"></i> </a>
+								</td>
+								<td class="text-left">
+									<div style="height:30px;line-height:30px"></div>
+								</td>
+							</tr>
+							{/if}
+						{/loop}
+					{/loop}
+						<tr>
+							<td colspan="4">
+								<a href="{php echo $this->createWebUrl('category', array('op'=>'create'));}"><i class="fa fa-plus-circle" title="添加新分类"></i> 添加新分类</a>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+				</div>
+			</div>
+		</div>
+	</form>
+</div>
+ 
+<script>
+require(['jquery', 'util'], function($, util){
+	$(function(){
+		$('#form').submit(function(){
+			var result = true;
+			$('input.categories-name').each(function(){
+				if(this.value.length == 0){
+					return result = false;
+				}
+			});
+			if(!result){
+				util.message('有分类名称未填写.');
+			}
+			return result;
+		});
+	});
+});
+</script>
+{/if} <!-- end of display -->
+ 
+{if $op == 'create'}
+<div class="main">
+	<form action="" method="post" class="form-horizontal form" id="form">
+		<div class="panel panel-default">
+			<div class="panel-heading">分类</div>
+			<div class="panel-body">
+				{if $rid != '0'}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">上级分类</label>
+					<div class="col-xs-12 col-sm-4">
+						<label class="control-label">{$Rcategories['name']}</a>
+					</div>
+				</div>
+				{/if}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">名称</label>
+					<div class="col-xs-12 col-sm-4">
+						<input type="text" name="category[name]" class="form-control" value="{$categories['name']}" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">图标</label>
+					<div class="col-xs-12 col-sm-4">
+						{php echo tpl_form_field_image('category[thumb]',$categories['thumb']);}
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">排序</label>
+					<div class="col-xs-12 col-sm-4">
+						<input type="text" name="category[orderno]" class="form-control" value="" />
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="col-xs-12 col-sm-9 col-md-10 col-lg-10 col-sm-offset-3 col-md-offset-2 col-lg-offset-2">
+						<input name="submit" type="submit" value="提交" class="btn btn-primary" />
+						<input type="hidden" name="token" value="{$_W['token']}" />
+					</div>
+				</div>
+			</div>
+		</div>
+	</form>
+</div>
+ 
+<script>
+require(['jquery', 'util'], function($, util){ 
+	$(function(){
+		$('#form').submit(function(){
+			var result = true;
+			if($('input[name="category[name]"]').val() == ''){
+				result = false;
+				util.message('未填写分类名称.');
+			}
+			return result;
+		});
+	});
+});
+</script>
+{/if} <!-- end of create -->
+ 
+{template 'common/footer'}

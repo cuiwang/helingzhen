@@ -1,0 +1,186 @@
+{template 'common/header'}
+{php load()->func('tpl')}
+<style>
+</style>
+<ul class="nav nav-tabs">
+	<li {if $status == ''}class="active"{/if}>
+	<a href="{php echo $this->createWebUrl('manage', array('id' => $reid))}">所有记录</a>
+	</li>
+	<li {if $status == '0' && $paystatus == '1'} class="active"{/if}>
+	<a href="{php echo $this->createWebUrl('manage', array('status' => 0, 'paystatus' => '1', 'id' => $reid))}">未付款待确认</a>
+	</li>
+	<li {if $status == '0' && $paystatus == '2'}class="active"{/if}>
+	<a href="{php echo $this->createWebUrl('manage', array('status' => '0', 'paystatus' => '2', 'id' => $reid))}">已付款待确认</a>
+	</li>
+	<li {if $status == '1' && $paystatus == '2'}class="active"{/if}>
+	<a href="{php echo $this->createWebUrl('manage', array('status' => '1', 'paystatus' => '2', 'id' => $reid))}">已付款已确认</a>
+	</li>
+	<li {if $status == '2'}class="active"{/if}>
+	<a href="{php echo $this->createWebUrl('manage', array('status' => 2, 'id' => $reid))}">已取消/拒绝</a>
+	</li>
+	<li {if $status == '3'}class="active"{/if}>
+	<a href="{php echo $this->createWebUrl('manage', array('status' => 3, 'id' => $reid))}">已完成</a>
+	</li>
+	</ul>
+
+<div class="main">
+    <div class="panel panel-info">
+        <div class="panel-heading">筛选</div>
+        <div class="panel-body">
+            <form action="./index.php" method="get" class="form-horizontal" role="form">
+                <input type="hidden" name="c" value="site" />
+                <input type="hidden" name="a" value="entry" />
+                <input type="hidden" name="m" value="dayu_yuyuepay" />
+                <input type="hidden" name="do" value="manage" />
+                <input type="hidden" name="id" value="{$reid}" />
+                <input type="hidden" name="status" value="{$_GPC['status']}" />
+                <input type="hidden" name="paystatus" value="{$_GPC['paystatus']}" />
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">姓名/手机</label>
+				<div class="col-sm-8 col-lg-6">
+					<input class="form-control" name="keywords" id="" type="text" value="{$_GPC['keywords']}" placeholder="可查询手机号 / 姓名"> 
+				</div>                  
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">单号/微信单号</label>
+				<div class="col-sm-8 col-lg-6">
+					<input class="form-control" name="orderid" id="" type="text" value="{$_GPC['orderid']}" placeholder="可查询订单号 / 微信订单号"> 
+				</div>                  
+			</div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">预约提交时间</label>
+                    <div class="col-xs-12 col-sm-5 col-lg-4">
+                        {php echo tpl_form_field_daterange('time',array('starttime'=>date('Y-m-d', $starttime),'endtime'=>date('Y-m-d', $endtime)), true)}
+                    </div>
+                    <div class="col-xs-12 col-sm-5 col-lg-3">
+                        <div class='btn-group'>
+                        <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+                        <input type="submit" name="export" value="导出匹配的数据" class="btn btn-primary">
+                        </div>
+                    </div>
+                </div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-2 control-label">状态 / 统计</label>
+				<div class="col-sm-9 col-lg-9">
+				<a class="btn btn-info {if $status == ''}btn-warning{/if} btn-sm" href="{php echo $this->createWebUrl('manage', array('id' => $reid, 'time[start]' => $_GPC['time']['start'], 'time[end]' => $_GPC['time']['end'], 'keywords' => $_GPC['keywords'], 'orderid' => $_GPC['orderid']))}">全部 ({$order_count_all}) <span class="badge fa fa-cny"> {$sum_price_all['sum_money']}</span></a>
+				<a class="btn btn-info {if $status == '0' && $paystatus == '1'}btn-warning{/if} btn-sm" href="{php echo $this->createWebUrl('manage', array('id' => $reid, 'status' => 0, 'paystatus' => 1, 'time[start]' => $_GPC['time']['start'], 'time[end]' => $_GPC['time']['end'], 'keywords' => $_GPC['keywords'], 'orderid' => $_GPC['orderid']))}">未付款待确认 ({$order_count_confirm}) <span class="badge fa fa-cny"> {$sum_price_confirm['sum_money']}</span></a>
+				<a class="btn btn-info {if $status == '0' && $paystatus == '2'}btn-warning{/if} btn-sm" href="{php echo $this->createWebUrl('manage', array('id' => $reid, 'status' => 0, 'paystatus' => 2, 'time[start]' => $_GPC['time']['start'], 'time[end]' => $_GPC['time']['end'], 'keywords' => $_GPC['keywords'], 'orderid' => $_GPC['orderid']))}">已付款待确认 ({$order_count_pay}) <span class="badge fa fa-cny"> {$sum_price_pay['sum_money']}</span></a>
+				<a class="btn btn-info {if $status == '1' && $paystatus == '2'}btn-warning{/if} btn-sm" href="{php echo $this->createWebUrl('manage', array('id' => $reid, 'status' => 1, 'paystatus' => 2, 'time[start]' => $_GPC['time']['start'], 'time[end]' => $_GPC['time']['end'], 'keywords' => $_GPC['keywords'], 'orderid' => $_GPC['orderid']))}">已付款已确认 ({$order_count_finish}) <span class="badge fa fa-cny"> {$sum_price_finish['sum_money']}</span></a>
+				<a class="btn btn-info {if $status == '2'}btn-warning{/if} btn-sm" href="{php echo $this->createWebUrl('manage', array('id' => $reid, 'status' => 2,'time[start]' => $_GPC['time']['start'], 'time[end]' => $_GPC['time']['end'], 'keywords' => $_GPC['keywords'], 'orderid' => $_GPC['orderid']))}">已取消/拒绝 ({$order_count_cancel}) <span class="badge fa fa-cny"> {$sum_price_cancel['sum_money']}</span></a>
+				<a class="btn btn-info {if $status == '3'}btn-warning{/if} btn-sm" href="{php echo $this->createWebUrl('manage', array('id' => $reid, 'status' => 3, 'time[start]' => $_GPC['time']['start'], 'time[end]' => $_GPC['time']['end'], 'keywords' => $_GPC['keywords'], 'orderid' => $_GPC['orderid']))}">已完成 ({$order_count_end}) <span class="badge fa fa-cny"> {$sum_price_end['sum_money']}</span></a>
+				</div>                  
+			</div>
+            </form>
+        </div>
+    </div>
+			<form method="post" class="form-horizontal" id="form1">
+	<div class="panel panel-default">
+		<div class="panel-body table-responsive">
+			<table class="table table-hover">
+                    <thead class="navbar-inner">
+                        <tr>
+							<th style="width:30px;text-align:center;">删</th>
+                            <th style="width:60px;text-align:center;">粉丝</th>
+                            <th>姓名</th>
+                            <th>手机</th>
+                            <th>服务项目</th>
+                            <th>预约时间</th>
+                            <th>处理状态</th>
+							<th>订单号</th>
+							<th>付款状态/方式</th>
+							<th>微信支付单号</th>
+                            <th>提交时间<i></i></th>
+                            <th width="90">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {loop $list $row}
+                        <tr>
+							<td style="text-align:center;"><input type="checkbox" name="recordid[]" value="{$row['rerid']}" class=""></td>
+							<td>
+							{if !empty($row['openid'])}<span class="text-info" style="text-align:center;"><a href="{php echo url('mc/member/post', array('uid'=>$row['user']['uid']));}" target="_blank"><img src="{if !empty($row['user']['tag']['avatar'])}{$row['user']['tag']['avatar']}{else}resource/images/noavatar_middle.gif{/if}" width="48" data-toggle="tooltip" data-placement="bottom" class="btn btn-xs" title="{$row['user']['nickname']}"></a></span>{/if}
+							</td>
+                    <td class="row-hover"><a href="javascript:;" title="{$row['from_user']}">{$row['member']}</a></td>
+                    <td class="row-hover">{$row['mobile']}</td>
+					<td><span class="btn btn-primary btn-xs">{$row['xm']['title']} <span class="badge"><i class="fa fa-cny"></i> {$row['price']}</span></span></td>
+                            <td style="font-size:12px; color:#ce0000;">{if $activity['is_time']==0}{php echo date('Y-m-d H:i', $row[yuyuetime]);}{elseif $activity['is_time']==2}{$row[restime]}{/if}</td>
+					<td>
+            {if $row['status'] == 0} <span class="badge text-primary">等待确认</span>
+                {elseif $row['status'] == 1} <span class="btn btn-xs btn-success status">已确认</span>
+                {elseif $row['status'] == 2} <span class="btn btn-xs btn-warning status">已拒绝</span>
+                {elseif $row['status'] == 3} <span class="btn btn-xs btn-primary status">已完成</span>
+                {elseif $row['status'] == -1} <span class="btn btn-xs btn-warning status">客户取消</span>
+            {/if}</td>
+					<td>{$row['ordersn']}</td>
+					<td>
+					{if $row['paystatus'] == 1}<span class="btn btn-xs btn-warning">未支付</span>{/if}
+                    {if $row['paystatus'] == 2}<span class="btn btn-xs btn-danger">已支付</span>{/if}
+					<span class="btn btn-xs btn-{$row['css']}">{$row['paytype']}</span>
+					</td>
+					<td title="{$row['transid']}">{$row['transid']}</td>
+                            <td style="font-size:12px; color:#666;">{php echo date('Y-m-d H:i:s', $row[createtime]);} </td>
+                            <td>
+								<a href="{php echo $this->createWebUrl('detail', array('id' => $row['rerid']))}" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="查看详情">详情</a>
+								<a href="{php echo $this->createWebUrl('dayu_yuyuepaydelete', array('id' => $row['rerid']))}"  class="btn btn-default btn-sm" onclick="return confirm('删除预约记录，此操作不可恢复，确认删除？');return false;" data-toggle="tooltip" data-placement="bottom" title="删除"><i class="fa fa-times"></i></a>
+							</td>
+                        </tr>
+                        {/loop}
+				<tr>
+					<td style="text-align:center;"><input type="checkbox" name="" onclick="var ck = this.checked;$(':checkbox').each(function(){this.checked = ck});"></td>
+					<td colspan="11"><input name="token" type="hidden" value="{$_W['token']}" /><input type="submit" name="submit" class="btn btn-danger" value="删除选中的记录"></td>
+				</tr>
+                    </tbody>
+                </table>
+        </div>
+    </div>
+            </form>
+            {$pager}
+</div>
+<script type="text/javascript">
+	require(['daterangepicker'], function($){
+		$('.daterange').on('apply.daterangepicker', function(ev, picker) {
+			$('#form1')[0].submit();
+		});
+	});
+</script>
+<script language='javascript'>
+	function selectall(obj, name){
+		$('input[name="'+name+'[]"]:checkbox').each(function() {
+			$(this).get(0).checked =  $(obj).get(0).checked;
+		});
+	}
+	require(['bootstrap'],function($){
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+	});
+</script>
+<script>
+require(['jquery', 'util'], function($, u){
+		$('#form1').submit(function(){
+		    if($(":checkbox[name='recordid[]']:checked").size() > 0){
+			    var check = $(":checkbox[name='recordid[]']:checked");
+			    if( confirm("确认要删除选择的记录?")){
+		            var rerid = new Array();
+				    var reid = {$reid};
+		            check.each(function(i){
+			            rerid[i] = $(this).val();
+		            });
+		            $.post('{php echo $this->createWebUrl('batchrecord')}', {idArr:rerid,reid:reid},function(data){
+			        if (data.errno ==0){
+						location.reload();
+			        } else {
+				        alert(data.error);
+			        }
+		            },'json');
+		        }
+		    }else{
+		        u.message('没有选择要删除记录', '', 'error');
+		        return false;
+		    }
+	    });		
+	});
+</script>
+{template 'common/footer'}

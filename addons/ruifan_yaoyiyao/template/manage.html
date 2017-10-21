@@ -1,0 +1,102 @@
+{template 'common/header'}
+<div class="main">
+	<ul class="nav nav-tabs">
+		<li{if $_GPC['do'] == 'manage' || $_GPC['do'] == '' } class="active"{/if}><a href="{php echo $this->createWebUrl('manage');}">活动管理</a></li>
+<li{if $_GPC['do'] == 'post'} class="active"{/if}><a href="{php echo url('platform/reply/post',array('m'=>'ruifan_yaoyiyao'));}">添加活动规则</a></li>
+	</ul>
+    
+	<div class="panel panel-primary">
+		<div class="panel-body table-responsive">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<th class='with-checkbox' style="width:50px;"></th>
+					<th style="width:270px;">名称</th>
+					<th style="width:100px;">参与人数</th>
+					<th style="width:100px;">中奖数量</th>
+					<th style="width:130px;">开始/结束</th>
+					<th style="width:80px;">活动状态</th>
+					<th style="width:180px;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $row}
+				<tr>
+					<td class="with-checkbox">
+						<input type="checkbox" name="check" value="{$row['id']}"></td>
+					<td>{$row['title']} </td>
+					<td>{$row['fansnum']}</td>
+					<td>{$row['viewnum']}</td>
+					<td>{$row['starttime']}<br>
+						{$row['endtime']}</td>
+					<td>{$row['status']}</td>
+					<td>
+						<a class="btn btn-default" data-toggle="tooltip" data-placement="top" href="{php echo $this->createWebUrl('awardfans',array('rid'=>$row['id']))}" title="中奖名单"><i class="fa fa-users"></i></a>
+						<a class="btn btn-default" data-toggle="tooltip" data-placement="top" href="{php echo $this->createWebUrl('awardlist',array('rid'=>$row['id']))}" title="中奖数据"><i class="fa fa-line-chart"></i></a>
+                        <a class="btn btn-default" data-toggle="tooltip" data-placement="top" href="{php echo url('platform/reply/post',array('m'=>'ruifan_yaoyiyao','rid'=>$row['id']));}" title="编辑"><i class="fa fa-edit"></i></a>
+                        {if $row['isshow']==0}
+                        <a class="btn btn-default" title="开始活动" data-placement="top" href="#" onclick="drop_confirm('您确定要开始吗,设置中途可以随时修改!', '{php echo $this->createWebUrl('setshow',array('rid'=>$row['id'],'isshow'=>1))}');"><i class="fa fa-play"></i></a>
+                        {elseif $row['isshow']==1}
+                        <a class="btn btn-default" title="结束活动" data-placement="top" href="#" onclick="drop_confirm('您确定要暂停吗,设置中途可以随时修改!', '{php echo $this->createWebUrl('setshow',array('rid'=>$row['id'],'isshow'=>0))}');"><i class="fa fa-stop"></i></a>
+                        {/if}
+                        <a class="btn btn-default" data-toggle="tooltip" data-placement="top" href="#" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('delete',array('rid'=>$row['id']))}');" title="删除"><i class="fa fa-times"></i></a>
+                  	</td>
+				</tr>
+				{/loop}
+				<tr>
+					<td><input type="checkbox" class="check_all" /></td>
+					<td colspan="6">
+						<input type="button" class="btn btn-primary" name="deleteall" value="删除选择的" />
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	</div>
+	{$pager}
+</div>
+<script>
+	require(['bootstrap'],function($){
+		$('.btn').tooltip();
+	});
+$(function(){
+   
+    $(".check_all").click(function(){
+       var checked = $(this).get(0).checked;
+		$(':checkbox').each(function(){this.checked = checked});
+    });
+	$("input[name=deleteall]").click(function(){
+ 
+		var check = $("input:checked");
+		if(check.length<1){
+			err('请选择要删除的记录!');
+			return false;
+		}
+        if( confirm("确认要删除选择的记录?")){
+		var id = new Array();
+		check.each(function(i){
+			id[i] = $(this).val();
+		});
+		$.post('{php echo $this->createWebUrl('deleteAll')}', {idArr:id},function(data){
+			if (data.errno ==0)
+			{
+				location.reload();
+			} else {
+				alert(data.error);
+			}
+
+
+		},'json');
+		}
+
+	});
+});
+</script>
+<script>
+function drop_confirm(msg, url){
+    if(confirm(msg)){
+        window.location = url;
+    }
+}
+</script>
+{template 'common/footer'}

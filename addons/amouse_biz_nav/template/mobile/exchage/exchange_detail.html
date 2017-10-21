@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{$set['sys'][copyright]}-{$set['custom'][credittxt]}兑换</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <link href="{AMOUSE_BIZ_NAV_RES}pig/css/main.css?2016050101" rel="stylesheet">
+    <link href="{AMOUSE_BIZ_NAV_RES}pig/css/load.css?2016050101" rel="stylesheet">
+    {php echo register_jssdk(false);}
+    <script src="{AMOUSE_BIZ_NAV_RES}pig/js/jquery.min.js?2016050101"></script>
+</head>
+
+
+{template 'default/navbar'}
+
+<!--提示关注公众号-->
+<!--<div class="MTop-20 fsize15 Tcenter" style="margin-top: -31px;"><a style="width:100%;display: block;height: 40px;line-height: 40px;background: #D8D8D8;" href="http://t.cn/RhHZfad">更多功能请点击此处关注公号：小猪导航</a></div>-->
+
+<link href="{AMOUSE_BIZ_NAV_RES}pig/css/index.css" rel="stylesheet"/>
+<style>
+    /*充值页面不要底部菜单*/
+    .foot_menu {
+        display: none;
+    }
+</style>
+<!--头部菜单    结束-->
+<body>
+
+<div class="chose_head">
+    <div class="cur chose_menu"><a href="{php echo $_W['siteroot'].'app/'.substr($this->createMobileUrl('exchange'), 2)}">{$credittxt}兑换</a></div>
+    <div class="chose_menu"><a href="{php echo $_W['siteroot'].'app/'.substr($this->createMobileUrl('exchangelog'), 2)}">兑换记录</a></div>
+</div>
+
+<div class="chose_sure">
+    <div class="product_box">
+        <div class="product_square">
+            <div class="img_box">
+                <div class="square_img"
+                     style="background:url({php echo strpos($goods['thumb'],'http://')===FALSE?tomedia($goods['thumb']):$goods['thumb']})"></div>
+            </div>
+            <div class="product_inf">
+                <div class="product_inf_padding">
+                    <span class="product_name">{$goods['title']}</span>
+                    <span class="product_point">{$goods['credit']}{$credittxt}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="sure_msg">
+    {$goods['detail']}
+</div>
+
+{if $goods['type']==0}
+<div class="chose_sure" style="height: 80px;">
+     <!--<p style="float:left; width:100%;padding-left:10px;padding-top: 20px;">
+
+    </p>-->
+    <div style="float:left; width:100%;padding-left:10px;padding-top: 10px;">
+        <div class="small-12 medium-8 columns">
+            <label>收货人
+                <input id="address_name" maxlength="30" name="address_name" placeholder="收货人" type="text" value="{$creditlog['address_name']}" style="background:transparent;border:1px solid #ffffff">
+            </label>
+        </div>
+    </div>
+    <div style="float:left; width:100%;padding-left:10px;padding-top: 10px;">
+        <div class="small-12 medium-8 columns">
+            <label>手机号码
+                <input id="address_phone" type="tel" maxlength="30" name="address_phone" placeholder="手机号码" type="text" value="{$creditlog['address_phone']}" style="background:transparent;border:1px solid #ffffff">
+            </label>
+        </div>
+    </div>
+
+    <div style="float:left; width:100%;padding-left:10px;padding-top: 10px;">
+        <div class="small-12 medium-8 columns">
+            <label>详细地址信息
+                <input id="address" maxlength="30" name="address" placeholder="详细地址信息" type="text" value="{$creditlog['address']}" style="background:transparent;border:1px solid #ffffff">
+            </label>
+        </div>
+    </div>
+</div> {/if}
+
+{if $total_credit>=$goods['credit']}
+    <a href="javascript:;" id="sure" class="sure_btn">确定兑换</a>
+{else}
+    <a href="javascript:;"  class="sure_btn">{$credittxt}不足</a>
+{/if}
+
+<div class="mengban">
+    <div class="mengban_ts">
+        <h2>提示</h2>
+        {if $total_credit>=$goods['credit']}
+
+        {else}
+        <p class="ts_msg">{if $set['custom'][credittxt]}{{$set['custom'][credittxt]}}{else}积分{/if}不足</p>
+        {/if}
+        <a href="javascript:;" class="close_btn">确定</a>
+    </div>
+</div>
+
+
+{template 'default/footerbar'}
+<div style="height:30px; width:100%;"></div>
+
+<script>
+
+    $(".sure_btn").click(function () {
+        var getUrl = '{php echo $this->createMobileUrl('ajaxExchangeDo',array(),true)}&_=' + Math.random();
+        var credit="{$goods['credit']}";
+        var type="{$goods['type']}";
+        var gid = "{$goods['id']}";
+        if(type==0){
+            if($('#address_name').val().length < 1){
+                new_alert('请设置收货人。');
+                return false;
+            }
+            if($('#address_phone').val().length < 1){
+                new_alert('请设置收货手机号码。');
+                return false;
+            }
+            if($('#address').val().length < 1){
+                new_alert('请设置收货地址。');
+                return false;
+            }
+        }
+
+        if (confirm("是否兑换（兑换需要消耗"+credit+"个{$credittxt}）？")) {
+
+            $.ajax({
+                type : "POST",
+                url :getUrl,
+                data : {'gid':gid,"address_name":$('#address_name').val(),"address_phone":$('#address_phone').val(),"address":$('#address').val()},
+                dataType : "json",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                beforeSend : function(XMLHttpRequest) {
+                    loadingToast("提交中...");
+                },
+                success : function(res){
+                    if(res.code==200){
+                        dialog2(res.msg);
+                        window.location = '{php echo $this->createMobileUrl('exchangelog',array(),true)}';
+                    }else{
+                        hidemod("loadingToast");
+                        dialog2(res.msg);
+                    }
+                },
+                error : function(res){
+                    hidemod("loadingToast");
+                    dialog2(res.msg);
+                }
+            });
+        }
+    });
+
+    $(".close_btn").click(function () {
+        $(".mengban").css("display", "none");
+    });
+
+</script>
+
+</body>
+</html>

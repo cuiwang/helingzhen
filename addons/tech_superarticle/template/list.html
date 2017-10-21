@@ -1,0 +1,202 @@
+{template 'common/header'}
+<script type="text/javascript" src="resource/js/lib/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="resource/js/lib/jquery-ui-1.10.3.min.js"></script>
+<ul class="nav nav-tabs">
+	<li {if $operation == 'detail'}class="active"{/if}><a href="{php echo $this->createWebUrl('List', array('op' => 'detail'))}">添加/修改</a></li>	
+	<li {if $operation == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('List', array('op' => 'display'))}">文章管理</a></li>
+	<li><a href="{php echo $this->createWebUrl('comment', array('ar_id'=>$ar_id))}">评论管理</a></li>
+	<li {if $operation == 'dashang_detail'}class="active"{/if}><a href="{php echo $this->createWebUrl('List', array('op' => 'dashang_detail','id'=>$id))}">打赏管理</a></li>
+</ul>
+<style type="text/css">
+.table-hover td {
+ vertical-align: middle!important;
+}
+</style>
+{if $operation == 'detail'}
+	<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" id="form1">
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				{if empty($id)}添加文章{else}编辑文章{/if}
+			</div>
+			<div class="panel-body">
+				<ul class="nav nav-tabs" id="myTab">
+					<li class="active" ><a href="#tab_basic">文章基本信息</a></li>
+					<li><a href="#tab_setting">文章自定义参数</a></li>
+					<li><a href="#tab_fx">自定义分享参数</a></li>
+				</ul>
+				<div class="tab-content">
+					<div class="tab-pane  active" id="tab_basic">{template 'article_basic'}</div>
+					<div class="tab-pane" id="tab_setting">{template 'article_setting'}</div>
+					<div class="tab-pane" id="tab_fx">{template 'article_fx'}</div>
+				</div>
+			</div>
+		</div>
+		<div class="form-group col-sm-12">
+			<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+			<input type="hidden" name="token" value="{$_W['token']}" />
+		</div>
+	</form>
+
+<script type="text/javascript">
+	$(function () {
+		window.optionchanged = false;
+		$('#myTab a').click(function (e) {
+			e.preventDefault();//阻止a链接的跳转行为
+			$(this).tab('show');//显示当前选中的链接及关联的content
+		})
+	});
+</script>
+{elseif $operation == 'display'}
+<div class="panel panel-info">
+	    <div class="panel-heading">筛选</div>
+	    <div class="panel-body">
+            <form action="./index.php" method="get" class="form-horizontal" role="form" id="form1">
+                <input type="hidden" name="c" value="site" />
+                <input type="hidden" name="a" value="entry" />
+                <input type="hidden" name="m" value="tech_superarticle" />
+                <input type="hidden" name="do" value="list" />
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-1 col-md-1 col-lg-1 control-label">文章标题</label>
+					<div class="col-xs-12 col-sm-4 col-lg-4">
+						<input class="form-control" name="ar_title" id="" type="text" value="{$ar_title}" placeholder="文章标题">
+					</div>
+					<label class="col-xs-12 col-sm-1 col-md-1 col-lg-1 control-label">创建时间</label>
+					<div class="col-xs-12 col-sm-4 col-lg-4">
+						{php echo tpl_form_field_daterange('time', array('starttime'=>date('Y-m-d H:i:s', $starttime),'endtime'=>date('Y-m-d H:i:s', $endtime)));}
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">文章分类</label>
+					<div class="col-xs-12 col-sm-6 col-lg-8">
+						<select name="category_id" class='form-control'>
+							<option value="0"> --全部分类--</option>
+							{loop $categorys $item}
+							<option value="{$item['id']}" {if $category_id == $item['id']} selected{/if}>{$item['name']}</option>
+							{/loop}
+						</select>
+					</div>
+					<div class="col-xs-12 col-sm-2 col-lg-2">
+						<button class="btn btn-danger"><i class="fa fa-search"></i> 搜索</button>
+					</div>
+				</div>
+            </form>
+	    </div>
+</div>
+	<div class="category">
+		<form action="" method="post" onsubmit="return formcheck(this)">
+			
+			<div class="panel panel-default">
+				<div class="panel-body table-responsive">
+					<table class="table table-hover">
+						<thead>
+							<tr>
+								<th style="width:60px;">排序</th>
+								<th style="width:200px;">标题</th>														
+								<th style="width:20px;"></th>														
+								<th style="width:80px;">分类</th>							
+								<th style="width:60px;">阅读</th>
+								<th style="width:60px;">点赞</th>
+								<th style="width:60px;">分享</th>
+								<th style="width:60px;">评论</th>
+								<th style="width:60px;">打赏</th>
+								<th style="width:120px;">创建时间</th>
+								<th style="width:150px;">操作</th>
+							</tr>
+						</thead>
+						<tbody>
+						{loop $articles $v}
+						<tr>
+							<td><div class="type-parent"><input type="text" class="form-control" name="a_order[{$v['id']}]" value="{$v['a_order']}"></div></td>
+							<td><div class="type-parent" style="text-overflow:ellipsis; white-space:nowrap;overflow:hidden;color: #000;width: 200px;">{$v['title']}</div></td>
+							<td></td>
+							<td>{$v['cat']}</td>
+							<td>&nbsp;&nbsp;&nbsp;{$v['yuenum']}</td>
+							<td>&nbsp;&nbsp;&nbsp;{$v['zannum']}</td>
+							<td>&nbsp;&nbsp;&nbsp;{$v['fx_num']}</td>
+							<td>
+								<a href="{php echo $this->createWebUrl('comment', array('ar_id' => $v['id']))}" title="评论数量，点击查看详情">&nbsp;&nbsp;{$v['pll']}</a>&nbsp;&nbsp;
+							</td>
+							<td>
+								<a href="{php echo $this->createWebUrl('list', array('id' => $v['id'], 'op' => 'dashang_detail'))}" title="打赏数量，点击查看详情">&nbsp;&nbsp;{$v['dsl']}</a>&nbsp;&nbsp;
+							<td>{php echo date("Y-m-d",$v['createtime'])}</td>
+							<td>
+								<span><a href="javascript:void(0)"class="btn btn-info btn-sm" onclick="fuzhi({$v['id']})" title="文章链接"><i class='fa fa-link'></i></a></span>
+								<!-- <a href="{php echo $this->createWebUrl('list', array('id' => $v['id'], 'op' => 'fenxiang'))}"class="btn btn-default btn-sm">分享详情</a>&nbsp;&nbsp; -->
+								<a href="{php echo $this->createWebUrl('list', array('id' => $v['id'], 'op' => 'detail'))}"class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" title="编辑"><i class="fa fa-pencil"></i></a>
+								<a href="{php echo $this->createWebUrl('List', array('op' => 'delete', 'id' => $v['id']))}" onclick="return confirm('您确认删除吗？');return false;" class="btn btn-default btn-sm del_nav" data-toggle="tooltip" data-placement="bottom" title="删除"><i class="fa fa-times"></i></a>
+							</td>
+						</tr>
+						<tr id="fz{$v['id']}" style="display:none">
+							<td colspan="11">
+								<div class="form-group" >
+									<div class="col-sm-12 col-xs-12 fuzhi_url" >
+										<input type="text" style="text-align:center" class="form-control" readonly="readonly" value="{$_W['siteroot']}app/index.php?i={$_W['uniacid']}&c=entry&do=detail&m=tech_superarticle&id={$v['id']}">
+									</div>
+								</div>
+							</td>
+						</tr>
+						{/loop}						
+						<tr>
+							<td></td>
+							<td colspan="10">
+								<input name="submit" type="submit" class="btn btn-primary" value="提交">
+								<input type="hidden" name="token" value="{$_W['token']}" />
+							</td>
+						</tr>
+						</tbody>
+					</table>
+					
+				</div>
+			</div>{$pager}
+		</form>
+	</div>
+<script>
+	function fuzhi(id){
+		var id = "#fz"+id;
+		$(id).show();
+	}
+</script>
+{elseif $operation = 'dashang_detail'}
+
+	<div class="panel panel-info">
+	    <div class="panel-heading"style="text-align:center" ><b>《 {$title['title']} 》</b><b> {$title['author']} </b></div>
+	</div>
+	<div class="category">
+		<form action="" method="post" onsubmit="return formcheck(this)">
+			
+			<div class="panel panel-default">
+				<div class="panel-body table-responsive">
+					<table class="table table-hover">
+						<thead>
+							<tr>
+								<th style="width:200px;">打赏人</th>
+								<th style="width:200px;">打赏人头像</th>
+								<th style="width:200px;">打赏金额</th>													
+								<th style="width:200px;">打赏时间</th>								
+								<th style="width:150px;">操作</th>
+							</tr>
+						</thead>
+						<tbody>
+						{loop $records $v}
+						<tr>
+							<td><div class="type-parent">{$v['nickname']}</div></td>
+							<td><div class="type-parent"><img src="{$v['heading']}" style="width:50px;height:50px;"></div></td>
+							<td><div class="type-parent label  label-success">{$v['fee']}</div></td>
+							<td><div class="type-parent">{php echo date("Y-m-d H:i:s",$v['createtime'])}</div></td>
+							<td><a href="{php echo $this->createWebUrl('member', array('nickname' => $v['nickname']))}"class="btn btn-default btn-sm">用户详情</a>&nbsp;&nbsp;</td>	
+						</tr>
+						
+						{/loop}
+						<tr>
+							<td><a href="{php echo $this->createWebUrl('list',array('id' => $_GPC['id'], 'op' => 'dashang_add'))}" class="btn btn-default btn-sm">添加赞赏</a></td>
+						</tr>
+						</tbody>
+					</table>
+					
+				</div>
+			</div>{$pager}
+		</form>
+	</div>
+
+{/if}
+{template 'common/footer'}

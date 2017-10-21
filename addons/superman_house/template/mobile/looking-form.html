@@ -1,0 +1,192 @@
+{template 'header'}
+{template 'header-common'}
+<link type="text/css" rel="stylesheet" href="{$_W['siteroot']}addons/superman_house/template/mobile/css/looking-form.css">
+<div class="row margin">
+	<div class="col-xs-12 looking-form">
+		<div class="card looking-form-description border-1px"  style="margin-top: 0">
+			<h4 class="looking-form-title fontcolor">{$item['name']}</h4>
+			{if $item['slide']}
+			<div id="carousel-container" class="carousel slide" data-ride="carousel">
+				<ol class="carousel-indicators">
+					{php $slideNum = 0;}
+					{loop $item['slide'] $row}
+					<li data-target="#carousel-container" data-slide-to="{$slideNum}"{if $slideNum == '0'} class="active"{/if}></li>
+					{php $slideNum++;}
+					{/loop}
+				</ol>
+				<div class="carousel-inner" role="listbox">
+					{loop $item['slide'] $row}
+					<div class="item{if $item['slide'][0] == $row} active{/if}">
+						<img src="{$row}" style="width:100%; vertical-align:middle;">
+					</div>
+					{/loop}
+				</div>
+			</div>
+			<script>
+				require(['bootstrap', 'hammer'], function($, Hammer){
+					$('#carousel-container').carousel();
+					var mc = new Hammer($('#carousel-container').get(0));
+					mc.on("panleft", function(ev) {
+						$('#carousel-container').carousel('next');
+					});
+					mc.on("panright", function(ev) {
+						$('#carousel-container').carousel('prev');
+					});
+				});
+			</script>
+			{/if}
+			<span class="fontcolor">已报名：<span style="color: #f36838;display: inline-block;">{$item['user_count']}</span>人</span>
+			<span class="fontcolor">距报名结束还有：{if $item['status']==2 || $item['regdeadline'] < TIMESTAMP}已结束{else}{$item['countdown']}{/if}</span>
+			<span class="fontcolor">集合地点：{$item['gatheraddress']}</span>
+			<span class="fontcolor">集合时间：{$item['viewtime']}</span>
+			<span class="fontcolor">联系人：{$item['contact']}</span>
+			<span class="fontcolor">联系电话：{$item['phone']}</span>
+			<div class="looking-form-contact">
+				<a class="btn btn-success pull-left" href="tel:{$item['phone']}">电话咨询</a>
+				{if $item['status']==2 || $item['regdeadline'] < TIMESTAMP}
+				<button type="button" class="btn btn-danger pull-right" disabled>报名结束</button>
+				{else}
+				<button type="button" class="btn btn-danger pull-right" onclick="$('input[name=username]').focus()">立即报名</button>
+				{/if}
+			</div>
+		</div>
+
+		<div class="card looking-form-route">
+			<hr/>
+			<span class="fontcolor">路线楼盘</span>
+			<hr style="margin: 0"/>
+			<div style="margin-top: 0px">
+                {loop $house_info $house}
+				<div class="row house-list-project">
+					<a href="{php echo $this->createMobileUrl('house', array('act' => 'detail', 'id' => $house['id']))}" class="superman_house_block">
+						<div class="col-xs-5 house-list-thumb">
+							<img class="img-responsive" src="{$house['coverimg']}" onerror="this.src='{php echo superman_img_placeholder()}'" />
+							<span class="house-list-price">{$house['price']}元/㎡</span>
+						</div>
+						<div class="col-xs-7 house-list-txt clearfix">
+							<span class="house_title text-overflow superman_house_block">{php echo cutstr($house['name'], 4);}</span>
+							<span class="house_desc">{$house['hotmsg']}</span>
+							<span class="house_desc text-overflow superman_house_block">
+								<i class="glyphicon glyphicon-map-marker"></i>
+								{$house['address']}
+							</span>
+						</div>
+					</a>
+				</div>
+				<hr style="margin: 5px 0; padding-bottom: 0px;"/>
+                {/loop}
+			</div>
+		</div>
+		<div class="card looking-form-form border-1px" id="looking-form-form">
+			<h3>请认真填写以下内容</h3>
+			<form id="looking_form" action="" method="post">
+				<input type="hidden" name="lookid" value="{$item['id']}">
+				<div class="form-group input-group" style="margin-bottom: 10px;">
+					<div class="input-group-addon"><i class="fa fa-user"></i></div>
+					<input type="text" {if $item['status']==2 || $item['regdeadline'] < TIMESTAMP}disabled{/if} class="form-control" placeholder="请输入姓名" name="username" value="">
+				</div>
+				<div class="form-group input-group" style="margin-bottom: 10px;">
+					<div class="input-group-addon"><i class="fa fa-mobile-phone" style="font-size: 20px"></i></div>
+					<input type="tel" {if $item['status']==2 || $item['regdeadline'] < TIMESTAMP}disabled{/if} class="form-control" placeholder="请输入手机" name="mobile" value="">
+				</div>
+				<div class="form-group" style="margin-bottom: 10px;">
+					<div class="col-sm-12 col-md-12 col-lg-12 col-xs-12" style="padding: 0">
+						<select {if $item['status']==2 || $item['regdeadline'] < TIMESTAMP}disabled{/if} class="form-control tpl-category-parent" name="fellows">
+							<option value="">请选择携带人数</option>
+							<option value="1">1人</option>
+							<option value="2">2人</option>
+							<option value="3">3人</option>
+							<option value="4">4人</option>
+						</select>
+					</div>
+				</div>
+				<div class="form-group input-group" style="padding-top: 10px">
+					<label class="col-xs-12 fontcolor" style="padding-left: 0">意向楼盘</label>
+                    {loop $house_info $house}
+					<label class="checkbox-inline">
+						<input {if $item['status']==2 || $item['regdeadline'] < TIMESTAMP}disabled{/if} type="checkbox" name="likehouse[{$house['id']}]"  value="{$house['name']}">{$house['name']}</input>
+					</label>
+                    {/loop}
+				</div>
+				<div class="form-group input-group" style="width: 100%">
+					<textarea {if $item['status']==2 || $item['regdeadline'] < TIMESTAMP}disabled{/if} class="form-control"  placeholder="报名留言..."  name="message" rows="3"></textarea>
+				</div>
+				<input type="hidden" name="token" value="{$_W['token']}">
+				{if $item['status']==2 || $item['regdeadline'] < TIMESTAMP}
+				<button type="submit" name="submit" disabled value="yes" class="btn btn-danger btn-block">报名结束</button>
+				{else}
+				<button type="submit" name="submit" value="yes" class="btn btn-danger btn-block">确认报名</button>
+				{/if}
+			</form>
+			<script>
+				{if $item['status']==1 && $item['regdeadline'] > TIMESTAMP}
+				require(['jquery', 'util'], function($, u){
+					$('#looking_form').bind('submit', function(){
+						var username = $('input[name=username]');
+						var mobile = $('input[name=mobile]');
+						if (username.val() == '') {
+							u.message('请输入您的姓名', '', 'error');
+							return false;
+						}
+
+						if (mobile.val() == '') {
+							u.message('请输入您的手机号', '', 'error');
+							return false;
+						}
+						var reg = /^\d{11}$/;
+						var re = new RegExp(reg);
+						if (!re.test($.trim(mobile.val()))) {
+							u.message('手机号格式不正确', '', 'error');
+							return false;
+						}
+						return true;
+					});
+				});
+				{/if}
+			</script>
+		</div>
+
+		<div class="card looking-form-netfriend">
+			<hr/>
+			<span class="fontcolor">网友报名 (<span class="highlight">{$item['user_count']}人</span>)</span>
+			<div class="collapse in">
+				<ul>
+					{if empty($users)}
+					<li class="list-group-item clearfix nobody text-center">
+						还没有人报名
+					</li>
+					{else}
+					{loop $users $u}
+					<li class="list-group-item clearfix">
+						<span class="pull-left avatar">
+							<img src="{php echo tomedia($members[$u['uid']]['avatar']);}" onerror="this.src='resource/images/heading.jpg'">
+						</span>
+						<div class="pull-left" style="width: 77%">
+							<span class="collapse in looking-form-username">{$u['username']}</span>
+							<span class="collapse in looking-form-desc">{$u['message']}</span>
+							<span class="collapse in looking-form-inputtime fontcolor">{php echo date('Y-m-d H:i:s', $u['createtime'])}</span>
+						</div>
+						{if $u['status'] == 2}
+							<span class="label label-success" style="position:absolute; right:10px; top:10px;">已确认</span>
+						{elseif $u['status'] == 3}
+							<span class="label label-danger" style="position:absolute; right:10px; top:10px;">已拒绝</span>
+						{else}
+							<span class="label label-warning" style="position:absolute; right:10px; top:10px;">待确认</span>
+						{/if}
+					</li>
+					{/loop}
+					{/if}
+				</ul>
+			</div>
+		</div>
+		{if $pager}
+		<div class="row text-center" style="margin-top: 10px;">
+			<div class="col-xs-12">
+				{$pager}
+			</div>
+		</div>
+		{/if}
+	</div>
+</div>
+{template 'footer-common'}
+{template 'footer'}

@@ -1,0 +1,148 @@
+{template 'common/header'}
+
+<script type="text/javascript" src="resource/js/lib/jquery-ui-1.10.3.min.js"></script>
+<ul class="nav nav-tabs">
+<li class="active"><a href="{php echo $this->createWebUrl('seckill_goods', array('op' => 'display'))}">管理商品</a></li>
+	<li ><a href="{php echo $this->createWebUrl('seckill_goods', array('op' => 'post'))}">添加商品</a></li>
+	
+</ul>
+
+<div class="main">
+	<div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+		<form action="" method="get" class="form-horizontal" role="form">
+			<input type="hidden" name="c" value="site" />
+                <input type="hidden" name="a" value="entry" />
+                <input type="hidden" name="m" value="hetu_seckill" />
+                <input type="hidden" name="do" value="seckill_goods" />
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">关键字</label>
+				<div class="col-xs-12 col-sm-8 col-lg-9">
+					<input class="form-control" name="keyword" id="" type="text" value="{$_GPC['keyword']}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">状态</label>
+				<div class="col-xs-12 col-sm-8 col-lg-9">
+					<select name="status" class='form-control'>
+						<option value="1" {if $_GPC['status'] != '0'} selected{/if}>上架</option>
+						<option value="0" {if $_GPC['status'] == '0'} selected{/if}>下架</option>
+					</select>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-1 control-label"></label>
+				<div class="col-sm-8 col-xs-12">
+				<button class="btn btn-default"><i class="fa fa-search"></i> 先搜索</button>
+				</div>
+				</div>
+				<div class="col-xs-12 col-sm-2 col-lg-2">
+					
+			</div>
+
+			<div class="form-group">
+			</div>
+		</form>
+	</div>
+</div>
+<div class="panel panel-default">
+	<div class="panel-body table-responsive">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<th style="width:5%;">ID</th>
+					<th style="width:15%;">商品标题</th>
+                    <th style="width:8%;">类型</th>
+					<th style="width:10%;">市场价<br/>秒杀价</th>
+					<th style="width:10%;">当前库存<br/>库存</th>
+                    <th style="width:10%;">排序</th>
+					<th style="width:10%;">状态</th>
+					<th style="width:8%;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $item}
+				<tr>
+					<td>{$item['id']}</td>
+					<td>
+						{$item['name']}
+					</td>
+                    <td>
+					   {if $item['cardtype_id']}五折卡{else}实体{/if}
+					</td>
+					<td>
+						<span class='label label-warning'>{$item['marketprice']} 元</span><br/>
+						<span class='label label-info' style="del">{$item['seksillprice']} 元</span>
+					</td>
+					<td>
+						<span class='label label-warning'>{$item['order_number']} {php echo $this->get_goods_unit($item['id'])}</span>
+						<br/>
+						<span class='label label-info'>{$item['total']} {php echo $this->get_goods_unit($item['id'])}</span>
+					</td>
+					<td> <!-- 是否上架 1是 0否 -->
+						{if $item['status'] == 1}
+							<span class='label label-success'>已上架</span>
+						{else}
+							<span class='label label-default'>未上架</span>
+						{/if}
+					</td>
+                    <td>{$item['displayorder']}</td>
+					<td>
+						{if $item['status'] == 0}
+							<a class="btn btn-default btn-sm" title="上架" href="#" onclick="drop_confirm('您确定要上架此商品吗?', '{php echo $this->createWebUrl('seckill_goods', array('op'=>'status','status'=>1, 'id'=>$item['id']))}');"  data-toggle="tooltip" data-placement="bottom"><i class="fa fa-play"></i></a>
+						{elseif $item['status'] == 1}
+							<a class="btn btn-default btn-sm" title="下架" href="#" onclick="drop_confirm('您确定要下架此商品吗?', '{php echo $this->createWebUrl('seckill_goods', array('op'=>'status','status'=>0, 'id'=>$item['id']))}');" data-toggle="tooltip" data-placement="bottom"><i class="fa fa-stop"></i></a>
+						{/if}
+						<a href="{php echo $this->createWebUrl('seckill_goods', array('id' => $item['id'], 'op' => 'post'))}"class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" title="编辑"><i class="fa fa-pencil"></i></a>
+						<a href="{php echo $this->createWebUrl('seckill_goods', array('id' => $item['id'], 'op' => 'delete'))}" onclick="return confirm('此操作不可恢复，确认删除？');return false;" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" title="删除"><i class="fa fa-times"></i></a>
+					</td>
+				</tr>
+				{/loop}
+			</tbody>
+		</table>
+		{$pager}
+	</div>
+	</div>
+</div>
+<script type="text/javascript">
+	function drop_confirm(msg, url){
+		if(confirm(msg)){
+			window.location = url;
+		}
+	}
+
+	require(['bootstrap'],function($){
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+	});
+
+	var category = {php echo json_encode($children)};
+	function setProperty(obj,id,type){
+		$(obj).html($(obj).html() + "...");
+		$.post("{php echo $this->createWebUrl('setgoodsproperty')}"
+			,{id:id,type:type, data: obj.getAttribute("data")}
+			,function(d){
+				$(obj).html($(obj).html().replace("...",""));
+				if(type=='type'){
+				 $(obj).html( d.data=='1'?'实体物品':'虚拟物品');
+				}
+				if(type=='status'){
+				 $(obj).html( d.data=='1'?'上架':'下架');
+				}
+				$(obj).attr("data",d.data);
+				if(d.result==1){
+					$(obj).toggleClass("label-info");
+				}
+			}
+			,"json"
+		);
+	}
+
+</script>
+
+{template 'common/footer'}

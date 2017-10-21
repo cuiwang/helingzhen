@@ -1,0 +1,279 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title>Title</title>
+    <script type="text/javascript" src="{RES}js/jquery-2.1.4.min.js" ></script>
+    <script>
+        var json={$data};
+        $(function(){
+            $("#menuWrapper").jMenuTree({
+                jValue:json,
+                autoShow:false,
+                click:function(node){         //node:点击的菜单对象
+                    var cate=$(node).attr("id");
+                    var pcate=$(node).attr("parentid");
+                    if(pcate!=0){
+                        $.ajax({
+                            type:"post",
+                            url:"{php echo $this->createmobileurl('char')}",
+                            data:{"pcate":pcate,"cate":cate},
+                            datatype:'json',
+                            success:function(data){
+                                var list=data.list;
+
+                                for(i=0;i<list.length;i++){
+                                    var html='<li><a href='+geturl(list[i].id)+'>';
+                                        html+='<div class="menuTit"><h2>'+list[i].title+'</h2>';
+                                        html+='<p>'+getLocalTime(list[i].createtime)+'</p></div>';
+                                        html+='<div class="menuMin clearfix"><div class="menuL"><img src="'+list[i].thumb+'" /></div>';
+                                        html+='<div class="menuR"><p>'+getstring(list[i].content)+'</p></div></div>';
+                                        html+='<span>查看全文</span>';
+                                        html+='</a></li>';
+                                    var nul=$("#menu > ul");
+                                    $(nul).append(html);
+                                    }
+                            }
+
+                        });
+                    }
+                }
+
+            });
+            function getLocalTime(nS) {
+                return new Date(parseInt(nS) * 1000).toLocaleString().replace(/:\d{1,2}$/,' ');
+            }
+            function getstring(str){
+                var string=str;
+                var ec=string;
+                if(string.length>18){
+                    ec=string.substring(0,18)+"......";
+                }
+                return ec;
+            }
+            function geturl(url){
+                var murl="{php echo $this->createMobileUrl('detail')}&id="+url;
+                return murl;
+            }
+
+        });
+    </script>
+    <style>
+        .jMenuTree{
+            list-style:none;
+            color:#555555;
+            font-size:12px;
+            line-height: 20px;
+        }
+
+        .jMenuTree li{
+            width:200px;
+            padding-left: 10px;
+            cursor: pointer;
+        }
+
+        .jMenuTree .sub_li_1{
+            background-color: #F2F3F5;
+            border:1px solid #555555;
+            margin-top:5px;
+
+        }
+
+        .sub_menu_1{
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+<div id="menuWrapper">
+
+</div>
+<div class="menu" id="menu">
+    <ul>
+
+    </ul>
+</div>
+</body>
+<script>
+    ;(function($){
+
+        $.fn.extend({
+            "jMenuTree":function(options){
+                //设置默认值
+                options = $.extend({
+                    jValue:"",      //菜单所用json数据
+                    autoShow:false, //是否全部打开
+                    show:"",        //子菜单显示的方法
+                    click:"",       //点击事件
+                },options);
+
+
+                //保存主菜单节点
+                var _j_main_menu = [];
+                //保存子菜单节点
+                var _j_sub_menu = [];
+                var _this = this;
+
+                //json排序规则，按照id降序,一级菜单
+                function sortId(a,b){
+                    return a.id-b.id;
+                }
+
+                //json排序规则，按照parentid降序，二级菜单
+                function sortparentid(a,b){
+                    return a.parentid-b.parentid;
+                }
+
+                //将节点json数据排序分类
+                function sortJson(json){
+                    var index_m = 0;
+                    var index_s = 0;
+                    json = json.sort(sortId);
+
+                    for(var i=0; i< json.length; i++){
+                        if(json[i].parentid == 0){
+                            //归类主菜单节点
+                            _j_main_menu[index_m++] = json[i];
+                        }else{
+                            //归类子菜单节点
+                            _j_sub_menu[index_s++] = json[i];
+                        }
+                    }
+
+                    //排序：按id降序排列
+                    // _j_main_menu.sort(sortId);
+                    _j_sub_menu.sort(sortparentid);
+                }
+
+                //构建html
+                function buildMenu(json){
+                    //归类排序数据
+                    sortJson(json);
+
+                    //主菜单
+                    var menu_ul = $("<ul></ul>").addClass('jMenuTree');
+
+                    //遍历主菜单节点，生成html
+                    for(var i=0; i< _j_main_menu.length; i++){
+                        var name = _j_main_menu[i].name;
+                        var id = _j_main_menu[i].id;
+                        var parentid = _j_main_menu[i].parentid;
+
+                        var sub_li_1 = $("<li></li>").addClass('sub_li_1').attr({"id":id,"parentid":parentid});
+                        var sub_li_1_tile = $("<div></div>").addClass('menu_title').text(name);
+                        $(sub_li_1).append(sub_li_1_tile);
+
+
+
+                        var sub_menu_1 = $('<ul></ul>').addClass('sub_menu_1');
+
+                        if(options.autoShow){
+                            $(sub_menu_1).css("display","block");
+                        }
+
+                        //声明一个临时数组，保存剩余的子菜单节点，减少下次的遍历数量，提供效率
+                        var _jtemp = [];
+                        var _index_temp = 0;
+
+                        //如果主菜单包含二级菜单，构建子菜单html
+                        for(var j=0; j < _j_sub_menu.length; j++){
+                            var sname = _j_sub_menu[j].name;
+                            var sid = _j_sub_menu[j].id;
+                            var sparentid = _j_sub_menu[j].parentid;
+
+                            if(id == sparentid){
+                                var sub_li_2 = $('<li></li>').addClass('sub_li_2')
+                                        .attr({"id":sid, "parentid":sparentid})
+                                        .text(sname);
+
+                                $(sub_menu_1).append(sub_li_2);
+
+                            }else{
+                                _jtemp[_index_temp++] = _j_sub_menu[j];
+                            }
+                        }
+
+                        _j_sub_menu = _jtemp;
+                        _jtemp = null;
+                        _index_temp = 0;
+
+
+                        if($(sub_menu_1).find("li").length > 0){
+                            $(sub_li_1).append(sub_menu_1);
+                        }
+
+                        $(menu_ul).append(sub_li_1);
+                    }
+
+                    $(_this).append(menu_ul);
+                }
+
+
+                //注册显示子菜单事件
+                var show = function(){
+                    $(".sub_li_1").find(".menu_title").click(function(){
+                        $(this).siblings().toggle('slow');
+                    });
+
+                }
+
+                //点击菜单事件
+//                var click = function(){
+//                    $(".jMenuTree > li").click(function(){
+//                        alert($(this).attr("id"));
+//                    });
+//                }
+
+                //阻止冒泡事件
+                var stopBubble = function(e) {
+                    if (e && e.stopPropagation) {//非IE
+                        e.stopPropagation();
+                    }
+                    else {//IE
+                        window.event.cancelBubble = true;
+                    }
+                }
+
+                var init = function(){
+                    buildMenu(options.jValue);
+
+                    $(".sub_li_1").find(".menu_title").click(function(e){
+
+                        var $node = this;
+                        //检查用户是否自定义了显示方法
+                        if(typeof options.show  == "function"){
+                            options.show($node);
+                        }else{
+                            $($node).siblings().toggle('slow');
+                        }
+
+
+                    });
+
+                    $(".jMenuTree").find("li").click(function(e){
+                        stopBubble(e);
+
+                        var $node = this;
+
+                        if(typeof options.click  == "function"){
+                            options.click($node);
+                        }else{
+                            alert("你点击的id是："+$($node).attr("id"));
+                        }
+
+                    });
+                }
+
+                init();
+
+                return this;
+            }
+
+        });
+
+
+
+    })(jQuery);
+</script>
+</html>

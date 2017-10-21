@@ -1,0 +1,1568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+	<title>编辑</title>
+	<link rel="stylesheet" href="{RES}css/media.css?v={TIMESTAMP}">
+	<link rel="stylesheet" href="{RES}css/editChu.css?v={TIMESTAMP}">
+	<script type="text/javascript">
+    var touchStartMusic = function(){
+        music_check_timeout = undefined;
+        function check_Music(){
+            // 阻塞执行 500 ms 执行一次
+            if(musicView != undefined && musicView.audioPlayer != undefined && musicView.audioPlayer.inited == true){
+                if(music_check_timeout != undefined){
+                    clearTimeout(music_check_timeout);
+                }
+                musicView.audioPlayer.isPlay = false;
+                musicView.audioPlayer._play();
+            }else{
+                music_check_timeout = setTimeout(check_Music, 500);
+            }
+        }
+        check_Music();
+        document.removeEventListener('touchstart',touchStartMusic);
+    }
+    document.addEventListener('touchstart',touchStartMusic);
+</script>
+</head>
+<body style="position:relative">
+	<div class="container" style="display:block">
+		<div class="top">
+			<div class="top_mask"></div>
+			<img class="jj_cover" src="{$works['cover']}"  alt="" style="display:none">
+			<div class="top_title">
+				<img src="{RES}images/edit/editTitle.png" alt="">
+				<span class="jj_title">{if $works['title']}{$works['title']}{else}点击输入标题{/if}</span>
+			</div>
+			<div class="musicWrap">
+			    <a id="AudioBtn" href="javascript:;"></a>
+			</div>
+			<div class="top_muise" onclick="">
+				<span class="jj_musicid" style="display: none;">{$works['musicid']}</span>
+			</div>
+			<div class="top_cover">
+				<div>
+					<input type="file" id="file" accept="image/jpg,image/jpeg,image/png,image/gif" />
+				</div>
+				<img src="{RES}images/edit/coverImg.png" alt="" class="top_cover_img">
+				<span class="top_cover_select">选择封面</span>
+			</div>
+		</div>
+		<div style="clear:both"></div>
+		<div class="content">
+
+			<div class="add" onclick="">
+				<img src="{RES}images/edit/edit.png" alt="">
+			</div>
+			<div class="editBtn">
+					<div class="text">
+						<img src="{RES}images/edit/text.png" alt="" onclick="">
+					</div>
+					<div class="picBtn">
+						<img src="{RES}images/edit/picBtn.png" alt="" onclick="" style="margin-left:27%;margin-top:13%;">
+						<div class='upload' onclick="uploadLocalImage(this)"></div>
+					</div>
+			</div>
+			{loop $works['imgs'] $item}
+			<div class="main">
+				<div class="main_left">
+					<img class="jj_img" src="{if $item['img']}{$item['img']}{else}{RES}images/edit/moren.png{/if}" alt="">
+					<div class='main_left_img' onclick="newImgUpload(this)"></div>
+				</div>
+				<div class="rotate_container">
+					<img class="rotateImg" src="{RES}images/edit/rotate.png">
+				</div>
+				<div class="main_right" onclick="">
+					<textarea id="addText" class='txt' style="color: {$item['color']};font-size: {$item['big']};text-align: {$item['align']};font-weight: {$item['bold']};" placeholder="点击添加图片描述(可不填)">{$item['content']}</textarea>	
+				</div>
+				<img src="{RES}images/edit/close.png" class="close" onclick="">
+				<div class="down_btn" onclick="">
+					<img src="{RES}images/edit/down.png" class="down" onclick="">
+				</div>
+				<div class="up_btn" onclick="">
+					<img src="{RES}images/edit/up.png" class="up" onclick="">
+				</div>
+			</div>
+			<div class="add" onclick="">
+				<img src="{RES}images/edit/edit.png" alt="">
+			</div>
+			<div class="editBtn">
+					<div class="text">
+						<img src="{RES}images/edit/text.png" alt="" onclick="">
+					</div>
+					<div class="picBtn">
+						<img src="{RES}images/edit/picBtn.png" alt="" onclick="" style="margin-left:27%;margin-top:13%;">
+						<div class='upload' onclick="uploadLocalImage(this)"></div>
+					</div>
+			</div>
+			{/loop}
+				
+		</div>
+		<div style="width:100%;height:2.3rem;"></div>
+		<div class="bottom">
+	      	<div class="bottom_match">
+	      		<img src="{RES}images/edit/match.png" alt="">
+	      		<p>一键配文</p>
+	      	</div>
+	      	<div class="bottom_circle"></div>
+	      		<div class="bottom_ok" onclick="finish()">
+		      		<img src="{RES}images/edit/complete.png" alt="">
+		      		<p>完成</p>
+		      	</div>
+	      	<div class="musicWrap">
+			    <a id="AudioBtn" href="javascript:;"></a>
+			</div>
+	      	<div class="bottom_music top_music" onclick="musicView.showMusicView()">
+	      		<img src="{RES}images/edit/music.png" alt="">
+	      		<p>音乐</p>
+	      	</div>
+	    </div>
+	</div>
+	<!-- 一键配文提示 -->
+	<div class="match_delete">
+			<p>一键配文会替换您已添加的文字，</p>
+			<p>继续使用？</p>
+			<div class="match_ok">
+				<p class="match_cencle">取消</p>
+				<p class="match_confirm">确定</p>
+			</div>
+	</div>
+
+	<!-- 一键配文选择文章 -->
+	<div class="match" style="display:none">
+		<div class="match_top">
+			<img src="{RES}images/edit/match_img.png" alt="" class="match_img">
+			<p>一键配文</p>
+			<img src="{RES}images/edit/match_btn.png" alt="" class="match_btn">
+			<input type="button" value="返回">
+		</div>
+		<nav class="nav-wrap" id="nav-wrap">
+			<ul class="match_banner">
+				<li><a href="#jr">节日</a></li>
+				<li><a href="#aq">爱情</a></li>
+				<li class="new"><a href="#qq">亲情</a></li>
+				<li><a href="#yq">友情</a></li>
+				<li><a href="#lz">励志</a></li>
+				<li><a href="#sb">随笔</a></li>
+			</ul>
+		</nav>
+		<!-- <div style="clear:both"></div> -->
+		<div class="match_main">
+			<div class="match_type" id='jr'>
+			</div>
+			<div class="match_type" id='aq'>
+			</div>
+			<div class="match_type" id='qq'>
+			</div>
+			<div class="match_type" id='yq'>
+			</div>
+			<div class="match_type" id='lz'>
+			</div>
+			<div class="match_type" id='sb'>
+			</div>
+		</div>
+		
+	</div>
+	<!-- 一键配文右边问号 -->
+	<div class="match_intro">
+		<img src="{RES}images/edit/match_bg.png" alt="" class="match_bg">
+		<img src="{RES}images/edit/match_close.png" alt="" class="match_close">
+	</div>
+	<!-- 一键配文预览 -->
+	<div class="chuchuang_container" style="display:none">
+	</div>
+	<!-- banner封面裁切 -->
+	<div id="clipArea">
+	</div>
+	<button id="clipBtn" style="display:none">截取</button>
+	<button id="reSelect"  style="display:none">重选
+		<div class="input" >
+				<input type="file" id="file2" accept="image/jpg,image/jpeg,image/png,image/gif"  />
+		</div>
+	</button>
+	{template 'music'}
+	<!-- 编辑文字添加文字板块 -->
+	<div class="editWzMask"></div>
+	<div class="editText" style="display:none">
+		<img src="{RES}images/edit/cancel.png" class="cencel">
+		<textarea class='editArea' id='editArea' name='edit' autofocus placeholder="点击添加图片描述(可不填)"></textarea>
+		<div class="editColor">
+
+			<span style="background-color:#000" onclick='selectColor(this)'></span>
+			<span style="background-color:#f8e71c" onclick='selectColor(this)'></span>
+			<span style="background-color:#8B572A" onclick='selectColor(this)'></span>
+			<span style="background-color:#7ed321" onclick='selectColor(this)'></span>
+			<span style="background-color:#417505" onclick='selectColor(this)'></span>
+			<span style="background-color:#bd10e0" onclick='selectColor(this)'></span>
+			<span style="background-color:#3a95ff" onclick='selectColor(this)'></span>
+			<span style="background-color:#ff5e5e" onclick='selectColor(this)'></span>
+			<span style="background-color:#d8d8d8" onclick='selectColor(this)'></span>
+		</div>
+		<div class="editStyle">
+			
+			<div class="centerBtn">
+				<img class="center_btn" src="{RES}images/edit/nocenter.png"  data="center" onclick="selectStyle(this)">
+				<img class="bold_btn" src="{RES}images/edit/nobold.png"  data="bold" onclick="selectStyle(this)">
+				<img class="big_btn" src="{RES}images/edit/nobig.png"  data="big" onclick="selectStyle(this)">
+				<img class="color_btn" src="{RES}images/edit/nocolor.png"  data="color" onclick="color(this)">
+			</div>
+			<input type="button" value="确定" class="ok">
+		</div>
+	</div>
+
+	 <!-- 编辑标题 -->
+	<div class="editTitle" style="display:none">
+		<textarea class='editTitle_Area' autofocus placeholder="不超过64个字" maxlength='64'></textarea>
+		<div class="editTitleStyle">
+			<input type="button" value="取消" class="editTitle_cencel">
+			<input type="button" value="确定" class="editTitle_ok">
+		</div>
+	</div>
+	<!-- 版块左侧图片裁切 -->
+	<div class="clipImg" style="display:none">
+		<div class="overlay"></div>
+		<img src="{RES}images/edit/test.png" alt="" class="resize-image">
+		<button class="btn-crop js-crop">确认裁切</button>
+	</div>
+	<!-- 删除提示 -->
+	<div class="works_bg">
+	</div>
+	<div class="works_delete">
+			<p>确定删除?</p>
+			<div class="works_ok">
+				<p class="works_cencle">取消</p>
+				<p class="works_confirm">确定</p>
+			</div>
+	</div>
+	<div class="loading_bg" style="position: fixed;width: 100%;height: 100%;background: rgba(0,0,0,.7);top: 0;z-index: 99999;display: none;">
+	    <div class="loadding" style="display: block;">
+	    	<img src="{RES}images/edit/loading.png" alt="">
+	    	<p>作品上传中…</p>
+	    </div>
+    </div>
+	
+
+
+	<div style="display:none;" id="wid">{$id}</div>
+	<script type="text/javascript" src="{RES}js/zepto.min.js?v={TIMESTAMP}"></script>
+	<script src="{RES}js/jquery.min.js?v={TIMESTAMP}"></script>
+	<script src="{RES}js/iscroll-zoom.js?v={TIMESTAMP}"></script>
+	<script src="{RES}js/hammer.js?v={TIMESTAMP}"></script>
+	<script src="{RES}js/lrz.all.bundle.js?v={TIMESTAMP}"></script>
+	<script src="{RES}js/jquery.photoClip.js?v={TIMESTAMP}"></script>
+	<script src="{RES}js/jquery.navScroll.js?v={TIMESTAMP}"></script>
+	<script src="{RES}js/exif.js?v={TIMESTAMP}"></script>
+	<script type="text/javascript">
+		var mvCfg = {
+	        cid : "{$id}",
+	        tp: "{$works['styleid']}",
+	        music : parseInt("{$works['musicid']}"),
+	        host : "{$_W['siteroot']}"
+	    };
+	</script>
+	<script src="{RES}js/match_article.js?v={TIMESTAMP}"></script>
+	<script src="{RES}js/music.js?v={TIMESTAMP}"></script>
+	<script src="{RES}js/common.js?v={TIMESTAMP}"></script>
+	<script src="{RES}js/custom.js?v={TIMESTAMP}"></script>
+	<script src="{RES}js/component.js"></script>
+	<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+	<script>
+		jssdkconfig = {php echo json_encode($_W['account']['jssdkconfig']);} || { jsApiList:[] };
+		jssdkconfig.debug = false;
+		jssdkconfig.jsApiList = ['chooseImage','uploadImage'];
+		wx.config(jssdkconfig);
+		
+		/* document.addEventListener('WeixinJSBridgeReady', function onBridgeReady() {
+		    // 通过下面这个API隐藏右上角按钮
+		    WeixinJSBridge.call('hideOptionMenu');
+		}); */
+		
+	    document.addEventListener('WeixinJSBridgeReady', function onBridgeReady() {
+	         WeixinJSBridge.invoke('getNetworkType', {}, function() {
+	           this.audioPlayer.isPlay = false;
+	          this.audioPlayer._play();
+	         });
+	    });
+	    
+	    (function (){
+	        var music_check_timeout = undefined;
+
+	        function initMusic() {
+	            musicView.audioPlayer.isPlay = false;
+	            musicView.audioPlayer._play();
+	        }
+
+	        function wxCallFunc() {
+	            WeixinJSBridge.invoke('getNetworkType', {}, initMusic);
+	        }
+
+	        function check_Music(callbackFun){
+	            function wrap() {
+	                check_Music(callbackFun) ;
+	            }
+	            // 阻塞执行 500 ms 执行一次
+	            if(music_check_timeout) {
+	                clearTimeout(music_check_timeout);
+	                music_check_timeout = null;
+	            }
+
+	            if(musicView != undefined && musicView.audioPlayer != undefined){
+	                callbackFun();
+	            }else{
+	                music_check_timeout = setTimeout(wrap, 500);
+	            }
+	        }
+
+	        if (typeof WeixinJSBridge == "object" && typeof WeixinJSBridge.invoke == "function") {
+	            check_Music(wxCallFunc);
+	        } else {
+	            //声音播放
+	            document.addEventListener('WeixinJSBridgeReady', function onBridgeReady() {
+	                check_Music(wxCallFunc);
+	            });
+	        }
+	        wx.ready(function () {
+	            check_Music(initMusic);
+	        });
+	    })();
+    </script>
+	<script type="text/javascript">
+		//编辑框面的字变成黑色
+		$.each($('.txt'),function(index,value){
+			if($(value).val()!='点击添加图片描述(可不填)' && $(value).css('color')=='rgb(204,204,204)'){
+				$(value).css('color','#000');
+			}
+		});
+
+		var body_width = $('.container').width();
+		$('.bottom').css('width',body_width);
+		$('#MusicView').css({width:body_width+'px'});
+		// 封面图片处理
+		$('.top').css('background-image',"url({$works['cover']})");
+		//板块左侧图片处理
+	    var leftImg=$('.main_left').find('img');
+	    var container_width = $('.main_left').width();
+	    var container_height = $('.main_left').height();
+	    leftImg.each(function(index, el) {
+	    	var img_w=$(el).width();
+	    	var img_h=$(el).height();
+	    	 if(img_w>img_h){
+		    	$(el).css({'height':'100%'});
+		    }else{
+		    	$(el).css({'width':'100%'});
+		    }
+	    });
+		var click=0;
+		//选择颜色
+		function selectColor(e){
+			var color=$(e).css('background-color');
+			$('.editArea').css('color',color);
+		}
+		//加粗，字体
+		function selectStyle(e){
+			var cls=$(e).attr('data');
+			if($('.editArea').hasClass(cls)){
+				$(e).attr('src','{RES}images/edit/no'+cls+'.png');
+				$('.editArea').removeClass(cls);
+			}else{
+				$(e).attr('src','{RES}images/edit/'+cls+'.png');
+				$('.editArea').addClass(cls);
+			}
+		}
+		//颜色按钮
+		function color(e){
+			var cls=$(e).attr('data');
+			var color=$('.editArea').css('color');
+			if(click!=1){
+				click=1;
+				$('.editArea').css('border-bottom','none');
+				$(e).attr('src','{RES}images/edit/'+cls+'.png');
+				$('.editColor').css('display','block');
+				var color_w=$('.editColor span').width();
+				$('.editColor').css('height',color_w+'px');
+			}else{
+				click=0;
+				$('.editArea').css('border-bottom','1px solid #bbb')
+				$(e).attr('src','{RES}images/edit/no'+cls+'.png');
+				$('.editColor').css('display','none');
+			}
+		}
+		function IsPC() {
+		    var userAgentInfo = navigator.userAgent;
+		    var Agents = ["Android", "iPhone",
+		                "SymbianOS", "Windows Phone",
+		                "iPad", "iPod"];
+		    var flag = true;
+		    for (var v = 0; v < Agents.length; v++) {
+		        if (userAgentInfo.indexOf(Agents[v]) > 0) {
+		            flag = false;
+		            break;
+		        }
+		    }
+		    return flag;
+		}
+				
+		//点击取消按钮，文字编辑取消
+		$('.cencel').click(function(){
+			$('.editText').css('display','none');
+			$('.container').css('display','block');
+			$('.editWzMask').hide();
+		})
+		//编辑标题
+	    $('.top_title').click(function(){
+	    	$('.container').css('display','none');
+	    	$('.editTitle').css('display','block');
+	    	//$('.top_title>img').hide();
+	    	if($('.jj_title').html()=='点击输入标题'){
+	    		$('.editTitle_Area').val('');
+	    	}else{
+	    		$('.editTitle_Area').val($('.jj_title').html());
+	    	}
+	    	$('.editTitle_ok').click(function(){
+	    	   var title=$('.editTitle_Area').val();
+	    		if(title==''){
+	    			$('.top_title>span').html('点击输入标题');
+	    		}else{
+	    			$('.top_title>span').html(title);
+	    		}
+	    		
+	    		$('.top_title>span').css('color','#fff');
+	    		$('.container').css('display','block');
+	    		$('.editTitle').css('display','none');
+	    	})
+	    })
+	    //编辑取消
+	    $('.editTitle_cencel').click(function(){
+			$('.editTitle').css('display','none');
+			$('.container').css('display','block');
+		})
+	    //点击编辑文字生成模板
+		var that,th,scroll,i,l;
+		var win=$(window);
+		var t=0;
+		$(document).on('click','.text',function(event) {
+			t=0;
+			that=this;
+			i=$('.content').find('.text').index(that);
+			l=$('.content').find('.text').length;
+			scroll=win.scrollTop();
+    		$('.editArea').removeClass('big');
+    		$('.big_btn').attr('src','{RES}images/edit/nobig.png');
+    		$('.editArea').removeClass('bold');
+    		$('.bold_btn').attr('src','{RES}images/edit/nobold.png');
+    		$('.color_btn').attr('src','{RES}images/edit/nocolor.png');
+    		$('.editArea').css('color',"rgb(0, 0, 0)");
+    		$('.editColor').css('display','none');
+    		click=0;
+    		$('.editArea').removeClass('center');
+    		$('.center_btn').attr('src','{RES}images/edit/nocenter.png');
+			//$('.editArea').val('');
+			$('#editArea').attr('placeholder','写点什么吧~');
+			$('.container').css('display','none');
+	    	$('.editText').css('display','block');
+			var color_w=$('.editColor span').width();
+			$('.editColor').css('height',color_w+'px');
+			
+		});
+	    //编辑文字
+	    $(document).on('click','.main_right',function(){
+	    	t=1;
+	    	th=this;
+	    	scroll=win.scrollTop();
+	    	var big=$(th).find('#addText').css('font-size');
+	    	var bold=$(th).find('#addText').css('font-weight');
+	    	var color=$(th).find('#addText').css('color');
+	    	var align=$(th).find('#addText').css('text-align');
+	    	if(big=="14px"){
+	    		$('.editArea').removeClass('big');
+	    		$('.big_btn').attr('src','{RES}images/edit/nobig.png');
+	    	}else{
+	    		$('.big_btn').attr('src','{RES}images/edit/big.png');
+	    		$('.editArea').addClass('big');
+	    	}
+	    	if(bold=="400"){
+	    		$('.editArea').removeClass('bold');
+	    		$('.bold_btn').attr('src','{RES}images/edit/nobold.png');
+	    	}else{
+	    		$('.bold_btn').attr('src','{RES}images/edit/bold.png');
+	    		$('.editArea').addClass('bold');
+	    	}
+	    	if((color=="rgb(204, 204, 204)")||(color=="rgb(0, 0, 0)")){
+	    		$('.color_btn').attr('src','{RES}images/edit/nocolor.png');
+	    		$('.editArea').css('color',"rgb(0, 0, 0)");
+	    		$('.editColor').css('display','none');
+	    		click=0;
+	    	}else{
+	    		$('.color_btn').attr('src','{RES}images/edit/color.png');
+	    		$('.editArea').css('color',color);
+	    		$('.editColor').css('display','block');
+	    		click=1;
+	    	}
+	    	if(align=="start"){
+	    		$('.editArea').removeClass('center');
+	    		$('.center_btn').attr('src','{RES}images/edit/nocenter.png');
+	    	}else{
+	    		$('.center_btn').attr('src','{RES}images/edit/center.png');
+	    		$('.editArea').addClass('center');
+	    	}
+	    	var main_right=$(th).find('#addText').val();
+	    	
+	    	if(main_right != "点击添加图片描述(可不填)"){
+				$('.editArea').val(main_right);
+	    	}else{
+	    		$('.editArea').val("");
+	    	}
+	    	$('.editText').css('display','block');
+	    	$('.editWzMask').show();
+	    	var color_w=$('.editColor span').width();
+			$('.editColor').css('height',color_w+'px');
+	    })
+		$('.ok').click(function(){
+				var text=$('#editArea').val();
+				var center=$('.editArea').css('text-align');
+				var size=$('.editArea').css('font-size');
+				var bold=$('.editArea').css('font-weight');
+				//console.log(bold);
+				var color=$('.editArea').css('color');
+				if(t==0){
+					$(that).parent().after(addForum("#",text,center,size,bold,color));
+					$(that).parent().hide();
+					$(that).parent().prev().show();
+					if(i==0){
+						$(that).parents('.content').find('.main').eq(1).find('.up_btn').show();
+						$(that).parents('.content').find('.main').eq(0).find('.up_btn').hide();
+					}else{
+						$(that).parents('.content').find('.main').eq(l-2).find('.down_btn').show();
+						$(that).parents('.content').find('.main').eq(l-1).find('.down_btn').hide();
+					}
+				}else{
+					$(th).find('#addText').css('text-align',center);
+					$(th).find('#addText').css('font-size',size);
+					$(th).find('#addText').css('font-weight',bold);
+					$(th).find('#addText').css('color',color);
+					$(th).find('#addText').val(text);
+				}
+				$('.editText').css('display','none');
+				$('.container').css('display','block');
+				$('.editWzMask').hide();
+				var main=$('.main').height()+100;
+				win.scrollTop(scroll+main);
+			})
+		//banner上传图片裁切；
+		if(IsPC()){
+			var w = $('.container').width();
+		}else{
+			var w=$(window).width();
+		}	
+		
+		
+		var h=$('.top').height();
+		var clipArea = new bjj.PhotoClip("#clipArea", {
+			size: [w, h],
+			outputSize: [w, h],
+			file: "#file,#file2",
+			ok: "#clipBtn",
+			loadStart: function() {
+				$('.container').hide();
+				$('#clipArea').show();
+				$('#clipBtn').show();
+				$('#reSelect').show();
+				$('.loading_bg,.loading').show();
+				$('.loadding>p').text('图片上传中…')
+			},
+			loadComplete: function() {
+				console.log("照片读取完成");
+				$('.loading_bg,.loading').hide();
+				$('.loadding>p').text('作品上传中…');
+				//判断是pc还是手机
+				
+			},
+			clipFinish: function(dataURL) {
+				//console.log(dataURL);
+				$('.top>img').attr('src',dataURL);
+				$('.top>img').addClass('newimg');
+				$('.top').css('background-image','url('+dataURL+')');
+				$('.container').show();
+				$('#clipArea').hide();
+				$('#clipBtn').hide();
+				$('#reSelect').hide();
+			}
+		});
+
+		//添加切换
+		$(document).on('click','.add',function(){
+			$('.editBtn').hide();
+			$('.add').show();
+			$(this).next().css('display','block');
+			$(this).css('display','none');
+		})
+		$('.content').find('.up_btn').first().hide();
+		$('.content').find('.down_btn').last().hide();
+		//点击向下移动替换，清除css样式，内容也替换
+		$(document).on('click','.main .down_btn',function(event) {
+			var e=$(this).parent();
+			var len=$('.content').children('.main').length;
+			var index=$('.content').children('.main').index(e);
+			//console.log(index,len);
+			var nextMain=$('.content').children('.main').eq(index+1);
+			moveForumToDown(e);
+			var time=setTimeout(function() {
+				//左侧图片样式替换
+				var img=e.find('.main_left>img');
+				var nextImg=nextMain.find('.main_left>img');
+				var img_w=img.width();
+				var img_h=img.height();
+				var nextImg_w=nextImg.width();
+				var nextImg_h=nextImg.height();
+				if(img_w>img_h){
+					nextImg.css('height','100%');
+					nextImg.css('width','auto');
+				}else{
+					nextImg.css('width','100%');
+					nextImg.css('height','auto');
+				}
+				if(nextImg_w>nextImg_h){
+					img.css('height','100%');
+					img.css('width','auto');
+				}else{
+					img.css('width','100%');
+					img.css('height','auto');
+				}
+				//替换src
+				var src=e.find('.main_left img').attr('src');//获取到点击板块的图片src；
+				var nextSrc=nextMain.find('.main_left img').attr('src');//获取到要替换的板块的src
+				e.find('.main_left img').attr('src',nextSrc);
+				nextMain.find('.main_left img').attr('src',src);
+
+				var center=e.find('#addText').css('text-align');
+				var size=e.find('#addText').css('font-size');
+				var bold=e.find('#addText').css('font-weight');
+				var color=e.find('#addText').css('color');
+
+				var nextcenter=nextMain.find('#addText').css('text-align');
+				var nextsize=nextMain.find('#addText').css('font-size');
+				var nextbold=nextMain.find('#addText').css('font-weight');
+				var nextcolor=nextMain.find('#addText').css('color');
+				e.find('#addText').css('text-align',nextcenter);
+				e.find('#addText').css('font-size',nextsize);
+				e.find('#addText').css('font-weight',nextbold);
+				e.find('#addText').css('color',nextcolor);
+				nextMain.find('#addText').css('text-align',center);
+				nextMain.find('#addText').css('font-size',size);
+				nextMain.find('#addText').css('font-weight',bold);
+				nextMain.find('#addText').css('color',color);
+				//替换text
+				var text=e.find('#addText').val();//获取到点击板块的文字以及style
+				var nextText=nextMain.find('#addText').val();//获取到要替换的板块的文字以及style;
+				e.find('#addText').val(nextText);
+				nextMain.find('#addText').val(text);
+				if(len>2){
+					if(index==len-2){
+						e.find('.up_btn').show();
+						e.find('.down_btn').show();
+						nextMain.find('.down_btn').hide();
+						nextMain.find('.up_btn').show();
+					}else if(index==0){
+						e.find('.up_btn').hide();
+						e.find('.down_btn').show();
+						nextMain.find('.up_btn').show();
+						nextMain.find('.down_btn').show();
+					}else{
+						nextMain.find('.up_btn').show();
+						nextMain.find('.down_btn').show();
+						e.find('.up_btn').show();
+						e.find('.down_btn').show();
+					}
+				}else{
+					e.find('.up_btn').hide();
+					e.find('.down_btn').show();
+					nextMain.find('.down_btn').hide();
+					nextMain.find('.up_btn').show();
+				}
+
+				e.removeClass('toDown');
+				nextMain.removeClass('toUp');
+			},550);
+		});
+
+
+		//点击向上移动替换，清除css样式，内容也替换
+		$(document).on('click','.main .up_btn',function(event) {
+			var e=$(this).parent();
+			var len=$('.content').children('.main').length;
+			var index=$('.content').children('.main').index(e);
+			//console.log(index,len);
+			var prevMain=$('.content').children('.main').eq(index-1);
+			moveForumToUp(e);
+			var time=setTimeout(function() {
+				//左侧图片样式替换
+				var img=e.find('.main_left>img');
+				var prevImg=prevMain.find('.main_left>img');
+				var img_w=img.width();
+				var img_h=img.height();
+				var prevImg_w=prevImg.width();
+				var prevImg_h=prevImg.height();
+				if(img_w>img_h){
+					prevImg.css('height','100%');
+					prevImg.css('width','auto');
+				}else{
+					prevImg.css('width','100%');
+					prevImg.css('height','auto');
+				}
+				if(prevImg_w>prevImg_h){
+					img.css('height','100%');
+					img.css('width','auto');
+				}else{
+					img.css('width','100%');
+					img.css('height','auto');
+				}
+				//替换src
+				var src=e.find('.main_left img').attr('src');//获取到点击板块的图片src；
+				var prevSrc=prevMain.find('.main_left img').attr('src');//获取到要替换的板块的src
+				e.find('.main_left img').attr('src',prevSrc);
+				prevMain.find('.main_left img').attr('src',src);
+
+				//替换版块之间的样式
+				var center=e.find('#addText').css('text-align');
+				var size=e.find('#addText').css('font-size');
+				var bold=e.find('#addText').css('font-weight');
+				var color=e.find('#addText').css('color');
+				var prevcenter=prevMain.find('#addText').css('text-align');
+				var prevsize=prevMain.find('#addText').css('font-size');
+				var prevbold=prevMain.find('#addText').css('font-weight');
+				var prevcolor=prevMain.find('#addText').css('color');
+				e.find('#addText').css('text-align',prevcenter);
+				e.find('#addText').css('font-size',prevsize);
+				e.find('#addText').css('font-weight',prevbold);
+				e.find('#addText').css('color',prevcolor);
+				prevMain.find('#addText').css('text-align',center);
+				prevMain.find('#addText').css('font-size',size);
+				prevMain.find('#addText').css('font-weight',bold);
+				prevMain.find('#addText').css('color',color);
+
+				//替换text
+				var text=e.find('#addText').val();//获取到点击板块的文字以及style
+				var prevText=prevMain.find('#addText').val();//获取到要替换的板块的文字以及style;
+				e.find('#addText').val(prevText);
+				prevMain.find('#addText').val(text);
+				if(len>2){
+					if(index==1){
+						prevMain.find('.up_btn').hide();
+						prevMain.find('.down_btn').show();
+						e.find('.up_btn').show();
+						e.find('.down_btn').show();
+					}else if(index==len-1){
+						e.find('.up_btn').show();
+						e.find('.down_btn').hide();
+						prevMain.find('.up_btn').show();
+						prevMain.find('.down_btn').show();
+					}else{
+						prevMain.find('.up_btn').show();
+						prevMain.find('.down_btn').show();
+						e.find('.up_btn').show();
+						e.find('.down_btn').show();
+					}
+				}else if(len==1){
+						e.find('.up_btn').hide();
+						e.find('.down_btn').show();
+				}else{
+						prevMain.find('.up_btn').hide();
+						prevMain.find('.down_btn').show();
+						e.find('.up_btn').show();
+						e.find('.down_btn').hide();
+				}
+
+				e.removeClass('toUp');
+				prevMain.removeClass('toDown');
+			},550);
+		});
+
+		//点击close按钮，板块和添加消失
+		$(document).on('click','.close',function(){
+			//查找剩余图片个数
+			var picLength = $(".main").length;
+			if(picLength == 1){
+				alert("请至少保留一张图片！");
+			}else{
+				var that=this;
+				$('.works_bg').show();
+				$('.works_delete').show();
+				//$('.prompt').text('确定删除?');
+				$('.works_cencle').click(function(){
+					$('.works_bg').hide();
+					$('.works_delete').hide();
+				});
+				$('.works_confirm').click(function(){
+					$('.works_bg').hide();
+					$('.works_delete').hide();
+					var add=$(that).parent().next();
+					var len=$('.content').children('.main').length;
+					var i=$('.content').children('.main').index($(that).parent());
+					//console.log(len,i);
+					if(i==0){
+						$('.content').children('.main').eq(i+1).find('.up_btn').hide();
+					}else if(i==len-1){
+						$('.content').children('.main').eq(i-1).find('.down_btn').hide();
+					}
+					add.next().remove();
+					add.remove();
+					$(that).parent().remove();
+				})
+
+			}
+		});
+
+		//音乐选择
+		 var touchStartMusic = function(){
+	        music_check_timeout = undefined;
+	        function check_Music(){
+	            // 阻塞执行 500 ms 执行一次
+	            if(musicView != undefined && musicView.audioPlayer != undefined && musicView.audioPlayer.inited == true){
+	                if(music_check_timeout != undefined){
+	                    clearTimeout(music_check_timeout);
+	                }
+	                musicView.audioPlayer.isPlay = false;
+	                musicView.audioPlayer._play();
+	            }else{
+	                music_check_timeout = setTimeout(check_Music, 500);
+	            }
+	        }
+	        check_Music();
+	        document.removeEventListener('touchstart',touchStartMusic);
+	    }
+	    document.addEventListener('touchstart',touchStartMusic);
+
+	    //点击添加图片 上传本地图片
+	    function uploadLocalImage(e){
+	    	var i=$('.content').find('.upload').index(e);
+			var l=$('.content').find('.upload').length;
+	    	var scroll=$(window).scrollTop();
+	    	
+	    	//拍照或从手机相册中选图接口
+	    	wx.chooseImage({
+			    count: 1, // 默认9
+			    sizeType: ['original', 'compressed'], // 可以指定是原图还是压缩图，默认二者都有
+			    sourceType: ['album', 'camera'], // 可以指定来源是相册还是相机，默认二者都有
+			    success: function (res) {
+			        var showPicUrl = res.localIds[0]; // 返回选定照片的本地ID列表，localId可以作为img标签的src属性显示图片
+			    	$(e).parent().parent().after(addForum(showPicUrl));
+			        $(e).parent().parent().hide();
+			        $(e).parent().parent().prev().show();
+			        var len=$('.content').children('.main').length;
+			        if(i==0){
+							//$(that).parent()..next().next('.main');
+							$(e).parents('.content').find('.main').eq(1).find('.up_btn').show();
+							$(e).parents('.content').find('.main').eq(0).find('.up_btn').hide();
+						}else{
+							$(e).parents('.content').find('.main').eq(l-2).find('.down_btn').show();
+							$(e).parents('.content').find('.main').eq(l-1).find('.down_btn').hide();
+						}
+			        if(len==2){
+						$('.main').find('.up_btn').first().css('display','none');
+						$('.main').find('.down_btn').first().css('display','block');
+						$('.main').find('.up_btn').last().css('display','block');
+						$('.main').find('.down_btn').last().css('display','none');
+
+					}else{
+						$('.content').find('.up_btn').first().hide();
+						$('.content').find('.down_btn').last().hide();
+					}
+					var main=$('.main').height()+100;
+					win.scrollTop(scroll+main);
+			        var newImg=$(e).parent().parent().next().find('.main_left>img');
+			        var newImg_w=newImg.width();
+			        var newImg_h=newImg.height();
+			        if(newImg_w>newImg_h){
+			        	newImg.css({'height':'100%','width':'auto'});
+			        }else{
+			        	newImg.css({'width':'100%','height':'auto'});
+			        }
+			    },
+			});
+	    	
+	    	
+	    }
+
+	    //对图片旋转处理 added by lzk
+		function rotateImg(img, direction,canvas) {
+		    //alert(img);
+		    //最小与最大旋转方向，图片旋转4次后回到原方向
+		    var min_step = 0;
+		    var max_step = 3;
+		    //var img = document.getElementById(pid);
+		    if (img == null)return;
+		    //img的高度和宽度不能在img元素隐藏后获取，否则会出错
+		    var height = img.height;
+		    var width = img.width;
+		    //var step = img.getAttribute('step');
+		    var step = 2;
+		    if (step == null) {
+		        step = min_step;
+		    }
+		    if (direction == 'right') {
+		        step++;
+		        //旋转到原位置，即超过最大值
+		        step > max_step && (step = min_step);
+		    } else {
+		        step--;
+		        step < min_step && (step = max_step);
+		    }
+		    //旋转角度以弧度值为参数
+		    var degree = step * 90 * Math.PI / 180;
+		    var ctx = canvas.getContext('2d');
+		    switch (step) {
+		        case 0:
+		            canvas.width = width;
+		            canvas.height = height;
+		            ctx.drawImage(img, 0, 0);
+		            break;
+		        case 1:
+		            canvas.width = height;
+		            canvas.height = width;
+		            ctx.rotate(degree);
+		            ctx.drawImage(img, 0, -height);
+		            break;
+		        case 2:
+		            canvas.width = width;
+		            canvas.height = height;
+		            ctx.rotate(degree);
+		            ctx.drawImage(img, -width, -height);
+		            break;
+		        case 3:
+		            canvas.width = height;
+		            canvas.height = width;
+		            ctx.rotate(degree);
+		            ctx.drawImage(img, -width, 0);
+		            break;
+		    }
+		}
+	    
+	    // 用户点击默认图片可以上传图片
+	    function newImgUpload(e){
+	    	/* 微信上传图片 */
+	    	//拍照或从手机相册中选图接口
+	    	wx.chooseImage({
+			    count: 1, // 默认9
+			    sizeType: ['original', 'compressed'], // 可以指定是原图还是压缩图，默认二者都有
+			    sourceType: ['album', 'camera'], // 可以指定来源是相册还是相机，默认二者都有
+			    success: function (res) {
+			        var showPicUrl = res.localIds[0]; // 返回选定照片的本地ID列表，localId可以作为img标签的src属性显示图片
+			        $(e).prev().attr('src',showPicUrl);
+			    	$(e).prev().addClass('newimg');
+			    	var newImage=$(e).prev();
+			        var newImage_w=newImage.width();
+			        var newImage_h=newImage.height();
+			        //console.log(showPicUrl)
+			        if(newImage_w>newImage_h){
+			        	newImage.css({'height':'100%','width':'auto'});
+			        }else{
+			        	newImage.css({'width':'100%','height':'auto'});
+			        }
+			    },
+			});
+	    }
+		//添加版块
+		function addForum(url,text,center,size,bold,color){
+			 var leftImg=$('.main_left').find('img');
+		    leftImg.each(function(index, el) {
+		    	var img_w=$(el).width();
+		    	var img_h=$(el).height();
+		    	 if(img_w>img_h){
+			    	$(el).css('height','100%');
+			    }else{
+			    	$(el).css('width','100%');
+			    }
+		    });
+			var url=arguments[0]?arguments[0]:'';
+			var text=arguments[1]?arguments[1]:'';
+			var center=arguments[2]?arguments[2]:'start';
+			var bold=arguments[4]?arguments[4]:'normal';
+			var size=arguments[3]?arguments[3]:'14px';
+			var color=arguments[5]?arguments[5]:'rgb(0, 0 ,0)';
+
+			if(url=='' || url=='#'){
+				var tcontent="<img class='jj_img' src='{RES}images/edit/moren.png' style=\"width:100%\">";
+			}else if(url.indexOf('yjpw')>0){
+				var tcontent="<img class=\"jj_img\" src="+url+">";
+			}else{
+				var tcontent="<img class=\"jj_img newimg\" src="+url+">";
+			}
+			return "<div class=\"main\">"
+						+"<div class=\"main_left\">"
+							+tcontent
+							+"<div class='main_left_img' onclick='newImgUpload(this)'></div>"
+						+"</div>"
+						+"<div class=\"rotate_container\">"
+						+"<img class=\"rotateImg\" src=\"{RES}images/edit/rotate.png\">"
+						+"</div>"
+						+"<div class=\"main_right\">"
+							+"<textarea id=\"addText\" class=\"txt\" style=\"text-align:"+center+";font-size:"+size+";font-weight:"+bold+";color:"+color+";visibility=\"visible\" placeholder=\"点击添加图片描述(可不填)\">"+text+"</textarea>"
+						+"</div>"
+						+"<img src=\"{RES}images/edit/close.png\" class=\"close\">"
+						+"<div class=\"down_btn\" onclick=\"\">"
+							+"<img src=\"{RES}images/edit/down.png\" class=\"down\">"
+						+"</div>"
+						+"<div class=\"up_btn\" onclick=\"\">"
+							+"<img src=\"{RES}images/edit/up.png\" class=\"up\">"
+						+"</div>"
+					+"</div>"
+					+"<div class=\"add\">"
+						+"<img src=\"{RES}images/edit/edit.png\" >"
+					+"</div>"
+					+"<div class=\"editBtn\">"
+							+"<div class=\"text\">"
+								+"<img src=\"{RES}images/edit/text.png\">"
+							+"</div>"
+							+"<div class=\"picBtn\">"
+								+"<img src=\"{RES}images/edit/picBtn.png\" style=\"margin-left:27%;margin-top:13%;\">"
+								+"<div class='upload' onclick='uploadLocalImage(this)'></div>"
+							+"</div>"
+					+"</div>"
+		}
+
+		//板块向下替换
+		function moveForumToDown(e){
+			$(e).addClass('toDown');
+			$(e).next().next().css('display','none');
+			$(e).next().css('display','block');
+			var i=$('.content').children('.main').index($(e));
+			$('.content').children('.main').eq(i+1).addClass('toUp');
+			e.find('.down_btn').hide();
+			e.find('.up_btn').hide();
+			$('.content').children('.main').eq(i+1).find('.btn').hide();
+		}
+
+
+		//板块向上替换
+		function moveForumToUp(e){
+			$(e).addClass('toUp');
+			$(e).prev().css('display','none');
+			$(e).prev().prev().css('display','block');
+			var i=$('.content').children('.main').index($(e));
+			$('.content').children('.main').eq(i-1).addClass('toDown');
+			e.find('.down_btn').hide();
+			e.find('.up_btn').hide();
+			$('.content').children('.main').eq(i-1).find('.btn').hide();
+		}
+
+		//一键配文
+		//点击一键配文，判断用户是否输入文字，提醒
+		var match=false;
+		$('.bottom_match').click(function(){
+			$('.txt').each(function(index, el) {
+				if($(el).val()!="" && $(el).val()!='点击添加图片描述(可不填)'){
+					var container_width = $(".container").width();
+					width = window.innerWidth;
+
+					$('.match_delete').css({'display':'block','width':container_width*0.82+'px','left':(width - container_width*0.82)/2+'px'});
+
+
+					match=true;
+				}
+			});
+			//如何用户没有输文字直接跳转配文。
+			if(match==false){
+				$('.match').css('display','block');
+				$('.container').css('display','none');
+				//瞄点定位，自动跟随
+				//内容信息导航锚点
+				var banner_h=$('.match_banner').height()*2.2;
+			   $('.nav-wrap').navScroll({
+			      navHeight: banner_h,
+			      scrollSpy: true
+			    }); 
+			   var w=$('.match_article').width()/2;
+				$.each($('.article_title'),function(index,elem){
+					var t=$(elem).width()/2;
+					$(elem).css('left',w-t+'px');
+				})
+				$.each($('.article_dec'),function(index,elem){
+					var t=$(elem).width()/2;
+					$(elem).css('left',w-t+'px');
+				})
+			}
+		})
+		//点击取消，取消一键配文
+		$('.match_cencle').click(function(){
+			$('.match_delete').css('display','none');
+		})
+		$('.match_confirm').click(function(){
+			$('.match_delete').css('display','none');
+			$('.match').css('display','block');
+			$('.container').css('display','none');
+			$('html, body').animate({scrollTop:0}, 500);
+			//瞄点定位，自动跟随
+			//内容信息导航锚点
+			var banner_h=$('.match_banner').height()*2.2;
+		   $('.nav-wrap').navScroll({
+		      navHeight: banner_h,
+		      scrollSpy: true
+		    }); 
+		   var w=$('.match_article').width()/2;
+			$.each($('.article_title'),function(index,elem){
+				var t=$(elem).width()/2;
+				$(elem).css('left',w-t+'px');
+			})
+			$.each($('.article_dec'),function(index,elem){
+				var t=$(elem).width()/2;
+				$(elem).css('left',w-t+'px');
+			})
+
+		})
+		//一键配文文章预览页的返回按钮
+		$('.match_top>input').click(function(event) {
+			$('.match').css('display','none');
+			$('.container').css('display','block');
+		});
+	   //一键配文文章
+	   var json=window['match_article_json'];
+	   $.each(json, function(index, el) {
+	   		$.each(el,function(i,e){
+	   			match_article_list(index,e,i);
+
+	   		})
+	   			
+	   });
+	   // 一键配文右边的问号
+	   $('.match_btn').on('click',function(){
+	   		var width = window.innerWidth;
+	   		$('.works_bg').css({"width":container_width+'px'});
+	   		$('.match_intro').css({"width":container_width*0.88+'px','left':(width -container_width*0.88 )/2+'px'});
+	   		$('.works_bg').show();
+	   		$('.match_intro').show();
+	   })
+	   $('.match_close').on('click',function(){
+	   		$('.works_bg').hide();
+	   		$('.match_intro').hide();
+	   })
+
+	   //点击立即使用将文章的文字和图片写到编辑器里面去；
+		$(document).on('click','.liji',function(){
+			$('.chuchuang_container').empty();
+			$('.chuchuang_container').css('display','none');
+			$('.container').css('display','block');
+			var data=$(this).attr('data');
+			var type=data.split('-')[0];
+			var name=data.split('-')[1];
+			var article=json[type][name]['article'];
+			var len=getJsonLength(article);//配文文章的文字和图片的长度
+			var l=$('.jj_img').length;//用户上传图片的长度；
+			var img,src,text,url,txt;
+			var num=len-l;
+			//用户上传的图片超过了json文章的长度，多余的删除掉;
+			if(num<0){
+				for(var i=0;i<len;i++){
+					 src=$('.jj_img')[i].src;
+					 $('.txt').eq(i).val(article[i]['text'].replace(/<br>/g,'\n'));
+					 $('.txt')[i].style.color='rgb(0,0,0)';
+					 $('.txt').css('text-align','center');
+					if(src.indexOf('moren')>0||src.indexOf('yjpw')>0){
+						src=article[i]['url'];
+						$('.jj_img')[i].src=src;
+					}
+
+				}
+				for(l;l>len;l--){
+					if($('.jj_img')[l-1].src.indexOf('moren')>0||$('.jj_img')[l-1].src.indexOf('yjpw')>0){
+						$('.main').eq(l-1).next().next().remove();
+						$('.main').eq(l-1).next().remove();
+						$('.main').eq(l-1).remove();
+						$('.main').find('.down_btn').eq(l-1).hide();
+					}else{
+						$('.txt').eq(l-1).val('');
+					}
+					
+				}
+			}
+			
+			//json文件的图片比用户传的图片多，剩下的图片跟文字在后面生成板块
+			if(num>0){
+				for(var i=0;i<l;i++){
+					 src=$('.jj_img')[i].src;
+					 $('.txt').eq(i).val(article[i]['text'].replace(/<br>/g,'\n'));
+					 $('.txt')[i].style.color='rgb(0,0,0)';
+					 $('.txt').css('text-align','center');
+					if(src.indexOf('moren')>0||src.indexOf('yjpw')>0){
+						src=article[i]['url'];
+						$('.jj_img')[i].src=src;
+					}
+
+				}
+				for(l;l<len;l++){
+					text=article[l]['text'].replace(/<br>/g,'\n');
+					$('.content').append(addForum(article[l]['url'],text,'center','','',''));
+					$('.main').find('.down_btn').eq(l-1).show();
+					$('.main').find('.down_btn').eq(len-1).hide();
+				}
+			}
+
+
+			if(num==0){
+				for(var i=0;i<l;i++){
+					 src=$('.jj_img')[i].src;
+					 $('.txt').eq(i).val(article[i]['text'].replace(/<br>/g,'\n'));
+					 $('.txt')[i].style.color='rgb(0,0,0)';
+					 $('.txt').css('text-align','center');
+					if(src.indexOf('moren')>0||src.indexOf('yjpw')>0){
+						src=article[i]['url'];
+						$('.jj_img')[i].src=src;
+					}
+
+				}
+			}
+			
+		})
+		//文字模板预览，用户点返回，跳转到文字模板选择；
+		var t,h;
+		$(document).on('click','.fanhui',function(){
+			$('.chuchuang_container').empty();
+			$('.chuchuang_container').css('display','none');
+			$('.match').css('display','block');
+			$('html, body').animate({scrollTop:t-h-100}, 500);
+		})
+		//替换上去的图片转为base64位；
+		function getBase64Image(url) {
+			var img = new Image();
+			img.src = url;
+		    var canvas = document.createElement("canvas");
+		    canvas.width = img.width;
+		    canvas.height = img.height;
+		    var ctx = canvas.getContext("2d");
+		    ctx.drawImage(img, 0, 0, img.width, img.height);
+		    var ext = img.src.substring(img.src.lastIndexOf(".")+1).toLowerCase();
+		    var dataURL = canvas.toDataURL("image/"+ext);
+		    return dataURL;
+		}
+		//获取json对象的长度;
+		function getJsonLength(jsonData){
+			var jsonLength = 0;
+			for(var item in jsonData){
+				jsonLength++;
+			}
+			return jsonLength;
+
+		}
+		//生成文章板块
+	   function match_article_list(id,e,i){
+	   		var str="<div class=\"match_article\" data="+i+" style=\"background:url({$_W['siteroot']}"+e['fm']+") no-repeat;"
+						+"background-size: 100% 100%;\" onclick=\"yjpwPreview(this)\">"+
+						"<p class=\"article_title\">"+e['title']+"</p>"+
+						"<p class=\"article_dec\">"+e['content']+"</p>"+
+					"</div>"
+			if(e['is_new']){
+				str="<div class=\"match_article\" data="+i+" style=\"background:url({$_W['siteroot']}"+e['fm']+") no-repeat;"
+						+"background-size: 100% 100%;\" onclick=\"yjpwPreview(this)\">"+
+						"<img src=\"{RES}images/edit/new_btn.png\" alt=\"\" class=\"new_btn\">"+
+						"<p class=\"article_title\">"+e['title']+"</p>"+
+						"<p class=\"article_dec\">"+e['content']+"</p>"+
+					"</div>"
+			}
+			$('#'+id).append(str);
+	   }
+
+
+		//点击跳到一键配文预览
+		function yjpwPreview(e){
+			var data=$(e).attr('data');
+			var id=$(e).parent().attr('id');
+			var content=[];
+			var str;
+			t=$(e).offset().top;
+			h=$(e).height();
+			$.each(json[id][data]['article'],function(index,el){
+					
+				    content= content+ "<div class=\"section section-border fill\">"+
+			                    "<p class=\"section_text\">"+el['text']+"</p>"+
+			                    "<img src="+el['url']+" class=\"section_img img-border\">"+
+			                "</div>"
+			})
+		   
+			str="<div class=\"chuchuang_banner\">"+
+					"<div class=\"fanhui\" onclick=\"\">"+
+						"<img src=\"{RES}images/edit/banner_left.png\" alt=\"\" class=\"banner_left\">"+
+						"<p class=\"banner_back\">返回</p>"+
+					"</div>"+
+					"<div class=\"liji\" data="+id+"-"+data+" onclick=\"\">"+
+						"<img src=\"{RES}images/edit/banner_right.png\" alt=\"\" class=\"banner_right\">"+
+						"<p class=\"banner_ok\" data="+id+"-"+data+">立即使用</p>"+
+					"</div>"+
+				"</div>"+
+				"<div class=\"chuchuang_bg\"></div>"+
+				    "<div class=\"chuchuang_main\">"+
+				        "<h1 class=\"chuchuang_title\">"+json[id][data]['title']+"</h1>"+
+				        "<div class=\"chuchuang_content\">"+content+"</div>"+
+				        "<div style=\"height:2.1rem;width:100%;\"></div>"+
+				   "</div>"
+
+			$('.chuchuang_container').append(str);
+			$(e).parents('.match').hide();
+			$('.chuchuang_container').show();
+			$('html, body').animate({scrollTop:0}, 500);
+
+			$(".chuchuang_banner").css({width:container_width});
+			$(".chuchuang_bg").css({width:container_width});
+			$(".chuchuang_main").css({width:container_width});
+			
+		}
+
+var imgIndex = 0;
+var images = new Array();
+var urls = new Array();
+var over = false;
+var loadNum = 0;
+var needLoadNum = 0;
+function finish(){
+	if(over) return false;
+	over = true;
+	var imgArray = $('.newimg');
+	needLoadNum = imgArray.length;
+	if(needLoadNum>0){
+		for(var i=0; i<needLoadNum; ++i) {
+	    	var elem = imgArray[i];
+	    	if ($(elem).attr('src')){
+	    		if($(elem).hasClass('jj_cover')){
+	    			images.push({src:$(elem).attr('src'),type:'1'});
+		    	}else{
+		    		images.push({src:$(elem).attr('src'),type:'0'});
+		    	}
+	    	}
+		}
+		$('.loadding>p').text("上传相片中("+loadNum+"/"+needLoadNum+")");
+		$('.loading_bg,.loading').show();
+		upload();
+	}else{
+		preview();
+	}
+	
+}
+function upload(){
+	if (images[imgIndex]['type']==1){
+		$.ajax({
+			type:"POST",
+			url:"{php echo $this->createMobileUrl('upload')}",
+			data:{imgid:images[imgIndex++]['src'],type:'1'},
+			cache:false,
+			success:function(data){
+				var data = $.parseJSON(data);
+				if(data.code == 1){
+					loadNum++;
+					$('.loadding>p').text("上传相片中("+loadNum+"/"+needLoadNum+")");
+					urls.push(data.thumb);
+					$('.jj_cover').attr('src', data.thumb);
+					if(urls.length == images.length){//最后一个图片
+						$('.loading_bg,.loading').hide();
+						preview();
+						return false;
+					}
+				}
+				upload();
+			}
+		});
+	}else{
+		wx.uploadImage({
+			localId : images[imgIndex]['src'], // 需要上传的图片的本地ID，由chooseImage接口获得
+			isShowProgressTips : 0, // 默认为1，显示进度提示
+			success : function(res) {
+				$.ajax({
+					type:"POST",
+					url:"{php echo $this->createMobileUrl('upload')}",
+					data:{imgid:res.serverId,type:'0'},
+					cache:false,
+					success:function(data){
+						var data = $.parseJSON(data);
+						if(data.code == 1){
+							loadNum++;
+							$('.loadding>p').text("上传相片中("+loadNum+"/"+needLoadNum+")");
+							urls.push(data.thumb);
+							$('img[src="'+images[imgIndex++]['src']+'"]').attr('src', data.thumb);
+							if(urls.length == images.length){//最后一个图片
+								preview();
+								$('.loading_bg,.loading').hide();
+								return false;
+							}
+						}
+						upload();
+					}
+				});
+			},
+			fail: function(res){
+			}
+		});
+	}
+	return false;
+}
+
+var eidtInitialize = false;
+function preview(){
+	var pics = {};
+	var cover = {};
+	var text;
+	$('.main').each(function(index,element){
+		pics[index]={};
+		pics[index]['img']=$(element).find('.jj_img').attr('src');
+		if(pics[index]['img']=="{RES}images/edit/moren.png"){
+			pics[index]['img']='';
+		}
+		pics[index]['color']=$(element).find('#addText').css('color');
+		var size=$(element).find('#addText').css('font-size');
+		if(size != '14px' && size != '16px'){
+			pics[index]['big']='16px';
+		}else{
+			pics[index]['big']=size;
+		}
+		pics[index]['bold']=$(element).find('#addText').css('font-weight');
+		pics[index]['align']=$(element).find('#addText').css('text-align');
+		text=$(element).find('#addText').val();
+		if(text=='点击添加图片描述(可不填)')
+			text='';
+		pics[index]['content']=text.replace(/&nbsp;/ig, "");
+	});
+	var title=$('.jj_title').text();
+	if(title=="点击输入标题"||title=='')
+		title="{$mem['nickname']}"+"的{$cfg['UI']['title']}";
+	$.post("{php echo $this->createMobileUrl('SaveWorks')}",
+		{
+			title:title,
+			music:$('.jj_musicid').html(),
+			cover:$('.jj_cover').attr('src'),
+			pics:pics,
+			wid:"{$id}",
+			op:'edit'
+		},
+		function(state){
+			if(eidtInitialize){
+				eidtInitialize = false;
+			}else{
+				window.location.href="{php echo $this->createMobileUrl('MyWorks',array('wid'=>base64_encode($id),'canedit'=>1))}";
+			}
+			
+	});
+}
+
+// 旋转图片
+
+function getmatrix(arguments){ 
+		var agrArray = arguments.split(",")
+		var lenght = agrArray.length;
+		a = agrArray[0];
+		b = agrArray[1];
+		c = agrArray[2];
+		d = agrArray[3];
+		e = agrArray[4];
+		f = agrArray[5];
+        var aa=Math.round(180*Math.asin(a)/ Math.PI);  
+        var bb=Math.round(180*Math.acos(b)/ Math.PI);  
+        var cc=Math.round(180*Math.asin(c)/ Math.PI);  
+        var dd=Math.round(180*Math.acos(d)/ Math.PI);  
+        var deg=0;  
+        if(aa==bb||-aa==bb){  
+            deg=dd;  
+        }else if(-aa+bb==180){  
+            deg=180+cc;  
+        }else if(aa+bb==180){  
+            deg=360-cc||360-dd;  
+        }  
+        return deg>=360?0:deg;  
+      
+}
+
+var deg;
+var is_first = true;
+$(document).on('click', '.main .rotateImg', function (e) {
+	var img = $(this).parent().parent().find('.main_left img');
+	var m_width = $(".main_left").width();
+    var m_height =$(".main_left").height();
+    var img_w = img.width();
+    var img_h = img.height();
+
+    if(img.attr('class').indexOf('new')>0){
+	    if(!deg || deg == 'none') {
+	        deg = 90;
+	    } else {
+	        deg = (deg + 90) % 360;
+	    }
+	    var degStr = 'rotate('+deg+'deg)';
+	    var imgtemp = new Image();//创建一个image对象
+	    imgtemp.src = img.attr('src');
+            imgtemp.onload = function(){
+            real_width  = imgtemp.width,
+	        real_height = imgtemp.height;
+
+		    set_w = 160*real_width/real_height;
+		    set_h = 160*real_height/real_width;
+			var top = (160 - set_h)/2;
+			var left = (160 - set_w)/2;
+			if(is_first){
+		    	is_first = false;
+				if(img_w/img_h>=m_width/m_height){
+			    	img.attr('style','transform:'+degStr+';-ms-transform:'+degStr+';-moz-transform:'+degStr+';-webkit-transform:'+degStr+';-o-transform:'+degStr+';height:100%;left:'+left+'px');
+			    }else{
+			    	img.attr('style','transform:'+degStr+';-ms-transform:'+degStr+';-moz-transform:'+degStr+';-webkit-transform:'+degStr+';-o-transform:'+degStr+';width:100%;top:'+top+'px');
+			    };
+		    }else{
+
+		    	var img_style = img.attr('style');
+		    	if(img_style.indexOf("width")>=0){
+					img.attr('style','transform:'+degStr+';-ms-transform:'+degStr+';-moz-transform:'+degStr+';-webkit-transform:'+degStr+';-o-transform:'+degStr+';width:100%;top:'+top+'px;');
+		    	}else{
+		    		img.attr('style','transform:'+degStr+';-ms-transform:'+degStr+';-moz-transform:'+degStr+';-webkit-transform:'+degStr+';-o-transform:'+degStr+';height:100%;left'+left+'px');
+		    	}
+		    }
+    
+        }
+	    
+    }else{
+	    var img_src = img.attr('src');
+	    if(img_src.indexOf('imageMogr2/rotate/')>0){
+				var m =img_src.length;
+				var n = img_src.indexOf('rotate/');
+				var j = img_src.substring(n+7,m);
+				var k = img_src.substring(n,m);
+				var deg_old = parseInt(j)+90;
+				deg_old = deg_old% 360;
+				var s = img_src.replace(k,'rotate/'+deg_old);
+				img.attr('src',s);
+		}else{
+			img.attr('src', img_src+'?imageMogr2/rotate/90');
+		};
+
+
+		if(is_first){
+	    	is_first = false;
+			if(img_w/img_h>=m_width/m_height){
+		    	img.attr('style','width:100%;');
+		    }else{
+		    	img.attr('style','height:100%;');
+		    };
+	    }else{
+
+	    	var img_style = img.attr('style');
+	    	if(img_style.indexOf("width")>=0){
+				img.attr('style','height:100%;');
+	    	}else{
+	    		img.attr('style','width:100%;');
+	    	}
+	    }
+    }
+
+
+    // 阻止冒泡
+    e.stopImmediatePropagation();
+    e.stopPropagation();
+    e.preventDefault();
+    return false;
+});
+
+var container_width = $(".container").width();
+$(".match .match_top").css({width:container_width});
+$(".match .match_banner").css({width:container_width});
+$(".chuchuang_container").css({"width":container_width,"position":"relative"});
+$(".chuchuang_bg").css({width:container_width});
+  
+</script>
+</body>
+</html>

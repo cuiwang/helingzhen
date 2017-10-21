@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>手绘签到墙</title>
+    <link rel="stylesheet" href="../addons/haoman_dpm/static/shouqian/shouqian.css">
+    <link href="../addons/haoman_base/base/animate.min.css" rel="stylesheet" type="text/css">
+    <script src="../addons/haoman_base/base/jquery-1.9.1.min.js"></script>
+    <script src="../addons/haoman_dpm/img/jquery.soChange.js"></script>
+    <style type="text/css">
+    html,
+    body {
+        height: 100%;
+        overflow: hidden;
+    }
+    .wrap {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+        min-width: 1024px;
+        min-height: 768px;
+        {if empty($shouqian['shouqianVedio'])}background: url({$bg}) no-repeat center center;{/if}
+        background-size: cover;
+    }
+    </style>
+</head>
+
+<body {if !empty($shouqian['shouqianVedio'])}data-vide-bg="{php echo tomedia($shouqian['shouqianVedio'])}"{/if}>
+    <div id="" class="wrap">
+        {if $shouqian['qrcode'] == 0}
+        <div id="whole">
+            <div id="header" class="clearfix">
+                <span class="reserved right">
+                    <img src="{$imgUrl}" style="width:96px" alt="">
+                </span>
+            </div>
+        </div>
+        {/if}
+
+        <div class="containter clearfix sqHn">
+            <div class="mli right" id="signList">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        <div class="pp hidden">
+            <div class="mask"></div>
+            <div class="inner">
+                <div id="newShow" class="animated picBox">
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+    {if $shouqian['isAgain'] == 0}
+    var isAgain = 0;
+    {else}
+    var isAgain = 1;
+    {/if}
+    $(function() {
+        ajaxstart();
+        sign.Start();
+
+
+    });
+
+    function getRnd(a, b) {
+        return parseInt(Math.random() * (b - a) + a)
+    }
+
+    var sign = {
+            stopAnimate: "webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend",
+            img_path: [],
+            reImgPath: [],
+            arrSpan: [1, 4, 8, 9, 12, 13, 14, 19, 30, 22, 24, 25, 2, 7, 31, 10, 16, 27, 0, 28, 32, 3, 5, 11, 15, 33, 18, 20, 23, 21, 34, 29, 6, 17, 26],
+            newArrSpan: [],
+            total: 0,
+            signID:0
+        },
+        classAni = ["flipInX", "flipInY", "bounceIn", "bounceInDown", "bounceInUp", "bounceInLeft", "bounceInRight", "lightSpeedIn", "rotateIn", "rotateInDownLeft", "rotateInDownRight", "rotateInUpLeft", "rotateInUpRight", "zoomIn", "rollIn", "rubberInLeft"],
+        picBoxSize = $("#newShow").width();
+
+
+    var ajaxstart = function() {
+        $.post('{php echo $this->createMobileUrl('dpm_get_shouqian',array('rid'=>$rid))}&signID='+sign.signID, function(idata) {
+            if(idata.flag == 1){
+                sign.signID = idata.signID;
+                $.each(idata.imgs, function(i, v) {
+                    sign.img_path.push(v);
+                });
+            }
+            
+        }, "json");
+    }
+
+    sign.Start = function() {
+        setInterval(function() {
+            var c, d, a = sign.img_path.length,
+                b = sign.reImgPath.length;
+            if (0 != a) {
+                c = sign.img_path.shift(), sign.reImgPath.push(c);
+
+            } else {
+                console.log(sign.signID)
+                ajaxstart();
+                if (0 == b) return;
+                if (isAgain == 1) return;
+                c = sign.reImgPath.shift(), sign.reImgPath.push(c)
+                
+            }
+
+            d = new Image, d.src = c, d.onload = function() {
+                var c, e;
+                0 != a && 0 != sign.arrSpan.length ? (c = sign.arrSpan.shift(), sign.newArrSpan.push(c)) : 0 != b && (c = sign.newArrSpan.shift(), sign.newArrSpan.push(c)),
+                    $(".pp").removeClass("hidden"),
+                    $(".pp .mask").removeClass("hidden"),
+                    $("#signList span:eq(" + c + ")").css("background", "url()"),
+                    e = getRnd(0, classAni.length),
+                    $("#newShow").append(d), d.width > d.height ? $("#newShow img").css({
+                        width: picBoxSize,
+                        height: "auto"
+                    }) : $("#newShow img").css({
+                        height: picBoxSize,
+                        width: "auto"
+                    }),
+                    $("#newShow").addClass(classAni[e]).one(sign.stopAnimate, function() {
+                        $(this).removeClass(classAni[e]),
+                            $("#newShow").html(""),
+                            $("#newShow").css("background", "url(" + d.src + ") no-repeat"),
+                            d.width > d.height ? $("#newShow").css("background-size", "100% auto") : $("#newShow").css("background-size", "auto 100%")
+                    }),
+                    setTimeout(function() {
+                        var a, b, e;
+                        $(".pp .mask").addClass("hidden"),
+                            // console.log(c)
+                        a = $("#signList span:eq(" + c + ")").offset().left,
+                            b = $("#signList span:eq(" + c + ")").offset().top,
+                            e = $("#signList span:eq(" + c + ")").width(),
+                            $("#newShow").animate({
+                                left: a,
+                                "margin-left": 0,
+                                top: b,
+                                width: e,
+                                height: e
+                            }, 300, "linear", function() {
+                                $("#newShow").css("background", "url()"),
+                                    $(".pp").addClass("hidden"),
+                                    $("#newShow").removeClass("move"),
+                                    $("#newShow").css({
+                                        left: "50%",
+                                        top: 130,
+                                        "margin-left": -picBoxSize / 2,
+                                        width: picBoxSize,
+                                        height: picBoxSize
+                                    }),
+                                    $("#signList span:eq(" + c + ")").css("background", "url(" + d.src + ") no-repeat "), d.width > d.height ? $("#signList span:eq(" + c + ")").css("background-size", "100% auto") : $("#signList span:eq(" + c + ")").css("background-size", "auto 100%")
+                            })
+                    }, 2e3)
+            }
+        }, 5000)
+    }
+
+    function spaceStart(){
+    //预留空格开始的方法，不要删除
+    }
+    </script>
+<audio src="{$music}" preload="auto" id="media" autoplay="autoplay" loop="loop"></audio>
+<script>
+    if($('#music_img',window.parent.document).attr("src") == '../addons/haoman_dpm/common/footer/no_music.png'){
+        document.getElementById('media').pause();
+    }
+</script>
+</body>
+{template 'dpm_Keyborad'}
+</html>

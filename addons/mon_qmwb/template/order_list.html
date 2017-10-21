@@ -1,0 +1,183 @@
+{template 'common/header'}
+
+<div class="main">
+    <ul class="nav nav-tabs">
+        <li ><a href="{php echo $this->createWebUrl('xkkjManage');}">活动管理</a></li>
+
+        <li > <a href="{php echo $this->createWebUrl('joinUser',array('kid'=>$kid));}">参加用户管理</a></li>
+
+        <li class="active" > <a href="{php echo $this->createWebUrl('orderList',array('kid'=>$kid));}">订单管理</a></li>
+
+
+    </ul>
+
+
+
+
+
+    <div class="panel panel-info">
+        <div class="panel-heading">{$xkwkj['title']} 订单</div>
+        <div class="panel-body">
+            <form action="./index.php" method="post" class="form-horizontal" role="form">
+
+                <input type="hidden" name="a" value="entry" />
+                <input type="hidden" name="c" value="site" />
+                <input type="hidden" name="m" value="{MON_XKWKJ}" />
+                <input type="hidden" name="do" value="orderList" />
+                <input type="hidden" name="kid" value="{$kid}" />
+
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">订单编号/收货手机号</label>
+                    <div class="col-sm-8 col-lg-9">
+                        <input class="form-control" name="keyword" id="" type="text"
+                               value="{$_GPC['keyword']}" placeholder="订单编号/收货手机号">
+                    </div>
+                    <div class=" col-xs-12 col-sm-2 col-lg-2">
+                        <button class="btn btn-primary pull-left span2"
+                                style='margin-left: 95px;'>
+                            <i class="icon-search icon-large"></i> 搜索
+                        </button>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+
+    </div>
+
+
+    <div style="padding: 0 15px 0  15px;">
+        <div class="row-fluid">
+            <div class="span8 control-group">
+                <a class="btn btn-default" href="{php echo $this->createWebUrl('orderDownload',array('kid'=>$kid,'status'=>$status,'dc'=>1))}"><i class="icon-download-alt"></i>导出订单信息1(导出1编码错误请尝试用导出2)</a>
+                <a class="btn btn-default" href="{php echo $this->createWebUrl('orderDownload',array('kid'=>$kid,'status'=>$status,'dc'=>2))}"><i class="icon-download-alt"></i>导出订单信息2</a>
+                <a class="btn btn-default" href="{php echo $this->createWebUrl('OrderList',array('kid'=>$kid))}">全部</a>
+                <a class="btn btn-default" href="{php echo $this->createWebUrl('OrderList',array('kid'=>$kid,'status'=>$this::$KJ_STATUS_XD))}">已下单</a>
+                <a class="btn btn-default" href="{php echo $this->createWebUrl('OrderList',array('kid'=>$kid,'status'=>$this::$KJ_STATUS_GM))}">已支付</a>
+				 <a class="btn btn-default" href="{php echo $this->createWebUrl('OrderList',array('kid'=>$kid,'status'=>$this::$KJ_STATUS_YFH))}">已发货</a>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="panel panel-default">
+        <div class="table-responsive panel-body">
+            <table class="table table-hover">
+                <thead>
+                <tr>
+                    <th style="width: 5px">
+                        <input type="checkbox" class="check_all" />
+                    </th>
+                    <th style="width:150px;">订单号</th>
+                    <th style="width:80px;">收货人</th>
+                    <th style="width:100px;">手机</th>
+                    <th style="width:100px;">地址</th>
+                    <th style="width:80px;">金额</th>
+
+                    <th style="width:100px;">支付状态</th>
+                    <th style="width:120px;">下单时间</th>
+                    <th style="width:180px;">操作</th>
+                </tr>
+                </thead>
+                <tbody>
+
+                {loop $list $row}
+                <tr>
+                    <td class="with-checkbox">
+                        <input type="checkbox" name="check" value="{$row['id']}">
+                    </td>
+                    <td>{$row['order_no']}</td>
+                    <td>{$row['uname']}</td>
+                    <td>{$row['tel']}</td>
+                    <td>{$row['address']}</td>
+                    <td>{$row['total_price']}</td>
+
+                    <td>{php echo $this->getStatusText($row['status'])}</td>
+                    <td>{php echo date("Y-m-d H:i",$row['createtime'])}</td>
+
+                    <td>
+
+
+                        <a href="{php echo $this->createWebUrl('OrderDetail', array( 'oid' => $row['id'],'kid'=>$row['kid']))}"><i class=" glyphicon glyphicon-list-alt"></i>详细</a>
+						
+						{if ($row['status'] ==$this::$KJ_STATUS_XD && $xkwkj['pay_type'] ==2)}
+						 <a href="{php echo $this->createWebUrl('OrderList', array( 'id' => $row['id'], 'kid'=>$xkwkj['id'],'op' => 'fh'))}"
+                           onclick="return confirm('此操作不可恢复，确认发货？');return false;" title="发货"
+                           class="btn btn-small">发货</a>
+						{/if} 
+
+						{if ($row['status'] ==$this::$KJ_STATUS_GM && $xkwkj['pay_type'] ==1)}
+						 <a href="{php echo $this->createWebUrl('OrderList', array( 'id' => $row['id'],'kid'=>$xkwkj['id'], 'op' => 'fh'))}"
+                           onclick="return confirm('此操作不可恢复，确认发货？');return false;" title="发货"
+                           class="btn btn-small">发货</a>
+						{/if} 			
+						   
+                        <a href="{php echo $this->createWebUrl('OrderList', array( 'id' => $row['id'],'kid'=>$xkwkj['id'], 'op' => 'delete'))}"
+                           onclick="return confirm('此操作不可恢复，确认删除？');return false;" title="删除"
+                           class="btn btn-small"><i class="glyphicon glyphicon-remove"></i>删除</a>
+
+
+                    </td>
+                </tr>
+                {/loop}
+                <tr>
+                    <td colspan="9">
+
+                        <input type="button" class="btn btn-primary" name="deleteall" value="删除选择的" />
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            {$pager}
+        </div>
+    </div>
+
+
+
+</div>
+<script>
+    $(function(){
+
+        $(".check_all").click(function(){
+
+            var checked = $(this).get(0).checked;
+            $("input[type=checkbox]").each(function(i){
+                $(this).get(0).checked=checked;
+            });
+
+        });
+
+
+        $("input[name=deleteall]").click(function(){
+
+
+            var check = $("input:checked");
+            if (check.length < 1){
+                alert('请选择要删除的记录!');
+                return false;
+            }
+            if (confirm("确认要删除选择的记录?")){
+                var id = new Array();
+                check.each(function(i){
+                    id[i] = $(this).val();
+                });
+
+
+                $.post('{php echo $this->createWebUrl('DeleteOrder')}', {idArr:id}, function(data){
+
+                    if(data.code==200) {
+                        alert("删除成功");
+                        location.reload();
+                    } else {
+                        alert("删除出错，稍后再试!");
+                    }
+
+                }, 'json');
+            }
+
+        });
+    });
+</script>
+
+{template 'common/footer'}

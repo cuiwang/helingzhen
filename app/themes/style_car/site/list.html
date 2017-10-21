@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+
+        <link rel="stylesheet" type="text/css" href="./themes/mobile/style_car/css/weimob-ui-1-1.css" media="all" />
+<link rel="stylesheet" type="text/css" href="./themes/mobile/style_car/css/common.css" media="all" />
+<link rel="stylesheet" type="text/css" href="./themes/mobile/style_car/css/car_reset.css" media="all" />
+<link rel="stylesheet" type="text/css" href="./themes/mobile/style_car/css/list-8.css" media="all" />
+<link rel="stylesheet" type="text/css" href="./themes/mobile/style_car/css/menu-2.css" media="all" />
+ 	<link type="text/css" rel="stylesheet" href="./resource/style/font-awesome.min.css" />
+
+
+<title>最新资讯</title>
+
+<title>{$detail['title']}</title>
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+		<meta content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
+        <!-- Mobile Devices Support @begin -->
+            <meta content="application/xhtml+xml;charset=UTF-8" http-equiv="Content-Type">
+            <meta content="no-cache,must-revalidate" http-equiv="Cache-Control">
+            <meta content="no-cache" http-equiv="pragma">
+            <meta content="0" http-equiv="expires">
+            <meta content="telephone=no, address=no" name="format-detection">
+            <meta name="apple-mobile-web-app-capable" content="yes" /> <!-- apple devices fullscreen -->
+            <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <!-- Mobile Devices Support @end -->
+        <style>
+            img{max-width:100%!important;}
+        </style>
+    </head>
+    <body onselectstart="return true;" ondragstart="return false;">
+ 		<footer class="nav_footer">
+			<ul class="box">
+				<li><a href="javascript:history.go(-1);">返回</a></li>
+				<li><a href="javascript:history.go(1);">前进</a></li>
+				<li><a href="{php echo 	create_url('mobile/channel', array('name' => 'index', 'weid' => $_W['weid']))}">首页</a></li>
+				<li><a href="javascript:location.reload();">刷新</a></li>
+			</ul>
+		</footer>
+ 
+		<header>
+			{data func="site_article" cid=$cid return="true" assign="top" iscommend="true"}
+			{loop $top['list'] $row}
+			<div class="head_news">
+				<a href="{php echo $this->createMobileUrl('detail', array('name' => 'detail', 'id' => $row['id'], 'weid' => $_W['weid']))}">
+					<ul>
+						<li><img src="{$_W['attachurl']}{$row['thumb']}" style="width:100%; max-height:400px;" /></li>
+					</ul>
+					<ol>{$row['title']}</ol>
+				</a>
+			</div>
+			{/loop}
+		</header>
+			<section>
+				{data func="site_article" cid=$cid return="true" assign="result"}
+				<ul class="list_ul list_ul_news">
+					{loop $result['list'] $row}
+					<li>
+						<a class="tbox" href="{php echo $this->createMobileUrl('detail', array('name' => 'detail', 'id' => $row['id'], 'weid' => $_W['weid']))}">
+							<div>
+								<img src="{$_W['attachurl']}{$row['thumb']}" style="width:60px!important; height:60px;"/>
+							</div>
+							<div>
+								<p>{$row['title']}</p>
+								<p>{php echo date('Y-m-d H:i:s', $row['createtime'])}</p>
+							</div>
+						</a>
+					</li>
+					{/loop}
+				</ul>
+				{$result['pager']}
+    		</section>
+	</div>        		
+	</body>
+		<script type="text/javascript">
+//对分享时的数据处理
+function _removeHTMLTag(str) {
+	str = str.replace(/<script[^>]*?>[\s\S]*?<\/script>/g,'');
+	str = str.replace(/<style[^>]*?>[\s\S]*?<\/style>/g,'');
+    str = str.replace(/<\/?[^>]*>/g,'');
+    str = str.replace(/\s+/g,'');
+    str = str.replace(/&nbsp;/ig,'');
+    return str;
+}
+document.addEventListener('WeixinJSBridgeReady', function onBridgeReady() {
+	<?php
+		$_share = array();
+		$_share['title'] = (empty($title)) ? $_W['account']['name'] : $title;
+		$_share['link'] = $_W['siteroot'] . str_replace('/', '', $_SERVER['REQUEST_URI']) . '&wxref=mp.weixin.qq.com';
+		$_share['img'] = $_W['siteroot'] . 'source/modules/' . $_GPC['name'] . '/icon.jpg';
+	?>
+	var _share_img = $('body img:eq(0)').attr("src");
+	if(typeof(_share_img) == "undefined") _share_img = "{$_share['img']}";
+	var _share_content = _removeHTMLTag($('body').html()).replace("{$_share['title']}",'');
+
+	window.shareData = {
+		"imgUrl": _share_img,
+		"timeLineLink": "{$_share['link']}",
+		"sendFriendLink": "{$_share['link']}",
+		"weiboLink": "{$_share['link']}",
+		"tTitle": "{$_share['title']}",
+		"tContent":  _share_content,
+		"fTitle": "{$_share['title']}",
+		"fContent":  _share_content,
+		"wContent":  _share_content
+	};
+
+	// 发送给好友
+	WeixinJSBridge.on('menu:share:appmessage', function (argv) {
+		WeixinJSBridge.invoke('sendAppMessage', {
+			"img_url": window.shareData.imgUrl,
+			"img_width": "640",
+			"img_height": "640",
+			"link": window.shareData.sendFriendLink,
+			"desc": window.shareData.fContent,
+			"title": window.shareData.fTitle
+		}, function (res) {
+			_report('send_msg', res.err_msg);
+		})
+	});
+
+	// 分享到朋友圈
+	WeixinJSBridge.on('menu:share:timeline', function (argv) {
+		WeixinJSBridge.invoke('shareTimeline', {
+			"img_url": window.shareData.imgUrl,
+			"img_width": "640",
+			"img_height": "640",
+			"link": window.shareData.timeLineLink,
+			"desc": window.shareData.tContent,
+			"title": window.shareData.tTitle
+		}, function (res) {
+			_report('timeline', res.err_msg);
+		});
+	});
+
+	// 分享到微博
+	WeixinJSBridge.on('menu:share:weibo', function (argv) {
+		WeixinJSBridge.invoke('shareWeibo', {
+			"content": window.shareData.wContent,
+			"url": window.shareData.weiboLink
+		}, function (res) {
+			_report('weibo', res.err_msg);
+		});
+	});
+}, false);
+</script>
+</body>
+</html>

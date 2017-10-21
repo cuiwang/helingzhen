@@ -1,0 +1,494 @@
+{template 'common/header'}
+
+<ul class="nav nav-tabs">
+    <li class="active"><a href="{php echo $this->createWebUrl('guess',array('op'=>'guess_list'));}">项目管理</a></li>
+    <li><a href="{php echo $this->createWebUrl('guess',array('op'=>'classify_list'));}">分类管理</a></li>
+</ul>
+{if $operation=='guess_list'}
+<div class="panel panel-info">
+    <div class="panel-heading">筛选</div>
+    <div class="panel-body">
+        <form action="./index.php" method=" get" class="form-horizontal" role="form" id="form1">
+            <input type="hidden" name="c" value="site" />
+            <input type="hidden" name="a" value="entry" />
+            <input type="hidden" name="m" value="yike_guess" />
+            <input type="hidden" name="do" value="guess" />
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">玩法</label>
+                <div class="col-sm-8 col-lg-9 col-xs-12">
+                    <select name="play_id" class="form-control" style="width:200px">
+                        {if $_GPC['play_id']==3||$_GPC['play_id']==null}
+                            <option value="3">选择玩法</option>
+                        {elseif $_GPC['play_id']==1}
+                            <option value="1">猜胜平负（胜负）
+                        {elseif $_GPC['play_id']==2}
+                            <option value="2">猜冠军
+                        {/if}
+                        
+                        {if $_GPC['play_id']!=1}
+                            <option value="1">猜胜平负（胜负）</option>
+                        {elseif $_GPC['play_id']==1}
+                            <option value="3">选择玩法</option>
+                        {/if}
+
+                        {if $_GPC['play_id']!=2}
+                            <option value="2">猜冠军</option>
+                        {elseif $_GPC['play_id']==2}
+                            <option value="3">选择玩法</option>
+                        {/if}
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">名称</label>
+                <div class="col-sm-8 col-lg-9 col-xs-12">
+                    <input type="text" class="form-control" name="name" value="{$_GPC['name']}" placeholder="可搜索比赛名称"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label"></label>
+                <div class="col-sm-7 col-lg-9 col-xs-12">
+                    <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+                    <input type="hidden" name="token" value="{$_W['token']}" />
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<div class="clearfix">
+    <div class="panel panel-default">
+        <div class="panel-heading">竞猜项目</div>
+        <div class="panel-body">
+            <table class="table table-hover" style="overflow:visible;">
+                <thead class="navbar-inner">
+                <tr>
+                    <th style='width:80px;'>ID</th>
+                    <th style='width:120px;'>名称</th>
+                    <th style='width:120px;'>分类</th>
+                    <th style='width:150px;'>玩法</th>
+                    <th style='width:156px;'>比赛时间</th>
+                    <th style='width:56px;'>下架</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                {loop $list $row}
+                <tr>
+                    <td>{$row['id']}</td>
+                    <td>{$row['name']}</td>
+                    <td>{$row['classify_name']}</td>
+                    <td>{if $row['play_id'] != 2}
+                        猜胜平负（胜负）
+                        {else}
+                        猜冠军
+                        {/if}
+                    </td>
+                    <td>{php echo date('Y-m-d H:i:s', $row['match_time'])}</td>
+                    <td>
+                        {if $row['sold_out'] != 0}
+                            √
+                        {/if}
+                    </td>
+                    <td style="overflow:visible;">
+                        <div class="btn-group btn-group-sm" >
+                            <a class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false" href="javascript:;">操作 <span class="caret"></span></a>
+                            <ul class="dropdown-menu dropdown-menu-left" role="menu" style='z-index: 9999'>
+                                <li><a href="{php echo $this->createWebUrl('guess',array('op'=>'add_guess','id' => $row['id']));}" title="编辑"><i class=''>编辑项目</i></a></li>
+                                <li>
+                                    <a href="{php echo $this->createWebUrl('guess',array('op'=>'guess_delete','id' => $row['id']));}" title="删除" onclick="return confirm('确定要删除该会员吗？');">
+                                        <i class=''>删除项目</i>
+                                    </a>
+                                </li>
+                                {if $row['is_open'] != 1}
+                                <li><a href="{php echo $this->createWebUrl('guess',array('op'=>'open','id' => $row['id']));}" title="开奖"><i class=''>开奖</i></a></li>
+                                {/if}
+                                {if $row['sold_out'] != 1}
+                                    <li>
+                                       <a href="{php echo $this->createWebUrl('guess',array('op'=>'sold_out','id' => $row['id']));}" title='下架'>
+                                            <i class=''>下架</i>
+                                        </a>
+                                    </li>
+                                {/if}
+                            </ul>
+                        </div>
+                    </td>
+                </tr>
+                {/loop}
+                </tbody>
+            </table>
+            {$pager}
+        </div>
+        <div class='panel-footer'>
+            <a class='btn btn-default' href="{php echo $this->createWebUrl('guess', array('op' => 'add_guess'))}"><i class="fa fa-plus"></i> 添加项目</a>
+        </div>
+    </div>
+</div>
+{else if $operation=='add_guess'}
+<form action="" method='post' class='form-horizontal' onsubmit="return tj()">
+    <input type="hidden" name="id" value="{$guess['id']}" />
+    <div class='panel panel-default'>
+        <div class='panel-heading'>
+            项目详情(前面有星的为必填项)
+        </div>
+        <div class='panel-body'>
+            <!--<div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">排序</label>
+                <div class="col-sm-9 col-xs-12">
+                    <input type="text" name="sort" class="form-control" value="{$guess['sort']}"/>
+                    填入0-99 数字越大越靠前 不填默认为0
+                </div>
+            </div>-->
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="glyphicon glyphicon-star"></span>项目名（标题）</label>
+                <div class="col-sm-9 col-xs-12">
+                    <input type="text" name="name" class="form-control" value="{$guess['name']}"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                <span class="glyphicon glyphicon-star"></span>封面图</label>
+                <div class="col-sm-9 col-xs-12">
+                    {php echo tpl_form_field_image('image', $guess['image'])}
+                    <span class='help-block'>建议尺寸:700*365</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="glyphicon glyphicon-star"></span>比赛性质</label>
+                <div class="col-sm-9 col-xs-12">
+                    <input type="text" name="nature" class="form-control" value="{$guess['nature']}"/>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="glyphicon glyphicon-star"></span>所属分类</label>
+                <div class="col-lg-9 col-xs-12">
+                    <select name='classify_id' class='form-control'>
+                        {loop $classify $row}
+                        <option value="{$row['id']}" {if $guess['classify_id'] == $row['id'] }selected{/if}>{$row['name']}</option>
+                        {/loop}
+                    </select>
+                    <span class='help-block'>请选择二级分类</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="glyphicon glyphicon-star"></span>竞猜开始时间</label>
+                <div class="col-lg-9 col-xs-12">
+                    {if empty($guess['start_time'])}
+                        {php echo tpl_form_field_date('start_time', '', true);}
+                    {else}
+                        {php echo tpl_form_field_date('start_time', date('Y-m-d H:i',$guess['start_time']), true);}
+                    {/if}
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="glyphicon glyphicon-star"></span>竞猜结束时间</label>
+                <div class="col-lg-9 col-xs-12">
+                    {if empty($guess['end_time'])}
+                        {php echo tpl_form_field_date('end_time', '', true);}
+                    {else}
+                        {php echo tpl_form_field_date('end_time', date('Y-m-d H:i',$guess['end_time']), true);}
+                    {/if}
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="glyphicon glyphicon-star"></span>比赛时间</label>
+                <div class="col-lg-9 col-xs-12">
+                    {if empty($guess['match_time'])}
+                    {php echo tpl_form_field_date('match_time', '', true);}
+                    {else}
+                    {php echo tpl_form_field_date('match_time', date('Y-m-d H:i',$guess['match_time']), true);}
+                    {/if}
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">玩法选择</label>
+                <div class="col-sm-9 col-xs-12">
+                    <input type="radio" name="play_id" value="1" {if $guess['play_id'] != '2'}checked{/if}> 胜平负(胜负)
+                    <input type="radio" name="play_id" value="2" {if $guess['play_id'] == '2'}checked{/if}> 猜冠军
+                </div>
+            </div>
+            <div class='panel-body' id="win" {if $guess['play_id'] == 2}style="display: none"{/if}>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="glyphicon glyphicon-star"></span>主队</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <input type="text" name="home_team" class="form-control" value="{$guess['home_team']}"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="glyphicon glyphicon-star"></span>主队图标</label>
+                    <div class="col-sm-9 col-xs-12">
+                        {php echo tpl_form_field_image('home_image', $guess['home_image'])}
+                        <span class='help-block'>建议尺寸:80*80</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="glyphicon glyphicon-star"></span>客队</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <input type="text" name="guest_team" class="form-control" value="{$guess['guest_team']}"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="glyphicon glyphicon-star"></span>客队图标</label>
+                    <div class="col-sm-9 col-xs-12">
+                        {php echo tpl_form_field_image('guest_iamge', $guess['guest_iamge'])}
+                        <span class='help-block'>建议尺寸:80*80</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="glyphicon glyphicon-star"></span>胜赔率</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <input type="text" name="win" class="form-control" value="{$guess['win']}"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="glyphicon glyphicon-star"></span>负赔率</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <input type="text" name="transport" class="form-control" value="{$guess['transport']}"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                        <!-- <input type="checkbox" name="two" value="1"> -->
+                        平赔率
+                    </label>
+                    <div class="col-sm-9 col-xs-12">
+                        <input type="text" name="flat" class="form-control" value="{$guess['flat']}"/>
+                        <span class='help-block'>不写则没有平赔率</span>
+                    </div>
+                </div>
+                
+                <!--<div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">是否让球</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <label class='radio-inline'><input type='radio' name='type_id' value='1' {if $set['type_id']==1}checked{/if}/> 是</label>
+                        <label class='radio-inline'><input type='radio' name='type_id' value='0' {if $set['type_id']==0}checked{/if} />否</label>
+                    </div>
+                </div>-->
+                
+                <!--<div id='certs' {if empty($set['yes_on'])}style="display:none"{/if}>
+                    <div class="form-group">
+                        <label class="col-xs-12 col-sm-3 col-md-2 control-label">让球方式</label>
+                        <div class="col-sm-9 col-xs-12">
+                            <label class='radio-inline'><input type='radio' name='concede' value='1' {if $set['concede']==1}checked{/if}/>
+                                主队让客队
+                            </label>
+                            <label class='radio-inline'><input type='radio' name='concede' value='2' {if $set['concede']==2}checked{/if} />
+                                客队让主队
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-xs-12 col-sm-3 col-md-2 control-label">让球数</label>
+                        <div class="col-sm-9 col-xs-12">
+                            <input type="text" name="concede_num" class="form-control" value="{$guess['concede_num']}"/>
+                        </div>
+                    </div>
+                </div>-->
+            </div>
+            <div class='panel-body' id="champion" {if $guess['play_id'] != 2}style="display: none"{/if}>
+                <div class="form-group col-sm-12" id="add">
+                    <input style="margin-left: 92px; width: 95px;" type="button" name="button" value="添加竞赛者" class="btn btn-primary col-lg-1" />
+                </div>
+                {loop $guess['contest'] $row}
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="glyphicon glyphicon-star"></span>竞赛者</label>
+            <div class="col-sm-9 col-xs-12">
+                <input type="text" name="contest[name][]" class="form-control" value="{$row['name']}"/>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="glyphicon glyphicon-star"></span>竞赛者图标</label>
+            <div class="col-sm-9 col-xs-12">
+                {php echo tpl_form_field_image("contest[image][]", $row['image'])}
+                <span class='help-block'>建议尺寸:80*80</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="glyphicon glyphicon-star"></span>竞赛者赔率</label>
+            <div class="col-sm-9 col-xs-12">
+                <input type="text" name="contest[odds][]" class="form-control" value="{$row['odds']}"/>
+            </div>
+        </div>
+                {/loop}
+
+            </div>
+    <div class="form-group">
+        <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="glyphicon glyphicon-star"></span>投注上限</label>
+        <div class="col-sm-9 col-xs-12">
+            <input type="text" name="upper" class="form-control" value="{$guess['upper']}"/>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="glyphicon glyphicon-star"></span>投注下限</label>
+        <div class="col-sm-9 col-xs-12">
+            <input type="text" name="lower" class="form-control" value="{$guess['lower']}"/>
+        </div>
+    </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">描述</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <textarea style="height:100px;" name="describe" class="form-control" cols="60">{$guess['describe']}</textarea>
+                    </div>
+                </div>
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-3 col-md-2 control-label">是否热门</label>
+                <div class="col-sm-9 col-xs-12">
+                    <input type="radio" name="is_show" value="1" {if $guess['is_show'] == '1'}checked{/if}> 是
+                    <input type="radio" name="is_show" value="0" {if $guess['is_show'] != '1'}checked{/if}> 否
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group col-sm-12">
+        <input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1"/>
+        <button class="btn btn-default col-lg-1" id="done" style="display: none">开奖中</button>
+        <input type="hidden" name="token" value="{$_W['token']}" />
+    </div>
+</form>
+<div id="mode" style="display: none">
+    <div class="form-group">
+        <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="glyphicon glyphicon-star"></span>竞赛者</label>
+        <div class="col-sm-9 col-xs-12">
+            <input type="text" name="contest[name][]" class="form-control" value=""/>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="glyphicon glyphicon-star"></span>竞赛者图标</label>
+        <div class="col-sm-9 col-xs-12">
+            {php echo tpl_form_field_image("contest[image][]", '')}
+            <span class='help-block'>建议尺寸:80*80</span>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span class="glyphicon glyphicon-star"></span>竞赛者赔率</label>
+        <div class="col-sm-9 col-xs-12">
+            <input type="text" name="contest[odds][]" class="form-control" value=""/>
+        </div>
+    </div>
+</div>
+<script>
+    $("input[name=play_id]").click(function(){
+        if($(this).val() == 1){
+            $('#win').show();
+            $('#champion').hide();
+        }else if($(this).val() == 2){
+            $('#win').hide();
+            $('#champion').show();
+        }
+    });
+    $(function () {
+        $(":radio[name='type_id']").click(function () {
+            if ($(this).val() == 1) {
+                $("#certs").show();
+            }
+            else {
+                $("#certs").hide();
+            }
+        })
+    })
+    $('#add').click(function(){
+        var mode = $('#mode').html();
+        $('#add').after(mode);
+    });
+    function tj(){
+        var name = $("input[name='name']").val();
+
+        var image = $("input[name='image']").val();
+
+        var nature = $("input[name='nature']").val();
+
+        var classify_id = $("input[name='classify_id']").val();
+
+        var start_time = $("input[name='start_time']").val();
+
+        var end_time = $("input[name='end_time']").val();
+
+        var match_time = $("input[name='match_time']").val();
+
+        var play_id = $("input[name='play_id']:checked").val();
+
+        var home_team = $("input[name='home_team']").val();
+
+        var guest_team = $("input[name='guest_team']").val();
+
+        var home_image = $("input[name='home_image']").val();
+
+        var guest_iamge = $("input[name='guest_iamge']").val();
+
+        var win = $("input[name='win']").val();
+
+        var transport = $("input[name='transport']").val();
+
+        var type_id = $("input[name='type_id']:checked").val();
+
+        var concede_num = $("input[name='concede_num']").val();
+
+            if (name=="") {
+                alert('项目名（标题）不能为空');
+                return false;
+            };
+            if (image=="") {
+                alert('封面图不能为空');
+                return false;
+            };
+            if (nature=="") {
+                alert('比赛性质不能为空！');
+                return false;
+            };
+            if (classify_id=="") {
+                alert('所属分类不能为空！');
+                return false;
+            };
+            if (start_time=="") {
+                alert('开始时间不能为空！');
+                return false;
+            };
+            if (end_time=="") {
+                alert('结束时间不能为空！');
+                return false;
+            };
+            if (match_time=="") {
+                alert('比赛时间不能为空！');
+                return false;
+            };
+            if (play_id =='1') {
+                if (home_team=="") {
+                    alert('主队名不能为空！');
+                    return false;
+                };
+                if (guest_team=="") {
+                    alert('客队名不能为空！');
+                    return false;
+                };
+                if (home_image=="") {
+                    alert('主队图标不能为空！');
+                    return false;
+                };
+                if (guest_iamge=="") {
+                    alert('客队图标不能为空！');
+                    return false;
+                };
+                if (win=="") {
+                    alert('胜赔率不能为空！');
+                    return false;
+                };
+                if (transport=="") {
+                    alert('负赔率不能为空！');
+                    return false;
+                };
+                
+                /*if (type_id!='0') {
+                    console.log(type_id!=null);
+                    console.log(type_id!='0');
+                    if (concede_num<="0") {
+                        alert('让球数不能为0！');
+                        return false;
+                    };
+                };*/
+            }else{
+
+            }
+        };
+</script>
+{/if}
+{template 'common/footer'}

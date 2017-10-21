@@ -1,0 +1,441 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+
+    <li {if empty($hdid)} class="active" {/if}><a href="{php echo $this->createWebUrl('stat')}" >全部统计</a></li>
+    {if !empty($hdid)}
+    <li class="active" ><a href="{php echo $this->createWebUrl('stat',array('hdid'=>$hdid))}" >活动统计</a></li>
+    {/if}
+</ul>
+<div class="main">
+
+    <form action="" method="post" class="form-horizontal form"
+          enctype="multipart/form-data">
+
+        {if !empty($huodong)}
+        <div class="title" style="text-align: center;">
+            <h3 style="padding-top: 15px;padding-bottom: 15px;line-height:150%;width: 80%;margin-left: 10%">[ {$huodong['hdname']} ] 活动统计</h3>
+        </div>
+        {/if}
+
+        {if empty($hdid)}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                统计报表
+            </div>
+            <div class="panel-body">
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">平台总人数</label>
+                    <div class="col-sm-9 col-xs-12" style="padding-top: 7px">
+                        {php echo intval($total)} 人
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">平台总认证人数</label>
+                    <div class="col-sm-9 col-xs-12" style="padding-top: 7px">
+                        {php echo intval($renzheng)} 人
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">平台总活动数</label>
+                    <div class="col-sm-9 col-xs-12">
+                        {php echo intval($hd)} 次
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">平台总参与数</label>
+                    <div class="col-sm-9 col-xs-12" style="padding-top: 7px">
+                        {php echo intval($cy)} 次
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">平台总收藏数</label>
+                    <div class="col-sm-9 col-xs-12" style="padding-top: 7px">
+                        {php echo intval($sc)} 次
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        {else}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                统计报表
+            </div>
+            <div class="panel-body">
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">该活动参与数</label>
+                    <div class="col-sm-9 col-xs-12" style="padding-top: 7px">
+                        {php echo intval($cy)} 次
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">该活动收藏数</label>
+                    <div class="col-sm-9 col-xs-12" style="padding-top: 7px">
+                        {php echo intval($sc)} 次
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        {/if}
+    </form>
+
+    {if empty($hdid)}
+    <div id="main" style="height:400px;width:90%;margin-left:5%;padding-top:50px"></div>
+    <div id="main2" style="height:400px;width:90%;margin-left:5%;padding-top:50px"></div>
+    <div id="main3" style="height:400px;width:90%;margin-left:5%;padding-top:50px"></div>
+
+    <!-- ECharts单文件引入 -->
+    <script src="http://echarts.baidu.com/build/dist/echarts.js"></script>
+    <script type="text/javascript">
+        // 路径配置
+        require.config({
+            paths: {
+                echarts: 'http://echarts.baidu.com/build/dist'
+            }
+        });
+
+        // 使用
+        require(
+                [
+                    'echarts',
+                    'echarts/chart/pie', // 使用柱状图就加载pie模块，按需加载
+                    'echarts/chart/funnel'
+                ],
+                function (ec) {
+                    // 基于准备好的dom，初始化echarts图表
+                    var myChart = ec.init(document.getElementById('main'));
+                    var myChart2 = ec.init(document.getElementById('main2'));
+                    var myChart3 = ec.init(document.getElementById('main3'));
+
+                    var option = {
+                        title : {
+                            text: '活动参与排行数据',
+                            subtext: '统计报表',
+                            x:'center'
+                        },
+                        tooltip : {
+                            trigger: 'item',
+                            formatter: "{a} <br/>{b} : {c} ({d}%)"
+                        },
+                        legend: {
+                            orient : 'vertical',
+                            x : 'left',
+                            data:[
+                                {loop $list $item}
+                                '{$item['title']}',
+                                {/loop}
+                    ]
+                },
+                    toolbox: {
+                        show : true,
+                                feature : {
+                            mark : {show: false},
+                            dataView : {show: false, readOnly: false},
+                            magicType : {
+                                show: true,
+                                        type: ['pie', 'funnel'],
+
+                                        option: {
+                                    funnel: {
+                                        x: '25%',
+                                                width: '50%',
+                                                funnelAlign: 'left',
+                                                max: 1548
+                                    }
+                                }
+                            },
+                            restore : {show: true},
+                            saveAsImage : {show: true}
+                        }
+                    },
+                    calculable : true,
+                            series : [
+                        {
+                            name:'活动参与排行数据',
+                            type:'pie',
+                            radius : '55%',
+                            center: ['50%', '60%'],
+                            data:[
+                                {loop $list $item}
+                                {value:{$item['num2']}, name:'{$item['title']}'},
+                                {/loop}
+                    ]
+                }
+                    ]
+                };
+
+
+                    var option2 = {
+                        title : {
+                            text: '活动收藏排行数据',
+                            subtext: '统计报表',
+                            x:'center'
+                        },
+                        tooltip : {
+                            trigger: 'item',
+                            formatter: "{a} <br/>{b} : {c} ({d}%)"
+                        },
+                        legend: {
+                            orient : 'vertical',
+                            x : 'left',
+                            data:[
+                                {loop $list2 $item}
+                                '{$item['title']}',
+                                {/loop}
+                    ]
+                },
+                    toolbox: {
+                        show : true,
+                                feature : {
+                            mark : {show: false},
+                            dataView : {show: false, readOnly: false},
+                            magicType : {
+                                show: true,
+                                        type: ['pie', 'funnel'],
+
+                                        option: {
+                                    funnel: {
+                                        x: '25%',
+                                                width: '50%',
+                                                funnelAlign: 'left',
+                                                max: 1548
+                                    }
+                                }
+                            },
+                            restore : {show: true},
+                            saveAsImage : {show: true}
+                        }
+                    },
+                    calculable : true,
+                            series : [
+                        {
+                            name:'活动收藏排行数据',
+                            type:'pie',
+                            radius : '55%',
+                            center: ['50%', '60%'],
+                            data:[
+                                {loop $list2 $item}
+                                {value:{$item['num2']}, name:'{$item['title']}'},
+                                {/loop}
+                    ]
+                }
+                    ]
+                };
+
+                    var option3 = {
+                        title : {
+                            text: '用户参与排行数据',
+                            subtext: '统计报表',
+                            x:'center'
+                        },
+                        tooltip : {
+                            trigger: 'item',
+                            formatter: "{a} <br/>{b} : {c} ({d}%)"
+                        },
+                        legend: {
+                            orient : 'vertical',
+                            x : 'left',
+                            data:[
+                                {loop $list3 $item}
+                                '{$item['title']}',
+                                {/loop}
+                    ]
+                },
+                    toolbox: {
+                        show : true,
+                                feature : {
+                            mark : {show: false},
+                            dataView : {show: false, readOnly: false},
+                            magicType : {
+                                show: true,
+                                        type: ['pie', 'funnel'],
+
+                                        option: {
+                                    funnel: {
+                                        x: '25%',
+                                                width: '50%',
+                                                funnelAlign: 'left',
+                                                max: 1548
+                                    }
+                                }
+                            },
+                            restore : {show: true},
+                            saveAsImage : {show: true}
+                        }
+                    },
+                    calculable : true,
+                            series : [
+                        {
+                            name:'用户参与排行数据',
+                            type:'pie',
+                            radius : '55%',
+                            center: ['50%', '60%'],
+                            data:[
+                                {loop $list3 $item}
+                                {value:{$item['num2']}, name:'{$item['title']}'},
+                                {/loop}
+                    ]
+                }
+                    ]
+                };
+
+
+                    // 为echarts对象加载数据
+                    myChart.setOption(option);
+                    myChart2.setOption(option2);
+                    myChart3.setOption(option3);
+                }
+        );
+    </script>
+    {else}
+        {if !empty($hd_price)}
+        <div id="main" style="height:400px;width:90%;margin-left:5%;padding-top:50px"></div>
+        <script src="http://echarts.baidu.com/build/dist/echarts.js"></script>
+        <script type="text/javascript">
+        // 路径配置
+        require.config({
+            paths: {
+                echarts: 'http://echarts.baidu.com/build/dist'
+            }
+        });
+
+        // 使用
+        require(
+                [
+                    'echarts',
+                    'echarts/chart/pie', // 使用柱状图就加载pie模块，按需加载
+                    'echarts/chart/funnel'
+                ],
+                function (ec) {
+                    // 基于准备好的dom，初始化echarts图表
+                    var myChart = ec.init(document.getElementById('main'));
+
+                    var option = {
+                        title : {
+                            text: '项目参与排行数据',
+                            subtext: '统计报表',
+                            x:'center'
+                        },
+                        tooltip : {
+                            trigger: 'item',
+                            formatter: "{a} <br/>{b} : {c} ({d}%)"
+                        },
+                        legend: {
+                            orient : 'vertical',
+                            x : 'left',
+                            data:[
+                                {loop $list $item}
+                                '{$item['title']}',
+                                {/loop}
+                    ]
+                },
+                    toolbox: {
+                        show : true,
+                                feature : {
+                            mark : {show: false},
+                            dataView : {show: false, readOnly: false},
+                            magicType : {
+                                show: true,
+                                        type: ['pie', 'funnel'],
+
+                                        option: {
+                                    funnel: {
+                                        x: '25%',
+                                                width: '50%',
+                                                funnelAlign: 'left',
+                                                max: 1548
+                                    }
+                                }
+                            },
+                            restore : {show: true},
+                            saveAsImage : {show: true}
+                        }
+                    },
+                    calculable : true,
+                            series : [
+                        {
+                            name:'项目参与排行数据',
+                            type:'pie',
+                            radius : '55%',
+                            center: ['50%', '60%'],
+                            data:[
+                                {loop $list $item}
+                                {value:{$item['num2']}, name:'{$item['title']}'},
+                                {/loop}
+                    ]
+                }
+                    ]
+                };
+
+
+
+
+                    // 为echarts对象加载数据
+                    myChart.setOption(option);
+                }
+        );
+    </script>
+        {/if}
+
+        <div class="panel panel-default">
+        <div class="panel-heading">活动收藏人员详细数据  |  总数:{php echo intval($sc)} </div>
+        <div class="panel-body table-responsive">
+
+            <form action="" method="post" onsubmit="">
+
+                <table class="table">
+
+                    <thead class="navbar-inner">
+
+                    <tr>
+                        <th  style="width:1%;"></th>
+                        <th  style="width:10%;">用户头像</th>
+                        <th  style="width:10%;">用户昵称</th>
+                        <th style="width:12%;">用户手机</th>
+                        <th style="width:12%;">用户姓名</th>
+                        <th style="width:12%;">收藏时间</th>
+                    </tr>
+
+                    </thead>
+                    <tbody id="main">
+                    {loop $sc_list $item}
+
+                    <tr class="selectedTr" >
+                        <td>
+
+                        </td>
+                        <td><img style="width:70px" src="{php echo tomedia($item['avatar'])}"></td>
+                        <td style="white-space:normal;word-break:break-all">
+                            <p>{$item['nicheng']}</p>
+                        </td>
+                        <td style="white-space:normal;word-break:break-all">
+                            <p>{$item['mobile']}</p>
+                        </td>
+                        <td style="white-space:normal;word-break:break-all">
+                            <p>{$item['realname']}</p>
+                        </td>
+                        <td style="white-space:normal;word-break:break-all">
+                            {php echo date('Y-m-d H:i',$item['createtime'])}
+                        </td>
+                    </tr>
+                    {/loop}
+                    </tbody>
+                </table>
+
+
+            </form>
+        </div>
+    </div>
+        {$pager}
+    {/if}
+</div>
+{php echo $this->webnotice()}
+{template 'common/footer'}

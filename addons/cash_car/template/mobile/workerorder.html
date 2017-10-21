@@ -1,0 +1,185 @@
+<!--
+ * ============================================================================
+ * 版权所有 2015-2016 米粒源码，并保留所有权利。
+ * 网站地址: http://www.webmili.com；
+ * ----------------------------------------------------------------------------
+ * 这不是一个自由软件！已购买用户允许对程序代码进行修改和使用，但是不允许对
+ * 程序代码以任何形式任何目的的再发布，作者将保留追究法律责任的权力和最终解
+ * 释权。
+ * ============================================================================
+-->
+{php include $this->template('_header');}
+<style type="text/css">
+.go-order .order-shop ul .submit-btn {
+    display: block;
+    width: 150px;
+    line-height: 35px;
+    text-align: center;
+    padding: 0 5px;
+    color: #fff;
+    background: -webkit-gradient(linear, 0 0, 0 100%, from(#fdb338), to(#fdb338));
+    border: 1px solid #fdb338;
+    border-radius: 5px !important;
+    font-size: 15px;
+    margin: 0 auto;
+}
+input[type="file"]{padding-top:3%;}
+.complete-btn{border: 1px solid #5BC0DE !important; background:-webkit-gradient(linear, 0 0, 0 100%, from(#5BC0DE), to(#5BC0DE)) !important;}
+</style>
+<body>
+
+<div id="loading" style="display:none;"><img src="../addons/cash_car/template/images/loading.gif" /></div>
+<header class="top-header fixed-header">
+	<a class="icona" href="javascript:history.go(-1)"><img src="../addons/cash_car/template/images/left-white.png"/></a>
+	<h3>{$title}</h3>
+</header>
+
+<div class="contaniner fixed-cont">
+	<section class="go-order">
+		<dl class="map">
+			{if $order['order_type']==1 && $order['map_type']==1}
+			<a href="http://apis.map.qq.com/tools/routeplan/eword={$order['mycard']}车辆位置&epointx={$order['lat']}&epointy={$order['lng']}?referer=myapp&key=672BZ-O7URG-NYGQO-I7YIR-EG55Q-RGFY6">
+				<dt>
+					<img src="../addons/cash_car/template/images/gps.png"/>
+				</dt>
+			</a>
+			{elseif $order['order_type']==1 && $order['map_type']==2}
+			<a href="http://api.map.baidu.com/marker?location={$order['lng']},{$order['lat']}&title={$order['mycard']}车辆位置&name={$order['mycard']}车辆位置&content={$order['address']}&output=html&src=weiba|weisrc">
+				<dt>
+					<img src="../addons/cash_car/template/images/gps.png"/>
+				</dt>
+			</a>
+			{else}
+			<dt>
+				<img src="../addons/cash_car/template/images/gps.png"/>
+			</dt>
+			{/if}
+			</dt>
+			<dd>
+				<span>客户信息：{$order['username']}，{$order['tel']}</span>
+				<p>洗车地址：{$order['address']}</p>
+			</dd>
+		</dl>
+		<div class="order-shop">
+			<dl>
+				<dd>
+				{loop $goods $g}
+					<p>{$g['title']}</p>
+				{/loop}
+					<span><i style="color:#fff;">服</i>服务点：{$store['title']}</span>
+					<span>订单编号：{$order['ordersn']}</span>
+					<span>订单类型：{if $order['order_type']==1}上门洗车{elseif $order['order_type']==2}到店洗车{/if}</span>
+					<span>预约时间：{php echo date('Y-m-d',$order['meal_date']);} {$order['meal_time']}</span>
+					<span>用户姓名：{$order['username']}</span>
+					<span>手机号码：{$order['tel']}</span>
+					<span>洗车车牌：{$order['mycard']}</span>
+					<span>洗车地址：{$order['address']}</span>
+					{if !empty($order['remark'])}
+					<span>洗车备注：{$order['remark']}</span>
+					{/if}
+				</dd>
+			</dl>
+			<form id="submit_form" method="post" enctype="multipart/form-data">
+			<ul>
+				<li>
+				{if in_array($order['status'], array("2","3")) && empty($order['images'])}
+					<p>上传图片：(图片格式支持JPG、PNG)</p>
+					<p style="margin-left:25%;"><input type="file" accept="image/*" name="image[]" id="image1"></p>
+					<p style="margin-left:25%;"><input type="file" accept="image/*" name="image[]" id="image2"></p>
+					<p style="margin-left:25%;"><input type="file" accept="image/*" name="image[]" id="image3"></p>
+					<p style="margin-left:25%;"><input type="file" accept="image/*" name="image[]" id="image4"></p>
+				{elseif $order['status']==3 && !empty($order['images'])}
+					<p id="previewImage">图片预览：
+					{if !empty($images)}
+						{loop $images $img}
+						<a href="javascript:;"><img src="../attachment/{$img}" style="width:50px;"></a>&nbsp;&nbsp;&nbsp;
+						{/loop}
+					{/if}
+					</p>
+				{/if}
+				</li>
+				<li>
+				{if $order['status']=='2'}
+					<input type="hidden" name="finish" value="1">
+					<input type="hidden" name="orderid" value="{$order['id']}">
+					<a href="javascript:;" id="submit-btn" class="submit-btn">上传图片并完成订单</a>
+				{elseif $order['status']=='3'}
+					{if empty($order['images'])}
+						<input type="hidden" name="finish" value="2">
+						<input type="hidden" name="orderid" value="{$order['id']}">
+						<a href="javascript:;" id="submit-btn2" class="submit-btn">上传图片</a>
+						<div style="height:5px;"></div>
+					{/if}
+						<a href="javascript:;" class="submit-btn complete-btn">订单已完成</a>
+					{elseif $order['status']=='-1'}
+						<a href="javascript:;" class="submit-btn">订单已取消</a>
+				{/if}
+				</li>
+			</ul>
+			</form>
+		</div>
+	</section>
+</div>
+<script type="text/javascript">
+$("#submit-btn").click(function(){
+	var image1 = $("#image1").val();
+	var image2 = $("#image2").val();
+	var image3 = $("#image3").val();
+	var image4 = $("#image4").val();
+	if(image1=='' && image2=='' && image3=='' && image4==''){
+		alert("请上传洗车图片");
+		return false;
+	}else{
+		if(confirm("确定完成订单?")){
+		    document.getElementById("loading").style.display="block";
+		    document.getElementById("submit_form").submit();
+		}
+	}
+});
+
+$("#submit-btn2").click(function(){
+	var image1 = $("#image1").val();
+	var image2 = $("#image2").val();
+	var image3 = $("#image3").val();
+	var image4 = $("#image4").val();
+	if(image1=='' && image2=='' && image3=='' && image4==''){
+		alert("请上传洗车图片");
+			return false;
+		}else{
+			if(confirm("确定上传图片?")){
+			    document.getElementById("loading").style.display="block";
+				document.getElementById("submit_form").submit();
+			}
+	}
+});
+</script>
+
+{if !empty($images)}
+<script type="text/javascript">
+wx.config({
+    debug: false,
+    appId: '{$signPackage["appId"]}',
+    timestamp: '{$signPackage["timestamp"]}',
+    nonceStr: '{$signPackage["nonceStr"]}',
+    signature: '{$signPackage["signature"]}',
+    jsApiList: [
+        'previewImage'
+    ]
+});
+ 
+document.querySelector('#previewImage').onclick = function () {
+	var imgList = [
+		<?php foreach($images as $img){
+		   echo '"'.$_W['attachurl'].$img.'",';
+		} ?>
+	];
+	wx.previewImage({
+		current: imgList[0],
+		urls: imgList
+	});
+};
+</script>
+{/if}
+{php include $this->template('_footer');}
+</body>
+</html>

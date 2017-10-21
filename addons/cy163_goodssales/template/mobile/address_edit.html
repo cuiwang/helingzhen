@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1.0,maximum-scale=1.0,minimum-scale=1,user-scalable=no">
+    <meta content="yes" name="apple-mobile-web-app-capable">
+    <meta content="black" name="apple-mobile-web-app-status-bar-style">
+    <meta content="telephone=no" name="format-detection">
+    <meta content="email=no" name="format-detection">
+    <title>{if $id}编辑收货地址{else}添加收货地址{/if}</title>	
+	<link rel="stylesheet" href="{MD_ROOTN}/messi/css/reset.css"/>
+    <link rel="stylesheet" href="{MD_ROOTN}/messi/iconfont/iconfont.css"/>
+	<link rel="stylesheet" href="{MD_ROOTN}/jqueryweui/css/weui.min.css"/>
+	<link rel="stylesheet" href="{MD_ROOTN}/jqueryweui/css/jquery-weui.min.css"/>
+	<link rel="stylesheet" href="{MD_ROOTN}/messi/css/common.css"/>
+	<script>
+        var deviceWidth = document.documentElement.clientWidth;
+        document.documentElement.style.fontSize = deviceWidth / 7.5 + 'px';
+    </script>
+</head>
+
+<body style="background:#f5f5f5;">
+<div id="header">
+	<div class="goback iconfont" onclick="history.go(-1);">&#xe612;</div>
+	<div class="title textellipsis1 text-c">{if $id}编辑收货地址{else}添加收货地址{/if}</div>
+	<div class="empty"></div>
+</div>
+
+<div class="weui-cells weui-cells_form">
+	<div class="weui-cell">
+		<div class="weui-cell__hd"><label class="weui-label">收货人</label></div>
+		<div class="weui-cell__bd">
+			<input class="weui-input" id="realname" value="{$address['realname']}" type="text" placeholder="请填写收货人姓名" />
+		</div>
+	</div>
+	<div class="weui-cell">
+		<div class="weui-cell__hd"><label class="weui-label">手机号</label></div>
+		<div class="weui-cell__bd">
+			<input class="weui-input" id="telphone" value="{$address['telphone']}" type="tel" placeholder="请填写手机号" />
+		</div>
+	</div>
+</div>
+
+<div class="weui-cells weui-cells_form">
+	<div class="weui-cell">
+		<div class="weui-cell__hd"><label class="weui-label">所在地区</label></div>
+		<div class="weui-cell__bd">
+			<input class="weui-input" id="address" type="text" {if $id}value="{$address['province']} {$address['city']} {$address['district']}"{else}value=""{/if} readonly>
+		</div>
+		<input type="hidden" id="province" value="{$address['province']}">
+		<input type="hidden" id="city" value="{$address['city']}">
+		<input type="hidden" id="district" value="{$address['district']}">
+	</div>
+</div>
+
+<div class="weui-cells__title">详细地址</div>
+<div class="weui-cells weui-cells_form">
+	<div class="weui-cell">
+		<div class="weui-cell__bd">
+		  <textarea class="weui-textarea" name="address" placeholder="请填写详细地址" rows="3" id="addresscon">{$address['address']}</textarea>
+		</div>
+	</div>
+</div>
+
+<div class="weui-cells weui-cells_form">
+	<div class="weui-cell weui-cell_switch">
+		<div class="weui-cell__bd">设为默认地址</div>
+		<div class="weui-cell__ft"><input class="weui-switch" type="checkbox" id="isauto" value="1" {if $address['isauto'] == 1}checked="checked"{/if}></div>
+	</div>
+</div>
+
+<div style="padding:0.25rem;">		
+	{if $id}
+	<a class="weui-btn weui-btn_primary" href="javascript:" id="save">保存</a>
+	<a href="javascript:;" id="del" class="weui-btn weui-btn_warn">删除此地址</a>
+	{else}
+	<a class="weui-btn weui-btn_primary" href="javascript:" id="save">添加</a>
+	{/if}
+	<input type="hidden" id="id" value="{$address['id']}" />
+</div>
+
+<script type="text/javascript" src="{MD_ROOTN}/messi/js/jquery-3.1.1.min.js"></script>
+<script type="text/javascript" src="{MD_ROOTN}/jqueryweui/js/fastclick.js"></script>
+<script type="text/javascript" src="{MD_ROOTN}/jqueryweui/js/jquery-weui.min.js"></script>
+<script type="text/javascript" src="{MD_ROOTN}/jqueryweui/js/city-picker.min.js"></script>
+<script type="text/javascript">
+$(function(){
+	FastClick.attach(document.body);
+	$("#address").cityPicker({
+		title: "选择收货地区",
+		onChange: function (picker, values, displayValues) {
+			$('#province').val(displayValues[0]);
+			$('#city').val(displayValues[1]);
+			$('#district').val(displayValues[2]);
+		}
+	});
+	{if $id}
+	$("#del").click(function(){
+		$.confirm("确定要删除该地址吗？", function() {
+			$.ajax({
+				url:"{php echo $this->createMobileUrl('myaddress',array('op'=>'delete'));}",   
+				type:'post', 
+				data:{
+					id:{$address['id']},
+				},
+				dataType:'json',
+				success:function(data){
+					if (data.error == 1) {
+						$.alert(data.msg);
+					}else{
+						$.alert(data.msg,function(){
+							history.go(-1);
+						});
+					}
+				}
+			});
+		}, function() {
+
+		});
+	});
+	{/if}
+	$("#save").click(function(){
+		var isauto = $('#isauto').is(':checked') ? 1 : 0;
+		$.ajax({
+			url:"{php echo $this->createMobileUrl('myaddress',array('op'=>'post'))}",   
+			type:'post', 
+			data:{
+				isdo:1,
+				id:$('#id').val(),
+				realname:$('#realname').val(),
+				telphone:$('#telphone').val(),
+				province:$('#province').val(),
+				city:$('#city').val(),
+				district:$('#district').val(),
+				address:$('#addresscon').val(),
+				isauto:isauto,
+			},
+			dataType:'json',
+			success:function(data){
+				if (data.error == 1) {
+					$.alert(data.msg);
+				}else{
+					$.alert(data.msg,function(){
+						history.go(-1);
+					});
+				}
+			}
+		});
+	});
+})
+</script>
+</body>
+</html>

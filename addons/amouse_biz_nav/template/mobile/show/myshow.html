@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{$set[sys][copyright]}-我的产品秀</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <link href="{AMOUSE_BIZ_NAV_RES}pig/css/main.css?2016050101" rel="stylesheet">
+    <link href="{AMOUSE_BIZ_NAV_RES}pig/css/load.css?2016050101" rel="stylesheet">
+    <script src="{AMOUSE_BIZ_NAV_RES}pig/js/jquery.min.js?2016050101"></script>
+</head>
+
+<body >
+
+{template 'show/navbar'}
+
+
+
+<div class="mygroups" >
+    <ul class="mygroups-ul">
+        {loop $list $l}
+        <li class="mygroups-li" id="list_{$l['id']}" >
+            <div class="mygroups_info">
+                <a href="{php echo $_W['siteroot'] . 'app/' . substr($this->createMobileUrl('show',array('op'=>'detail','showid'=>$l['id'])), 2)}" class="block">
+                    <div class="title" >
+                        <span>{$l['title']}</span>
+                    </div>
+                    <div class="desc" >{$l['described']}</div>
+                </a>
+                <div class="list_btn">
+                    <span class='read_num'>浏览次数: {$l['viewcount']}</span>
+                    <div class="fr">
+                       <!-- <a class="mygroups_btn reload" onclick="editTop({$l['id']})">编辑</a>-->
+                        <a class="mygroups_btn zd_reload" onclick="upTop({$l['id']})">刷新</a>
+                        <a class="mygroups_btn del" onclick='deleteShow("{$l['id']}", "", "{$l['title']}")'>删除</a>
+                    </div>
+                </div>
+            </div>
+        </li>
+        {/loop}
+    </ul>
+</div>
+
+<script src="{AMOUSE_BIZ_NAV_RES}pig/js/show_ewm.js?1463479867"></script>
+<script src="{AMOUSE_BIZ_NAV_RES}pig/js/common_new.js?1463479867"></script>
+<script src="{AMOUSE_BIZ_NAV_RES}js/jquery.cookie.js?1463479867"></script>
+
+{template 'default/footerbar'}
+
+<div style="width:100%; height:0px;"></div>
+
+<script>
+    var  refresh_url="{php echo $_W['siteroot'].'app/'.substr($this->createMobileUrl('show',array('op'=>'myshow')), 2)}";
+    var  pcenter_url="{php echo $_W['siteroot'].'app/'.substr($this->createMobileUrl('pcenter'), 2)}";
+    var  list_url="{php echo $_W['siteroot'].'app/'.substr($this->createMobileUrl('show',array('op'=>'list')), 2)}";
+    //删除群
+    function deleteShow(id, top, name) {
+        var msg = "确定删除 " + name;
+        if (!confirm(msg)) {
+            return false;
+        }
+        var delUrl="{php echo $_W['siteroot'] . 'app/'.substr($this->createMobileUrl('ajaxDel',array('op'=>'show')), 2)}";
+        $.post(delUrl, {sid: id}, function(json) {
+            if (json.code == 200) {
+                $("#list_" + id).remove();
+            } else {
+                alert(json.info);
+            }
+        }, 'json');
+        return false;
+    }
+
+    /**
+     * 刷新置顶
+     * **/
+    function upTop(id) {
+        var reduce_point = "{$set2['show']['top']}";
+        var isvip = "{$fans['vipstatus']}";
+        if(isvip=='1') {
+            reduce_point="{$set2['show']['stop']}";
+        }
+        if (!confirm('『刷新』相当于重新发布一次，消耗'+reduce_point+'{$credittxt}确认吗？')){
+            return;
+        }
+        $.ajax({
+            type:"POST",
+            async:false,
+            url:refresh_url,
+            data : {sid:id},
+            dataType: "json",
+            beforeSend : function(XMLHttpRequest) {
+                loadingToast("提交中...");
+            },
+            success:function(result){
+                if(result.status==200) {
+                    dialog2('置顶成功');
+                    hidemod("loadingToast");
+                    setTimeout("window.location.href = list_url", 1000);
+                }else if(result.status==0){
+                    hidemod("loadingToast");
+                    dialog2(result.msg );
+                    setTimeout("window.location.href = pcenter_url", 1000);
+                }else{
+                    hidemod("loadingToast");
+                    dialog2(result.msg );
+                }
+            },
+            error : function(data){
+                hidemod("loadingToast");
+                dialog2(data.msg);
+            }
+        });
+        return false;
+    }
+
+    function editTop(id){
+        var reduce_point = "{$set2['show']['edit']}";
+        var isvip = "{$fans['vipstatus']}";
+        if(isvip=='1') {
+            reduce_point="{$set2['show']['sedit']}";
+        }
+        if (!confirm('『编辑』相当于重新发布一次，消耗'+reduce_point+'{$credittxt}确认吗？')){
+            return;
+        }
+        window.location.href ="{php echo $_W['siteroot'].'app/'.substr($this->createMobileUrl('show',array('op'=>'edit')), 2)}&showid="+id ;
+    }
+</script>
+</body>
+</html>

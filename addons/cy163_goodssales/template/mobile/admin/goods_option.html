@@ -1,0 +1,264 @@
+<style>
+#options input{width:70%;}
+</style>
+<div class="control-group">	
+	<div class="controls">
+		<label class="checkbox">
+			<input type="checkbox" id="hasoption" value="1" name="hasoption" {if $item['hasoption']==1}checked{/if} /> 启用商品规格
+		</label>
+	</div>
+</div>
+{if $item['hasoption']!=1}
+<div id='tboption' style='display:none'>
+{else}
+<div id='tboption'>
+{/if}
+	<div class="alert alert-info">
+		1. 拖动规格可调整规格显示顺序, 更改规格及规格项后请点击下方的【刷新规格项目表】来更新数据。<br/>
+		2. 每一种规格代表不同型号，例如颜色为一种规格，尺寸为一种规格，如果设置多规格，手机用户必须每一种规格都选择一个规格项，才能添加购物车或购买。
+	</div>
+	<div id='specs'>
+		{loop $allspecs $spec}
+			<div class="alert alert-new spec_item" id="spec_{$spec['id']}" >
+				<input name="spec_id[]" type="hidden" class="spec_id" value="{$spec['id']}"/>
+				<div class="control-group">
+					<label class="control-label"> 规格名</label>
+					<div class="controls">
+						<input name="spec_title[{$spec['id']}]" type="text" class=" spec_title" value="{$spec['title']}" placeholder="(比如: 颜色)"/>
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label"> 规格项</label>
+					<div class="controls">
+						<div id="spec_item_{$spec['id']}" class='spec_item_items'>
+						{loop $spec['items'] $specitem}
+							<div class="spec_item_item" style="float:left;margin:0 5px 10px 0;">
+								<input type="hidden" class="spec_item_show" name="spec_item_show_{$spec['id']}[]" VALUE="{$specitem['show']}" />
+								<input type="hidden" class="spec_item_id" name="spec_item_id_{$spec['id']}[]" VALUE="{$specitem['id']}" />
+								<div class="input-prepend input-append">
+									<span class="add-on">
+										<label class="checkbox inline" style="margin-top:-10px;">
+											<input type="checkbox" {if $specitem['show']==1}checked{/if} value="1" onclick='showItem(this)'>
+										</label>
+									</span>
+									<input type="text" class="spec_item_title error" name="spec_item_title_{$spec['id']}[]" VALUE="{$specitem['title']}" />
+									<span class="add-on">
+										<a href="javascript:;" onclick="removeSpecItem(this)" title='删除'><i class="icon-remove"></i></a>
+										<a href="javascript:;" class="icon-move" title="拖动调整显示顺序" ></a>
+									</span>
+								</div>
+							</div>
+						{/loop}
+						</div>
+						<a href="javascript:;" id="add-specitem-{$spec['id']}" specid="{$spec['id']}" class='btn btn-info add-specitem' onclick="addSpecItem('{$spec['id']}')"><i class="icon-plus"></i> 添加规格项</a>
+						<a href="javascript:void(0);" class='btn btn-danger' onclick="removeSpec('{$spec['id']}')"><i class="icon-plus"></i> 删除规格</a>
+					</div>
+				</div>
+			</div>
+		{/loop}
+	</div>
+	<table class="table">
+		<tr>
+			<td>
+				<h4><a href="javascript:;" class='btn btn-primary' id='add-spec' onclick="addSpec()" style="margin-top:10px;margin-bottom:10px;"title="添加规格"><i class='icon-plus'></i> 添加规格</a> 
+				<a href="javascript:;" onclick="calc()" title="刷新规格项目表" class="btn btn-primary"><i class="icon-refresh"></i> 刷新规格项目表</a></h4>
+			</td>
+		</tr>
+	</table>
+	<div id="options">
+		{$html}
+	</div>
+</div>
+<script language="javascript">
+	$(function(){
+		$('#specs').sortable({
+			stop: function(){
+				window.optionchanged = true;
+			}
+		});
+		$('.spec_item_items').sortable(
+				{
+					handle:'.icon-move',
+					stop: function(){
+						window.optionchanged = true;
+					}
+				}
+			);
+		$("#hasoption").click(function(){
+			var obj = $(this);
+			if (obj.get(0).checked){
+				$("#tboption").show();
+			}else{
+				$("#tboption").hide();
+			}
+		});
+	})
+	function addSpec(){
+	$("#add-spec").html("正在处理...").attr("disabled", "true").toggleClass("btn-primary");
+		var url = "{php echo $this->createMobileUrl('adminspec')}";
+		$.ajax({
+			"url": url,
+			success:function(data){
+				$("#add-spec").html('<i class="icon-plus"></i> 添加规格').removeAttr("disabled").toggleClass("btn-primary"); ;
+				$('#specs').append(data);
+				var len = $(".add-specitem").length -1;
+				$(".add-specitem:eq(" +len+ ")").focus();
+				window.optionchanged = true;
+			}
+		});
+	}
+	function removeSpec(specid){
+		if (confirm('确认要删除此规格?')){
+			$("#spec_" + specid).remove();
+			window.optionchanged = true;
+		}
+	}
+	function addSpecItem(specid){
+	$("#add-specitem-" + specid).html("正在处理...").attr("disabled", "true");
+		var url = "{php echo$this->createMobileUrl('adminspecitem')}" + "&specid=" + specid;
+		$.ajax({
+			"url": url,
+			success:function(data){
+				$("#add-specitem-" + specid).html('<i class="icon-plus"></i> 添加规格项').removeAttr("disabled");
+				$('#spec_item_' + specid).append(data);
+				var len = $("#spec_" + specid + " .spec_item_title").length -1;
+				$("#spec_" + specid + " .spec_item_title:eq(" +len+ ")").focus();
+				window.optionchanged = true;
+			}
+		});
+	}
+	function removeSpecItem(obj){
+		$(obj).parent().parent().parent().remove();
+	}
+	function calc(){
+		
+	if ($(".spec_item_title").length == 0) {
+		alert('请添加每种规格下的规格项');
+	}
+	
+	window.optionchanged = false;
+	var html = '<table class="table table-bordered"><thead><tr>';
+	var specs = [];
+	$(".spec_item").each(function(i){
+		var _this = $(this);
+
+		var spec = {
+			id: _this.find(".spec_id").val(),
+			title: _this.find(".spec_title").val()
+		};
+	
+		var items = [];
+		_this.find(".spec_item_item").each(function(){
+			var __this = $(this);
+			var item = {
+				id: __this.find(".spec_item_id").val(),
+				title: __this.find(".spec_item_title").val(),
+				show:__this.find(".spec_item_show").get(0).checked?"1":"0"
+			}
+			items.push(item);
+		});
+		spec.items = items;
+		specs.push(spec);
+	});
+
+
+	var len = specs.length;
+	var newlen = 1; //多少种组合
+	var h = new Array(len); //显示表格二维数组
+	var rowspans = new Array(len); //每个列的rowspan
+	for(var i=0;i<len;i++){
+		//表头
+		html+="<th style='width:10%;'>" + specs[i].title + "</th>";
+		
+		//计算多种组合
+		var itemlen = specs[i].items.length;
+		if(itemlen<=0) { itemlen = 1 };
+		newlen*=itemlen;
+		
+		//初始化 二维数组
+		h[i] = new Array(newlen);
+		for(var j=0;j<newlen;j++){
+			h[i][j] = new Array();
+		}
+		//计算rowspan
+		var l = specs[i].items.length;
+		rowspans[i] = 1;
+		for(j=i+1;j<len;j++){
+			rowspans[i]*= specs[j].items.length;
+		}
+	}
+
+	html += '<th width="15%"><div style="padding-bottom:10px;text-align:center;font-size:16px;">库存</div><div class="input-prepend input-append"><input type="text" class="option_stock_all"VALUE=""/><span class="add-on"><a href="javascript:;" class="icon-hand-down" title="批量设置" onclick="setCol(\'option_stock\');"></a></span></div></th>';
+	html += '<th width="15%"><div style="padding-bottom:10px;text-align:center;font-size:16px;">售价</div><div class="input-prepend input-append"><input type="text" class="option_normalprice_all"VALUE=""/><span class="add-on"><a href="javascript:;" class="icon-hand-down" title="批量设置" onclick="setCol(\'option_normalprice\');"></a></span></div></th>';
+	html +='<th width="15%"><div style="padding-bottom:10px;text-align:center;font-size:16px;">重量（克）</div><div class="input-prepend input-append"><input type="text" class="option_weight_all"VALUE=""/><span class="add-on"><a href="javascript:;" class="icon-hand-down" title="批量设置" onclick="setCol(\'option_weight\');"></a></span></div></th>';
+	html +='</tr></thead>';
+	
+	for(var m=0;m<len;m++){
+		var k = 0,kid = 0,n=0;
+		for(var j=0;j<newlen;j++){
+			var rowspan = rowspans[m]; //9
+			if( j % rowspan==0){
+				h[m][j]={title: specs[m].items[kid].title, html: "<td rowspan='" +rowspan + "'>"+ specs[m].items[kid].title+"</td>\r\n",id: specs[m].items[kid].id};
+			//	k++; if(k>specs[m].items.length-1) { k=0; }
+			}
+			else{
+				h[m][j]={title:specs[m].items[kid].title, html: "",id: specs[m].items[kid].id};	
+			}
+			n++;
+			if(n==rowspan){
+			kid++; if(kid>specs[m].items.length-1) { kid=0; }
+			n=0;
+			}
+		}
+	}
+
+	var hh = "";
+	for(var i=0;i<newlen;i++){
+		hh+="<tr>";
+		var ids = [];
+		var titles = [];
+		for(var j=0;j<len;j++){
+			hh+=h[j][i].html; //每一行的每个规格项列
+			ids.push( h[j][i].id);
+			titles.push( h[j][i].title);
+		}
+		ids =ids.join('_');
+		titles= titles.join('+');
+	
+		var val ={ id : "",title:titles, stock : "",normalprice:"",weight:"" };
+		if( $(".option_id_" + ids).length>0){
+			val ={
+				id : $(".option_id_" + ids+":eq(0)").val(),
+				title: titles,
+				stock : $(".option_stock_" + ids+":eq(0)").val(),
+				normalprice : $(".option_normalprice_" + ids+":eq(0)").val(),
+				weight : $(".option_weight_" + ids+":eq(0)").val()
+			}
+		}
+		hh += '<td>'
+		hh += '<input name="option_stock_' + ids +'[]"type="text" class="option_stock option_stock_' + ids +'" value="' +(val.stock=='undefined'?'':val.stock )+'"/></td>';
+		hh += '<input name="option_id_' + ids+'[]"type="hidden" class="option_id option_id_' + ids +'" value="' +(val.id=='undefined'?'':val.id )+'"/>';
+		hh += '<input name="option_ids[]"type="hidden" class="option_ids option_ids_' + ids +'" value="' + ids +'"/>';
+		hh += '<input name="option_title_' + ids +'[]"type="hidden" class="option_title option_title_' + ids +'" value="' +(val.title=='undefined'?'':val.title )+'"/></td>';
+		hh += '</td>';
+		hh += '<td><input name="option_normalprice_' + ids+'[]" type="text" class="option_normalprice option_normalprice_' + ids +'" value="' +(val.normalprice=='undefined'?'':val.normalprice )+'"/></td>';
+		hh += '<td><input name="option_weight_' + ids +'[]" type="text" class="option_weight option_weight_' + ids +'" " value="' +(val.weight=='undefined'?'':val.weight )+'"/></td>';
+		hh += "</tr>";
+	}
+	html+=hh;
+	html+="</table>";
+	$("#options").html(html);
+}
+function setCol(cls){
+	$("."+cls).val( $("."+cls+"_all").val());
+}
+function showItem(obj){
+	var show = $(obj).get(0).checked?"1":"0";
+	$(obj).next().val(show);
+}
+function nofind(){
+	var img=event.srcElement;
+	img.src="./resource/image/module-nopic-small.jpg";
+	img.onerror=null; 
+}
+</script>

@@ -1,0 +1,175 @@
+<!--
+ * ============================================================================
+ * 版权所有 2015-2016 米粒源码，并保留所有权利。
+ * 网站地址: http://www.webmili.com；
+ * ----------------------------------------------------------------------------
+ * 这不是一个自由软件！已购买用户允许对程序代码进行修改和使用，但是不允许对
+ * 程序代码以任何形式任何目的的再发布，作者将保留追究法律责任的权力和最终解
+ * 释权。
+ * ============================================================================
+-->
+{php include $this->template('_header');}
+<style type="text/css">
+.contaniner {
+    padding-bottom: 15%;
+}
+</style>
+<script type="text/javascript">
+wx.config({
+	debug: false,
+	appId: '{$signPackage["appId"]}',
+	timestamp: '{$signPackage["timestamp"]}',
+	nonceStr: '{$signPackage["nonceStr"]}',
+	signature: '{$signPackage["signature"]}',
+	jsApiList: [
+		'previewImage'
+	]
+});
+</script>
+<body>
+<header class="top-header fixed-header">
+	<a class="icona" href="javascript:history.go(-1)">
+		<img src="../addons/cash_car/template/images/left-white.png"/>
+	</a>
+	<h3>{$title}</h3>
+</header>
+
+<div class="contaniner fixed-conta">
+{if !empty($orderlist)}
+    <section class="order">
+	{loop $orderlist $key $item}
+		<dl>
+			<dt>
+				<time>下单时间：{php echo date('Y-m-d H:i', $item['dateline']);}</time>
+			    {if $item['status']=='-1'}
+			    <span style="color:#4A4747;">已取消</span>
+			    {elseif $item['status']=='0'}
+			    <span>未支付</span>
+			    {elseif $item['status']=='1'}
+			    <span style="color:#45C018;">已付款</span>
+			    {elseif $item['status']=='2'}
+			    <span style="color:#45C018;">已接单</span>
+			    {elseif $item['status']=='3' && $item['is_evaluate']=='0'}
+			    <span style="color:#45C018;">待评价</span>
+				{elseif $item['status']=='3' && $item['is_evaluate']=='1'}
+			    <span style="color:#45C018;">已评价</span>
+			    {/if}
+			</dt>
+			<ul>
+				<li>
+				{loop $item['goods'] $goods}
+					<div class="goods">
+					   <div class="goods-title">{$goods['title']}</div>
+					   <div class="pay-type">
+					   {if $item['status']>0}
+					   (
+						  {if $item['usecard']==0}
+							 {if $item['paytype']==1}
+							 余额支付
+							 {elseif $item['paytype']==2}
+							 在线支付
+							 {/if}
+						  {elseif $item['usecard']==1}
+							 {if !empty($goods['onlycard'])}
+							 洗车卡支付
+							 {else}
+								 {if $item['paytype']==1}
+								 余额支付
+								 {elseif $item['paytype']==2}
+								 在线支付
+								 {/if}
+							 
+							 {/if}
+						  {/if}
+						 )
+					   {/if}
+					   </div>
+					</div>
+				{/loop}
+					<div class="other-info">
+						<span><i style="color:#fff;">服</i>服务点：{$item['store_name']}</span>
+						<span>订单编号：{$item['ordersn']}</span>
+						<span>订单类型：{if $item['order_type']==1}上门洗车{elseif $item['order_type']==2}到店洗车{/if}</span>
+						<span>预约时间：{php echo date('Y-m-d',$item['meal_date']);} {$item['meal_time']}</span>
+						<span>用户姓名：{$item['username']}</span>
+						<span>手机号码：{$item['tel']}</span>
+						<span>洗车车牌：{$item['mycard']}</span>
+						<span>洗车地址：{$item['address']}</span>
+						{if !empty($item['remark'])}
+						<span>洗车备注：{$item['remark']}</span>
+						{/if}
+						{if !empty($item['worker_openid'])}
+						<span>洗车师傅：{$item['worker']['worker_name']},<a href="tel:{$item['worker']['worker_mobile']}">{$item['worker']['worker_mobile']}</a></span>
+						{/if}
+					</div>
+				</li>
+			</ul>
+			{if !empty($item['cashimages'])}
+			<dd id="previewImage{$key}">
+				<h3 style="font-size:1.25em;">洗车照片：</h3>
+				{loop $item['cashimages'] $img}
+					<a href="javascript:;"><img src="../attachment/{$img}" style="width:50px;"></a>&nbsp;&nbsp;&nbsp;
+				{/loop}
+			</dd>
+			{else}
+			<dd>
+				<h3>应付金额</h3>
+				<i>￥{php echo number_format($item['totalprice'],2);}</i>
+			</dd>
+			{/if}
+			{if $item['totalintegral']>0}
+			<dd style="font-size:0.9em;">
+				<i style="color:#555;">交易完成后可获得<span style="color:#288A04;"> {$item['totalintegral']}</span>积分</i>
+			</dd>
+			{/if}
+
+			{if in_array($item['status'], array('0','1','2')) || ($item['status']==3 && $item['is_evaluate']==0)}
+			<dd>
+			{if in_array($item['status'], array('1','2'))}
+				<input type="button" value="完成订单" class="order-que" onClick="if (confirm('确定完成订单？'))location.href= '{php echo $this->createMobileUrl('finishorder', array('orderid'=>$item['id']));}';return false;">
+			{/if}
+			{if in_array($item['status'], array('0','1','2'))}
+				<input type="button" value="取消订单" onClick="if (confirm('确定取消订单？'))location.href= '{php echo $this->createMobileUrl('cancelorder', array('orderid'=>$item['id']));}';return false;"/>
+			{/if}
+			{if $item['status']==0}
+				<input type="button" value="支付订单" class="payorder" onClick="location.href= '{php echo $this->createMobileUrl('pay', array('orderid'=>$item['id']));}'"/>
+			{/if}
+			{if $item['status']==3 && $item['is_evaluate']==0}
+				<input type="button" value="评价订单" class="order-evaluate" onClick="location.href= '{php echo $this->createMobileUrl('evaluate', array('orderid'=>$item['id']));}'"/>
+			{/if}
+			</dd>
+			{/if}
+		</dl>
+		{if !empty($item['cashimages'])}
+		<script type="text/javascript">
+		document.querySelector('#previewImage{$key}').onclick = function () {
+			var imgList = [
+				<?php foreach($item['cashimages'] as $img){
+				   echo '"'.$_W['attachurl'].$img.'",';
+				} ?>
+			];
+			wx.previewImage({
+				current: imgList[0],
+				urls: imgList
+			});
+		};
+		</script>
+		{/if}
+	{/loop}
+	{$pager}
+	</section>
+{else}
+    <div class="none">
+		<h3>
+			<img src="../addons/cash_car/template/images/order-icon01.png">
+		</h3>
+		<p>
+			<span>您还没有该状态下的订单~</span>
+		</p>
+	</div>
+{/if}
+</div>
+
+{php include $this->template('_footer');}
+</body>
+</html>

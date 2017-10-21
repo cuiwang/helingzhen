@@ -1,0 +1,313 @@
+<!DOCTYPE HTML>
+
+<html>
+
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0,maximum-scale=1.0, minimum-scale=1.0, user-scalable=no" />
+
+<title>{$_W[account]['name']}红包</title>
+
+<link rel="stylesheet" href="../addons/han_hongbao/template/mobile/css/chaikai.css" />
+
+<script src="../addons/han_hongbao/template/mobile/js/jquery.js"></script>
+
+<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+
+<script type="text/javascript" src="../addons/han_hongbao/template/mobile/js/jquery-1.7.2.min.js"></script>
+
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=5PESLgvMcSbSUbPjmDKgvGZ3"></script>
+
+<script type='text/javascript' src="../addons/han_hongbao/template/mobile/js/jquery.blockUI.js"></script>
+
+<script>	
+
+wx.config({
+
+	debug: false,   
+
+	appId: '<?php echo $signPackage["appId"];?>',
+
+	timestamp: '<?php echo $signPackage["timestamp"];?>',
+
+	nonceStr: '<?php echo $signPackage["nonceStr"];?>',
+
+	signature: '<?php echo $signPackage["signature"];?>',
+
+	jsApiList: ['checkJsApi','onMenuShareTimeline','onMenuShareAppMessage','onMenuShareQQ','onMenuShareWeibo',]
+
+});
+
+var user_image="{$fromUserJson['user_image']}";
+
+var user_name="{$fromUserJson['user_name']}";
+
+var title="{$settings['sharetitle']}".replace("{fromuser}",user_name);
+
+var desc="{$settings['sharedescription']}".replace("{fromuser}",user_name);
+
+
+
+wx.ready(function () {
+
+	var shareData = {
+
+		title: "{php echo $set['title']}",
+
+		desc: "{php echo $set['description']}",
+
+		link: "{$_W['siteroot']}app/{php echo $this->createMobileUrl('putong')}",
+
+		imgUrl: "{php echo toimage($set['shareimg'])}",
+
+		trigger: function (res) {},
+
+		complete: function (res) {},
+
+		success: function (res) {
+
+		 //zzlog();
+
+		 },
+
+		cancel: function (res) {},
+
+		fail: function (res) {}
+
+	};
+
+	wx.onMenuShareAppMessage({
+		
+		title: "{php echo $set['title']}",
+
+		desc: "{php echo $set['description']}",
+
+		link: "{$_W['siteroot']}app/{php echo $this->createMobileUrl('putong')}",
+
+		imgUrl: "{php echo toimage($set['shareimg'])}",
+
+		trigger: function (res) {},
+
+		complete: function (res) {},
+
+		success: function (res) {
+
+		 //zzlog();
+
+		 },
+
+		cancel: function (res) {},
+
+		fail: function (res) {}
+
+	});
+
+	wx.onMenuShareQQ(shareData);
+
+	wx.onMenuShareWeibo(shareData);
+
+	wx.onMenuShareTimeline(shareData);
+
+});
+
+
+
+$(document).ready(function(){
+	
+	var geolocation = new BMap.Geolocation();
+    geolocation.getCurrentPosition(function(r) {
+	  var address = r.address;
+	  
+	  $.post("{php echo $this->createMobileUrl('checkaddr');}",{pro:address['province'],city:address['city'],tablename:"han_hongbao_putong"},function(data){ 
+	   
+	   if (data.code=='no'){
+	     alert(data.msg);
+		 WeixinJSBridge.invoke('closeWindow',{},function(res){});
+		 return false;
+
+	   }else if(data.code=='yes'){
+		 
+		 $(".first-box").show();
+		   
+	   }
+	
+	 },"json");
+	 
+	}, {
+    enableHighAccuracy: true
+   });
+
+
+	$(".hot-click").click(function(){
+		
+		 $.blockUI({ message:"拆开中...", css: { backgroundColor: '#f00', color: '#fff'}});	
+		 
+		 $.post("{php echo $this->createMobileUrl('sendhb');}",{},function(data){
+			 
+			  $.unblockUI();
+
+			  var code=data.result_code;
+
+		      if (code=='FAIL'){
+			
+				alert(data.return_msg);
+
+		       	WeixinJSBridge.invoke('closeWindow',{},function(res){});
+				return false;
+
+		      }else if(code=='SUCCESS'){
+
+				alert("已发放红包"+data.total_amount*0.01+"元，请领取");
+				WeixinJSBridge.invoke('closeWindow',{},function(res){});				  		 
+
+			  }else{
+				
+				alert(data.msg);
+					
+		        WeixinJSBridge.invoke('closeWindow',{},function(res){});
+
+				return false;   
+
+			  }
+
+		     
+
+		 },"json");
+		 
+
+	});
+
+	
+
+	$('.sendMoney').click(function(){
+
+		$(".share").show();
+
+	})
+
+	$(".close").click(function(){
+
+		$(".share").fadeTo(500,0,function(){
+
+			$(".share").hide();
+
+		});
+
+	});
+
+});
+
+</script>
+ <script language="javascript" type="text/javascript">
+    window.alert = function(txt){
+     var shield = document.createElement("DIV");
+     shield.id = "shield";
+     shield.style.position = "absolute";
+     shield.style.left = "0px";
+     shield.style.top = "0px";
+     shield.style.width = "100%";
+     shield.style.height = document.body.scrollHeight+"px";
+     shield.style.background = "#333";
+     shield.style.textAlign = "center";
+     shield.style.zIndex = "10000";
+     shield.style.filter = "alpha(opacity=0)";
+     var alertFram = document.createElement("DIV");
+     alertFram.id="alertFram";
+     alertFram.style.position = "absolute";
+     alertFram.style.left = "50%";
+     alertFram.style.top = "50%";
+     alertFram.style.marginLeft = "-225px";
+     alertFram.style.marginTop = "-75px";
+     alertFram.style.width = "450px";
+     alertFram.style.height = "150px";
+     alertFram.style.background = "#ccc";
+     alertFram.style.textAlign = "center";
+     alertFram.style.lineHeight = "150px";
+     alertFram.style.zIndex = "10001";
+     strHtml = "<ul style=/"list-style:none;margin:0px;padding:0px;width:100%/">/n";
+     strHtml += " <li style=/"background:#DD828D;text-align:left;padding-left:20px;font-size:14px;font-weight:bold;height:25px;line-height:25px;border:1px solid #F9CADE;/">[系统提示]</li>/n";
+     strHtml += " <li style=/"background:#fff;text-align:center;font-size:12px;height:120px;line-height:120px;border-left:1px solid #F9CADE;border-right:1px solid #F9CADE;/">"+txt+"</li>/n";
+     strHtml += " <li style=/"background:#FDEEF4;text-align:center;font-weight:bold;height:25px;line-height:25px; border:1px solid #F9CADE;/"><input type=/"button/" value=/"确 定/" onclick=/"doOk()/" /></li>/n";
+     strHtml += "</ul>/n";
+     alertFram.innerHTML = strHtml;
+     document.body.appendChild(alertFram);
+     /*
+  document.body.appendChild(shield);
+  var c = 0;
+     this.doAlpha = function(){
+         if (c++ > 20){clearInterval(ad);return 0;}
+         shield.style.filter = "alpha(opacity="+c+");";
+     }
+     var ad = setInterval("doAlpha()",5);
+  */
+     this.doOk = function(){
+         alertFram.style.display = "none";
+         shield.style.display = "none";
+     }
+     alertFram.focus();
+     document.body.onselectstart = function(){return false;};
+    }
+    </script>
+</head>
+
+<body>
+
+
+
+<div class="first-box" style="display:none"> 
+
+  <img class="body" src="../addons/han_hongbao/template/mobile/images/fools_1.png">
+
+  <img class="user-headimg" src="../addons/han_hongbao/template/mobile/images/hbss_icon.jpg">
+
+  <div class="hot-click"></div>
+
+  <div class="nickname">{$_W['account']['name']}公众号</div>
+
+</div>
+
+
+
+<div class="second-box" style="display:none">
+
+  <div class="second-wrapper"> 
+
+    <img class="second-bg" src="../addons/han_hongbao/template/mobile/images/fools_2.png"> 
+
+    <img class="second-headimg" src="{php echo $_W['attachurl'];}headimg_{php echo $_W['uniacid'];}.jpg" />
+
+    <div class="second-nickname">
+
+	   {$_W['account']['name']}公众号的红包
+
+       <p style="font-size:13px; color:#999999">成功关注公众号</p>
+
+    </div>
+
+    <!--领取成功-->
+
+    <div class="money3"><span class="money-number"></span> <span class="yuan">元</span> 
+
+      <p style="color:#70A0D7;font-size:1em;">已存入零钱,可直接提现</p>
+
+    </div>
+
+
+
+  </div>
+
+</div>
+
+<div class="share" style="display:none"> <span class="share-p">去发礼物吧！</span> 
+
+  <img class="pointer" src="../addons/han_hongbao/template/mobile/images/share_arrow.gif"> 
+
+  <img class="close" src="../addons/han_hongbao/template/mobile/images/close-black.gif"> 
+
+</div>
+
+</body>
+
+</html>

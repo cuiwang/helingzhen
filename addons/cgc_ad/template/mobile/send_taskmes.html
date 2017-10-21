@@ -1,0 +1,155 @@
+{php $title=$quan['aname'];}
+{template 'inc/header'}
+		<style>
+			#reply_title{padding:10px 15px;font-size:16px;}
+			#reply_content{height:100px;padding:0px;}
+			#btn_submit{margin:10px;}
+		</style>
+
+	
+	<!-- 首页 -->
+    <div class="app-page" data-page="index_page">
+
+		<div class="app-topbar" style="display:none;height:0px;"></div>
+		<div class="app-content" style="background:#F8F8F8;padding-bottom:50px;">
+			<div class="app-body">
+				
+				<div id="reply_title">我的回复：</div>
+
+				<form id="piece_reply_form" action="{php echo $_W['siteroot'] . 'app/' . substr($this->createMobileUrl('task_check',array('op'=>'msg','quan_id'=>$quan_id,'id'=>$id)), 2)}" method="post">
+                    <input type="hidden" name="task_id" value="{$task_id}"/>
+					<input type="hidden" name="submit" value="save"/>				
+					<div class="weui_cells weui_cells_form" style="margin-top:0px;">
+					
+						<div class="weui_cell">
+							<div class="weui_cell_bd weui_cell_primary">
+								<textarea id="reply_content" name="content" class="weui_textarea" placeholder="请输入你要提醒粉丝的消息"></textarea>
+							</div>
+						</div>
+
+					</div>
+
+					<div><a id="btn_submit" class="weui_btn weui_btn_primary">提交信息</a></div>
+				</form>
+
+			</div>
+		</div>
+		
+		<!-- loading toast -->
+		<div id="toast_loading" class="weui_loading_toast" style="display:none;z-index:99999;position:fixed;">
+			<div class="weui_mask_transparent"></div>
+			<div class="weui_toast">
+				<div class="weui_loading">
+					<div class="weui_loading_leaf weui_loading_leaf_0"></div>
+					<div class="weui_loading_leaf weui_loading_leaf_1"></div>
+					<div class="weui_loading_leaf weui_loading_leaf_2"></div>
+					<div class="weui_loading_leaf weui_loading_leaf_3"></div>
+					<div class="weui_loading_leaf weui_loading_leaf_4"></div>
+					<div class="weui_loading_leaf weui_loading_leaf_5"></div>
+					<div class="weui_loading_leaf weui_loading_leaf_6"></div>
+					<div class="weui_loading_leaf weui_loading_leaf_7"></div>
+					<div class="weui_loading_leaf weui_loading_leaf_8"></div>
+					<div class="weui_loading_leaf weui_loading_leaf_9"></div>
+					<div class="weui_loading_leaf weui_loading_leaf_10"></div>
+					<div class="weui_loading_leaf weui_loading_leaf_11"></div>
+				</div>
+				<p class="weui_toast_content">正在提交...</p>
+			</div>
+		</div>
+
+
+	</div> <!-- END 首页 -->
+
+
+
+{template 'inc/script'}
+<script>
+
+
+
+	$(function(){
+		// 首页
+		App.controller('index_page', function (page) {
+			this.transition = 'instant';
+
+			var toast_loading=$(page).find('#toast_loading');
+
+			/** 执行发表 **/
+			var form = $(page).find('#piece_reply_form');
+			function doPost(){
+				$.post(form.attr('action'), form.serialize(),function(resp) {
+					toast_loading.hide();
+					if(resp.status==0){
+						alert(resp.info);
+					}else{
+						swal({   
+							title:resp.info,
+							text: resp.info,
+							type: "success",
+							confirmButtonText: "确定"
+						}, function(isConfirm){
+							window.location.href='{php echo $this->createMobileUrl('task_check',array('quan_id'=>$_GPC['quan_id'],'id'=>$_GPC['id'],'task_id'=>$task_id))}';
+						});
+					}
+				});
+			}
+
+			// 发布
+			$(page).find('#btn_submit').on('click',function(){
+				toast_loading.show();
+				doPost();
+			});
+
+		});
+
+	
+		App.load('index_page');
+	});
+	
+	
+	 function msg(task_id,text){
+  		   	 $('#toast_loading').show();
+  	      	 $.ajax({
+  					   url:"{php echo $this->createMobileUrl('task_check',array('quan_id'=>$_GPC['quan_id'],'id'=>$_GPC['id'],'op'=>'msg'))}",
+  						 data:{
+  							 task_id:task_id,
+  							 msg:text
+  						},
+  						async: false,
+  						dataType:'json',
+  						success:function(resp){
+  							$('#toast_loading').hide();
+  							if(resp.status==1){					      
+  									swal({   
+  										title: "发送成功", 
+  										type: "success",
+  										confirmButtonText: "确定"
+  									},function(){
+  									//	window.location.href='{php echo $_W['siteroot'] . 'app/' . substr($this->createMobileUrl('task_detail',array('quan_id'=>$quan['id'],'id'=>$adv['id'])), 2)}';
+  									});
+  							
+  								
+  							} else {
+  								swal({   
+  									title: resp.info, 
+  									type: "warning",
+  									confirmButtonText: "确定"
+  								},function(){
+  									//location.reload(true);
+  								});
+  								
+  							}
+  							
+  						}
+  				 });
+  	        }, function() {
+  	          //取消操作
+  	        });
+     }
+	
+</script>
+
+
+
+
+{template 'inc/footer'}

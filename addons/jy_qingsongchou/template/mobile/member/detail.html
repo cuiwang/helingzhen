@@ -1,0 +1,250 @@
+{template 'header'}
+
+<div class="content top bottom mod-user-setting">
+<div class="qsc-list-group">
+
+<div id="avatarUploader" style="position: relative;">
+  <div class="list-item list-item_avatar" id="avatarWebPicker">
+      <strong>头像</strong>
+      <span class="uploader-list">
+      <img src="{php echo tomedia($_member['headimgurl'])}" id="avatar" width="32" height="32">
+      <i class="list-arrow"></i>
+      </span>
+  </div>
+<div id="" class="moxie-shim moxie-shim-html5" style="position: absolute; top: 0px; left: 0px; width: 414px; height: 92%; overflow: hidden;">
+</div>
+</div>
+
+    <a href="javascript:void(0);" class="list-item" id="nickname">
+      <strong>账号昵称</strong>
+      <span style="top:16px;"><span id="nnickname">{php echo urldecode($_member['nickname'])}</span><i class="list-arrow"></i></span>
+    </a>
+    <div class="list-item">
+         <strong>id</strong>
+         <span><span> {$_member['id']}</span></span>
+     </div>
+  {if $_member['tel']}
+  <div class="list-item">
+       <strong>绑定手机号</strong>
+       <span><span>+86 {php echo substr($_member['tel'],0,3)."****".substr($_member['tel'],8)}</span></span>
+   </div>
+  {else}
+
+  <a href="{php echo $this->createMobileUrl('member',array('display'=>'phone'))}"  class="list-item">
+
+       <strong>绑定手机号</strong>
+       <span><span>点击验证手机</span><i class="list-arrow"></i></span>
+
+   </a>
+    {/if}
+
+    <a href="{php echo $this->createMobileUrl('address',array('display'=>'list'))}" class="list-item">
+      <strong>收件地址</strong>
+      <span style="top:20px;"><i class="list-arrow"></i></span>
+    </a>
+</div>
+
+
+<div class="qsc-list-group">
+  <a href="{php echo $this->createMobileUrl('member',array('display'=>'shiming'))}" class="list-item">
+      <strong>实名认证</strong>
+      <span style="top:20px;"><span class=""></span><i class="list-arrow"></i></span>
+  </a>
+
+  <a href="{php echo $this->createMobileUrl('member',array('display'=>'bank'))}" class="list-item">
+      <strong>银行卡</strong>
+      <span style="top:20px;"><i class="list-arrow"></i></span>
+  </a>
+  <a href="{php echo $this->createMobileUrl('member',array('display'=>'kuaidi'))}" class="list-item">
+      <strong>我的快递</strong>
+      <span style="top:20px;"><i class="list-arrow"></i></span>
+  </a>
+</div>
+
+{if $this->modal=='phone'}
+   {if $this->sys['is_h5']==1}
+     <div class="qsc-list-group">
+       <a href="{php echo $this->createMobileUrl('logout')}" class="list-item text-center text-danger" data-toggle="modal" data-target="#modal-user_logout">
+           <strong>退出登录</strong>
+       </a>
+     </div>
+   {/if}
+{/if}
+
+
+<div class="qsc-modal dialog in" id="modal-comment-new" aria-hidden="false" style="display: none;">
+    <div class="modal-dialog middle">
+      <div class="modal-content">
+
+              <input type="hidden" name="dopost" value='message'>
+                <div class="modal-header">修改账号昵称</div>
+                <div class="modal-body">
+                    <input type="text" name="name" class="control-input" id="_nickname" placeholder="修改昵称" value="{php echo urldecode($_member['nickname'])}">
+                </div>
+                <div class="modal-footer clearfix">
+                    <a href="javascript:void(0);" class="btn" id="quxiao" data-dismiss="modal">取消</a>
+                    <input type="submit" class="btn active" id="submit" value="提交">
+                </div>
+
+      </div>
+    </div>
+</div>
+</div>
+
+
+{template 'footer'}
+{template 'loading'}
+{template 'tip'}
+<script type="text/javascript">
+    $(function(){
+
+        $("#nickname").click(function(){
+          // alert(1);
+          $('body').append('<div class="modal-backdrop in"></div>');
+          $("#modal-comment-new").show();
+        })
+          $(document).on('click',"#quxiao,.modal-backdrop",function(){
+            $(".modal-backdrop.in").remove();
+            $("#modal-comment-new").hide();
+          })
+
+          $("#submit").click(function(){
+            // var nickname =
+            $(".modal-backdrop.in").remove();
+            $("#modal-comment-new").hide();
+            $("#loadingToast").show();
+            $(".weui_toast_content").html('昵称修改....')
+            $.ajax({
+                url:"{php echo $this->createMobileUrl('member')}",
+                type:'post',
+                dataType:'json',
+                data:{
+                  dopost:'xnickname',
+                  nickname:$("#_nickname").val()
+                },success:function(msg){
+                    $("#nnickname").html(msg.nickname);
+                    $("#loadingToast").hide();
+                },error:function(){
+                  alert(1);
+                }
+            })
+          })
+
+
+    })
+</script>
+
+<script>
+
+require(['template','plupload'],function(template,sss){
+     var   i = 1;
+    var uploader = new plupload.Uploader({
+         runtimes : 'html5,flash,silverlight,html4',
+         browse_button : 'avatarUploader', // you can pass in id...
+         chunk_size : '200kb',
+         max_retries:2,
+         url : "{php echo $this->createMobileUrl('uploadimg',array('dopost'=>'downimg','machine'=>md5(GARCIA_MACHINE)))}",
+         filters : {
+           max_file_size : '5mb',
+           mime_types: [
+             {title : "Image files", extensions : "jpg,gif,png,jpeg"},
+             {title : "Zip files", extensions : "zip"}
+           ]
+         },
+         init: {
+           PostInit: function() {
+            //  document.getElementById('filelist').innerHTML = '';
+
+               return false;
+
+           },
+
+           FilesAdded: function(up, files) {
+             plupload.each(files, function(file) {
+
+             });
+
+               var _f = uploader.files.length;
+
+              //  var _len = $("#fileList").find('div.file-item').length;
+              //  var __len = parseInt(_f)+parseInt(_len);
+               if(_f>1){
+                   _tips('不能超过1张图片');
+                   uploader.splice(0, _f);
+                   return  false;
+               }else if(_f>8){
+                   _tips('不能超过1张图片');
+                   uploader.splice(0, _f);
+                   return  false;
+               }
+
+               // return false;
+               uploader.start();
+               $("#loadingToast").show();
+               $(".weui_toast_content").html('正在上传');
+               console.log(i);
+               i++;
+           },
+           FilesRemoved:function(){
+             $(".weui_toast_content").html(0+"%");
+           },
+           UploadProgress: function(up, file) {
+           $(".weui_toast_content").html(file.percent+"%");
+                    //  console.log(file);
+           },
+           FileUploaded:function(uploader,files,responseObject){
+                 var response = responseObject.response;
+                 response = eval('(' + response + ')');
+                 //
+                 if(response.status==2){
+                     $("#loadingToast").hide();
+                     _tips(response.msg);
+                     return false;
+                 }
+
+                 $.ajax({
+                     url:"{php echo $this->createMobileUrl('member',array('machine'=>md5(GARCIA_MACHINE)))}",
+                     type:'post',
+                     dataType:'json',
+                     data:{
+                       dopost:'upavatar',
+                       imgurl:response.imgurl,
+                       mid:'{php echo $mid}'
+                     },success:function(msg){
+                         $("#avatar").attr('src',response.imgurl);
+                         $("#loadingToast").hide();
+                         console.log(msg);
+                     },error:function(){
+                       alert(1);
+                     }
+                 })
+                 console.log(response);
+                 $("#loadingToast").hide();
+                 // return false;
+           },
+           UploadComplete:function(uploader,files){
+               uploader.splice(0,100);
+                _tips('上传成功');
+               $("#loadingToast").hide();
+
+           },
+           Error: function(up, err) {
+                    $("#loadingToast").hide();
+             // document.getElementById('console').innerHTML += "\nError #" + err.code + ": " + err.message;
+             if(err.code==-200){
+                 _tips('服务器无响应，请重试');
+                 return  false;
+             }else if(err.code==-600){
+                 _tips('图片不能超过5MB');
+                 return  false;
+             }else{
+                 _tips(err.code);
+                 return  false;
+             }
+           }
+         }
+    })
+    uploader.init();
+})
+
+</script>

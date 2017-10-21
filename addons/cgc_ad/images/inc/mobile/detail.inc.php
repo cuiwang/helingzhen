@@ -1,0 +1,109 @@
+<?php
+	global $_W,$_GPC;
+    $weid=$_W['uniacid'];
+    $quan_id=intval($_GPC['quan_id']);
+    $id=intval($_GPC['id']);    
+      
+    $member=$this->get_member();
+
+    $from_user=$member['openid'];
+    $subscribe=$member['follow'];
+    $quan=$this->get_quan();
+     
+    $adv=$this->get_adv();
+ 
+    $config = $this ->settings;
+      
+    $rob_next_time=$member['rob_next_time'];
+    
+    $mid=$member['id'];
+    $op=empty($_GPC['op'])?"display":$_GPC['op'];
+
+	if($_GPC['dopost']=='del'){
+      $id = $_GPC['id'];
+	  pdo_delete('cgc_ad_message',array('id'=>$id));
+	  message("删除评论成功",referer(),'success');
+	}else if($_GPC['dopost']=='is_open'){
+      $id = $_GPC['id'];
+      pdo_update('cgc_ad_adv',array('is_open'=>$_GPC['status']),array('id'=>$_GPC['id'],'weid'=>$weid,'quan_id'=>$_GPC['quan_id']));
+	  $this->returnSuccess("操作口令成功","referer",'success');
+	}
+	   
+	$quan['city']=str_replace("|", "或", $quan['city']);
+  	
+	if($op=='display'){	
+	  $my=pdo_fetch("SELECT * FROM ".tablename('cgc_ad_red')." WHERE weid=".$weid." AND quan_id=".$quan_id." AND advid=".$id." AND mid=".$mid);
+	  $adv['views']=$this->get_view($member,$adv);
+	  $_page = $__page= 5;
+      $red=pdo_fetchall("SELECT a.mid,a.money,b.type,b.headimgurl,b.nickname FROM ".tablename('cgc_ad_red')." as a ".
+      "  left join ".tablename('cgc_ad_member')." as b on a.mid=b.id ".
+      " WHERE a.weid=".$weid." AND a.quan_id=".$adv['quan_id']." AND a.advid=".$id." ORDER BY a.create_time DESC limit 0,5",array(),"mid");
+
+      $_red = pdo_fetchcolumn('SELECT count(id) FROM '.tablename('cgc_ad_red')." WHERE weid=".$weid." AND quan_id=".$adv['quan_id']." AND advid=".$id);
+      $_kf = explode(',', $this->settings['kf_openid']);
+      if(!empty($from_user) && in_array($from_user,$_kf)){
+        $is_kf = 1;
+      }else{
+        $is_kf = 0;
+       }
+
+  
+     $_msglist = pdo_fetchall("SELECT a.*,b.headimgurl,b.nickname FROM ".tablename('cgc_ad_message')." a
+      left join ".tablename('cgc_ad_member')." b on a.mid=b.id
+	  WHERE a.weid=".$weid." AND a.advid=".$id." and a.status=1 order by upbdate desc limit 0,5");
+  
+      $_msgtotal = pdo_fetchcolumn('SELECT count(id) FROM '.tablename('cgc_ad_message')." WHERE weid=".$weid." AND status=1  and advid=".$_GPC['id']);
+      include $this->template('detail');
+      exit();
+   }
+ 
+    if($op=='rob'){   	 	
+      if(!empty($my)){
+        $this->returnError('本次您已经抢过了，不能重复抢');
+      }
+	  $rob_next_time=$this->get_rob_next_time($member,$quan);
+	 
+	  if($adv['rob_users']>=$adv['total_num']){
+        $this->returnError('手慢了，钱被抢光啦！');
+      }
+      
+      if($adv['is_kouling']==1&&$_GPC['kouling']!=$adv['kouling']){
+         $this->returnError('口令错误');
+	  }
+      
+      															
+      $ret=cal_red($member,$quan,$adv,$config);
+      if ($ret['code']=="0"){
+        $this->returnError($ret['msg']);
+      } else {
+        $this->returnSuccess($ret['msg'],$ret['data']);
+      }	
+  }	
+
+  if($_GPC['op']=='get_morered'){
+    $__pages = intval($_GPC['page'])*5;
+    $red=pdo_fetchall("SELECT a.money,b.headimgurl,b.nickname FROM ".tablename('cgc_ad_red')." as a 
+          left join ".tablename('cgc_ad_member')." as b on a.mid=b.id
+		  WHERE a.weid=".$weid." AND a.quan_id=".$adv['quan_id']." AND a.advid=".$id." ORDER BY a.create_time DESC limit ".$__pages.",5");
+    $ht='';
+    
+    foreach ($red as $key => $r) {       
+          $ht.= '<div class="weui_cell" style="width:87%">
+            <div class="weui_cell_hd"><img src="'.$r['headimgurl'].'" style="width:20px;margin-right:5px;display:block"></div>
+            <div class="weui_cell_bd weui_cell_primary">
+            <p>'.$r['nickname'].'</p>
+           </div>
+          <div class="weui_cell_ft">'.$r['money'].$config['unit_text'].'</div>';							
+          $ht.="</div>";
+        }
+	 if(!empty($ht)){
+       exit(json_encode(array('status'=>1,'log'=>$ht)));
+     }else{
+       exit(json_encode(array('status'=>0)));
+     }
+   }
+
+  
+  
+
+	

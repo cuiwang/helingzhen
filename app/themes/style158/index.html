@@ -1,0 +1,213 @@
+{template 'header'}
+<link rel="stylesheet" type="text/css" href="./themes/style158/style/css.css" media="all" />
+<div class="body">
+<!-- 幻灯片 -->
+{php include_once IA_ROOT . '/source/modules/site/model.php'}
+{php $slide = site_article_search('', 'f');}
+<style>
+.box_swipe {
+  overflow: hidden;
+  position: relative;
+}
+.box_swipe ul {
+  overflow: hidden;
+  position: relative;
+}
+.box_swipe ul > li {
+  float:left;
+  width:100%;
+  position: relative;
+}
+.box_swipe>ol{
+	height:20px;
+	position: relative;
+	z-index:10;
+	margin-top:-25px;
+	text-align:right;
+	padding-right:15px;
+	background-color:rgba(0,0,0,0.3);
+}
+.box_swipe>ol>li{
+	display:inline-block;
+	margin:5px 0;
+	width:8px;
+	height:8px;
+	background-color:#757575;
+	border-radius: 8px;
+}
+.box_swipe>ol>li.on{
+	background-color:#ffffff;
+}
+</style>
+<div id="banner_box" class="box_swipe">
+	<ul>
+	{loop $slide['list'] $v}
+		<li>
+			<a href="{php echo create_url('mobile/channel', array('name' => 'detail', 'id' => $v['id'], 'weid' => $_W['weid']))}">
+				<img src="{$_W['attachurl']}{$v['thumb']}" alt="{$v['title']}" style="width:100%;" />
+			</a>
+		</li>
+	{/loop}
+	</ul>
+	<ol>
+	{php $slideNum = 1;}
+	{loop $slide['list'] $vv}
+		<li{if $slideNum == 1} class="on"{/if}></li>
+		{php $slideNum++;}
+	{/loop}
+	</ol>
+</div>
+<script>
+$(function() {
+	new Swipe($('#banner_box')[0], {
+		speed:500,
+		auto:3000,
+		callback: function(){
+			var lis = $(this.element).next("ol").children();
+			lis.removeClass("on").eq(this.index).addClass("on");
+		}
+	});
+});
+</script>
+<BR>
+<!-- 分类导航 -->
+	<section>
+		<ul class="v12_ul">
+			{php $f=1;}
+			{loop $navs $nav}
+			{if $f==1}
+			<li class="card_lol">
+			{else}
+			<li class="card_lol" style="direction:rtl;">
+			{/if}
+			{php $f++;}
+			{if $f==3}{php 	$f=1;;}{/if}
+				<a href="{$nav['url']}" class="tbox">
+					<div style="vertical-align:middle;"><label>{$nav['name']}</label><span></span></div>
+					<div style="background-image:url('{$_W['attachurl']}{$nav['icon']}');">
+					</div>
+				</a>
+			</li>
+			{/loop}
+		</ul>
+	</section>
+</div>
+<!-- 底部 -->
+{if empty($footer_off)}
+<footer style="overflow:visible;">
+	<div class="weimob-copyright" style="padding-bottom:50px;">
+		&copy;{if empty($_W['account']['name'])}b2ctui.com{else}{$_W['account']['name']}{/if}
+	</div>
+{/if}
+</footer>
+{if $_W['quickmenu']['menus']}
+	{template $_W['quickmenu']['template']}
+{/if}
+<script type="text/javascript">
+$(function() {
+	$(".user-box .box-item").each(function(i) {
+		i = i +1;
+		if(i%3 == 0) $(this).css("border-right", "0");
+	});
+	$(window).scroll(function(){
+		$(".menu-button").find("i").removeClass("icon-minus-sign").addClass("icon-plus-sign");
+		$(".menu-main").hide();
+	});
+	$(".menu-main a").click(function(){ $(".menu-main").hide(); });
+
+	//控制tab宽度
+	var profile_tab = $(".nav-tabs li");
+	profile_tab.css({"width": 100/profile_tab.length+"%", "text-align": "center"});
+
+	//手机表单处理
+	$(".form-table").delegate(".checkbox input[type='checkbox']", "click", function(){
+		$(this).parent().toggleClass("btn-inverse");
+	});
+	$(".form-table").delegate(".file input[type='file']", "change", function(){
+		var a = $(this).next("button");
+		a.html(a.html() +' '+  $(this).val());
+	});
+
+	//处理固定横向导航条
+	var navbarFixedTop = false, navbarFixedBottom = false;
+	navbarFixedTop = $(".navbar").hasClass("navbar-fixed-top");
+	navbarFixedBottom = $(".navbar").hasClass("navbar-fixed-bottom");
+	if(navbarFixedTop) $("body").css("padding-top", "41px");
+	if(navbarFixedBottom) $("body").css("padding-bottom", "41px");
+});
+
+//对分享时的数据处理
+function _removeHTMLTag(str) {
+	str = str.replace(/<script[^>]*?>[\s\S]*?<\/script>/g,'');
+	str = str.replace(/<style[^>]*?>[\s\S]*?<\/style>/g,'');
+    str = str.replace(/<\/?[^>]*>/g,'');
+    str = str.replace(/\s+/g,'');
+    str = str.replace(/&nbsp;/ig,'');
+    return str;
+}
+document.addEventListener('WeixinJSBridgeReady', function onBridgeReady() {
+	<?php
+		$_share = array();
+		$_share['title'] = (empty($title)) ? $_W['account']['name'] : $title;
+		$_share['link'] = 'http://'.$_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] . '&wxref=mp.weixin.qq.com';
+		$_share['img'] = $_W['siteroot'] . 'source/modules/' . $_GPC['name'] . '/icon.jpg';
+	?>
+	var _share_img = $('body img:eq(0)').attr("src");
+	if(typeof(_share_img) == "undefined") _share_img = "{$_share['img']}";
+	var _share_content = _removeHTMLTag($('body').html()).replace("{$_share['title']}",'');
+
+	window.shareData = {
+		"imgUrl": _share_img,
+		"timeLineLink": "{$_share['link']}",
+		"sendFriendLink": "{$_share['link']}",
+		"weiboLink": "{$_share['link']}",
+		"tTitle": "{$_share['title']}",
+		"tContent":  _share_content,
+		"fTitle": "{$_share['title']}",
+		"fContent":  _share_content,
+		"wContent":  _share_content
+	};
+
+	// 发送给好友
+	WeixinJSBridge.on('menu:share:appmessage', function (argv) {
+		WeixinJSBridge.invoke('sendAppMessage', {
+			"img_url": window.shareData.imgUrl,
+			"img_width": "640",
+			"img_height": "640",
+			"link": window.shareData.sendFriendLink,
+			"desc": window.shareData.fContent,
+			"title": window.shareData.fTitle
+		}, function (res) {
+			_report('send_msg', res.err_msg);
+		})
+	});
+
+	// 分享到朋友圈
+	WeixinJSBridge.on('menu:share:timeline', function (argv) {
+		WeixinJSBridge.invoke('shareTimeline', {
+			"img_url": window.shareData.imgUrl,
+			"img_width": "640",
+			"img_height": "640",
+			"link": window.shareData.timeLineLink,
+			"desc": window.shareData.tContent,
+			"title": window.shareData.tTitle
+		}, function (res) {
+			_report('timeline', res.err_msg);
+		});
+	});
+
+	// 分享到微博
+	WeixinJSBridge.on('menu:share:weibo', function (argv) {
+		WeixinJSBridge.invoke('shareWeibo', {
+			"content": window.shareData.wContent,
+			"url": window.shareData.weiboLink
+		}, function (res) {
+			_report('weibo', res.err_msg);
+		});
+	});
+}, false);
+</script>
+</body>
+</html>
+
+

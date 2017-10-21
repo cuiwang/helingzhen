@@ -1,0 +1,130 @@
+{template 'common/header'}
+
+<ul class="nav nav-tabs">
+	<li><a href="{php echo $this->createWebUrl('adv',array('quan_id'=>$_GPC['quan_id']))}">广告管理</a></li>
+	<li class="active"><a href="{php echo $this->createWebUrl('task', array('op'=>'display','advid'=>$_GPC['advid']));}">任务情况</a></li>
+</ul>
+
+<div class="main">
+	<div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+		<form action="./index.php" method="get" class="form-horizontal" role="form">
+			<input type="hidden" name="c" value="{$_GPC['c']}">
+			<input type="hidden" name="a" value="{$_GPC['a']}">
+			<input type="hidden" name="do" value="task">
+			<input type="hidden" name="m" value="cgc_ad">
+			<input type="hidden" name="op" value="{$op}">
+			<input type="hidden" name="advid" value="{$_GPC['advid']}">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">昵称</label>
+					<div class="col-xs-12 col-sm-2 col-md-2 col-lg-2">
+						<input class="form-control" name="nickname" id="" type="text" value="{$_GPC['nickname']}" placeholder="昵称">
+					</div>
+					<div class="col-xs-12 col-sm-2 col-md-2 col-lg-1">
+						<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+	<form method="post" class="form-horizontal" id="form1" action="{php echo $this->createWebUrl('task', array());}">
+	<div class="panel panel-default">
+		<div class="panel-heading">任务情况列表</div>
+		<div class="panel-body">
+			<div class="table-responsive panel-body">
+				<table class="table table-hover" style="min-width: 300px;">
+					<thead class="navbar-inner">
+						<tr>
+							<th class="col-sm-1"></th>
+						  	<th class="col-sm-1">用户id</th>
+							<th class="col-sm-2">昵称</th>
+							<th class="col-sm-2">头像</th>
+							<th class="col-sm-2">金额</th>
+							<th class="col-sm-2">状态</th>
+							<th class="col-sm-2">核销状态</th>
+							<th class="col-sm-2">创建时间</th>
+							<th class="col-sm-3 text-right">操作</th>
+						</tr>
+					</thead>
+					<tbody>
+						{loop $list $item}
+						<tr>
+						<td><input type="checkbox" name="id[]" value="{$item['id']}" class=""></td>
+						<td>{$item['mid']}</td>
+							<td>{$item['nickname']}</td>
+							<td>
+								<image src="{php echo tomedia($item['headimgurl']);}" style="width: 60px; height: 60px; border: 1px dotted gray">
+							</td>
+							<td>{$item['money']}</td>
+							<td>{if $item['status']==0}待审核{else if $item['status']==1}已审核{else if $item['status']==2}不通过{/if}</td>
+							<td>{if $item['hx_status']==0}待核销{else if $item['hx_status']==1}已核销{/if}</td>
+							<td>{php echo date('Y-m-d H:i:s', $item['create_time']);}</td>
+							<td class="text-right">
+							  {if $item['status']==0}
+							   <a href="{php echo $this->createWebUrl('task', array('op'=>'check', 'id'=>$item['id'],'mid'=>$item['mid'],'quan_id'=>$item['quan_id'],'advid'=>$item['advid']));}" class="btn btn-default btn-info">审核</a>
+							   <a href="{php echo $this->createWebUrl('task', array('op'=>'un_check', 'id'=>$item['id'],'mid'=>$item['mid'],'quan_id'=>$item['quan_id'],'advid'=>$item['advid']));}" class="btn btn-default btn-info">拒绝</a>
+							 {/if}
+                              {if $item['status']==2}
+                               	<a href="{php echo $this->createWebUrl('task', array('op'=>'check', 'id'=>$item['id'],'mid'=>$item['mid'],'quan_id'=>$item['quan_id'],'advid'=>$item['advid']));}" class="btn btn-default btn-info">审核</a>
+                              {/if}
+							  <a href="{php echo $this->createWebUrl('task', array('op'=>'delete', 'id'=>$item['id'],'advid'=>$_GPC['advid']));}" class="btn  btn-default btn-danger">删除</a>
+							 
+							</td>
+						</tr>
+						{/loop}
+						<tr>
+							<td><input type="checkbox" name="" onclick="var ck = this.checked;$(':checkbox').each(function(){this.checked = ck});"></td>
+							<td colspan="7">
+								<input type="hidden" id="op" name="op"/>
+								<input type="hidden" name="quan_id" value="{$quan_id}"/>
+								<input type="hidden" name="advid" value="{$advid}"/>
+								<a href="javascript:batchCheck();" class="btn btn-default btn-primary" data-toggle="tooltip" data-placement="top" title="">批量审核</a>
+								<a href="javascript:batchUnCheck();" class="btn btn-default btn-danger" data-toggle="tooltip" data-placement="top" title="">批量拒绝</a>
+							</td>
+						</tr>
+						{if empty($list)}
+						<tr>
+							<td colspan="8">
+								尚未产生任务情况
+							</td>
+						</tr>
+						{else}
+						<tr>
+							<td colspan="8">
+								<a onclick="if(!confirm('删除后将不可恢复,确定删除吗?')) return false;" href="{php echo $this->createWebUrl('task', array('op'=>'deleteAll','advid'=>$_GPC['advid']));}" class="btn btn-default btn-danger" data-toggle="tooltip" data-placement="top" title="" data-original-title="删除所有">删除所有</a>
+							</td>
+						</tr>
+						{/if}
+					</tbody>
+				</table>
+				{$pager}
+			</div>
+		</div>
+	</div>
+	</form>
+</div>
+
+<script type="text/javascript">
+
+	function batchCheck(){
+		if(!confirm('确定批量审核吗?')) 
+			return false;
+		else{
+			$('#op').val('batch_check');
+			$('#form1').submit();
+		}
+	}
+	
+	function batchUnCheck(){
+		if(!confirm('确定批量拒绝吗?')) 
+			return false;
+		else{
+			$('#op').val('batch_uncheck');
+			$('#form1').submit();
+		}
+	}
+
+</script>
+
+{template 'common/footer'}

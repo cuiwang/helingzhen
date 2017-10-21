@@ -1,0 +1,118 @@
+{template 'header'}
+{template 'header-common'}
+<link type="text/css" rel="stylesheet" href="{$_W['siteroot']}addons/superman_house/template/mobile/css/house-list.css">
+<div class="card house-list border-1px" style="margin-top: 0">
+	<div class="row fontcolor">
+        {loop $house_params $itemk $itemv}
+		<div class="col-xs-12">
+			<ul>
+				<li class="house-list-area">{$itemv['name']}</li>
+				<li class="{if !isset($_GPC[$itemk])}house-list-unlimited{else}house-list-others{/if}">
+					<a href="{php $list_temp = $list_params;unset($list_temp[$itemk]);echo $this->createMobileUrl('house', $list_temp)}" class="new_color">不限</a>
+                </li>
+                {loop $itemv['values'] $k $v}
+			   	<li class="{if $_GPC[$itemk] == $k}house-list-unlimited{else}house-list-others{/if}">
+					<a href="{php $list_temp[$itemk] = $k;echo $this->createMobileUrl('house', $list_temp)}" class="new_color" >
+						{if is_array($v)}{$v['title']}{else}{$v}{/if}
+					</a>
+                </li>
+                {/loop}
+			</ul>
+		</div>
+        {/loop}
+	</div>
+</div>
+<div class="row margin">
+	<div class="card house-list-content house_list_wrap" style="margin-top: 0;">
+		<hr/>
+        {loop $list $item}
+		<div class="row house-list-project">
+			<a href="{php echo $this->createMobileUrl('house', array('act' => 'detail', 'id' => $item['id']))}" class="new_color">
+				<div class="col-xs-4 house-list-thumb">
+					<img class="img-responsive" src="{$item['coverimg']}" onerror="this.src='{php echo superman_img_placeholder()}'"/>
+					<span class="house-list-price">均价{$item['format_price']}元/㎡</span>
+				</div>
+				<div class="col-xs-8 house-list-txt clearfix">
+					<span class="text-overflow superman_house_block house_title">{$item['name']}</span>
+					<span class="superman_house_block house_desc">
+						{php echo cutstr(strip_tags(htmlspecialchars_decode($item['description'])), 30)}
+					</span>
+					<div>
+						<span class="house_desc text-overflow superman_house_block">
+							<span class="house-list-address glyphicon glyphicon-map-marker"></span>
+							{$item['address']}
+						</span>
+					</div>
+				</div>
+			</a>
+		</div>
+		<hr style="padding-bottom: 0"/>
+        {/loop}
+	</div>
+	{if count($list) >= $pagesize}
+	<div class="row list-more-btn">
+		<div class="col-xs-12 text-center">
+			<button type="button" class="btn btn-default btn-block list_more_limit" data-page="1">
+				点击加载更多
+			</button>
+		</div>
+	</div>
+	{/if}
+</div>
+<script>
+	require(['jquery', 'util'], function($, u){
+		function addItems(data) {
+			var html = '', item;
+			var detail = "{php echo $this->createMobileUrl('house', array('act' => 'detail'))}";
+			for (var i=0; i<data.length; i++) {
+				item = data[i];
+				var detail_url = detail+'&id='+item['id'];
+				html += '<div class="row house-list-project">';
+				html += '<a href="'+detail_url+'" class="new_color">';
+				html += '<div class="col-xs-4 house-list-thumb">';
+				html += '<img class="img-responsive" src="'+item['coverimg']+'" onerror="this.src=\'{php echo superman_img_placeholder()}\'"/>';
+				html += '<span class="house-list-price">均价'+item['format_price']+'元/㎡</span>';
+				html += '</div>';
+				html += '<div class="col-xs-8 house-list-txt clearfix">';
+				html += '<span class="text-overflow superman_house_block house_title">'+item['name']+'</span>';
+				html += '<span class="superman_house_block house_desc">';
+				html += item['format_desc'];
+				html += '</span>';
+				html += '<div>';
+				html += '<span class="house_desc text-overflow superman_house_block">';
+				html += '<span class="house-list-address glyphicon glyphicon-map-marker"></span>';
+				html += item['address'];
+				html += '</span>';
+				html += '</div>';
+				html += '</div>';
+				html += '</a>';
+				html += '</div>';
+				html += '<hr style="padding-bottom: 0"/>';
+			}
+			$('.house_list_wrap').append(html);
+		}
+		$('.list_more_limit').click(function(){
+			var t = this;
+			$(t).attr('disabled', true).html('加载中...');
+			var pageno = $(t).attr('data-page');
+			pageno = parseInt(pageno) + 1;
+			var url = '{php echo $this->createMobileUrl("house", $list_params);}';
+			url += '&page='+pageno;
+			$.ajax({
+				url: url,
+				dataType: 'json',
+				success:function(resp){
+					$(t).removeAttr('disabled').html('点击加载更多');
+					if (resp.length > 0) {
+						addItems(resp);
+						$(t).attr('data-page', pageno);
+					} else {
+						$(t).remove();
+					}
+				}
+			});
+		});
+	});
+</script>
+{template 'footer-common'}
+{template 'footer'}

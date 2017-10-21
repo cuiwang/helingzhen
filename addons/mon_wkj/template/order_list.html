@@ -1,0 +1,150 @@
+{template 'common/header'}
+
+<div class="main">
+    <ul class="nav nav-tabs">
+        <li ><a href="{php echo $this->createWebUrl('kjManage');}">活动管理</a></li>
+
+        <li > <a href="{php echo $this->createWebUrl('joinUser',array('kid'=>$kid));}">参加用户管理</a></li>
+
+        <li class="active" > <a href="{php echo $this->createWebUrl('orderList',array('kid'=>$kid));}">订单管理</a></li>
+
+
+    </ul>
+
+
+
+
+
+    <div class="panel panel-info">
+        <div class="panel-heading">{$wkj['title']} 订单</div>
+        <div class="panel-body">
+            <form action="./index.php" method="get" class="form-horizontal" role="form">
+
+                <input type="hidden" name="a" value="entry" />
+                <input type="hidden" name="c" value="site" />
+                <input type="hidden" name="m" value="{MON_WKJ}" />
+                <input type="hidden" name="do" value="orderList" />
+                <input type="hidden" name="kid" value="{$kid}" />
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">下单时间</label>
+                    <div class="col-sm-8 col-lg-9">
+                        {php  echo tpl_form_field_daterange('order_time', $order_time, true);}
+                    </div>
+
+                </div>
+
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">状态</label>
+                    <div class="col-sm-8 col-lg-9">
+
+                        <select name="status" class="form-control" style="float:left">
+                            <option value="0" {if $status == 0} selected="selected"{/if}>全部</option>
+                            <option value="{php echo $this::$KJ_STATUS_XD}" {if $status == $this::$KJ_STATUS_XD} selected="selected" {/if}>已下单</option>
+                            <option value="{php echo $this::$KJ_STATUS_GM}" {if $status == $this::$KJ_STATUS_GM} selected="selected" {/if} >已支付</option>
+                            <option value="{php echo $this::$KJ_STATUS_YFH} {if $status == $this::$KJ_STATUS_YFH} selected="selected" {/if}">已发货</option>
+                        </select>
+
+
+                    </div>
+                </div>
+
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">订单编号/收货手机号</label>
+                    <div class="col-sm-8 col-lg-9">
+                        <input class="form-control" name="keyword" id="" type="text"
+                               value="{$_GPC['keyword']}" placeholder="订单编号/收货手机号">
+                    </div>
+                    <div class=" col-xs-12 col-sm-2 col-lg-2">
+                        <button class="btn btn-primary pull-left span2"
+                                style='margin-left: 95px;'>
+                            <i class="icon-search icon-large"></i> 搜索
+                        </button>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+
+    </div>
+
+
+    <div style="padding: 0 15px 0  15px;">
+        <div class="row-fluid">
+            <div class="span8 control-group">
+                <a class="btn btn-default" href="{php echo $this->createWebUrl('orderDownload',array('kid'=>$kid, 'start' => $starttime, 'endt'=> $endtime))}"><i class="icon-download-alt"></i>导出订单信息</a>
+                <!--<a class="btn btn-default" href="{php echo $this->createWebUrl('OrderList',array('kid'=>$kid, 'start' => $starttime, 'endt'=> $endtime))}">全部</a>-->
+                <!--<a class="btn btn-default" href="{php echo $this->createWebUrl('OrderList',array('kid'=>$kid,'status'=>$this::$KJ_STATUS_XD,'start' => $starttime, 'endt'=> $endtime))}">已下单</a>-->
+                <!--<a class="btn btn-default" href="{php echo $this->createWebUrl('OrderList',array('kid'=>$kid,'status'=>$this::$KJ_STATUS_GM, 'start' => $starttime, 'endt'=> $endtime))}">已支付</a>-->
+				 <!--<a class="btn btn-default" href="{php echo $this->createWebUrl('OrderList',array('kid'=>$kid,'status'=>$this::$KJ_STATUS_YFH, 'start' => $starttime, 'endt'=> $endtime))}">已发货</a>-->
+            </div>
+        </div>
+
+    </div>
+
+    <div class="panel panel-default">
+        <div class="table-responsive panel-body">
+            <table class="table table-hover">
+                <thead>
+                <tr>
+                    <th style="width:150px;">订单号</th>
+                    <th style="width:80px;">收货人</th>
+                    <th style="width:100px;">手机</th>
+                    <th style="width:100px;">地址</th>
+                    <th style="width:80px;">金额</th>
+                    <th style="width:100px;">支付状态</th>
+                    <th style="width:100px;">下单时间</th>
+                    <th style="width:180px;">操作</th>
+                </tr>
+                </thead>
+                <tbody>
+
+                {loop $list $row}
+                <tr>
+                    <td>{$row['order_no']}</td>
+                    <td>{$row['uname']}</td>
+                    <td>{$row['tel']}</td>
+                    <td>{$row['address']}</td>
+                    <td>{$row['total_price']}</td>
+                    <td>{php echo $this->getStatusText($row['status'])}</td>
+                    <td>{php echo date("Y-m-d H:i",$row['createtime'])}</td>
+
+                    <td>
+
+
+                        <a href="{php echo $this->createWebUrl('OrderDetail', array( 'oid' => $row['id'],'kid'=>$row['kid']))}"><i class=" glyphicon glyphicon-list-alt"></i>详细</a>
+						
+						{if ($row['status'] ==$this::$KJ_STATUS_XD && $wkj['pay_type'] ==2)}
+						 <a href="{php echo $this->createWebUrl('OrderList', array( 'id' => $row['id'], 'kid'=>$wkj['id'],'op' => 'fh'))}"
+                           onclick="return confirm('此操作不可恢复，确认发货？');return false;" title="发货"
+                           class="btn btn-small">发货</a>
+						{/if} 
+
+							{if ($row['status'] ==$this::$KJ_STATUS_GM && $wkj['pay_type'] ==1)}
+						 <a href="{php echo $this->createWebUrl('OrderList', array( 'id' => $row['id'],'kid'=>$wkj['id'], 'op' => 'fh'))}"
+                           onclick="return confirm('此操作不可恢复，确认发货？');return false;" title="发货"
+                           class="btn btn-small">发货</a>
+						{/if} 			
+						   
+                        <a href="{php echo $this->createWebUrl('OrderList', array( 'id' => $row['id'],'kid'=>$wkj['id'], 'op' => 'delete'))}"
+                           onclick="return confirm('此操作不可恢复，确认删除？');return false;" title="删除"
+                           class="btn btn-small"><i class="glyphicon glyphicon-remove"></i>删除</a>
+
+
+                    </td>
+                </tr>
+                {/loop}
+                </tbody>
+            </table>
+            {$pager}
+        </div>
+    </div>
+
+
+
+</div>
+
+
+{template 'common/footer'}

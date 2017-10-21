@@ -1,0 +1,604 @@
+{template 'header'}
+{template 'header-common'}
+<link type="text/css" rel="stylesheet" href="{$_W['siteroot']}addons/superman_house/template/mobile/css/house-detail.css">
+<div class="margin" style="{if $payment && $payment['wechat']['switch']}margin-bottom: 43px;{else}margin-bottom:0;{/if}">
+	<div class="row">
+		<div class="col-xs-12 house-detail-slide">
+			<div id="carousel-container-1" class="carousel slide" data-ride="carousel">
+				<ol class="carousel-indicators">
+					{php $slideNum = 0;}
+					{loop $item['descimgs'] $row}
+					<li data-target="#carousel-container-1" data-slide-to="{$slideNum}"{if $slideNum == '0'} class="active"{/if}></li>
+					{php $slideNum++;}
+					{/loop}
+				</ol>
+				<div class="carousel-inner" role="listbox">
+					{loop $item['descimgs'] $row}
+					<div class="item{if $item['descimgs'][0] == $row} active{/if}">
+						<img src="{$row}" style="width:100%; vertical-align:middle;">
+					</div>
+					{/loop}
+				</div>
+			</div>
+			<script>
+				require(['bootstrap', 'hammer'], function($, Hammer){
+					$('#carousel-container-1').carousel();
+					var mc = new Hammer($('#carousel-container-1').get(0));
+					mc.on("panleft", function(ev) {
+						$('#carousel-container-1').carousel('next');
+					});
+					mc.on("panright", function(ev) {
+						$('#carousel-container-1').carousel('prev');
+					});
+				});
+			</script>
+		</div>
+	</div>
+	<div class="card house-detail-nav border-1px">
+		<div class="row">
+			<div class="col-xs-3 house-detail-navpad"><a href="#house-detail-dynamic" class="new_color">楼盘动态</a></div>
+			<div class="col-xs-3 house-detail-navpad"><a href="#house-detail-sell" class="new_color">主力户型</a></div>
+			<div class="col-xs-3 house-detail-navpad"><a href="#house-detail-detailed" class="new_color">详细信息</a></div>
+			<div class="col-xs-3 house-detail-navpad"><a href="#house-detail-map" class="new_color">位置周边</a></div>
+		</div>
+	</div>
+	<div class="card house-detail-description border-1px">
+		<span class="fontcolor">{$item['name']}</span>
+		<hr/>
+		<div class="row fontcolor">
+			<div class="col-xs-3">楼盘均价：</div>
+			<div class="col-xs-9"><span class="house-detail-color">{$item['format_price']}元/㎡</span></div>
+		</div>
+
+		<div class="row fontcolor">
+			<div class="col-xs-3">项目地址：</div>
+			<div class="col-xs-9">{$item['address']}</div>
+		</div>
+		<div class="row fontcolor">
+			<div class="col-xs-3">开盘时间：</div>
+			<div class="col-xs-9">{if $item['opentime']}{$item['opentime']}{else}待定{/if}</div>
+		</div>
+		{if $item['credit']>0&&$item['credit_type']}
+		<div class="row fontcolor">
+			<div class="col-xs-3">分享积分：</div>
+			<div class="col-xs-9">
+		        {if $partner['yes']}
+                    <span class="house-detail-color">{$item['credit']}{$item['credit_title']}</span>
+		        {else}
+                    <span class="house-detail-color">经纪人可见</span>
+		        {/if}
+            </div>
+		</div>
+		{/if}
+		<div class="row fontcolor">
+			<div class="col-xs-3">成交佣金：</div>
+			<div class="col-xs-9">
+		        {if $partner['yes']}
+                    {if !$item['new_commission']}
+                        <span class="house-detail-color">{$item['commission']}元</span>
+                    {else}
+			            <span class="house-detail-color">{$item['new_commission']}</span>
+		            {/if}
+		        {else}
+                    <span class="house-detail-color">经纪人可见</span>
+		        {/if}
+            </div>
+		</div>
+		<div class="row">
+			<div class="col-xs-12" style='padding-bottom: 10px; padding-top: 10px;'>
+				<a href="{php echo $this->createMobileUrl('mybespeak', array('id' => $item['id'], 'op' => 'form'))}" class="btn btn-info btn-block">预约看房</a>
+			</div>
+		</div>
+	</div>
+    {if !empty($item['look_info'])}
+	<div class="card house-detail-free border-1px">
+		<span class="fontcolor">免费看房</span>
+		<hr/>
+		<div>
+			<div class="row fontcolor">
+				<div class="col-xs-12" style="padding: 0 10px">
+                    {loop $item['look_info']['house_names'] $hname}
+					<span><a class="new_color" href="#">{$hname['name']}</a></span>
+                    {/loop}
+				</div>
+			</div>
+		</div>
+		<div class="row fontcolor house-detail-freetime">
+			<div class="col-xs-6 text-center">
+				<span class="house-detail-color">{$item['look_info']['viewtime']}</span>{$item['look_info']['week']}出发
+			</div>
+			<div class="col-xs-6 text-center">
+				<i class="fa fa-user"></i>
+				<span class="house-detail-color">{$item['look_info']['user_count']}</span>人已报名
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-xs-12">
+				<a class="new_color" href="{php echo $this->createMobileUrl('looking', array('act' => 'form', '_id' => $item['look_info']['id']))}#looking-form-form">
+					<button type="button" class="btn btn-danger btn-block">立即报名</button>
+				</a>
+			</div>
+		</div>
+	</div>
+    {/if}
+	<div class="card house-detail-dynamic border-1px" id="house-detail-dynamic">
+		<span class="fontcolor">楼盘动态</span>
+		<hr/>
+		<div class="row">
+			<div class="col-xs-12">
+				<span class="fontcolor house-detail-dynamic-description">{php echo htmlspecialchars_decode($item['dynamicdesc'])}</span>
+			</div>
+		</div>
+		<div class="list-group" style="margin-bottom: 0;">
+			{data module="site" func="site_article" cid="$item['cid']" assign="result" return="true" limit="5"}
+			{if empty($result['list']) || $item['cid'] == 0}
+			{else}
+				{loop $result['list'] $row}
+				<a href="{$row['linkurl']}" class="list-group-item text-overflow new_color">
+					<span class="text-overflow dynamic-title">{$row['title']}</span>
+					<span class="pull-right fa fa-angle-right"></span></a>
+				{/loop}
+			{/if}
+		</div>
+		{if $item['cid']}
+		<div class="row" style="padding: 10px 0">
+			<div class="col-xs-12">
+				<a href="{php echo url('site/site/list',array('cid' => $item['cid']))}" class="btn btn-default btn-block text-center">点击加载更多</a>
+			</div>
+		</div>
+		{/if}
+	</div>
+	<div class="card house-detail-sell border-1px" id="house-detail-sell">
+		<span class="fontcolor">主力户型</span>
+		<a href="{php echo $this->createMobileUrl('house', array('act' => 'layout', 'id' => $item['id']))}" class="pull-right more">
+			更多
+			<i class="fa fa-angle-right"></i>
+		</a>
+		<hr/>
+        {loop $item['layouts'] $k $lout}
+		<div class="row">
+			<div class="col-xs-4">
+				<img class="img-responsive house-detail-sell-img" src="{$lout['img']}" alt=""/>
+			</div>
+			<div class="col-xs-8 fontcolor house-detail-sell-description">
+				<ul>
+					<li>{$lout['name']}</li>
+					<li style="font-size: 12px;">{$lout['area']}㎡</li>
+					<li>
+						{loop $lout['tags'] $t}
+						{if !empty($t)}
+						<button type="button" class="btn btn-default btn-xs fontcolor">{$t}</button>
+						{/if}
+						{/loop}
+					</li>
+				</ul>
+			</div>
+		</div>
+        {/loop}
+	</div>
+
+	<div class="card house-detail-detailed border-1px" id="house-detail-detailed">
+		<span class="fontcolor">详细信息</span>
+		<hr/>
+		<table class="table">
+			<tbody>
+			<tr>
+				<td>
+					楼盘位置：
+				</td>
+				<td>{$item['address']}</td>
+			</tr>
+			<tr>
+				<td>
+					开盘时间：
+				</td>
+				<td>{if $item['opentime']}{$item['opentime']}{else}待定{/if}</td>
+			</tr>
+			<tr>
+				<td>
+					售楼电话：
+				</td>
+				<td><a tel="{$item['phone']}" class="fontcolor">{$item['phone']}</a></td>
+			</tr>
+			<tr>
+				<td>
+					售楼地址：
+				</td>
+				<td>{$item['selleraddress']}</td>
+			</tr>
+			{loop $item['kvs'] $kv}
+			<tr>
+				<td>
+					{$kv['key']}：
+				</td>
+				<td>{$kv['value']}</td>
+			</tr>
+			{/loop}
+			</tbody>
+		</table>
+		<!--<div class="row fontcolor">
+			<div class="col-xs-3">楼盘位置：</div>
+			<div class="col-xs-9">{$item['address']}</div>
+		</div>
+		<div class="row fontcolor">
+			<div class="col-xs-3">开盘时间：</div>
+			<div class="col-xs-9">{if $item['opentime']}{$item['opentime']}{else}待定{/if}</div>
+		</div>
+		<div class="row fontcolor">
+			<div class="col-xs-3">售楼电话：</div>
+			<div class="col-xs-9">
+				<a tel="{$item['phone']}" class="fontcolor">{$item['phone']}</a>
+			</div>
+		</div>
+		<div class="row fontcolor">
+			<div class="col-xs-3">售楼地址：</div>
+			<div class="col-xs-9">{$item['selleraddress']}</div>
+		</div>
+        {loop $item['kvs'] $kv}
+		<div class="row fontcolor">
+			<div class="col-xs-3">{$kv['key']}：</div>
+			<div class="col-xs-9">{$kv['value']}</div>
+		</div>
+        {/loop}
+		<div class="row fontcolor project_introduce">
+			<div class="col-xs-12">项目介绍：</div>
+			<div class="col-xs-12">{php echo htmlspecialchars_decode($item['description'])}</div>
+		</div>-->
+	</div>
+	{if ($item['description'])}
+	<div class="card border-1px house-detail-progect">
+		<span class="fontcolor">项目介绍</span>
+		<hr/>
+		<div class="row">
+			<div class="col-xs-12">
+				{php echo htmlspecialchars_decode($item['description'])}
+			</div>
+		</div>
+	</div>
+	{/if}
+	<div class="card house-detail-map border-1px" id="house-detail-map">
+		<span class="fontcolor">位置周边</span>
+		<hr/>
+		<div class="row fontcolor">
+			<div class="col-xs-12 house-detail-maps">
+				<div id="allmap" style="min-height:200px; overflow: hidden;"></div>
+				{if $item['longitude'] && $item['latitude']}
+				<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak={SUPERMAN_BAIDU_MAP_AK}"></script>
+				<script>
+					(function(){
+						var mp = new BMap.Map("allmap");
+						mp.centerAndZoom(new BMap.Point('{$item["longitude"]}', '{$item["latitude"]}'), 15);
+						mp.enableScrollWheelZoom();
+						function ComplexCustomOverlay(point, text, mouseoverText){
+							this._point = point;
+							this._text = text;
+							this._overText = mouseoverText;
+						}
+						ComplexCustomOverlay.prototype = new BMap.Overlay();
+						ComplexCustomOverlay.prototype.initialize = function(map){
+							this._map = map;
+							var div = this._div = document.createElement("div");
+							div.style.position = "absolute";
+							div.style.zIndex = BMap.Overlay.getZIndex(this._point.lat);
+							div.style.backgroundColor = "#EE5D5B";
+							div.style.border = "1px solid #BC3B3A";
+							div.style.color = "white";
+							div.style.height = "18px";
+							//div.style.padding = "2px";
+							div.style.lineHeight = "18px";
+							div.style.whiteSpace = "nowrap";
+							div.style.MozUserSelect = "none";
+							div.style.fontSize = "12px"
+							var span = this._span = document.createElement("span");
+							div.appendChild(span);
+							span.appendChild(document.createTextNode(this._text));
+							var that = this;
+
+							var arrow = this._arrow = document.createElement("div");
+							arrow.style.background = "url(http://map.baidu.com/fwmap/upload/r/map/fwmap/static/house/images/label.png) no-repeat";
+							arrow.style.position = "absolute";
+							arrow.style.width = "11px";
+							arrow.style.height = "10px";
+							arrow.style.top = "16px";
+							arrow.style.left = "10px";
+							arrow.style.overflow = "hidden";
+							div.appendChild(arrow);
+
+							mp.getPanes().labelPane.appendChild(div);
+							return div;
+						};
+						ComplexCustomOverlay.prototype.draw = function(){
+							var map = this._map;
+							var pixel = map.pointToOverlayPixel(this._point);
+							this._div.style.left = pixel.x - parseInt(this._arrow.style.left) + "px";
+							this._div.style.top  = pixel.y - 30 + "px";
+						};
+						var txt = "{$item['name']}", mouseoverTxt = txt + " " + parseInt(Math.random() * 1000,10) + "套" ;
+						var myCompOverlay = new ComplexCustomOverlay(new BMap.Point('{$item["longitude"]}', '{$item["latitude"]}'), txt, txt);
+						mp.addOverlay(myCompOverlay);
+
+						/*var bounds = mp.getBounds();
+						var sw = bounds.getSouthWest();
+						var ne = bounds.getNorthEast();
+						var lngSpan = Math.abs(sw.lng - ne.lng);
+						var latSpan = Math.abs(ne.lat - sw.lat);
+						for (var i = 0; i < 1; i ++) {
+							var point = new BMap.Point(sw.lng + lngSpan * (Math.random() * 0.7), ne.lat - latSpan * (Math.random() * 0.7));
+							addMarker(point);
+						}
+						function addMarker(point){
+							var marker = new BMap.Marker(point);
+							mp.addOverlay(marker);
+						}*/
+					})();
+				</script>
+				{/if}
+				<div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+					{if $item['nearby']}
+					{php $i=0;}
+					{loop $item['nearby'] $key $val}
+					{php $i+=1;}
+					<div class="panel panel-default">
+						<div class="panel-heading" role="tab" id="headingNearBy{$i}">
+							<h4 class="panel-title">
+								<a class="{if $i>1}collapsed{/if} collapse_switch" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseNearBy{$i}" aria-expanded="true" aria-controls="collapseNearBy">
+									{$key}({php echo count($val)})
+									<span class="fa {if $i>1}fa-plus-square-o{else}fa-minus-square-o{/if} pull-right"></span>
+								</a>
+							</h4>
+						</div>
+						<div id="collapseNearBy{$i}" class="panel-collapse collapse {if $i==1}in{/if}" role="tabpanel" aria-labelledby="headingNearBy{$i}">
+							<div class="panel-body">
+								{loop $val $k $v}
+								<div class="row">
+									<div class="col-xs-8 text-overflow">
+										{$v['name']}
+									</div>
+									<div class="col-xs-4 text-right">
+										<span class="badge">{$v['distance']}米</span>
+									</div>
+									{if $k+1<count($val)}
+									<hr/>
+									{/if}
+								</div>
+								{/loop}
+							</div>
+						</div>
+					</div>
+					{/loop}
+					{/if}
+					<!--<div class="panel panel-default">
+						<div class="panel-heading" role="tab" id="headingHospital">
+							<h4 class="panel-title">
+								<a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseHospital" aria-expanded="false" aria-controls="collapseHospital">
+									医院（3）
+								</a>
+							</h4>
+						</div>
+						<div id="collapseHospital" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingHospital">
+							<div class="panel-body">
+								这里面展示有多少医院以及距离
+							</div>
+						</div>
+					</div>
+					<div class="panel panel-default">
+						<div class="panel-heading" role="tab" id="headingSchool">
+							<h4 class="panel-title">
+								<a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseSchool" aria-expanded="false" aria-controls="collapseSchool">
+									学校（3）
+								</a>
+							</h4>
+						</div>
+						<div id="collapseSchool" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingSchool">
+							<div class="panel-body">
+								这里面展示有多少学校以及距离
+							</div>
+						</div>
+					</div>
+					<div class="panel panel-default">
+						<div class="panel-heading" role="tab" id="headingPark">
+							<h4 class="panel-title">
+								<a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapsePark" aria-expanded="false" aria-controls="collapsePark">
+									公园（3）
+								</a>
+							</h4>
+						</div>
+						<div id="collapsePark" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingPark">
+							<div class="panel-body">
+								这里面展示有多少公园以及距离
+							</div>
+						</div>
+					</div>
+					<div class="panel panel-default">
+						<div class="panel-heading" role="tab" id="headingTransit">
+							<h4 class="panel-title">
+								<a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseTransit" aria-expanded="false" aria-controls="collapseTransit">
+									公交（3）
+								</a>
+							</h4>
+						</div>
+						<div id="collapseTransit" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTransit">
+							<div class="panel-body">
+								这里面展示有多少公交以及距离
+							</div>
+						</div>
+					</div>
+					<div class="panel panel-default">
+						<div class="panel-heading" role="tab" id="headingSubway">
+							<h4 class="panel-title">
+								<a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseSubway" aria-expanded="false" aria-controls="collapseSubway">
+									地铁（3）
+								</a>
+							</h4>
+						</div>
+						<div id="collapseSubway" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingSubway">
+							<div class="panel-body">
+								这里面展示有多少地铁以及距离
+							</div>
+						</div>
+					</div>
+					<div class="panel panel-default">
+						<div class="panel-heading" role="tab" id="headingRestaurant">
+							<h4 class="panel-title">
+								<a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseRestaurant" aria-expanded="false" aria-controls="collapseRestaurant">
+									餐饮（3）
+								</a>
+							</h4>
+						</div>
+						<div id="collapseRestaurant" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingRestaurant">
+							<div class="panel-body">
+								这里面展示有多少餐饮以及距离
+							</div>
+						</div>
+					</div>
+					<div class="panel panel-default">
+						<div class="panel-heading" role="tab" id="headingEntertainment">
+							<h4 class="panel-title">
+								<a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseEntertainment" aria-expanded="false" aria-controls="collapseEntertainment">
+									娱乐（3）
+								</a>
+							</h4>
+						</div>
+						<div id="collapseEntertainment" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingEntertainment">
+							<div class="panel-body">
+								这里面展示有多少娱乐以及距离
+							</div>
+						</div>
+					</div>
+					<div class="panel panel-default">
+						<div class="panel-heading" role="tab" id="headingShopping">
+							<h4 class="panel-title">
+								<a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseShopping" aria-expanded="false" aria-controls="collapseShopping">
+									购物（3）
+								</a>
+							</h4>
+						</div>
+						<div id="collapseShopping" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingShopping">
+							<div class="panel-body">
+								这里面展示有多少购物以及距离
+							</div>
+						</div>
+					</div>-->
+				</div>
+			</div>
+		</div>
+	</div>
+	<!--评论功能暂时注释掉，下个版本增加-->
+	<!--<div class="card border-1px comments_list_wrap">
+		<span class="fontcolor">网友评论</span>
+		<a href="#" class="pull-right more">
+			更多
+			<i class="fa fa-angle-right"></i>
+		</a>
+		<hr/>
+		<div class="row">
+			<div class="col-xs-2 avatar">
+				<img src="{$_W['siteroot']}addons/superman_house/template/mobile/images/avatar3.jpg">
+			</div>
+			<div class="col-xs-7 username">我叫赵国强</div>
+			<div class="col-xs-3 releasetime text-right">10分钟前</div>
+			<div class="col-xs-12 detail">优点：各位业主们，听说这个楼盘降了20万，真的假的，大家都去签最终合同了吗？</div>
+		</div>
+		<hr/>
+		<div class="row">
+			<div class="col-xs-2 avatar">
+				<img src="{$_W['siteroot']}addons/superman_house/template/mobile/images/avatar3.jpg">
+			</div>
+			<div class="col-xs-7 username">我叫赵国强</div>
+			<div class="col-xs-3 releasetime text-right">10分钟前</div>
+			<div class="col-xs-12 detail">优点：各位业主们，听说这个楼盘降了20万，真的假的，大家都去签最终合同了吗？</div>
+		</div>
+		<hr/>
+		<div class="row">
+			<div class="col-xs-2 avatar">
+				<img src="{$_W['siteroot']}addons/superman_house/template/mobile/images/avatar3.jpg">
+			</div>
+			<div class="col-xs-7 username">我叫赵国强</div>
+			<div class="col-xs-3 releasetime text-right">10分钟前</div>
+			<div class="col-xs-12 detail">优点：各位业主们，听说这个楼盘降了20万，真的假的，大家都去签最终合同了吗？</div>
+		</div>
+		<hr/>
+		<div class="row">
+			<div class="col-xs-2 avatar">
+				<img src="{$_W['siteroot']}addons/superman_house/template/mobile/images/avatar3.jpg">
+			</div>
+			<div class="col-xs-7 username">我叫赵国强</div>
+			<div class="col-xs-3 releasetime text-right">10分钟前</div>
+			<div class="col-xs-12 detail">优点：各位业主们，听说这个楼盘降了20万，真的假的，大家都去签最终合同了吗？</div>
+		</div>
+		<hr/>
+		<div class="row comments_input_btn">
+			<div class="col-xs-12">
+				<a class="new_color" href="#">
+					<button type="button" class="btn btn-danger btn-block">写评论</button>
+				</a>
+			</div>
+		</div>
+	</div>-->
+	{if $_W['account']['qrcode']}
+	<!--
+	<div class="card house-detail-erweima border-1px">
+		<span style="" class="fontcolor">关注我们的微信公众账号</span>
+		<hr/>
+		<div>
+			<img src="{$_W['account']['qrcode']}"/>
+		</div>
+	</div>
+	-->
+	{/if}
+</div>
+<!--
+<div class="row" style="{if $payment && $payment['wechat']['switch']}margin-bottom: 15px;{/if}">
+	<div class="col-xs-12">
+		<a href="{php echo $this->createMobileUrl('home')}" class="btn btn-default btn-block new_color">返回首页</a>
+	</div>
+</div>
+-->
+{if $item['deposit'] > 0 && $payment && $payment['wechat']['switch']}
+<nav class="navbar navbar-fixed-bottom buy_bar">
+	<form id="buyform" action="{php echo $this->createMobileUrl('confirm')}" method="post">
+		<input type="hidden" name="id" value="{$id}">
+		<input type="hidden" name="token" value="{$_W['token']}">
+		<div class="row house-detail-navbar">
+			<div class="col-xs-8">
+				<span>订金：{$item['deposit']}元</span>
+			</div>
+			<div class="col-xs-4">
+				<a href="javascript:;" onclick="$('#buyform').submit()" class="superman_house_block">
+					立即支付
+				</a>
+				<!--<span style="float: right; font-size: 16px; color: #ffffff;">立即购买</span>-->
+			</div>
+		</div>
+	</form>
+</nav>
+{/if}
+<script>
+require(['jquery'],function($){
+	$.ajax({
+		url: '{php echo $this->createMobileUrl("house", array("id" => $id, "act" => "view"))}',
+		success:function(resp){}
+	});
+	$('.collapse_switch').click(function(){
+		var isopen = false;
+		if ($('span', this).hasClass('fa-minus-square-o')) {
+			isopen = true;
+		}
+		$('.collapse_switch').each(function(){
+			$('span', this).removeClass('fa-minus-square-o').addClass('fa-plus-square-o');
+		});
+		if (!isopen) {
+			$('span', this).removeClass('fa-plus-square-o').addClass('fa-minus-square-o');
+		}
+	});
+});
+var sharedata = {};
+sharedata.success = function(){
+	$.ajax({
+		url: '{php echo $this->createMobileUrl("house", array("id" => $id, "act" => "share"))}',
+		success: function(resp){}
+	});
+};
+</script>
+{template 'footer-common'}
+{template 'footer'}

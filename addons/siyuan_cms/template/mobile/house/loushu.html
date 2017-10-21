@@ -1,0 +1,352 @@
+<html lang="en" class=" js touch csstransforms3d csstransitions">
+ <head> 
+  <title>{$item['title']}</title> 
+  <meta charset="UTF-8" /> 
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" /> 
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" /> 
+  <meta name="description" content="Slicebox - 3D Image Slider with Fallback" /> 
+  <meta name="keywords" content="jquery, css3, 3d, webkit, fallback, slider, css3, 3d transforms, slices, rotate, box, automatic" /> 
+  <meta name="author" content="Pedro Botelho for Codrops" /> 
+  <link rel="stylesheet" type="text/css" href="{$_W['siteroot']}addons/siyuan_cms/img/loushu/demo.css" /> 
+  <link rel="stylesheet" type="text/css" href="{$_W['siteroot']}addons/siyuan_cms/img/loushu/slicebox.css" /> 
+  <link rel="stylesheet" type="text/css" href="{$_W['siteroot']}addons/siyuan_cms/img/loushu/custom.css" /> 
+  <link rel="stylesheet" href="{$_W['siteroot']}addons/siyuan_cms/img/loushu/style.css" type="text/css" media="screen" /> 
+  <script type="text/javascript" src="{$_W['siteroot']}addons/siyuan_cms/img/loushu/modernizr.custom.js"></script> 
+  <script src="http://libs.baidu.com/jquery/1.8.2/jquery.min.js"></script> 
+  <script type="text/javascript" src="{$_W['siteroot']}addons/siyuan_cms/img/loushu/setimgcenter.js"></script> 
+  <style type="text/css">
+
+#jgbord2{
+ height:24px;right:20px;width:24px; _position:absolute;  position: fixed; top:20px;
+}
+body{
+	background-color: #666;
+}
+
+#wrapper{
+	position: absolute;
+	left: 0;
+	top:0;
+	width: 100%;
+	height: 100%;
+	display: none;
+	background: #ccc;
+}
+
+.close{
+	_position:absolute;  
+	position: fixed;
+
+	height:50px;
+	right:20px;
+	width:50px;
+	top:20px;
+	background: url({$_W['siteroot']}addons/siyuan_cms/img/loushu/close.png) center center no-repeat;
+	display: none;
+}
+.jiantou{cursor:pointer;-webkit-animation: scaleout 4s infinite ease-in-out;animation: scaleout 1.3s infinite ease-in-out;}
+@-webkit-keyframes scaleout {
+    0% { -webkit-transform: scale(1.0) }
+    100% {
+        -webkit-transform: scale(1.1);
+        opacity: 0;
+    }
+}
+@keyframes scaleout {
+    0% {
+        transform: scale(1.0);
+        -webkit-transform: scale(1.0);
+    } 100% {
+          transform: scale(1.1);
+          -webkit-transform: scale(1.1);
+          opacity: 0;
+      }
+}
+.jiantou{position: absolute;right: 5px;bottom: 49%;z-index:99999;background: url(/addons/lice_fangchan/img/jiantou.png) center center no-repeat;background-size:100%;width:20px;height:20px;}
+.answer-btn{position:fixed;width:40px;height:40px;left:7px;top:10px;font-size:12px;line-height:1.0;color:#ffffff!important;border-radius:30%;text-align:center;padding-top:8px;z-index:9;background:rgba(101,99,99,0.7)}
+</style>
+</head> 
+<body>
+<div class="jiantou"></div>
+<a href="{php echo $this->createMobileUrl('house', array('act' => 'news', 'id' => $item['id']))}" class="answer-btn">返回<br>楼盘</a>
+<div class="container">
+<div class="wrapper/" id="ss"> 
+<ul id="sb-slider" class="sb-slider" style="margin-top: 0px; height: 400px; max-width: 640px; overflow: hidden;"> 
+{loop $item['descimgs'] $row}
+<li class="" style="display: none;"><img class="m" src="{$row}"/></li> 
+{/loop}
+    </ul> 
+    <div id="shadow" class="shadow" style="display: block;"></div> 
+    <div id="nav-dots" class="nav-dots" style="display:none">
+{loop $item['descimgs'] $row}
+     <span></span> 
+{/loop}
+    </div> 
+   </div>
+   <!-- /wrapper --> 
+  </div> 
+  <div class="zoom_pic" id="wrapper"> 
+   <img src="" class="big_pic" id="scroller" alt="" /> 
+  </div> 
+  <a href="###" class="close"></a> 
+  <script type="text/javascript" src="{$_W['siteroot']}addons/siyuan_cms/img/loushu/jquery.slicebox.js"></script> 
+  <script type="text/javascript" src="{$_W['siteroot']}addons/siyuan_cms/img/loushu/jquery.touchswipe.min.js"></script> 
+  <script type="text/javascript" src="{$_W['siteroot']}addons/siyuan_cms/img/loushu/iscroll.js"></script> 
+  <script type="text/javascript">
+			$(function() {
+               $('.sb-slider').height($(window).height());
+				var Page = (function() {
+              //  
+					var $navArrows = $( '#nav-arrows' ).hide(),
+						$navDots = $( '#nav-dots' ).hide(),
+						$nav = $navDots.children( 'span' ),
+						$shadow = $( '#shadow' ).hide(),
+						slicebox = $( '#sb-slider' ).slicebox( {
+							onReady : function() {
+
+								$navArrows.show();
+								$navDots.show();
+								$shadow.show();
+
+							},
+							orientation : 'h',
+							cuboidsCount:0,
+							//disperseFactor : 5,
+							//disperseFactor : 30,
+							//cuboidsRandom : true,
+							onBeforeChange : function( pos ) {
+
+								$nav.removeClass( 'nav-dot-current' );
+								$nav.eq( pos ).addClass( 'nav-dot-current' );
+
+							}
+							
+						} ),
+						
+						init = function() {
+
+							initEvents();
+							
+						},
+						initEvents = function() {
+
+							// add navigation events
+							/*$navArrows.children( ':first' ).on( 'click', function() {
+
+								slicebox.next();
+								return false;
+
+							} );
+
+							$navArrows.children( ':last' ).on( 'click', function() {
+								
+								slicebox.previous();
+								return false;
+
+							} );*/
+	
+	
+
+							$nav.each( function( i ) {
+							
+								$( this ).on( 'click', function( event ) {
+									
+									var $dot = $( this );
+									
+									if( !slicebox.isActive() ) {
+
+										$nav.removeClass( 'nav-dot-current' );
+										$dot.addClass( 'nav-dot-current' );
+									
+									}
+									
+									slicebox.jump( i + 1 );
+									return false;
+								
+								} );
+								
+							} );
+
+						};
+
+                    var myScroll;
+                     $('body').swipe({
+						swipeLeft : function(event, direction, distance, duration, fingerCount) {
+							if($('.zoom_pic').css('display') == "none"){
+								slicebox.next();
+							}
+							
+						},
+						swipeRight : function(event, direction, distance, duration, fingerCount) {
+							if($('.zoom_pic').css('display') == "none"){
+								slicebox.previous();
+							}
+							
+						},
+						tap:function(){ //弹出缩放图
+
+
+							if($('.zoom_3pic').css('display') == "none"){
+								var img_url = $('.sb-current img').attr('src');
+
+								//$('.big_pic').attr('src',img_url);
+
+								$('.close').show();
+								$('.zoom_pic').show();
+
+								if(myScroll){
+									myScroll.destroy();
+									};
+								
+								
+								setTimeout(function(){
+									myScroll = new iScroll('wrapper',{
+										hScroll: true, //是否水平滚动  
+								     	vScroll: true, //是否垂直滚动
+										zoom: true, //默认是否放大  
+										zoomMin: 1, //放大的最小倍数  
+										zoomMax: 2, //最大倍数  
+										doubleTapZoom: 1, //双触放大几倍
+									   });
+									},200);
+							};
+							
+						}
+					});
+
+
+
+						return { init : init };
+
+				})();
+
+				Page.init();
+
+
+				$('#ss').setimgcenter({
+					img_mark:'.m',
+					imageWidth:                 640,
+					imageHeight:                960
+
+				})
+
+				$('.close').click(function(){
+                     		$('.zoom_pic').hide();
+							$(this).hide();	
+                     });
+
+				$('#jgbord2').toggle(function(){
+
+					$('#my1')[0].pause();
+					$('#jgbord2').attr('src','/weiweb/template/temp_3/img/c.png');
+				},function(){
+					$('#my1')[0].play();
+					$('#jgbord2').attr('src','/weiweb/template/temp_3/img/o.png');
+				})
+
+			});
+		</script> 
+  <script>
+$(function (){
+	/*$('#jgbord2').toggle(function(){
+
+					$('#my1')[0].pause();
+					$('#jgbord2').attr('src','/weiweb/template/temp_3/img/c.png');
+				},function(){
+					$('#my1')[0].play();
+					$('#jgbord2').attr('src','/weiweb/template/temp_3/img/o.png');
+				})*/
+
+				$('#jgbord2').click(function(){
+					
+					if($(this).find('img').attr('src')=="/weiweb/template/temp_3/img/o.png"){
+						$('#my1')[0].pause();
+						//$('#jgbord2 img').attr('src','/weiweb/template/temp_3/img/c.png');
+
+					}else{
+
+						$('#my1')[0].play();
+						//$('#jgbord2 img').attr('src','/weiweb/template/temp_3/img/o.png');
+					}
+				});
+
+})
+</script> 
+  <div id="pageTitle" style="display:none">
+   户型品鉴
+  </div> 
+
+  <!-- <script src="img/demo.js"> </script> --> 
+  <script>
+var title = typeof(shareTitle) == 'undefined' ? sharetitle :  shareTitle;
+var desc = typeof(sharedesc) == 'undefined' ?  '' : sharedesc;
+var url = typeof(shareurl) == 'undefined' ?  window.location.href : shareurl;
+var imgurl = typeof(shareimg) == 'undefined' ?  '' : shareimg;
+//获取内容中图片，放入数组中
+if(title == ''){
+	title = $("#pageTitle").text() ? $("#pageTitle").text() : $('title').text();
+}
+
+
+
+var imgsSrc = [];
+var imgs = document.getElementById("wxgjmainview");
+imgs = imgs ? imgs.getElementsByTagName("img") : [];
+for( var i=0,l=imgs.length; i<l; i++ ){
+	//忽略第一张图 是提前加载的loading图而已
+  var img = imgs.item(i);
+  var zoom = imgs.item(i).getAttribute('alt');
+	
+  var src = img.getAttribute('data-echo') || img.getAttribute('src');
+  if( src && zoom != 'zoom'){
+      imgsSrc.push(src);
+      (function(src){
+          if (img.addEventListener){
+              img.addEventListener('click', function(){
+                  reviewImage(src);
+              });
+          }else if(img.attachEvent){
+              img.attachEvent('click', function(){
+                  reviewImage(src);
+              });
+          }
+      })(src);
+  }
+}
+
+
+//预览图片
+function reviewImage(src) {
+        if (typeof window.WeixinJSBridge != 'undefined') {
+            WeixinJSBridge.invoke('imagePreview', {
+                'current' : src,
+                'urls' : imgsSrc
+            });
+        }
+        wx.previewImage({
+            current: src,
+            urls: imgsSrc
+          });
+    }
+</script> 
+{php echo register_jssdk(false);}
+<script type="text/javascript">
+wx.ready(function () {
+sharedata = {
+title: "{$item['biaoti']}",
+desc: "{$item['biaoti']}",
+link: window.location.href,
+imgUrl: "{$_W['attachurl']}{$item['fenxiang']}",
+success: function (res) {},
+cancel: function(){
+}
+};
+wx.onMenuShareAppMessage(sharedata);
+wx.onMenuShareTimeline(sharedata);
+wx.onMenuShareQQ(sharedata);
+wx.onMenuShareWeibo(sharedata);
+wx.onMenuShareQZone(sharedata);
+});
+</script>
+</body>
+</html>

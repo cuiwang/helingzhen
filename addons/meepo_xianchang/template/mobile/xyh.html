@@ -1,0 +1,192 @@
+ {template 'pc_header'}
+<link rel="stylesheet" type="text/css" href="{MODULE_URL}template/mobile/app/css/screen_lottery_nfree5.css">
+<style>
+.display1{ display:none;}
+</style>
+<script src="{MODULE_URL}template/mobile/app/js/lotter_free_base.js" type="text/javascript" charset="utf-8"></script>
+<script src="{MODULE_URL}template/mobile/app/js/screen_xyh_free.js?t=1" type="text/javascript" charset="utf-8"></script>
+<!---->
+<script src="{MODULE_URL}template/mobile/app/js/MyTool-nfree5.js" type="text/javascript" type="text/javascript"></script>  
+</head>
+<body class="FUN LOTTERY_FREE" {if !empty($basic_config['bg_vedio'])}data-vide-bg="{php echo tomedia($basic_config['bg_vedio'])}"{/if}>
+<audio id="Audio_Running" src="" loop preload="preload"></audio>
+<audio id="Audio_Result" src="" preload="preload"></audio>
+ {template 'top_panel'}
+<div class="Panel Lottery"  >
+<div class="table-box">
+            <div class="table">
+                <img class="seat-img1" src="{MODULE_URL}template/mobile/app/images/xyh/seat-img1.png">
+                <img class="seat-img2" src="{MODULE_URL}template/mobile/app/images/xyh/seat-img2.png">
+                 <img class="seat-img4" src="{MODULE_URL}template/mobile/app/images/xyh/seat-img4.png">
+                <img class="seat-img3" src="{MODULE_URL}template/mobile/app/images/xyh/seat-img3.png">
+               
+                <span class="table-num" id="jqDeskText" >0</span>
+                <div id="jqAddDeskAni" class="table-move">
+                    <span  id="jqDeskText1" class="table-move1">0</span>
+                </div>
+                <div class="table-button">
+                <div class="table-btn display0">
+                <p>最大号数：</p><input type="text" value="1000"   size="6"  id="zhmax" onChange="setzhmaxarr()" >
+                </div>
+                    <div class="table-btn">
+                        <p>抽奖数量：</p>
+                        <select id="sltAwardNum" >
+                            <option value="请选择" selected="selected" style="display: none;">请选择</option>
+                            
+                            <option value="1">
+                                1</option>
+                            
+                            <option value="2">
+                                2</option>
+                            
+                            <option value="3">
+                                3</option>
+                            
+                            <option value="4">
+                                4</option>
+                            
+                            <option value="5">
+                                5</option>
+                            
+                            <option value="6">
+                                6</option>
+                            
+                            <option value="7">
+                                7</option>
+                            
+                            <option value="8">
+                                8</option>
+                            
+                            <option value="9">
+                                9</option>
+                            
+                            <option value="10">
+                                10</option>
+                            
+                        </select>
+                    </div>
+                    <button id="jqStart" onclick="Start();">开始抽奖</button>
+                    <button id="jqEnd" class="hide" onclick="End();">停止抽奖</button>
+                    <div class="clear"></div>
+                </div>
+            </div>
+            <div class="table-win">
+                    <ul class="table-list" id="jqResultBox" ></ul>
+					<div class="ycsl" style="width: 220px;
+    left: 50%;
+    bottom: 30px;
+    position: absolute;
+    margin-left: -110px;
+    text-align: center;
+    color: #FEBE12;
+    font-size: 18px;"><span id="allnums">已抽数量：0</span></div>
+            </div>
+        </div>
+</div>
+ <script type="text/javascript">
+        
+        var timerObj = null;
+        var awardData = [];
+        var numberData = [];
+		var allnums=0;
+        var deskNum =parseInt($("#zhmax").val());
+		setzhmaxarr();
+		function setzhmaxarr(){
+			window.allnums=0;
+			window.numberData = [];
+            window.deskNum = parseInt($("#zhmax").val());
+            for (var i = 0; i <  deskNum; i++) {
+                window.numberData[i] = i+1;
+            }
+		}
+        
+
+ 
+
+        function Start() {
+//numberData = [];
+//	window.deskNum = parseInt($("#zhmax").val());
+
+            $("#jqResultBox").html("");
+            window.awardNum = parseInt($("#sltAwardNum").val()) || 0;
+
+            clearInterval(timerObj);
+
+            if (window.deskNum <= 0) {
+                MyTool.Alert("未设置桌号数量");
+                return;
+            }
+            if (window.awardNum <= 0) {
+                MyTool.Alert("请选择抽奖数量");
+                return;
+            }
+            $("#jqStart").attr("disabled", true);
+            RandomDesk();
+            GetAwardDesk(window.deskNum, window.awardNum);
+        }
+        function RandomDesk() {
+            timerObj = setInterval(function () {
+                var index = Math.floor(Math.random() * window.deskNum);
+                var n = window.numberData[index];
+                $("#jqDeskText").text(n);
+            }, 100);
+        }
+        function GetAwardDesk(deskNum, awardNum) {
+            awardData = [];            
+            for (var i = 0; i < awardNum&&deskNum>0; i++) {
+
+                var index = Math.floor(Math.random() * window.numberData.length);
+                window.awardData[i] = window.numberData[index];
+                window.numberData.splice(index,1);
+            }
+            $("#jqStart").addClass("hide");
+            $("#jqEnd").removeAttr("disabled").removeClass("hide");
+        }
+        function End() {
+            $("#jqAddDeskAni").removeClass("table-moving");
+            var i = 0;
+            var func = function () {
+                clearInterval(timerObj);
+                ShowResult(window.awardData[i]);
+                i++;
+                if (window.awardData.length > i) {
+                    setTimeout(function () {
+                        RandomDesk();
+                    }, 500); //间隔
+                    setTimeout(function () {
+                        func();
+                    }, 1000);
+                } else {
+                    $("#jqEnd").addClass("hide");
+                    $("#jqStart").removeAttr("disabled").removeClass("hide");
+                }
+            };
+            if (window.awardData.length > 0) {
+                $("#jqEnd").attr("disabled", true);
+                func();
+            } else {
+                clearInterval(timerObj);
+                MyTool.Alert("号码已经抽完！", function () {
+                    $("#jqDeskText,#jqDeskText1").text(0);
+                    $("#jqEnd").addClass("hide");
+                    $("#jqStart").removeAttr("disabled").removeClass("hide");
+                });
+            }
+        }
+
+
+        function ShowResult(num) {
+			window.allnums++;
+			if(window.allnums<=window.deskNum){
+			 $("#allnums").text("已抽："+window.allnums+"　　剩余:"+(window.deskNum-window.allnums));
+						$("#jqAddDeskAni").addClass("table-moving");
+						$("#jqDeskText,#jqDeskText1").text(num);
+						var liHtml = '<li>' + num + '</li>';
+						setTimeout(function () {
+							$("#jqAddDeskAni").removeClass("table-moving");
+							$("#jqResultBox").prepend(liHtml);
+						}, 900);
+			}
+        }
+    </script>
+{template 'pc_footer'}

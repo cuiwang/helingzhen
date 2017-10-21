@@ -1,0 +1,330 @@
+{template 'common/header'}
+{php include $this->template('_store_nave');}
+<style>
+     .item_box img{
+         width: 100%;
+         height: 100%;
+     }
+</style>
+<script type="text/javascript">
+    $(function(){
+        $(':radio[name="print_status"]').click(function(){
+            if(this.checked) {
+                if($(this).val() == '1') {
+                    $('.sms').show();
+                } else {
+                    $('.sms').hide();
+                }
+            }
+        });
+    });
+</script>
+{php echo $this -> set_tabbar($action, $storeid);}
+{if $operation == 'display'}
+<div class="main">
+    <input type="hidden" name="storeid" value="{$storeid}" />
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <a class="btn btn-success" href="{php echo $this->createWebUrl('PrintSetting', array('op' => 'post', 'storeid' => $storeid))}"><i class="fa fa-plus"></i>添加打印机</a>
+            <a class="btn btn-info" href="{php echo $this->createWebUrl('printlabel', array('op' => 'display', 'storeid' => $storeid))}"><i class="fa fa-list"></i>打印标签</a>
+            <a class="btn btn-default" href="{php echo $this->createWebUrl('printorder', array('op' => 'display', 'storeid' => $storeid))}"><i class="fa fa-list"></i>打印数据</a>
+
+        </div>
+    </div>
+    <form action="" method="post" class="form-horizontal form">
+        <div class="panel panel-default">
+            <div class="table-responsive panel-body">
+                <table class="table table-hover">
+                    <thead class="navbar-inner">
+                    <tr>
+                        <th style="width:8%;">ID</th>
+                        <th style="width:12%;">类型</th>
+                        <th style="width:15%;">打印机名称</th>
+                        <th style="width:15%;">设备编码</th>
+                        <th style="width:10%;">打印方式</th>
+                        <th style="width:10%;">打印订单</th>
+                        <th style="width:10%;">是否整单打印</th>
+                        <th style="width:10%;">状态</th>
+                        <th style="width:10%; text-align:right;">操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {loop $list $item}
+                    <tr>
+                        <td>{$item['id']}</td>
+                        <td>
+                            <span class="label label-success">
+                            {if $item['type']=='feiyin'}
+                            飞印打印机
+                            {elseif $item['type']=='jinyun'}
+                            进云物联打印机
+                            {elseif $item['type']=='hongxin'}
+                            宏信物联打印机
+                            {elseif $item['type']=='365'}
+                            365打印机
+                            {/if}
+                            </span>
+                        </td>
+                        <td>{$item['title']}</td>
+                        <td>{$item['print_usr']}</td>
+                        <td>
+                            <span class="label label-info">
+                            {if $item['print_type']==0}
+                            下单打印
+                            {else if $item['print_type']==1}
+                            付款订单
+                            {/if}
+                            </span>
+                        </td>
+                        <td>
+                            <a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('printorder', array('op' => 'display', 'usr' => $item['print_usr'], 'storeid' => $storeid))}" title="查看订单"><i class="fa fa-cog"> ({if !empty($print_order_count[$item['print_usr']]['count'])}<font color="green">{$print_order_count[$item['print_usr']]['count']}</font>{else}0{/if})</i></a>
+                        </td>
+                        <td>
+
+                            {if $item['is_print_all']==0}
+                            <span class="label label-warning">分单打印</span>
+                            {else if $item['is_print_all']==1}
+                            <span class="label label-success">整单打印</span>
+                            {/if}
+                        </td>
+                        <td>
+                            {if $item['print_status'] == 1}
+                            <span class="label label-success">开启</span>
+                            {else}
+                            <span class="label label-danger">关闭</span>
+                            {/if}
+                            <!--0为打印成功, 1为过热,3为缺纸卡纸等-->
+                        </td>
+                        <td style="text-align:right;">
+                            <a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('printsetting', array('op' => 'post', 'id' => $item['id'], 'storeid' => $storeid))}" title="查看订单"><i class="fa fa-pencil"></i></a>
+                            <a class="btn btn-default btn-sm" href="{php echo $this->createWebUrl('printsetting', array('op' => 'delete', 'id' => $item['id'], 'storeid' => $storeid))}" title="删除" onclick="return confirm('此操作不可恢复，确认删除？');return false;"><i class="fa fa-times"></i></a>
+                        </td>
+                    </tr>
+                    {/loop}
+                    </tbody>
+                </table>
+                {$pager}
+            </div>
+        </div>
+    </form>
+
+</div>
+{elseif $operation == 'post'}
+<div class="main">
+	<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data">
+	<input type="hidden" name="id" value="{$setting['id']}" />
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                打印机设置
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">打印机状态</label>
+                    <div class="col-sm-9">
+                        <label for="print_status" class="radio-inline"><input type="radio" name="print_status" value="1" id="print_status" {if $setting['print_status']==1}checked{/if} /> 启用</label>
+                        &nbsp;&nbsp;&nbsp;
+                        <label for="print_status2" class="radio-inline"><input type="radio" name="print_status" value="0" id="print_status2"  {if $setting['print_status']==0 || empty($setting)}checked{/if} /> 关闭</label>
+                        <span class="help-block"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">打印方式</label>
+                    <div class="col-sm-9">
+                        <label for="print_type1" class="radio-inline"><input type="radio" name="print_type" value="0" id="print_type1" {if $setting['print_type']==0}checked="true"{/if}/>下单打印</label>
+                        &nbsp;&nbsp;&nbsp;
+                        <label for="print_type2" class="radio-inline"><input type="radio" name="print_type" value="1" id="print_type2"  {if $setting['print_type']==1}checked="true"{/if}/>打印付款订单</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">打印机名称</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="title" class="form-control" value="{$setting['title']}" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">打印机类型</label>
+                    <div class="col-sm-9">
+                        <select class="form-control" name="type" id="type" autocomplete="off">
+                            <option value="365" {if $setting['type']=='365'}selected{/if}>365</option>
+                            <option value="feiyin" {if $setting['type']=='feiyin'}selected{/if}>飞印</option>
+                            <option value="hongxin" {if $setting['type']=='hongxin'}selected{/if}>宏信物联</option>
+                             <option value="jinyun" {if $setting['type']=='jinyun'}selected{/if}>进云物联打印机</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group" id="jinyun">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">易联云类型</label>
+                    <div class="col-sm-9">
+                        <select class="form-control" name="jinyun" autocomplete="off">
+                            <option value="1" {if $setting['jinyun']=='1'}selected{/if}>新版打印机</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group" id="print_label">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">设置可打印的标签</label>
+                    <div class="col-sm-9">
+                        <select class="form-control" style="margin-right:15px;" name="print_label[]" autocomplete="off" multiple="true" size="10">
+                            <option value="0" {if count($print_label)==0}selected="selected"{/if}>全部标签</option>
+                            {loop $lables $row}
+<option value="{$row['id']}" {if count($print_label)>0 && in_array($row['id'],$print_label)}
+                            selected="selected"{/if}>{$row['title']}</option>
+                            {/loop}
+                        </select>
+                        <span class="help-block">当您设置了标签后，该打印机就只关心来自标签的订单。</span>
+                    </div>
+                </div>
+                <div class="form-group" id="is_print_all">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">是否为整单打印</label>
+                    <div class="col-sm-9">
+                        <label for="is_print_all2" class="radio-inline"><input type="radio" name="is_print_all" value="1" id="is_print_all2" {if $setting['is_print_all']==1 || empty($setting)}checked{/if} /> 整单</label>
+                        <label for="is_print_all1" class="radio-inline"><input type="radio" name="is_print_all" value="0" id="is_print_all1"  {if $setting['is_print_all']==0}checked{/if} /> 分单</label>
+                        <span class="help-block">
+                            整单打印为： 打印订单的全部产品条目信息<br/>
+                            分单打印为： 订单里的全部产品每个打印一次
+                        </span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">支持预定</label>
+                    <div class="col-sm-9">
+                        <label class="radio-inline">
+                            <input type="radio" name="is_reservation" value="1" {if $setting['is_reservation']==1 || empty($setting)}checked{/if}>启用
+                        </label>
+                        <label class="radio-inline">
+                            <input type="radio" name="is_reservation" value="0" {if isset($setting['is_reservation']) && empty($setting['is_reservation'])}checked{/if}>关闭
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">支持店内</label>
+                    <div class="col-sm-9">
+                        <label class="radio-inline">
+                            <input type="radio" name="is_meal" value="1" {if $setting['is_meal']==1 || empty($setting)}checked{/if}>启用
+                        </label>
+                        <label class="radio-inline">
+                            <input type="radio" name="is_meal" value="0" {if isset($setting['is_meal']) && empty($setting['is_meal'])}checked{/if}>关闭
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">支持外卖</label>
+                    <div class="col-sm-9">
+                        <label class="radio-inline">
+                            <input type="radio" name="is_delivery" value="1" {if $setting['is_delivery']==1 || empty($setting)}checked{/if}>启用
+                        </label>
+                        <label class="radio-inline">
+                            <input type="radio" name="is_delivery" value="0" {if isset($setting['is_delivery']) && empty($setting['is_delivery'])}checked{/if}>关闭
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">支持快餐</label>
+                    <div class="col-sm-9">
+                        <label class="radio-inline">
+                            <input type="radio" name="is_snack" value="1" {if $setting['is_snack']==1 || empty($setting)}checked{/if}>启用
+                        </label>
+                        <label class="radio-inline">
+                            <input type="radio" name="is_snack" value="0" {if isset($setting['is_snack']) && empty($setting['is_snack'])}checked{/if}>关闭
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">打印联数</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="print_nums" class="form-control"
+                               value="{if $setting['print_nums']}{$setting['print_nums']}{else}1{/if}" />
+                        <p class="help-block">默认1</p>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">打印二维码</label>
+                    <div class="col-sm-9">
+                        <label for="qrcode_status1" class="radio-inline"><input type="radio" name="qrcode_status" value="0" id="qrcode_status1" {if $setting['qrcode_status']==0}checked="true"{/if}/>关闭</label>
+                        &nbsp;&nbsp;&nbsp;
+                        <label for="qrcode_status2" class="radio-inline"><input type="radio" name="qrcode_status" value="1" id="qrcode_status2"  {if $setting['qrcode_status']==1}checked="true"{/if}/>开启</label>
+                        <p class="help-block"></p>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">二维码网址</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="qrcode_url" class="form-control" value="{$setting['qrcode_url']}" />
+                        <p class="help-block">网址过长的可先转为短网址</p>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">头部自定义信息</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="print_top" class="form-control" value="{$setting['print_top']}" />
+                        <p class="help-block">建议少于20字</p>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">底部自定义信息</label>
+                    <div class="col-sm-9">
+                        <input type="text" name="print_bottom" class="form-control" value="{$setting['print_bottom']}" />
+                        <p class="help-block">建议少于20字</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="form-group col-sm-12">
+            <input type="submit" name="submit" value="保存设置" class="btn btn-primary col-lg-1" />
+            <input type="hidden" name="token" value="{$_W['token']}" />
+        </div>
+	</form>
+</div>
+<script type="text/javascript">
+    $(function(){
+        "{if $setting}"
+            "{if $setting['type']=='hongxin'}"
+                $('#print_code').hide();
+                $('#api_key').hide();
+                $('#jinyun').hide();
+                $('#print_key').hide();
+                $('#print_label').hide();
+                $('#is_print_all').hide();
+            "{/if}"
+            "{if $setting['type']=='365' || $setting['type']=='feie'}"
+                $('#print_code').hide();
+                $('#api_key').hide();
+                $('#jinyun').hide();
+            "{/if}"
+            "{if $setting['type']=='feiyin'}"
+                $('#api_key').hide();
+                $('#jinyun').hide();
+            "{/if}"
+        "{else}"
+            $('#api_key').hide();
+            $('#jinyun').hide();
+            $('#print_code').hide();
+        "{/if}"
+        $('#type').change(function(){
+            $('#print_code').show();
+            $('#print_key').show();
+            $('#api_key').show();
+            $('#jinyun').show();
+            if($(this).val() == 'hongxin') {
+                $('#print_code').hide();
+                $('#print_key').hide();
+                $('#print_label').hide();
+                $('#is_print_all').hide();
+                $('#api_key').hide();
+                $('#jinyun').hide();
+            }
+            if($(this).val() == '365' || $(this).val() == 'feie') {
+                $('#print_code').hide();
+                $('#api_key').hide();
+                $('#jinyun').hide();
+            }
+            if($(this).val() == 'feiyin') {
+                $('#api_key').hide();
+                $('#jinyun').hide();
+            }
+        });
+    });
+</script>
+
+
+{/if}
+{template 'common/footer'}

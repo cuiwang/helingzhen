@@ -1,0 +1,296 @@
+{template 'common/header'}
+{php load()->func('tpl')}
+<style type="text/css">
+.form .alert{width:700px;}
+.btn-group .active{background-color:#428bca;color:#fff;}
+</style>
+<ul class="nav nav-tabs">
+	<li><a href="{php echo $this->createWebUrl('display')}">表单列表</a></li>
+	{if !$reid}
+	<li class="active"><a href="{php echo $this->createWebUrl('post')}">新建表单</a></li>
+	{else}
+	<li class="active"><a href="#">编辑表单</a></li>
+	<li><a href="{php echo $this->createWebUrl('staff', array('op' => 'list','reid' => $reid))}">管理客服</a></li>
+	<li><a href="{php echo $this->createWebUrl('recordset', array('reid' => $reid))}">记录显示设置</a></li>
+	{/if}
+</ul>
+<div class="main">
+	<form class="form-horizontal form" action="" method="post" enctype="multipart/form-data" onsubmit="return validate(this);">
+	<div class="panel panel-default">
+		<div class="panel-body">
+			<ul class="nav nav-pills">
+				<li role="presentation" class="active"><a href="#tab_basic" aria-controls="tab_basic" role="tab" data-toggle="pill">基本设置</a></li>
+				<li role="presentation" class=""><a href="#tab_field" aria-controls="tab_field" role="tab" data-toggle="pill">自定义字段</a></li>
+				<li role="presentation" class=""><a href="#tab_skins" aria-controls="tab_skins" role="tab" data-toggle="pill">皮肤设置</a></li>
+				<li role="presentation" class=""><a href="#tab_list" aria-controls="tab_list" role="tab" data-toggle="pill">首页/分类</a></li>
+				<li role="presentation" class=""><a href="#tab_set" aria-controls="tab_set" role="tab" data-toggle="pill">参数开关</a></li>
+				<li role="presentation" class=""><a href="#tab_notice" aria-controls="tab_notice" role="tab" data-toggle="pill">通知设置</a></li>
+				<li role="presentation" class=""><a href="#tab_plugin" aria-controls="tab_plugin" role="tab" data-toggle="pill">插件设置</a></li>
+				<li role="presentation" class=""><a href="#high_grade" aria-controls="high_grade" role="tab" data-toggle="pill">高级参数</a></li>
+				<li role="presentation" class=""><a href="#tab_get" aria-controls="tab_get" role="tab" data-toggle="pill">外部参数传递</a></li>
+			</ul>
+		</div>
+    </div>
+    	<div class="panel panel-default">
+            <div class="panel-body table-responsive">
+		
+		<div class="tab-content">
+		<div class="tab-pane active" id="tab_basic">{template 'post_basic'}</div>
+		<div class="tab-pane" id="tab_field">{template 'post_field'}</div>
+		<div class="tab-pane" id="tab_skins">{template 'post_skins'}</div>
+		<div class="tab-pane" id="tab_list">{template 'post_list'}</div>
+		<div class="tab-pane" id="tab_set">{template 'post_setting'}</div>
+		<div class="tab-pane" id="tab_notice">{template 'post_notice'}</div>
+		<div class="tab-pane" id="tab_plugin">{template 'post_plugin'}</div>
+		<div class="tab-pane" id="high_grade">{template 'post_high_grade'}</div>
+		<div class="tab-pane" id="tab_get">{template 'post_get'}</div>
+		</div>
+				
+            </div>
+        </div>
+		
+<script type="text/javascript">
+<!--	
+	$(function () {
+		window.optionchanged = false;
+		$('#myTab a').click(function (e) {
+			e.preventDefault();//阻止a链接的跳转行为
+			$(this).tab('show');//显示当前选中的链接及关联的content
+		})
+	});
+//-->	
+</script>
+        <div class="form-group col-sm-12">
+			<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+			<input type="hidden" name="token" value="{$_W['token']}" />
+		</div>
+   </form>
+</div>
+<div id="dialog"  class="modal fade" tabindex="-1">
+    <div class="modal-dialog" style='width: 920px;'>
+        <div class="modal-content">
+            <div class="modal-header"><button aria-hidden="true" data-dismiss="modal" class="close" type="button">×</button><h3>设置选项</h3></div>
+            <div class="modal-body" >  
+               <div class="well">
+					<textarea id="re-desc" class="form-control" rows="3"></textarea>
+					<span class="help-block"><strong>设置此字段的说明信息</strong></span>
+				</div>
+				<div class="well re-value hide">
+					<textarea id="re-value" class="form-control" rows="6"></textarea>
+					<span class="help-block"><strong>设置表单字段的选项(如果有需要的话.) 每行一条记录, 例如: 性别 男, 女</strong></span>
+				</div>
+				<div class="well re-image hide">
+					{php echo tpl_form_field_images('image[]','');}
+					<span class="help-block"><strong>示例图：</strong></span>
+				</div>
+				<div class="well re-loc hide">
+					<input type="number" name="loc[]" id="re-loc" class="form-control" style="width:120px;">
+					<span class="help-block"><strong>获取地址：输入大于0的数字支持获取地址</strong></span>
+				</div>
+                <div id="module-menus" style="padding-top:5px;"></div>
+            </div>
+            <div class="modal-footer">
+                <a href="#" class="btn btn-primary btn-ok" data-dismiss="modal" aria-hidden="true">确 定</a>
+                <a href="#" class="btn btn-default" data-dismiss="modal" aria-hidden="true">关 闭</a>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+var item_num = 100;
+    function message(msg){
+        require(['util'],function(util){
+            util.message(msg);
+        });
+    }
+    require(['util'],function(util){
+         util.editor($('.richtext-clone')[0]);
+    })
+	var currentItem = null;
+	$(function(){
+		require(['jquery','jquery.ui'],function($,j){
+			$('#re-items').sortable({handle: '.fa-move'});
+		})
+		$('#dialog .btn-ok').on('click', function(){
+       
+			if(currentItem == null) return;
+			var v = $('#dialog #re-value').val();
+			$(currentItem).parent().prev().find(':hidden[name="value[]"]').val(encodeURIComponent(v.replace(/\n/g, ',')));
+			var v = $('#dialog #re-desc').val();
+			$(currentItem).parent().prev().find(':hidden[name="desc[]"]').val(encodeURIComponent(v));
+			var v = $('#dialog #re-image').val();
+			$(currentItem).parent().prev().find(':hidden[name="image[]"]').val(v);
+			var v = $('#dialog #re-loc').val();
+			$(currentItem).parent().prev().find(':input[name="loc[]"]').val(v);
+			
+		});
+		{if $hasData}
+		$('#re-items').find(':text,:checkbox,select').attr('disabled', 'disabled');
+		{/if}
+	});
+	function setValues(o) {
+		var v = $(o).parent().prev().find(':hidden[name="value[]"]').val();
+		v = decodeURIComponent(v);
+		$('#dialog #re-value').val(v.replace(/,/g, '\n'));
+		
+		var v = $(o).parent().prev().find(':hidden[name="image[]"]').val();
+		$('#dialog #re-image').val(v);
+		
+		var v = $(o).parent().prev().find(':input[name="loc[]"]').val();
+		$('#dialog #re-loc').val(v);
+		
+		var v = $(o).parent().prev().find(':hidden[name="desc[]"]').val();
+		v = decodeURIComponent(v);
+		$('#dialog #re-desc').val(v);
+		var v = $(o).parent().prev().prev().find('select[name="type[]"]').val();		
+             
+		if(v == 'radio' || v == 'checkbox' || v == 'select') {
+			$('.well.re-value').removeClass('hide');
+		} else {
+			$('.well.re-value').addClass('hide');
+		}
+		if(v == 'image') {
+			$('.well.re-image').removeClass('hide');
+		} else {
+			$('.well.re-image').addClass('hide');
+		}
+		if(v == 'text' || v == 'radio' || v == 'checkbox' || v == 'image') {
+			$('.well.re-loc').removeClass('hide');
+			if(v == 'radio' || v == 'checkbox') {
+				$('.re-loc strong').html('请填写【单选多选插件】分类ID');
+			}
+			if(v == 'image') {
+				$('.re-loc strong').html('设置为 1，当标题图片/说明图片/间隔使用');
+			}
+		} else {
+			$('.well.re-loc').addClass('hide');
+		}
+		$('#dialog').modal({keyboard: false});
+		currentItem = o;
+	}
+	function addItem() {
+		var html = '' + 
+				'<tr>' +
+					'<td><input name="title[]" type="text" class="form-control" /></td>' +
+					'<td><input type="text" name="displayorder[]" value="'+item_num +'" class="form-control" /></td>' + 
+					'<td style="text-align:center;"><input name="essential[]" type="checkbox" title="必填项" /></td>' +
+					'<td>' +
+						'<select name="only[]" id="o_'+item_num +'" class="form-control" disabled>' +
+						'<option value="0">关闭</option>' +
+						'<option value="1">开启</option>' +
+						'</select>' +
+					'</td>' +
+					'<td>' +
+						'<select name="type[]" class="form-control" onclick="setOnly(this,'+item_num+');">' +
+						{loop $types $k $v}'<option value="{$k}">{$v}</option>' + {/loop}
+						'</select>' +
+					'</td>' +
+					'<td>' +
+						'<select name="bind[]" class="form-control">' +
+							'<option value="">不关联粉丝数据</option>' +
+						{loop $fields $k $v}{if !empty($v)}'<option value="{$k}">{$v}</option>' + {/if}{/loop}
+						'</select>' +
+						'<input type="hidden" name="value[]" />' +
+						'<input type="hidden" name="desc[]" />' +
+						'<input type="hidden" name="image[]" />' +
+						'<input type="hidden" name="loc[]" />' +
+						'<input type="hidden" name="essentialvalue[]" />' +
+					'</td>' +
+					'<td>' +
+						'<a href="javascript:;" data-toggle="tooltip" data-placement="bottom" class="btn btn-warning btn-sm" title="设置详细信息" onclick="setValues(this);"><i class="fa fa-edit"></i></a> &nbsp;' +
+						'<a href="javascript:;" data-toggle="tooltip" data-placement="bottom" class="btn btn-default btn-sm" onclick="deleteItem(this)"  title="删除此字段"><i class="fa fa-times"></i></a>' +
+					'</td>' + 
+				'</tr>';
+		$('#re-items').append(html);
+		item_num--;
+	}
+	function setOnly(obj,id) {
+		if ($(obj).val()=='text') {
+			$('#o_'+id).attr("disabled",false);
+		}else{
+			$('#o_'+id).attr("disabled",true);
+		}
+	}
+	function deleteItem(o) {
+		$(o).parent().parent().remove();
+	}
+	function validate() {
+		if($.trim($(':text[name="activity"]').val()) == '') {
+			message('必须填写表单主题.', '', 'error');
+			return false;
+		}
+		if($.trim($('textarea[name="information"]').val()) == '') {
+			message('必须填写表单成功提示信息.', '', 'error');
+			return false;
+		}
+		{if empty($reid)}
+		if($.trim($(':input[name="thumb"]').val()) == '') {
+			message('必须上传表单封面.', '', 'error');
+			return false;
+		}
+		{/if}
+		if($(':text[name="title[]"]').length == 0) {
+			message('必须设定表单的字段.', '', 'error');
+			return false;
+		}		
+		var var1 = /^[A-Za-z]+$/;
+		var var2 = /^[A-Za-z]+$/;
+		var var3 = /^[A-Za-z]+$/;
+		if($.trim($(':input[name="var1"]').val())!='' && !var2.test($.trim($('input[name="var1"]').val()))){
+			message('外部参数1 变量必须为纯字母.', '', 'error');
+			return false;
+		}
+		if($.trim($(':input[name="var2"]').val())!='' && !var2.test($.trim($('input[name="var2"]').val()))){
+			message('外部参数2 变量必须为纯字母.', '', 'error');
+			return false;
+		}
+		if($.trim($(':input[name="var3"]').val())!='' && !var2.test($.trim($('input[name="var3"]').val()))){
+			message('外部参数3 变量必须为纯字母.', '', 'error');
+			return false;
+		}
+		
+		var isError = false;
+		$(':text[name="title[]"]').each(function(){
+			if($.trim($(this).val()) == '') {
+				isError = true;
+			}
+		});
+		if(isError) {
+			message('必须要设定每个表单自定义字段的标题.', '', 'error');
+			return false;
+		}
+		$('#re-items tr').each(function(){
+			var t = $(this).find('select[name="type[]"]').val();
+			if(t == 'radio' || t == 'checkbox') {
+				if($.trim($(this).find(':hidden[name="value[]"]').val()) == '' &&$.trim($(this).find(':hidden[name="loc[]"]').val()) != '1') {
+					isError = true;
+				}
+			}
+			if(t == 'select') {
+				if($.trim($(this).find(':hidden[name="value[]"]').val()) == '') {
+					isError = true;
+				}
+			}
+		});
+		if(isError) {
+			message('单选, 多选或下拉选择字段必须要设定备选项.', '', 'error');
+			return false;
+		}
+		$(':checkbox').each(function(){
+			if($(this).get(0).checked) {
+				$(this).parent().parent().find(':hidden[name="essentialvalue[]"]').val('true');
+			} else {
+				$(this).parent().parent().find(':hidden[name="essentialvalue[]"]').val('false');
+			}
+		});
+		return true;
+	}
+	require(['bootstrap'],function($){
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+	});
+</script>
+{template 'common/footer'}

@@ -1,0 +1,117 @@
+{template 'common/header'}
+<div class="panel panel-default">
+	<div class="panel-heading">
+		<div class="panel-title">
+			<h3 style="float:left;">店员列表</h3>
+			<button class="btn btn-success" name="add_kefu" style="float:right;margin-top:15px;">添加店员</button>
+			<button class="btn btn-success" name="check_kefu" style="float:right;margin-top:15px;margin-right:20px;">验证店员</button>
+			<div style="clear:both;"></div>
+		</div>
+	</div>
+	<div class="panel-body table-responsive">
+		<table class="table table-striped">
+			<thead>
+				<tr>
+					<th>Openid</th>
+					<th>微信昵称</th>
+					<th>操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{if empty($list)}
+				<tr>
+					<td colspan="3">暂无店员</td>
+				</tr>
+				{else}
+					{loop $list $item}
+						<tr>
+							<td>{$item['openid']}</td>
+							<td>{php echo openid2name($item['openid']);}</td>
+							<td><button name="del" class="btn btn-default" data-kefu="{$item['openid']}">删除</button></td>
+						</tr>
+					{/loop}
+				{/if}
+				
+			</tbody>
+		</table>
+	</div>
+</div>
+
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+   <div class="modal-dialog">
+      <div class="modal-content">
+         <div class="modal-header">
+            <button type="button" class="close" 
+               data-dismiss="modal" aria-hidden="true">
+                  &times;
+            </button>
+            <h4 class="modal-title" id="myModalLabel">
+               
+            </h4>
+         </div>
+         <div class="modal-body">
+           
+          <p style="text-align:center;"> <img src=""></p>
+         </div>
+         <div class="modal-footer">
+            <button type="button" class="btn btn-default" 
+               data-dismiss="modal">关闭
+            </button>
+           
+         </div>
+      </div><!-- /.modal-content -->
+</div><!-- /.modal -->
+
+<script type="text/javascript">
+	$(function(){
+		//显示添加客服二维码：
+		$('button[name=add_kefu]').click(function(){
+			$.ajax({
+				url:"{php echo $this->createWebUrl('clerk',array('op'=>'qr_img','id'=>$id));}",
+				success:function(data){
+					$('#myModal').find('h4.modal-title').text('微信扫描以下二维码，添加客服');
+					$('#myModal').find('img').attr('src',"{MODULE_URL}qrcode/"+data);
+					$('#myModal').modal();
+				}
+			});
+			
+		});
+
+		//显示检查客服二维码：
+		$('button[name=check_kefu]').click(function(){
+			$.ajax({
+				url:"{php echo $this->createWebUrl('clerk',array('op'=>'check_qr','id'=>$id));}",
+				success:function(data){
+					$('#myModal').find('h4.modal-title').text('微信扫描以下二维码，检查是否为客服');
+					$('#myModal').find('img').attr('src',"{MODULE_URL}qrcode/"+data);
+					$('#myModal').modal();
+				}
+			});
+			
+		});
+
+		//删除指定客服信息：
+		$('button[name=del]').click(function(){
+			var r=confirm("确认删除？")
+		  	if (r==true)
+		    {
+		   		$.ajax({
+		   			url:"{php echo $this->createWebUrl('clerk',array('op'=>'del','id'=>$id));}",
+		   			data:{kefu:$(this).attr('data-kefu')},
+		   			success:function(res){
+		   				var result = $.parseJSON(res);
+		   				if(result.errno == 0){
+		   					util.message(result.message,"{php echo $this->createWebUrl('clerk',array('id'=>$id));}",'success');//删除成功，刷新页面
+		   				}else{
+		   					util.message(result.message,'','error');
+		   				}
+		   				
+		   			}
+		   		});
+		    }
+		 	
+		});
+	});
+
+</script>
+{template 'common/footer'}

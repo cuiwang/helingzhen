@@ -1,0 +1,159 @@
+{template 'common/header'}
+{template 'common'}
+<div class="main">
+	<ul class="nav nav-tabs">
+		<li{if $_GPC['do'] == 'manage'} class="active"{/if}><a href="{php echo $this->createWebUrl('manage');}">活动管理</a></li>
+		<li{if $_GPC['do'] == 'post'} class="active"{/if}><a href="{php echo create_url('rule/post',array('module'=>'ewei_couplet'));}">添加活动规则</a></li>
+		<li{if $_GPC['do'] == 'fanslist'} class="active"{/if}><a href="{php echo $this->createWebUrl('fanslist',array('rid' => $rid));}">参与用户</a></li>
+	</ul>
+	
+	   <div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+		<form action="./index.php" method="get" class="form-horizontal" role="form">
+			<input type="hidden" name="c" value="site" />
+			<input type="hidden" name="a" value="entry" />
+        	<input type="hidden" name="m" value="ewei_couplet" />
+        	<input type="hidden" name="do" value="fanslist" />
+        	<input type="hidden" name="rid" value="{$_GPC['rid']}" />
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">关键字</label>
+				<div class="col-sm-8 col-lg-9">
+					<input class="form-control" name="keywords" id="" type="text" value="{$_GPC['keywords']}" placeholder="可查询手机号"> 
+				</div>
+                          
+			</div>
+				<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">状态</label>
+				<div class="col-sm-8 col-lg-9">
+					<select name="status" class="form-control" style="float:left">
+                                        <option value="" {if $_GPC['status']==''}selected{/if}>全部</option>
+                                        <option value="0" {if $_GPC['status']=='0'}selected{/if}>未中奖</option>
+                                        <option value="1" {if $_GPC['status']=='1'}selected{/if}>已中奖</option>
+                                        <option value="1" {if $_GPC['status']=='2'}selected{/if}>已兑奖</option>
+                                    </select>
+				</div>
+                                <div class=" col-xs-12 col-sm-2 col-lg-2">
+					<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+				</div>
+			</div>
+			
+ 			<div class="form-group">
+			</div>
+		</form>
+	</div>
+	
+	 
+		<div style="padding: 0 15px 0  15px;">
+		  <div class="row-fluid">
+                                <div class="span8 control-group">
+                                    <a class="btn btn-default" href="{php echo $this->createWebUrl('download',array('rid'=>$rid))}"><i class="icon-download-alt"></i>导出中奖用户</a>
+                                    <a class="btn btn-default" href="{php echo $this->createWebUrl('fanslist',array('rid'=>$rid))}">全部</a>
+                                    <a class="btn btn-default" href="{php echo $this->createWebUrl('fanslist',array('rid'=>$rid,'status'=>0))}">未中奖</a>
+                                    <a class="btn btn-default" href="{php echo $this->createWebUrl('fanslist',array('rid'=>$rid,'status'=>1))}">已中奖</a>
+                                    <a class="btn btn-default" href="{php echo $this->createWebUrl('fanslist',array('rid'=>$rid,'status'=>2))}">已兑奖</a>
+                                </div>
+                            </div>
+
+		</div>
+	<div style="padding: 0 15px 0  15px;" style="position:relative">
+		<table class="table table-hover" style="position:relative">
+			<thead class="navbar-inner">
+			 <tr>
+                                                <th style='width:80px;'>序号</th>
+			<th style='width:80px;'>头像</th>
+                                                <th>用户</th>
+                                                <th style='width:80px;'>地区</th>
+                                                <th>登记信息</th>
+                                                <th>对联</th>
+                                                <th>参与时间</th>
+                                                <th>状态</th>
+                                                <th>操作</th>
+		</tr>
+			</thead>
+			<tbody>
+				{loop $list $row}
+				<tr>
+				<td>{$row['id']}</td>
+				 <td><img width="25px" class="img-rounded" alt="" src="{$row['headurl']}"></td>
+                                 <td>{$row['nickname']}</td>
+                                 <td>{$row['area']}</td>
+                                 <td>{if empty($row['realname'])}
+                                    -----
+                                    {else}
+                                    {$row['realname']} / {$row['mobile']}
+                                    {/if}
+                                 </td>
+                                                               <td>
+                                                                   {php $uptext = unserialize($row['uptext'])}
+                                                                   {loop $uptext $ut}
+                                                                      {$ut['char']}
+                                                                   {/loop}
+                                                              <br/>
+                                                                 {php $downtext = unserialize($row['downtext'])}
+                                                                   {loop $downtext $dt}
+                                                                      {if !empty($dt['bingo'])}
+                                                                      <span class="label label-success">{$dt['char']}</span>
+                                                                      {else}
+                                                                      <span class="label label-default">{$dt['char']}</span>
+                                                                      {/if}
+                                                                   {/loop}
+                                                               
+                                                               </td>
+                                                  <td>{php echo date('Y/m/d H:i',$row['createtime']);}</td>
+                                                     <td>{if $row['status']==2}
+                                                    <span class="label label-success">已兑奖</span>
+                                                    {elseif $row['status']==1}
+                                                    <span class="label label-warning">已中奖</span>
+                                                    {else}
+                                                    <span class="label label-default">未中奖</span>
+                                                    {/if}
+                                                </td>
+                                                <td>
+                                                 {if $row['status']=='1'}
+                                                  <a class="btn btn-default" href="#" onclick="drop_confirm('确认已经领奖？','{php echo $this->createWebUrl('getaward',array('id'=>$row['id'],'rid'=>$row['rid']))}');">确认兑奖</a>
+                                                  {elseif $row['status']=='2'}
+                                                  已兑奖
+                                                  {/if}
+                                                </td>
+				</tr>
+				{/loop}
+				  <tr>
+                    <td colspan="9">
+                        <form action="./index.php" method="post" class="form-horizontal" role="form">
+			<input type="hidden" name="c" value="site" />
+			<input type="hidden" name="a" value="entry" />
+        	<input type="hidden" name="m" value="ewei_couplet" />
+        	<input type="hidden" name="do" value="fanslist" />
+                <input type="hidden" name="rid" value="{$_GPC['rid']}" />
+                <input type="hidden" name="token" value="{$_W['token']}" />
+                <div class='col-sm-3'>
+                        <div class='input-group'>
+                            <span class='input-group-addon'>模拟</span>
+                            
+                            <input type="text" name="simulatenum" class='form-control' />
+                             <span class='input-group-addon'>条领奖记录</span>
+                            <div class='input-group-btn'>
+                                  <input type="submit" class="btn btn-primary" name="simulate" value="模拟领奖记录" />
+                            </div>
+                        </div></div>
+                        </form>
+                        
+                    </td>
+                </tr>
+			</tbody>
+		</table>
+		{$pager}
+	</div>
+	
+</div>
+<script>
+
+function drop_confirm(msg, url){
+    if(confirm(msg)){
+        window.location = url;
+    }
+}
+ 
+</script>
+{template 'common/footer'}

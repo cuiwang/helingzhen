@@ -1,0 +1,309 @@
+{php include wl_template('common/header');}
+<ul class="nav nav-tabs">
+	<li {if $_GPC['op']=='display' || $_GPC['op']==''}class="active"{/if}><a href="{php echo web_url('application/merchant', array('op'=>'display'));}">商家列表</a></li>
+	<li {if $_GPC['op']=='edit' && empty($id)}class="active"{/if}><a href="{php echo web_url('application/merchant', array('op'=>'edit'));}">添加商家</a></li>
+	{if !empty($id)}
+	<li class="active"><a href="{php echo web_url('application/merchant', array('op'=>'edit', 'id'=>$id));}">编辑商品</a></li>
+	{/if}
+</ul>
+{if $_GPC['op']=='display' || $_GPC['op']==''}
+	<div class="panel panel-default">
+		<div class="table-responsive">
+			<table class="table table-hover" style="min-width: 300px;">
+				<thead class="navbar-inner">
+					<tr>
+						<th class="col-sm-2">商家名称</th>
+						<th class="col-sm-1">佣金</th>
+						<th class="col-sm-1">商家logo</th>
+						<th class="col-sm-2">联系人</th>
+						<th class="col-sm-2">联系电话</th>
+						<th class="col-sm-3">商家地址</th>
+						<th class="col-sm-1">总销量</th>
+						<th class="col-sm-2 text-right">操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					{loop $merchants $merchantid $merchant}
+					<tr>
+						<td>{php echo cutstr($merchant['name'], 30, true);}</td>
+						<td>{if !empty($merchant['percent'])}{$merchant['percent']}%{else}0.00%{/if}</td>
+						<td><image src="{php echo tomedia($merchant['thumb']);}" style="max-width: 48px; max-height: 48px; border: 1px dotted gray"></td>
+						<td>{$merchant['linkman_name']}</td>
+						<td>{$merchant['linkman_mobile']}</td>
+						<td>{$merchant['address']}</td>
+						<td>{$merchant['salenum']}</td>
+						<td class="text-right">
+							<a href="{php echo web_url('application/merchant', array('op'=>'edit', 'id'=>$merchant['id']));}" class="btn btn-default" data-toggle="tooltip" data-placement="top" title="" data-original-title="编辑"><i class="fa fa-pencil"></i></a>
+							<a href="{php echo web_url('application/merchant',array('op'=>'delete','id'=>$merchant['id']));}" onclick="return confirm('此操作不可恢复，确认删除？');return false;" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="删除"><i class="fa fa-times"></i></a>
+							<a href="{php echo web_url('application/merchant', array('op'=>'permissions','id'=>$merchant['id']))}" class="btn btn-success btn-sm">权限管理</a>
+						</td>
+					</tr>
+					{/loop}
+					{if empty($merchants)}
+					<tr>
+						<td colspan="8">
+							尚未添加商家
+						</td>
+					</tr>
+					{/if}
+				</tbody>
+			</table>
+			{$pager}
+		</div>
+	</div>
+{elseif $_GPC['op']=='edit'}
+<div class="main">
+	<form action="" method="post" class="form-horizontal form" id="form">
+		<div class="panel panel-default">
+			<div class="panel-heading">商家</div>
+			<div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">是否分配后台权限</label>
+					<div class="col-xs-12 col-sm-8">
+						<label class="radio radio-inline">
+							<input type="radio" name="merchant[open]" value="1" {if intval($merchant['open']) !=2}checked="checked"{/if} onclick="$('#level').show();"> 是
+						</label>
+						<label class="radio radio-inline">
+							<input type="radio" name="merchant[open]" value="2" {if intval($merchant['open']) ==2}checked="checked"{/if} onclick="$('#level').hide();"> 否
+						</label>
+					</div>
+				</div>
+				<div id="level" {if $merchant['open']==2}style="display: none;"{/if}> 
+				<div class="form-group" >
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">用户名</label>
+					<div class="col-xs-12 col-sm-8">
+						{if !empty($merchant)}
+						<span class="uneditable-input form-control">{$merchant['uname']}</span>
+						{else}
+						<input type="text" name="merchant[uname]" class="form-control" value="{$merchant['uname']}" />
+						{/if}
+						
+					</div>
+				</div>
+				{if !empty($merchant)}
+				<div class="form-group" >
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">原密码</label>
+					<div class="col-xs-12 col-sm-8">
+						<input type="password" name="opwd" class="form-control" value="" />
+					</div>
+				</div>
+				<div class="form-group" >
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">新密码</label>
+					<div class="col-xs-12 col-sm-8">
+						<input type="password" name="npwd" class="form-control" value="" />
+					</div>
+				</div>
+				<div class="form-group" >
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">再次输入</label>
+					<div class="col-xs-12 col-sm-8">
+						<input type="password" name="tpwd" class="form-control" value="" />
+					</div>
+				</div>
+				{else}
+				<div class="form-group" >
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">密码</label>
+					<div class="col-xs-12 col-sm-8">
+						<input type="password" name="merchant[password]" class="form-control" value="{$merchant['password']}" />
+					</div>
+				</div>
+				<div class="form-group" >
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">再次输入</label>
+					<div class="col-xs-12 col-sm-8">
+						<input type="password" name="tpwd" class="form-control" value="" />
+					</div>
+				</div>
+				{/if}
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">佣金百分比</label>
+					<div class="col-xs-12 col-sm-8">
+						<div class="input-group">
+							<input type="text" name="merchant[percent]" class="form-control" value="{$merchant['percent']}" />
+							<span class="input-group-addon">%</span>
+						</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">商家名称</label>
+					<div class="col-xs-12 col-sm-8">
+						<input type="text" name="merchant[name]" class="form-control" value="{$merchant['name']}" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">商家logo</label>
+					<div class="col-xs-12 col-sm-8">
+						{php echo tpl_form_field_image('merchant[thumb]', $merchant['thumb']);}
+						<span class="help-block">图片建议为200*150</span>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">上传商品数量上限</label>
+					<div class="col-xs-12 col-sm-8">
+							<input type="text" name="merchant[goodsnum]" class="form-control" value="{$merchant['goodsnum']}">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">总销量</label>
+					<div class="col-xs-12 col-sm-8">
+							<input type="text" name="merchant[salenum]" class="form-control" value="{$merchant['salenum']}">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">商家行业</label>
+					<div class="col-xs-12 col-sm-8">
+							<input type="text" name="merchant[industry]" class="form-control" value="{$merchant['industry']}">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">商家地址</label>
+					<div class="col-xs-12 col-sm-8">
+							<input type="text" name="merchant[address]" class="form-control" value="{$merchant['address']}">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">联系人</label>
+					<div class="col-xs-12 col-sm-8">
+							<input type="text" name="merchant[linkman_name]" class="form-control" value="{$merchant['linkman_name']}" >
+					</div>
+				</div>
+				<div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style='color:red'>*</span> 选择提现到微信号</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <input type='hidden' id='openid' name='openid' value="{$saler['openid']}" />
+                        <div class='input-group'>
+                            <input type="text" name="saler" maxlength="30" value="{if !empty($saler)}{$saler['nickname']}{/if}" id="saler" class="form-control" readonly />
+                            <div class='input-group-btn'>
+                                <button class="btn btn-default" type="button" onclick="popwin = $('#modal-module-menus').modal();">选择提现到微信号</button>
+                            </div>
+                        </div>
+                        {if !empty($saler)}
+                        <span class='help-block'><img style="width:100px;height:100px;border:1px solid #ccc;padding:1px" src="{$saler['avatar']}" id="avatar" /></span>
+                        {/if}
+                        <div id="modal-module-menus"  class="modal fade" tabindex="-1">
+                            <div class="modal-dialog" style='width: 920px;'>
+                                <div class="modal-content">
+                                    <div class="modal-header"><button aria-hidden="true" data-dismiss="modal" class="close one" type="button">×</button><h3>选择提现到微信号</h3></div>
+                                    <div class="modal-body" >
+                                        <div class="row">
+                                            <div class="input-group">
+                                                <input type="text" class="form-control" name="keyword" value="" id="search-kwd" placeholder="请输入粉丝昵称" />
+                                                <span class='input-group-btn'><button type="button" class="btn btn-default" onclick="search_members('saler','search-kwd');">搜索</button></span>
+                                            </div>
+                                        </div>
+                                        <div id="module-menus" style="padding-top:5px;"></div>
+                                    </div>
+                                    <div class="modal-footer"><a href="#" class="btn btn-default" data-dismiss="modal" aria-hidden="true" id="c1">关闭</a></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style='color:red'>*</span> 选择通知管理员</label>
+                    <div class="col-sm-9 col-xs-12">
+                        <input type='hidden' id='messageopenid' name='messageopenid' value="{$messagesaler['openid']}" />
+                        <div class='input-group'>
+                            <input type="text" name="messagesaler" maxlength="30" value="{if !empty($messagesaler)}{$messagesaler['nickname']}{/if}" id="messagesaler" class="form-control" readonly />
+                            <div class='input-group-btn'>
+                                <button class="btn btn-default" type="button" onclick="popwin = $('#modal-module-menus2').modal();">选择通知管理员</button>
+                            </div>
+                        </div>
+                        {if !empty($messagesaler)}
+                        <span class='help-block'><img style="width:100px;height:100px;border:1px solid #ccc;padding:1px" src="{$messagesaler['avatar']}" id="messageavatar" /></span>
+                        {/if}
+                        <div id="modal-module-menus2"  class="modal fade" tabindex="-1">
+                            <div class="modal-dialog" style='width: 920px;'>
+                                <div class="modal-content">
+                                    <div class="modal-header"><button aria-hidden="true" data-dismiss="modal" class="close two" type="button">×</button><h3>选择通知管理员</h3></div>
+                                    <div class="modal-body" >
+                                        <div class="row">
+                                            <div class="input-group">
+                                                <input type="text" class="form-control" name="keyword" value="" id="search-kwd2" placeholder="请输入粉丝昵称" />
+                                                <span class='input-group-btn'><button type="button" class="btn btn-default" onclick="search_members('messagesaler','search-kwd2');">搜索</button></span>
+                                            </div>
+                                        </div>
+                                        <div id="module-menus2" style="padding-top:5px;"></div>
+                                    </div>
+                                    <div class="modal-footer"><a href="#" class="btn btn-default" data-dismiss="modal" aria-hidden="true" id="c2">关闭</a></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">联系电话</label>
+					<div class="col-xs-12 col-sm-8">
+							<input type="text" name="merchant[linkman_mobile]" class="form-control" value="{$merchant['linkman_mobile']}" >
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">商家详情</label>
+					<div class="col-xs-12 col-sm-8">
+						<textarea style="height:200px;" name="merchant[detail]" class="form-control richtext" cols="60">{$merchant['detail']}</textarea>
+					</div>
+				</div>
+				{if !empty($id)}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">添加日期</label>
+					<div class="col-xs-12 col-sm-8">
+						<p class="form-control-static">{php echo date('Y-m-d', $merchant['createtime']);}</p>
+					</div>
+				</div>
+				{/if}
+				<div class="form-group">
+					<div class="col-xs-12 col-sm-9 col-md-10 col-lg-10 col-sm-offset-3 col-md-offset-2 col-lg-offset-2">
+						<input type="hidden" name="id" value="{$merchant['id']}" />
+						<input name="submit" type="submit" value="提交" class="btn btn-primary" />
+						<input type="hidden" name="token" value="{$_W['token']}" />
+					</div>
+				</div>
+			</div>
+		</div>
+	</form>
+</div>
+{elseif $_GPC['op']=='detail'}
+
+{/if}
+<script type="text/javascript">
+	 function search_members(s,k) {
+	 		if(k=='search-kwd'){
+	 			 if( $.trim($('#search-kwd').val())==''){
+	             Tip.focus('#search-kwd','请输入关键词');
+	             return;
+             	}
+				$("#module-menus").html("正在搜索....")
+				$.get("{php echo web_url('application/merchant',array('op'=>'search'))}", {
+					keyword: $.trim($('#search-kwd').val()),t:s
+				}, function(dat){
+					$('#module-menus').html(dat);
+				});
+	 		}else{
+	 			if( $.trim($('#search-kwd2').val())==''){
+	             Tip.focus('#search-kwd2','请输入关键词');
+	             return;
+             	}
+				$("#module-menus2").html("正在搜索....")
+				$.get("{php echo web_url('application/merchant',array('op'=>'search'))}", {
+					keyword: $.trim($('#search-kwd2').val()),type:s
+				}, function(dat){
+					$('#module-menus2').html(dat);
+				});
+	 		}
+          
+		}
+	function select_member(o,type) {
+		if(type =='saler'){
+			$("#openid").val(o.openid);
+			$("#saler").val(o.nickname);
+			$("#avatar").attr('src', o.avatar);
+			$(".one").click();
+		}else{
+			$("#messageopenid").val(o.openid);
+			$("#messagesaler").val(o.nickname);
+			$("#messageavatar").attr('src', o.avatar);
+			$(".two").click();
+		}
+		
+	}
+</script>
+{php include wl_template('common/footer');}

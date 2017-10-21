@@ -1,0 +1,283 @@
+{template 'common/header'}
+
+<script type="text/javascript" src="./resource/js/lib/jquery-ui-1.10.3.min.js"></script>
+<ul class="nav nav-tabs">
+	<li {if $operation == 'post'}class="active"{/if}><a href="{php echo $this->createWebUrl('goods', array('op' => 'post','rid'=>$rid))}">添加商品</a></li>
+	<li {if $operation == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('goods', array('op' => 'display','rid'=>$rid))}">管理商品</a></li>
+</ul>
+{if $operation == 'post'}
+
+<div class="main">
+	<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" id="form1">
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				{if empty($item['id'])}添加商品{else}编辑商品{/if}
+			</div>
+			<div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style='color:red'>*</span>商品名称</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" name="goodsname" id="goodsname" class="form-control" value="{$item['title']}" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">商品单位</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" name="company" id="company" class="form-control" value="{$item['company']}" />
+						<span class="help-block">如: 个/件/包/张</span>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style='color:red'>*</span>分类</label>
+					<div class="col-sm-9 col-xs-12">
+						<select name="category" class="form-control" required="required" id="category">
+							{if empty($item['categoryid'])}
+							<option value="0">请选择分类</option>
+							{else}
+							<option value="{$categoryss['id']}" selected>{$categoryss['name']}</option>
+							{/if}
+							{loop $category $row}
+							<option value="{$row['id']}">{$row['name']}</option>
+							{/loop}
+						</select>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">商品图</label>
+					<div class="col-sm-9 col-xs-12">
+						{php echo tpl_form_field_image('thumb', $item['thumb'], '', array('extras' => array('text' => 'readonly')))}
+					</div>
+				</div>
+
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">商品价格</label>
+					<div class="col-sm-9 col-xs-12">
+						<div class="input-group form-group">
+							<span class="input-group-addon">销售价</span>
+							<input type="text" name="productprice" id="productprice" class="form-control" value="{$item['productprice']}" />
+							<span class="input-group-addon">元</span>
+						</div>
+
+						<div class="input-group form-group">
+							<span class="input-group-addon">原价</span>
+							<input type="text" name="originalprice" id="originalprice" class="form-control" value="{$item['originalprice']}" />
+							<span class="input-group-addon">元</span>
+						</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">剩余库存</label>
+					<div class="col-sm-9 col-xs-12">
+						<div class="input-group">
+							<input type="text" name="stock" id="stock" class="form-control" value="{$item['stock']}" />
+							<span class="input-group-addon">件</span>
+						</div>
+						<span class="help-block">当前商品的库存数量(0表示无限制)</span>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">是否赠送</label>
+					<div class="col-sm-9">
+						<label class="radio-inline">
+							<input type="radio" name="give_type" value="0" id="pt" {if $item['give_type']==0} checked="checked"{/if}/>不赠送
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="give_type" value="1" id="gzh" {if $item['give_type']==1} checked="checked"{/if}/>赠送实物
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="give_type" value="2" id="gzhyy" {if $item['give_type']==2} checked="checked"{/if}/>赠送霸屏金额
+						</label>
+						<div class="help-block">
+							<span>默认不赠送。</span><br>
+						</div>
+					</div>
+				</div>
+
+				<div class="form-group"  id="ones" {if $item['give_type']==2}{else}style="display: none"{/if}>
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">赠送霸屏金额</label>
+					<div class="col-sm-3 col-xs-6">
+					<div class="input-group">
+						<span class="input-group-addon">满</span>
+						<input type="text" name="full_money" id="full_money" class="form-control" value="{$item['full_money']}" />
+						<span class="input-group-addon">元</span>
+					</div>
+
+
+			 	</div>
+					<div class="col-sm-3 col-xs-6" >
+						<div class="input-group">
+							<span class="input-group-addon">赠送</span>
+							<input type="text" name="seng_money" id="seng_money" class="form-control" value="{$item['seng_money']}" />
+							<span class="input-group-addon">霸屏金额</span>
+						</div>
+
+
+					</div>
+					<p class="help-block">会员购买送霸屏金额(不能提现)</p>
+				</div>
+
+				<div class="form-group" id="twos" {if $item['give_type']==1}{else}style="display: none"{/if}>
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">实物物品</label>
+					<div class="col-sm-9 col-xs-12">
+							<input type="text" name="give_note" id="give_note" class="form-control" value="{$item['give_note']}" />
+						<p class="help-block">赠送说明</p>
+					</div>
+				</div>
+
+			</div>
+		</div>
+		<div class="form-group col-sm-12">
+			<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+			<input type="hidden" name="token" value="{$_W['token']}" />
+			<input type="hidden" name="id" value="{$item['id']}" />
+			<input type="hidden" name="goodssn" value="{$item['goodssn']}" />
+		</div>
+	</form>
+</div>
+<script>
+    $(function(){
+        $("input[type='radio']").click(function(){
+            var id= $(this).attr("id");
+            var fs=$("#"+id).val();
+
+            if(fs == 0){
+                $("#ones").hide();
+                $("#twos").hide();
+            }
+            if(fs == 2){
+                $("#ones").show();
+                $("#twos").hide();
+            }
+            if(fs == 1){
+                $("#twos").show();
+                $("#ones").hide();
+            }
+
+        });
+    });
+</script>
+
+{elseif $operation == 'display'}
+
+<div class="main">
+	<div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+		<form action="./index.php" method="get" class="form-horizontal" role="form">
+			<input type="hidden" name="c" value="site" />
+			<input type="hidden" name="a" value="entry" />
+			<input type="hidden" name="m" value="haoman_dpm" />
+			<input type="hidden" name="do" value="goods" />
+			<input type="hidden" name="op" value="display" />
+			<input type="hidden" name="rid" value="{$rid}" />
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">关键字</label>
+				<div class="col-xs-12 col-sm-8 col-lg-9">
+					<input class="form-control" name="keyword" id="" type="text" value="{$_GPC['keyword']}">
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">状态</label>
+				<div class="col-xs-12 col-sm-8 col-lg-9">
+					<select name="status" class='form-control'>
+						<option value="1" {if $_GPC['status'] != '0'} selected{/if}>上架</option>
+						<option value="0" {if $_GPC['status'] == '0'} selected{/if}>下架</option>
+					</select>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-1 control-label">分类</label>
+				<div class="col-sm-8 col-xs-12">
+					<select name="category" class="form-control" required="required" id="category">
+						<option value="0">请选择分类</option>
+						{loop $category $row}
+						<option value="{$row['id']}">{$row['name']}</option>
+						{/loop}
+					</select>
+				</div>
+				<div class="col-xs-12 col-sm-2 col-lg-2">
+					<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+				</div>
+			</div>
+
+			<div class="form-group">
+			</div>
+		</form>
+	</div>
+</div>
+<style>
+.label{cursor:pointer;}
+</style>
+<div class="panel panel-default">
+	<div class="panel-body table-responsive">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<th style="width:5%;">ID</th>
+					<th style="width:10%;">商品编号</th>
+					<th style="width:20%;">商品标题</th>
+					<th style="width:20%;">分类</th>
+					<th style="width:10%;">商品库存</th>
+					<th style="width:10%;">商品销售量</th>
+					<th style="width:10%;">状态(点击可修改)</th>
+					<th style="text-align:right; width:20%;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $item}
+				<tr>
+					<td>{$item['id']}</td>
+					<td>{$item['goodssn']}</td>
+					<td>{$item['title']}</td>
+					<td>{$item['categoryid']}</td>
+					<td>{if $item['stock']==0}不限制{else}{$item['stock']}{/if}</td>
+					<td>{$item['sale_number']}</td>
+					<td>
+						<label data='{$item['status']}' class='label  label-default {if $item['status']==1}label-info{/if}' onclick="setProperty(this,{$item['id']},'status')">{if $item['status']==1}上架中{else}已下架{/if}</label>
+						<!--<label data='{$item['type']}' class='label  label-default {if $item['type']==1}label-info{/if}' onclick="setProperty(this,{$item['id']},'type')">{if $item['type']==1}实体物品{else}虚拟物品{/if}</label>-->
+					</td>
+					<td style="text-align:right;">
+						<a href="{php echo $this->createWebUrl('goods', array('id' => $item['id'], 'op' => 'post','goodssn'=>$item['goodssn'],'rid'=>$item['rid']))}"class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" title="编辑"><i class="fa fa-pencil"></i></a>&nbsp;&nbsp;
+						<a href="{php echo $this->createWebUrl('goods', array('id' => $item['id'], 'op' => 'delete','rid'=>$item['rid']))}" onclick="return confirm('此操作不可恢复，确认删除？');return false;" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" title="删除"><i class="fa fa-times"></i></a>
+					</td>
+				</tr>
+				{/loop}
+			</tbody>
+		</table>
+		{$pager}
+	</div>
+	</div>
+</div>
+<script type="text/javascript">
+	require(['bootstrap'],function($){
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+	});
+
+	var category = {php echo json_encode($children)};
+	function setProperty(obj,id,type){
+		$(obj).html($(obj).html() + "...");
+		$.post("{php echo $this->createWebUrl('setgoodsproperty')}",{id:id,type:type, data: obj.getAttribute("data")},function(d){
+				$(obj).html($(obj).html().replace("...",""));
+
+				if(type=='status'){
+				 $(obj).html( d.data=='1'?'上架中':'已下架');
+				}
+				$(obj).attr("data",d.data);
+				if(d.result==1){
+					$(obj).toggleClass("label-info");
+				}
+			}
+			,"json"
+		);
+	}
+
+</script>
+{/if}
+{template 'common/footer'}

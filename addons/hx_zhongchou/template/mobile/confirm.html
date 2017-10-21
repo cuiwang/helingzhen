@@ -1,0 +1,146 @@
+{template 'header'}
+<link href="{CSS_PATH}bootstrap.min.css" rel="stylesheet">
+<style type="text/css">
+.shopcart-main{margin:10px; -webkit-box-shadow:0 1px 2px 1px rgba(0,0,0,0.2); box-shadow:0 1px 2px 1px rgba(0,0,0,0.2); overflow:hidden; background:#FFF;}
+.order-main h5{font-size:14px; border-left:3px #b3b6c0 solid; padding-left:10px; margin-top:15px;}
+.order-main .address{font-weight:normal; margin-bottom:10px;}
+.order-main .address > div{}
+.order-main .address > div.detail{}
+.order-main .address > div.detail span{display:block;}
+.order-main .address > div.detail span a{display:inline-block; margin-top:5px; color:#62413d; text-decoration:underline;}
+.order-main .add-address{border:1px solid #e1e1e1; background:#FFF; margin-top:10px; overflow:hidden;}
+.order-main .add-address-hd{height:40px; line-height:40px; padding:0 10px; background:#f4f4f4; color:#555; font-weight:bold;}
+.order-main .add-address .add-address-main{padding:10px;}
+.order-main .add-address .add-address-main .control-label{font-weight:normal;}
+.order-main .order-detail .order-detail-hd{color:#555; margin:5px 0; font-size:12px;}
+.order-main .order-detail .table{background:#FFF;}
+.order-main .order-detail .table thead{background:#6c6666; color:#FFF;}
+.order-main .order-detail .table > thead > tr > th{border:0;}
+.order-main .order-detail .table > tbody > tr > td{border-bottom:1px #DDD dotted;}
+.order-main .order-detail .table .name{width:160px;}
+.order-main .order-detail .table .name span{display:inline-block; width:140px; text-overflow:ellipsis; white-space:nowrap; overflow:hidden;}
+.order-main .order-detail .table .num{width:80px; text-align:center;}
+.order-main .order-detail .table .total{text-align:right; width:100px;}
+.order-main .message-box{margin-bottom:10px;}
+.order-main .order-submit{width:100%;}
+</style>
+<script type='text/javascript' src='{JS_PATH}jquery-1.11.1.min.js'></script>
+<form class="form-horizontal" method="post" role="form" onsubmit='return check()' style="width:98%;margin:0 auto 0;">
+	<input type="hidden" name="goodstype" value="{$goodstype}" />
+	<input type="hidden" name="address" value="{$row['id']}" />
+	<div class="order-main">
+		<h5>用户信息</h5>
+		<div id="myaddress">
+			{if !empty($row)}
+			<div id='address_{$row['id']}' class="shopcart-main img-rounded address_item" style='margin:0;padding:10px;margin-bottom:10px;cursor:pointer' onclick='changeAddress()'>
+				<span>{$row['username']}, {$row['mobile']}</span>
+				<span style='float:right'>&nbsp;&nbsp;
+					<a href="{php echo $this->createMobileUrl('address',array('from'=>'confirm','returnurl'=>urlencode($returnurl)))}">管理用户信息</a>
+				</span>
+			</div>
+			{else}
+			<div>
+				<button type="button" class="btn btn-info" onclick="location.href='{php echo $this->createMobileUrl('address',array('from'=>'confirm','returnurl'=>urlencode($returnurl)))}'"><i class="fa fa-plus"></i> 添加修改信息</button>
+			</div>
+			{/if}
+		</div>
+		{if $item['return_type'] == 1}
+ 		<h5>配送方式</h5>
+		<select id='dispatch' name="dispatch" class="form-control">
+	   	{loop $dispatch $d}
+			<option value="{$d['id']}" price='{$d['price']}'>{$d['dispatchname']} ({$d['price']}元)</option>
+		{/loop}
+		</select>
+		{/if}
+		<h5>项目名称</h5>
+		<div class="panel panel-default">
+			<div class="panel-body">
+				{$project['title']}
+			</div>
+		</div>
+		<h5>项目简介</h5>
+		<div class="panel panel-default">
+			<div class="panel-body">
+				{$project['brief']}
+			</div>
+		</div>
+		<h5>回报类型</h5>
+		<div class="panel panel-default">
+			<div class="panel-body">
+				{if $item['return_type'] == 1}实物回报 
+				{else if $item['return_type'] == 2}虚拟回报
+				{/if}
+			</div>
+		</div>
+		<h5>回报详情</h5>
+		<div class="panel panel-default">
+			<div class="panel-body">
+				{$item['description']}
+			</div>
+		</div>
+		<h5>订单详情</h5>
+		<div class="order-detail">
+			<table class="table">
+				<thead>
+				<tr>
+					<th class="name">项目名称</th>
+					<th class="total">需支付</th>
+				</tr>
+				</thead>
+				<tbody>				<tr>
+					<td class="name">
+						<span  style="float:left;">
+							<a href='{php echo $this->createMobileUrl('detail',array('id'=>$project['id']))}'>{$project['title']}</a>
+						</span>
+					</td>
+					<td class="total"><span class='goodsprice'>{$item['price']} 元</span></td>
+				</tr>
+				</tbody>
+			</table>
+			<div class="order-detail-hd">
+				<span class="pull-right" style="color:#E74C3C;">
+					[合计：<span id='totalprice'>{$totalprice}</span>]
+				</span>
+			</div>
+			<div style="clear:both;"></div>
+		</div>
+		<h5>留言</h5>
+		<div class="message-box">
+			<textarea class="form-control" rows="3" name="remark" placeholder="亲，还用什么能帮助到您吗？就写到这里吧！"></textarea>
+		</div>
+		<button type="submit" name="submit" value="yes" class="btn btn-success btn-lg" style="width:100%;">提交订单</button>
+		<input type="hidden" name="token" value="{$_W['token']}" />
+	</div>
+</form>
+<div style="height:60px;"></div>
+<script language='javascript'>
+	function changeAddress(){
+		location.href = '{php echo $this->createMobileUrl('address', array('from'=>'confirm','returnurl'=>urlencode($returnurl)))}'
+	}
+	function check(){
+		if((".address_item").length<=0){
+			alert("请添加收货地址!");
+			return false;
+		}
+		return true;
+	}
+	$("#dispatch").change(canculate);
+	function canculate(){
+		var price = 0;
+		$(".goodsprice").each(function(){
+			price+=parseFloat($(this).html());
+		});
+		var dispatchprice = parseFloat($("#dispatch").find("option:selected").attr("price"));
+		if(dispatchprice>0){
+			$("#totalprice").html(price + dispatchprice + " 元 (含运费"+dispatchprice + ")");
+		}
+		else{
+			$("#totalprice").html(price + " 元");
+		}
+	}
+	$(function(){
+		canculate();
+	})
+</script>
+{template 'footer'}
+{template 'footerbar'}

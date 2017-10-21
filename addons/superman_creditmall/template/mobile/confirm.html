@@ -1,0 +1,141 @@
+{template 'header'}
+<div class="page-group">
+	<div class="page superpage_{$do}" id="superpage_{$do}_{$act}">
+		{template 'nav'}
+		{if $act == 'display'}
+		{template 'title'}
+		<div class="content">
+			<form id="" method="post" action="">
+				<input type="hidden" name="id" value="{$id}">
+				<input type="hidden" name="token" value="{$_W['token']}">
+				<input type="hidden" name="total" id="total" value="1">
+				<input type="hidden" id="prodcut_credit" value="{$product['credit']}">
+				<input type="hidden" id="mycredit" value="{$mycredit}">
+				<input type="hidden" id="credit_title" value="{$product['credit_title']}">
+				{if $product['type'] != 8 && $product['isvirtual'] != 1}
+				<input type="hidden" name="address_id" id="address_id" value="{$address['id']}">
+				<input type="hidden" name="dispatch_id" id="dispatch_id" value="{$dispatch_list[0]['id']}">
+				<input type="hidden" id="need_address" value="{$dispatch_list[0]['need_address']}">
+				<div class="content-block-title">配送方式</div>
+				<div class="list-block dispatch_wrap">
+					<ul>
+						{if $dispatch_list}
+						{loop $dispatch_list $key $item}
+						<li>
+							<a href="#" data-dispatch-id="{$item['id']}" data-need-address="{$item['need_address']}" data-address-id="{$address['id']}" class="item-link list-button font7 {if $key==0}dispatch_active{/if}">
+								{$item['title']}{if $item['fee']>0}({$item['fee']}元){/if}
+								{if $key==0}<span class="icon icon-check pull-right"></span>{/if}
+							</a>
+							<div class="list-block media-list content_wrap" style="{if $key==0}display:block{/if}">
+								<ul class="addr_wrap">
+									<li>
+									{if $item['need_address']}
+										{if $address}
+										<a href="{$address_url}" class="item-link item-content">
+											<div class="item-inner">
+												<div class="item-title-row">
+													<div class="item-title">
+														{$address['username']}
+													</div>
+												</div>
+												<div class="item-subtitle">
+													{$address['mobile']}
+												</div>
+												<div class="item-text">
+													{$address['province']}{$address['city']}{$address['district']}{$address['address']}
+												</div>
+											</div>
+										</a>
+										{else}
+										<div class="content-block add_addr_wrap">
+											<a href="{$address_url}" class="button">
+												<span class="icon icon-edit"></span> 添加收货地址
+											</a>
+										</div>
+										{/if}
+									{else}
+										{if isset($item['extend']['pickup_info']) && $item['extend']['pickup_info']!=''}
+										<div class="content-block font7 pickup_info_wrap">
+											{php echo htmlspecialchars_decode($item['extend']['pickup_info'])}
+										</div>
+										{/if}
+									{/if}
+									</li>
+								</ul>
+							</div>
+						</li>
+						{/loop}
+						{else}
+						<li style="height: 4rem;"></li>
+						{/if}
+					</ul>
+				</div>
+				{/if}
+				<div class="content-block-title">商品详情</div>
+				<div class="list-block product_wrap">
+					<ul>
+						<li>
+							<div class="content-padded clearfix">
+								<div class="row">
+									<div class="col-33">
+										<a href="{php echo $this->createMobileUrl('detail', array('id' => $id))}" class="external">
+											<div class="product_cover">
+												<img src="{$product['cover']}" onerror="this.src='{php echo superman_img_placeholder()}'"/>
+											</div>
+										</a>
+									</div>
+									<div class="col-66">
+										<a href="{php echo $this->createMobileUrl('detail', array('id' => $id))}" class="external">
+											<div class="product_title font7"><span class="product_property font6">{$product['type_name']}</span>{$product['title']}</div>
+											<!--<div class="product_property font7">{$product['type_name']}</div>-->
+											<div class="product_credit font7">
+												{if $product['price']>0}
+												<span class="credit_color">{$product['credit']}</span>{$product['credit_title']}+<span class="credit_color">{$product['price']}</span>元
+												{else}
+												<span class="credit_color">{$product['credit']}</span>{$product['credit_title']}
+												{/if}
+												&nbsp;&nbsp;<span class="credit_color">{$product['total']}</span>库存
+											</div>
+										</a>
+										<div class="pull-right product_btn_wrap">
+											<div class="buttons-row" >
+												<a id="btn_minus" data-title="购买数不能小于1" data-min-total="1" href="javascript:;" class="button">-</a>
+												<a id="product_total" href="javascript;" class="button">1</a>
+												<a id="btn_plus" data-total-title="超过库存数量" data-over-title="超过可购买数量" data-order-buy-num="{$product['order_buy_num']}" data-max-total="{$product['total']}" href="javascript:;" class="button">+</a>
+											</div>
+										</div>
+										{if $product['order_buy_num']}<span class="font5 red">每人最多购买{$product['order_buy_num']}件</span>{/if}
+									</div>
+								</div>
+							</div>
+						</li>
+					</ul>
+				</div>
+
+				<div class="content-block-title">留言</div>
+				<div class="list-block remark_wrap">
+					<ul>
+						<li>
+							<div class="content-padded">
+								<textarea class="font7" name="remark" placeholder="选填、200字以内"></textarea>
+							</div>
+						</li>
+					</ul>
+				</div>
+
+				<div class="list-block inset submit_wrap">
+					<ul>
+						<li>
+							<button id="btn_submit_order" name="submit" value="yes" type="button" class="button button-fill">提交订单</button>
+						</li>
+					</ul>
+				</div>
+				{if $product['minus_total'] == 1}
+				<p class="grey text-center font6">订单创建后，请尽快支付，否则可能出现库存不足</p>
+				{/if}
+			</form>
+		</div>
+		{/if}
+	</div>
+</div>
+{template 'footer'}

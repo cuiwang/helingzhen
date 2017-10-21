@@ -1,0 +1,162 @@
+{template 'common/header'}
+<ul class="nav nav-tabs" id="myTab">
+    <li>
+		<a href="?c=home&a=welcome&do=ext&m={php echo $_GPC['m']}">返回</a>
+	</li>
+		<li><a href="{php echo $this->createWebUrl('threadclass');}">主题列表</a></li>
+    	<li><a href="{php echo $this->createWebUrl('manage',array('typeid'=>$row['typeid']))}">帖子管理</a></li>
+    	<li class="active"><a href="{php echo $this->createWebUrl('forum_post',array('id'=>$row['typeid']))}">添加帖子</a></li>
+</ul>
+<script type="text/javascript" src="resource/js/lib/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="resource/js/lib/jquery-ui-1.10.3.min.js"></script>
+<script>
+    require(['jquery', 'angular', 'util', 'underscore'], function($, angular, u, _){
+
+        $(function(){
+            angular.module('app', []).controller('custom', function($scope, $http) {
+                $scope.submit = function() {
+                    var message = '';
+                    
+                    if(message) {
+                        u.message(message);
+                    } else {
+                        $('#theform')[0].submit();
+                    }
+                };
+            });
+            angular.bootstrap(document, ['app']);
+        });
+    });
+
+</script>
+<style>
+
+</style>
+<div class="clearfix">
+    <form id="theform" class="form form-horizontal ng-cloak" action="" method="post" ng-controller="custom">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+            	{loop $types $t}
+                	<a href="{php echo $this->createWebUrl('forum_post',array('id'=>$id,'type'=>$t['code']))}" class="btn {if $t['code'] == $_GPC['type']}btn-success{else}btn-default{/if}">添加{$t['title']}</a>
+             	{/loop}
+             </div>
+            <div class="panel-body">
+            	
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">所属主题</label>
+                    <div class="col-sm-5">
+                    	<select name="fid" class="form-control" style="border: none;">
+		                   {loop $cats $cat}
+		            		<option value="{$cat['typeid']}" {if $cat['typeid']==$id}selected{/if} {if !empty($cat['ch'])}disabled{/if}>|{$cat['name']}</option>
+		            			{loop $cat['ch'] $ca}
+		            				<option value="{$ca['typeid']}" {if $ca['typeid']==$id}selected{/if}>--|{$ca['name']}</option>
+		            			{/loop}
+		            		{/loop}
+		            	</select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">标题</label>
+                    <div class="col-sm-5">
+                        <input class="form-control" type="text" name="title" value="{$setting['title']}"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">标签</label>
+                    <div class="col-sm-5">
+                    	{loop $tabs $t}
+                        {$t['title']}<input type="radio" class="radio-inline" name="tab" {if $setting['tab'] == $t['code']}checked{/if} value="{php echo $t['code']}"/>&nbsp;&nbsp;
+                        {/loop}
+                    </div>
+                </div>
+                
+                <div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">详情</label>
+					<div class="col-sm-9 col-xs-12">
+						{php echo tpl_ueditor('content', $setting['content']);}
+					</div>
+				</div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">回帖显示</label>
+                    <div class="col-sm-9 col-xs-12">
+                        {php echo tpl_ueditor('reply_content', $setting['reply_content']);}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">分享显示</label>
+                    <div class="col-sm-9 col-xs-12">
+                        {php echo tpl_ueditor('share_content', $setting['share_content']);}
+                    </div>
+                </div>
+				
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">图片</label>
+                    <div class="col-sm-5">
+                        {php echo tpl_form_field_multi_image('thumb',$setting['thumb'])}
+                        <p class="help-block">第一张图不显示在正文，为封面图！</p>
+                    </div>
+                </div>
+                {if $_GPC['type'] == 'goods' || $setting['type'] == 'goods'}
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">商品购买连接</label>
+                    <div class="col-sm-5">
+                        {php echo tpl_form_field_link('goods_link',$setting['goods_link'])}
+                    </div>
+                </div>
+                {/if}
+                
+                {if $_GPC['type'] == 'active' || $setting['type'] == 'active'}
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">活动连接</label>
+                    <div class="col-sm-5">
+                        {php echo tpl_form_field_link('active_link',$setting['active_link'])}
+                    </div>
+                </div>
+                {/if}
+                
+                {if $_GPC['type'] == 'money' || $setting['type'] == 'money'}
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">总悬赏金额</label>
+                    <div class="col-sm-5">
+                        <input class="form-control" type="text" name="money" value="{$setting['money']}"/>
+                    </div>
+                </div>
+                {/if}
+                
+                {if $_GPC['type'] == 'share' || $setting['type'] == 'share'}
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">分享奖励最小红包(元)</label>
+                    <div class="col-sm-5">
+                        <input class="form-control" type="text" name="hong_min" value="{$setting['hong_min']}"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">分享奖励最大红包(元)</label>
+                    <div class="col-sm-5">
+                        <input class="form-control" type="text" name="hong_max" value="{$setting['hong_max']}"/>
+                    </div>
+                </div>
+                {/if}
+               <!--  <div class="form-group">
+                    <label class="col-sm-2 control-label">语音资源</label>
+                    <div class="col-sm-5">
+                        {php echo tpl_form_field_multi_audio('audio',$setting['audio'])}
+                    </div>
+                </div> -->
+                
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+                    <div class="col-md-2 col-lg-1">
+                        <input type="button" value="保存" class="btn btn-primary btn-block" ng-click="submit();" />
+                        <input type="hidden" name="token" value="{$_W['token']}" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </form>
+</div>
+{template 'common/footer'}

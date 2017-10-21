@@ -1,0 +1,277 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li class="{if $op=='display'}active{/if}" data-son=".nav_list" data-title="分类列表">
+		<a href="{php echo $this->createWebUrl('image', array('op'=>'display'));}">奖品图片列表</a>
+
+	</li>
+	<li class="{if $op=='add'}active{/if}" data-son=".add_nav" data-title="新增列表">
+		<a href="{php echo $this->createWebUrl('image', array('op'=>'add'));}">新增奖品图片</a>
+
+	</li>
+	{if $op == 'update'}
+	<li class="{if $op=='update'}active{/if}" data-son=".update_nav" data-title="修改分类">
+		<a href="{php echo $this->createWebUrl('image', array('op'=>'update'));}">修改奖品图片</a>
+
+	</li>
+	{/if}
+</ul>
+<div class="panel panel-default ng-scope">
+	<div class="panel-heading" id="panel-heading">
+	
+	</div>
+	<div class="panel-body">
+		{if $op=='display'}
+		<div class="price_list">
+			<table st-table="items" class="table table-striped">
+				<thead>
+					<tr>
+						<th style="width:130px;">图片标题</th>
+						<!-- <th style="width:130px;">奖品数量</th> -->
+						<th style="width:130px;">图片缩略图</th>
+						<th style="width:130px;">排序</th>
+						<th style="width:130px;">是否为中奖图片</th>
+						<th style="width:130px;">中奖概率</th>
+						<th style="width:80px;">状态</th>
+						<th>操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					{loop $results $result}
+					<tr>
+						<td>
+							<a href="#" class="ng-scope ng-binding editable editable-click">
+								{$result['images_title']}
+							</a>
+						</td>
+						<!-- <td>
+							<a href="#" class="ng-scope ng-binding editable editable-click">
+								{$result['images_total']}
+							</a>
+						</td> -->
+						<td>
+							<img src="{php echo tomedia($result['images_thumbnail'])}" style="height:50px;width:50px">
+						</td>
+						<td>
+							<a href="#" class="ng-scope ng-binding editable editable-click">
+								{$result['images_number']}
+							</a>
+						</td>
+						<td>
+							<a href="#" class="ng-scope ng-binding editable editable-click">
+								{if $result['price_status']==1}是{else}否{/if}
+							</a>
+						</td>
+						<td>
+							<a href="#" class="ng-scope ng-binding editable editable-click">
+								{$result['price_percent']}
+							</a>
+						</td>
+						<td>
+							<label for="" ng-click="status(item)" class="label label-info">{if $result['images_status']==0}显示{elseif $result['images_status']==1}不显示{/if}</label>    
+						</td>           
+						<td>
+							<a class="btn btn-default" onclick="return confirm_r();" title="删除表单" href="{php echo $this->createWebUrl('image', array('op'=>'delete', 'id'=>$result['images_id']));}">
+								<i class="fa fa-times"></i>
+							</a>
+							<a class="btn btn-default" title="修改" href="{php echo $this->createWebUrl('image', array('op'=>'update', 'id'=>$result['images_id']));}">
+								<i class="fa  fa-check-square"></i>
+							</a>
+						</td>
+					</tr>
+					{/loop}
+				</tbody>
+			</table>
+		</div>
+		{/if}
+		{if $op=='add'}
+		<div class="add_price">
+			<form class="form-horizontal" onsubmit="return checkvalid();" action="{php echo $this->createWebUrl('image', array('op'=>'add'));}" method="post" enctype="multipart/form-data">
+			  <div class="form-group">
+			    <label for="inputEmail3" class="col-sm-2 control-label">奖品标题</label>
+			    <div class="col-sm-10">
+			      <input type="text" class="form-control" name="title" placeholder="标题">
+			    </div>
+			  </div>
+			  <!-- <div class="form-group">
+			    <label for="inputEmail3" class="col-sm-2 control-label">奖品数量</label>
+			    <div class="col-sm-10">
+			      <input type="text" class="form-control" name="price_total" placeholder="奖品数量">
+			    </div>
+			  </div> -->
+			  <div class="form-group">
+			    <label for="inputEmail3" class="col-sm-2 control-label">是否为中奖</label>
+			    <div class="col-sm-10">
+			      <select name="price_status" >
+			    	<option "{if $result['price_status'] == 1} selected = 'selected'{/if}" value="1" >是</option>
+			    	<option "{if $result['price_status'] == 0} selected = 'selected'{/if}" value="0">否</option>
+			      </select>
+			    </div>
+			  </div>
+			 <div class="form-group">
+			    <label for="inputEmail3" class="col-sm-2 control-label">设置中奖概率</label>
+			    <div class="col-sm-10">
+			      <input type="text" class="form-control" value="{$result['price_percent']}" name="price_percent" placeholder="设置中奖概率格式如 50 不带百分号">
+			    </div>
+			  </div>
+			  <div class="form-group">
+			    <label for="inputEmail3" class="col-sm-2 control-label">奖品排序</label>
+			    <div class="col-sm-10">
+			      <input type="text" class="form-control" name="number" placeholder="奖品序号">
+			    </div>
+			  </div>
+			  <div class="form-group">
+			    <label for="inputEmail3" class="col-sm-2 control-label">图片上传</label>
+			    <div class="col-sm-10">
+			      {php echo tpl_form_field_image('thumbnail')}
+			    </div>
+			  </div>
+			  <div class="form-group">
+			    <label class="col-sm-2 control-label">是否为谢谢惠顾图片</label>
+			    <select name="price_thanks">
+				  <option value="0">不是</option>
+				  <option value="1">是</option>
+				</select>
+			  </div>
+			  <div class="form-group">
+			    <label class="col-sm-2 control-label">是否显示</label>
+			    <select name="status">
+				  <option value="0">显示</option>
+				  <option value="1">不显示</option>
+				</select>
+			  </div>
+			  <div class="panel-footer">
+			  		<input type="hidden" value="{$_W['token']}" name="token" />
+			  		<!-- <input type="hidden" name="id" value="<?php echo $slide_id;?>"> -->
+					<input type="submit" name="submit" class="btn btn-sm btn-success" value="新增" />			
+			  </div>
+			</form>
+		</div>
+		{/if}
+		{if $op == 'update'}
+		<div class="update_price">
+			<form class="form-horizontal" onsubmit="return checkvalid();" action="{php echo $this->createWebUrl('image', array('op'=>'update'));}" method="post" enctype="multipart/form-data">
+			  <div class="form-group">
+			    <label for="inputEmail3" class="col-sm-2 control-label">奖品标题</label>
+			    <div class="col-sm-10">
+			      <input type="text" class="form-control" value="{$result['images_title']}" name="title" placeholder="标题">
+			    </div>
+			  </div>
+			  <!-- <div class="form-group">
+			    <label for="inputEmail3" class="col-sm-2 control-label">奖品数量</label>
+			    <div class="col-sm-10">
+			      <input type="text" class="form-control" value="{$result['images_total']}" name="price_total" placeholder="奖品数量">
+			    </div>
+			  </div> -->
+			  <div class="form-group">
+			    <label for="inputEmail3" class="col-sm-2 control-label">奖品排序</label>
+			    <div class="col-sm-10">
+			      <input type="text" class="form-control" value="{$result['images_number']}"  name="number" placeholder="奖品排序">
+			    </div>
+			  </div>
+				  <div class="form-group">
+				    <label for="inputEmail3" class="col-sm-2 control-label">是否为中奖</label>
+				    <div class="col-sm-10">
+				      <select name="price_status" >
+				    	<option "{if $result['price_status'] == 1} selected = 'selected'{/if}" value="1" >是</option>
+				    	<option "{if $result['price_status'] == 0} selected = 'selected'{/if}" value="0">否</option>
+				      </select>
+				    </div>
+				  </div>
+				  <div class="form-group">
+				    <label for="inputEmail3" class="col-sm-2 control-label">设置中奖概率</label>
+				    <div class="col-sm-10">
+				      <input type="text" class="form-control" value="{$result['price_percent']}" name="price_percent" placeholder="设置中奖概率">
+				    </div>
+				  </div>
+			  <div class="form-group">
+			    <label for="inputEmail3" class="col-sm-2 control-label">图片上传</label>
+			    <div class="col-sm-10">
+			      {php echo tpl_form_field_image('thumbnail',$result['images_thumbnail'])}
+			    </div>
+			  </div>
+			  <div class="form-group">
+			    <label class="col-sm-2 control-label">是否为谢谢惠顾图片</label>
+			    <select name="price_thanks">
+				  <option "{if $result['price_thanks'] ==1 } selected=selected{/if}" value="1" >是</option>
+				  <option "{if $result['price_thanks'] ==0 } selected=selected{/if}" value="0">不是</option>
+				</select>
+			  </div>
+			  <div class="form-group">
+			    <label class="col-sm-2 control-label">是否显示</label>
+			    <select name="status">
+				  <option "{if $result['images_status'] ==0 } selected=selected{/if}" value="0" >显示</option>
+				  <option "{if $result['images_status'] ==1 } selected=selected{/if}" value="1">不显示</option>
+				</select>
+			  </div>
+			  <div class="panel-footer">
+			  		<input type="hidden" value="{$_W['token']}" name="token" />
+			  		<input type="hidden" name="id" value="<?php echo $result['images_id'];?>">
+					<input type="submit" name="submit" class="btn btn-sm btn-success" value="修改" />			
+			  </div>
+			</form>
+		</div>
+		{/if}
+		
+		
+	</div>
+<!-- 		
+		<div class="add_nav">
+		<form method="post" action="{php echo $this->createWebUrl('activity', array('op'=>'add'));}" onsubmit="return checkvalid();" name="nav">
+			  <div class="form-group">
+			    <label>分类名称</label>
+			    <input type="text" name ="title" id="nav_name" class="form-control" placeholder="分类名称">
+			  </div>
+			  <div class="form-group">
+			    <label>分类简介</label>
+			    <input type="text" name="detail" id="nav_detail" class="form-control"  placeholder="分类简介">
+			  </div>
+			  <div class="form-group">
+				    <label>是否显示</label>
+				    <select class="form-control" name="status">
+					  <option value="0">显示</option>
+					  <option value="1">不显示</option>
+					</select>
+			  </div>
+			   
+			  <div class="panel-footer">
+			  		<input type="hidden" value="{$_W['token']}" name="token" />
+					<input type="submit" name="join" class="btn btn-sm btn-success" value="新增" />			
+			  </div>
+			 
+			</form>
+		</div>
+		
+	
+		<div class="update_nav">
+			<form method="post" action="{php echo $this->createWebUrl('activity', array('op'=>'update'));}" onsubmit="return checkvalid();">
+			  <div class="form-group">
+			    <label>分类名称</label>
+			    <input type="text" name ="title" id="nav_name" value="{$results['nav_title']}" class="form-control" placeholder="分类名称">
+			  </div>
+			  <div class="form-group">
+			    <label>分类简介</label>
+			    <input type="text" name="detail" id="nav_detail" value="{$results['nav_detail']}" class="form-control"  placeholder="分类简介">
+			  </div>
+			  <div class="form-group">
+				    <label>是否显示</label>
+				    <select class="form-control" name="status">
+					  <option "{if $results['nav_status'] ==0 } selected=selected{/if}" value="0">显示</option>
+					  <option "{if $results['nav_status']==1} selected=selected{/if}" value="1">不显示</option>
+					</select>
+			  </div>
+			   
+			  <div class="panel-footer">
+			  		<input type="hidden" value="{$_W['token']}" name="token" />
+			  		<input type="hidden" name="id" value="<?php echo $results['nav_id'];?>">
+					<input type="submit" name="submit" class="btn btn-sm btn-success" value="修改" />			
+			  </div>
+			 
+			</form>
+		</div> -->
+		
+</div>
+</div>
+<script type="text/javascript">
+	
+</script>
+{template 'common/footer'}

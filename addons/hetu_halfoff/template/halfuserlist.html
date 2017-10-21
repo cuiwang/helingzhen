@@ -1,0 +1,132 @@
+{template 'common/header'}
+
+<div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+		<form action="" method="post" class="form-horizontal" role="form" enctype ="multipart/form-data" onsubmit="return formcheck();">
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">代理商名称</label>
+    			<div class="col-xs-12 col-sm-8 col-md-8 col-lg-6">
+    				<select class="form-control" name="agentid">
+						<option value="0" {if $_GPC['agentid'] == '0' } selected {/if}>全部</option>
+						{loop $agent_list $agent}
+							<option value="{$agent['id']}" {if $_GPC['agentid'] == $agent['id'] } selected {/if}>{$agent['name']}</option>
+						{/loop}
+					</select>
+    			</div>
+    		</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">购卡方式</label>
+    			<div class="col-xs-12 col-sm-8 col-md-8 col-lg-6"> <!-- 领取类型 支付1/激活2/扫码3 -->
+    				<select class="form-control" name="getcard_type">
+						<option value="0" {if $_GPC['getcard_type'] == '0' } selected {/if}>全部</option>
+						<option value="1" {if $_GPC['getcard_type'] == '1' } selected {/if}>支付购买</option>
+						<option value="2" {if $_GPC['getcard_type'] == '2' } selected {/if}>激活码激活</option>
+						<option value="3" {if $_GPC['getcard_type'] == '3' } selected {/if}>扫码激活</option>
+					</select>
+    			</div>
+				<div class="col-xs-12 col-sm-2 col-md-1 col-lg-1">
+					<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+				</div>
+    		</div>
+		</form>
+	</div>
+</div>
+
+<div class="main"> 
+<ul class="nav nav-tabs">
+	<li class="active"><a href="{php echo $this->createWebUrl('halfuser');}">购买人列表</a></li>
+</ul>
+<div class="main">
+    
+	<div class="panel panel-default">
+		<div class="panel-body table-responsive">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+			<tr class="zhangkai">
+				<th class='with-checkbox' style='width:30px;'>
+					<input type="checkbox" class="check_all"/>
+				</th>
+				<th class='col_name' style="width:100px;">UID</th>
+				<th class='col_name' style="width:100px;">卡类型</th>
+				<th class='col_name' style="width:100px;">购卡方式</th>
+				<th class='col_name' style='width:100px;'>名称</th>
+				<th class='col_name' style='width:100px;'>积分</th>
+				<th class='col_name' style='width:120px;'>购买时间</th>
+				<th class='col_name' style='width:120px;'>电话</th>
+				<th class='col_name' style='width:120px;'>代理商</th>
+			</tr>
+			</thead>
+			<tbody>
+			{loop $list $item}
+			<tr>
+				<td class="with-checkbox">
+					<input type="checkbox" name="check" value="{$item['cardtype_id']}">
+				</td>
+				<td>{$item['user_uid']}</td>
+				<td>
+					{if $item['cardtype_id'] == 999999999}
+						扫码免费送
+					{else}
+						{$item['type']}
+					{/if}
+				</td>
+				<td>
+					{if $item['gettype'] == 1} <!-- 领取类型 支付1/激活2/扫码3 -->
+						支付购买
+					{elseif $item['gettype'] == 2}
+						激活码激活购买
+					{else}
+						扫码激活
+					{/if}
+				</td>
+				<td>{$item['user_nickname']}</td>
+				<td>{$item['user_credit1']}</td>
+				<td>{php echo date("Y-m-d H:i:s", $item['start_time'])}</td>
+				<td>{$item['user_mobile']}</td>
+				<td>{$item['agentname']}</td>
+			</tr>
+			{/loop}
+			</tbody>
+			<input name="token" type="hidden" value="{$_W['token']}" />
+		</table>
+		<!-- <div>
+			<button type="button" class="btn btn-primary" onclick="export_Excel();">导出Excel</button>
+		</div> -->
+		</div>
+	</div>
+	{$pager}
+</div>
+<script>
+	
+	function export_Excel(){
+		var data = '{php echo json_encode($list);}';
+  //
+//       alert(data);
+//		// var result = $(".col_name").html();
+//		var col_name = [];
+//		$("th.col_name").each(function(){
+//			col_name.push($(this).html());
+//		});
+	//	alert(col_name.toString());
+		// alert(result);
+		// var excel_name = {'','','','',''}
+		
+		alert(data);
+		 $.ajax({
+             url: "{php echo $this->createWebUrl('Excelajax')}",
+             type: "GET",
+			 data: {'data':data},
+             cache:false,
+             dataType: "JSON",
+			 success: function(res){
+			    alert(res);
+			 }
+         });
+	}
+    
+    
+    
+</script>
+
+{template 'common/footer'}

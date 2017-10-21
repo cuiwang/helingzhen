@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1.0,maximum-scale=1.0,minimum-scale=1,user-scalable=no">
+    <meta content="yes" name="apple-mobile-web-app-capable">
+    <meta content="black" name="apple-mobile-web-app-status-bar-style">
+    <meta content="telephone=no" name="format-detection">
+    <meta content="email=no" name="format-detection">
+    <title>{$merchant['name']}</title>
+    <link rel="stylesheet" href="{MD_ROOTN}/messi/css/reset.css"/>
+    <link rel="stylesheet" href="{MD_ROOTN}/messi/iconfont/iconfont.css"/>
+	<link rel="stylesheet" href="{MD_ROOTN}/jqueryweui/css/weui.min.css"/>
+	<link rel="stylesheet" href="{MD_ROOTN}/jqueryweui/css/jquery-weui.min.css"/>
+	<link rel="stylesheet" href="{MD_ROOTN}/messi/css/common.css"/>
+	<link rel="stylesheet" href="{MD_ROOTN}/messi/css/store2.css"/>
+    <script>
+        var deviceWidth = document.documentElement.clientWidth;
+        document.documentElement.style.fontSize = deviceWidth / 7.5 + 'px';
+    </script>
+	{php echo register_jssdk(false);}
+	<style>
+	#header{width:7.1rem;height:0.6rem;padding:0.15rem 0.2rem;background:#1e1d22;border-bottom:none;}
+	#header .logo{width:0.6rem;height:0.6rem;float:left;}
+	#header .logo img{width:0.6rem;height:0.6rem;border-radius:0.6rem;}
+	#header .name{width:4rem;height:0.6rem;line-height:0.6rem;color:#999;font-size:0.3rem;float:left;margin-left:0.1rem;}
+	#header .my{width:2.4rem;height:0.6rem;line-height:0.6rem;color:#999;font-size:0.3rem;float:left;}
+	#header .my span{font-size:0.33rem;margin-right:0.1rem;}
+	#footer .now .iconfont,#footer .now .text{color:#F44;}
+	</style>
+</head>
+
+<body style="background:#f5f5f5;">
+<div id="header">
+	<div class="logo">
+		{if $merchant['avatar']}
+		<img src="{php echo tomedia($merchant['avatar']);}" />
+		{else}
+		<img src="{MD_ROOT}/images/autopic.png" />
+		{/if}
+	</div>
+	<div class="name textellipsis1">{$merchant['name']}</div>
+	<a href="tel:{$merchant['telphone']}"><div class="my text-r"><span class="iconfont">&#xe645;</span>投诉建议</div></a>
+</div>
+{if $advlist}
+<div class="swiper-container" data-space-between='10' data-pagination='.swiper-pagination' data-autoplay="1000">
+	<div class="swiper-wrapper">
+		{loop $advlist $arow}
+		<div class="swiper-slide"><img src="{php echo tomedia($arow['thumb']);}" style="max-width:100%;" /></div>
+		{/loop}
+	</div>
+	<div class="swiper-pagination"></div>
+</div>
+{/if}
+<div id="goodslist" class="wrap">
+	{if $goodslist}
+		{loop $goodslist $row}
+		<a href="{php echo $this->createMobileUrl('detail',array('id'=>$row['id']))}">
+		<div class="item">
+			<div class="img"><img src="{php echo tomedia($row['thumb']);}" /></div>
+			<div class="title textellipsis2">{$row['title']}</div>
+			<div class="numitem">
+				<div class="price">￥{$row['normalprice']}</div>
+				<div class="sales text-r">销量：{$row['sales']}</div>
+				<div class="stock text-r">剩余：{$row['total']}</div>
+			</div>
+		</div>
+		</a>
+		{/loop}
+		<div class="load text-c hide">数据加载中</div>
+	{else}
+	<div class="nogoods text-c">( ⊙ o ⊙ )啊哦，没有更多商品啦~</div>
+	{/if}
+</div>
+
+<div style="height:1rem;width:7.5rem;clear:both;"></div>
+<div id="footer">
+	<div class="item now">
+		<a href="{php echo $this->createMobileUrl('merchantstore',array('id'=>$merchant['id']))}">
+			<div class="iconfont text-c">&#xe807;</div>
+			<div class="text text-c">店铺首页</div>
+		</a>
+	</div>
+	<div class="item">
+		<a href="{php echo $this->createMobileUrl('my',array('id'=>$merchant['id']))}">
+		<div class="iconfont text-c">&#xe644;</div>
+		<div class="text text-c">个人中心</div>
+		</a>
+	</div>
+</div>
+
+<div class="blackbg hide"></div>
+<script type="text/javascript" src="{MD_ROOTN}/messi/js/jquery-3.1.1.min.js"></script>
+<script type="text/javascript" src="{MD_ROOTN}/jqueryweui/js/swiper.min.js"></script>
+<script type="text/javascript" src="{MD_ROOTN}/jqueryweui/js/fastclick.js"></script>
+<script type="text/javascript" src="{MD_ROOTN}/jqueryweui/js/jquery-weui.min.js"></script>
+<script type="text/javascript">
+$(".swiper-container").swiper({
+	loop: true,
+	paginationType:'bullets',
+	autoplay:5000
+});
+$(function(){
+	FastClick.attach(document.body);
+})
+//滚动加载
+var loading = false;  //状态标记
+var count = 2;
+$(document.body).infinite().on("infinite", function() {
+	if(loading) return;
+	loading = true;
+	if(count < {$allpage}){
+		$('.load').removeClass('hide');
+		setTimeout(function() {
+			$.ajax({
+				url:"{php echo $this->createMobileUrl('merchantstore')}",
+				data:{
+					page:count,
+					isajax:1,
+				},
+				dataType:'html',
+				type:'post',        
+				success:function(data){
+					if(data != ''){
+						$('#goodslist').append(data);
+						count++;
+					}
+					loading = false;
+				},
+			});
+		}, 500);   //模拟延迟
+	}else{
+		$('.load').text('全部数据已经加载完毕');
+	}
+});
+</script>
+<script type="text/javascript">
+wx.ready(function () {
+	sharedata = {
+		title: '{$shareres["title"]}',
+		desc: '{$shareres["des"]}',
+		link: '{$shareres["url"]}',
+		imgUrl: '{$shareres["thumb"]}',
+		trigger: function (res) {
+			//alert('用户点击发送给朋友');
+		},
+		success: function (res) {
+			//alert('已分享');
+		},
+		cancel: function (res) {
+			//alert('已取消');
+		},
+		fail: function (res) {
+			alert("分享失败");
+		}
+	};
+	wx.onMenuShareAppMessage(sharedata);
+	wx.onMenuShareTimeline(sharedata);
+	wx.onMenuShareQQ(sharedata);
+	wx.onMenuShareWeibo(sharedata);
+});
+</script>
+</body>
+</html>

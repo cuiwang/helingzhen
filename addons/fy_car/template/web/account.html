@@ -1,0 +1,215 @@
+{template 'common/header'}
+
+<div class="main">
+   <ul class="nav nav-tabs">
+	  <li {if $op=='display'}class="active"{/if}><a href="{php echo $this->createWebUrl('account');}">帐号列表</a></li>
+	  <li {if $op=='post'}class="active"{/if}><a href="{php echo $this->createWebUrl('account', array('op'=>'post'));}">{if $_GPC['uid']>0}编辑{else}添加{/if}帐号</a></li>
+   </ul>
+
+{if $op=='display'}
+	<div class="panel panel-info">
+		<div class="panel-heading">筛选</div>
+		<div class="panel-body">
+			<form method="get" class="form-horizontal" role="form">
+				<input type="hidden" name="c" value="site">
+				<input type="hidden" name="a" value="entry">
+				<input type="hidden" name="op" value="display">
+				<input type="hidden" name="do" value="account">
+				<input type="hidden" name="m" value="fy_car" />
+				<div class="form-group">
+					<div class="col-sm-8 col-lg-9 col-xs-12">
+						<div class="input-group">
+							<div class="input-group-addon">登陆账号</div>
+							<input class="form-control" name="account" type="text" value="{$_GPC['account']}" placeholder="登陆账号">
+							<div class="input-group-addon">帐号状态</div>
+							<select name="status" class="form-control" style="min-width:80px;">
+								<option value="">不限</option>
+								<option value="1" {if $_GPC['status']==1}selected{/if}>正常</option>
+								<option value="2" {if $_GPC['status']==2}selected{/if}>冻结</option>
+							</select>
+							<div class="input-group-addon">联系人</div>
+							<input class="form-control" name="contact" type="text" value="{$_GPC['contact']}" placeholder="联系人">
+						</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="col-sm-6">
+						<div class='input-group'>
+							<div class='input-group-addon'>创建时间
+								<label class='radio-inline' style='margin-top:-7px;'>
+									<input type='radio' value='0' name='searchtime' {if $_GPC['searchtime']=='0'}checked{/if}>不搜索
+								</label>
+								<label class='radio-inline'  style='margin-top:-7px;'>
+									<input type='radio' value='1' name='searchtime' {if $_GPC['searchtime']=='1'}checked{/if}>搜索
+								</label>
+							</div>
+							{php echo tpl_form_field_daterange('time', array('starttime'=>date('Y-m-d H:i', $starttime),'endtime'=>date('Y-m-d H:i', $endtime)),true);}
+						</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="col-sm-7 col-lg-9 col-xs-12">
+						<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+						<input type="hidden" name="token" value="{$_W['token']}" />
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+	<div style="padding:15px;">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<th style="text-align:center;width:5%;">ID</th>
+					<th style="text-align:center;width:10%;">登陆账号</th>
+					<th style="text-align:center;width:10%;">联系人</th>
+					<th style="text-align:center;width:10%;">联系电话</th>
+					<th style="text-align:center;width:20%;">支付宝帐号</th>
+					<th style="text-align:center;width:10%;">收款人姓名</th>
+					<th style="text-align:center;width:15%;">创建时间</th>
+					<th style="text-align:center;width:8%;">状态</th>
+					<th style="text-align:center;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $row}
+					<tr align="center">
+					    <td>{$row['id']}</td>
+						<td>{$row['account']}</td>
+                        <td>{$row['contact']}</td>
+						<td>{$row['mobile']}</td>
+						<td>{$row['alipay']}</td>
+						<td>{$row['realname']}</td>
+						<td >{php echo date('Y-m-d H:i',$row['add_time']);}</td>
+						<td >{if $row['status']==1}<span class="label label-success">正常</span>{elseif $row['status']==2}<span class="label" style="background-color:#AD0808;">冻结</span>{/if}</td>
+						<td >
+							<a href="{php echo $this->createWebUrl('account', array('op'=>'post','uid'=>$row['id']));}" >编辑</a>  | 
+                        	<a href="{php echo $this->createWebUrl('account', array('op'=>'delete','uid'=>$row['id']));}" onclick="return confirm('删除记录后不可恢复,确定要删除吗?')" >删除</a>
+                        </td>
+					</tr>
+				{/loop}
+			</tbody>
+		</table>
+		{$pager}
+	</div>
+
+{elseif $op=='post'}
+    <form action="" class="form-horizontal form" method="post">
+		<div class="panel panel-default">
+			<div class="panel-heading">帐号信息</div>
+			<div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">登录帐号</label>
+					<div class="col-sm-8">
+						<input type="text" name="account" value="{$item['account']}" class="form-control" {if !empty($_GPC['uid'])}readonly="readonly"{/if}>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">登录密码</label>
+					<div class="col-sm-8">
+						<input type="password" name="password" class="form-control">
+					</div>
+				</div>
+				{if !empty($_GPC['uid'])}
+				<div class="form-group" style="margin:-5px 0 5px;">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+					<div class="col-sm-8">不修改密码请留空</div>
+				</div>
+				{/if}
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">确认密码</label>
+					<div class="col-sm-8">
+						<input type="password" name="confirm_password" class="form-control">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">联系人</label>
+					<div class="col-sm-8">
+						<input type="text" name="contact" value="{$item['contact']}" class="form-control">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">联系电话</label>
+					<div class="col-sm-8">
+						<input type="text" name="mobile" value="{$item['mobile']}" class="form-control">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">支付宝帐号</label>
+					<div class="col-sm-8">
+						<input type="text" name="alipay" value="{$item['alipay']}" class="form-control">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">收款人姓名</label>
+					<div class="col-sm-8">
+						<input type="text" name="realname" value="{$item['realname']}" class="form-control">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">状态</label>
+					<div class="col-sm-8" style="line-height:38px;">
+						<input type="radio" name="status" value="1" {if $item['status']==1}checked{/if}>正常&nbsp;&nbsp;&nbsp;<input type="radio" name="status" value="2" {if $item['status']==2}checked{/if}>冻结
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="form-group">
+			<div class="col-sm-12">
+				<button type="submit" class="btn btn-primary col-lg-1" name="submit" value="提交">{if empty($_GPC['uid'])}创建{else}更新{/if}帐号</button>
+				<input type="hidden" name="token" value="{$_W['token']}" />
+				<input type="hidden" name="uid" value="{$item['id']}">
+			</div>
+		</div>
+	</form>
+	<script type="text/javascript">
+	function message(msg){
+		require(['util'],function(util){
+			util.message(msg);
+		})
+	}
+	$(function(){
+		$('form').submit(function(){
+		  {if empty($_GPC['uid'])}
+			if($.trim($(':text[name="account"]').val()) == '') {
+				message('请填写登录帐号', '', 'error');
+				return false;
+			}
+			if($.trim($(':text[name="account"]').val()).length <3 || $.trim($(':text[name="account"]').val()).length >12) {
+				message('登录帐号长度为3~12位', '', 'error');
+				return false;
+			}
+			if($.trim($(':password[name="password"]').val()) == '') {
+				message('请填写登录密码', '', 'error');
+				return false;
+			}
+			if($.trim($(':password[name="password"]').val()).length <6 || $.trim($(':password[name="account"]').val()).length >20) {
+				message('登录密码长度为6~20位', '', 'error');
+				return false;
+			}
+			if($.trim($(':password[name="password"]').val()) != $.trim($(':password[name="confirm_password"]').val())) {
+				message('两次密码不一致', '', 'error');
+				return false;
+			}
+		  {/if}
+			if($.trim($(':text[name="contact"]').val()) == '') {
+				message('请填写联系人', '', 'error');
+				return false;
+			}
+			if($.trim($(':text[name="mobile"]').val()) == '') {
+				message('请填写联系电话', '', 'error');
+				return false;
+			}
+			if($.trim($(':radio[name="status"]:checked').val()) == '') {
+				message('请选择帐号状态', '', 'error');
+				return false;
+			}
+			return true;
+		});
+	});
+	</script>
+
+{/if}
+
+</div>
+{template 'common/footer'}

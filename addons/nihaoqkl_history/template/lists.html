@@ -1,0 +1,377 @@
+{template 'common/header'}
+
+<ul class="nav nav-tabs">
+    <li {if $do == 'lists'}class="active"{/if}><a href="{php echo $this->createWebUrl('lists');}">历史消息列表</a></li>
+    <li {if $do == 'add'}class="active"{/if}><a href="{php echo $this->createWebUrl('add');}">添加历史消息</a></li>
+    {if $do == 'modify'}<li class="active"><a href="{php echo $this->createWebUrl('modify');}">修改历史消息</a></li>{/if}
+    <li {if $do == 'cate' && (!$op || $op=='lists') }class="active"{/if}><a href="{php echo $this->createWebUrl('cate',array('op'=>'lists'));}">分类列表</a></li>
+    <li {if $do == 'cate' && $op=='add' }class="active"{/if}><a href="{php echo $this->createWebUrl('cate',array('op'=>'add'));}">添加分类</a></li>
+    {if $do == 'cate' && $op=='modify' }<li class="active"><a href="{php echo $this->createWebUrl('cate',array('op'=>'modify'));}">修改分类</a></li>{/if}
+</ul>
+
+{if $do == 'lists'}
+<div class="main">
+    <form action="" method="post" class="form-horizontal form" id="form">
+        <div class="panel panel-default">
+            <div class="panel-heading">历史消息列表</div>
+            <div class="panel-body">
+                <div class="table-responsive panel-body">
+                    <table class="table table-hover" style="min-width: 300px;">
+                        <thead class="navbar-inner">
+                        <tr>
+                            <th style="width:5%;">id</th>
+                            <th style="width:12%;">标题</th>
+                            <th style="width:12%;">分类</th>
+                            <th style="width:12%;">封面</th>
+                            <th style="width:18%;">摘要</th>
+                            <th style="width:6%;">超链接</th>
+                            <th style="width:12%;">创建时间</th>
+                            <th style="width:12%;">更新时间</th>
+                            <th style="width:5%;">状态</th>
+                            <th style="width:12%">操作</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {loop $lists $key $item}
+                        <tr>
+                            <td>{$item['id']}</td>
+                            <td>{$item['title']}</td>
+                            <td><?php echo pdo_fetchcolumn("select title from " . tablename('addons_history_cate') . ' where id='.$item['cid']); ?></td>
+                            <td><img src="<?php echo '/attachment/'.$item['cover']; ?>" height="40"></td>
+                            <td><?php echo strip_tags(htmlspecialchars_decode($item['summary'])); ?></td>
+                            <td><a href="{$item['url']}" target="_blank">点我查看</a></td>
+                            <td><?php echo date('Y-m-d H:i:s',$item['create_time']); ?></td>
+                            <td><?php echo date('Y-m-d H:i:s',$item['update_time']); ?></td>
+                            <td>{$item['status']}</td>
+                            <td>
+                                <a href="{php echo $this->createWebUrl('modify', array('id'=>$item['id']));}" class="btn btn-default btn-danger" data-toggle="tooltip" data-placement="top" title="" data-original-title="编辑"><i class="fa fa-edit"></i> </a>
+                                <a onclick="if(!confirm('删除后将不可恢复,确定删除吗?')) return false;" href="{php echo $this->createWebUrl('del', array('id'=>$item['id']));}" class="btn btn-default btn-danger" data-toggle="tooltip" data-placement="top" title="" data-original-title="删除"><i class="fa fa-times"></i> </a>
+                            </td>
+                            <td></td>
+                        </tr>
+                        {/loop}
+                        {if empty($lists)}
+                        <tr>
+                            <td colspan="4">
+                                尚无历史消息
+                            </td>
+                        </tr>
+                        {/if}
+                        </tbody>
+                    </table>
+                    {$pager}
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    require(['jquery', 'util'], function($, util){
+        $(function(){
+            $('#form').submit(function(){
+                var result = true;
+                $('input.categories-name').each(function(){
+                    if(this.value.length == 0){
+                        return result = false;
+                    }
+                });
+                if(!result){
+                    util.message('有分类名称未填写.');
+                }
+                return result;
+            });
+        });
+    });
+</script>
+{/if} <!-- end of display -->
+
+{if $do == 'cate' && ( !$op || $op=='lists' ) }
+<div class="main">
+    <form action="" method="post" class="form-horizontal form" id="form">
+        <div class="panel panel-default">
+            <div class="panel-heading">分类列表</div>
+            <div class="panel-body">
+                <div class="table-responsive panel-body">
+                    <table class="table table-hover" style="min-width: 300px;">
+                        <thead class="navbar-inner">
+                        <tr>
+                            <th style="width:5%;">id</th>
+                            <th style="width:10%;">关键词</th>
+                            <th style="width:20%;">分类名</th>
+                            <th style="width:20%;">连接</th>
+                            <th style="width:10%;">排序</th>
+                            <th style="width:10%;">状态</th>
+                            <th style="width:16%">操作</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {loop $lists $key $item}
+                        <tr>
+                            <td>{$item['id']}</td>
+                            <td>{$item['keyword']}</td>
+                            <td>{$item['title']}</td>
+                            <td><a href="<?php echo $_W['siteroot'] . 'app' . ltrim(murl('entry',array('do'=>'index','m'=>'nihaoqkl_history','cid'=>$item['id'])),'.'); ?>" target="_blank">点我查看该分类推文</a></td>
+                            <td>{$item['sort']}</td>
+                            <td>{$item['status']}</td>
+                            <td>
+                                <a href="{php echo $this->createWebUrl('cate', array('op'=>'modify','id'=>$item['id']));}" class="btn btn-default btn-danger" data-toggle="tooltip" data-placement="top" title="" data-original-title="编辑"><i class="fa fa-edit"></i> </a>
+                                <a onclick="if(!confirm('删除后将不可恢复,确定删除吗?')) return false;" href="{php echo $this->createWebUrl('cate', array('op'=>'del','id'=>$item['id']));}" class="btn btn-default btn-danger" data-toggle="tooltip" data-placement="top" title="" data-original-title="删除"><i class="fa fa-times"></i> </a>
+                            </td>
+                            <td></td>
+                        </tr>
+                        {/loop}
+                        {if empty($lists)}
+                        <tr>
+                            <td colspan="4">
+                                尚无分类
+                            </td>
+                        </tr>
+                        {/if}
+                        </tbody>
+                    </table>
+                    {$pager}
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{/if} <!-- end of display -->
+
+{if $do == 'add'}
+<div class="main">
+    <form action="" method="post" class="form-horizontal form" id="form">
+        <div class="panel panel-default">
+            <div class="panel-heading">添加历史消息</div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">标题</label>
+                    <div class="col-xs-12 col-sm-4">
+                        <input type="text" name="title" class="form-control" value="" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">所属分类</label>
+                    <div class="col-xs-12 col-sm-4">
+                        <select name="cid" class="form-control">
+                            <option value="0">选择分类</option>
+                            <?php foreach( $cates as $key=>$val ) { ?>
+                            <option value="{$val['id']}" <?php if($info['cid']==$val['id']) echo ' selected'; ?> >{$val['title']}</option>
+                            <?php } ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">封面</label>
+                    <div class="col-xs-12 col-sm-4">
+                        <?php
+                            echo tpl_form_field_image('cover','');
+                        ?>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">摘要</label>
+                    <div class="col-xs-12 col-sm-9">
+                        <?php
+                            echo tpl_ueditor('summary', '');
+                        ?>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">超链接</label>
+                    <div class="col-xs-12 col-sm-9">
+                        <input type="text" name="url" class="form-control" value="" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-xs-12 col-sm-9 col-md-10 col-lg-10 col-sm-offset-3 col-md-offset-2 col-lg-offset-2">
+                        <input name="submit" type="submit" value="提交" class="btn btn-primary" />
+                        <input type="hidden" name="token" value="{$_W['token']}" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    require(['jquery', 'util'], function($, util){
+        $(function(){
+            $('#form').submit(function(){
+                var result = true;
+                if($('input[name="category[name]"]').val() == ''){
+                    result = false;
+                    util.message('未填写分类名称.');
+                }
+                return result;
+            });
+        });
+    });
+</script>
+{/if} <!-- end of display -->
+
+{if $do == 'cate' && ($op=='add' || $op == 'modify' ) }
+<div class="main">
+    <form action="" method="post" class="form-horizontal form" id="form">
+        <div class="panel panel-default">
+            <div class="panel-heading">添加分类</div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">分类名</label>
+                    <div class="col-xs-12 col-sm-4">
+                        <input type="text" name="title" class="form-control" value="{$info['title']}" />
+                        {if $op == 'modify'}<input type="hidden" name="id" class="form-control" value="{$info['id']}" />{/if}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">回复关键词</label>
+                    <div class="col-xs-12 col-sm-4">
+                        <input type="text" name="keyword" class="form-control" value="{$info['keyword']}" />
+                    </div>
+                    <div class="col-sm-4">
+                        <span>请在模块规则里设置一个相同的关键词</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">排序</label>
+                    <div class="col-xs-12 col-sm-9">
+                        <input type="text" name="sort" class="form-control" value="{$info['sort']}" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-xs-12 col-sm-9 col-md-10 col-lg-10 col-sm-offset-3 col-md-offset-2 col-lg-offset-2">
+                        <input name="submit" type="submit" value="提交" class="btn btn-primary" />
+                        <input type="hidden" name="token" value="{$_W['token']}" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{/if} <!-- end of display -->
+
+{if $do == 'modify'}
+<div class="main">
+    <form action="" method="post" class="form-horizontal form" id="form">
+        <div class="panel panel-default">
+            <div class="panel-heading">添加历史消息</div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">标题</label>
+                    <div class="col-xs-12 col-sm-4">
+                        <input type="text" name="title" class="form-control" value="{$info['title']}" />
+                        <input type="hidden" name="id" class="form-control" value="{$info['id']}" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">所属分类</label>
+                    <div class="col-xs-12 col-sm-4">
+                        <select name="cid" class="form-control">
+                            <option value="0">选择分类</option>
+                            <?php foreach( $cates as $key=>$val ) { ?>
+                            <option value="{$val['id']}" <?php if($info['cid']==$val['id']) echo ' selected'; ?> >{$val['title']}</option>
+                            <?php } ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">封面</label>
+                    <div class="col-xs-12 col-sm-4">
+                        <?php
+                            echo tpl_form_field_image('cover',$info['cover']);
+                        ?>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">摘要</label>
+                    <div class="col-xs-12 col-sm-9">
+                        <?php
+                            echo tpl_ueditor('summary', stripslashes($info['summary']));
+                        ?>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">超链接</label>
+                    <div class="col-xs-12 col-sm-9">
+                        <input type="text" name="url" class="form-control" value="{$info['url']}" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-xs-12 col-sm-9 col-md-10 col-lg-10 col-sm-offset-3 col-md-offset-2 col-lg-offset-2">
+                        <input name="submit" type="submit" value="提交" class="btn btn-primary" />
+                        <input type="hidden" name="token" value="{$_W['token']}" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    require(['jquery', 'util'], function($, util){
+        $(function(){
+            $('#form').submit(function(){
+                var result = true;
+                if($('input[name="category[name]"]').val() == ''){
+                    result = false;
+                    util.message('未填写分类名称.');
+                }
+                return result;
+            });
+        });
+    });
+</script>
+{/if} <!-- end of display -->
+
+
+{if $do == 'set'}
+<div class="main">
+    <form action="" method="post" class="form-horizontal form" id="form">
+        <div class="panel panel-default">
+            <div class="panel-heading">设置模式</div>
+            <div class="panel-body">
+                <!--<div class="form-group">-->
+                    <!--<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">历史主页</label>-->
+                    <!--<div class="col-xs-12 col-sm-4">-->
+                        <!--<input readonly type="text" name="title" class="form-control" value="<?php echo 'http://'.$_SERVER['HTTP_HOST'].'/app'.ltrim(murl('entry',array('do'=>'index','m'=>'nihaoqkl_history'),false),'.');?>" />-->
+                    <!--</div>-->
+                <!--</div>-->
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">是否显示封面</label>
+                    <div class="col-xs-12 col-sm-4">
+                        <select name="mode" class="form-control">
+                            <option value="0" <?php if(!$mode) echo ' selected'; ?> >无封面</option>
+                            <option value="1" <?php if($mode) echo ' selected'; ?> >有封面</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-xs-12 col-sm-9 col-md-10 col-lg-10 col-sm-offset-3 col-md-offset-2 col-lg-offset-2">
+                        <input name="submit" type="submit" value="提交" class="btn btn-primary" />
+                        <input type="hidden" name="token" value="{$_W['token']}" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    require(['jquery', 'util'], function($, util){
+        $(function(){
+            $('#form').submit(function(){
+                var result = true;
+                if($('input[name="category[name]"]').val() == ''){
+                    result = false;
+                    util.message('未填写分类名称.');
+                }
+                return result;
+            });
+        });
+    });
+</script>
+{/if} <!-- end of display -->
+
+{template 'common/footer'}

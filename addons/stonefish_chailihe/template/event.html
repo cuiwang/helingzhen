@@ -1,0 +1,123 @@
+{template 'common/header'}
+<div class="main">
+	<ul class="nav nav-tabs">
+		<li{if $_GPC['do'] == 'eventlist' || $_GPC['do'] == '' } class="active"{/if}><a href="{php echo $this->createWebUrl('eventlist');}">拆礼盒管理</a></li>
+        <li><a href="{php echo url('platform/reply/post',array('m'=>'stonefish_chailihe'));}">添加拆礼盒规则</a></li>
+	</ul>
+	<div class="panel panel-info">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+		<form action="./index.php" method="get" class="form-horizontal" role="form">
+			<input type="hidden" name="c" value="site" />
+			<input type="hidden" name="a" value="entry" />
+        	<input type="hidden" name="m" value="stonefish_chailihe" />
+        	<input type="hidden" name="do" value="eventlist" />
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">关键字</label>
+				<div class="col-xs-12 col-sm-8 col-lg-9">
+					<input class="form-control" name="keyword" id="" type="text" value="{$_GPC['keyword']}">
+				</div>
+                <div class=" col-xs-12 col-sm-2 col-lg-2">
+					<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+				</div>
+			</div>
+ 			<div class="form-group">
+			</div>
+		</form>
+	</div>
+ 
+    </div>
+	<div class="panel panel-default">
+		<div class="panel-heading">幸运拆礼盒统计</div>
+		<div class="panel-body table-responsive">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<th class='with-checkbox' style="width:50px;"><input type="checkbox" class="check_all" /></th>
+					<th style="width:150px;">活动名称</th>
+					<th style="width:100px;">参与/分享</th>
+					<th style="width:150px;">开始时间/结束时间</th>
+					<th style="width:100px;">状态</th>
+					<th style="width:320px;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list_praise $row}
+				<tr>
+					<td class="with-checkbox"><input type="checkbox" name="check" value="{$row['rid']}"></td>
+					<td>{$row['title']}</td>
+					<td>{$row['user_znum']}/{$row['share_znum']}</td>
+					<td>{php echo date('Y-m-d H:i:s', $row['start_time']);}</br>{php echo date('Y-m-d H:i:s', $row['end_time']);}</td>
+					<td>{$row['isshow']}</td>
+					<td>
+						<a href="{php echo $this->createWebUrl('userlist',array('id'=>$row['rid']))}" class="btn  btn-default" data-toggle="tooltip" data-placement="top" title="参与粉丝"><i class="fa fa-users"></i> 粉丝</a>
+						<a href="{php echo $this->createWebUrl('prizedata',array('id'=>$row['rid']))}" class="btn  btn-default" data-toggle="tooltip" data-placement="top" title="中奖管理"><i class="fa fa-gift"></i> 中奖</a>
+						{if $stonefish_branch}<a href="{php echo $this->createWebUrl('branch',array('rid'=>$row['rid']))}" class="btn  btn-default" data-toggle="tooltip" data-placement="top" title="商家赠送项"><i class="fa fa-plus-square"></i> 商家赠送项</a>{/if}
+                        <a class="btn btn-default" data-toggle="tooltip" data-placement="top" href="{php echo url('platform/reply/post',array('m'=>'stonefish_chailihe','rid'=>$row['rid']));}" title="编辑"><i class="fa fa-edit"></i></a>
+                        {if $row['status']==0}
+                        <a class="btn btn-default" title="开始活动" data-placement="top" href="#" onclick="drop_confirm('您确定要开始吗,设置中途可以随时修改!', '{php echo $this->createWebUrl('setshow',array('id'=>$row['id'],'status'=>1))}');"><i class="fa fa-play"></i></a>
+                        {elseif $row['status']==1}
+                        <a class="btn btn-default" title="结束活动" data-placement="top" href="#" onclick="drop_confirm('您确定要暂停吗,设置中途可以随时修改!', '{php echo $this->createWebUrl('setshow',array('id'=>$row['id'],'status'=>0))}');"><i class="fa fa-stop"></i></a>
+                        {/if}
+                        <a class="btn btn-default" data-toggle="tooltip" data-placement="top" href="#" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('delete',array('rid'=>$row['rid']))}');" title="删除"><i class="fa fa-times"></i></a>
+                  	</td>
+				</tr>
+				<tr>
+					<td colspan="2">{$row['title']}奖品情况</td><td colspan="4">{$row['praiseinfo']}</td>
+				</tr>
+				{/loop}				
+				<tr>
+					<td colspan="6">
+						<input type="button" class="btn btn-primary" name="deleteall" value="删除选择的" />
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	</div>
+	{$pager}
+</div>
+<script>
+	require(['bootstrap'],function($){
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+	});
+$(function(){   
+    $(".check_all").click(function(){
+       var checked = $(this).get(0).checked;
+       $("input[type=checkbox]").attr("checked",checked);
+    });
+	$("input[name=deleteall]").click(function(){
+		var check = $("input:checked");
+		if(check.length<1){
+			alert('请选择要删除的记录!');
+			return false;
+		}
+        if( confirm("确认要删除选择的记录?")){
+		var id = new Array();
+		check.each(function(i){
+			id[i] = $(this).val();
+		});
+		$.post('{php echo $this->createWebUrl('deleteAll')}', {idArr:id},function(data){
+			if (data.errno ==0){
+				location.reload();
+			} else {
+				alert(data.error);
+			}
+		},'json');
+		}
+
+	});
+});
+</script>
+<script>
+function drop_confirm(msg, url){
+    if(confirm(msg)){
+        window.location = url;
+    }
+}
+</script>
+{template 'common/footer'}

@@ -1,0 +1,155 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>个人资料</title>
+    <meta name="viewport" content="width=device-width,height=device-height,inital-scale=1.0,maximum-scale=1.0,user-scalable=no;">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="format-detection" content="telephone=no">
+    <link href="../addons/ice_picwall/css//personalInfo.css" rel="stylesheet" type="text/css" />
+    <link href="../addons/ice_picwall/css//style.css" rel="stylesheet" type="text/css" />
+    <script src="../addons/ice_picwall/js/jquery-1.8.2.min.js" type="text/javascript"></script>
+    <script src="../addons/ice_picwall/js/alert.js" type="text/javascript"></script>
+    <script src="../addons/ice_picwall/js/isweixin.js" type="text/javascript"></script>
+</head>
+<body id="fans">
+    <div class="qiandaobanner">
+        <img src="../addons/ice_picwall/img/fans.jpg" />
+    </div>
+    <div class="cardexplain">
+        <ul class="round">
+            <li class="title mb"><span class="none">会员资料</span></li>
+            <li class="nob">
+                <div class="beizhu">
+                    以下信息将作为发奖凭证，请认真填写！</div>
+            </li>
+            <li class="nob" style="display:none;">
+                <table width="100%" border="0" cellspacing="0" cellpadding="0" class="kuang">
+                    <tr>
+                        <th>
+                            微信名称
+                        </th>
+                        <td>
+                            <input name="wxname" type="text" class="px" id="wxname"  value="" placeholder="请输入您的微信名称" />
+                        </td>
+                    </tr>
+                </table>
+            </li>
+            <li class="nob">
+                <table width="100%" border="0" cellspacing="0" cellpadding="0" class="kuang">
+                    <tr>
+                        <th>
+                            姓　　名
+                        </th>
+                        <td>
+                            <input name="uname" type="text" class="px" id="uname"  value="{$info['uname']}" placeholder="请输入您的昵称" />
+                        </td>
+                    </tr>
+                </table>
+            </li>
+            <li class="nob">
+                <table width="100%" border="0" cellspacing="0" cellpadding="0" class="kuang">
+                    <tr>
+                        <th>
+                            手机号码
+                        </th>
+                        <td>
+                            <input name="phone" class="px" id="phone" value="{$info['phone']}" type="text" placeholder="请输入您的电话" />
+                        </td>
+                    </tr>
+                </table>
+            </li>
+        </ul>
+        <div class="footReturn">
+            <a id="aSave" class="submit" href="#">保 存</a>
+            <div class="window" id="windowcenter">
+                <div id="title" class="wtitle">
+                    提示：<span class="close" id="alertclose"></span></div>
+                <div class="content">
+                    <div id="txt">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="overlay">
+        </div>
+        <input type="hidden" id="hiddMemberId" value="" />
+        <script type="text/javascript">
+            var oLay = document.getElementById("overlay");
+            var cellphone = /^(((1[0-9]{1}[0-9]{1}))+\d{8})$/;
+            var url = "{php echo $this->createMobileUrl('dogetInfo', array());}";
+			var successurl = "{php echo $this->createMobileUrl('Index', array());}";
+            $(document).ready(function () {
+                if (!is_weixin()) {
+                    window.location.href = "errorPage.htm";
+                }
+                $("#aSave").click(function () {
+                    if ($.trim($("#uname").val()) == "") {
+                        saveAlert("昵称不能为空！");
+                        $("#uname").focus();
+                        return false;
+                    }
+                    if ($.trim($("#phone").val()) == "") {
+                        saveAlert("手机号码不能为空！", "error");
+                        $("#phone").focus();
+                        return false;
+                    } else {
+                        if (!cellphone.test($.trim($('#phone').val()))) {
+                            saveAlert("手机号码格式错误！", "error");
+                            $("#phone").focus();
+                            return false;
+                        }
+                    }
+                     $.ajax({
+                        type: "post",
+                        async: false,
+                        url: url,
+                        data: { type: "save", wxName: $("#wxname").val(), uName: $.trim($("#uname").val()), phoneNum: $.trim($("#phone").val()), OpenId: $("#hiddMemberId").val() },
+                        success: function (data) {
+                            if (data == "success") {
+                                saveAlert("保存成功");
+                                if("<%=source %>" == "picwall")
+                                {
+                                	alert('123');
+                                    setTimeout('window.location.href = successurl', 2500);
+                                }
+                                if ("<%=source %>" == "record") {
+                                	alert('12345');
+                                    setTimeout('window.location.href = successurl', 2500);
+                                }
+                            }
+                            if (data == "fail") {
+                                saveAlert("保存失败");
+                            }
+                        },
+                        error: function (request) {
+                            alert("服务器连接失败！");
+                        }
+                    });
+
+                });
+            });
+
+            $("#windowclosebutton").click(function () {
+                $("#windowcenter").slideUp(500);
+                oLay.style.display = "none";
+
+            });
+            $("#alertclose").click(function () {
+                $("#windowcenter").slideUp(500);
+                oLay.style.display = "none";
+
+            });
+            function gourl(url) {
+                window.location.href = "PersonalInfo.aspx?memberCardNum=" + memberCardNum + "&strMemberId" + strMemberId;
+            }
+            function saveAlert(title) {
+                $("#windowcenter").slideToggle("slow");
+                $("#txt").html(title);
+                setTimeout('$("#windowcenter").slideUp(500)', 2000);
+            } 
+        </script>
+    </div>
+</body>
+</html>

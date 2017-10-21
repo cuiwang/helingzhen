@@ -1,0 +1,153 @@
+{template 'common/header'}
+{if $operation == 'post'}
+<div class="panel panel-default">
+	<div class="panel-heading">
+		添加跳转连接内容
+	</div>
+	<div class="panel-body">
+		<form action="" method="post" onsubmit="return check();" class="form-horizontal form" enctype="multipart/form-data">
+			<input type="hidden" name="token" value="{$_W['token']}" />
+			<input type="hidden" name="id" value="{$_GPC['id']}" />
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">跳转名称</label>
+				<div class="col-sm-9">
+					<input type="text" value="{$redirectSetting['title']}" class="form-control" name="title" id="title" />
+					<span class="help-block"></span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">跳转URL</label>
+				<div class="col-sm-9">
+					{php echo tpl_form_field_link('go_url', $redirectSetting['go_url']);}
+					<span class="help-block"></span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">返回URL</label>
+				<div class="col-sm-9">
+					{php echo tpl_form_field_link('back_url', $redirectSetting['back_url']);}
+					<span class="help-block"></span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">授权链接STATE参数</label>
+				<div class="col-sm-9">
+					<input type="text" value="{$redirectSetting['arg_state']}" class="form-control" name="arg_state" id="arg_state" />
+					<span class="help-block"></span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">转发类型</label>
+				<div class="col-sm-9">
+					<select name="redirect_type" id="redirect_type" class="form-control">
+						<option value="redirect" {if $redirectSetting['redirect_type'] == 'redirect'}selected="selected"{/if} >普通跳转</option>
+						<option value="transpondCode" {if $redirectSetting['redirect_type'] == 'transpondCode'}selected="selected"{/if} >转发微信Code</option>
+						<option value="getOpenID" {if $redirectSetting['redirect_type'] == 'getOpenID'}selected="selected"{/if} >转发OpenId</option>
+						<option value="checkSubscribe" {if $redirectSetting['redirect_type'] == 'checkSubscribe'}selected="selected"{/if} >验证是否关注</option>
+					</select>
+					<span class="help-block"></span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">测试模式</label>
+				<div class="col-sm-9">
+					<select name="test_mode" id="test_mode" class="form-control">
+						<option value="0" {if $redirectSetting['test_mode'] == '0'}selected="selected"{/if} >关闭</option>
+						<option value="1" {if $redirectSetting['test_mode'] == '1'}selected="selected"{/if} >开启</option>
+					</select>
+					<span class="help-block"></span>
+				</div>
+			</div>
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label">使用统计</label>
+				<div class="col-sm-9">
+					<input type="text" value="{$redirectSetting['count']}" class="form-control" name="count" id="count" />
+					<span class="help-block"></span>
+				</div>
+			</div>
+			
+			<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+				<div class="col-sm-9">
+					<button name="submit" type="submit" class="btn btn-success" value="submit"><i class="icon-plus"></i>提交</button>
+					<button type="button" class="btn btn-danger" onclick="document.location.href = '{php echo $this->createWebUrl('RedirectSetting', array('op' => 'display'))}'"><i class="icon-plus"></i>返回</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+{elseif $operation == 'display'}
+<div class="panel panel-default">
+	<div class="panel-heading">
+		操作
+	</div>
+	<div class="table-responsive panel-body">
+		<a class="btn btn-danger" href="{php echo $this->createWebUrl('RedirectSetting', array('op' => 'post'))}"><i class="icon-plus"></i>添加</a>
+		<a class="btn btn-success" href="javascript:location.reload()"><i class="icon-refresh"></i>刷新</a>
+	</div>
+</div>
+
+<div class="panel panel-default">
+	<div class="panel-heading">
+		跳转连接列表
+	</div>
+	<div class="table-responsive panel-body">
+		<table class="table table-hover">
+			<thead>
+				<tr>
+					<th style="width:200px;">模板名称</th>
+					<th style="width:150px;">点击统计</th>
+					<th>连接地址</th>
+					<th>授权链接地址</th>
+					<th style="width:100px;">操作</th>
+				</tr>
+			</thead>
+			<tbody id="level-list">
+				{loop $redirectSettings $row}
+				<tr>
+					<td>{$row['title']}</td>
+					<td>{$row['count']}</td>
+					<td>
+						<input type='text' class="form-control" readonly value="{$row['redirect_url']}" ondblclick="inputCopy(this);" >
+					</td>
+					<td>
+						<input type='text' class="form-control" readonly value="{$row['oAuth_url']}" ondblclick="inputCopy(this);" >
+					</td>
+					<td>
+						<a href="{php echo $this->createWebUrl('RedirectSetting', array('op' => 'post', 'id' => $row['id']))}" class="btn btn-default btn-sm" title="编辑内容"><i class="fa fa-pencil"></i></a>
+						&nbsp;&nbsp;
+						<a href="{php echo $this->createWebUrl('RedirectSetting', array('op' => 'delete', 'id' => $row['id']))}" onclick="return confirm('确认删除此条数据吗？');
+								return false;" class="btn btn-default btn-sm" title="删除"><i class="fa fa-times"></i></a>
+					</td>
+				</tr>
+				{/loop}
+				<tr>
+					<td colspan="4">
+						{$pager}
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</div>
+<div style="display: none;" id="messageTemplate">
+	<div class="input-group">
+		<span class="input-group-addon">功能开发中</span>
+		<input name="tset" value="test" class="form-control">
+	</div>
+</div>
+<script type="text/javascript">
+	require(['jquery', 'util'], function ($, util) {
+		/*$(function () {
+			$('.sendRedirectSetting').click(function () {
+				var modalobj = util.ajaxshow("{php echo $this->createWebUrl('SendMessage', array('op' => 'post', 'id' => $row['id']))}",'test',{'show' : true,'remote':true}, {'hidden' : function(obj) {obj.remove();}});
+				modalobj.modal('show');
+			});
+		});*/
+	});
+	function inputCopy(obj) {
+		obj.select();
+	}
+</script>
+{/if}
+{template 'common/footer'}

@@ -1,0 +1,123 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	<li {if $operation == 'display'} class="active" {/if}><a href="{php echo $this->createWebUrl('dynamic',array('op' =>'display','id'=>$id))}">项目动态</a></li>
+	<li{if empty($dynamic['id']) && $operation == 'post'} class="active" {/if}><a href="{php echo $this->createWebUrl('dynamic',array('op' =>'post','id'=>$id))}">添加项目动态</a></li>
+	{if !empty($dynamic['id']) &&  $operation == 'post'}<li  class="active"><a href="{php echo $this->createWebUrl('dynamic',array('op' =>'post','id'=>$id,'dynamicid'=>$dynamic['id']))}">编辑项目动态</a></li>{/if}
+</ul>
+<div class="alert alert-warning" role="alert">项目名称:{$item['title']}</div>
+{if $operation == 'display'}
+
+<div class="main panel panel-default">
+	<div class="panel-body table-responsive">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<th style="width:30px;">ID</th>				
+					<th>标题</th>
+					<th>外链</th>
+					<th>发布时间</th>
+					<th >操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $dynamic}
+				<tr>
+					<td>{$dynamic['id']}</td>
+					<td>{$dynamic['title']}</td>
+					<td>{if $dynamic['link']}{$dynamic['link']}{else}无{/if}</td>
+					<td>{php echo date('Y-m-d H:i:s',$dynamic['createtime'])}</td>
+					<td style="text-align:left;">
+						<a href="{php echo $this->createWebUrl('dynamic', array('op' => 'post', 'dynamicid' => $dynamic['id'],'id'=>$id))}" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" title="修改"><i class="fa fa-edit"></i></a>
+						<a href="{php echo $this->createWebUrl('dynamic', array('op' => 'delete', 'dynamicid' => $dynamic['id'],'id'=>$id))}"class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" title="删除"><i class="fa fa-times"></i></a>
+					</td>
+				</tr>
+				{/loop}
+			</tbody>
+		</table>
+		{$pager}
+	</div>
+</div>
+<script>
+	require(['bootstrap'],function($){
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+	});
+</script>
+{elseif $operation == 'post'}
+
+<div class="main">
+	<form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" id="form1">
+		<input type="hidden" name="dynamicid" value="{$dynamic['id']}" />
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				项目动态设置
+			</div>
+			<div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style="color:red">*</span>标题</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" id='title' name="title" class="form-control" value="{$dynamic['title']}" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">缩略图</label>
+					<div class="col-sm-9 col-xs-12">
+						{php echo tpl_form_field_image('thumb', $dynamic['thumb'])}
+					</div>
+				</div>
+				<div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">描述</label>
+                    <div class="col-sm-9">
+                        <textarea class="form-control" name="description">{$dynamic['description']}</textarea>
+                        <div class="help-block">(不超过80个字) </div>
+                    </div>
+                </div>
+				<div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">内容</label>
+                    <div class="col-sm-9">
+                        {php echo tpl_ueditor('content',$dynamic['content'])}
+                        <div class="help-block">项目动态内容</div>
+                    </div>
+                </div>
+				 <div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">项目动态外接</label>
+					<div class="col-sm-9 col-xs-12">
+						<input type="text" name="link" class="form-control" value="{$dynamic['link']}" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label">是否显示</label>
+					<div class="col-sm-9 col-xs-12">
+						<label class='radio-inline'>
+							<input type='radio' name='enabled' value='1' {if $dynamic['enabled']==1}checked{/if} /> 是
+						</label>
+						<label class='radio-inline'>
+							<input type='radio' name='enabled' value='0' {if $dynamic['enabled']==0}checked{/if} /> 否
+						</label>
+					</div>
+				</div>
+			</div>
+		</div>
+<div class="form-group col-sm-12">
+	<input type="submit" name="submit" value="提交" class="btn btn-primary col-lg-1" />
+	<input type="hidden" name="token" value="{$_W['token']}" />
+	</div>
+	</form>
+</div>
+
+<script type="text/javascript">
+	require(['jquery', 'util'], function($, u){
+		$("#form1").submit(function(){
+			if(!$(":text[name='title']").val()) {
+				u.message('抱歉，项目动态标题为必填项，请返回修改！', '', 'error');
+				return false;
+			}
+			return true;
+		});
+	});
+</script>
+{/if}
+{template 'common/footer'}

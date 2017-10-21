@@ -1,0 +1,158 @@
+{template 'app_header'}
+<link href="{MODULE_URL}template/mobile/app/css/vote.css?t={php echo time()}" rel="stylesheet" type="text/css">
+
+<style>
+.pay_list_c1 {
+	width: 100%;
+	height: 24px;
+	cursor: pointer;
+	padding-left:10px;
+	padding-top:10px;
+	padding-bottom:10px;
+	-webkit-tap-highlight-color: rgba(0,0,0,0); 
+	
+}
+.radioclass {
+	opacity: 0;
+	cursor: pointer;
+}
+.refresh_vote {
+    background-color: rgba(0, 0, 0, 0.4);
+    bottom: 200px;
+    position: fixed;
+    right: 14px;
+    text-align: center;
+    z-index: 11;
+    height: 50px;
+    width: 50px;
+    border-radius: 100%;
+	}
+.refresh_vote img {
+	padding: 5px;
+	display: block;
+	height: 40px;
+    width: 40px;
+    
+}
+.vote_disabled{display:none}
+</style>
+<script>
+var vote_nums = {$vote['vote_more']} < 2 ? 1 : {$vote['vote_nums']};
+</script>
+</head> 
+<body id="vote-text">
+<div class="vote" style="margin-top:40px">
+<div class="votecontent">
+	<h2>{$vote['vote_zhuti']}</h2>
+	<!--span class="date">2016-10-15</span-->
+	<div class="voteimg">
+		<img src="{php echo tomedia($vote['vote_zhuti_img'])}">
+	</div>   
+	<p class="content">{php echo html_entity_decode($vote['vote_zhuti_des'])}</p>
+	<p class="modus">{if $vote['vote_more']==1}单选{else}多选{/if}投票{if $vote['vote_more']!=1}，最多可选{$vote['vote_nums']}项{/if} <span class="number">总共已投{$total}票</span></p>
+	<ul class="list" id="list" style="padding-top:10px;">
+	{loop $vote_xms $key $val}
+	{if $total==0 && $val['nums']==0}{php $total=1}{/if}
+	{if $val['show_style']==1}
+		<li>
+		 {php $val['color'] = $this->color($key);}
+		  <div class="pay_list_c1">
+				<i class="weui_icon_circle {if !empty($check_voted)}vote_disabled{/if}"></i>
+				<input type="radio" name="id[]"  class="radioclass" value="{$val['id']}">
+				<div style="display:inline-block;height:24px;line-height:24px;">{$val['name']}{if in_array($val['id'],$check_voted_id)}[<font color=red>已投此项</font>]{/if}</div>
+		   </div>
+		  <div id="voteshow{$val['id']}" class="votebar">
+			  <div class="pbg">
+				<div style="width: {php echo  sprintf('%.2f', ($val['nums']/$total)*100)}%; background-color:{$val['color']}" class="pbr"></div>
+			  </div>
+			   <span class="percentage" style="color:#ffcc00">{php echo  sprintf("%.2f", ($val['nums']/$total)*100 )}%<span class="user">({$val['nums']})</span></span>
+		  </div>
+		</li>                 
+	{else}
+		<li>
+		  <p class="voteimg"><img src="{php echo tomedia($val['img'])}"></p>
+		 
+		  <div class="pay_list_c1">
+				 <i class="weui_icon_circle {if !empty($check_voted)}vote_disabled{/if}"></i>
+				<input type="radio" name="id[]"  class="radioclass" value="{$val['id']}">
+				<div style="display:inline-block;height:24px;line-height:24px;">{$val['name']}{if in_array($val['id'],$check_voted_id)}[<font color=red>已投此项</font>]{/if}</div>
+		   </div>
+		  <div id="voteshow{$val['id']}" class="votebar">
+			  <div class="pbg">
+				<div style="width: {php echo  sprintf('%.2f', ($val['nums']/$total)*100 )}%; background-color:{$val['color']}" class="pbr"></div>
+			  </div>
+			   <span class="percentage" style="color:#ffcc00">{php echo  sprintf("%.2f", ($val['nums']/$total)*100 )}%<span class="user">({$val['nums']})</span></span>
+		  </div>
+		</li>    
+	 {/if}
+	 {/loop}
+	</ul>  
+	{if empty($check_voted)}
+	<a href="javascript:;" class="weui_btn weui_btn_primary btn_sub" style="margin-top:20px;">确认提交</a>
+	{else}
+	<a href="javascript:;" class="weui_btn weui_btn_disabled weui_btn_default" style="margin-top:20px;">您本轮已投过票</a>
+	{/if}
+ </div>
+</div>
+<div class="refresh_vote" onclick="javascript:window.location.reload();"><img src="{MODULE_URL}template/mobile/app/images/refresh.png"/></div>
+<script>
+$(document).ready(function(){
+$(".pay_list_c1").on("click",function(){
+	if($(".vote_disabled").length>0){
+		return;
+	}
+	var j = $(".weui_icon_success").length;
+	if(j+1>vote_nums){
+		
+		$(this).find("input").attr("checked",false);
+		if($(this).find("i").hasClass("weui_icon_success")){
+			$(this).find("i").attr('class','weui_icon_circle');
+		}else{
+			_loading_toast._show("最多选择" + vote_nums + "项");
+		}
+		
+	}else{
+		if($(this).find("i").hasClass("weui_icon_success")){
+			$(this).find("i").attr('class','weui_icon_circle');
+			$(this).find("input").attr("checked",false);
+			
+		}else{
+			$(this).find("i").attr('class',"weui_icon_success");
+			$(this).find("input").attr("checked",true);
+			
+	    }
+	}
+});
+$(".btn_sub").on("click",function(){
+	var sub_on = $(".pay_list_c1 .weui_icon_success");
+	var sub_val = [];
+	for(var i=0;i<sub_on.length;i++){
+		sub_val.push($(sub_on[i]).next("input").val());
+	}
+
+	if(sub_val.length==0 || sub_val.length>vote_nums){
+		_loading_toast._show("请选择你支持的" + vote_nums + "项");
+		return;
+	}
+	_meepoajax._ajax({
+				do_it:'vote_insert',
+				type: "POST",                        
+				dataType: 'json',      
+				cache: false,                 
+				formPata:{'rid':'{$rid}','data':sub_val,'vote_id':'{$vote['id']}'},
+				success:function(r) {
+						//_loading_toast._show(r.message);
+						if(r.errno==0){
+							_loading_toast._show("恭喜、投票成功");
+							setTimeout(function(){  
+							window.location.reload();
+							},2000);
+						}else{
+							_loading_toast._show(r.message);
+						}
+				}
+		})
+})
+});
+</script>  
+{template 'app_footer'}

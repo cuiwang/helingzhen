@@ -1,0 +1,120 @@
+{template 'weheader'}
+<script src="{TEMPLATE_WEUI}swipe.js"></script>
+<script type="text/javascript" src="{TEMPLATE_WEUI}picker.js"></script>
+<script type="text/javascript" src="{TEMPLATE_WEUI}select.js"></script>
+<script src="{TEMPLATE_WEUI}iscroll.js"></script>
+<script type="text/javascript" src="{TEMPLATE_WEUI}scrolling.min.js"></script>
+<script>
+ $(function(){
+
+$('#slide1').swipeSlide({
+autoSwipe:true,//自动切换默认是
+speed:3000,//速度默认4000
+continuousScroll:true,//默认否
+transitionType:'cubic-bezier(0.22, 0.69, 0.72, 0.88)',//过渡动画linear/ease/ease-in/ease-out/ease-in-out/cubic-bezier
+lazyLoad:true,//懒加载默认否
+firstCallback : function(i,sum,me){
+            me.find('.dot').children().first().addClass('cur');
+        },
+        callback : function(i,sum,me){
+            me.find('.dot').children().eq(i).addClass('cur').siblings().removeClass('cur');
+        }
+});
+});
+    </script>
+<style type="text/css">
+body{background-color:#fff;}
+.swiper-container { width: 100%;} 
+.swiper-container img { display: block; width: 100%;height:150px;}
+{if $setting['list_num']==4}
+.weui_grid{width:25%;}
+{/if}
+.weui_panel_ft:before{height:0px;border-top:0px solid #e5e5e5;}
+.weui_panel_ft span{margin-bottom:0px;}
+.weui-navigator-list img {width:18px;height:18px;}
+.weui-navigator-list a {font-weight:300;font-size:14px;}
+</style>
+<div class="weui_tab_bd">
+	{if !empty($slide)}
+	<div class="slide" id="slide1">
+		<ul>
+		{loop $slide $item}
+        <li>
+            <a href="{$item['link']}">
+                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAANSURBVBhXYzh8+PB/AAffA0nNPuCLAAAAAElFTkSuQmCC" data-src="{$item['thumb']}" alt="">
+            </a>
+            <div class="slide-desc">{$item['title']}</div>
+        </li>
+		{/loop}
+		</ul>
+		<div class="dot">
+			{loop $slide $item}
+			<span></span>
+			{/loop}
+		</div>
+	</div>
+	{/if}
+	{if $category}
+	<div id="tagnav" class="weui-navigator weui-navigator-wrapper">
+		<ul class="weui-navigator-list">
+			<li class="{if empty($id)}weui-state-active{/if}"><a href="{php echo $this->createMobileUrl('list');}">全部</a></li>
+		{loop $category $val}
+			<li class="{if $val['id']==$id}weui-state-active{/if}"><a href="{php echo $this->createMobileUrl('list', array('id' =>$val['id']));}">{if !empty($val['icon'])}<img class="circle middle" src="{php echo tomedia($val['icon'])}"> {/if}{$val['title']}</a></li>
+		{/loop}
+		</ul>
+	</div>
+	{/if}
+
+	{if $list_num==1}
+	<div class="weui_panel" style="margin:0;">
+		<div class="weui_panel_bd">
+		{loop $yuyue $item}
+			<div href="{$item['link']}" class="weui_media_box weui_media_appmsg">
+				<div class="weui_media_hd open-popup" onclick="show({$item['reid']})" data-target="#popup">
+					<img class="weui_media_appmsg_thumb radius-sm" src="{php echo tomedia($item['icon'])}" alt="{$item['subtitle']}">
+				</div>
+				<a class="weui_media_bd" href="{$item['link']}">
+					<h4 class="weui_media_title f-black">{$item['subtitle']}</h4>
+					<p class="weui_media_desc">{$item['description']}</p>
+				</a>
+                <div class="weui_panel_ft">
+					<span class="weui_btn weui_btn_mini weui_btn_plain_primary open-popup" onclick="show({$item['reid']})" data-target="#popup" style="border: 1px solid {if !empty($nav_btn)}{$nav_btn}{else}#5c6bc0{/if};color:{if !empty($nav_btn)}{$nav_btn}{else}#5c6bc0{/if};">介绍</span>
+				</div>
+			</div>
+		{/loop}
+		</div>
+	</div>
+	{else}
+		<div class="weui_grids">
+		{loop $yuyue $item}
+			<a href="{$item['link']}" class="weui_grid js_grid">
+				<div class="weui_grid_icon"><img src="{php echo tomedia($item['icon'])}" alt="{$item['subtitle']}"></div>
+                <p class="weui_grid_label">{$item['subtitle']}</p>
+			</a>
+		{/loop}
+		</div>
+	{/if}
+</div>
+<div id="popup" class="weui-popup-container" style="z-index:999;">
+	<div class="weui-popup-modal" id="content">
+	</div>
+</div>
+	<script>
+	function show(id){
+		$.post("{php echo $this->createMobileUrl('getyuyue')}",{id:id},function(data){
+	//		$("#popup .weui-header-title").html(data.message.title);
+	//		document.getElementById('image').src = tomedia(data.message.thumb);
+	//		$("#popup .weui-weixin-content").html(data.message.content);
+	//		document.getElementById("link").href=data.message.link;
+			$("#popup .weui-popup-modal").html(data.message.html);
+			document.getElementById('content').insertAdjacentHTML('afterend', data.message.html2);
+//			console.log(data.message);
+		},"json");
+	}
+$(function(){
+    TagNav('#tagnav',{
+        type: 'scrollToFirst',
+    });
+})
+	</script>
+{template 'footers'}

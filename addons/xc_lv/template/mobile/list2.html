@@ -1,0 +1,527 @@
+{php $bootstrap_type = 3;}
+{if empty($_W['isajax'])}
+
+<?php
+    $id = $_GPC['parentid'];
+    $ccate = $_GPC['ccate'];
+    $idd = $_GPC['ping'];
+  $cate =  pdo_fetch("SELECT * FROM " . tablename('xc_lv_category') . " WHERE id = '$ccate'");
+  
+  
+ if(empty($cate)){
+ 	
+ 	
+ 	$cate = pdo_fetch("SELECT * FROM " . tablename('xc_lv_category') . " WHERE id = '$id'");
+ }
+$catetitle = $cate['catetitle'];
+  //  echo "<pre>";
+   // print_r($cate);
+ 	//echo "</pre>";
+    
+    
+    ?>
+
+<title>
+
+
+{if !empty($catetitle)}{$catetitle}{else}{$_W['account']['name']}{/if}
+</title>
+
+{template 'header'}
+
+
+
+
+<style>
+	.show-more {padding-bottom:30px;}
+
+	.list-item .vote-star{
+		display:inline-block;/*内联元素转换成块元素，并不换行*/
+		margin-right:6px;
+		width:85px;/*5个星星的宽度*/
+		/*height:17px;/*1个星星的高度*/
+		overflow:hidden;
+		vertical-align:middle;
+		background:url(/addons/xc_lv/images/star.png) repeat-x 0 -17px;}
+	.list-item .vote-star i{
+		display:inline-block;/*内联元素转换成块元素，并不换行*/
+		height:17px;/*1个星星的高度*/
+		background:url(/addons/xc_lv/images/star.png) repeat-x 0 0;}
+	.list-item .vote-number{
+		vertical-align:middle;
+		font-family:微软雅黑, Verdana, Geneva, sans-serif;
+		font-size:12px;}
+	.juli {color:white;background: rgba(0, 0, 0, 0.3);position: relative;left: 15px;top: 30px;padding: 5px 15px;border-radius: 15px;}
+</style>
+<link type="text/css" rel="stylesheet" href="../addons/xc_lv/images/style.css?{TIMESTAMP}">
+	
+<script type="text/javascript">
+	
+   function distanceByLnglat(lng1, lat1, lng2, lat2) {
+        var radLat1 = Rad(lat1);
+        var radLat2 = Rad(lat2);
+        var a = radLat1 - radLat2;
+        var b = Rad(lng1) - Rad(lng2);
+        var s = 2 * Math.asin(Math.sqrt(Math.pow(Math.sin(a / 2), 2) + Math.cos(radLat1) * Math.cos(radLat2) * Math.pow(Math.sin(b / 2), 2)));
+        s = s * 6378137.0;
+        s = Math.round(s * 10000) / 10000000;
+        s = s.toFixed(2);
+        return s;
+    }
+    function Rad(d) {
+        return d * Math.PI / 180.0
+    };
+require(['jquery'], function($){
+	wx.ready(function () {
+ 
+		// 图片预览
+		// 注意: 仅支持 DOM 选择
+ 
+			wx.getLocation({
+			    type: 'wgs84', // 默认为wgs84的gps坐标，如果要返回直接给openLocation用的火星坐标，可传入'gcj02'
+			    success: function (res) {
+			        var latitude = res.latitude; // 纬度，浮点数，范围为90 ~ -90
+			        var longitude = res.longitude; // 经度，浮点数，范围为180 ~ -180。
+			        var speed = res.speed; // 速度，以米/每秒计
+			        var accuracy = res.accuracy; // 位置精度
+			     
+			     
+			     
+			     $(".list-item").each(function(){
+			     	
+			  var ShopLngLat = $(this).find(".showlan").val();
+                var InputOF = ShopLngLat.indexOf(",");
+                var InputOFLast = ShopLngLat.length;
+                var ShopLat = ShopLngLat.slice(0, InputOF);
+                var ShopLng = ShopLngLat.slice(InputOF + 1, InputOFLast);
+                var dis111 = distanceByLnglat(longitude,latitude,ShopLng,ShopLat);
+                
+                      $(this).find(".juli").html("<i class='fa fa-map-marker' style='margin-right:5px;'></i>"+ dis111+"km");
+			     	
+			     });
+			        
+				
+			        
+			    }
+			});
+	});
+});
+ 
+</script>
+<!--<div class="head">
+	<a href="javascript:;" onclick="$('.head .order').toggleClass('hide');" class="bn pull-left"><i class="fa fa-angle-double-down"></i></a>
+	<span class="title">
+		{if $_GPC['isnew']==1}新品推荐{/if}
+		{if $_GPC['ishot']==1}热卖商品{/if}
+		{if $_GPC['isdiscount']==1}折扣商品{/if}
+		{if $_GPC['istime']==1}限时卖{/if}
+		{if !empty($_GPC['keyword'])}搜索结果{/if}
+		{if $_GPC['pcate']}{$category[$_GPC['pcate']]['name']}{/if}
+		{if $_GPC['ccate']} - {$children[$_GPC['pcate']][$_GPC['ccate']]['name']}{/if}
+	</span>
+&lt;!&ndash;	<a href="{php echo $this->createMobileUrl('mycart')}" class="bn pull-right">
+		<i class="fa fa-shopping-cart"></i>
+		<span class="buy-num img-circle" id="carttotal">{$carttotal}</span>
+	</a>&ndash;&gt;
+	<ul class="unstyled order hide">
+		{loop $category $item}
+		<li>
+			<a href="{php echo $this->createMobileUrl('list2', array('pcate' => $item['id']))}" class="bigtype">
+				<i class="fa fa-folder-open"></i>  {$item['name']}
+			</a>
+			{loop $children[$item['id']] $child}
+			<a href="{php echo $this->createMobileUrl('list2', array('ccate' => $child['id']))}" class="smtype">
+				<i class="fa fa-folder"></i> {$child['name']}
+			</a>
+			{/loop}
+		</li>
+		{/loop}
+	</ul>
+
+</div><!--<img src="/attachment/{$item['thumb']}" width="100%"/>-->
+
+<style type='text/css'>
+	.sel { background:#00aeff; color:#fff;}
+	.nosel { background:#fff;color:#000}
+</style>
+
+<!--
+	先确定位置精度，然后计算出距离，用ajax先提交距离
+	
+	
+-->
+
+
+ 
+<div class="shopping-main">
+	<div style="width:100%;padding:10px 10px 0;">
+	<form action="" method="get">
+		{if $ccate!=''}<input type="hidden" name="ccate" value="{$ccate}" />{/if}
+	   {if $id!=''} <input type="hidden" name="parentid" value="{$id}" />{/if}
+	   {if $idd!=''}<input type="hidden" name="ping" value="{$idd}" />{/if}
+		<input type="hidden" name="i" value="{$_W['weid']}" />
+		<input type="hidden" name="c" value="entry" />
+		<input type="hidden" name="m" value="xc_lv" />
+		<input type="hidden" name="do" value="list2" />
+   		{if $_GPC['isnew']==1}<input type="hidden" name="isnew" value="1" />{/if}
+		{if $_GPC['ishot']==1}<input type="hidden" name="ishot" value="1" />{/if}
+		{if $_GPC['isdiscount']==1}<input type="hidden" name="isdiscount" value="1" />{/if}
+		{if $_GPC['istime']==1}
+			<input type="hidden" name="istime" value="1" />
+		{/if}
+		
+		<div class="input-group">
+			<input type="text" class="form-control input-md" style="border:1px solid #d3d3d3;" name="keyword" value="{$_GPC['keyword']}" placeholder="请输入{if $_GPC['isnew']==1}新品推荐线路{/if}{if $_GPC['ishot']==1}热卖线路{/if}{if $_GPC['isdiscount']==1}折扣线路{/if}{if $_GPC['istime']==1}限时特惠线路{/if}关键字">
+			<span class="input-group-btn">
+				<button class="btn btn-default btn-md" type="submit"><i class="fa fa-search"></i> 搜索线路</button>
+<button class="btn btn-default btn-md" id="dLabel" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-list"></i> 分类</button>
+			<ul  class="dropdown-menu animated bounceInDown" aria-labelledby="dLabel">
+
+				<li>
+					{loop $children[$id] $child}
+					<a href="{php echo $this->createMobileUrl('list2', array('ccate' => $child['id']))}"> {$child['name']}</a>
+					{/loop}
+					{if $id}
+					<a id="more" style="display: block;text-align: center;padding:0 auto;">显示更多</a>
+					{/if}
+				</li>
+
+			</ul>
+			</span>
+
+
+
+
+		</div>
+	</form>
+
+	</div>
+   
+    <script type="text/javascript">
+        var CRT = 30; // 如果大于等于3
+//		var t = $("ul li a").length;
+        jQuery (function ($)
+        {
+			if ( $("ul li a").length > 30) {
+				$ ("ul li a").filter ("a:gt(" + (CRT - 1) + ")").hide ().filter (":last").show ().click (function ()
+				{
+					$ (this).siblings ("a:gt(" + (CRT - 1) + ")").toggle ();
+//					$("#more").html($("#more").html().replace("显示更多","隐藏"));
+//					$("a:last").replaceAll("隐藏");
+				});
+			}
+            else if ( $("ul li a").length <= 30) {
+				$ ("ul li a").filter (":last").hide ();
+			}
+        });
+    </script>
+
+
+
+    
+    {if $idd=="huo"}
+    	<ul>
+
+		<li>
+        {loop $category $item}
+			{loop $children[$item['id']] $child}
+			<a href="{php echo $this->createMobileUrl('list2', array('ccate' => $child['id']))}"> {$child['name']}</a>
+			{/loop}
+            
+            {/loop}
+      
+            <a style="display: block;width:23%;text-align: center;padding:0 auto;">显示更多</a>
+          
+		</li>
+
+	</ul>
+    {/if}
+
+
+    {if $ccate!=''}
+        
+       <div style="padding:0 0 10px;margin-top:-10px;">
+
+			<img src="{php echo tomedia($cate['thumb']);}" width="100%">
+            </div>
+		
+   {/if}
+  
+
+	<div style="clear: both;"></div>
+	<div class="list" id="list">
+		<!--<div style='float:left;height:30px;margin:auto;width:100%;margin-top:10px;'>
+  		<div {if $sort==0}class='sel'{else}class="nosel"{/if} style='border:1px solid #00aeff;text-align: center;float:left;width:25%' onclick="location.href='{$sorturl}&sort=0&sortb0={$sortb00}'">
+			按时间 {if $sort==0}{if $sortb0=="desc"}<i class="fa fa-arrow-down"></i>{else}<i class="fa fa-arrow-up"></i>{/if}{/if}
+		</div>
+		<div {if $sort==1}class='sel'{else}class="nosel"{/if} style='border:1px solid #00aeff;margin-left:-1px;float:left;width:25%;text-align: center;' onclick="location.href='{$sorturl}&sort=1&sortb1={$sortb11}'">
+			按销量 {if $sort==1}{if $sortb1=="desc"}<i class="fa fa-arrow-down"></i>{else}<i class="fa fa-arrow-up"></i>{/if}{/if}
+		</div>
+		<div {if $sort==2}class='sel'{else}class="nosel"{/if} style='border:1px solid #00aeff;margin-left:-1px;float:left;width:25%;text-align: center;' onclick="location.href='{$sorturl}&sort=2&sortb2={$sortb22}'">
+			按人气 {if $sort==2}{if $sortb2=="desc"}<i class="fa fa-arrow-down"></i>{else}<i class="fa fa-arrow-up"></i>{/if}{/if}
+		</div>
+		<div {if $sort==3}class='sel'{else}class="nosel"{/if} style='margin-left:-1px;text-align: center;border:1px solid #00aeff;float:left;width:25%' onclick="location.href='{$sorturl}&sort=3&sortb3={$sortb33}'">
+			按价格 {if $sort==3}{if $sortb3=="desc"}<i class="fa fa-arrow-down"></i>{else}<i class="fa fa-arrow-up"></i>{/if}{/if}
+		</div>
+	</div>-->
+<!--<div class="list-tips">
+	{if $_GPC['isnew']==1}新品推荐{/if}
+	{if $_GPC['ishot']==1}热卖商品{/if}
+	{if $_GPC['isdiscount']==1}折扣商品{/if}
+	{if $_GPC['istime']==1}限时卖{/if}共<b>{$total}</b>种
+</div>-->
+{/if}
+{loop $list $item}
+
+{if $item['pcate']==$id}
+		<a href="{php echo $this->createMobileUrl('detail', array('id' => $item['id']))}">
+<div class="list-item">
+	
+	   <?php
+	       
+             	$arr = json_decode($item['location'],true);
+             	
+             	
+             	?>
+         <input class="showlan" type="hidden" value="{$arr['lat']},{$arr['lng']}"/>
+
+	<div>
+		<span class="juli" style="display: inline-block;margin-right:10px;color:white;"></span>
+		<strong class="text-danger" style="margin-top:-50px;">
+			<span style="display: block;background-color: rgba(255, 120, 0, 1);padding:2px 10px;">
+				<i class="fa fa-yen"></i> {$item['marketprice']}<span style="font-weight: normal;margin-left: 5px;"> 起</span>
+			</span>
+            <span style="display: block;background-color: rgba(255, 255, 255, 1);padding:10px;">
+			<span class="vote-star" title="{$item['xingji']}分" style="background-color: white;display: block;">
+					<i style="width:{$item['xingji']}%"></i>
+				</span>
+			</span></strong>
+		<img src="{php echo tomedia($item['thumb']);}">
+        <div style="clear: both;"></div>
+		<span class="title">
+				{$item['title']}
+			{if $item['type'] == '2'}{/if}
+
+		</span>
+			<span style="margin:0 0 5px 0;">{$item['xingcheng']}</span>
+
+<!--		<div style="clear:both;"></div>
+				<div class="star" style="float:right;font-size:14px;font-weight:bold;color:#a94442;">线路热度：
+
+					&lt;!&ndash;<span class="vote-number">50
+					</span>&ndash;&gt;
+				</div>-->
+			<!--<kbd style="font-size:16px;background-color: #AF5150;border-radius:0;margin-left:20px;">推荐热度：4.7 </kbd>
+        <strong style="color: #b0b8bd; text-decoration: line-through;">￥{$item['originalprice']}</strong>-->
+
+		{if $item['istime']==1}
+			<span style='text-align: center;margin-left:10px;margin-right:10px;color:white;font-size:11px;' class='label label-danger' id="time_{$item['id']}">
+			{if $item['timelast'] < 0}
+				时间到了
+			{else}
+				{$item['timelaststr']}
+				<script language='javascript'>
+					var total_time_{$item['id']} = {$item['timelast']};  
+					var int_time_{$item['id']}  = setInterval(function(){
+						d({$item['id']});
+					},1000);
+				</script>
+			{/if}
+			</span>
+		 {/if}
+	</div>
+
+<!--	<span class="sold">
+		<span class="soldnum pull-left">已售{$item['sales']}件</span>
+		<span class="price pull-right">{$item['marketprice']}元 &lt;!&ndash; {if $item['unit']}/ {$item['unit']}{/if}&ndash;&gt;</span>
+	</span>-->
+<!--	<div class="add-cart" onclick="order.add({$item['id']})"><i class="fa fa-shopping-cart"></i> 添加到购物车</div>-->
+</div></a>
+
+{else if $item['ccate']==$_GPC['ccate'] }
+
+
+<a href="{php echo $this->createMobileUrl('detail', array('id' => $item['id']))}">
+<div class="list-item">
+
+          <?php
+	       
+             	$arr = json_decode($item['location'],true);
+             	
+             	
+             	?>
+             	<input class="showlan" type="hidden" value="{$arr['lat']},{$arr['lng']}"/>
+
+	<div>
+		<span class="juli" style="display: inline-block;margin-right:10px;color:white;"></span>
+		<strong class="text-danger" style="margin-top:-50px;">
+			<span style="display: block;background-color: rgba(255, 120, 0, 1);padding:2px 10px;">
+				<i class="fa fa-yen"></i> {$item['marketprice']}<span style="font-weight: normal;margin-left: 5px;"> 起</span>
+			</span>
+            <span style="display: block;background-color: rgba(255, 255, 255, 1);padding:10px;">
+			<span class="vote-star" title="{$item['xingji']}分" style="background-color: white;display: block;">
+					<i style="width:{$item['xingji']}%"></i>
+				</span>
+			</span></strong>
+		<img src="{php echo tomedia($item['thumb']);}">
+		<div style="clear: both;"></div>
+		<span class="title">
+				{$item['title']}
+			{if $item['type'] == '2'}{/if}
+
+		</span>
+		<span style="margin:0 0 5px 0;">{$item['xingcheng']}</span>
+			<!--<kbd style="font-size:16px;background-color: #AF5150;border-radius:0;margin-left:20px;">推荐热度：4.7 </kbd>
+        <strong style="color: #b0b8bd; text-decoration: line-through;">￥{$item['originalprice']}</strong>-->
+
+		{if $item['istime']==1}
+			<span style='text-align: center;margin-left:10px;margin-right:10px;color:white;font-size:11px;' class='label label-danger' id="time_{$item['id']}">
+			{if $item['timelast'] < 0}
+				时间到了
+			{else}
+				{$item['timelaststr']}
+				<script language='javascript'>
+					var total_time_{$item['id']} = {$item['timelast']};  
+					var int_time_{$item['id']}  = setInterval(function(){
+						d({$item['id']});
+					},1000);
+				</script>
+			{/if}
+			</span>
+		 {/if}
+	</div>
+
+<!--	<span class="sold">
+		<span class="soldnum pull-left">已售{$item['sales']}件</span>
+		<span class="price pull-right">{$item['marketprice']}元 &lt;!&ndash; {if $item['unit']}/ {$item['unit']}{/if}&ndash;&gt;</span>
+	</span>-->
+<!--	<div class="add-cart" onclick="order.add({$item['id']})"><i class="fa fa-shopping-cart"></i> 添加到购物车</div>-->
+</div></a>
+{else if $idd=='huo'}
+
+
+<a href="{php echo $this->createMobileUrl('detail', array('id' => $item['id']))}">
+<div class="list-item">
+          <?php
+	        
+             	$arr = json_decode($item['location'],true);
+             	
+             	
+             	?>
+             	
+         <input class="showlan" type="hidden" value="{$arr['lat']},{$arr['lng']}"/>
+          
+		<div>
+			<span class="juli" style="display: inline-block;margin-right:10px;color:white;"></span>
+			<strong class="text-danger" style="margin-top:-50px;">
+			<span style="display: block;background-color: rgba(255, 120, 0, 1);padding:2px 10px;">
+				<i class="fa fa-yen"></i> {$item['marketprice']}<span style="font-weight: normal;margin-left: 5px;"> 起</span>
+			</span>
+            <span style="display: block;background-color: rgba(255, 255, 255, 1);padding:10px;">
+			<span class="vote-star" title="{$item['xingji']}分" style="background-color: white;display: block;">
+					<i style="width:{$item['xingji']}%"></i>
+				</span>
+			</span></strong>
+			<img src="{php echo tomedia($item['thumb']);}">
+			<div style="clear: both;"></div>
+		<span class="title">
+				{$item['title']}
+			{if $item['type'] == '2'}{/if}
+
+		</span>
+			<span style="margin:0 0 5px 0;">{$item['xingcheng']}</span>
+			<!--<kbd style="font-size:16px;background-color: #AF5150;border-radius:0;margin-left:20px;">推荐热度：4.7 </kbd>
+        <strong style="color: #b0b8bd; text-decoration: line-through;">￥{$item['originalprice']}</strong>-->
+
+		{if $item['istime']==1}
+			<span style='text-align: center;margin-left:10px;margin-right:10px;color:white;font-size:11px;' class='label label-danger' id="time_{$item['id']}">
+			{if $item['timelast'] < 0}
+				时间到了
+			{else}
+				{$item['timelaststr']}
+				<script language='javascript'>
+					var total_time_{$item['id']} = {$item['timelast']};  
+					var int_time_{$item['id']}  = setInterval(function(){
+						d({$item['id']});
+					},1000);
+				</script>
+			{/if}
+			</span>
+		 {/if}
+	</div>
+
+<!--	<span class="sold">
+		<span class="soldnum pull-left">已售{$item['sales']}件</span>
+		<span class="price pull-right">{$item['marketprice']}元 &lt;!&ndash; {if $item['unit']}/ {$item['unit']}{/if}&ndash;&gt;</span>
+	</span>-->
+<!--	<div class="add-cart" onclick="order.add({$item['id']})"><i class="fa fa-shopping-cart"></i> 添加到购物车</div>-->
+</div></a>
+
+
+
+{/if}
+{/loop}
+{if empty($_W['isajax'])}
+	</div>
+	<div class="show-more"><a href="javascript:;" onclick="loadPage('{$pindex}', 'list')" id="pager">浏览更多线路</a></div>
+</div>
+<script type="text/javascript">
+function loadPage(pindex, container) {
+	pindex = parseInt(pindex) + 1;
+	$('#pager').html('正在加载数据...');
+	$.get(location.href, {'page' : pindex}, function(html){
+		if (html.indexOf('list-item') > -1) {
+			$('#'+container).append(html);
+			$('#pager').get(0).onclick = function(){
+				loadPage(pindex, container);
+			}
+			$('#pager').html("浏览更多线路");
+		} else {
+			$('#pager').html('已经显示全部线路');
+		}
+	});
+}
+
+function d(id){
+	eval("total_time_" + id+"--");
+	var total_time = eval("total_time_" + id);
+	var days = parseInt(total_time/86400)
+	var remain = parseInt(total_time%86400);
+	var hours = parseInt(remain/3600)
+	var remain = parseInt(remain%3600);
+	var mins = parseInt(remain/60);
+	var secs = parseInt(remain%60);
+	if (total_time <= 0) {
+		$("#time_" + id).html( "时间到了");
+		var int_time =  eval("int_time_" + id);
+		window.clearInterval(int_time);
+	} else {
+		var ret = "";
+		if(days>0){
+			days = days+"";
+			if(days.length<=1) { days="0"+days;}
+			ret+=days+" 天 ";
+		}
+		if(hours>0){
+			hours = hours+"";
+			if(hours.length<=1) { hours="0"+hours;}
+			ret+=hours+":";
+		}
+		if(mins>0){
+			mins = mins+"";
+			if(mins.length<=1) { mins="0"+mins;}
+			ret+=mins+":";
+		}
+		secs = secs+"";
+		if(secs.length<=1) { secs="0"+secs;}
+		ret+=secs;
+		$("#time_" + id).html( "倒计时 " +ret);
+	}
+}
+</script>
+
+{template 'footer'}
+{template 'footerbar'}
+{/if}
+
+

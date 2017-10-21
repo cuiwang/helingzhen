@@ -1,0 +1,90 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+	{if $openid}
+	<li><a href="{php echo $this->createWebUrl('member', array('op' => 'display'))}">会员列表</a></li>
+	<li class="active"><a href="{php echo $this->createWebUrl('member', array('op' => 'buyre','openid'=>$openid))}">购买记录</a></li>
+	{else}
+	<li {if $op == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('record');}">全部交易记录</a></li>
+	<li {if $op == 'recharge'}class="active"{/if}><a href="{php echo $this->createWebUrl('record',array('op'=>'recharge'));}">全部充值记录</a></li>
+	{/if}
+</ul>
+<div class="panel panel-default">
+	<div class="panel-heading">筛选</div>
+	<div class="panel-body">
+		<form action="./index.php" method="get" class="form-horizontal" role="form" id="form">
+			<input type="hidden" name="c" value="site" />
+            <input type="hidden" name="a" value="entry" />
+            <input type="hidden" name="m" value="weliam_indiana" />
+            <input type="hidden" name="do" value="{$_GPC['do']}" />
+            <input type="hidden" name="op" value="{$op}" />
+            <input type="hidden" name="openid" value="{$openid}" />
+            {if $op == 'display'}
+            <div class="form-group">
+				<label class="col-md-2 control-label">身份</label>
+				<div class="col-sm-8 col-xs-12">
+					<div class="btn-group">
+						<a href="{php echo $this->createWebUrl('record')}" class="btn {if $_GPC['type'] == ''}btn-primary{else}btn-default{/if}">全部</a>
+						<a href="{php echo $this->createWebUrl('record')}&type=person" class="btn {if $_GPC['type'] == 'person'}btn-primary{else}btn-default{/if}">真实用户</a>
+						<a href="{php echo $this->createWebUrl('record')}&type=machine" class="btn {if $_GPC['type'] == 'machine'}btn-primary{else}btn-default{/if}">虚拟用户</a>
+					</div>
+				</div>
+			</div>
+			{/if}
+			<div class="form-group">
+				<label class="col-md-2 control-label">时间</label>
+				<div class="col-md-4">
+					{php echo tpl_form_field_daterange('time', array('starttime'=>date('Y-m-d H:i:s', $starttime),'endtime'=>date('Y-m-d H:i:s', $endtime)),true);}
+				</div>
+				<div class="col-md-2">
+					<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+<div class="panel panel-default">
+	<div class="panel-heading">交易记录</div>
+	<div class="panel-body">
+		<div class="table-responsive panel-body">
+			<table class="table table-hover table-bordered" style="min-width: 300px;">
+				<thead class="navbar-inner">
+					<tr>
+						<th class="col-sm-1 text-center">头像</th>
+						<th class="col-sm-2 text-center">昵称</th>
+						<th class="col-sm-1 text-center">商品图片</th>
+						<th class="col-sm-2 text-center">商品名称</th>
+						<th class="col-sm-1 text-center">消费{php echo $this -> module['config']['scose']}数量</th>
+						<th class="col-sm-1 text-center">状态</th>
+						<th class="col-sm-2 text-center">消费时间</th>
+						<!--<th class="col-sm-1 text-center">操作</th>-->
+					</tr>
+				</thead>
+				<tbody>
+					{loop $goodses $goodsid $goods}
+					<tr>
+						<td class="text-center"><img src="{php echo tomedia($goods['avatar'])}" style="width: 40px; height: 40px;padding:1px;border: 1px dotted gray;"></td>
+						<td class="text-center">{if strpos($goods['openid'],'machine') == 'true'}<span style="color: red;">(机器人)</span>{/if}{$goods['nickname']}</td>
+						<td class="text-center"><img src="{php echo tomedia($goods['picarr'])}" style="width: 40px; height: 40px;padding:1px;border: 1px dotted gray;"></td>
+						<td class="text-center">第（{$goods['periods']}）期  &nbsp;{$goods['title']}</td>
+						<td class="text-center">{$goods['num']} 个</td>
+						<td class="text-center">{if $goods['status']==1}<span class="label label-success">消费成功</span>{else}<span class="label label-default">消费失败</span>{/if}</td>
+						<td class="text-center">{php echo date('Y-m-d H:i:s', $goods['createtime'])}</td>
+						<!--<td class="text-center">
+							<a href="{php echo $this->createWebUrl('showrecords', array('id'=>$goods['id']));}" class="btn btn-success btn-sm" data-original-title="" title="">查看兑换码</a>
+						</td>-->
+					</tr>
+					{/loop}
+					{if empty($goodses)}
+					<tr>
+						<td colspan="8">
+							没有交易记录
+						</td>
+					</tr>
+					{/if}
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+{$pager}
+{template 'common/footer'}

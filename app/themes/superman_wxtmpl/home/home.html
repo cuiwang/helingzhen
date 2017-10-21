@@ -1,0 +1,164 @@
+{if $_W['isajax'] && $_GPC['load'] == 'infinite'}
+	{data module="site" func="site_article" cid="$cid" limit="$_W['styles']['home_pagesize']" ishot='true' assign="result" return="true"}
+	{php die(json_encode($result['list']));}
+{/if}
+{template 'common/header'}
+<style type="text/css">
+body{
+	padding:0;
+	margin:0;
+	font:{$_W['styles']['fontsize']} {$_W['styles']['fontfamily']};
+	color:{if empty($_W['styles']['fontcolor'])}#555{else}{$_W['styles']['fontcolor']}{/if};
+	//background-image:url('{if empty($_W['styles']['indexbgimg'])}./themes/superman_wxtmpl/css/bg_index.jpg{else}{$_W['styles']['indexbgimg']}{/if}');
+	background-size:cover;
+	background-color:{if empty($_W['styles']['indexbgcolor'])}#efeff4{else}{$_W['styles']['indexbgcolor']}{/if};
+	{$_W['styles']['indexbgextra']}
+}
+a{
+	color:{$_W['styles']['linkcolor']};
+	text-decoration:none;
+}
+{$_W['styles']['css']}
+.new-container{
+	width:58%;
+	overflow:hidden;
+	margin:.6em .3em;
+}
+.new-container .box-item{
+	float:left;
+	display:block;
+	text-decoration:none;
+	outline:none;
+	width:5em;
+	height:6em;
+	margin:.1em;
+	background:rgba(0, 0, 0, 0.3);
+	text-align:center;
+	color:#ccc;
+}
+.new-container i{
+	display:block;
+	height:45px;
+	margin: 5px auto;
+	font-size:35px;
+	padding-top:10px;
+	width:45px;
+}
+.new-container span{
+	color:{$_W['styles']['fontnavcolor']};
+	display:block;
+	width:90%;
+	margin:0 5%;
+	overflow:hidden;
+	height:20px;
+	line-height:20px;
+}
+.footer{
+	color:#dddddd;
+}
+</style>
+<link rel="stylesheet" href="{$_W['siteroot']}app/themes/superman_wxtmpl/css/home.css">
+<link rel="stylesheet" href="{$_W['siteroot']}app/themes/superman_wxtmpl/css/list.css">
+<link rel="stylesheet" href="//res.wx.qq.com/open/libs/weui/0.3.0/weui.min.css">
+<div class="row" style="margin: 0">
+	<div class="col-xs-12" style="padding: 0">
+		{template 'common/slide'}
+	</div>
+</div>
+<div class="card fourgrid border-1px" style="margin-top: 0; padding-bottom: 0">
+	<div class="row text-center">
+		{data func="site_navs" item="row"}
+		<div class="col-xs-3 home-nav apps">
+			<a href="{$row[url]}" class="new_color" style="display: block">
+				<div class="apps_icon" style="{if $row['icon']}background-color: transparent;{/if}">
+					{if $row['icon']}
+					<img class="img-responsive" src="{$_W['siteroot']}attachment/{$row['icon']}">
+					{else}
+					<i class="{$row['css']['icon']['icon']}"></i>
+					{/if}
+				</div>
+				<span class="text-center color-default text-overflow" style="font-size: 12px;">{$row['name']}</span>
+			</a>
+		</div>
+		{/data}
+	</div>
+</div>
+<div class="tab_bd">
+	<div class="article_list article_list_0">
+		{if empty($_W['styles']['home_pagesize'])}
+			{php $_W['styles']['home_pagesize'] = 10}
+		{/if}
+		{data module="site" func="site_article" cid="$cid" limit="$_W['styles']['home_pagesize']" ishot='true' assign="result" return="true"}
+		{if empty($result['list'])}
+		<span style="text-align: center; display: block; padding-top: 20px; padding-bottom: 20px;">本分类下暂时没有文章，请稍后查看</span>
+		{/if}
+		{loop $result['list'] $row}
+		<a class="list_item js_post" href="{$row['linkurl']}">
+			<div class="cover">
+				{if $row['thumb']}<img src="{$row['thumb']}" class="img js_img" onerror="this.parentNode.removeChild(this)" />{/if}
+			</div>
+			<div class="cont">
+				<h2 class="title js_title">{php echo cutstr($row['title'],25,1);}</h2>
+				<p class="desc">
+					{php echo cutstr($row['description'],32,1);}
+				</p>
+			</div>
+		</a>
+		{/loop}
+	</div>
+</div>
+<hr/>
+<div class="row" style="padding: 0; margin: 10px 0 10px 0">
+	<div class="col-xs-12">
+		<button type="button" class="weui_btn weui_btn_default more_limit" data-pagesize="{$_W['styles']['home_pagesize']}" data-page="1">点击加载更多</button>
+	</div>
+</div>
+<script>
+	require(['jquery'], function($){
+		function addItems(data) {
+			var html = '', item;
+			for (var i=0; i<data.length; i++) {
+				item = data[i];
+				html += '<a class="list_item js_post" href="'+item['linkurl']+'">';
+				if(item['thumb']) {
+					html += '<div class="cover">';
+					html += '<img class="img js_img" src="'+item['thumb']+'" onerror="this.parentNode.removeChild(this)" />';
+					html += '</div>';
+				}
+				html += '<div class="cont">';
+				html += '<h2 class="title js_title">'+item['title']+'</h2>';
+				html += '<p class="desc">';
+				html += item['description'];
+				html += '</p>';
+				html += '</div>';
+				html += '</a>';
+			}
+			$('.article_list_0').append(html);
+		}
+		$('.more_limit').click(function(){
+			var t = this;
+			$(t).attr('disabled', true).html('加载中...');
+			var url = window.location.href+'&load=infinite';
+			var page = parseInt($(this).attr('data-page')) + 1;
+			var pagesize = parseInt($(this).attr('data-pagesize'));
+			url += '&page='+page;
+			$.ajax({
+				url: url,
+				dataType: 'json',
+				success:function(resp){
+					$(t).removeAttr('disabled').html('点击加载更多');
+					if (resp.length > 0) {
+						addItems(resp);
+						$(t).attr('data-page', page);
+						if (resp.length < pagesize) {
+							$(t).remove();
+						}
+					} else {
+						$(t).remove();
+					}
+				}
+			});
+		});
+	});
+</script>
+{template 'common/footer'}

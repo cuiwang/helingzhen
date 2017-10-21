@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>{$school['title']}</title>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width initial-scale=1.0 maximum-scale=1.0 user-scalable=yes" />
+<meta name="format-detection" content="telephone=no">
+{php echo register_jssdk();}
+<link type="text/css" rel="stylesheet" href="{OSSURL}public/mobile/css/mBbkq.css?v=5.11119" />
+<link type="text/css" rel="stylesheet" href="{OSSURL}public/mobile/css/greenStyle.css?v=5.10120" />
+<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+<script type="text/javascript" src="{MODULE_URL}public/mobile/js/jquery-1.11.3.min.js?v=4.9"></script>
+<script type="text/javascript" src="{OSSURL}public/mobile/js/PromptBoxUtil.js?v=4.80309"></script>
+<style>
+.babyBrief .r .name i{height:20px;width:20px;font-size:10px;float:left;background:url({OSSURL}public/mobile/img/{if $student['sex'] ==2}ico_girl.png{else}ico_boy.png{/if}) no-repeat center;background-size: 20px 20px;}
+.babyBrief .r .info i{height:20px;width:20px;float:left;background:url({OSSURL}public/mobile/img/ico_clock_small.png) no-repeat center;margin-right:5px;background-size: 20px 20px;margin-top:20px;}
+</style>
+</head>
+<body>
+<input id="logid" value="{$logid}" type="hidden">
+<div class="all" style="padding-bottom:55px;">
+<div id="titlebar" class="header mainColor">
+	<div class="l">
+		<a class="backOff" style="background:url({OSSURL}public/mobile/img/ic_arrow_left_48px_white.svg) no-repeat;background-size: 55% 55%;background-position: 50%;" href="javascript:history.go(-1);"></a>
+	</div>
+	<div class="m">
+		<span style="font-size: 18px" id="headerTitleName">今日记录{php echo date('Y-m-d',$starttime)}</span>   
+	</div>
+	<div class="r">
+		<a href="#my-menu"></a>
+	</div>
+</div>
+<div class="_header"></div>
+	<div class="babyBrief">
+		<div class="l">
+			<div class="img">
+				<img alt="" src="{if !empty($student['icon'])}{php echo tomedia($student['icon'])}{else}{php echo tomedia($school['spic'])}{/if}" />
+			</div>
+		</div>
+		<div class="r">
+			<div class="name">
+				<span>{$student['s_name']}</span>
+				<i></i>
+			</div>
+			<div class="info">
+				<table>
+					<tr>
+						<td class="l" style="width:30px;">
+							<i></i>
+						</td>
+						<td class="r">
+								<span>{if !empty($log)}点击下面图标查看详情↓↓{else}{$student['s_name']}今天尚未打卡哦1!{/if}</span>
+						</td>
+					</tr>
+				</table>
+			</div>
+		</div>
+		<div class="tabbutton">
+		  <button type="button" id="checklog">往期记录</button>
+		</div>
+	</div>
+	<div class="timeList">
+	{if !empty($log)}
+		<div class="paxyData"> 
+		{loop $log $item}
+			<div class="interval interval">
+				<div class="paxy" onclick="viewPaxy({$item['id']},this)" style="margin-top:50px;">
+					 <div class="div-time">{php echo date('H:i',$item['createtime'])}</div>
+					 <div class="div-img">
+						<img src="{OSSURL}public/mobile/img/gh_xh_wating.gif" />
+					 </div>
+				</div>
+			</div>							
+		{/loop}
+		</div>
+	{else}
+		<div class="paxy-il">
+			<div class="nointerval">没有打卡记录</div>
+		</div>
+	{/if}			
+	</div>
+	{if !empty($log)}
+	<div class="viewPushBox">
+		<div class="pushImg parent">
+		   <a onclick="wxImageShow(this)" id="pic">
+				<img src="{if !empty($student['icon'])}{php echo tomedia($student['icon'])}{else}{php echo tomedia($school['spic'])}{/if}" >
+		   </a>
+		   <i class="medicine_true">点击查看大图</i>
+		</div>
+		<div class="pushDate">
+			  <div class="pushState stuState">
+				<i class="medicine_true"></i>
+				<i class="snack_true"></i>
+				<i class="feeling_true"></i>
+			  </div>
+			  <div class="weight">
+				<span>刷卡：</span><span id="pard"></span>
+			  </div>
+			  <div class="weight">
+				<span>进出：</span><span id="leixing"></span>
+			  </div>
+			  <div class="weight">
+				<span>状态：</span><span id="type"></span>
+			  </div>
+			  <div class="weight">
+				<span>卡号：</span><span id="cardid"></span>
+			  </div>
+			  <div class="weight">
+				<span>位置：</span><span id="macname"></span>
+			  </div>
+			  <div class="weight">
+				<span>体温：</span><span id="bodytemp"></span>
+			  </div>		  
+		</div>
+	</div>
+	{/if}
+	<div class="user_info" id="user_info1" style="display:none;">
+	   <div>
+			<ul>
+				<p>查看历史记录</p>				
+				<li class="user_name">
+				  选择日期
+					<input type="date" name ="time" id="time" value="">
+				</li>						
+				<div class="btn" id="bdax">提交</div>
+			</ul>
+			<span id="clos">×</span>
+	   </div>
+    </div>	
+</div>
+<script type="text/javascript">
+var PB = new PromptBox();
+var ALI_URL = "{$urls}";
+var ALI_URL_VIEDO = "{$urls}";
+var logid = $("#logid").val();
+$(function() {
+	    WeixinJSHideAllNonBaseMenuItem();
+		$("#checklog").on('click', function () {
+            $('#user_info1').show();
+		});
+		$("#clos").on('click', function () {
+            $('#user_info1').hide();
+		});	
+		$("#bdax").on('click', function () {
+			var time = $("#time").val();
+			if (time == "" || time == undefined || time == null) {
+            alert('请选择日期！');
+            return false;
+			}			
+			location.href = "{php echo $this->createMobileUrl('checklog', array('schoolid' => $schoolid), true)}"+ '&time=' + time;	
+		});	
+		if (logid == "" || logid == null){
+			
+		}else{
+			viewPaxy(logid);
+		}
+});
+
+
+/**微信隐藏工具条**/
+function WeixinJSHideAllNonBaseMenuItem(){
+	if (typeof wx != "undefined"){
+		wx.ready(function () {
+			
+			wx.hideAllNonBaseMenuItem();
+		});
+	}
+}
+
+
+function viewPaxy(id,node){
+	$('.paxyData .interval .checked').removeClass("checked");
+
+
+		var s = $('#pic').find('img');   
+		for(var i = 0; i < s.length; i++){
+			var a = $(s[i]).children('a');
+			if (a.text() == "") $(s[i]).remove();               
+		 
+		}
+
+
+	$(node).addClass("checked");
+	PB.prompt("数据查询中！请勿关闭本窗口！","forever");
+	var submitData = {
+			id: id
+		};
+		$.ajax({
+			cache:false,
+			type: "POST",
+			url: "{php echo $this->createMobileUrl('indexajax', array('op' => 'showchecklog','schoolid' => $schoolid), true)}",
+			data: submitData,
+			success: function(datas){
+				var result = typeof datas === "object" ? datas : JSON.parse(datas);
+				var msg = result.data.msg;
+					if(result){
+						PB.prompt(msg);
+					}else{
+						PB.prompt(msg);
+					}
+					var bodytemp = result.data.temperature;
+					if(bodytemp!=null && bodytemp!='' && bodytemp!='0.0'&& bodytemp!='0'){
+						bodytemp = bodytemp+'&#176;C';
+					}else{
+						bodytemp = '未测';
+					}
+					var image = result.data.pic;
+					var image2 = result.data.pic2;
+					var mac = result.data.mactype;
+					if(image===""){
+						 image = '{$student['icon']}';
+					}
+					setPaxyData(image,image2,result.data.cardid,bodytemp,result.data.pard,result.data.type,result.data.leixing,result.data.macname,mac);
+			}
+		});
+}
+
+function setPaxyData(image,image2,cardid,bodytemp,pard,type,leixing,macname,mac){
+
+	
+	var images = image;
+	var images2 = image2;
+		
+	if(leixing ==1){
+		var lxing = '进校';
+	}else if(leixing ==2){
+		var lxing = '离校';
+	}else if(leixing ==3){
+		var lxing = '异常进出';		
+	}
+	if(pard ==1){
+		var parder = '本人';
+	}else if(pard ==2){
+		var parder = '妈妈';
+	}else if(pard ==3){
+		var parder = '爸爸';	
+	}else if(pard ==4){
+		var parder = '爷爷';	
+	}else if(pard ==5){
+		var parder = '奶奶';	
+	}else if(pard ==6){
+		var parder = '外公';	
+	}else if(pard ==7){
+		var parder = '外婆';
+	}else if(pard ==8){
+		var parder = '叔叔';	
+	}else if(pard ==9){
+		var parder = '阿姨';	
+	}else if(pard ==10){
+		var parder = '家长';			
+	}
+	if (images2 != "" || images2 != null){
+		var html = '<img alt="" src="' + images + '" />' +
+				   '<img alt="" src="' + images2 + '" />';
+				   ;
+		$('#pic').append(html);
+	}else{
+		$(".pushImg img").attr("src", images);
+	}
+	$("#pard").html(parder);
+	$("#leixing").html(lxing);
+	$("#type").html(type);
+	$("#cardid").html(cardid);
+	$("#macname").html(macname);
+	$("#bodytemp").html(bodytemp=="null" ?"":bodytemp);
+	
+}	
+</script>
+<script>
+var WeixinApi = (function () {
+	
+	return {
+        ready           :wxJsBridgeReady,
+        imagePreview    :imagePreview
+    }; 
+	
+    "use strict";
+
+    /**
+     * 调起微信Native的图片播放组件。
+     * 这里必须对参数进行强检测，如果参数不合法，直接会导致微信客户端crash
+     *
+     * @param {String} curSrc 当前播放的图片地址
+     * @param {Array} srcList 图片地址列表
+     */
+    function imagePreview(curSrc,srcList) {
+        if(!curSrc || !srcList || srcList.length == 0) {
+            return;
+        }
+        WeixinJSBridge.invoke('imagePreview', {
+            'current' : curSrc,
+            'urls' : srcList
+        });
+    }
+	
+    /**
+     * 当页面加载完毕后执行，使用方法：
+     * WeixinApi.ready(function(Api){
+     *     // 从这里只用Api即是WeixinApi
+     * });
+     * @param readyCallback
+     */
+    function wxJsBridgeReady(readyCallback) {
+        if (readyCallback && typeof readyCallback == 'function') {
+            var Api = this;
+            var wxReadyFunc = function () {
+                readyCallback(Api);
+            };
+            if (typeof window.WeixinJSBridge == "undefined"){
+                if (document.addEventListener) {
+                    document.addEventListener('WeixinJSBridgeReady', wxReadyFunc, false);
+                } else if (document.attachEvent) {
+                    document.attachEvent('WeixinJSBridgeReady', wxReadyFunc);
+                    document.attachEvent('onWeixinJSBridgeReady', wxReadyFunc);
+                }
+            }else{
+                wxReadyFunc();
+            }
+        }
+    }
+
+    return {
+        version         :"2.5",
+        ready           :wxJsBridgeReady,
+        imagePreview    :imagePreview
+    };
+})();
+
+function wxImageShow(node){
+	var srcList = new Array();
+	var watermark='';
+	var imgs = $(node).closest('.parent').find("img");
+	var curSrc = $(node).find("img")[0]['src'].split("@");
+	
+	var curImgIndex=0;
+	for(i=0;i<imgs.length;i++){
+		var imgsrc = imgs[i]['src'].split("@");
+		if(imgsrc.length>1){
+			if(imgsrc[1].split("watermark").length>1){
+				srcList.push(imgsrc[0].replace(ALI_URL,ALI_URL_VIEDO)+'@watermark'+imgsrc[1].split("watermark")[1]);
+				watermark = '@watermark'+imgsrc[1].split("watermark")[1];
+			}else{
+				srcList.push(imgsrc[0].replace(ALI_URL,ALI_URL_VIEDO));
+			}
+		}else{
+			srcList.push(imgsrc[0]);
+		}
+		if(curSrc[0]==imgsrc[0]){
+			curImgIndex=i;
+		}
+	}
+	curSrc[0]=curSrc[0]+watermark;
+
+	WeixinApi.imagePreview(curSrc[0].replace(ALI_URL,ALI_URL_VIEDO), srcList);
+}
+</script>
+{php include $this->template('footer');}
+</body>
+</html>

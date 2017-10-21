@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=750, user-scalable=0">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+    <link rel="stylesheet" href="../addons/haoman_dpm/static/mob_shouqian/mob_shouqian.css?v=0433625">
+    <script src="../addons/haoman_base/base/jquery-1.9.1.min.js"></script>
+    <script src="../addons/haoman_base/base/jquery.easing.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="../addons/haoman_dpm/imgs/css/index.css?v=22234"/>
+    <link href="../addons/haoman_dpm/imgs/css/common.mzh.css" rel="stylesheet">
+    <script type="text/javascript" src="{$_W['siteroot']}app/resource/js/app/util.js"></script>
+    <script type="text/javascript" src="{$_W['siteroot']}app/resource/js/app/common.js"></script>
+    <script type="text/javascript" src="{$_W['siteroot']}app/resource/js/lib/mui.min.js"></script>
+    <script type="text/javascript">
+
+        window.sysinfo = {
+        {if !empty($_W['uniacid'])}'uniacid': '{$_W['uniacid']}',{/if}
+        {if !empty($_W['acid'])}'acid': '{$_W['acid']}',{/if}{if !empty($_W['openid'])}'openid': '{$_W['openid']}',{/if}
+        {if !empty($_W['uid'])}'uid': '{$_W['uid']}',{/if}
+        'siteroot': '{$_W['siteroot']}',
+            'siteurl': '{$_W['siteurl']}',
+            'attachurl': '{$_W['attachurl']}',
+            'attachurl_local': '{$_W['attachurl_local']}',
+            'attachurl_remote': '{$_W['attachurl_remote']}',
+            {if defined('MODULE_URL')}'MODULE_URL': '{MODULE_URL}',{/if}
+        'cookie' : {'pre': '{$_W['config']['cookie']['pre']}'}
+        };
+    </script>
+    <title>手绘涂鸦</title>
+    <script>
+    </script>
+    <style>
+    .canImg {
+        position: absolute;
+        ;
+        left: 10px;
+        top: 10px;
+        width: 100px;
+        height: 100px;
+        background-color: #000;
+    }
+    
+    .canImg img {
+        width: 100px;
+        height: 100px;
+    }
+    </style>
+</head>
+
+<body>
+    <div class="wrap ">
+        <div class="header clearfix">
+            <div class="btn left btn-undo cancel">返回</div>
+            <div class="btn left btn-reset" id="clear_btn">重做</div>
+            <div class="btn right btn-go save" id='img_btn'>确定</div>
+        </div>
+        <div class="container" style="background: #ff6633;">
+            <canvas id="canvas">
+                浏览器不支持canvas动画效果
+            </canvas>
+        </div>
+        <div class="footer">
+            <div class="pLi clearfix ">
+                <span class="pn left pn1 " data-width="20">马克笔</span>
+                <span class="pn left pn2 active" data-width="10">画笔</span>
+                <span class="pn left pn3 " data-width="2">钢笔</span>
+                <span class="pn rubber left" data-width="50">橡皮</span>
+                <span class="colors right" id="js_colorBar"></span>
+            </div>
+            <div class="cLi hidden">
+                <div class="pn"></div>
+                <ul class="cLs clearfix">
+                    <li class="left active"></li>
+                    <li class="left"></li>
+                    <li class="left"></li>
+                    <li class="left"></li>
+                    <li class="left"></li>
+                    <li class="left"></li>
+                    <li class="left"></li>
+                    <li class="left"></li>
+                    <li class="left"></li>
+                    <li class="left"></li>
+                </ul>
+            </div>
+        </div>
+        <div class="pop-box hidden">
+            <div>
+                <img id="pro-img" src="" />
+                <p id='btn-success'>提交成功</p>
+            </div>
+        </div>
+
+        <div class="temp_bp_panel bp_panel" style="z-index:99999999;display: none">
+            <div class="mzh_modal_alert" style="display: block;">
+                <div class="mzh_modal_alert_dialog" style="line-height:48px;">
+                    <div class="mzh_modal_alert_title" style="line-height:65px;font-size: 33px;"><span id="title">霸屏</span><span class="am-icon-close close"></span></div>
+                    <div class="mzh_modal_alert_body">
+                        <div class="bp_tc" style="font-size: 26px;">
+
+                            <!--<div class="bp_tc_item {if $index==0}active{/if}" val="{$row['bp_time']}">-->
+                                <!--<span class="time">10秒/</span>￥1.00元-->
+                            <!--</div>-->
+                            {loop $bpmoney $index $row}
+                            <div class="bp_tc_item {if $index==0}active{/if}" val="{$row['id']}" style="margin-top: 20px;">
+                                <span class="time" style="font-size: 23px;">{$row['bp_time']}秒/</span>￥{$row['bp_money']}
+                            </div>
+                            {/loop}
+                            <!--<div class="bp_tc_item" val="2" style="margin-top: 20px;">-->
+                                <!--<span class="time" style="font-size: 23px;">20秒/</span>￥1-->
+                            <!--</div>-->
+
+                            <!--<div class="bp_tc_item" val="3" style="margin-top: 20px;">-->
+                                <!--<span class="time" style="font-size: 23px;">30秒/</span>￥3-->
+                            <!--</div>-->
+
+                            <!--<div class="bp_tc_item" val="4" style="margin-top: 20px;">-->
+                                <!--<span class="time" style="font-size: 23px;">40秒/</span>￥4-->
+                            <!--</div>-->
+
+                            <!--<div class="bp_tc_item" val="4" style="margin-top: 20px;">-->
+                                <!--<span class="time" style="font-size: 23px;">40秒/</span>￥4-->
+                            <!--</div>-->
+
+                            <!--<div class="bp_tc_item" val="4" style="margin-top: 20px;">-->
+                                <!--<span class="time" style="font-size: 23px;">40秒/</span>￥4-->
+                            <!--</div>-->
+
+                        </div>
+                        <div class="bp_ctx">
+
+                            <textarea placeholder="霸屏内容(限30字以内)" maxlength="30" name="content" style="outline: none;border: 1px solid #e9e9e9;border-radius: 8px;resize: none;width: 86%;font-size: 26px;padding: 2% 2% 0px"></textarea>
+                            <input type="hidden" name="imgSrc" value="">
+                            <input type="hidden" name="bp_index" value="{$first}">
+                            <input type="hidden" name="type" value="8">
+
+                            <!--</form>-->
+                        </div>
+                    </div>
+                    <div class="mzh_modal_alert_footer">
+                        <a class="mzh_btn_cancel" style="min-width: 20vw;height: 5rem;line-height: 5rem;font-size: 2.2rem">取消</a>
+                        <a class="mzh_btn_confirm ljbp" style="min-width: 20vw;height: 5rem;line-height: 5rem;font-size: 2.2rem">立即霸屏</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="zhifu" style="display: none">
+
+        <h4>订单信息</h4>
+
+        <div class="panel">
+
+            <div class="clearfix" style="padding-top:10px;">
+
+                <p>商品名称 :<span class="pull-right otitle">{$params['title']}</span></p>
+
+                <p>订单编号 :<span class="pull-right ordersn" >{$params['ordersn']}</span></p>
+
+                <p>商家名称 :<span class="pull-right shangjia">{$_W['account']['name']}</span></p>
+
+                <p>支付金额 :<span class="pull-right jine">￥{php echo sprintf('%.2f', $params['fee']);} 元</span></p>
+            </div>
+
+        </div>
+
+        <div class="pay-btn" id="wechat-panel">
+
+            <form action="{php echo url('mc/cash/wechat');}" method="post" id="biaodan">
+
+                <input type="hidden" name="params" value=""  />
+
+                <input type="hidden" name="token" value="{$_W['token']}" />
+
+                <button class="weui_btn_primary weui_btn col-sm-12"  style="z-index: 9999;" type="submit" id="wBtn" value="wechat">微信支付(必须使用微信内置浏览器)</button>
+
+            </form>
+
+        </div>
+
+
+    </div>
+    <script src="../addons/haoman_dpm/static/mob_shouqian/mob_bp_shouqian.js?v=0327_143847"></script>
+    <script>
+    $(function() {
+        shouhui.photoUrl = '../addons/haoman_dpm/static/mob_shouqian/';
+//        shouhui.ajaxUrl = "{php echo $this->createMobileUrl('mob_shouqian_send',array('id'=>$rid,'from_user'=>$page_from_user))}";
+        shouhui.indexUrl = "{php echo $this->createMobileUrl('messagesindex',array('id'=>$rid))}";
+        shouhui.rand = '0';
+        shouhui.isTest = '1';
+        shouhui.recheck = '1';
+        shouhui.initEvent();
+    });
+    {if $bp['bp_pay2']==1}
+    var click2=false;
+    $(".ljbp").click(function(){
+        if(click2){
+            return alert("请不要频繁点击");
+        }
+        click2=true;
+        var e = $.trim($(".bp_ctx textarea").val()), a = $("input[name=imgSrc]").val();
+
+        if("" == e&& "" == a){
+            alert("请填写霸屏内容或图片");
+            click2=false;
+            return;
+        }
+        var prizeid =$(".bp_tc .active").attr("val");
+        var bp_index =$("input[name=bp_index]").val();
+        var isbp_v =$("input[name=type]").val();
+
+        var submitData = {
+            "message": e,
+            "pbtime": prizeid,
+            "bppic": a,
+            "type": isbp_v,
+            "bp_index": bp_index,
+        };
+
+        $.post("{php echo $this->createMobileUrl('Confirm_bp_sq',array('token'=>'onBridge','id'=>$rid,'from_user'=>$page_from_user))}", submitData,function(data){
+
+            if(data.success == 1&&data.isadmin==0){
+                var result = data.arr;
+                $(".otitle").empty().append(result.xq);
+
+                $(".ordersn").empty().append(result.ordersn);
+
+                $(".shangjia").empty().append(result.title);
+
+                $(".jine").empty().append(result.fee);
+
+                $("input[name='params']").val(data.params);
+                $("#biaodan").submit();
+//                    $("#wBtn").click();
+
+            }else if(data.success == 1&&data.isadmin==1){
+
+                $(".bp_ctx textarea").val("");
+                $("input[name=imgSrc]").val('');
+                $("input[name=bp_index]").val('')
+                $(".bp_panel").hide();
+                location.href = shouhui.indexUrl;
+
+            }
+            else {
+                alert(data.msg)
+                click2=false;
+            }
+        },'json');
+    })
+    {else}
+    $(document).ready(function(){
+        document.addEventListener('WeixinJSBridgeReady', function onBridgeReady() {
+
+            var click=false;
+            $(".ljbp").click(function(){
+                if(click){
+                    return alert("请不要频繁点击");
+                }
+                click=true;
+                var e = $.trim($(".bp_ctx textarea").val()), a = $("input[name=imgSrc]").val();
+                if("" == e&& "" == a){
+                    click=false;
+                    alert("请填写霸屏内容或图片");
+                    return;
+                }
+                var prizeid =$(".bp_tc .active").attr("val");
+                var bp_index =$("input[name=bp_index]").val();
+                var isbp_v =$("input[name=type]").val();
+
+
+                var submitData = {
+                    "message": e,
+                    "pbtime": prizeid,
+                    "bppic": a,
+                    "type": isbp_v,
+                    "bp_index": bp_index,
+                };
+
+                $.post('{php echo $this->createMobileUrl('Confirm_bp_sq',array('id'=>$rid))}',submitData, function(idata) {
+
+                    if(idata.success == 1&&idata.isadmin==0){
+                        click=false;
+
+                        $(".bp_panel").hide();
+
+                        util.pay({
+                            orderFee : idata.pay_money,
+                            payMethod : 'wechat',
+                            orderTitle : '霸屏'+idata.pay_money+'元',
+                            orderTid : idata.tid,
+                            module : 'haoman_dpm',
+                            success : function(result) {
+                                click=false;
+                                location.href = shouhui.indexUrl;
+                                //location.href="{php echo $_W['siteroot'].$this->createMobileUrl('results')}&tid="+idata.orderid;
+                            },
+                            fail : function(result) {
+                                click=false;
+                                alert('fail : ' + result.message);
+                            },
+                            complete : function(result) {
+                                //location.reload();
+                            }
+                        });
+                    }else if(idata.success == 1&&idata.isadmin==1){
+                        click=false;
+                        $(".bp_ctx textarea").val("");
+                        $("input[name=imgSrc]").val('');
+                        $("input[name=bp_index]").val('')
+                        $(".bp_panel").hide();
+                        location.href = shouhui.indexUrl;
+                    }else{
+                        click=false;
+                        alert(idata.msg)
+                    }
+                },'json');
+
+            })
+
+        });
+    });
+    {/if}
+
+    $(".close,.mzh_btn_cancel").click(function(){
+
+        $(".bp_ctx textarea").val("");
+        $(".bp_img_field video").hide();
+        $(".bp_img_field img").show();
+        $(".bp_img_field img").attr("src", "../addons/haoman_dpm/imgs/zp.png");
+        $(".bp_panel").hide();
+        $(".hb_panels").hide();
+        $("input[name=money]").val('0');
+        $("select[name=num]").val('2');
+        $(".hb_panel textarea").val('');
+        $("select[name=nums]").val('1');
+        $(".content video").show();
+
+    })
+    $(".bp_tc_item").click(function () {
+        $(".bp_tc_item").removeClass("active"), $(this).addClass("active")
+        $("input[name=bp_index]").val(parseInt($(this).attr("val")));
+    });
+
+    </script>
+    <script src="http://res.wx.qq.com/open/js/jweixin-1.2.0.js"></script>
+    <script type="text/javascript">
+        wx.config({
+            debug:false,
+            appId: '{$package["appId"]}',
+            timestamp: '{$package["timestamp"]}',
+            nonceStr: '{$package["nonceStr"]}',
+            signature: '{$package["signature"]}',
+            jsApiList: [
+                'checkJsApi',
+                'onMenuShareTimeline',
+                'onMenuShareAppMessage',
+                'onMenuShareQQ',
+                'onMenuShareWeibo',
+                'hideMenuItems',
+                'showMenuItems',
+                'hideAllNonBaseMenuItem',
+                'showAllNonBaseMenuItem',
+                'translateVoice',
+                'startRecord',
+                'stopRecord',
+                'onRecordEnd',
+                'playVoice',
+                'pauseVoice',
+                'stopVoice',
+                'uploadVoice',
+                'downloadVoice',
+                'chooseImage',
+                'previewImage',
+                'uploadImage',
+                'downloadImage',
+                'getNetworkType',
+                'openLocation',
+                'getLocation',
+                'hideOptionMenu',
+                'showOptionMenu',
+                'closeWindow',
+                'scanQRCode',
+                'chooseWXPay',
+                'openProductSpecificView',
+                'addCard',
+                'chooseCard',
+                'openCard'
+            ]
+        });
+        var sharedata = {
+            "imgUrl" : "{$shareimg}",
+            "link" : "{$sharelink}",
+            "desc" : "{$sharedesc}",
+            "title" : "{$sharetitle}"
+        };
+
+        wx.ready(function () {
+            {if $reply['is_b_share'] == 2}
+            wx.hideOptionMenu();
+            {else}
+            wx.showOptionMenu();
+            wx.onMenuShareAppMessage(sharedata);
+            wx.onMenuShareTimeline(sharedata);
+            wx.onMenuShareQQ(sharedata);
+            wx.onMenuShareQZone(sharedata);
+            wx.onMenuShareWeibo(sharedata);
+            {/if}
+        });
+
+    </script>
+</body>
+
+</html>

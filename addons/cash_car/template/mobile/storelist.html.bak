@@ -1,0 +1,305 @@
+<!--
+ * ============================================================================
+ * 版权所有 2015-2016 风影随行，并保留所有权利。
+ * 网站地址: http://www.haoshu888.com；
+ * ----------------------------------------------------------------------------
+ * 这不是一个自由软件！已购买用户允许对程序代码进行修改和使用，但是不允许对
+ * 程序代码以任何形式任何目的的再发布，作者将保留追究法律责任的权力和最终解
+ * 释权。
+ * ============================================================================
+-->
+{php include $this->template('_header');}
+<style type="text/css">
+.filter_wrap {
+	display: -webkit-box;
+	position: relative;
+	width: 100%;
+	border-top: 1px solid #d7d7d7;
+	border-bottom: 1px solid #d7d7d7;
+	overflow: hidden;
+	background: #fff;
+	z-index: 20;
+	clear: both;
+	height: 3em;
+    line-height: 3em;
+	top:0;
+}
+
+.filter_item {
+	position: relative;
+	-webkit-box-flex: 1;
+	font-size: 1.4rem;
+	text-align: center;
+	color: #797979;
+	cursor: pointer;
+}
+
+.filter_item~.filter_item:before {
+	content: '|';
+	position: absolute;
+	left: 0;
+	color: #797979;
+}
+
+.pop {
+	position: relative;
+	top: 0;
+	left: 0;
+	background: #fff;
+	width: 100%;
+	overflow: auto;
+	z-index: 20;
+	display:none;
+}
+.type_item {
+	display: block;
+	color: #333;
+	font-size: 14px;
+	padding-left: 4%;
+	height: 40px;
+	line-height: 40px;
+	border-bottom: 1px solid #d7d7d7;
+	cursor: pointer;
+	box-sizing: border-box;
+}
+.type_item_on{
+	color: #ff004a;
+	background: #f3f5f7;
+}
+#mask_filter{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 999;
+}
+.shop_goods{
+	padding: 0.3rem 0rem;
+}
+.goods_pay {
+    display: inline-block;
+    padding: 0rem 1rem;
+    background-color: #f03060;
+    color: #FFFFFF;
+    text-align: center;
+    margin-left: 0.5rem;
+    border-radius: 0.4rem;
+    border: none;
+}
+</style>
+<body>
+<div id="mask_filter" style="position: fixed; cursor: default; top: 0px; left: 0px; right: 0px; bottom: 0px; z-index: 11; background: rgb(255, 255, 255); display:none;"></div>
+<div id="loading" style="display:none;"><img src="../addons/cash_car/template/images/loading.gif" /></div>
+<header class="page-header">
+	<h3>请选择服务点</h3>
+</header>
+
+<div class="contaniner fixed-contb">
+{if !empty($banner)}
+	<figure class="ban swiper-container">
+		<ul class="swiper-wrapper">
+		{loop $banner $ban}
+			{if !empty($ban['img'])}
+			<li class="swiper-slide">
+				<a href="{$ban['link']}">
+					<img src="{$_W['attachurl']}{$ban['img']}"/>
+				</a>
+			</li>
+			{/if}
+		{/loop}
+		</ul>
+	</figure>
+{/if}	
+	<div id="storelist" class="shop">
+	{if $setting['store_model']==2}
+	    <div class="filter_wrap" id="nav">
+			<div id="serve" class="filter_item"><span class="filter_text">{$cname}</span></div>
+			<div id="soft" class="filter_item"><span class="filter_text">{$softname}</span></div>
+		</div>
+		<div id="servecontent" class="pop">
+		    <a href="{$chooseurl}&cid=" class="type_item single {if empty($_GPC['cid'])}type_item_on{/if}"><p>全部服务</p></a>
+		  {loop $category $cat}
+			<a href="{$chooseurl}&cid={$cat['id']}" class="type_item single {if $cat['id']==$_GPC['cid']}type_item_on{/if}"><p>{$cat['name']}</p></a>
+		  {/loop}
+		</div>
+		<div id="softcontent" class="pop">
+			<a href="{$chooseurl}&soft=" class="type_item single {if empty($_GPC['soft'])}type_item_on{/if}"><p>智能排序</p></a>
+			<a href="{$chooseurl}&soft=1" class="type_item single {if $_GPC['soft']==1}type_item_on{/if}"><p>离我最近</p></a>
+			<a href="{$chooseurl}&soft=2" class="type_item single {if $_GPC['soft']==2}type_item_on{/if}"><p>价格优先</p></a>
+		</div>
+	{/if}
+
+	{if !empty($storelist)}
+		{loop $storelist $row}
+			<section>
+				<article style="height:100px;">
+					<a href="{php echo $this->createMobileUrl('goodslist', array('storeid' => $row['id'], 'from_user' => $from_user), true)}">
+						<table style="cursor:pointer;width: 100%;">
+							<tbody>
+							<tr>
+								<td rowspan="3">
+									<span>
+										<img src="{if !empty($row['logo'])}{$_W['attachurl']}{$row['logo']}{else}../addons/cash_car/template/images/default-logo.jpg{/if}" >
+									</span>
+								</td>
+								<td>
+									<h1 style="float:left;">{$row['title']}</h1>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<p>
+									   {$row['address']}<br/>
+									   {if empty($row['distance'])}
+									   <font>计算中...</font>
+									   {else}
+									   <font>距：{php echo round($row['distance']/1000,2);} Km</font>
+									   {/if}
+									</p>
+								</td>
+							</tr>
+							<tr>
+								<td>
+								&nbsp;
+								</td>
+							</tr>
+							</tbody>
+						</table>
+					</a>
+				</article>
+				{if $setting['store_model']==2 && ($cid>0 || $soft>0)}
+				    {loop $row['goods'] $key $goods}
+					<ul class="shop_goods {if $key>0}store{$row['id']}{/if}" {if $key>0}style="border-top:#E8EAEB 1px solid;display:none;"{/if}>
+						<li style="width:59%;text-align:left;line-height:2.2em;font-size:1.2em;border-right:none;">{$goods['title']}</li>
+						<li style="width:40%;text-align:right;line-height:2em;font-size:1.2em;color:#F03060;">￥{$goods['productprice']}<button class="goods_pay" onclick="location.href='{php echo $this->createMobileUrl('goodsdetail', array('storeid'=>$row['id'],'goodsid'=>$goods['id']));}'">详情</button></li>
+					</ul>
+					{/loop}
+					{if count($row['goods'])>1}
+					<ul id="look{$row['id']}" style="border-top:#E8EAEB 1px solid;">
+					    <li style="width:100%; font-size:1.2em; line-height:2.2em; color:#F03060;" onclick="lookall({$row['id']});">展开全部项目</li>
+					</ul>
+					{/if}
+				{else}
+				<ul>
+					<li><a href="{php echo $this->createMobileUrl('storeshow', array('storeid' => $row['id']), true)}" class="order" style="    background-position: 37px 0;">简介</a></li>
+					<li>
+					{if $row['map_type']==1}
+					<a href="http://apis.map.qq.com/tools/routeplan/eword={$row['title']}&epointx={$row['txlng']}&epointy={$row['txlat']}?referer=myapp&key=672BZ-O7URG-NYGQO-I7YIR-EG55Q-RGFY6" class="gps">导航</a>
+					{elseif $row['map_type']==2}
+					<a href="http://api.map.baidu.com/marker?location={$row['lat']},{$row['lng']}&title={$row['title']}&name={{$row['title']}}&content={$row['address']}&output=html&src=weiba|weisrc" class="gps">导航</a>
+					{/if}
+					</li>
+					<li>
+						<a href="tel:{php echo $row['tel'];}" class="phone">客服</a>
+					</li>
+				</ul>
+				{/if}
+			</section>
+		{/loop}
+	{else}
+	        <div class="none">
+				<h3 style="margin-top:15%;background-color:#F2F2F2;">
+					<img src="../addons/cash_car/template/images/nostore.png">
+				</h3>
+				<p>
+					<span>暂时没有服务点~</span>
+				</p>
+			</div>
+	{/if}
+	</div>
+</div>
+{php include $this->template('_footer');}
+
+<script src='http://api.map.baidu.com/api?v=2.0&ak=uszridA8UmehmbHreas4aV14'></script>
+<script type="text/javascript">
+function distance(){
+    document.getElementById("loading").style.display="block";
+	var geolocation = new BMap.Geolocation();
+	geolocation.getCurrentPosition(function(r){
+		if(this.getStatus() == BMAP_STATUS_SUCCESS){
+			var position = {
+				 lng: r.point.lng,
+				 lat: r.point.lat,
+			}
+			positions(position);
+		}else {
+			alert('获取当前位置失败,请确定您开启了定位服务');
+			document.getElementById("loading").style.display="none";
+		}        
+	},{enableHighAccuracy: true});
+}
+function positions(position){
+    window.location.href = '{php echo $url;}' + '&lng=' + position.lng + '&lat=' + position.lat;
+}
+{if empty($_SESSION['lat']) || empty($_SESSION['lng']) || ($coords_time>$setting['coords_time'])}
+    window.onload=distance;
+{else}
+    document.getElementById("loading").style.display="none";
+	
+	{if $setting['store_model']==2}
+	    /* 设置顶部导航 */
+		var nav = document.getElementById("nav");
+		var _getHeight = nav.offsetTop;
+		window.onscroll = function(){
+			var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+			if(scrollTop < _getHeight){
+				nav.style.position = 'relative';
+			}else{
+				nav.style.position = 'fixed';
+			}
+		}
+	{/if}
+{/if}
+</script>
+
+<script src="../addons/cash_car/template/js/swiper.min.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+	var mySwiper = new Swiper('.swiper-container',{
+		loop: true,
+		speed:1000,
+		autoplay: 4000
+	});
+});
+
+{if $setting['store_model']==2}
+	var nav   = document.getElementById("nav");
+	var serve = document.getElementById("serve");
+	var servecontent = document.getElementById("servecontent");
+	var soft  = document.getElementById("soft");
+	var softcontent  = document.getElementById("softcontent");
+	var mask_filter  = document.getElementById("mask_filter");
+	$("#serve").click(function(){
+		nav.style.display = 'none';
+		servecontent.style.display = 'block';
+		servecontent.style.position = 'absolute';
+		mask_filter.style.display = 'block';
+	});
+	$("#soft").click(function(){
+		nav.style.display = 'none';
+		softcontent.style.display = 'block';
+		softcontent.style.position = 'absolute';
+		mask_filter.style.display = 'block';
+	});
+
+	$("#mask_filter").click(function(){
+		nav.style.display = '';
+		servecontent.style.display = 'none';
+		servecontent.style.position = 'relative';
+		softcontent.style.display = 'none';
+		softcontent.style.position = 'relative';
+		mask_filter.style.display = 'none';
+	});
+
+	function lookall(storeid){
+	    var id = storeid;
+		$(".store"+id).show();
+		$("#look"+id).hide();
+		
+	}
+{/if}
+</script>
+</body>
+</html>

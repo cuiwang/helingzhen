@@ -1,0 +1,105 @@
+{template 'header'}
+<link href="{MODULE_URL}template/css/css.css" rel="stylesheet" />
+<link href="{MODULE_URL}template/css/stylesheet.css" rel="stylesheet" />
+<style type="text/css">
+.list {
+border-radius: 8px;
+}
+.list {
+background: #fafafa;
+padding: 10px;
+margin: 5px;
+}
+.list .hd {
+border-bottom: 1px #DDD dotted;
+margin-bottom: 5px;
+padding-bottom: 5px;
+}
+.list .content {
+color: #545454;
+line-height: 25px;
+}
+.list .reply {
+background: #FFF;
+border-top: 2px #769cdc solid;
+padding: 10px;
+margin-top: 80px;
+overflow: hidden;
+}
+.list .content .author {
+color: #999;
+text-align: right;
+margin-top: 10px;
+}
+
+</style>
+<div class="top_menu">
+    我的报修
+</div>
+<div class="top_menu_shadow"></div>
+<div id='list' style="margin-bottom:80px;">
+{loop $list $item}
+<div class="list img-rounded">
+    <div class="hd">
+        <span class="title">{if $item['status'] == 0}<p class="text-danger">未解决</p>{/if}{if $item['status'] == 1}<p class="text-success">已解决</p>{/if}{if $item['status'] == 2}<p class="text-primary">已取消</p>{/if}</span>
+        <span class="date">{php echo date('Y-m-d H:i:s', $item['createtime']);}</span>
+    </div>
+    <div class="content">
+        <p><span class="label label-warning">{$item['category']}</span> {$item['content']}</p>
+        {if $item['rank']}<p><span class="label label-warning" >满意度：{if $item['rank'] == 1}满意{elseif $item['rank'] == 2}一般{elseif $item['rank'] == 3}差劲{/if}{if $item['comment']}&nbsp;&nbsp;评价内容：{$item['comment']}{/if}</span></p>{/if}
+        {if $item['img']}
+        <p style='margin-top:5px;'>
+            {loop $item['img'] $value}
+                <img src="{$value['src']}" style="width: 60px; height: 60px;border:1px solid white;float:left;" />
+            {/loop}
+        </p>
+        {/if}
+        <!-- {if $item['status'] == 0} -->
+        {php $count = count($item['reply']);}
+        <div class="reply">
+            {loop $item['reply'] $i $reply}
+            {if !empty($reply['isreply'])}
+            <div class="menu-right {if $i >1}reply-more{/if}" style="text-align:right">
+
+                <span class="label label-danger">物业：{$reply['content']}</span>
+            </div>
+            {else}
+            <div class="menu-left {if $i >1}reply-more{/if}" style="text-align:left">
+
+                <span class="label label-primary">我：{$reply['content']}</span>
+            </div>
+            {/if}
+            {/loop}
+            <!-- {if $i >1}<div class="reply-more-btn"><span class="img-rounded">展开</span></div>{/if} -->
+        </div>
+       <!--  {/if} -->
+       
+        <div class="author">{if $item['status'] == '0'}<a  ref="javascript:;" data-toggle="modal" data-target="#reply_{$item['id']}"><i class="fa fa-edit"></i> 补充</a>&nbsp;&nbsp; <a href="{php echo $this->createMobileUrl('repair', array('id'=>$item['id'],'op'=>'resolve'));}" onclick="return confirm('是否已经完成了维修工作，确定完成吗？')"><i class="glyphicon glyphicon-ok-sign"></i> 完成</a>&nbsp;&nbsp;<a href="{php echo $this->createMobileUrl('repair',array('id'=>$item['id'],'op'=>'cancel'));}" onclick="return confirm('是否确认取消该条申请？')"><i class="glyphicon glyphicon-trash"></i> 取消</a>{/if}</div>
+    </div>
+</div>
+<!-- Modal -->
+<div class="modal fade" id="reply_{$item['id']}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">报修补充</h4>
+      </div>
+      <form class="form-horizontal img-rounded" role="form" method="post" action="{php echo $this->createMobileUrl('reply')}">
+      <div class="modal-body">
+                <textarea name="content" class="form-control" rows="3"></textarea>
+           
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-primary">提交</button>
+        <input type="hidden" name="token" value="{$_W['token']}" />
+        <input type="hidden" name="id" value="{$item['id']}" />
+      </div>
+      </form>
+    </div>
+  </div>
+</div>
+<div style='clear:both;'></div>
+{/loop}
+</div>
+{template 'footer'}

@@ -1,0 +1,202 @@
+{template 'header'}
+<link rel="stylesheet" type="text/css" href="{HT}css/Discount.css" />
+<link rel="stylesheet" type="text/css" href="{php echo HT}css/layer.css" />
+<body>
+	{template 'guanzhu'}
+	<header>
+		<img src="{php echo tomedia($item['busimg']);}" width="100%" /><!-- 600x350 -->
+		<div class="ticketTitle">{$item['title']}</div>
+	</header>
+	<div class="PriceDetails">
+		<p class="ButtonAndPrice">
+			<span class="Price">
+			<i class="Money">剩余</i><i class="Money tureMoney">{$item['remainnum']}</i><!-- <em style="color: #FB3C63;" class="vip-bor"></em><em class="vip_price"></em> -->张</span>
+			{if $is_getcard == 0} <!-- 未购卡 -->
+				<a href="{php echo $this->createMobileUrl('halfoff', array('op'=>'kaika'));}" class="Button"><em id="goumai" name="goumai" class="payitnow">立即购卡</em></a>
+			{else} <!-- 已购卡 -->
+				<a href="javascript:void(0);" class="Button"><em id="goumai" name="goumai" class="payitnow" onclick="getcoupon();">立即领取</em></a>
+			{/if}
+		</p>
+		<div class="shuoming">
+			<div class="shuomingLeft">
+				<label class="HowManyDay">{php echo date("Y.m.d", $item['starttime'])}~{php echo date("Y.m.d", $item['endtime'])}</label>
+			</div>
+			<div class="shuomingRight"></div>
+		</div>
+	</div>
+	<!-- <div class="discountclassfiy">
+		<ul>
+			<li><i class="iconfont DclassifyIcon tuikuan">&#xe60e;</i>不支持退款</li>
+			<li><i class="iconfont DclassifyIcon xianliang">&#xe605;</i>每人限2份</li>
+			<li><i class="iconfont DclassifyIcon yuyue">&#xe60f;</i>免预约</li>
+		</ul>
+		<ul>
+			<li><i class="iconfont DclassifyIcon fanqian">&#xe608;</i>返10金币</li>
+			<li><i class="iconfont DclassifyIcon dabao">&#xe60d;</i>不提供打包</li>
+		</ul>
+	</div> -->
+	{if $is_getcard == 0} <!-- 未购卡 -->
+	<div class="KaiVIP">
+		<div class="KaiVIPLeft">
+			<i class="iconfont iconTime">&#xe606;</i>
+			<em>开通五折卡领取优惠券</em>
+		</div>
+		<div class="KaiVIPRight"> 
+			<a href="{php echo $this->createMobileUrl('halfoff', array('op'=>'kaika'));}"><em style="font-size: 14px; line-height: 30px;">去开通</em><i class="iconfont Kturnright">&#xe604;</i></a>
+		</div>
+	</div>
+	{/if}
+	<div class="HowToUse">
+		<ul>
+			<li style="width: 26%;"><i class="iconfont centerIcon">&#xe611;</i><p>领取优惠券</p></li>
+			<li class="rightzhi" style="width: 10%;">- - ></li>
+			<li style="width: 26%;"><i class="iconfont centerIcon">&#xe609;</i><p>到店消费</p></li>
+			<li class="rightzhi" style="width: 10%;">- - ></li>
+			<li style="width: 27%;"><i class="iconfont shangjiayanzheng">&#xe60b;</i><p>商家验证使用</p></li>
+		</ul>
+	</div>
+	<div class="SellerDetail">
+		<div class="SellerDetailtitle">
+			<p>商家详情</p>
+			<h2 id="latlng">距离km</h2>
+		</div>
+		<div class="SellerName">
+			<a class="SellerNameLeft" href="{php echo $this->createMobileUrl('halfbus',array('op'=>'info','bus_id'=> $item['bus_id'],'type'=>2));}">
+				<h1 class="text_flow">{$item['busname']}</h1>
+				<p>{$item['businesshour']}</p>
+				<h3 class="text_flow">{$item['address']}</h3>
+			</a>
+			<a class="SellerNameTEL" href="tel:{$item['phone']}">
+				<i class="iconfont sellerdianhua">&#xe611;</i>
+			</a>
+		</div>
+	</div>
+	<div class="DiscountDetail">
+		<h1>优惠详情</h1>
+		<div class="allImg">
+			{$item['desc']}
+		</div>
+	</div>
+	<div class="add-height"></div>
+    <div style="height: 20px;"></div>
+	{template 'banquan'}
+</body>
+
+<script type="text/javascript" src="{php echo HT}js/jquery-1.8.2.min.js" ></script>
+<script type="text/javascript" src="{php echo HT}js/jweixin-1.0.0.js"></script>
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak={$confing['baiduak']}"></script>
+
+<script type="text/javascript">
+var latitude;
+var longitude;
+var geolocation = new BMap.Geolocation();
+geolocation.getCurrentPosition(function(r){
+	if(this.getStatus() == BMAP_STATUS_SUCCESS){
+		var mk = new BMap.Marker(r.point);
+		latitude = r.point.lat; 
+		longitude = r.point.lng;
+		var latlng = getdistance(latitude,longitude,{$item['lat']},{$item['lng']});
+		$('#latlng').html('距离' + latlng + "km");
+	}
+	else {
+		alert('failed'+this.getStatus());
+	}        
+},{enableHighAccuracy: true});
+
+function getRad(d){ 
+	return d*Math.PI/180.0; 
+}
+
+function getdistance(lat1,lng1,lat2,lng2){ 
+	var f = getRad((parseFloat(lat1) + parseFloat(lat2))/2); 
+	var g = getRad((parseFloat(lat1) - parseFloat(lat2))/2); 
+	var l = getRad((parseFloat(lng1) - parseFloat(lng2))/2); 
+
+	var sg = Math.sin(g); 
+	var sl = Math.sin(l); 
+	var sf = Math.sin(f); 
+
+	var s,c,w,r,d,h1,h2; 
+	var a = 6378137.0; 
+	var fl = 1/298.257; 
+
+	sg = sg*sg; 
+	sl = sl*sl; 
+	sf = sf*sf; 
+
+	s = sg*(1-sl) + (1-sf)*sl; 
+	c = (1-sg)*(1-sl) + sf*sl; 
+
+	w = Math.atan(Math.sqrt(s/c)); 
+	r = Math.sqrt(s*c)/w; 
+	d = 2*w*a; 
+	h1 = (3*r -1)/2/c; 
+	h2 = (3*r +1)/2/s; 
+
+	return (d*(1 + fl*(h1*sf*(1-sg) - h2*(1-sf)*sg))/1000).toFixed(1); 
+}
+</script>
+
+<script type="text/javascript">
+var _hmt = _hmt || [];
+setTimeout(function(){
+	(function() {
+		var hm = document.createElement("script");
+		hm.src = "http://s4.cnzz.com/stat.php?id=1256263775&web_id=1256263775";
+		var s = document.getElementsByTagName("script")[0];
+		s.parentNode.insertBefore(hm, s);
+	})();
+},0);
+</script>
+
+<script>
+function getcoupon(){
+	$.ajax({
+		type: 'POST',
+		url: "{php echo $this->createMobileUrl('halfcoupon', array('op'=>'getcouponajax'));}",
+		data:{id:{$item['id']}, bus_id:{$item['bus_id']}},
+		dataType: 'text',
+		success: function(res){ //0领取失败 插表失败  1领取成功  2已经领取过
+			if(res == '0'){
+				layer.open({
+					content: '因未知错误，领取失败，请重新领取！',
+					style: 'background-color:#E34F63; color:#fff; border:none;',
+					time: 3
+				});
+			}else if(res == '1'){
+				layer.open({
+					content: '领取成功！',
+					style: 'background-color:#E34F63; color:#fff; border:none;',
+					time: 2
+				});
+				var url = "{php echo $this->createMobileUrl('halfuser')}";
+				setTimeout("location.href='" + url + "&op=display'", 2000);
+			}else if(res == '2'){
+				layer.open({
+					content: '已经领取过了！',
+					style: 'background-color:#E34F63; color:#fff; border:none;',
+					time: 2
+				});
+				var url = "{php echo $this->createMobileUrl('halfuser')}";
+				setTimeout("location.href='" + url + "&op=display'", 2000);
+			}
+		}
+	});
+}
+
+$(function(){
+	$(".linkKeFu").click(function(){
+		$(".gray").show();
+		$(".gray").css("height",$(document).height());
+		$(".link-KF").css("top",$(window).height()/2-178);
+		$(".link-KF").show();
+	});
+	$(".con-ma,.g-em,.gray").click(function(event){
+		$(".gray").hide();
+		$(".link-KF").hide();
+		event.stopPropagation();
+
+	});
+});
+</script>
+</html>

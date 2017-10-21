@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>提货信息</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="stylesheet" href="../addons/yike_delivery/template/lib/mui/css/mui.min.css">
+    <link rel="stylesheet" type="text/css" href="../addons/yike_delivery/template/lib/mui/css/app.css" />
+    <link href="../addons/yike_delivery/template/lib/mui/css/mui.picker.css" rel="stylesheet" />
+    <link href="../addons/yike_delivery/template/lib/mui/css/mui.poppicker.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../addons/yike_delivery/template/css/style.css">
+</head>
+
+<body>
+<header class="mui-bar mui-bar-nav carry-nav nav-bar">
+    <a class="mui-icon mui-icon-back carry-back" onclick="history.back()"></a>
+    <h1 class="mui-title carry-title">提货信息</h1>
+    <a class="fr" style=" display: inline-block; line-height:44px;color: #f35555; font-size: 14px " href="{$url2}">提货记录</a>
+</header>
+<div class="mui-content">
+    {loop $goods $index $item}
+    <div class="shop-message">
+        <div class="shop-img"><img src="{media $item['thumb']}"></div>
+        <div class="shop-right">
+            <h1 id="title">{$item['title']}</h1>
+            <p>{$item['abstract']}</p>
+            <span class="carry-title">{$item['marketprice']}</span>
+            <a href="{$url1}&goodsid={$item['id']}">查看详情</a>
+        </div>
+    </div>
+    {/loop}
+    <ul class="mui-table-view relation-way" style="margin-top: 10px">
+        <input type="hidden" id="goodsid" value="{$goodsid}">
+        <input type="hidden" id="vouchersid" value="{$vouchersid}">
+        <input type="hidden" id="url" value="{$url}">
+        <li class="mui-table-view-cell">
+            <span class="fl">收货人</span>
+            <span class="fr"><input type="text" id="name" placeholder="请输入收货人姓名"></span>
+        </li>
+        <li class="mui-table-view-cell">
+            <span class="fl">区域选择</span>
+            <span class="fr"><input type="text" id="showCityPicker3" placeholder="请选择区域"></span>
+        </li>
+        <li class="mui-table-view-cell">
+            <span class="fl">详细地址</span>
+            <span class="fr"><input type="text" id="address" placeholder="请输入详细地址"></span>
+        </li>
+        <li class="mui-table-view-cell">
+            <span class="fl">联系方式</span>
+            <span class="fr" ><input type="text" id="phone" placeholder="请输入联系方式"></span>
+        </li>
+    </ul>
+    <div class="affirm-lift">
+        <button id="ok">确认提货</button>
+    </div>
+</div>
+<script src="../addons/yike_delivery/template/lib/mui/js/mui.min.js"></script>
+<script src="../addons/yike_delivery/template/lib/mui/js/mui.picker.js"></script>
+<script src="../addons/yike_delivery/template/lib/mui/js/mui.poppicker.js"></script>
+<script src="../addons/yike_delivery/template/lib/mui/js/city.data.js" type="text/javascript" charset="utf-8"></script>
+<script src="../addons/yike_delivery/template/lib/mui/js/city.data-3.js" type="text/javascript" charset="utf-8"></script>
+<script src="../addons/yike_delivery/template/lib/mui/js/jquery.js"></script>
+<script src="../addons/yike_delivery/template/lib/mui/js/layer/layer.js"></script>
+<script>
+    (function($, doc) {
+        $.init();
+        $.ready(function() {
+            var cityPicker3 = new $.PopPicker({
+                layer: 3
+            });
+            cityPicker3.setData(cityData3);
+            var showCityPickerButton = doc.getElementById('showCityPicker3');
+            showCityPickerButton.addEventListener('tap', function(event) {
+                cityPicker3.show(function(items) {
+                    showCityPicker3.value  = (items[0] || {}).text +  (items[1] || {}).text +  (items[2] || {}).text;
+                    //返回 false 可以阻止选择框的关闭
+                    //return false;
+                });
+            }, false);
+        });})(mui, document);
+    $('#ok').click(function(){
+        var name = $('#name').val();
+        var region = $('#showCityPicker3').val();
+        var address = $('#address').val();
+        var phone = $('#phone').val();
+        var goodsid = $('#goodsid').val();
+        var vouchersid = $('#vouchersid').val();
+        var title = $('#title').text();
+        var url = $('#url').val();
+        if(name == '' ||region == ''||address == ''||phone == ''){
+            layer.msg('请将收货信息填写完整');
+        }else{
+            $.get(url,{name:name,region:region,address:address,phone:phone,goodsid:goodsid,vouchersid:vouchersid,title:title,done:'ok'},function(data){
+                var result = eval('['+data+']');
+                layer.msg('验证成功，正在跳转');
+                if(result[0].ok == 1){
+                    layer.msg('提货成功，请稍候');
+                    setTimeout('window.location = "'+result[0].url+'"', 3000);
+                }
+            })
+        }
+    });
+</script>
+</body>
+
+</html>

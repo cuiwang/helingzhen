@@ -1,0 +1,134 @@
+{template 'common/header'}
+
+<ul class="nav nav-tabs">
+	<li><a href="{php echo $this->createWebUrl('goodsmanangement', array('op'=>'display'));}">商品列表</a></li>
+	<li class="active"><a href="{php echo $this->createWebUrl('goodsmanangement', array('op'=>'edit'));}">添加商品</a></li>
+</ul>
+
+<div class="main">
+	<form action="" method="post" class="form-horizontal form" id="form">
+		<div class="panel panel-default">
+			<div class="panel-heading">商品管理</div>
+			<div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">分类</label>
+					<div class="col-xs-12 col-sm-8">
+						<div class="btn-group">
+					      <input type="hidden" id="hid" name="type_id" value="{$goods['type_id']}" />
+						  <button id="type" class="btn btn-default btn-sm dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						    {if $goods['type_id']}
+						    <?php 
+                                $category= pdo_get('hao_water_category', array('id' => $goods['type_id']));
+						    ?>
+                            <?php echo $category['type_name'];?>
+						    {else}请选择
+						    {/if}
+						    <span class="caret"></span>
+						  </button>
+						  <ul class="dropdown-menu">
+						     {loop $categories $key $category}
+						     <li><a data="{$category['id']}">{$category['type_name']}</a></li>
+						     {/loop}
+						  </ul>
+						</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">商品名</label>
+					<div class="col-xs-12 col-sm-8">
+						<div class="input-group">
+							<input type="text" name="goods[goods_title]" class="form-control" value="{$goods['goods_title']}" placeholder="请填写商品名" >
+						</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">商品价格</label>
+					<div class="col-xs-12 col-sm-8">
+						<div class="input-group">
+							<input type="text" name="goods[goods_price]" onkeyup="if(isNaN(value))execCommand('undo')" onafterpaste="if(isNaN(value))execCommand('undo')" class="form-control" value="{$goods['goods_price']}" placeholder="0" >
+						</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">商品排序</label>
+					<div class="col-xs-12 col-sm-8">
+						<div class="input-group">
+							<input type="text" name="goods[goods_sort]" class="form-control" value="{$goods['goods_sort']}" placeholder="0" >
+						</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">商品缩略图</label>
+					<div class="col-xs-12 col-sm-8">
+						{php echo tpl_form_field_image('goods[goods_image]', $goods['goods_image']);}
+					</div>
+					<span class="help-block">图片建议为640*640</span>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 col-lg-2 control-label">商品简介</label>
+					<div class="col-xs-12 col-sm-8">
+						{php echo tpl_ueditor('goods[goods_introduction]',$goods['goods_introduction']);}
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="col-xs-12 col-sm-9 col-md-10 col-lg-10 col-sm-offset-3 col-md-offset-2 col-lg-offset-2">
+					    <input name="id" type="hidden" value="{$goods['id']}" />
+						<input name="submit" type="submit" value="提交" class="btn btn-primary" />
+						<input type="hidden" name="token" value="{$_W['token']}" />
+					</div>
+				</div>
+			</div>
+		</div>
+	</form>
+</div>
+
+<script>
+require(['jquery', 'util'], function($, util){
+	$(function(){
+		$('#form').submit(function(){
+			if($('input[name="type_id"]').val() == ''){
+				util.message('请选择商品类型.');
+				return false;
+			}
+			if($('input[name="goods[goods_title]"]').val() == ''){
+				util.message('请填写商品名.');
+				return false;
+			}
+			// var vlNumber = new  Number(document.getElementById("goods_price").value); 
+			// if(isNaN(vlNumber)) 
+			// alert( "请输入正确的商品价格"); 
+		 //    return false;
+			// if(vlNumber.valueOf() < 0) 
+			// alert( "请输入正确的商品价格"); 
+		 //    return false;
+			// // if(!/^[0-9]*$/g.test($('input[name="goods[goods_price]"]').val())){
+			// //     util.message('请输入数字');
+			// //     return false;
+		 // //    }	
+			if(!/^[0-9]*$/g.test($('input[name="goods[goods_sort]"]').val())){
+			    util.message('请输入数字');
+			    return false;
+		    }	
+			if($('input[name="goods[goods_image]"]').val() == ''){
+				util.message('请上传分类图标.');
+				return false;
+			}
+			if($('input[name="goods[goods_introduction]"]').val() == ''){
+				util.message('请输入商品简介.');
+				return false;
+			}
+			
+			return true;
+		});
+	});
+});
+
+$('.dropdown-menu li').click(function(){
+	$val = $(this).children('a').attr('data');
+	$val1 = $(this).children('a').text();
+    $('#type').text($val1);
+    $('#hid').val($val);
+});
+</script>
+
+{template 'common/footer'}

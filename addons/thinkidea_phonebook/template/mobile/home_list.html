@@ -1,0 +1,118 @@
+<!doctype html>
+<html class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>电话本</title>
+  <!-- Set render engine for 360 browser -->
+  <meta name="renderer" content="webkit">
+  <!-- No Baidu Siteapp-->
+  <meta http-equiv="Cache-Control" content="no-siteapp"/>
+  <!-- Add to homescreen for Chrome on Android -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <!-- Add to homescreen for Safari on iOS -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Amaze UI"/>
+  <!-- Tile icon for Win8 (144x144 + tile color) -->
+  <meta name="msapplication-TileColor" content="#0e90d2">
+  <link rel="stylesheet" href="http://cdn.amazeui.org/amazeui/2.2.1/css/amazeui.min.css">
+  <link rel="stylesheet" href="../addons/thinkidea_phonebook/amaze/css/app.css">
+  <!--[if (gte IE 9)|!(IE)]><!-->
+    <script src="../addons/thinkidea_phonebook/amaze/assets/js/jquery.min.js"></script>
+    <!--<![endif]-->
+    <!--[if lte IE 8 ]>
+    <script src="http://libs.baidu.com/jquery/1.11.1/jquery.min.js"></script>
+  <![endif]-->
+  <script src="../addons/thinkidea_phonebook/amaze/assets/js/amazeui.min.js"></script>
+  <script src="../addons/thinkidea_phonebook/amaze/assets/js/handlebars.min.js"></script>
+</head>
+<body>
+
+    <!-- 头部 -->
+    <div class="am-g" style="background-color:#0e90d2;line-height:50px">
+       <div class="am-u-sm-3"><a href="javascript:history.back();" class="am-icon-mail-reply" style="color:#FFF">&nbsp;返回</a></div>
+  	   <div class="am-u-sm-6" style="color:#FFF;font-size:20px">{$zonename} {$cname} {$showkeyword}</div>
+  	   <div class="am-u-sm-3" style="color:#FFF;"><a href="{php echo $this->createMobileUrl('Index');}" class="am-icon-home" style="color:#FFF">首页</a></div>
+    </div>
+    
+    <!-- 搜索框 -->
+    <div style="margin-top:5px">
+    	<div style="padding-left:0px">
+		    <form  action="{php echo $this->createMobileUrl('ListInfo');}" class="am-form" method="POST" data-am-validator>
+		    	<div class="am-u-sm-10" style="padding-left:0;padding-right:0">
+		    		<input type="text" name="keyword" class="am-input-lg" placeholder="输入关键词">
+		    	</div>
+		    	<div class="am-u-sm-2" style="padding-left:0">
+		    		<input type="submit" type="submit" style="height:47px;"  class="am-btn am-btn-primary" value="搜索" required />
+		    	</div>
+			</form>
+		</div>
+	</div>  
+	  
+	<!-- 下拉框搜索 -->
+	<div class="am-u-sm-12" style="margin-top:5px">
+		<div class="am-avg-sm-2">
+			<div class="am-dropdown" data-am-dropdown style="width:45%">
+			  <button class="am-btn am-btn-block am-btn-default am-dropdown-toggle" data-am-dropdown-toggle>按区域 <span class="am-icon-caret-down"></span></button>
+			  <ul class="am-dropdown-content" id="JobCategory">
+			    <li><a href="{php echo $this->createMobileUrl('ListInfo', array('cid' => $cid));}">不限</a></li>
+                {loop $zoneparents $key $zone}    			
+			    	<li><a href="{php echo $this->createMobileUrl('ListInfo', array('zoneid' => $zone['id'], 'cid' => $cid, 'keyword' => $keyword));}">{$zone['name']}</a></li>
+			    	{loop $zone['sub'] $sub}
+			    		<li><a href="{php echo $this->createMobileUrl('ListInfo', array('zoneid' => $sub['id'], 'cid' => $cid, 'keyword' => $keyword));}">&nbsp;&nbsp;|—{$sub['name']}</a></li>
+			    	{/loop}
+			    {/loop}
+			  </ul>
+			</div>
+			
+			<div class="am-dropdown" data-am-dropdown style="width:45%">
+			  <button class="am-btn am-btn-block am-btn-default am-dropdown-toggle" data-am-dropdown-toggle>按分类<span class="am-icon-caret-down"></span></button>
+			  <ul class="am-dropdown-content" id="Payroll">
+			    <li><a href="{php echo $this->createMobileUrl('ListInfo');}">不限</a></li>
+                {loop $parents $key $parent}    			
+			    	<li><a href="{php echo $this->createMobileUrl('ListInfo', array('cid' => $parent['id'], 'zoneid' => $zoneid, 'keyword' => $keyword));}">{$parent['name']}</a></li>
+			    	{loop $parent['sub'] $sub}
+			    		<li><a href="{php echo $this->createMobileUrl('ListInfo', array('cid' => $sub['id'], 'zoneid' => $zoneid, 'keyword' => $keyword));}">&nbsp;&nbsp;|—{$sub['name']}</a></li>
+			    	{/loop}
+			    {/loop}
+			  </ul>
+			</div>
+		</div>
+	</div>
+	
+	<div class="" style="background-color:#FFF; margin-top:105px;line-height:40px">
+		<h3>总共有<strong>{$count}</strong>条</h3>
+	</div>
+	<!-- 主体列表 -->
+ 	<div style="margin-top:20px">
+ 	{if $lists}
+	 	{loop $lists $info}
+	 	<ul class="am-list am-list-static am-list-border"  onclick="location.href='{php echo $this->createMobileUrl('ShowInfo', array('infoid' => $info['id']));}';">
+	 		<li  class="am-serif am-text-lg">
+	 		{if $info['isauth']}<span class="am-badge am-badge-success am-radius" style="line-height:2;float:left">认证</span>{/if}
+	 		{$info['name']}
+	 		</li>
+	 		<li>
+	 		<ul class="am-avg-sm-3">
+	 			<li class="am-kai">{$info['mobile']} </li>
+	 			<li>&nbsp;</li>
+	 			<li><a href="tel:{$info['mobile']}"><img  class="am-circle" src="../addons/thinkidea_phonebook/template/static/images/phone.jpg" width="38px" height="37px"></a> </li>
+	 		</ul>
+	 		</li>
+		  	<li>{$info['address']}</li>
+		</ul>
+		{/loop}
+	{else}
+		<ul class="am-list am-list-static am-list-border">
+			<li>暂无符合条件的信息</li>
+		</ul>
+	{/if}
+	</div>
+	
+
+</body>
+</html>

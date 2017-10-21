@@ -1,0 +1,338 @@
+{template 'common/header'}
+
+<ul class="nav nav-tabs">
+
+	<li ><a
+			href="{php echo $this->createWebUrl('picSetting', array('name' => 'mon_house', 'op' => 'display'));}">相册管理</a></li>
+
+	<li {if $operation== 'post'}class="active"{/if}><a
+		href="{php echo $this->createWebUrl('picImgSetting', array('name' => 'mon_house', 'op' => 'post'));}">相册图片添加</a></li>
+
+	<li {if $operation== 'display'}class="active"{/if}><a
+		href="{php echo $this->createWebUrl('picImgSetting', array('name' => 'mon_house', 'op' => 'display'));}">相册图片管理</a></li>
+
+
+
+
+
+</ul>
+{if $operation == 'post'}
+<div class="main">
+	<form action="" method="post" class="form-horizontal form"
+		enctype="multipart/form-data">
+		<input type="hidden" name="id" value="{$item['id']}" />
+		<p/>
+
+
+
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				户型图片设置
+			</div>
+			<div class="panel-body">
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style='color:red'>*</span> 楼盘：</label>
+					<div class="col-sm-9 col-xs-12">
+						<select name="hid" id="hid"  class="form-control">
+							{loop $houses $house}
+								<option value="{$house['id']}" {if $house['id']==$item['hid'] }selected="selected"{/if}>{$house['title']}</option>
+							{/loop}
+						</select>
+					</div>
+				</div>
+
+
+				<div class="form-group">
+				<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style='color:red'>*</span> 相册：</label>
+				<div class="col-sm-9 col-xs-12">
+
+						<select name="pid" id="pid" class="form-control">
+							{loop $house_pics $house_pic}
+								<option value="{$house_pic['id']}" {if $house_pic['id']==$item['pid'] }selected="selected"{/if}>{$house_pic['pname']}</option>
+							{/loop}
+						</select>
+
+				</div>
+			</div>
+
+
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style='color:red'>*</span> 预览图片：</label>
+					<div class="col-sm-9 col-xs-12">
+
+								{php echo tpl_form_field_image('pre_img', $item['pre_img']);}<span><font color="red">建议大小(320*240)</font></span>
+
+					</div>
+				</div>
+
+
+
+
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"><span style='color:red'>*</span> 大图片：</label>
+					<div class="col-sm-9 col-xs-12">
+
+								{php echo tpl_form_field_image('img', $item['img']);}<span><font color="red">建议大小(750*750)</font></span>
+
+					</div>
+				</div>
+
+
+
+
+
+
+
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+					<div class="col-sm-9 col-xs-12">
+						<input name="submit" type="submit" value="提交"
+							   class="btn btn-primary span3"> <input type="hidden"
+																	 name="token" value="{$_W['token']}" />
+					</div>
+				</div>
+
+
+
+
+
+
+
+
+
+			</div>
+
+
+
+
+
+		</div>
+
+
+
+
+
+
+	</form>
+</div>
+<script type="text/javascript">
+<!--
+	//kindeditor($('.richtext-clone'));
+//-->
+
+
+$(function () {
+
+
+	$("#btn_search").click(function(){
+
+		$("#search_form").submit();
+
+	});
+
+	$("#hid").change(function(){
+
+		getTypes($(this).val());
+
+	});
+
+
+
+	function getTypes(hid){
+
+		var checkpid="{$pid}";
+
+
+		$.post('{php echo $this->createWebUrl('QueryPics');}',{"hid":hid},function(res){
+
+			var opHtml="";
+			for(var i=0;i<res.length;i++){
+
+				var housePic=res[i];
+
+				if(housePic['id']==checkpid){
+					opHtml+="<option value="+housePic['id']+" selected='selected' >"+housePic['pname']+"</option>";
+				}else{
+					opHtml+="<option value="+housePic['id']+">"+housePic['pname']+"</option>";
+				}
+
+
+
+			}
+
+			$("#pid").html(opHtml);
+
+
+		},'json');
+
+	}
+
+
+
+});
+
+
+
+</script>
+
+
+
+
+{elseif $operation == 'display'}
+<div class="main">
+
+	<div class="search">
+		<form id="search_form" action="{php echo $this->createWebUrl('picImgSetting')}" method="post">
+
+
+
+			<table class="table table-bordered tb">
+				<tbody>
+				<tr>
+					<td>楼盘选择</td>
+					<td>
+
+						<select name="hid" id="hid" class="form-control">
+							{loop $houses $house}
+							<option value="{$house['id']}" {if $house['id']==$hid}selected="selected"{/if}>{$house['title']}</option>
+							{/loop}
+						</select>
+
+
+					</td>
+
+					<td>相册选择</td>
+					<td>
+
+						<select name="pid" id="pid" class="form-control">
+							{loop $house_pics $house_pic}
+									<option value="{$house_pic['id']}" {if $house_pic['id']==$pid}selected="selected"{/if}>{$house_pic['pname']}</option>
+							{/loop}
+						</select>
+
+
+					</td>
+
+					<td>  <button id="btn_search" class="btn btn-primary pull-left span2" style=''><i class="icon-search icon-large"></i> 搜索</button></td>
+
+
+				</tr>
+
+
+				</tbody>
+			</table>
+		</form>
+	</div>
+
+
+
+
+
+	<div style="padding: 15px;">
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+
+					<th style="width: 180px;">图片</th>
+
+
+					<th style="text-align: right; min-width: 300px;">操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $item}
+				<tr>
+
+				
+					<td ><img src="{php echo $this->img()}{$item['pre_img']}" height="100px" width="100px"></td>
+				
+				
+
+
+					<td style="text-align: right; width: 400px">
+				
+						<a
+						href="{php echo $this->createWebUrl('picImgSetting', array('name' => 'mon_house', 'id' => $item['id'], 'op' => 'post'))}"
+						title="编辑" class="btn btn-small"><i class="glyphicon glyphicon-edit"></i>编辑</a> <a
+						href="{php echo $this->createWebUrl('picImgSetting', array('name' => 'mon_house', 'id' => $item['id'], 'op' => 'delete'))}"
+						onclick="return confirm('此操作不可恢复，确认删除？');return false;" title="删除"
+						class="btn btn-small"><i class="glyphicon glyphicon-remove"></i>删除</a></td>
+				</tr>
+				{/loop}
+			</tbody>
+
+		</table>
+		{$pager}
+	</div>
+</div>
+
+<script>
+	$("#hid").change(function(){
+		
+		$("#house_form").submit();
+	});
+
+	$(function () {
+
+
+		$("#btn_search").click(function(){
+
+			$("#search_form").submit();
+
+		});
+
+		$("#hid").change(function(){
+
+			getTypes($(this).val());
+
+		});
+
+
+
+		function getTypes(hid){
+
+			
+
+
+			var checkpid="{$pid}";
+
+
+		$.post('{php echo $this->createWebUrl('QueryPics');}',{"hid":hid},function(res){
+
+			var opHtml="";
+			for(var i=0;i<res.length;i++){
+
+				var housePic=res[i];
+
+				if(housePic['id']==checkpid){
+					opHtml+="<option value="+housePic['id']+" selected='selected' >"+housePic['pname']+"</option>";
+				}else{
+					opHtml+="<option value="+housePic['id']+">"+housePic['pname']+"</option>";
+				}
+
+
+
+			}
+
+			$("#pid").html(opHtml);
+
+
+		},'json');
+
+		}
+
+
+
+	});
+
+
+
+
+
+
+
+</script>
+{/if} {template 'common/footer'}

@@ -1,0 +1,123 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    <meta content="yes" name="apple-mobile-web-app-capable">
+    <meta content="black" name="apple-mobile-web-app-status-bar-style">
+    <meta content="telephone=no" name="format-detection">
+    <title>付款</title>
+    <link type="text/css" rel="stylesheet" href='./addons/amouse_hufen/style/index/css/base.css?1454067658' />
+    <link type="text/css" rel="stylesheet" href='./addons/amouse_hufen/style/index/css/style.css?1454067658' />
+    <link type="text/css" rel="stylesheet" href='./addons/amouse_hufen/style/index/css/payto.css?1454067658' />
+    <script src="./addons/amouse_hufen/style/index/js/zepto.min.js?1454067658" type="text/javascript"></script>
+    <script src="./addons/amouse_hufen/style/index/js/layer.m.js?1454067658" type="text/javascript"></script>
+    <script src="./addons/amouse_hufen/style/index/js/public.js?1454067658" type="text/javascript"></script>
+    <style type="text/css">
+        .mcheck{
+            MARGIN-RIGHT: auto; MARGIN-LEFT: auto;height:100%;width:100%;
+        }
+        .mcheck img{position:absolute; top:0; right:0; bottom:0; left:0; margin:auto; max-height:100%;max-width:100%;}
+    </style>
+</head>
+<body>
+<div id="bodyDiv">
+    <div class="img img_index" id="bd">
+        <div class="payto_i1">
+            <img src="payto_i1.png">
+        </div>
+        <div class="payto_i2">
+            <div class="num">
+                <ul>
+                    <li>5</li>
+                    <li>4</li>
+                    <li>8</li>
+                    <li>3</li>
+                    <li>8</li>
+                    <li>5</li>
+                </ul>
+            </div>
+        </div>
+        <div class="payto_i3">
+            <img src="./addons/amouse_hufen/style/index/img/click_inter.jpg">
+        </div>
+    </div>
+    <div class="clear"></div>
+    <div class="img">
+        <img src="./addons/amouse_hufen/style/index/img/payto_2.jpg?11">
+        <img src="./addons/amouse_hufen/style/index/img/payto_3.jpg?22">
+        <img src="./addons/amouse_hufen/style/index/img/payto_4.jpg?11">
+        <img id="payto_5" src="./addons/amouse_hufen/style/index/img/payto_5.jpg?11">
+    </div>
+</div>
+<!--为避免重复弹出好多次微支付输密码的界面，做此中间页面避免用户再次点击按钮-->
+<div class="qt" style="width:100%;height:100%;display:none;">
+    <div class="mcheck">
+        <div>
+            <img src="./addons/amouse_hufen/style/index/img/quan.jpg?1454067658"/>
+            <div style="position:absolute; top:55%;left:20%;font-size:18px;">微信支付连接中，请稍候...</div>
+        </div>
+    </div>
+</div>
+</body>
+<script type="text/javascript">
+    var baseUrl = '';
+    var clickFlag = false;  //标识是否已经点击过，只能点击一次
+
+    $(function(){
+        $(".payto_i3,#payto_5").on('click',function(){
+            //已经付费过的，提示不需要再付费
+            if(!clickFlag){
+                $(".qt").show();
+                $("#bodyDiv").hide();
+                clickFlag = true;
+                var num = 1;   //书本固定为1
+                //点击购买
+                $.ajax({
+                    url: baseUrl + "/Pay/GetPackageInfoBookPay",
+                    type: "post",
+                    data: {'bookNum':num},
+                    dataType: 'json',
+                    beforeSend:function(){
+                        //
+                    },
+                    complete:function(){
+                        //
+                    },
+                    success:function(data){
+                        if(data['timeStamp']!=undefined){
+                            callpay(data);
+                        }else{
+                            layer.open({
+                                content: data['msg']
+                            });
+                        }
+                    },
+                    error:function(reason){
+                        layer.open({
+                            content: '请求支付失败，请重试！',
+                        });
+                    },
+                });
+            }
+        });
+    });
+
+    function callpay(packageInfo) {
+        if(packageInfo != null){
+            WeixinJSBridge.invoke('getBrandWCPayRequest', packageInfo,function(res){
+                $(".qt").hide();
+                $("#bodyDiv").show();
+                if (res.err_msg == 'get_brand_wcpay_request:ok'){
+                    //支付成功跳转付款成功页面
+                    location.href = '/businessSchool/paySuccess';
+                }else if(res.err_msg == 'get_brand_wcpay_request:cancel'){
+                    clickFlag = false;
+                }
+            });
+        }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,147 @@
+{template 'common/header'}
+{template 'web/nav'}
+<ul class="nav nav-tabs">
+	<li{if $foo=='dianyuan' ||$foo ==''} class="active"{/if}><a href="{php echo $this->createWebUrl('dianyuan');}">店员管理</a></li>
+</ul>
+
+<div class="main">
+
+	{if $foo =="dianyuan"}
+		<div class="panel panel-info">
+		<div class="panel-heading">筛选</div>
+
+		<div class="panel-body">
+
+			<form action="./index.php" method="get" class="form-horizontal" role="form">
+
+				<input type="hidden" name="c" value="site" />
+				<input type="hidden" name="a" value="entry" />
+	        	<input type="hidden" name="m" value="jy_signup" />
+	        	<input type="hidden" name="do" value="dianyuan" />
+
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">关键字</label>
+					<div class="col-xs-12 col-sm-8 col-lg-9">
+						<input class="form-control" name="keyword" id="" type="text" value="{$_GPC['keyword']}">
+					</div>
+				</div>
+
+				<div class="form-group">
+				 	<div class=" col-xs-12 col-sm-2 col-lg-2">
+
+						<button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+
+					</div>
+				</div>
+			</form>
+		</div>
+    	</div>
+    {/if}
+
+    {if empty($list)}
+	<div class="panel panel-danger">
+		<div class="panel-heading">该门店仍未有任何店员，请先添加店员！</div>
+	</div>
+	{else}
+	<style type="text/css">
+		.erweimaDiv{
+			position: fixed;
+			right: 0;
+			top: 0;
+			padding-top: 15%;
+			width: 89%;
+			height: 100%;
+			background-color: rgba(0,0,0,0.5);
+			text-align: center;
+			vertical-align: middle;
+			display: none;
+		}
+		.erweimaDiv>img{
+			width: 30%;
+		}
+	</style>
+	<div class="panel panel-info">
+		<div class="panel-heading">门店店员</div>
+		<div class="panel-body table-responsive">
+			<form action="" method="post" onsubmit="">
+			<table class="table table-hover">
+				<thead class="navbar-inner">
+					<tr>
+						<th style="width:5%" >编号</th>
+						<th style="width:15%">门店名</th>
+						<th style="width:15%">店员名</th>
+						<th style="width:10%">微信昵称</th>
+						<th style="width:15%">微信头像</th>
+						<th style="width:15%">店员手机</th>
+						<th style="width:15%">所属区域</th>
+						<th style="width:10%">状态</th>
+						<th style="width:25%">操作</th>
+					</tr>
+				</thead>
+				<tbody id="main">
+					{loop $list $item}
+					<tr>
+					    <td>
+						<p>{$item['id']}</p>
+					</td>
+					<td>
+						<p>{$item['mendianname']}</p>
+		            </td>
+                	<td>
+						<p>{$item['username']}</p>
+                	</td>
+                	<td>
+						<p>{$item['nickname']}</p>
+                	</td>
+                	<td>
+						<img style="width:70px" src="{$item['avatar']}"/>
+                	</td>
+					<td>
+						<p>{$item['mobile']}</p>
+					</td>
+					<td>
+						{$item['province']}-{$item['city']}-{$item['dist']}
+					</td>
+					<td>
+						{if $item['status']==2}
+							<a href="{php echo $this->createWebUrl('mendian', array('foo' => 'updated','id'=>$item['mendianid'],'dyid' => $item['id']))}"><div class="btn btn-info">审核店员</div></a>
+						{else}
+							{if $item['type']==0}
+								<a href="{php echo $this->createWebUrl('mendian', array('foo' => 'update','id'=>$item['mendianid'],'dyid' => $item['id']))}"><div class="btn btn-info">升级店长</div></a>
+							{/if}
+							{if $item['type']==1}
+								<a href="{php echo $this->createWebUrl('mendian', array('foo' => 'remove','id'=>$item['mendianid'],'dyid' => $item['id']))}"><div class="btn btn-success">解除店长</div></a>
+							{/if}
+						{/if}
+					</td>
+					<td>
+							{if empty($item['uid'])}<div class="btn btn-warning" onclick="qrcode({$item['id']})">绑定</div>{else}<a href="{php echo $this->createWebUrl('unbind', array('id'=>$item['id'],'mendianid'=>$item['mendianid']))}"><div class="btn btn-danger">解绑</div></a>{/if}&nbsp;<a href="{php echo $this->createWebUrl('mendian', array('foo' => 'editdy','id'=>$item['mendianid'],'dyid' => $item['id']))}"><div class="btn btn-info">编辑店员</div></a>&nbsp;<a href="{php echo $this->createWebUrl('mendian', array('foo' => 'edit','id'=>$item['mendianid']))}"><div class="btn btn-info">编辑门店</div></a>&nbsp;<a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('mendian', array('foo' => 'deletedy','id' => $item['id']))}"><div class="btn btn-danger">删除</div></a>
+					</td>
+					</tr>
+					{/loop}
+				</tbody>
+			</table>
+			</form>
+		</div>
+	</div>
+	<div id="code" class="erweimaDiv"></div>
+	<script type="text/javascript" src="../addons/jy_signup/js/jquery.js"></script>
+	<script type="text/javascript" src="../addons/jy_signup/js/jquery.qrcode.js"></script>
+
+	<script>
+		function qrcode(dyid)
+		{
+			jQuery(function(){
+		        jQuery('#code').qrcode("{php echo $_W['siteroot'].'app/'.substr($this->createMobileUrl('dybind'),2).'&id='}"+dyid);
+		    })
+		    $(".erweimaDiv").fadeIn(500);
+		}
+	   $(".erweimaDiv").bind("click",function(){
+	   		$(this).fadeOut(500).html("");
+	   })
+	</script>
+	{/if}
+
+</div>
+
+{template 'common/footer'}

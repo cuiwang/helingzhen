@@ -1,0 +1,173 @@
+{template 'common/header'}
+<ul class="nav nav-tabs">
+		<li class="active"><a href="{php echo $this->createWebUrl('report', array('op' => 'list'));}">管理</a></li>
+	{if !$user['regionid']}
+		<li><a href="{php echo $this->createWebUrl('category', array('op'=>'list','type' => 3));}">服务分类</a></li>
+	{/if}
+	<li><a href="{php echo $this->createWebUrl('report', array('op'=>'manage','operation' => 'add'));}">管理员管理</a></li>
+	</ul>
+	<div class="panel panel-info">
+        <div class="panel-heading">筛选</div>
+        <div class="panel-body">
+            <form action="./index.php" method="get" class="form-horizontal" role="form">
+				<input type="hidden" name="c" value="site" />
+				<input type="hidden" name="a" value="entry" />
+				<input type="hidden" name="m" value="xfeng_community" />
+				<input type="hidden" name="do" value="report" />
+				<input type="hidden" name="op" value="list" />
+
+            	<div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 control-label">选择小区</label>
+                    <div class="col-sm-3 col-md-3 col-lg-3 col-xs-3">
+                        <select name="regionid" class="form-control">
+                                {loop $regions $region}
+                                <option value="{$region['id']}" {if $region['id']==$_GPC[ 'regionid']} selected{/if}>{$region['city']}{$region['dist']}{$region['title']}</option>
+                                {/loop}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 control-label">建议类型</label>
+                    <div class="col-sm-3 col-md-3 col-lg-3 col-xs-3">
+                        <select name="category" class="form-control">
+							<option value="">选择类型</option>
+								{loop $categories $category}
+									<option value="{$category['name']}" {if $category['name']==$_GPC['category']} selected{/if}>{$category['name']}</option>
+								{/loop}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 control-label">建议日期</label>
+                    <div class="col-sm-8 col-md-8 col-lg-8 col-xs-12">
+                        {php echo tpl_form_field_daterange('birth', array('starttime' => date('Y-m-d',empty($starttime) ? TIMESTAMP : $starttime),'endtime' => date('Y-m-d',empty($endtime) ? TIMESTAMP : $endtime)));}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 control-label">状态</label>
+                    <div class="col-sm-8 col-md-8 col-lg-8 col-xs-12">
+						<label for="ipt_status1" class="radio-inline">
+							<input class="" name="status" id="" type="radio" value="0" {if empty($status)}checked='checked' {/if}/>全部
+						</label>
+                       <label for="ipt_status1" class="radio-inline">
+                                <input class="" name="status" id="ipt_status1" type="radio" value="2" {if $status == 2 }checked='checked' {/if}/>未处理
+                        </label>
+						<label for="ipt_status2" class="radio-inline">
+							<input class="ipt_status2" name="status" id="ipt_status2" type="radio" value="1" 
+							{if $status == 1}checked='checked'{/if} />已处理
+						</label>
+                    </div>
+                </div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-4 col-md-4 col-lg-2 control-label">用户信息</label>
+					<div class="col-sm-5 col-lg-5 col-xs-7">
+						<input class="form-control" name="keyword1" id="" type="text" value="{$_GPC['keyword1']}" placeholder="可查询手机号 /姓名 /房号">
+					</div>
+				</div>
+				<div class="form-group">
+					<label class="col-xs-12 col-sm-4 col-md-4 col-lg-2 control-label">处理信息</label>
+					<div class="col-sm-5 col-lg-5 col-xs-7">
+						<input class="form-control" name="keyword2" id="" type="text" value="{$_GPC['keyword2']}" placeholder="可查询处理人 /内容">
+					</div>
+				</div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label"></label>
+                    <div class="col-sm-7 col-lg-9 col-xs-12">
+                        <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+                        <input type="hidden" name="token" value="{$_W['token']}" />
+                        <button type="submit" name="export" value="1" class="btn btn-primary">导出 Excel</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+	<div style="padding:15px;">
+		<form class="form-horizontal form" method="post" >
+		<table class="table table-hover">
+			<thead class="navbar-inner">
+				<tr>
+					<th style="width:30px">删?</th>
+					<th style="width:140px">类型</th>
+					<th style="width:80px">姓名</th>
+					<th style="width:120px">手机</th>
+					<th style="width: 280px">地址</th>
+					<th style="width: 150px">日期</th>
+					<th style="width: 80px">状态</th>
+					<th style="width: 80px">审核</th>
+					<th style="width: 80px">评价</th>
+					<th>操作</th>
+				</tr>
+			</thead>
+			<tbody>
+				{loop $list $item}
+				<tr>
+					<td>
+						<input type="checkbox" name="ids[]" value="{$item['id']}">
+					</td>
+					<td>{$item['category']}</td>
+					<td>{$item['realname']}</td>
+					<td>{$item['mobile']}</td>
+					<td>
+                        {$item['address']}
+                    </td>
+					<td>{php echo date('Y-m-d H:i', $item['createtime']);}</td>
+					
+					<!-- 
+					<td>{php echo cutstr(htmlspecialchars_decode($item['content']), 35, true)}</td> -->
+					<!-- <td>{php echo cutstr(htmlspecialchars_decode($item['resolve']), 35, true)}</td>
+					<td>{php echo cutstr(htmlspecialchars_decode($item['resolver']), 35, true)}</td> -->
+					<!-- <td>{if $item[resolvetime]}{php echo date('Y-m-d', $item[resolvetime]);}{/if}</td> -->
+					<td>{if $item['status'] ==1 }<span class="label label-success">已处理</span>{/if}{if $item['status'] == 3 }<span class="label label-info">受理中</span>{/if}{if $item['status'] == 2 }<span class="label label-default">未处理</span>{/if}</td>
+					<td>
+						<label data="{$item['enable']}" class='label  label-default {if $item['enable']==0}label-info{/if}' onclick="verify(this,{$item['id']},'enable')">{if $item['enable']==0}通过{else}禁止{/if}</label>
+					</td>
+					<td><span class="label label-success">{if $item['rank'] == 1}满意{elseif $item['rank'] == 2}一般{elseif $item['rank']}不满意{/if}</span></td>
+					<td>
+						<span>
+							<a href="{php echo $this->createWebUrl('report',array('op'=>'add','id'=>$item['id']));}" class="btn btn-default btn-sm"><i class='glyphicon glyphicon-edit'></i>查看</a>
+						</span>
+						&nbsp;&nbsp;
+						<span>
+							<a  class="btn btn-default btn-sm" onclick="return confirm('删除操作不可恢复，确认吗？')" href="{php echo $this->createWebUrl('report',array('op'=>'delete','id'=>$item['id']));}"><i class='glyphicon glyphicon-remove-circle'></i>删除</a>
+						</span>
+					</td>
+				</tr>
+				{/loop}
+			</tbody>
+		</table>
+		{$pager}
+		<table class="table table-hover">
+			<tr>
+				<td width="30">
+					<input type="checkbox" onclick="var ck = this.checked;$(':checkbox').each(function(){this.checked = ck});" />
+				</td>
+				<td class="text-left">
+					<input name="token" type="hidden" value="{$_W['token']}" />
+					<input type="submit" class="btn btn-primary span2" name="delete" value="批量删除" /> &nbsp;
+				</td>
+			</tr>
+		</table>
+		</form>
+	</div>
+
+<script>
+	function verify(obj, id, type) {
+		$(obj).html($(obj).html() + "...");
+		$.post("{php echo $this->createWebUrl('repair',array('op' => 'verify'))}", {
+			id: id,
+			type: type,
+			data: obj.getAttribute("data")
+		}, function(d) {
+			$(obj).html($(obj).html().replace("...", ""));
+			if (type == 'enable') {
+				$(obj).html(d.data == '0' ? '通过' : '禁止');
+			}
+			$(obj).attr("data", d.data);
+			if (d.result == 1) {
+				$(obj).toggleClass("label-info");
+			}
+		}, "json");
+	}
+</script>
+{template 'common/footer'}

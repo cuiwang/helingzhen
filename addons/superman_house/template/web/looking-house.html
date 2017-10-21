@@ -1,0 +1,94 @@
+<style>
+	.del_item_link {
+		color: #f00;
+	}
+</style>
+<div class="alert alert-info">
+	本看房团包含的楼盘。
+</div>
+<table class="table table-hover">
+	<thead>
+		<tr>
+			<th width="25"></th>
+			<th>楼盘名称</th>
+			<th width="25"></th>
+		</tr>
+	</thead>
+	<tbody id="list_wrap">
+		{loop $look_houses $row}
+		<tr>
+            <td>
+            <input name="look_house_ids[]" type="hidden" class="form-control" value="{$row['id']}"/>
+            </td>
+			<td>
+                <select name="house_ids[]" class="form-control">
+                    {loop $houses $house_row}
+                        <option class="form-control" {if $row['houseid'] == $house_row['id']}selected="selected"{/if} value="{$house_row['id']}">{$house_row['name']}</option>
+                    {/loop}
+                <select>
+			</td>
+			<td>
+				<a href="javascript:;" class="del_item_link" onclick="delItemLHouse(this)" title="删除" data-id="{$row['id']}">
+					<i class='fa fa-remove'></i>
+				</a>
+			</td>
+		</tr>
+        <tr id="addflag"/>
+		{/loop}
+	</tbody>
+	<tbody>
+		<tr>
+			<td colspan="4">
+				<button type="button" class="btn btn-warning" id="add_item" title="添加">
+					<span class="glyphicon glyphicon-plus" aria-hidden="true"></span> 添加
+				</button>
+			</td>
+		</tr>
+	</tbody>
+</table>
+<script>
+	require(['jquery', 'util'], function($, u){
+		//tips
+		$('.btn').hover(function(){
+			$(this).tooltip('show');
+		},function(){
+			$(this).tooltip('hide');
+		});
+
+        $('#add_item').click(function(){
+            var j_houses = {php echo json_encode($houses)};
+		    var html = '<tr><td>';
+            html += '<input name="look_house_ids[]" type="hidden" class="form-control"/></td><td>';
+            html += '<select name="house_ids[]" class="form-control">';
+            for(var house in j_houses){
+                html += '<option class="form-control" value="' + j_houses[house]['id'] + '">' + j_houses[house]['name'] + '</option>';
+            }
+            html += '<select>';
+            html += '</td><td>';
+            html += '<a href="javascript:;" class="del_item_link" onclick="delItemLHouse(this)" title="删除">';
+            html += '<i class="fa fa-remove"></i></a>';
+            html += '</td></tr>';
+            $('#list_wrap').append(html);
+		});
+        
+
+		window.delItemLHouse = function(obj) {
+			var id = $(obj).attr('data-id');
+			if (!id) {	//new
+				$(obj).parent().parent().remove();
+				return;
+			}
+			$.ajax({
+				'url': "{php echo $this->createWebUrl('looking', array('act' => 'deletelookhouse'));}"+'&_id='+id,
+				success:function(response) {
+					if (response == 'success') {
+						$(obj).parent().parent().remove();
+					} else {
+						u.message(response, '', 'error');
+					}
+				}
+			});
+		}
+	});
+
+</script>

@@ -1,0 +1,322 @@
+{template 'common/header'}
+<div class='container' style='padding:0 5px 10px;margin:0;width:100%'>
+<ul class="nav nav-tabs">
+    <li {if $op == 'post' && empty($id)}class="active"{/if}><a href="{php echo $this->createWebUrl('house', array('op' => 'post'));}">添加二手房</a> </li>
+    <li {if $op == 'display'}class="active"{/if}><a href="{php echo $this->createWebUrl('house', array('op' => 'display'));}">房产管理</a> </li>
+    {if !empty($id) && $op == 'post'} <li class="active">  <a href="{php echo $this->createWebUrl('house',array('op'=>'post','id'=>$id));}">编辑二手房</a> </li> {/if}
+</ul>
+    {if $op == 'display'}
+<ul class="nav nav-tabs">
+    <li {if $op == 'display' && $status == ''}class="active"{/if}><a href="{php echo $this->createWebUrl('house', array('op' => 'display'))}">全部房产</a></li>
+    <li {if $op == 'display' && $status == '1'}class="active"{/if}><a href="{php echo $this->createWebUrl('house', array('op' => 'display', 'status' => 1))}">已审核</a></li>
+    <li {if $op == 'display' && $status == '0'}class="active"{/if}><a href="{php echo $this->createWebUrl('house', array('op' => 'display', 'status' =>0))}">待确认</a></li>
+</ul>
+    {/if}
+
+{if $op =='display'}
+<div class="panel panel-info">
+    <div class="panel-heading">筛选</div>
+    <div class="panel-body">
+        <form action="./index.php" method="get" class="form-horizontal" role="form">
+            <input type="hidden" name="c" value="site" />
+            <input type="hidden" name="a" value="entry" />
+            <input type="hidden" name="m" value="amouse_house" />
+            <input type="hidden" name="do" value="house" />
+
+            <div class="form-group">
+                <label class="col-xs-13 col-sm-2 col-md-2 col-lg-1 control-label">标题</label>
+                <div class="col-sm-8">
+                    <input class="form-control" placeholder="搜索标题" name="title" type="text" value="{$_GPC['title']}">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">类型</label>
+                <div class="col-xs-12 col-sm-8 col-lg-9">
+                    <select name="type" class='form-control'>
+                        <option value="">请选择</option>
+                        <option value="0" {if $_GPC['type']=='0'} selected{/if}>出租</option>
+                        <option value="1" {if $_GPC['type']=='1'} selected{/if}>求租</option>
+                        <option value="2" selected {if $_GPC['type']=='2'} selected{/if}>出售</option>
+                        <option value="3" {if $_GPC['type']=='3'} selected{/if}>求购/option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">创建时间</label>
+                <div class="col-sm-8">
+             {php echo tpl_form_field_daterange('date',array('start'=>date('Y-m-d', $starttime),'end'=>date('Y-m-d', $endtime)))}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="pull-right col-xs-12 col-sm-2 col-lg-1">
+                    <button class="btn btn-block"><i class="fa fa-search"></i> 搜索</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div style="padding:15px;">
+    <form id="form2" class="form-horizontal" method="post">
+        <table class="table table-hover">
+            <thead class="navbar-inner">
+            <tr>
+                <th style="width:5%;">全选</th>
+                <th>标题</th>
+                <th>联系人</th>
+                <th>联系电话</th>
+                <th>类型</th>
+                <th>状态</th>
+                <th>是否认证</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {loop $list $v}
+            <tr>
+                <td> <input type="checkbox" value="{$v['id']}" name="delete[]"> </td>
+                <td> {$v['title']} </td>
+                <td title="{$v['contacts']}"> {$v['contacts']}</td>
+                <td title="{$v['phone']}"> {$v['phone']}</td>
+                <td>{if $v['type'] == 0}<span class="label label-info">出租</span>{/if}
+                    {if $v['type'] == 1}<span class="label label-info">求租</span>{/if}
+                    {if $v['type'] == 2}<span class="label label-success">出售</span>{/if}
+                    {if $v['type'] == 3}<span class="label label-success">求购</span>{/if}
+                </td>
+                <td>
+                    {if $v['status']=='0'}<span class="label label-default label-info">待确认</span>{/if}
+                    {if $v['status']=='1'}<span class="label label-success">已确认</span>{/if}
+                </td>
+                <td>
+                    {if $v['recommed']==0}<span class="label label-default label-info">未推荐</span>{/if}
+                    {if $v['recommed']==1}<span class="label label-success">推荐</span>{/if}
+                </td>
+                <td>
+                    {if $v['status']=='0'}
+                    <a href="{php echo $this->createWebUrl('house', array('op' => 'verify', 'id' => $v['id']))}" title="审核" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" title="" data-original-title="详情" >
+                        <i class="fa fa-wrench"></i>
+                    </a>
+                    {/if}
+                    {if $v['recommed']==0}
+                    <a href="{php echo $this->createWebUrl('house', array('op' => 'recommed','recommed'=>1, 'id' => $v['id']))}" title="推荐" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" title="" data-original-title="推荐" >
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                    {/if}
+                    {if $v['recommed']==1}
+                    <a href="{php echo $this->createWebUrl('house', array('op' => 'recommed','recommed'=>0, 'id' => $v['id']))}" title="取消推荐" class="btn btn-default btn-sm" data-toggle="tooltip" data-placement="top" title="" data-original-title="取消推荐" >
+                        <i class="fa fa-chevron-down"></i>
+                    </a>
+                    {/if}
+                    {if $_W['isfounder']}
+                    <a href="{php echo $this->createWebUrl('house', array('op' => 'post', 'id' => $v['id']))}" title="编辑" class="btn btn-default btn-sm"><i class="fa fa-edit"></i></a>
+                    {/if}
+                    <a onclick="return confirm('此操作不可恢复，确认吗？'); return false;" href="{php echo $this->createWebUrl('house', array('id' => $v['id'],'op'=>'del'))}" title="删除" class="btn btn-default btn-sm">
+                        <i class="fa fa-times"></i>
+                    </a>
+
+                </td>
+            </tr>
+            {/loop}
+            <tr>
+                <td colspan="6">
+                    <input type="checkbox"  onclick="var ck = this.checked;$(':checkbox').each(function(){this.checked = ck});" name=''>
+                    <input class="btn btn-primary" type="submit" value="删除" name="submit" >
+                </td>
+                <td>
+
+                </td>
+                <td></td>
+            </tr>
+
+            </tbody>
+        </table>
+        <div style="margin:0 auto;margin-right: auto;vertical-align: middle;text-align: center;" >
+            {$pager}
+        </div>
+        <input type="hidden" name="token" value="{$_W['token']}" />
+        <input type="hidden" value="del" name="op">
+        <input type="hidden" name="c" value="site" />
+        <input type="hidden" name="a" value="entry" />
+        <input type="hidden" name="m" value="heixiu" />
+        <input type="hidden" name="do" value="orders" />
+    </form>
+
+    <script>
+        $('#form2').submit(function(){
+            if($(":checkbox[name='delete[]']:checked").size() > 0){
+                return confirm('删除后不可恢复，您确定删除吗？');
+            }
+            return false;
+        });
+    </script>
+
+</div>
+    {elseif $op == 'post'}
+    <div class="main">
+        <form action="" method="post" class="form-horizontal form" enctype="multipart/form-data" onsubmit="return validate(this);">
+            <div class="panel panel-default">
+                <div class="panel-heading"><h4>编辑房产</h4></div>
+                <div class="panel-body">
+                    <input type="hidden" name="id" value="{$item[id]}" >
+                    <input type="hidden" name="type" value="{$item[type]}" >
+                    <div class="form-group">
+                        <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                            <span style='color:red'>*</span>房产名称：</label>
+                        <div class="col-sm-4">
+                            <input type="text" name="title" id="title" class="form-control" value="{$item['title']}" />
+                        </div>
+                        <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                            <span style='color:red'>*</span>联系人：</label>
+                        <div class="col-sm-4">
+                            <input type="text" name="contacts" id="contacts" class="form-control" value="{$item['contacts']}" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                            联系电话：
+                        </label>
+                        <div class="col-sm-4">
+                            <input type="text" name="phone" class="form-control" value="{$item['phone']}"   />
+                        </div>
+                        {if $item['type']=='0'||$item['type']=='1'}
+                        <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                            单价或总价：
+                        </label>
+                        {else}
+                        <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                            单价或总价：
+                        </label>
+                        {/if}
+                        <div class="col-sm-4">
+                            <input type="text" name="price" class="form-control" value="{$item['price']}"  />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                            面积：
+                        </label>
+                        <div class="col-sm-4">
+                            <input type="text" name="area" class="form-control" value="{$item['area']}"   />
+                        </div>
+                        {if $item['type']=='2'||$item['type']=='3'}
+                        <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                            每平方：
+                        </label>
+                        <div class="col-sm-4">
+                            <input type="text" name="square_price" class="form-control" value="{$item['square_price']}"   />
+                        </div>
+                        {/if}
+                    </div>
+                    <div class="form-group">
+                        <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                            户型：
+                        </label>
+                        <div class="col-sm-4">
+                            <input type="text" name="house_type" class="form-control" value="{$item['house_type']}"   />
+                        </div>
+                        <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                            朝向：
+                        </label>
+                        <div class="col-sm-4">
+                            <input type="text" name="orientation" class="form-control" value="{$item['orientation']}"   />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                            楼层：
+                        </label>
+                        <div class="col-sm-4">
+                            <input type="text" name="floor" class="form-control" value="{$item['floor']}"   />
+                        </div>
+                        <label class="col-xs-12 col-sm-3 col-md-2 control-label">
+                            类型：
+                        </label>
+                        <div class="col-sm-4">
+                            <select name="type" class='form-control'>
+                                <option value="">请选择</option>
+                                <option value="0" {if $_GPC['type']=='0'} selected{/if}>出租</option>
+                                <option value="1" {if $_GPC['type']=='1'} selected{/if}>求租</option>
+                                <option value="2" selected {if $_GPC['type']=='2'} selected{/if}>出售</option>
+                                <option value="3" {if $_GPC['type']=='3'} selected{/if}>求购 </option>
+                            </select>
+                        </div>
+
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-xs-12 col-sm-3 col-md-2 control-label">详细描述:</label>
+                        <div class="col-sm-9">
+                            <textarea id="introduction" name="introduction" class="form-control" cols="60">{$item['introduction']}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-xs-12 col-sm-3 col-md-2 control-label">所在地区</label>
+                        <div class="col-sm-9 col-xs-12">
+                            {php echo tpl_form_field_district('district',array('province'=>$item['location_p'],'city'=>$item['location_c'],'district'=>$item['location_a']))}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-xs-12 col-sm-3 col-md-2 control-label">地址</label>
+                        <div class="col-sm-9 col-xs-12">
+                            <input type="text" id="place" name="place"  class="form-control" value="{$item['place']}">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-xs-12 col-sm-3 col-md-2 control-label">坐标</label>
+                        <div class="col-sm-9 col-xs-12">
+                            {php echo tpl_form_field_coordinate('baidumap',$item)}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-xs-12 col-sm-3 col-md-2 control-label">图片1</label>
+                        <div class="col-sm-9">
+                            {php echo tpl_form_field_image('thumb1', $item['thumb1'])}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-xs-12 col-sm-3 col-md-2 control-label">图片2</label>
+                        <div class="col-sm-9">
+                            {php echo tpl_form_field_image('thumb2', $item['thumb2'])}
+
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="col-xs-12 col-sm-3 col-md-2 control-label">图片3</label>
+                        <div class="col-sm-9">
+                            {php echo tpl_form_field_image('thumb3', $item['thumb3'])}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-xs-12 col-sm-3 col-md-2 control-label">合作佣金</label>
+                        <div class="col-sm-9">
+                           <input type="text" id="brokerage" name="brokerage"  class="form-control" value="{$item['brokerage']}">
+                        </div>
+                    </div>
+
+                    
+
+                    <div class="form-group">
+                        <label class="col-xs-12 col-sm-3 col-md-2 control-label"></label>
+                        <div class="col-sm-4">
+                            <input type="hidden" name="id" value="{$item[id]}">
+                            <input type="hidden" name="token" value="{$_W['token']}" />
+                            <input name="submit" type="submit" value="提交" class="btn btn-primary span3" />
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+        </form>
+    </div>
+{/if}
+</div>

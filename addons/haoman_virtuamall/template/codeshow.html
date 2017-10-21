@@ -1,0 +1,143 @@
+{template 'common/header'}
+<div class="main">
+    <ul class="nav nav-tabs">
+         <li{if $_GPC['do'] == 'post'} class="active"{/if}><a class="btn-lg" href="{php echo $this->createWebUrl('code');}">卡密管理</a></li>
+    </ul>
+    <div class="panel panel-info">
+        <div class="panel-heading">筛选</div>
+        <div class="panel-body">
+            <form action="./index.php" method="get" class="form-horizontal" role="form">
+                <input type="hidden" name="c" value="site" />
+                <input type="hidden" name="a" value="entry" />
+                <input type="hidden" name="m" value="haoman_virtuamall" />
+                <input type="hidden" name="do" value="codeshow" />
+                <input type="hidden" name="pici" value="{$pici}" />
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">卡号查询</label>
+                    <div class="col-xs-12 col-sm-8 col-lg-9">
+                        <input class="form-control" name="used_cardid" id="" type="text" value="{$_GPC['used_cardid']}" placeholder="输入要查询的卡号">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-2 col-md-2 col-lg-1 control-label">卡密查询</label>
+                    <div class="col-xs-12 col-sm-8 col-lg-9">
+                        <input class="form-control" name="title" id="" type="text" value="{$_GPC['title']}" placeholder="输入要查询的卡密">
+                    </div>
+                    <div class=" col-xs-12 col-sm-2 col-lg-2">
+                        <button class="btn btn-default"><i class="fa fa-search"></i> 搜索</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+	<div class="category">
+	<div class="panel panel-default">
+                <div class="panel-body table-responsive">
+                    <table class="table table-hover">
+                        <thead class="navbar-inner">
+                        <tr>
+                            <th class='with-checkbox' style="width:50px;">
+                                <input type="checkbox" class="check_all" />
+                            </th>
+                            <th style="width:200px;">卡密</th>
+                            <th style="width:100px;">数量</th>
+                            <th style="width:100px;">可用时间</th>
+                            <th style="width:100px;">状态</th>
+                            <!--<th style="width:100px;">状态</th>-->
+                            <th style="width:200px;">归属产品</th>
+                            <th style="width:200px;">激活时间</th>
+                            <th style="width:200px;">过期时间</th>
+                            <th style="width:200px;">卡号</th>
+                            <th style="width:80px;">操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {loop $list $row}
+                        <tr>
+                            <td class="with-checkbox"><input type="checkbox" name="check" value="{$row['id']}"></td>
+                            <td>{$row['title']} </td>
+                            <td>{$row['num']}</td>
+                            {if $row['used_times']==0}
+                            <td>无限制时间</td>
+                            {else}
+                            <td>{php echo $row['used_times']/(24*3600)}天</td>
+                            {/if}
+                            <td>{if $row['status']!=2}<strong class="btn btn-default activation" onclick="drop_confirm('您确定要激活吗?', '{php echo $this->createWebUrl('activation',array('id'=>$row['id'],'pici'=>$row['pici']))}');" >未激活</strong>{elseif $row['status']==2 && $t<$row['endtime'] && $row['used_times']!=0}<strong class="btn btn-success">使用中</strong>{elseif $row['status']==2 && $t>$row['endtime'] && $row['used_times']!=0}<strong class="btn btn-warning">已过期</strong>{elseif $row['status']==2 && $row['used_times'] == 0}<strong class="btn btn-success">使用中</strong>{/if}</td>
+                            <!--<td>{if $row['status']==1}<strong class="btn btn-success">已启用{else if $row['status'] ==0 }<strong class="btn btn-default">未启用{else}</strong><strong class="btn btn-warning">已失效{/if}</td>-->
+                            <td>{$row['shopname']}</td>
+                            <td>{if !empty($row['activation_time'])}{php echo date('Y-m-d H:i:s',$row['activation_time'])}{/if}</td>
+                            <td>{if !empty($row['endtime'])&&$row['used_times']!=0}{php echo date('Y-m-d H:i:s',$row['activation_time']+$row['used_times'])}{/if}</td>
+                            <td>{$row['used_cardid']}</td>
+                            <td>
+                                <a class="btn btn-default" data-toggle="tooltip" data-placement="top" href="#" onclick="drop_confirm('您确定要删除吗?', '{php echo $this->createWebUrl('deletepw',array('id'=>$row['id'],'pici'=>$row['pici']))}');" title="删除"><i class="fa fa-times"></i></a>
+                            </td>
+                        </tr>
+                        {/loop}
+                        <!-- <tr>
+                            <td colspan="7">
+                                <input type="button" class="btn btn-primary" name="deleteall" value="删除选择的" />
+                            </td>
+                        </tr> -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+	</div>
+
+</div>
+
+<script>
+    require(['bootstrap'],function($){
+        $('.btn').hover(function(){
+            $(this).tooltip('show');
+        },function(){
+            $(this).tooltip('hide');
+        });
+    });
+
+
+
+    $(function(){
+
+        $(".check_all").click(function(){
+            var checked = $(this).get(0).checked;
+
+            $("input[type=checkbox]").attr("checked",checked);
+        });
+        $("input[name=deleteall]").click(function(){
+            var check = $("input:checked");
+
+            if(check.length<2){
+                alert('请选择要删除的记录!');
+                return false;
+            }
+            if( confirm("确认要删除选择的记录?")){
+                var id = new Array();
+                check.each(function(i){
+                    id[i] = $(this).val();
+                });
+                $.post('{php echo $this->createWebUrl('deleteAllcard')}', {idArr:id},function(data){
+                    if (data.errno ==0)
+                    {
+                        location.reload();
+                    } else {
+                        alert(data.error);
+                    }
+
+
+                },'json');
+            }
+
+        });
+    });
+</script>
+<script>
+    function drop_confirm(msg, url){
+        if(confirm(msg)){
+            window.location = url;
+        }
+    }
+</script>
+{$pager}
+		
+{template 'common/footer'}

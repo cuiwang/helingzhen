@@ -1,0 +1,86 @@
+<table class="table table-hover">
+<thead>
+<tr>
+<th width="25"></th>
+<th>属性名称</th>
+<th>属性值</th>
+<th width="25"></th>
+</tr>
+</thead>
+<tbody id="list_wrap">
+{loop $item['params'] $row}
+<tr>
+<td>
+<a href="javascript:;" class="fa fa-move" title="按住鼠标左键，拖动调整顺序">
+<i class="fa fa-arrows"></i>
+</a>
+</td>
+<td>
+<input name="params_id[]" type="hidden" class="form-control" value="{$row['id']}"/>
+<input name="params_key[]" type="text" class="form-control" value="{$row['key']}"/>
+</td>
+<td>
+<input name="params_value[]" type="text" class="form-control" value="{$row['value']}"/>
+</td>
+<td>
+<a href="javascript:;" class="del_item_link" onclick="delItem(this)" title="删除" data-id="{$row['id']}">
+<i class='fa fa-remove'></i>
+</a>
+</td>
+</tr>
+{/loop}
+</tbody>
+<tbody>
+<tr>
+<td colspan="4">
+<button type="button" class="btn btn-warning" id="add_item_link" title="添加">
+<span class="glyphicon glyphicon-plus" aria-hidden="true"></span> 添加
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+<script>
+require(['jquery', 'util'], function($, u){
+//tips
+$('.btn').hover(function(){
+$(this).tooltip('show');
+},function(){
+$(this).tooltip('hide');
+});
+
+//displayorder
+try {
+$('#list_wrap').sortable({handle: '.fa-move'});
+} catch (e) {
+console.log(e.name+','+ e.number+','+ e.message+','+ e.description);
+}
+
+$('#add_item_link').click(function(){
+$.ajax({
+'url': "{php echo url('site/entry/shop',array('op'=>'params','m'=>'siyuan_cms'))}",
+success:function(response) {
+$('#list_wrap').append(response);
+}
+});
+});
+
+window.delItem = function(obj) {
+var id = $(obj).attr('data-id');
+if (!id) {//new
+$(obj).parent().parent().remove();
+return;
+}
+$.ajax({
+'url': "{php echo url('site/entry/shop',array('op'=>'deletekv','m'=>'siyuan_cms'))}"+'&_id='+id,
+success:function(response) {
+if (response == 'success') {
+$(obj).parent().parent().remove();
+} else {
+u.message(response, '', 'error');
+}
+}
+});
+}
+});
+</script>

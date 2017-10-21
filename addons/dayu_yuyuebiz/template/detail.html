@@ -1,0 +1,211 @@
+{template 'common/header'}
+<style type="text/css">
+    table li{padding:5px 0;}
+    small a{color:#999;}
+</style>
+<ul class="nav nav-tabs">
+	<li><a href="{php echo $this->createWebUrl('display', array('op' => $_GPC['op']))}">预约列表</a></li>
+	<li><a href="{php echo $this->createWebUrl('post')}">新建预约</a></li>
+	<li><a href="{php echo $this->createWebUrl('manage', array('id' => $row['reid'], 'op' => $_GPC['op']))}">预约详情</a></li>
+	<li class="active"><a href="{php echo $this->createWebUrl('detail', array('id' => $row['reid']))}">预约记录详情</a></li>
+</ul>
+<div class="main">
+       <form class="form-horizontal form" action="" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="id" value="{$row['rerid']}" />
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                用户提交的信息
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">订单编号</label>
+                    <div class="col-sm-9">
+                         <input type="text" class="form-control" placeholder="" value="{$row['ordersn']}" readonly/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">微信支付单号</label>
+                    <div class="col-sm-9">
+                         <input type="text" class="form-control" placeholder="" value="{$row['transid']}" readonly/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">服务项目</label>
+                    <div class="col-sm-9">
+                         <input type="text" class="form-control" placeholder="" value="{$yxiangmu['title']}" readonly/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">相关费用</label>
+                    <div class="col-sm-9">
+					<div class="input-group">
+                        <span class="input-group-addon">合计：</span><input type="text" class="form-control" placeholder="" value="{$row['price']}" readonly/>
+                    </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">状态</label>
+                    <div class="col-sm-9">
+						<span class="btn btn-default btn-danger">{if $row['status'] == '0'}待受理{elseif $row['status'] == '1'}受理中{elseif $row['status'] == '2'}已拒绝{elseif $row['status']=='3'}已完成{elseif $row['status']=='-1'}客户取消了预约{/if}</span>
+						{if $row['paystatus'] == '1'}<span class="btn btn-default btn-warning">未支付{elseif $row['paystatus'] == '2'}<span class="btn btn-default btn-success">已支付{/if}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                用户提交的资料
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">姓名</label>
+                    <div class="col-sm-9">
+                         <input type="text" class="form-control" placeholder="" name="activity" value="{$row['member']}" readonly/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">手机</label>
+                    <div class="col-sm-9">
+                         <input type="text" class="form-control" placeholder="" name="mobile" value="{$row['mobile']}" readonly/>
+                    </div>
+                </div>
+				
+              	{loop $ds $fid $ftitle}
+                   <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">{$ftitle['fid']}</label>
+                    <div class="col-xs-12 col-sm-9">
+						<p class="form-control-static">
+                            {if $ftitle['type'] == 'image'}
+                            {if $row['fields'][$fid]}<a target="_blank" href="{php echo tomedia($row['fields'][$fid]);}">点击查看{$ftitle['fid']}<img src="{php echo tomedia($row['fields'][$fid]);}" height="50"></a>{else}用户未上传{/if}
+                            {else}
+							{if !empty($row['fields'][$fid])}{$row['fields'][$fid]}{else}用户未填{/if}
+                            {/if}&nbsp;
+                        </p>
+                    </div>
+                </div>
+                {/loop}
+            </div>
+        </div>
+			
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                更新状态
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">预约状态</label>
+                    <div class="col-xs-12 col-sm-5 col-lg-9">
+						<p class="form-control-static">
+        <select id="status" name="status" class="form-control">
+             <option value="0" {if $row['status'] == 0}selected="selected"{/if}>待受理</option>
+             <option value="1"  {if $row['status'] == 1}selected="selected"{/if}>已受理</option>
+             {if $row['paystatus'] != 2}<option value="2" {if $row['status'] == 2}selected="selected"{/if}>拒绝受理</option>{/if}
+             <option value="3" {if $row['status'] == 3}selected="selected"{/if}>完成</option>
+        </select>
+		</p>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">付款状态</label>
+                    <div class="col-xs-12 col-sm-5 col-lg-9">
+					<div class="input-group">
+        <select id="paystatus" name="paystatus" class="form-control" {if $activity['pay'] != 1}disabled{/if}>
+             <option value="1" {if $row['paystatus'] == 1}selected="selected"{/if}>未付款</option>
+             <option value="2"  {if $row['paystatus'] == 2}selected="selected"{/if}>已付款</option>
+        </select><span class="input-group-addon">{if $activity['pay'] != 1}只支持”在线支付“时付款状态不能更改{/if}</span>
+                    </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">预约时间</label>
+                    <div class="col-xs-12 col-sm-5 col-lg-9">
+						<input type="text" class="form-control" placeholder="" value="{$row['restime']}" readonly/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">客服备注</label>
+                    <div class="col-xs-12 col-sm-9">
+						<p class="form-control-static"><textarea class="form-control" rows="5" cols="50" id="kfinfo" name="kfinfo">{$row['kfinfo']}</textarea></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+       <button type="submit" name="button" class="btn btn-primary span3">更新预约状态</button> 
+       <input type="hidden" name="token" value="{$_W['token']}" />
+       </form>
+</div>
+        <div class="panel panel-default" style="margin-top:20px;">
+            <div class="panel-heading">
+                预约信息
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">预约标题</label>
+                    <div class="col-xs-12 col-sm-9">
+                    	<p class="form-control-static">{$activity['title']}</p>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">预约说明</label>
+                    <div class="col-xs-12 col-sm-9">
+						<p class="form-control-static">{$activity['description']}</p>
+                    </div>
+                </div>
+                     <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">成功提示</label>
+                    <div class="col-xs-12 col-sm-9">
+						<p class="form-control-static">{$activity['information']}</p>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">图片介绍</label>
+                    <div class="col-xs-12 col-sm-9">
+						<p class="form-control-static"><img src="{php echo tomedia($activity['thumb']);}" style="height:150px;" /></p>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">创建时间</label>
+                    <div class="col-xs-12 col-sm-9">
+						<p class="form-control-static">{php echo date('Y-m-d H:i:s', $activity['createtime']);}</p>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">开始时间~结束时间</label>
+                    <div class="col-xs-12 col-sm-9">
+						<p class="form-control-static">{php echo date('Y-m-d H:i:s', $activity['starttime']);} ~ {php echo date('Y-m-d H:i:s', $activity['endtime']);}</p>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">状态</label>
+                    <div class="col-xs-12 col-sm-9">
+                    	<label>
+							<p class="form-control-static">
+							{if $activity['status'] == '1'}
+								<i class="fa fa-check"> &nbsp; 当前预约生效中</i>
+							{else}
+								<i class="fa fa-check-empty"> &nbsp; 当前预约已失效</i>
+							{/if}
+							</p>
+						</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-xs-12 col-sm-3 col-md-2 control-label">微站首页展示</label>
+                    <div class="col-xs-12 col-sm-9">
+                  		<label>
+							<p class="form-control-static">
+							{if $activity['inhome'] == '1'}
+								<i class="fa fa-check"> &nbsp; 当前预约将展示在微站首页上</i>
+							{else}
+								<i class="fa fa-check-empty"> &nbsp; 当前预约不显示在微站首页</i>
+							{/if}
+							</p>
+						</label>
+                    </div>
+                   </div>
+            </div>
+        </div>
+</div>
+<!--<input type="submit" class="btn btn-primary span3" name="submit" onclick="history.go(-1)" value="返回" />-->
+
+{template 'common/footer'}
