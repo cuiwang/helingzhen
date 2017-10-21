@@ -1,0 +1,796 @@
+<?php defined('IN_IA') or exit('Access Denied');?><?php (!empty($this) && $this instanceof WeModuleSite || 0) ? (include $this->template('common/header-cms', TEMPLATE_INCLUDEPATH)) : (include template('common/header-cms', TEMPLATE_INCLUDEPATH));?>
+<!--开始-->
+  <div class="in_banner"> 
+   <!--[diy=xiaoyu_slide_pic]-->
+   <div id="xiaoyu_slide_pic" class="area">
+   <div id="frameqf6mtg" class="cl_frame_bm frame move-span cl frame-1">
+   <div id="frameqf6mtg_left" class="column frame-1-c">
+   <div id="frameqf6mtg_left_temp" class="move-span temp"></div>
+   <div id="portal_block_27" class="cl_block_bm block move-span">
+   <div id="portal_block_27_content" class="dxb_bc">
+   <div class="portal_block_summary">
+   <div class="slide_pic">
+		<ul>
+			<li>
+				<a href="<?php  echo url('user/register');?>"></a>
+				<div class="banner_bg1 opacity">
+					<img src="./resource/weidongli/images/banner1Bg.jpg" width="1920" height="612">
+				</div>
+				<div class="banner1_img poa opacity">
+					<img src="./resource/weidongli/images/banner1_img1.png" class="png" width="761" height="327">
+				</div>
+				<div class="banner1_text poa opacity">
+					<img src="./resource/weidongli/images/banner1_text.png" width="349" height="200">
+				</div>
+				<div class="banner1_btn poa opacity">
+					<img src="./resource/weidongli/images/banner1_btn.png" width="226" height="58">
+				</div>
+			</li>
+			<li>
+				<a href="javascript:void(0);"></a>
+				<div class="banner_bg2 opacity">
+					<img src="./resource/weidongli/images/banner2Bg.jpg" width="1920" height="612">
+				</div>
+				<div class="banner2_img1 poa opacity">
+					<img src="./resource/weidongli/images/banner2_img1.png" width="414" height="431">
+				</div>
+				<div class="banner2_img2 poa opacity">
+					<img src="./resource/weidongli/images/banner2_img2.png" width="203" height="424">
+				</div>
+				<div class="banner2_title poa opacity">
+					6亿人都在用手机浏览网页， <br/><?php  echo $_W['setting']['copyright']['smname'];?>为您的准备了什么？
+				</div>
+				<div class="banner2_text banner2_text1 poa opacity">
+					<p class="p1"><i class="icon1 icon"></i>200多种高级功能，秒杀市场其他平台系统</p>
+					<p class="p2"><i class="icon2 icon"></i>更多功能升级中，让世界为您的产品点赞</p>
+				</div>
+				<div class="banner2_text banner2_text2 poa opacity">
+					<p class="p1"><i class="icon3 icon"></i>全球分红商城:店中店/核中核/O2O分销，电商终结者</p>
+					<p class="p2"><i class="icon4 icon"></i>大数据分销:分销终结者，秒杀市场其他分销系统</p>
+				</div>
+				<div class="banner2_text banner2_text3 poa opacity">
+					<p class="p1"><i class="icon5 icon"></i>智慧投票:投票系统终结者，内置图片/视频/语音投票</p>
+					<p class="p2"><i class="icon6 icon"></i>智慧小区:实现智慧+生活，内置超市系统</p>
+				</div>
+			</li>
+			<li>
+				<a href="#"></a>
+				<div class="banner_bg3 opacity">
+					<img src="./resource/weidongli/images/banner3Bg.jpg" width="1920" height="612">
+				</div>
+				<div class="banner3_img poa opacity">
+					<img src="./resource/weidongli/images/banner3_img.png" width="683" height="466">
+				</div>
+				<div class="banner3_text poa opacity">
+					<img src="./resource/weidongli/images/banner3_text.png" width="238" height="199" border="0">
+				</div>
+				<div class="banner3_btn poa opacity">
+					<img src="./resource/weidongli/images/banner3_btn.png" width="203" height="68">
+				</div>
+			</li>
+			
+			<li>
+				<a href="javascript:void(0);"></a>
+				<div class="banner_bg4 opacity">
+					<img src="./resource/weidongli/images/banner4Bg.jpg" width="1920" height="612">
+				</div>
+				<div class="banner4_img poa opacity">
+					<img src="./resource/weidongli/images/banner4_img.png" width="319" height="446">
+				</div>
+				<div class="banner4_title1 poa opacity"><img src="./resource/weidongli/images/banner4_title1.png" width="101" height="47"></div>
+				<div class="banner4_title2 poa opacity"><img src="./resource/weidongli/images/banner4_title2.png" width="101" height="47"></div>
+				<div class="banner4_title3 poa opacity"><img src="./resource/weidongli/images/banner4_title3.png" width="101" height="48" ></div>
+				<div class="banner4_text poa opacity">
+					<p><?php  echo $_W['setting']['copyright']['smname'];?>科技-让世界为您的产品点赞！大数据分销，智慧数据商城，全球分红商城，全民经纪人<br/>
+					等，打造终极分销系统！智慧商圈，智慧餐厅，微生活，微夜店等重磅来袭，<br/>
+					打造智慧城市！智慧拼团，微砍价，微商城，超级店等打造智慧店商！<br/>
+					微小区，微餐饮系统，微房产，超市系统，智慧汽车，智慧酒店等，<br/>
+					打造智慧生活！微信红包，微助力，微现场，场景魔方，智慧投票等，<br/>
+					打造智慧营销......更多功能期待您的体验！
+					</p>
+				</div>
+			</li>
+			<li><a href="/"><img src="./resource/weidongli/images/pic04.jpg" width="1920" height="612" alt="<?php  echo $_W['setting']['copyright']['smname'];?>新时代"></a></li>
+		</ul>
+	</div>
+	<a href="javascript:void(0);" class="slide_left"><img src="./resource/weidongli/images/focus_btnleft.png" width="50" height="124" class="png"></a>
+	<a href="javascript:void(0);" class="slide_right"><img src="./resource/weidongli/images/focus_btnright.png" width="50" height="124" class="png"></a>
+	</div></div></div></div></div></div>
+  </div> 
+  <script type="text/javascript">
+xiaoyu(function(){
+xiaoyu(".in_banner").slide({type:"fade",play:"1",time:"5000"});
+})
+</script> 
+  <div id="services"> 
+   <div class="services_title"> 
+    <img src="./resource/weidongli/images/services_title.png" width="250" height="70" /> 
+   </div> 
+   <!--[diy=xiaoyu_services]--><div id="xiaoyu_services" class="area"><div id="frameuDT442" class="cl_frame_bm frame move-span cl frame-1"><div id="frameuDT442_left" class="column frame-1-c"><div id="frameuDT442_left_temp" class="move-span temp"></div><div id="portal_block_28" class="cl_block_bm block move-span"><div id="portal_block_28_content" class="dxb_bc"><div class="portal_block_summary"><div id="services_pop">
+		<div class="services_popcon">
+			<a href="javascript:void(0);" title="close" class="services_popclose"></a>
+			<div class="services_poptabcon">
+				<ul >
+					<li class="services_poptabconbg01">
+						<div class="services_popcontainer">
+							<div class="services_popcontainer_pop01">
+								<h3>品牌进行时…</h3>
+								<p>我们相信每个企业品牌都有它的个性，就如它的每个<br/>创始人的传奇性一般。如何将它的个性发光发亮，<br/>我们一直都专研此道，从视觉出发，颜色、版式、材质、<br/>载体每一个都寄托了它的灵魂，<br/>我们精于此道：品牌策划、平面设计。</p>
+							</div>
+						</div>
+					</li>
+					<li class="services_poptabconbg02">
+						<div class="services_popcontainer">
+							<div class="services_popcontainer_pop02">
+								<h3>看到的是细节，感受到的是用心！</h3>
+								<p>从产品交互原型设计到HTML5前端页面开发，从功能定<br/>制到网站上线维护，我们一如既往地根据用户的需求、<br/>市场环境、企业状况等进行综合分析并提供真实可靠的<br/>WEB解决方案，有效提升企业形象及品牌知名度。</p>
+							</div>
+						</div>
+					</li>
+					<li class="services_poptabconbg03">
+						<div class="services_popcontainer">
+							<div class="services_popcontainer_pop03">
+								<h3>触摸移动互联网革命！</h3>
+								<p>我们基于市场主流的IOS/Android平台，提供高效率的跨平台移动互联网解决方案，<br/>真正意义上从用户的角度出发，做到一套UI界面苹果、安桌共用，有效节约时间和开发成本。<br/>另外我们还提供基于HTML5的WEB  APP开发服务，并可适应WP系统。</p>
+							</div>
+						</div>
+					</li>
+					<li class="services_poptabconbg04">
+						<div class="services_popcontainer">
+							<div class="services_popcontainer_pop04">
+								<h3>将办公室搬上互联网！</h3>
+								<p>我们善于基于LAMP架构提供OA企业协同办公系统开发服务，<br/>多年来先后为深圳市公安局、林业局、芙蓉坊国际美容美体机构等<br/>知名单位企业提供网络系统相关解决方案，并实现安全、高效、分布式管理。</p>
+							</div>
+						</div>
+					</li>
+					<li class="services_poptabconbg05">
+						<div class="services_popcontainer">
+							<div class="services_popcontainer_pop05">
+								<h3>把流量转化成业务量！</h3>
+								<p>我们长期位居百度深圳网站优化排名第一阶梯，拥有丰富的网站优化实战经验，<br/>众多的成功案例，能安全高效地把企业的相关服务/产品等极具价值的关键词排名首页，<br/>增加网站流量含金量，另外提供微营销服务，全方位持续增加企业收入。</p>
+							</div>
+						</div>
+					</li>
+					<li class="services_poptabconbg06">
+						<div class="services_popcontainer">
+							<div class="services_popcontainer_pop06">
+								<h3>每个行业都应该有专属的云主机！</h3>
+								<p>我们提供超低成本、超弹性、超高性能的国内、香港免备案云主机，为企业及大型门户<br />提供高防高带宽优质机房服务器托管、租赁，域名注册、ICP备案等服务。</p>
+							</div>
+						</div>
+					</li>
+				</ul>
+			</div>
+			<div class="services_poptabbtn">
+				<a href="javascript:void(0);" onclick = "services_tab('0');"></a><a href="javascript:void(0);" onclick = "services_tab('1');"></a><a href="javascript:void(0);" onclick = "services_tab('2');"></a><a href="javascript:void(0);" onclick = "services_tab('3');"></a><a href="javascript:void(0);" onclick = "services_tab('4');"></a><a href="javascript:void(0);" onclick = "services_tab('5');"></a>
+			</div>
+		</div>
+	</div>
+	<div class="services_con" id="services_con">
+		<ul id="services_ul" class="mouseslider">
+			<li>
+				<a href="javascript:void(0);" onclick = "services_tab('0','true');">
+					<div class="services_ico services_ico05"><div></div></div>
+					<h3>微信开发 <span>VI DESIGN</span></h3>
+					<p>品牌进行时…</p>
+				</a>
+			</li>
+			<li>
+				<a href="javascript:void(0);" onclick = "services_tab('1','true');">
+					<div class="services_ico services_ico01"><div></div></div>
+					<h3>网页设计 <span>WEB DESIGN</span></h3>
+					<p>看到的是细节，感受到的是用心。</p>
+				</a>
+			</li>
+			<li>
+				<a href="javascript:void(0);" onclick = "services_tab('2','true');">
+					<div class="services_ico services_ico02"><div></div></div>
+					<h3>移动应用 <span>APP DESIGN</span></h3>
+					<p>触摸移动互联网革命！</p>
+				</a>
+			</li>
+			<li>
+				<a href="javascript:void(0);" onclick = "services_tab('3','true');">
+					<div class="services_ico services_ico03"><div></div></div>
+					<h3>系统开发 <span>OA DESIGN</span></h3>
+					<p>将办公室搬上互联网</p>
+				</a>
+			</li>
+			<li>
+				<a href="javascript:void(0);" onclick = "services_tab('4','true');">
+					<div class="services_ico services_ico04"><div></div></div>
+					<h3>网站优化 <span>SEO/SEM</span></h3>
+					<p>把流量变成持续的现金收入</p>
+				</a>
+			</li>
+			<li style="margin-right:0;">
+				<a href="javascript:void(0);" onclick = "services_tab('5','true');">
+					<div class="services_ico services_ico06"><div></div></div>
+					<h3>云主机 <span>IDC/VPS</span></h3>
+					<p>每个行业都应该有专属的云主机</p>
+				</a>
+			</li>
+		</ul>
+	</div></div></div></div></div></div></div><!--[/diy]--> 
+  </div> 
+  <div id="project"> 
+   <!--[diy=xiaoyu_project]--><div id="xiaoyu_project" class="area"><div id="framedEsF98" class="cl_frame_bm frame move-span cl frame-1"><div id="framedEsF98_left" class="column frame-1-c"><div id="framedEsF98_left_temp" class="move-span temp"></div><div id="portal_block_29" class="cl_block_bm block move-span"><div id="portal_block_29_content" class="dxb_bc"><div class="portal_block_summary"><div class="project_title">
+		<img src="./resource/weidongli/images/project_title.png" width="250" height="70">
+		<a href="<?php  echo url('article/plug-show/list');?>" class="project_title_more"></a>
+	</div></div></div></div></div></div></div><!--[/diy]--> 
+   <div class="projectbg"> 
+<div class="project_pic"> 
+<ul>
+<li style="display: list-item;">
+<div id="projectbg" class="area">
+<div class="feature-content">
+		<script>
+			$(document).ready(function(){
+				$(".feature-content dd").hover(
+					function(){
+						$(this).addClass("active")
+					},
+					function(){
+						$(this).removeClass("active");
+					}
+				);
+			});
+		</script>
+
+		<dl class="clearfix">
+			<dd class="vborder">
+				<a href="http://sdp.012wz.com/">
+					<div class="fimg icon sdp"></div>
+					<h3>大数据分销</h3>
+				</a>
+				<p>大数据分销平台<br>零售业全渠道电商整体解决方案</p>
+			</dd>
+			<dd class="vborder">
+				<a href="<?php  echo url('article/plug-show/list');?>">
+					<div class="fimg icon wangpu"></div>
+					<h3>人人商城（分销）</h3>
+				</a>
+				<p>店员分权/店中店分销/O2O核销<br>秒杀市场其他电商平台</p>
+			</dd>
+			<dd class="vborder">
+				<a href="<?php  echo url('article/plug-show/list');?>">
+					<div class="fimg icon community"></div>
+					<h3>智慧微小区</h3>
+				</a>
+				<p>内置超市系统<br> 引领智慧新小区生活</p>
+			</dd>
+			<dd class="vborder">
+				<a href="<?php  echo url('article/plug-show/list');?>">
+					<div class="fimg icon community"></div>
+					<h3>水池分销</h3>
+				</a>
+				<p>内置九级分销<br> 店中店模式，引领电商新时代</p>
+			</dd>
+<dd class="vborder">
+				<a href="<?php  echo url('article/plug-show/list');?>">
+					<div class="fimg icon app"></div>
+					<h3>微信App</h3>
+				</a>
+				<p>客户沟通无限<br>订单随时随地处理</p>
+			</dd>
+			<dd>
+				<a href="<?php  echo url('article/plug-show/list');?>">
+					<div class="fimg icon activities"></div>
+					<h3>O2O超级店</h3>
+				</a>
+				<p>O2O超级店，线上线下完美结合<br>增强用户沉淀</p>
+			</dd>
+			
+		</dl>
+		<div class="line"></div>
+		<dl class="clearfix">
+			<dd class="vborder">
+				<a href="<?php  echo url('article/plug-show/list');?>">
+					<div class="fimg icon take"></div>
+					<h3>微餐饮商圈版</h3>
+				</a>
+				<p>智能排号，智能打单外卖<br>商圈化，多店化餐饮</p>
+			</dd>
+			<dd class="vborder">
+				<a href="<?php  echo url('article/plug-show/list');?>">
+					<div class="fimg icon website"></div>
+					<h3>微拼团</h3>
+				</a>
+				<p>玩法新颖独特<br>分享给自己的小伙伴拼团</p>
+			</dd>
+			
+			<dd class="vborder">
+				<a href="<?php  echo url('article/plug-show/list');?>">
+					<div class="fimg icon open"></div>
+					<h3>开放平台</h3>
+				</a>
+				<p>开放 创新 共赢<br>助力移动营销生态圈</p>
+			</dd>
+			<dd class="vborder">
+				<a href="<?php  echo url('article/plug-show/list');?>">
+					<div class="fimg icon weipai"></div>
+					<h3>微夜店KTV</h3>
+				</a>
+				<p>遇上钟意的TA不敢搭讪<br>那就进入邻座的TA吧</p>
+			</dd>
+			<dd class="vborder">
+				<a href="<?php  echo url('article/plug-show/list');?>">
+					<div class="fimg icon mstate"></div>
+					<h3>微相亲（红娘）</h3>
+				</a>
+				<p>打造微信非诚勿扰<br>邻里微信朋友圈互联</p>
+			</dd>
+			<dd>
+				<a href="<?php  echo url('article/plug-show/list');?>">
+					<div class="fimg icon car"></div>
+					<h3>微汽车</h3>
+				</a>
+				<p>预约试驾或保养 车主关怀<br>360度看车应有尽有</p>
+			</dd>
+		</dl>
+				
+	</div>
+</div>
+</li> 
+<li class="dn"> 
+<div id="projectbg2" class="area">
+<div class="feature-content">
+		<script>
+			$(document).ready(function(){
+				$(".feature-content dd").hover(
+					function(){
+						$(this).addClass("active")
+					},
+					function(){
+						$(this).removeClass("active");
+					}
+				);
+			});
+		</script>
+        <div class="line"></div>
+         <dl class="clearfix">
+				
+			<dd class="vborder">
+				<a href="<?php  echo url('article/plug-show/list');?>">
+					<div class="fimg icon member"></div>
+					<h3>微信会员卡v2.0</h3>
+				</a>
+				<p>方便携带&nbsp;永不挂失<br>消费积分&nbsp;一卡配备</p>
+			</dd>
+            
+           <dd class="vborder">
+				<a href="<?php  echo url('article/plug-show/list');?>">
+					<div class="fimg icon take"></div>
+					<h3>微外卖</h3>
+				</a>
+				<p>智能接单与处理<br>外卖也能So Easy</p>
+			</dd>
+			
+			<dd class="vborder">
+				<a href="<?php  echo url('article/plug-show/list');?>">
+					<div class="fimg icon weipai"></div>
+					<h3>微拍</h3>
+				</a>
+				<p>时尚美照 微信增粉<br>在体验中感受企业魅力</p>
+			</dd>
+			   <dd class="vborder">
+				<a href="<?php  echo url('article/plug-show/list');?>">
+					<div class="fimg icon website"></div>
+					<h3>微场景</h3>
+				</a>
+				<p>重新定义广告传播模式<br>让宣传风靡朋友圈</p>
+			</dd>
+			 <dd class="vborder">
+				<a href="<?php  echo url('article/plug-show/list');?>">
+					<div class="fimg icon activities"></div>
+					<h3>微活动</h3>
+				</a>
+				<p>吸引用户参与<br>增强用户沉淀</p>
+			</dd>
+           <dd>
+				<a href="<?php  echo url('article/plug-show/list');?>">
+					<div class="fimg icon cate"></div>
+					<h3>微信名片</h3>
+				</a>
+				<p>神级名片写真<br>赶超‘千线名片’...</p>
+			</dd>
+		</dl>
+        <div class="line"></div>
+		<dl class="clearfix">
+			<dd class="vborder">
+				<a href="<?php  echo url('article/plug-show/list');?>">
+					<div class="fimg icon mstate"></div>
+					<h3>微官网</h3>
+				</a>
+				<p>5分钟轻松建站<br>打造酷炫微官网</p>
+			</dd>
+
+		<dd class="vborder">
+				<a href="<?php  echo url('article/plug-show/list');?>">
+					<div class="fimg icon buy"></div>
+					<h3>一分钱红包</h3>
+				</a>
+				<p>拇指红包<br>粉丝duang！利器</p>
+			</dd>
+		<dd class="vborder">
+				<a href="<?php  echo url('article/plug-show/list');?>">
+					<div class="fimg icon fang"></div>
+					<h3>扫码神器</h3>
+				</a>
+				<p>智能扫码<br>粉丝duang!duang!涨起来</p>
+			</dd>
+			
+				<dd class="vborder">
+				<a href="<?php  echo url('article/plug-show/list');?>">
+					<div class="fimg icon medical"></div>
+					<h3>全民拆礼盒</h3>
+				</a>
+				<p>大众全民抢礼盒<br>永久不变的营销手段</p>
+			</dd>
+            <dd class="vborder">
+				<a href="<?php  echo url('article/plug-show/list');?>">
+					<div class="fimg icon life"></div>
+					<h3>幸运大转盘</h3>
+				</a>
+				<p>九宫格奖品转盘<br>吃喝玩乐应有尽有</p>
+			</dd>
+
+    		<dd>
+				<a href="<?php  echo url('article/plug-show/list');?>">
+					<div class="fimg icon reserve"></div>
+					<h3>种植乐园</h3>
+				</a>
+				<p>重温QQ种菜乐趣<br>让粉丝随着你的小树duang起来</p>
+			</dd>
+		</dl>
+		
+	</div>
+
+</div>
+</li> 
+<li class="dn"> 
+<div id="projectbg2" class="area">
+<div class="feature-content">
+		<script>
+			$(document).ready(function(){
+				$(".feature-content dd").hover(
+					function(){
+						$(this).addClass("active")
+					},
+					function(){
+						$(this).removeClass("active");
+					}
+				);
+			});
+		</script>
+        <div class="line"></div>
+         <dl class="clearfix">
+				
+			 <dd class="vborder">
+				 <a href="<?php  echo url('article/plug-show/list');?>">
+					 <div class="fimg icon wallcame"></div>
+					 <h3>微信墙</h3>
+				 </a>
+				 <p>活跃现场气氛<br>让粉丝涨起来</p>
+			 </dd>
+            
+            <dd class="vborder">
+				<a href="/<?php  echo url('article/plug-show/list');?>">
+					<div class="fimg icon hotel"></div>
+					<h3>微酒店</h3>
+				</a>
+				<p>在线订房融入微信<br>酒店营销多一条有力途径</p>
+			</dd>
+			
+			 <dd class="vborder">
+				 <a href="<?php  echo url('article/plug-show/list');?>">
+					 <div class="fimg icon kefu"></div>
+					 <h3>微客服</h3>
+				 </a>
+				 <p>沟通6亿用户<br>创造无限商机</p>
+			 </dd>
+			    <dd class="vborder">
+				 <a href="<?php  echo url('article/plug-show/list');?>">
+					 <div class="fimg icon card2"></div>
+					 <h3>微邀请</h3>
+				 </a>
+				 <p>电子请帖&nbsp;微信来袭<br>提供用户特别服务</p>
+			 </dd>
+			 <dd class="vborder">
+				<a href="<?php  echo url('article/plug-show/list');?>">
+					<div class="fimg icon wifi"></div>
+					<h3>微信WiFi</h3>
+				</a>
+				<p>加粉神器<br>轻松让过客成为您的粉丝</p>
+			</dd>
+           <dd>
+				<a href="<?php  echo url('article/plug-show/list');?>">
+					<div class="fimg icon cate"></div>
+					<h3>微餐饮</h3>
+				</a>
+				<p>扫一扫<br>微信也能够实时点餐</p>
+			</dd>
+		</dl>
+        <div class="line"></div>
+		<dl class="clearfix">
+			<dd class="vborder">
+				<a href="<?php  echo url('article/plug-show/list');?>">
+					<div class="fimg icon mtatistics"></div>
+					<h3>数据魔方</h3>
+				</a>
+				<p>精准分析用户行为<br>轻松了解买家</p>
+			</dd>
+
+		<dd class="vborder">
+				<a href="<?php  echo url('article/plug-show/list');?>">
+					<div class="fimg icon buy"></div>
+					<h3>微团购</h3>
+				</a>
+				<p>拇指微团<br>将优惠装入客户口袋</p>
+			</dd>
+		<dd class="vborder">
+				<a href="<?php  echo url('article/plug-show/list');?>">
+					<div class="fimg icon fang"></div>
+					<h3>微房产</h3>
+				</a>
+				<p>全景看房 楼盘印象 预约看房<br>有效助力微信营销</p>
+			</dd>
+			
+				<dd class="vborder">
+				<a href="<?php  echo url('article/plug-show/list');?>">
+					<div class="fimg icon medical"></div>
+					<h3>微医疗</h3>
+				</a>
+				<p>在线挂号或咨询<br>了解病情 微信都可以</p>
+			</dd>
+            <dd class="vborder">
+				<a href="<?php  echo url('article/plug-show/list');?>">
+					<div class="fimg icon life"></div>
+					<h3>微生活</h3>
+				</a>
+				<p>微信公众号建立商圈<br>吃喝玩乐应有尽有</p>
+			</dd>
+
+    		<dd>
+				<a href="<?php  echo url('article/plug-show/list');?>">
+					<div class="fimg icon reserve"></div>
+					<h3>预约报名</h3>
+				</a>
+				<p>各种预约 一键即可<br>短信邮件会立即通知商户</p>
+			</dd>
+		</dl>
+		
+	</div>
+
+</div>
+</li> 
+     </ul> 
+    </div> 
+    <div class="project_btn"> 
+     <a href="javascript:void(0);" onclick="project_tab('0');" class="active"></a>
+     <a href="javascript:void(0);" onclick="project_tab('1');"></a>
+     <a href="javascript:void(0);" onclick="project_tab('2');"></a> 
+    </div> 
+   </div> 
+  </div> 
+  <!--[if lt IE 9]>
+<script type="text/javascript">
+xiaoyu(function(){
+xiaoyu(".about_list li").hover(function(){
+xiaoyu("img",this).stop().animate({"width":"108%",height:"108%",marginLeft:"-4%",marginTop:"-4%"},200)
+},function(){
+xiaoyu("img",this).stop().animate({"width":"100%",height:"100%",marginLeft:"0",marginTop:"0"},200)
+})
+})
+</script>
+<![endif]--> 
+  <div id="about"> 
+   <div class="about_title"> 
+    <img src="./resource/weidongli/images/about_title.png" width="250" height="70" /> 
+   </div> 
+   <div class="about_list cl"> 
+    <ul> 
+     <li><img src="./resource/weidongli/images/pic091.jpg" /></li> 
+     <li><img src="./resource/weidongli/images/pic10.jpg" /></li> 
+     <li><img src="./resource/weidongli/images/pic11.jpg" /></li> 
+     <li><img src="./resource/weidongli/images/pic12.jpg" /></li> 
+    </ul> 
+   </div> 
+   <!--[diy=xiaoyu_about]--><div id="xiaoyu_about" class="area"><div id="framegzTJtN" class="cl_frame_bm frame move-span cl frame-1"><div id="framegzTJtN_left" class="column frame-1-c"><div id="framegzTJtN_left_temp" class="move-span temp"></div><div id="portal_block_30" class="cl_block_bm block move-span"><div id="portal_block_30_content" class="dxb_bc"><div class="portal_block_summary"><div class="about_int"> 
+   <a href="javascript:void(0);" class="about_btn"><span></span></a> 
+  </div> 
+  <div class="about_pop" id="about_pop"> 
+   <div class="about_pop_top"> 
+    <a href="javascript:void(0);" title="close" class="about_popclose"></a> 
+    <h3><img src="./resource/weidongli/images/about_popword.png" class="png" /></h3> 
+    <p class="about_pop_int"><?php  echo $_W['setting']['copyright']['smname'];?>是一支年轻的IT及设计领域精英团队，专业于PC端/手机端应用的开发、微信公众号功能、php网站开发……</p> 
+    <div class="about_pop_tab cl"> 
+     <ul> 
+      <li class="active" onclick="aboutpop_tab('0')"><a href="javascript:void(0);" class="about_pop_tab01"></a></li> 
+      <li onclick="aboutpop_tab('1')"><a href="javascript:void(0);" class="about_pop_tab02"></a></li> 
+      <li onclick="aboutpop_tab('2')"><a href="javascript:void(0);" class="about_pop_tab03"></a></li> 
+      <li onclick="aboutpop_tab('3')"><a href="javascript:void(0);" class="about_pop_tab04"></a></li> 
+     </ul> 
+    </div> 
+   </div> 
+   <div class="about_pop_con"> 
+    <ul> 
+     <li class="about_pop_con01" style="display:block"> <img src="<?php  if(!empty($_W['setting']['copyright']['ewm'])) { ?><?php  echo tomedia($_W['setting']['copyright']['ewm']);?><?php  } else { ?>./resource/weidongli/images/ewm.jpg<?php  } ?>" width="283" height="283" class="about_pop_aboutlogo" /> 
+      <div class="about_pop_about"> 
+       <h3><?php  echo $_W['setting']['copyright']['smname'];?>&middot;让世界为您的产品点赞！</h3> 
+       <p><?php  echo $_W['setting']['copyright']['smname'];?>团队成立于2010年，是广东专业的网络品牌服务商，我们坚持以优秀的创意设计、领先的软件编程技术、出其不意的电子商务战略，鼎力为国内外知名企业提供全方位的网页设计、移动应用、网络系统、视觉设计、网站优化以及云主机租恁等服务。</p>
+						<p>&nbsp;</p>
+						<p style="color:#333; font-size:16px;"><?php  echo $_W['setting']['copyright']['smname'];?>团队成长历程：</p>
+						<p>2008年大学毕业后，8人志同道合于从事网络工作赴国外留学，于2010年回国</p>
+						<p>2010年初成立<?php  echo $_W['setting']['copyright']['smname'];?>工作室，进行产品推广与策划工作</p>
+						<p>2011年进行门户网站整站设计制作并联合社会IT精英从事网站建设工作；</p>
+						<p>2012年对微信平台系程序、APP运用、thankPHP等程序二次开发；</p>
+						<p>2013年开发推广<?php  echo $_W['setting']['copyright']['smname'];?>微信公众号第三方平台程序；</p>
+						<p>2014年先后开发推广<?php  echo $_W['setting']['copyright']['smname'];?>微信公众号第三方平台程序；</p>
+						<p>2015年深圳南山汇龙国资委入资<?php  echo $_W['setting']['copyright']['smname'];?>团队；</p>
+						<p>未来期待您的参与...</p>
+      </div> </li> 
+     <li class="about_pop_con02 cl"> 
+      <div class="about_pop_job"> 
+       <h3>实习设计师助理</h3> 
+       <p>岗位职责：<br />参与项目设计执行流程，了解产品开发全过程。辅助设计师完成重大项目。参与一定的产品分析，交互设计，产品界面视觉设计及规范文档整理工作；</p> 
+       <p>任职要求：<br />精通设计类相关软件，热衷于界面设计与交互设计；具有一定的交互分析以及理解能力；<br />优秀的视觉设计感觉与潜力；有完整独立作品可供参考。</p> 
+       <p>招聘人数：1<br />工作地点：<?php  echo $_W['setting']['copyright']['address'];?></p> 
+       <p>请发简历到：<?php  echo $_W['setting']['copyright']['email'];?></p> 
+      </div> 
+      <div class="about_pop_job"> 
+       <h3>高级视觉设计师</h3> 
+       <p>岗位职责：<br />对用户行为做分析，形成观点和需求，对行业产品趋势分析，评估现有产品的用户体验；<br />撰写用户体验分析文档，配合视觉设计师完成产品设计。</p> 
+       <p>任职要求：<br />一年以上相关工作经验，性格开朗，积极乐观,良好的沟通、表达能力, 团队意识强烈，热衷于研究各类电子产品或互联网产品，有较好的英语读写能力。</p> 
+       <p>招聘人数：1<br />工作地点：<?php  echo $_W['setting']['copyright']['address'];?></p> 
+       <p>请发简历到：<?php  echo $_W['setting']['copyright']['email'];?></p> 
+      </div> 
+      <div class="about_pop_job"> 
+       <h3>iOS/Android开发工程师</h3> 
+       <p>岗位职责：<br />负责iOS或Android客户端应用的设计研发；<br />能与团队成员高效配合，完成项目工作。</p> 
+       <p>任职要求：<br />一年以上iOS或Android开发经验；有扎实的Object C/C++/C/Java语言基础；熟练掌握开发技术，包括UI、网络等方面；熟悉相关开发工具和相关测试工具的使用；学习能力强，有较强分析解决问题的能力；对移动产品有浓厚兴趣。</p> 
+       <p>招聘人数：1<br />工作地点：<?php  echo $_W['setting']['copyright']['address'];?></p> 
+       <p>请发简历到：<?php  echo $_W['setting']['copyright']['email'];?></p> 
+      </div> 
+      <div class="about_pop_job" style="margin-right:0;"> 
+       <h3>PHP开发工程师</h3> 
+       <p>岗位职责：<br />负责网站或相关产品的PHP研发工作；能与团队成员高效配合，完成项目工作。</p> 
+       <p>任职要求：<br />至少两年相关工作经验；一年以上PHP开发及维护工作经验；熟练掌握MySQL数据库，LA/NMP；熟练应用HTML/JavaScript;熟悉相关开发工具和测试工具的使用；学习能力强，有较强分析解决问题的能力。</p> 
+       <p>招聘人数：1<br />工作地点：<?php  echo $_W['setting']['copyright']['address'];?></p> 
+       <p>请发简历到：<?php  echo $_W['setting']['copyright']['email'];?></p> 
+      </div> </li> 
+     <li class="about_pop_con03"><img src="./resource/weidongli/images/fwlc_pic.jpg" /></li> 
+     <li class="about_pop_con04"> 
+      <dl class="about_pop_client cl"> 
+       <dd>
+        <a href="#"><img src="./resource/weidongli/images/tg_clients_1.gif" border="0" /></a>
+       </dd> 
+       <dd>
+        <a href="#"><img src="./resource/weidongli/images/tg_clients_2.gif" border="0" /></a>
+       </dd> 
+       <dd>
+        <a href="#"><img src="./resource/weidongli/images/tg_clients_3.gif" border="0" /></a>
+       </dd> 
+       <dd>
+        <a href="#"><img src="./resource/weidongli/images/tg_clients_4.gif" border="0" /></a>
+       </dd> 
+       <dd>
+        <a href="#"><img src="./resource/weidongli/images/tg_clients_5.gif" border="0" /></a>
+       </dd> 
+       <dd>
+        <a href="#"><img src="./resource/weidongli/images/tg_clients_6.gif" border="0" /></a>
+       </dd> 
+       <dd>
+        <a href="#"><img src="./resource/weidongli/images/tg_clients_7.gif" border="0" /></a>
+       </dd> 
+       <dd>
+        <a href="#"><img src="./resource/weidongli/images/tg_clients_8.gif" border="0" /></a>
+       </dd> 
+       <dd>
+        <a href="#"><img src="./resource/weidongli/images/tg_clients_9.gif" border="0" /></a>
+       </dd> 
+       <dd>
+        <a href="#"><img src="./resource/weidongli/images/tg_clients_10.gif" border="0" /></a>
+       </dd> 
+       <dd>
+        <a href="#"><img src="./resource/weidongli/images/tg_clients_11.gif" border="0" /></a>
+       </dd> 
+       <dd>
+        <a href="#"><img src="./resource/weidongli/images/tg_clients_12.gif" border="0" /></a>
+       </dd> 
+       <dd>
+        <a href="#"><img src="./resource/weidongli/images/tg_clients_13.gif" border="0" /></a>
+       </dd> 
+       <dd>
+        <a href="#"><img src="./resource/weidongli/images/tg_clients_14.gif" border="0" /></a>
+       </dd> 
+       <dd>
+        <a href="#"><img src="./resource/weidongli/images/tg_clients_15.gif" border="0" /></a>
+       </dd> 
+       <dd>
+        <a href="#"><img src="./resource/weidongli/images/tg_clients_16.gif" border="0" /></a>
+       </dd> 
+       <dd>
+        <a href="#"><img src="./resource/weidongli/images/tg_clients_18.gif" border="0" /></a>
+       </dd> 
+       <dd>
+        <a href="#"><img src="./resource/weidongli/images/tg_clients_17.gif" border="0" /></a>
+       </dd> 
+      </dl></li> 
+    </ul> 
+   </div>
+  </div></div></div></div></div></div></div><!--[/diy]--> 
+  </div>
+  <!--[if lte IE 8]>
+    <script src="./resource/weidongli/js/ie8.js" type="text/javascript" type="text/javascript"></script>
+<![endif]-->
+  <div class="newsbg" id="news" style="margin-bottom:-10px;"> 
+   <div class="news cl"> 
+    <div class="news_box z"> 
+<div id="newslist1" class="area">
+<div id="frameRcSjL0" class="cl_frame_bm frame move-span cl frame-1">
+<div id="frameRcSjL0_left" class="column frame-1-c">
+<div id="frameRcSjL0_left_temp" class="move-span temp">
+</div>
+<div id="portal_block_21" class="cl_block_bm block move-span">
+<div id="portal_block_21_content" class="dxb_bc">
+<div class="news_title">
+<a href="<?php  echo url('article/news-show/list');?>">公司动态 <span>News</span></a>
+</div>
+<ul class="news_list" id="news_list">
+<?php  if(is_array($news)) { foreach($news as $new) { ?>
+<li><a href="<?php  echo url('article/news-show/detail', array('id' => $new['id']));?>" title="<?php  echo $new['title'];?>" target="_blank"><?php  echo $new['title'];?></a></li>
+<?php  } } ?>
+</ul>
+</div></div></div></div></div><!--[/diy]--> 
+    </div> 
+    <div class="news_line"></div> 
+    <div class="news_box z"> 
+     <!--[diy=newslist2]--><div id="newslist2" class="area"><div id="framecD6C91" class="cl_frame_bm frame move-span cl frame-1"><div id="framecD6C91_left" class="column frame-1-c"><div id="framecD6C91_left_temp" class="move-span temp"></div><div id="portal_block_22" class="cl_block_bm block move-span"><div id="portal_block_22_content" class="dxb_bc"><div class="news_title">
+<a href="<?php  echo url('article/case-show/list');?>">客户案例 <span>Case</span></a>
+</div>
+<ul class="news_list" id="news_list">
+<?php  if(is_array($cases)) { foreach($cases as $case) { ?>
+<li><a href="<?php  echo url('article/case-show/detail', array('id' => $case['id']));?>" title="<?php  echo $case['title'];?>" target="_blank">[客户案例]-微信公众号：<?php  echo $case['title'];?></a></li>
+<?php  } } ?>
+
+</ul>
+</div></div></div></div></div><!--[/diy]--> 
+    </div> 
+    <div class="news_line"></div> 
+    <div class="news_box fr"> 
+     <!--[diy=newslist3]--><div id="newslist3" class="area"><div id="frameJF9ETG" class="cl_frame_bm frame move-span cl frame-1"><div id="frameJF9ETG_left" class="column frame-1-c"><div id="frameJF9ETG_left_temp" class="move-span temp"></div><div id="portal_block_23" class="cl_block_bm block move-span"><div id="portal_block_23_content" class="dxb_bc"><div class="news_title">
+<a href="<?php  echo url('article/notice-show/list');?>">网站公告 <span>Notice</span></a>
+</div>
+<?php  if(is_array($notices)) { foreach($notices as $notice) { ?>
+<li><a href="<?php  echo url('article/notice-show/detail', array('id' => $notice['id']));?>" title="<?php  echo $notice['title'];?>" target="_blank"><?php  echo $notice['title'];?></a></li>
+<?php  } } ?>
+</div></div></div></div></div><!--[/diy]--> 
+    </div> 
+   </div> 
+  </div> 
+<style>.foot_linksbg{ margin-top:0} .ie8 .about_popclose{ display:none}</style>	</div>
+<script type="text/javascript">
+_attachEvent(window, 'load', getForbiddenFormula, document);
+function getForbiddenFormula() {
+var toGetForbiddenFormulaFIds = function () {
+ajaxget('plugin.php?id=cloudsearch&formhash=8d7e3868');
+};
+var a = document.body.getElementsByTagName('a');
+for(var i = 0;i < a.length;i++){
+if(a[i].getAttribute('sc')) {
+a[i].setAttribute('mid', hash(a[i].href));
+a[i].onmousedown = function() {toGetForbiddenFormulaFIds();};
+}
+}
+var btn = document.body.getElementsByTagName('button');
+for(var i = 0;i < btn.length;i++){
+if(btn[i].getAttribute('sc')) {
+btn[i].setAttribute('mid', hash(btn[i].id));
+btn[i].onmousedown = function() {toGetForbiddenFormulaFIds();};
+}
+}
+}
+</script>
+
+<?php (!empty($this) && $this instanceof WeModuleSite || 0) ? (include $this->template('common/footer-cms', TEMPLATE_INCLUDEPATH)) : (include template('common/footer-cms', TEMPLATE_INCLUDEPATH));?>
